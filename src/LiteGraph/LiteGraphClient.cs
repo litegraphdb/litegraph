@@ -11,6 +11,7 @@
     using System.Xml.Linq;
     using System.Collections.Specialized;
     using System.Reflection.Metadata.Ecma335;
+    using SQLitePCL;
 
     /// <summary>
     /// LiteGraph client.
@@ -194,7 +195,7 @@
             TenantMetadata tenant = ReadTenant(guid);
             if (tenant == null) return;
 
-            Logging.Log(SeverityEnum.Info, "deleting tenant with name " + tenant.Name + " GUID " + tenant.GUID);
+            Logging.Log(SeverityEnum.Info, "deleting tenant " + tenant.Name + " GUID " + tenant.GUID);
 
             _Repository.DeleteTenant(guid, force);
         }
@@ -327,6 +328,7 @@
             Logging.Log(SeverityEnum.Info, "deleting user with email " + user.Email + " GUID " + user.GUID);
 
             _Repository.DeleteUser(tenantGuid, guid);
+            _Repository.DeleteUserCredentials(tenantGuid, guid);
         }
 
         /// <summary>
@@ -971,10 +973,10 @@
                 _Repository.DeleteNodes(tenantGuid, graph.GUID);
             }
 
-            if (_Repository.ReadNodes(tenantGuid, graph.GUID).Count() > 0)
+            if (_Repository.ReadNodes(tenantGuid, graph.GUID).Any())
                 throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
 
-            if (_Repository.ReadEdges(tenantGuid, graph.GUID).Count() > 0)
+            if (_Repository.ReadEdges(tenantGuid, graph.GUID).Any())
                 throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
 
             _Repository.DeleteGraph(tenantGuid, graph.GUID, force);

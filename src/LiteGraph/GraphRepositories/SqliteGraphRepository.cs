@@ -194,6 +194,18 @@
                     DeleteGraphs(tenant.GUID);
                 }
 
+                if (ReadUsers(tenant.GUID, null).Any())
+                {
+                    Logging.Log(SeverityEnum.Warn, "specified tenant " + guid + " has linked users");
+                    throw new InvalidOperationException("The specified tenant has linked users.");
+                }
+
+                if (ReadGraphs(tenant.GUID).Any())
+                {
+                    Logging.Log(SeverityEnum.Warn, "specified tenant " + guid + " has linked graphs");
+                    throw new InvalidOperationException("The specified tenant has linked graphs.");
+                }
+
                 Query(Tenants.DeleteTenantQuery(guid), true);
             }
         }
@@ -327,6 +339,7 @@
                 foreach (UserMaster user in users)
                 {
                     DeleteUser(user.TenantGUID, user.GUID);
+                    DeleteUserCredentials(user.TenantGUID, user.GUID);
                 }
             }
         }
