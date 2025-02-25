@@ -178,7 +178,7 @@
                 + "model = '" + Sanitizer.Sanitize(vector.Model) + "',"
                 + "dimensionality = " + vector.Dimensionality + ","
                 + "content = '" + Sanitizer.Sanitize(vector.Content) + "',"
-                + "embeddings = '" + Serializer.SerializeJson(vector.Vectors, false) + "',"
+                + "embeddings = '" + Serializer.SerializeJson(vector.Vectors, false) + "' "
                 + "WHERE guid = '" + vector.GUID + "' "
                 + "RETURNING *;";
         }
