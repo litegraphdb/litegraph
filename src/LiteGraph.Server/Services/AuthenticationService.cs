@@ -8,6 +8,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http.Headers;
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
@@ -123,6 +124,15 @@
         {
             if (String.IsNullOrEmpty(token)) throw new ArgumentNullException(nameof(token));
             AuthenticationToken authToken = ParseSecurityTokenString(token);
+
+            if (authToken.TenantGUID != null && authToken.UserGUID != null)
+            {
+                authToken.Tenant = _Repository.ReadTenant(authToken.TenantGUID.Value);
+                authToken.User = _Repository.ReadUser(authToken.TenantGUID.Value, authToken.UserGUID.Value);
+
+                if (authToken.User != null) authToken.User = UserMaster.Redact(_Serializer, authToken.User);
+            }
+
             authToken.Random = null;
             return authToken;
         }

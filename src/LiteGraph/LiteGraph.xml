@@ -3485,6 +3485,14 @@
             Instantiate.
             </summary>
         </member>
+        <member name="M:LiteGraph.UserMaster.Redact(LiteGraph.Serialization.ISerializer,LiteGraph.UserMaster)">
+            <summary>
+            Redact.
+            </summary>
+            <param name="serializer">Serializer.</param>
+            <param name="user">User.</param>
+            <returns>User.</returns>
+        </member>
         <member name="T:LiteGraph.VectorMetadata">
             <summary>
             Vector metadata.

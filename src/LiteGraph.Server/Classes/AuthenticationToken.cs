@@ -44,9 +44,19 @@
         public Guid? TenantGUID { get; set; } = null;
 
         /// <summary>
+        /// Tenant.
+        /// </summary>
+        public TenantMetadata Tenant { get; set; } = null;
+
+        /// <summary>
         /// User GUID.
         /// </summary>
         public Guid? UserGUID { get; set; } = null;
+
+        /// <summary>
+        /// User.
+        /// </summary>
+        public UserMaster User { get; set; } = null;
 
         /// <summary>
         /// Token.
