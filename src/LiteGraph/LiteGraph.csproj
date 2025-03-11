@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>3.1.6</Version>
+		<Version>3.1.7</Version>
 		<Description>LiteGraph is a simple graph database abstraction with a RESTful interface, JSON data query support, and GEXF output support.</Description>
 		<PackageReleaseNotes>Refactor, multitenancy, users, credentials, and tags, including tag based retrieval</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
