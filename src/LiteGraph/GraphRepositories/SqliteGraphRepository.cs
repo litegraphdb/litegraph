@@ -1833,8 +1833,11 @@
             lock (_CreateLock)
                 Query(query);
 
-            DeleteLabels(tenantGuid, graphGuid, null, edges.Select(e => e.GUID).ToList());
-            DeleteTags(tenantGuid, graphGuid, null, edges.Select(e => e.GUID).ToList());
+            if (edges.Count > 0)
+            {
+                DeleteLabels(tenantGuid, graphGuid, null, edges.Select(e => e.GUID).ToList());
+                DeleteTags(tenantGuid, graphGuid, null, edges.Select(e => e.GUID).ToList());
+            }
         }
 
         /// <inheritdoc />
