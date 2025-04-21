@@ -10,7 +10,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Watson" Version="6.3.4" />
+		<PackageReference Include="Watson" Version="6.3.9" />
 	</ItemGroup>
 
 	<ItemGroup>

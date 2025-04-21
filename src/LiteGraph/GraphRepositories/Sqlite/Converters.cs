@@ -14,7 +14,7 @@
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
         internal static string GetDataRowStringValue(DataRow row, string column)
         {

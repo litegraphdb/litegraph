@@ -32,7 +32,7 @@
         private Settings _Settings = null;
         private LoggingModule _Logging = null;
         private LiteGraphClient _LiteGraph = null;
-        private SerializationHelper _Serializer = null;
+        private Serializer _Serializer = null;
         private AuthenticationService _Authentication = null;
         private ServiceHandler _ServiceHandler = null;
 
@@ -53,7 +53,7 @@
             Settings settings,
             LoggingModule logging,
             LiteGraphClient litegraph,
-            SerializationHelper serializer,
+            Serializer serializer,
             AuthenticationService auth,
             ServiceHandler service)
         {
@@ -64,7 +64,7 @@
             _Authentication = auth ?? throw new ArgumentNullException(nameof(auth));
             _ServiceHandler = service ?? throw new ArgumentNullException(nameof(service));
 
-            _Webserver = new Webserver(_Settings.Rest, DefaultRequestHandler);
+            _Webserver = new Webserver(_Settings.Rest, DefaultRoute);
             _Webserver.Routes.PreRouting = PreRoutingHandler;
             _Webserver.Routes.AuthenticateRequest = AuthenticateRequest;
             _Webserver.Routes.PostRouting = PostRoutingHandler;
@@ -139,10 +139,12 @@
             #region Labels
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels", LabelCreateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/bulk", LabelCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels", LabelReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelUpdateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/bulk", LabelDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelDeleteRoute, ExceptionRoute);
 
             #endregion
@@ -150,10 +152,12 @@
             #region Tags
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags", TagCreateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags/bulk", TagCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags", TagReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagUpdateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/tags/bulk", TagDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagDeleteRoute, ExceptionRoute);
 
             #endregion
@@ -161,11 +165,13 @@
             #region Vectors
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/vectors", VectorCreateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/vectors/bulk", VectorCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/vectors", VectorSearchRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/vectors", VectorReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorUpdateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/vectors/bulk", VectorDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorDeleteRoute, ExceptionRoute);
 
             #endregion
@@ -187,14 +193,14 @@
             #region Nodes
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", NodeCreateRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/multiple", NodeCreateMultipleRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", NodeCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/search", NodeSearchRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", NodeReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", NodeDeleteAllRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/multiple", NodeDeleteMultipleRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", NodeDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeDeleteRoute, ExceptionRoute);
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/from", EdgesFromNodeRoute, ExceptionRoute);
@@ -209,7 +215,7 @@
             #region Edges
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", EdgeCreateRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/multiple", EdgeCreateMultipleRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", EdgeCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/between", EdgesBetweenRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/search", EdgeSearchRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeReadRoute, ExceptionRoute);
@@ -217,7 +223,7 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", EdgeReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeDeleteAllRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/multiple", EdgeDeleteMultipleRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", EdgeDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeDeleteRoute, ExceptionRoute);
 
             #endregion
@@ -355,7 +361,7 @@
             }
         }
 
-        internal async Task DefaultRequestHandler(HttpContextBase ctx)
+        internal async Task DefaultRoute(HttpContextBase ctx)
         {
             _Logging.Warn(_Header + "unknown verb or endpoint: " + ctx.Request.Method + " " + ctx.Request.Url.RawWithQuery);
             ctx.Response.StatusCode = 400;
@@ -447,7 +453,7 @@
             if (e is JsonException)
             {
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, e.Message), true));
             }
             else if (e is FormatException)
             {
@@ -787,6 +793,19 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelCreate);
         }
 
+        private async Task LabelCreateManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.Labels = _Serializer.DeserializeJson<List<LabelMetadata>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelCreateMany);
+        }
+
         private async Task LabelReadManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -826,6 +845,19 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDelete);
         }
 
+        private async Task LabelDeleteManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteMany);
+        }
+
         #endregion
 
         #region Tag-Routes
@@ -842,6 +874,19 @@
             req.Tag = _Serializer.DeserializeJson<TagMetadata>(ctx.Request.DataAsString);
             req.Tag.TenantGUID = req.TenantGUID.Value;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TagCreate);
+        }
+
+        private async Task TagCreateManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.Tags = _Serializer.DeserializeJson<List<TagMetadata>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.TagCreateMany);
         }
 
         private async Task TagReadManyRoute(HttpContextBase ctx)
@@ -883,6 +928,19 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TagDelete);
         }
 
+        private async Task TagDeleteManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.TagDeleteMany);
+        }
+
         #endregion
 
         #region Vector-Routes
@@ -899,6 +957,19 @@
             req.Vector = _Serializer.DeserializeJson<VectorMetadata>(ctx.Request.DataAsString);
             req.Vector.TenantGUID = req.TenantGUID.Value;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorCreate);
+        }
+
+        private async Task VectorCreateManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.Vectors = _Serializer.DeserializeJson<List<VectorMetadata>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorCreateMany);
         }
 
         private async Task VectorReadManyRoute(HttpContextBase ctx)
@@ -938,6 +1009,19 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorDelete);
+        }
+
+        private async Task VectorDeleteManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorDeleteMany);
         }
 
         private async Task VectorSearchRoute(HttpContextBase ctx)
@@ -1087,7 +1171,7 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeCreate);
         }
 
-        private async Task NodeCreateMultipleRoute(HttpContextBase ctx)
+        private async Task NodeCreateManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
@@ -1098,7 +1182,7 @@
             }
 
             req.Nodes = _Serializer.DeserializeJson<List<Node>>(ctx.Request.DataAsString);
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeCreateMultiple);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeCreateMany);
         }
 
         private async Task NodeReadManyRoute(HttpContextBase ctx)
@@ -1164,7 +1248,7 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeDeleteAll);
         }
 
-        private async Task NodeDeleteMultipleRoute(HttpContextBase ctx)
+        private async Task NodeDeleteManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
@@ -1175,7 +1259,7 @@
             }
 
             req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeDeleteMultiple);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeDeleteMany);
         }
 
         #endregion
@@ -1198,7 +1282,7 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeCreate);
         }
 
-        private async Task EdgeCreateMultipleRoute(HttpContextBase ctx)
+        private async Task EdgeCreateManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
@@ -1209,7 +1293,7 @@
             }
 
             req.Edges = _Serializer.DeserializeJson<List<Edge>>(ctx.Request.DataAsString);
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeCreateMultiple);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeCreateMany);
         }
 
         private async Task EdgeReadManyRoute(HttpContextBase ctx)
@@ -1281,7 +1365,7 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteAll);
         }
 
-        private async Task EdgeDeleteMultipleRoute(HttpContextBase ctx)
+        private async Task EdgeDeleteManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
@@ -1292,7 +1376,7 @@
             }
 
             req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteMultiple);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteMany);
         }
 
         #endregion

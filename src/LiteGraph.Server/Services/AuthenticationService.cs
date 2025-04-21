@@ -24,8 +24,8 @@
         private string _Header = "[AuthService] ";
         private Settings _Settings = null;
         private LoggingModule _Logging = null;
-        private SerializationHelper _Serializer = new SerializationHelper();
-        private GraphRepositoryBase _Repository = null;
+        private Serializer _Serializer = new Serializer();
+        private GraphRepositoryBase _Repo = null;
 
         #endregion
 
@@ -35,19 +35,19 @@
         /// Authentication service.
         /// </summary>
         /// <param name="settings">Settings.</param>
-        /// <param name="logging">Logging module.</param>
+        /// <param name="logging">Logging settings.</param>
         /// <param name="serializer">Serializer.</param>
         /// <param name="repo">Graph repository driver.</param>
         public AuthenticationService(
             Settings settings, 
             LoggingModule logging, 
-            SerializationHelper serializer,
+            Serializer serializer,
             GraphRepositoryBase repo)
         {
             _Settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _Logging = logging ?? throw new ArgumentNullException(nameof(logging));
             _Serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _Repository = repo ?? throw new ArgumentNullException(nameof(repo));
+            _Repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 
         #endregion
@@ -127,8 +127,8 @@
 
             if (authToken.TenantGUID != null && authToken.UserGUID != null)
             {
-                authToken.Tenant = _Repository.ReadTenant(authToken.TenantGUID.Value);
-                authToken.User = _Repository.ReadUser(authToken.TenantGUID.Value, authToken.UserGUID.Value);
+                authToken.Tenant = _Repo.Tenant.ReadByGuid(authToken.TenantGUID.Value);
+                authToken.User = _Repo.User.ReadByGuid(authToken.TenantGUID.Value, authToken.UserGUID.Value);
 
                 if (authToken.User != null) authToken.User.Password = null;
             }
@@ -150,7 +150,7 @@
             {
                 #region Credential-Authentication
 
-                req.Authentication.User = _Repository.ReadUserByEmail(req.Authentication.TenantGUID.Value, req.Authentication.Email);
+                req.Authentication.User = _Repo.User.ReadByEmail(req.Authentication.TenantGUID.Value, req.Authentication.Email);
                 if (req.Authentication.User == null)
                 {
                     _Logging.Warn(_Header + "user with email " + req.Authentication.Email + " not found");
@@ -177,7 +177,7 @@
                     return;
                 }
 
-                req.Authentication.Tenant = _Repository.ReadTenant(req.Authentication.TenantGUID.Value);
+                req.Authentication.Tenant = _Repo.Tenant.ReadByGuid(req.Authentication.TenantGUID.Value);
                 if (req.Authentication.Tenant == null)
                 {
                     _Logging.Warn(_Header + "tenant " + req.Authentication.TenantGUID + " referenced by user " + req.Authentication.UserGUID + " not found");
@@ -209,7 +209,6 @@
                 {
                     #region LiteGraph-Admin
 
-                    _Logging.Info(_Header + "admin bearer token in use from " + req.Ip);
                     req.Authentication.IsAdmin = true;
                     req.Authentication.Result = AuthenticationResultEnum.Success;
                     return;
@@ -220,7 +219,7 @@
                 {
                     #region User
 
-                    req.Authentication.Credential = _Repository.ReadCredentialByBearerToken(req.Authentication.BearerToken);
+                    req.Authentication.Credential = _Repo.Credential.ReadByBearerToken(req.Authentication.BearerToken);
                     if (req.Authentication.Credential == null)
                     {
                         _Logging.Warn(_Header + "unable to find bearer token " + req.Authentication.BearerToken);
@@ -239,7 +238,7 @@
                         return;
                     }
 
-                    req.Authentication.Tenant = _Repository.ReadTenant(req.Authentication.Credential.TenantGUID);
+                    req.Authentication.Tenant = _Repo.Tenant.ReadByGuid(req.Authentication.Credential.TenantGUID);
                     if (req.Authentication.Tenant == null)
                     {
                         _Logging.Warn(_Header + "tenant " + req.Authentication.Credential.TenantGUID + " referenced in credential " + req.Authentication.Credential.GUID + " not found");
@@ -258,7 +257,7 @@
                         return;
                     }
 
-                    req.Authentication.User = _Repository.ReadUser(req.Authentication.Credential.TenantGUID, req.Authentication.Credential.UserGUID);
+                    req.Authentication.User = _Repo.User.ReadByGuid(req.Authentication.Credential.TenantGUID, req.Authentication.Credential.UserGUID);
                     if (req.Authentication.User == null)
                     {
                         _Logging.Warn(_Header + "user " + req.Authentication.Credential.UserGUID + " referenced in credential " + req.Authentication.Credential.GUID + " not found");
@@ -309,7 +308,7 @@
                     return;
                 }
 
-                req.Authentication.User = _Repository.ReadUser(token.TenantGUID.Value, token.UserGUID.Value);
+                req.Authentication.User = _Repo.User.ReadByGuid(token.TenantGUID.Value, token.UserGUID.Value);
                 if (req.Authentication.User == null)
                 {
                     _Logging.Warn(_Header + "user " + token.UserGUID + " not found");
@@ -328,7 +327,7 @@
                     return;
                 }
 
-                req.Authentication.Tenant = _Repository.ReadTenant(req.Authentication.User.TenantGUID);
+                req.Authentication.Tenant = _Repo.Tenant.ReadByGuid(req.Authentication.User.TenantGUID);
                 if (req.Authentication.Tenant == null)
                 {
                     _Logging.Warn(_Header + "tenant " + req.Authentication.User.TenantGUID + " not found");

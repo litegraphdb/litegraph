@@ -9,15 +9,13 @@
     using ExpressionTree;
     using LiteGraph.Serialization;
 
-    internal static class Vectors
+    internal static class VectorQueries
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
-        #region Vectors
-
-        internal static string InsertVectorQuery(VectorMetadata vector)
+        internal static string Insert(VectorMetadata vector)
         {
             string ret =
                 "INSERT INTO 'vectors' "
@@ -39,7 +37,7 @@
             return ret;
         }
 
-        internal static string InsertMultipleVectorsQuery(Guid tenantGuid, Guid graphGuid, List<VectorMetadata> vectors)
+        internal static string InsertMany(Guid tenantGuid, List<VectorMetadata> vectors)
         {
             string ret =
                 "INSERT INTO 'vectors' "
@@ -67,7 +65,37 @@
             return ret;
         }
 
-        internal static string SelectMultipleVectorsQuery(Guid tenantGuid, List<Guid> guids)
+        internal static string SelectAllInTenant(
+            Guid tenantGuid, 
+            int batchSize = 100, 
+            int skip = 0,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret = "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' ";
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string SelectAllInGraph(
+            Guid tenantGuid, 
+            Guid graphGuid,
+            int batchSize = 100, 
+            int skip = 0, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret =
+                "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND graphguid = '" + graphGuid + "' ";
+
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string SelectMany(Guid tenantGuid, List<Guid> guids)
         {
             string ret = "SELECT * FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' AND guid IN (";
 
@@ -81,12 +109,12 @@
             return ret;
         }
 
-        internal static string SelectVectorQuery(Guid tenantGuid, Guid guid)
+        internal static string Select(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string SelectTenantVectorsQuery(
+        internal static string SelectTenant(
             Guid tenantGuid,
             int batchSize = 100,
             int skip = 0,
@@ -103,7 +131,7 @@
             return ret;
         }
 
-        internal static string SelectGraphVectorsQuery(
+        internal static string SelectGraph(
             Guid tenantGuid,
             Guid graphGuid,
             int batchSize = 100,
@@ -124,7 +152,7 @@
             return ret;
         }
 
-        internal static string SelectNodeVectorsQuery(
+        internal static string SelectNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -146,7 +174,7 @@
             return ret;
         }
 
-        internal static string SelectEdgeVectorsQuery(
+        internal static string SelectEdge(
             Guid tenantGuid,
             Guid graphGuid,
             Guid edgeGuid,
@@ -168,7 +196,7 @@
             return ret;
         }
 
-        internal static string UpdateVectorQuery(VectorMetadata vector)
+        internal static string Update(VectorMetadata vector)
         {
             return
                 "UPDATE 'vectors' SET "
@@ -183,12 +211,12 @@
                 + "RETURNING *;";
         }
 
-        internal static string DeleteVectorQuery(Guid tenantGuid, Guid guid)
+        internal static string Delete(Guid tenantGuid, Guid guid)
         {
             return "DELETE FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string DeleteVectorsQuery(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        internal static string DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
         {
             string ret = "DELETE FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' ";
 
@@ -209,7 +237,32 @@
             return ret;
         }
 
-        internal static string DeleteAllTenantVectors(Guid tenantGuid, Guid graphGuid)
+        internal static string DeleteMany(Guid tenantGuid, List<Guid> guids)
+        {
+            string ret = "DELETE FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' "
+                + "AND guid IN (";
+
+            int added = 0;
+            foreach (Guid guid in guids)
+            {
+                if (added > 0) ret += ",";
+                ret += "'" + guid + "'";
+                added++;
+            }
+
+            ret += ");";
+            return ret;
+        }
+
+        internal static string DeleteAllInTenant(Guid tenantGuid)
+        {
+            string ret =
+                "DELETE FROM 'vectors' WHERE " +
+                "tenantguid = '" + tenantGuid + "';";
+            return ret;
+        }
+
+        internal static string DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
         {
             string ret =
                 "DELETE FROM 'vectors' WHERE " +
@@ -218,16 +271,7 @@
             return ret;
         }
 
-        internal static string DeleteAllGraphVectors(Guid tenantGuid, Guid graphGuid)
-        {
-            string ret =
-                "DELETE FROM 'vectors' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "';";
-            return ret;
-        }
-
-        internal static string DeleteGraphVectors(Guid tenantGuid, Guid graphGuid)
+        internal static string DeleteGraph(Guid tenantGuid, Guid graphGuid)
         {
             string ret =
                 "DELETE FROM 'vectors' WHERE " +
@@ -237,29 +281,5 @@
                 "AND edgeguid IS NULL;";
             return ret;
         }
-
-        internal static string DeleteNodeVectors(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
-        {
-            string ret =
-                "DELETE FROM 'vectors' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid = '" + nodeGuid + "' " +
-                "AND edgeguid IS NULL;";
-            return ret;
-        }
-
-        internal static string DeleteEdgeVectors(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
-        {
-            string ret =
-                "DELETE FROM 'vectors' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid IS NULL " +
-                "AND edgeguid = '" + edgeGuid + "';";
-            return ret;
-        }
-
-        #endregion
     }
 }

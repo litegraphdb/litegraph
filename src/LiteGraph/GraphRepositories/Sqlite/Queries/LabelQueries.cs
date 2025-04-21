@@ -9,15 +9,13 @@
     using ExpressionTree;
     using LiteGraph.Serialization;
 
-    internal static class Labels
+    internal static class LabelQueries
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
-        #region Labels
-
-        internal static string InsertLabelQuery(LabelMetadata label)
+        internal static string Insert(LabelMetadata label)
         {
             string ret =
                 "INSERT INTO 'labels' "
@@ -36,7 +34,7 @@
             return ret;
         }
 
-        internal static string InsertMultipleLabelsQuery(Guid tenantGuid, Guid graphGuid, List<LabelMetadata> labels)
+        internal static string InsertMany(Guid tenantGuid, List<LabelMetadata> labels)
         {
             string ret =
                 "INSERT INTO 'labels' "
@@ -61,7 +59,37 @@
             return ret;
         }
 
-        internal static string SelectMultipleLabelsQuery(Guid tenantGuid, List<Guid> guids)
+        internal static string SelectAllInTenant(
+            Guid tenantGuid, 
+            int batchSize = 100, 
+            int skip = 0, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret = "SELECT * FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' ";
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string SelectAllInGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            int batchSize = 100, 
+            int skip = 0, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret =
+                "SELECT * FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND graphguid = '" + graphGuid + "' ";
+
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string SelectMany(Guid tenantGuid, List<Guid> guids)
         {
             string ret = "SELECT * FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' AND guid IN (";
 
@@ -75,33 +103,12 @@
             return ret;
         }
 
-        internal static string SelectLabelQuery(Guid tenantGuid, Guid guid)
+        internal static string Select(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string SelectTenantLabelsQuery(
-            Guid tenantGuid,
-            string label,
-            int batchSize = 100,
-            int skip = 0,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
-        {
-            string ret =
-                "SELECT * FROM 'labels' WHERE guid IS NOT NULL " +
-                "AND tenantguid = '" + tenantGuid.ToString() + "' ";
-
-            if (!String.IsNullOrEmpty(label))
-                ret += "AND label = '" + Sanitizer.Sanitize(label) + "' ";
-
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
-
-            return ret;
-        }
-
-        internal static string SelectGraphLabelsQuery(
+        internal static string SelectGraph(
             Guid tenantGuid,
             Guid graphGuid,
             string label,
@@ -126,7 +133,7 @@
             return ret;
         }
 
-        internal static string SelectNodeLabelsQuery(
+        internal static string SelectNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -152,7 +159,7 @@
             return ret;
         }
 
-        internal static string SelectEdgeLabelsQuery(
+        internal static string SelectEdge(
             Guid tenantGuid,
             Guid graphGuid,
             Guid edgeGuid,
@@ -178,7 +185,7 @@
             return ret;
         }
 
-        internal static string UpdateLabelQuery(LabelMetadata label)
+        internal static string Update(LabelMetadata label)
         {
             return
                 "UPDATE 'labels' SET "
@@ -190,12 +197,12 @@
                 + "RETURNING *;";
         }
 
-        internal static string DeleteLabelQuery(Guid tenantGuid, Guid guid)
+        internal static string Delete(Guid tenantGuid, Guid guid)
         {
             return "DELETE FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string DeleteLabelsQuery(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        internal static string DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
         {
             string ret = "DELETE FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' ";
 
@@ -216,7 +223,24 @@
             return ret;
         }
 
-        internal static string DeleteAllTenantLabelsQuery(Guid tenantGuid)
+        internal static string DeleteMany(Guid tenantGuid, List<Guid> guids)
+        {
+            string ret = "DELETE FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' "
+                + "AND guid IN (";
+
+            int added = 0;
+            foreach (Guid guid in guids)
+            {
+                if (added > 0) ret += ",";
+                ret += "'" + guid + "'";
+                added++;
+            }
+
+            ret += ");";
+            return ret;
+        }
+
+        internal static string DeleteAllInTenant(Guid tenantGuid)
         {
             string ret =
                 "DELETE FROM 'labels' WHERE " +
@@ -224,7 +248,7 @@
             return ret;
         }
 
-        internal static string DeleteAllGraphLabelsQuery(Guid tenantGuid, Guid graphGuid)
+        internal static string DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
         {
             string ret =
                 "DELETE FROM 'labels' WHERE " +
@@ -233,7 +257,7 @@
             return ret;
         }
 
-        internal static string DeleteGraphLabelsQuery(Guid tenantGuid, Guid graphGuid)
+        internal static string DeleteGraph(Guid tenantGuid, Guid graphGuid)
         {
             string ret =
                 "DELETE FROM 'labels' WHERE " +
@@ -243,29 +267,5 @@
                 "AND edgeguid IS NULL;";
             return ret;
         }
-
-        internal static string DeleteNodeLabelsQuery(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
-        {
-            string ret =
-                "DELETE FROM 'labels' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid = '" + nodeGuid + "' " +
-                "AND edgeguid IS NULL;";
-            return ret;
-        }
-
-        internal static string DeleteEdgeLabelsQuery(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
-        {
-            string ret =
-                "DELETE FROM 'labels' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid IS NULL " +
-                "AND edgeguid = '" + edgeGuid + "';";
-            return ret;
-        }
-
-        #endregion
     }
 }
