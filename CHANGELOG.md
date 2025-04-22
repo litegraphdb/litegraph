@@ -2,6 +2,20 @@
 
 ## Current Version
 
+v4.0.x
+
+- Major internal refactor for both the graph repository base and the client class
+- Separation of responsibilities; graph repository base owns primitives, client class owns validation and cross-cutting
+- Consistency in interface API names and behaviors
+- Consistency in passing of query parameters such as skip to implementations and primitives
+- Consolidation of create, update, and delete actions within a single transaction
+- Batch APIs for creation and deletion of labels, tags, vectors, edges, and nodes
+- Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
+- Dependency updates and bug fixes
+- Minor Postman fixes
+
+## Previous Versions
+
 v3.1.x
 
 - Added support for labels on graphs, nodes, edges (string list)
@@ -10,8 +24,6 @@ v3.1.x
 - Updated GEXF export to support labels and tags
 - Internal refactor to reduce code bloat
 - Multiple bugfixes and QoL improvements
-
-## Previous Versions
 
 v3.0.x
 
