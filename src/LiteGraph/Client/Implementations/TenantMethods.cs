@@ -92,6 +92,34 @@
         public void DeleteByGuid(Guid guid, bool force = false)
         {
             _Client.ValidateTenantExists(guid);
+
+            if (!force)
+            {
+                if (_Repo.User.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent users.");
+
+                if (_Repo.Credential.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent credentials.");
+
+                if (_Repo.Graph.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent graphs.");
+
+                if (_Repo.Node.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent nodes.");
+
+                if (_Repo.Edge.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent edges.");
+
+                if (_Repo.Label.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent labels.");
+
+                if (_Repo.Tag.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent tags.");
+
+                if (_Repo.Vector.ReadAllInTenant(guid).Any())
+                    throw new InvalidOperationException("The specified tenant has dependent vectors.");
+            }
+
             _Repo.Tenant.DeleteByGuid(guid, force);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tenant " + guid + " (force " + force + ")");
             _TenantCache.TryRemove(guid);
