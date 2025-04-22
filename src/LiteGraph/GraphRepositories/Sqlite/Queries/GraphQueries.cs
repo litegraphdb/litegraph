@@ -288,7 +288,7 @@
                         "NULL, " +
                         "'" + Sanitizer.Sanitize(label.Label) + "', " +
                         "'" + label.CreatedUtc.ToString(TimestampFormat) + "', " +
-                        "'" + label.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                        "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }
             }
 
@@ -315,7 +315,7 @@
                         "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                         "'" + Sanitizer.Sanitize(tag.Value) + "', " +
                         "'" + tag.CreatedUtc.ToString(TimestampFormat) + "', " +
-                        "'" + tag.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                        "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }
             }
 
@@ -343,7 +343,7 @@
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
                         "'" + Sanitizer.Sanitize(vectorsString) + "', " +
                         "'" + vector.CreatedUtc.ToString(TimestampFormat) + "', " +
-                        "'" + vector.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                        "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }
             }
 

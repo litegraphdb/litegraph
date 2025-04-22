@@ -67,9 +67,9 @@
             _Client.ValidateTenantExists(node.TenantGUID);
             _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID);
             Node created = _Repo.Node.Create(node);
-            node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList());
-            node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList());
-            node.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+            created.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList());
+            created.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList());
+            created.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created node " + created.GUID + " in graph " + created.GraphGUID);
             _NodeCache.AddReplace(created.GUID, created);
             return created;

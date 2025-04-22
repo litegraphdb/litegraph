@@ -635,7 +635,7 @@
                 "toguid = '" + edge.To + "', " +
                 "cost = " + edge.Cost + ", " +
                 "data = '" + Sanitizer.Sanitize(edge.Data?.ToString()) + "', " +
-                "lastupdateutc = '" + edge.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "' " +
+                "lastupdateutc = '" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "' " +
                 "WHERE tenantguid = '" + edge.TenantGUID + "' " +
                 "AND graphguid = '" + edge.GraphGUID + "' " +
                 "AND guid = '" + edge.GUID + "'; ";
@@ -681,7 +681,7 @@
                         "'" + edge.GUID + "', " +
                         "'" + Sanitizer.Sanitize(label.Label) + "', " +
                         "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + label.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
             }
 
@@ -708,7 +708,7 @@
                         "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                         "'" + Sanitizer.Sanitize(tag.Value) + "', " +
                         "'" + tag.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + tag.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
             }
 
@@ -736,7 +736,7 @@
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
                         "'" + Sanitizer.Sanitize(vectorsString) + "', " +
                         "'" + vector.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
             }
 
