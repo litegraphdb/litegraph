@@ -8,6 +8,7 @@
     using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Xml.Linq;
     using ExpressionTree;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -364,11 +365,14 @@
 
             foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, labels, tags, filter))
             {
-                if (graph.Vectors == null || graph.Vectors.Count < 1 || graph.Vectors.Count != vectors.Count) continue;
+                graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, graph.GUID, null, null, null).ToList());
+                graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, graph.GUID, null, null, null, null).ToList());
+                graph.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID).ToList();
 
                 foreach (VectorMetadata vmd in graph.Vectors)
                 {
                     if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
+                    if (vmd.Vectors.Count != vectors.Count) continue;
 
                     float? score = null;
                     float? distance = null;
@@ -401,10 +405,12 @@
 
             foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, labels, tags, filter))
             {
-                if (node.Vectors == null || node.Vectors.Count < 1) continue;
+                node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList());
+                node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList());
+                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
 
                 foreach (VectorMetadata vmd in node.Vectors)
-                {
+                { 
                     if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
                     if (vmd.Vectors.Count != vectors.Count) continue;
 
@@ -439,11 +445,14 @@
 
             foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, labels, tags, filter))
             {
-                if (edge.Vectors == null || edge.Vectors.Count < 1 || edge.Vectors.Count != vectors.Count) continue;
+                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null).ToList());
+                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID).ToList();
 
                 foreach (VectorMetadata vmd in edge.Vectors)
                 {
                     if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
+                    if (vmd.Vectors.Count != vectors.Count) continue;
 
                     float? score = null;
                     float? distance = null;
