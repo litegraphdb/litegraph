@@ -114,6 +114,11 @@
                         "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
             }
+            ret +=
+                "SELECT * FROM 'edges' WHERE "
+                + "graphguid = '" + edge.GraphGUID + "' "
+                + "AND tenantguid = '" + edge.TenantGUID + "' "
+                + "AND guid = '" + edge.GUID + "';";
 
             return ret;
         }
@@ -734,6 +739,12 @@
                         "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
             }
+
+            ret +=
+                "SELECT * FROM 'edges' WHERE "
+                + "graphguid = '" + edge.GraphGUID + "' "
+                + "AND tenantguid = '" + edge.TenantGUID + "' "
+                + "AND guid = '" + edge.GUID + "';";
 
             return ret;
         }

@@ -114,6 +114,12 @@
                 }
             }
 
+            ret +=
+                "SELECT * FROM 'nodes' WHERE "
+                + "guid = '" + node.GUID + "' "
+                + "AND tenantguid = '" + node.TenantGUID + "' "
+                + "AND graphguid = '" + node.GraphGUID + "';";
+
             return ret;
         }
 
@@ -487,6 +493,12 @@
                         "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
             }
+
+            ret +=
+                "SELECT * FROM 'nodes' WHERE "
+                + "guid = '" + node.GUID + "' "
+                + "AND tenantguid = '" + node.TenantGUID + "' "
+                + "AND graphguid = '" + node.GraphGUID + "';";
 
             return ret;
         }
