@@ -67,6 +67,9 @@
             _Client.ValidateTenantExists(node.TenantGUID);
             _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID);
             Node created = _Repo.Node.Create(node);
+            node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList());
+            node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList());
+            node.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created node " + created.GUID + " in graph " + created.GraphGUID);
             _NodeCache.AddReplace(created.GUID, created);
             return created;
@@ -82,6 +85,9 @@
 
             foreach (Node node in created)
             {
+                node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList());
+                node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList());
+                node.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
                 _NodeCache.AddReplace(node.GUID, node);
             }
 
@@ -191,6 +197,9 @@
             _Client.ValidateTenantExists(node.TenantGUID);
             _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID);
             Node updated = _Repo.Node.Update(node);
+            updated.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList());
+            updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList());
+            updated.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Debug, "updated node " + updated.GUID + " in graph " + updated.GraphGUID);
             _NodeCache.AddReplace(updated.GUID, updated);
             return updated;

@@ -8,6 +8,7 @@
     using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Xml.Linq;
     using Caching;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
@@ -67,6 +68,9 @@
             _Client.ValidateTags(edge.Tags);
             _Client.ValidateVectors(edge.Vectors);
             Edge created = _Repo.Edge.Create(edge);
+            created.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
+            created.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+            created.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created edge " + created.GUID + " in graph " + created.GraphGUID);
             _EdgeCache.AddReplace(created.GUID, created);
             return created;
@@ -83,6 +87,9 @@
             // Add created edges to cache
             foreach (Edge edge in created)
             {
+                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
+                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+                edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
                 _EdgeCache.AddReplace(edge.GUID, edge);
             }
 
@@ -278,6 +285,9 @@
             _Client.ValidateTags(edge.Tags);
             _Client.ValidateVectors(edge.Vectors);
             Edge updated = _Repo.Edge.Update(edge);
+            updated.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
+            updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+            updated.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Debug, "updated edge " + updated.GUID + " in graph " + updated.GraphGUID);
             _EdgeCache.AddReplace(updated.GUID, updated);
             return updated;

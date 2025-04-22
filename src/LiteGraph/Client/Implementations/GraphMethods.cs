@@ -65,6 +65,9 @@
             _Client.ValidateVectors(graph.Vectors);
             _Client.ValidateTenantExists(graph.TenantGUID);
             graph = _Repo.Graph.Create(graph);
+            graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null).ToList());
+            graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList());
+            graph.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created graph name " + graph.Name + " GUID " + graph.GUID);
             _GraphCache.AddReplace(graph.GUID, graph);
             return graph;
@@ -153,6 +156,9 @@
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
             Graph updated = _Repo.Graph.Update(graph);
+            updated.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null).ToList());
+            updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList());
+            updated.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Debug, "updated graph with name " + graph.Name + " GUID " + graph.GUID);
             _GraphCache.AddReplace(updated.GUID, updated);
             return updated;
