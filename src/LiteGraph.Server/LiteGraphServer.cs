@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading;
     using LiteGraph.GraphRepositories;
+    using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.Serialization;
     using LiteGraph.Server.API.Agnostic;
     using LiteGraph.Server.API.REST;
@@ -31,9 +32,9 @@
 
         private static Settings _Settings = new Settings();
         private static LoggingModule _Logging = null;
-        private static SerializationHelper _Serializer = new SerializationHelper();
+        private static Serializer _Serializer = new Serializer();
 
-        private static GraphRepositoryBase _Repository = null;
+        private static GraphRepositoryBase _Repo = null;
         private static LiteGraphClient _LiteGraph = null;
 
         private static ServiceHandler _ServiceHandler = null;
@@ -63,6 +64,8 @@
                 waitHandleSignal = waitHandle.WaitOne(1000);
             }
             while (!waitHandleSignal);
+
+            _Logging.Info(_Header + "stopped at " + DateTime.UtcNow);
         }
 
         #endregion
@@ -117,13 +120,9 @@
 
         private static void InitializeGlobals()
         {
-            #region General
+            #region General-and-Environment
 
             _Token = _TokenSource.Token;
-
-            #endregion
-
-            #region Environment
 
             string webserverPortStr = Environment.GetEnvironmentVariable(Constants.WebserverPortEnvironmentVariable);
             if (Int32.TryParse(webserverPortStr, out int webserverPort))
@@ -188,12 +187,8 @@
 
             #region Repositories
 
-            _Repository = new SqliteGraphRepository(_Settings.LiteGraph.GraphRepositoryFilename);
-            _Repository.InitializeRepository();
-            _Repository.Logging.Enable = _Settings.Debug.DatabaseQueries;
-            _Repository.Logging.Logger = LiteGraphLogger;
-            _Repository.Logging.LogQueries = _Settings.Debug.DatabaseQueries;
-            _Repository.Logging.LogResults = _Settings.Debug.DatabaseQueries;
+            _Repo = new SqliteGraphRepository(_Settings.LiteGraph.GraphRepositoryFilename);
+            _Repo.InitializeRepository();
 
             #endregion
 
@@ -205,7 +200,8 @@
 
             #region LiteGraph-Client
 
-            _LiteGraph = new LiteGraphClient(_Repository, _Settings.Logging);
+            _LiteGraph = new LiteGraphClient(_Repo, _Settings.Logging);
+            _LiteGraph.Caching = _Settings.Caching;
             _LiteGraph.Logging.Enable = _Settings.Debug.DatabaseQueries;
             _LiteGraph.Logging.Logger = LiteGraphLogger;
             _LiteGraph.Logging.LogQueries = _Settings.Debug.DatabaseQueries;
@@ -221,7 +217,7 @@
                 _Settings,
                 _Logging,
                 _Serializer,
-                _Repository);
+                _Repo);
 
             _ServiceHandler = new ServiceHandler(
                 _Settings, 
@@ -243,7 +239,30 @@
 
         private static void LiteGraphLogger(SeverityEnum sev, string msg)
         {
-            _Logging.Debug(msg);
+            switch (sev)
+            {
+                case SeverityEnum.Debug:
+                    _Logging.Debug(msg);
+                    break;
+                case SeverityEnum.Info:
+                    _Logging.Info(msg);
+                    break;
+                case SeverityEnum.Warn:
+                    _Logging.Warn(msg);
+                    break;
+                case SeverityEnum.Error:
+                    _Logging.Error(msg);
+                    break;
+                case SeverityEnum.Critical:
+                    _Logging.Critical(msg);
+                    break;
+                case SeverityEnum.Alert:
+                    _Logging.Alert(msg);
+                    break;
+                case SeverityEnum.Emergency:
+                    _Logging.Emergency(msg);
+                    break;
+            }
         }
 
         private static void CreateDefaultRecords()
@@ -260,9 +279,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repository.ExistsTenant(tenant.GUID))
+            if (!_Repo.Tenant.ExistsByGuid(tenant.GUID))
             {
-                tenant = _Repository.CreateTenant(tenant);
+                tenant = _Repo.Tenant.Create(tenant);
                 Console.WriteLine("| Created tenant     : " + tenant.GUID);
             }
 
@@ -278,9 +297,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repository.ExistsUser(tenant.GUID, user.GUID))
+            if (!_Repo.User.ExistsByGuid(tenant.GUID, user.GUID))
             {
-                user = _Repository.CreateUser(user);
+                user = _Repo.User.Create(user);
                 Console.WriteLine("| Created user       : " + user.GUID + " email: " + user.Email + " pass: " + user.Password);
             }
 
@@ -295,9 +314,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repository.ExistsCredential(cred.TenantGUID, cred.GUID))
+            if (!_Repo.Credential.ExistsByGuid(cred.TenantGUID, cred.GUID))
             {
-                cred = _Repository.CreateCredential(cred);
+                cred = _Repo.Credential.Create(cred);
                 Console.WriteLine("| Created credential : " + cred.GUID + " bearer token: " + cred.BearerToken);
             }
 
@@ -309,9 +328,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repository.ExistsGraph(graph.TenantGUID, graph.GUID))
+            if (!_Repo.Graph.ExistsByGuid(graph.TenantGUID, graph.GUID))
             {
-                graph = _Repository.CreateGraph(graph);
+                graph = _Repo.Graph.Create(graph);
                 Console.WriteLine("| Created graph      : " + graph.GUID + " " + graph.Name);
             }
 

@@ -310,6 +310,11 @@
         #region Query
 
         /// <summary>
+        /// Enumeration order.
+        /// </summary>
+        public EnumerationOrderEnum Order { get; set; } = EnumerationOrderEnum.CreatedDescending;
+
+        /// <summary>
         /// Number of records to skip in enumeration.
         /// </summary>
         public int Skip
@@ -442,6 +447,14 @@
 
             if (_Url.QueryExists(Constants.SkipQuerystring))
                 if (Int32.TryParse(_Url.GetQueryValue(Constants.SkipQuerystring), out int skip)) Skip = skip;
+
+            if (_Url.QueryExists(Constants.EnumerationOrderQuerystring))
+            {
+                if (Enum.TryParse<EnumerationOrderEnum>(_Url.GetQueryValue(Constants.EnumerationOrderQuerystring), out EnumerationOrderEnum val))
+                {
+                    Order = val;
+                }
+            }
 
             if (_Url.QueryExists(Constants.ForceQuerystring)) Force = true;
             if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;

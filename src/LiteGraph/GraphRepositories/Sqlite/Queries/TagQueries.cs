@@ -9,15 +9,13 @@
     using ExpressionTree;
     using LiteGraph.Serialization;
 
-    internal static class Tags
+    internal static class TagQueries
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
-        #region Tags
-
-        internal static string InsertTagQuery(TagMetadata tag)
+        internal static string Insert(TagMetadata tag)
         {
             string ret =
                 "INSERT INTO 'tags' "
@@ -37,7 +35,7 @@
             return ret;
         }
 
-        internal static string InsertMultipleTagsQuery(Guid tenantGuid, Guid graphGuid, List<TagMetadata> tags)
+        internal static string InsertMany(Guid tenantGuid, List<TagMetadata> tags)
         {
             string ret =
                 "INSERT INTO 'tags' "
@@ -63,7 +61,37 @@
             return ret;
         }
 
-        internal static string SelectMultipleTagsQuery(Guid tenantGuid, List<Guid> guids)
+        internal static string SelectAllInTenant(
+            Guid tenantGuid, 
+            int batchSize = 100, 
+            int skip = 0,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret = "SELECT * FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' ";
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string SelectAllInGraph(
+            Guid tenantGuid, 
+            Guid graphGuid,
+            int batchSize = 100, 
+            int skip = 0, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret =
+                "SELECT * FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND graphguid = '" + graphGuid + "' ";
+
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string SelectMany(Guid tenantGuid, List<Guid> guids)
         {
             string ret = "SELECT * FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' AND guid IN (";
 
@@ -77,12 +105,12 @@
             return ret;
         }
 
-        internal static string SelectTagQuery(Guid tenantGuid, Guid guid)
+        internal static string Select(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string SelectTenantTagsQuery(
+        internal static string SelectTenant(
             Guid tenantGuid,
             string key,
             string val,
@@ -107,7 +135,7 @@
             return ret;
         }
 
-        internal static string SelectGraphTagsQuery(
+        internal static string SelectGraph(
             Guid tenantGuid,
             Guid graphGuid,
             string key,
@@ -136,7 +164,7 @@
             return ret;
         }
 
-        internal static string SelectNodeTagsQuery(
+        internal static string SelectNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -166,7 +194,7 @@
             return ret;
         }
 
-        internal static string SelectEdgeTagsQuery(
+        internal static string SelectEdge(
             Guid tenantGuid,
             Guid graphGuid,
             Guid edgeGuid,
@@ -196,7 +224,7 @@
             return ret;
         }
 
-        internal static string UpdateTagQuery(TagMetadata tag)
+        internal static string Update(TagMetadata tag)
         {
             return
                 "UPDATE 'tags' SET "
@@ -209,12 +237,12 @@
                 + "RETURNING *;";
         }
 
-        internal static string DeleteTagQuery(Guid tenantGuid, Guid guid)
+        internal static string Delete(Guid tenantGuid, Guid guid)
         {
             return "DELETE FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string DeleteTagsQuery(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        internal static string DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
         {
             string ret = "DELETE FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' ";
 
@@ -235,7 +263,24 @@
             return ret;
         }
 
-        internal static string DeleteAllTenantTagsQuery(Guid tenantGuid)
+        internal static string DeleteMany(Guid tenantGuid, List<Guid> guids)
+        {
+            string ret = "DELETE FROM 'tags' WHERE tenantguid = '" + tenantGuid + "' "
+                + "AND guid IN (";
+
+            int added = 0;
+            foreach (Guid guid in guids)
+            {
+                if (added > 0) ret += ",";
+                ret += "'" + guid + "'";
+                added++;
+            }
+
+            ret += ");";
+            return ret;
+        }
+
+        internal static string DeleteAllInTenant(Guid tenantGuid)
         {
             string ret =
                 "DELETE FROM 'tags' WHERE " +
@@ -243,7 +288,7 @@
             return ret;
         }
 
-        internal static string DeleteAllGraphTagsQuery(Guid tenantGuid, Guid graphGuid)
+        internal static string DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
         {
             string ret =
                 "DELETE FROM 'tags' WHERE " +
@@ -252,7 +297,7 @@
             return ret;
         }
 
-        internal static string DeleteGraphTagsQuery(Guid tenantGuid, Guid graphGuid)
+        internal static string DeleteGraph(Guid tenantGuid, Guid graphGuid)
         {
             string ret =
                 "DELETE FROM 'tags' WHERE " +
@@ -262,29 +307,5 @@
                 "AND edgeguid IS NULL;";
             return ret;
         }
-
-        internal static string DeleteNodeTagsQuery(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
-        {
-            string ret =
-                "DELETE FROM 'tags' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid = '" + nodeGuid + "' " +
-                "AND edgeguid IS NULL;";
-            return ret;
-        }
-
-        internal static string DeleteEdgeTagsQuery(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
-        {
-            string ret =
-                "DELETE FROM 'tags' WHERE " +
-                "tenantguid = '" + tenantGuid + "' " +
-                "AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid IS NULL " +
-                "AND edgeguid = '" + edgeGuid + "';";
-            return ret;
-        }
-
-        #endregion
     }
 }

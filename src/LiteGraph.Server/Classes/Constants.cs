@@ -138,6 +138,11 @@
         #region Querystring
 
         /// <summary>
+        /// Enumeration order querystring.
+        /// </summary>
+        public static string EnumerationOrderQuerystring = "order";
+
+        /// <summary>
         /// Skip querystring key.
         /// </summary>
         public static string SkipQuerystring = "skip";

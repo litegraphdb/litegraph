@@ -151,10 +151,20 @@
         [EnumMember(Value = "LabelCreate")]
         LabelCreate,
         /// <summary>
+        /// LabelCreateMany
+        /// </summary>
+        [EnumMember(Value = "LabelCreateMany")]
+        LabelCreateMany,
+        /// <summary>
         /// LabelDelete
         /// </summary>
         [EnumMember(Value = "LabelDelete")]
         LabelDelete,
+        /// <summary>
+        /// LabelDeleteMany
+        /// </summary>
+        [EnumMember(Value = "LabelDeleteMany")]
+        LabelDeleteMany,
         /// <summary>
         /// LabelExists
         /// </summary>
@@ -186,10 +196,20 @@
         [EnumMember(Value = "VectorCreate")]
         VectorCreate,
         /// <summary>
+        /// VectorCreateMany
+        /// </summary>
+        [EnumMember(Value = "VectorCreateMany")]
+        VectorCreateMany,
+        /// <summary>
         /// VectorDelete
         /// </summary>
         [EnumMember(Value = "VectorDelete")]
         VectorDelete,
+        /// <summary>
+        /// VectorDeleteMany
+        /// </summary>
+        [EnumMember(Value = "VectorDeleteMany")]
+        VectorDeleteMany,
         /// <summary>
         /// VectorExists
         /// </summary>
@@ -226,10 +246,20 @@
         [EnumMember(Value = "TagCreate")]
         TagCreate,
         /// <summary>
+        /// TagCreateMany
+        /// </summary>
+        [EnumMember(Value = "TagCreateMany")]
+        TagCreateMany,
+        /// <summary>
         /// TagDelete
         /// </summary>
         [EnumMember(Value = "TagDelete")]
         TagDelete,
+        /// <summary>
+        /// TagDeleteMany
+        /// </summary>
+        [EnumMember(Value = "TagDeleteMany")]
+        TagDeleteMany,
         /// <summary>
         /// TagExists
         /// </summary>
@@ -311,10 +341,10 @@
         [EnumMember(Value = "NodeCreate")]
         NodeCreate,
         /// <summary>
-        /// NodeCreateMultiple
+        /// NodeCreateMany
         /// </summary>
-        [EnumMember(Value = "NodeCreateMultiple")]
-        NodeCreateMultiple,
+        [EnumMember(Value = "NodeCreateMany")]
+        NodeCreateMany,
         /// <summary>
         /// NodeDelete
         /// </summary>
@@ -326,10 +356,10 @@
         [EnumMember(Value = "NodeDeleteAll")]
         NodeDeleteAll,
         /// <summary>
-        /// NodeDeleteMultiple
+        /// NodeDeleteMany
         /// </summary>
-        [EnumMember(Value = "NodeDeleteMultiple")]
-        NodeDeleteMultiple,
+        [EnumMember(Value = "NodeDeleteMany")]
+        NodeDeleteMany,
         /// <summary>
         /// NodeExists
         /// </summary>
@@ -371,10 +401,10 @@
         [EnumMember(Value = "EdgeCreate")]
         EdgeCreate,
         /// <summary>
-        /// EdgeCreateMultiple
+        /// EdgeCreateMany
         /// </summary>
-        [EnumMember(Value = "EdgeCreateMultiple")]
-        EdgeCreateMultiple,
+        [EnumMember(Value = "EdgeCreateMany")]
+        EdgeCreateMany,
         /// <summary>
         /// EdgeDelete
         /// </summary>
@@ -386,10 +416,10 @@
         [EnumMember(Value = "EdgeDeleteAll")]
         EdgeDeleteAll,
         /// <summary>
-        /// EdgeDeleteMultiple
+        /// EdgeDeleteMany
         /// </summary>
-        [EnumMember(Value = "EdgeDeleteMultiple")]
-        EdgeDeleteMultiple,
+        [EnumMember(Value = "EdgeDeleteMany")]
+        EdgeDeleteMany,
         /// <summary>
         /// EdgeExists
         /// </summary>

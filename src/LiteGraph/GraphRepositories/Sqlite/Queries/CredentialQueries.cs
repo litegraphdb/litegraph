@@ -9,15 +9,13 @@
     using ExpressionTree;
     using LiteGraph.Serialization;
 
-    internal static class Credentials
+    internal static class CredentialQueries
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
-        #region Credentials
-
-        internal static string InsertCredentialQuery(Credential cred)
+        internal static string Insert(Credential cred)
         {
             string ret =
                 "INSERT INTO 'creds' "
@@ -36,17 +34,26 @@
             return ret;
         }
 
-        internal static string SelectCredentialQuery(string bearerToken)
+        internal static string SelectByToken(string bearerToken)
         {
             return "SELECT * FROM 'creds' WHERE bearertoken = '" + Sanitizer.Sanitize(bearerToken) + "';";
         }
 
-        internal static string SelectCredentialQuery(Guid tenantGuid, Guid guid)
+        internal static string SelectByGuid(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string SelectCredentialsQuery(
+        internal static string SelectAllInTenant(Guid tenantGuid, int batchSize = 100, int skip = 0, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret = "SELECT * FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' ";
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string Select(
             Guid? tenantGuid,
             Guid? userGuid,
             string bearerToken,
@@ -73,7 +80,7 @@
             return ret;
         }
 
-        internal static string UpdateCredentialQuery(Credential cred)
+        internal static string Update(Credential cred)
         {
             return
                 "UPDATE 'creds' SET "
@@ -84,11 +91,19 @@
                 + "RETURNING *;";
         }
 
-        internal static string DeleteCredentialQuery(Guid tenantGuid, Guid guid)
+        internal static string Delete(Guid tenantGuid, Guid guid)
         {
             return "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        #endregion
+        internal static string DeleteUser(Guid tenantGuid, Guid userGuid)
+        {
+            return "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' AND userguid = '" + userGuid + "';";
+        }
+
+        internal static string DeleteAllInTenant(Guid tenantGuid)
+        {
+            return "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "';";
+        }
     }
 }

@@ -348,23 +348,26 @@
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", out _UrlParameters)) return RequestTypeEnum.CredentialUpdate;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/labels", out _UrlParameters)) return RequestTypeEnum.LabelCreate;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/labels/bulk", out _UrlParameters)) return RequestTypeEnum.LabelCreateMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", out _UrlParameters)) return RequestTypeEnum.LabelUpdate;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/tags", out _UrlParameters)) return RequestTypeEnum.TagCreate;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/tags/bulk", out _UrlParameters)) return RequestTypeEnum.TagCreateMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", out _UrlParameters)) return RequestTypeEnum.TagUpdate;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors", out _UrlParameters)) return RequestTypeEnum.VectorCreate;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors/bulk", out _UrlParameters)) return RequestTypeEnum.VectorCreateMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", out _UrlParameters)) return RequestTypeEnum.VectorUpdate;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs", out _UrlParameters)) return RequestTypeEnum.GraphCreate;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphUpdate;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", out _UrlParameters)) return RequestTypeEnum.NodeCreate;
-                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/multiple", out _UrlParameters)) return RequestTypeEnum.NodeCreateMultiple;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", out _UrlParameters)) return RequestTypeEnum.NodeCreateMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", out _UrlParameters)) return RequestTypeEnum.NodeUpdate;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", out _UrlParameters)) return RequestTypeEnum.EdgeCreate;
-                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/multiple", out _UrlParameters)) return RequestTypeEnum.EdgeCreateMultiple;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", out _UrlParameters)) return RequestTypeEnum.EdgeCreateMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", out _UrlParameters)) return RequestTypeEnum.EdgeUpdate;
 
                 #endregion
@@ -397,20 +400,23 @@
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", out _UrlParameters)) return RequestTypeEnum.CredentialDelete;
 
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/labels/bulk", out _UrlParameters)) return RequestTypeEnum.LabelDeleteMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", out _UrlParameters)) return RequestTypeEnum.LabelDelete;
 
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/tags/bulk", out _UrlParameters)) return RequestTypeEnum.TagDeleteMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", out _UrlParameters)) return RequestTypeEnum.TagDelete;
 
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors/bulk", out _UrlParameters)) return RequestTypeEnum.VectorDeleteMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", out _UrlParameters)) return RequestTypeEnum.VectorDelete;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphDelete;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", out _UrlParameters)) return RequestTypeEnum.NodeDeleteAll;
-                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/multiple", out _UrlParameters)) return RequestTypeEnum.NodeDeleteMultiple;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", out _UrlParameters)) return RequestTypeEnum.NodeDeleteMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", out _UrlParameters)) return RequestTypeEnum.NodeDelete;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", out _UrlParameters)) return RequestTypeEnum.EdgeDeleteAll;
-                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/multiple", out _UrlParameters)) return RequestTypeEnum.EdgeDeleteMultiple;
+                if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", out _UrlParameters)) return RequestTypeEnum.EdgeDeleteMany;
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", out _UrlParameters)) return RequestTypeEnum.EdgeDelete;
 
                 #endregion

@@ -4,18 +4,21 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) 
 
-LiteGraph is a lightweight graph database with both relational and vector support, built using Sqlite, with support for exporting to GEXF.  LiteGraph is intended to be a multi-modal database primarily for providing persistence and retrieval for knowledge and artificial intelligence applications.
+LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
 LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`).
 
-## New in v3.1.x
+## New in v4.0.x
 
-- Added support for labels on graphs, nodes, edges (string list)
-- Added support for vector persistence and search
-- Updated SDK, test, and Postman collections accordingly
-- Updated GEXF export to support labels and tags
-- Internal refactor to reduce code bloat
-- Multiple bugfixes and QoL improvements
+- Major internal refactor for both the graph repository base and the client class
+- Separation of responsibilities; graph repository base owns primitives, client class owns validation and cross-cutting
+- Consistency in interface API names and behaviors
+- Consistency in passing of query parameters such as skip to implementations and primitives
+- Consolidation of create, update, and delete actions within a single transaction
+- Batch APIs for creation and deletion of labels, tags, vectors, edges, and nodes
+- Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
+- Dependency updates and bug fixes
+- Minor Postman fixes
 
 ## Bugs, Feedback, or Enhancement Requests
 
@@ -28,27 +31,23 @@ Embedding LiteGraph into your application is simple and requires no configuratio
 ```csharp
 using LiteGraph;
 
-LiteGraphClient graph = new LiteGraphClient(); // using Sqlite file litegraph.db
-LiteGraphClient graph = new LiteGraphClient(
-  new SqliteRepository("mydatabase.db")
-  ); // use a specific file
-
+LiteGraphClient graph = new LiteGraphClient(new SqliteRepository("litegraph.db"));
 graph.InitializeRepository();
 
 // Create a tenant
-TenantMetadata tenant = graph.CreateTenant(Guid.NewGuid(), "My tenant");
+TenantMetadata tenant = graph.CreateTenant(new TenantMetadata { Name = "My tenant" });
 
 // Create a graph
-Graph graph = graph.CreateGraph(tenant.GUID, "This is my graph!");
+Graph graph = graph.CreateGraph(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
 
 // Create nodes
-Node node1 = graph.CreateNode(tenant.GUID, graph.GUID, new Node { Name = "node1" });
-Node node2 = graph.CreateNode(tenant.GUID, graph.GUID, new Node { Name = "node2" });
-Node node3 = graph.CreateNode(tenant.GUID, graph.GUID, new Node { Name = "node3" });
+Node node1 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
+Node node2 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
+Node node3 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
 
 // Create edges
-Edge edge1 = graph.CreateEdge(tenant.GUID, graph.GUID, node1.GUID, node2.GUID, "Node 1 to node 2");
-Edge edge2 = graph.CreateEdge(tenant.GUID, graph.GUID, node2.GUID, node3.GUID, "Node 2 to node 3");
+Edge edge1 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
+Edge edge2 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
 
 // Find routes
 foreach (RouteDetail route in graph.GetRoutes(
@@ -67,11 +66,15 @@ graph.ExportGraphToGexfFile(tenant.GUID, graph.GUID, "mygraph.gexf");
 
 ## Working with Object Labels, Tags, and Data
 
-The `Labels` property is a `List<string>` allowing to attach labels to any `Graph`, `Node`, or `Edge`.  The `Tags` property is a `NameValueCollection` allowing you to attach key-value pairs to any `Graph`, `Node`, or `Edge`.  These objects are stored in separate look-aside tables which are consulted or modified upon creation, update, deletion, retrieval, or search of the aforementioned types.
+The `Labels` property is a `List<string>` allowing you to attach labels to any `Graph`, `Node`, or `Edge`, i.e. `[ "mylabel" ]`.
 
-The `Data` property can also be attached to any `Graph`, `Node`, or `Edge` object and supports any object serializable to JSON.  This value is retrieved when reading or searching objects, and filters can be created to retrieve only objects that have matches based on elements in the object stored in `Data`.  Refer to [ExpressionTree](https://github.com/jchristn/ExpressionTree/) for information on how to craft expressions.
+The `Tags` property is a `NameValueCollection` allowing you to attach key-value pairs to any `Graph`, `Node`, or `Edge`, i.e. `{ "foo": "bar" }`.
 
-All of these properties can be used in conjunction with one another.
+The `Data` property is an `object` and can be attached to any `Graph`, `Node`, or `Edge`.  `Data` supports any object serializable to JSON.  This value is retrieved when reading or searching objects, and filters can be created to retrieve only objects that have matches based on elements in the object stored in `Data`.  Refer to [ExpressionTree](https://github.com/jchristn/ExpressionTree/) for information on how to craft expressions.
+
+The `Vectors` property can be attached to any `Graph`, `Node`, or `Edge` object, and is a `List<VectorMetadata>`.  The embeddings within can be used for a variety of different vector searches (such as `CosineSimilarity`).
+
+All of these properties can be used in conjunction with one another when filtering for retrieval.
 
 ### Storing and Searching Labels
 
@@ -82,7 +85,7 @@ List<string> labels = new List<string>
   "label1"
 };
 
-graph.CreateNode(tenant.GUID, new Node { Name = "Joel", Labels = labels });
+graph.CreateNode(new Node { TenantGUID = tenant.GUID, Name = "Joel", Labels = labels });
 
 foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, labels))
 {
@@ -96,7 +99,7 @@ foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, labels))
 NameValueCollection nvc = new NameValueCollection();
 nvc.Add("key", "value");
 
-graph.CreateNode(tenant.GUID, new Node { Name = "Joel", Tags = nvc });
+graph.CreateNode(new Node { TenantGUID = tenant.GUID, Name = "Joel", Tags = nvc });
 
 foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, null, nvc))
 {
@@ -117,7 +120,7 @@ class Person
 }
 
 Person person1 = new Person { Name = "Joel", Age = 47, City = "San Jose" };
-graph.CreateNode(tenant.GUID, graph.GUID, new Node { Name = "Joel", Data = person1 });
+graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = person1 });
 
 Expr expr = new Expr 
 {
@@ -136,7 +139,7 @@ foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, null, expr))
 
 It is important to note that vectors have a dimensionality (number of array elements) and vector searches are only performed against graphs, nodes, and edges where the attached vector objects have a dimensionality consistent with the input.
 
-Further, it is strongly recommended that you make extensive use of labels, tags, and expressions (data filters) when performing a vector search to reduce the number of calculations to compute score, distance, and inner product.
+Further, it is strongly recommended that you make extensive use of labels, tags, and expressions (data filters) when performing a vector search to reduce the number of records against which score, distance, or inner product calculations are performed. 
 
 ```csharp
 using ExpressionTree;
@@ -158,7 +161,7 @@ VectorMetadata vectors = new VectorMetadata
   Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
 };
 
-graph.CreateNode(new Node { Name = "Joel", Data = person1 }, Vectors = new List<VectorMetadata> { vectors });
+graph.CreateNode(new Node { Name = "Joel", Data = person1, Vectors = new List<VectorMetadata> { vectors } });
 
 foreach (VectorSearchResult result in graph.SearchVectors(
   VectorSearchDomainEnum.Node,

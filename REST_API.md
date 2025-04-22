@@ -161,12 +161,28 @@ Response:
     "TenantGUID": "00000000-0000-0000-0000-000000000000",
     "GUID": "00000000-0000-0000-0000-000000000000",
     "Name": "My test graph",
+    "Labels": [ "test" ],
     "Tags": {
         "Key": "Value"
     },
     "Data": {
         "Hello": "World"
     },
+    "Vectors": [
+        {
+            "GUID": "00000000-0000-0000-0000-000000000000",
+            "TenantGUID": "00000000-0000-0000-0000-000000000000",
+            "GraphGUID": "00000000-0000-0000-0000-000000000000",
+            "NodeGUID": "00000000-0000-0000-0000-000000000000",
+            "EdgeGUID": "00000000-0000-0000-0000-000000000000",
+            "Model": "testmodel",
+            "Dimensionality": 3,
+            "Content": "test content",
+            "Vectors": [ 0.05, -0.25, 0.45 ],
+            "CreatedUtc": "2025-01-15T10:41:13.243174Z",
+            "LastUpdateUtc": "2025-01-15T10:41:13.243188Z"
+        }
+    ],
     "CreatedUtc": "2024-07-01 15:43:06.991834"
 }
 ```
@@ -178,12 +194,28 @@ Response:
     "GUID": "11111111-1111-1111-1111-111111111111",
     "GraphGUID": "00000000-0000-0000-0000-000000000000",
     "Name": "My test node",
+    "Labels": [ "test" ],
     "Tags": {
         "Key": "Value"
     },
     "Data": {
         "Hello": "World"
     },
+    "Vectors": [
+        {
+            "GUID": "00000000-0000-0000-0000-000000000000",
+            "TenantGUID": "00000000-0000-0000-0000-000000000000",
+            "GraphGUID": "00000000-0000-0000-0000-000000000000",
+            "NodeGUID": "00000000-0000-0000-0000-000000000000",
+            "EdgeGUID": "00000000-0000-0000-0000-000000000000",
+            "Model": "testmodel",
+            "Dimensionality": 3,
+            "Content": "test content",
+            "Vectors": [ 0.05, -0.25, 0.45 ],
+            "CreatedUtc": "2025-01-15T10:41:13.243174Z",
+            "LastUpdateUtc": "2025-01-15T10:41:13.243188Z"
+        }
+    ],
     "CreatedUtc": "2024-07-01 15:43:06.991834"
 }
 ```
@@ -198,12 +230,28 @@ Response:
     "From": "11111111-1111-1111-1111-111111111111",
     "To": "22222222-2222-2222-2222-222222222222",
     "Cost": 10,
+    "Labels": [ "test" ],
     "Tags": {
         "Key": "Value"
     },
     "Data": {
         "Hello": "World"
     },
+    "Vectors": [
+        {
+            "GUID": "00000000-0000-0000-0000-000000000000",
+            "TenantGUID": "00000000-0000-0000-0000-000000000000",
+            "GraphGUID": "00000000-0000-0000-0000-000000000000",
+            "NodeGUID": "00000000-0000-0000-0000-000000000000",
+            "EdgeGUID": "00000000-0000-0000-0000-000000000000",
+            "Model": "testmodel",
+            "Dimensionality": 3,
+            "Content": "test content",
+            "Vectors": [ 0.05, -0.25, 0.45 ],
+            "CreatedUtc": "2025-01-15T10:41:13.243174Z",
+            "LastUpdateUtc": "2025-01-15T10:41:13.243188Z"
+        }
+    ],
     "CreatedUtc": "2024-07-01 15:43:06.991834"
 }
 ```
@@ -318,9 +366,9 @@ Valid search types are `CosineSimilarity` `CosineDistance` `EuclidianSimilarity`
 
 ## General APIs
 
-| API                   | Method | URL                                      |
-|-----------------------|--------|------------------------------------------|
-| Validate connectivity | HEAD   | /                                        |
+| API                   | Method | URL |
+|-----------------------|--------|-----|
+| Validate connectivity | HEAD   | /   |
 
 ## Tenant APIs
 
@@ -329,9 +377,9 @@ Tenant APIs require administrator bearer token authentication.
 | API                | Method | URL                        |
 |--------------------|--------|----------------------------|
 | Create             | PUT    | /v1.0/tenants              |
+| Update             | PUT    | /v1.0/tenants/[guid]       |
 | Read many          | GET    | /v1.0/tenants              |
 | Read               | GET    | /v1.0/tenants/[guid]       |
-| Update             | PUT    | /v1.0/tenants/[guid]       |
 | Delete             | DELETE | /v1.0/tenants/[guid]       |
 | Delete w/ cascade  | DELETE | /v1.0/tenants/[guid]?force |
 | Exists             | HEAD   | /v1.0/tenants/[guid]       |
@@ -343,9 +391,9 @@ User APIs require administrator bearer token authentication.
 | API                | Method | URL                               |
 |--------------------|--------|-----------------------------------|
 | Create             | PUT    | /v1.0/tenants/[guid]/users        |
+| Update             | PUT    | /v1.0/tenants/[guid]/users/[guid] |
 | Read many          | GET    | /v1.0/tenants/[guid]/users        |
 | Read               | GET    | /v1.0/tenants/[guid]/users/[guid] |
-| Update             | PUT    | /v1.0/tenants/[guid]/users/[guid] |
 | Delete             | DELETE | /v1.0/tenants/[guid]/users/[guid] |
 | Exists             | HEAD   | /v1.0/tenants/[guid]/users/[guid] |
 
@@ -356,9 +404,9 @@ Credential APIs require administrator bearer token authentication.
 | API                | Method | URL                                     |
 |--------------------|--------|-----------------------------------------|
 | Create             | PUT    | /v1.0/tenants/[guid]/credentials        |
+| Update             | PUT    | /v1.0/tenants/[guid]/credentials/[guid] |
 | Read many          | GET    | /v1.0/tenants/[guid]/credentials        |
 | Read               | GET    | /v1.0/tenants/[guid]/credentials/[guid] |
-| Update             | PUT    | /v1.0/tenants/[guid]/credentials/[guid] |
 | Delete             | DELETE | /v1.0/tenants/[guid]/credentials/[guid] |
 | Exists             | HEAD   | /v1.0/tenants/[guid]/credentials/[guid] |
 
@@ -369,9 +417,9 @@ Label APIs require administrator bearer token authentication.
 | API                | Method | URL                                |
 |--------------------|--------|------------------------------------|
 | Create             | PUT    | /v1.0/tenants/[guid]/labels        |
+| Update             | PUT    | /v1.0/tenants/[guid]/labels/[guid] |
 | Read many          | GET    | /v1.0/tenants/[guid]/labels        |
 | Read               | GET    | /v1.0/tenants/[guid]/labels/[guid] |
-| Update             | PUT    | /v1.0/tenants/[guid]/labels/[guid] |
 | Delete             | DELETE | /v1.0/tenants/[guid]/labels/[guid] |
 | Exists             | HEAD   | /v1.0/tenants/[guid]/labels/[guid] |
 
@@ -382,9 +430,9 @@ Tag APIs require administrator bearer token authentication.
 | API                | Method | URL                              |
 |--------------------|--------|----------------------------------|
 | Create             | PUT    | /v1.0/tenants/[guid]/tags        |
+| Update             | PUT    | /v1.0/tenants/[guid]/tags/[guid] |
 | Read many          | GET    | /v1.0/tenants/[guid]/tags        |
 | Read               | GET    | /v1.0/tenants/[guid]/tags/[guid] |
-| Update             | PUT    | /v1.0/tenants/[guid]/tags/[guid] |
 | Delete             | DELETE | /v1.0/tenants/[guid]/tags/[guid] |
 | Exists             | HEAD   | /v1.0/tenants/[guid]/tags/[guid] |
 
@@ -395,9 +443,9 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | API                | Method | URL                                 |
 |--------------------|--------|-------------------------------------|
 | Create             | PUT    | /v1.0/tenants/[guid]/vectors        |
+| Update             | PUT    | /v1.0/tenants/[guid]/vectors/[guid] |
 | Read many          | GET    | /v1.0/tenants/[guid]/vectors        |
 | Read               | GET    | /v1.0/tenants/[guid]/vectors/[guid] |
-| Update             | PUT    | /v1.0/tenants/[guid]/vectors/[guid] |
 | Delete             | DELETE | /v1.0/tenants/[guid]/vectors/[guid] |
 | Exists             | HEAD   | /v1.0/tenants/[guid]/vectors/[guid] |
 | Search             | POST   | /v1.0/tenants/[guid]/vectors        |
@@ -407,9 +455,9 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | API                | Method | URL                                                     |
 |--------------------|--------|---------------------------------------------------------|
 | Create             | PUT    | /v1.0/tenants/[guid]/graphs                             |
+| Update             | PUT    | /v1.0/tenants/[guid]/graphs/[guid]                      |
 | Read               | GET    | /v1.0/tenants/[guid]/graphs/[guid]                      |
 | Read many          | GET    | /v1.0/tenants/[guid]/graphs                             |
-| Update             | PUT    | /v1.0/tenants/[guid]/graphs/[guid]                      |
 | Delete             | DELETE | /v1.0/tenants/[guid]/graphs/[guid]                      |
 | Delete w/ cascade  | DELETE | /v1.0/tenants/[guid]/graphs/[guid]?force                |
 | Exists             | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]                      |
@@ -422,9 +470,10 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | API             | Method | URL                                               |
 |-----------------|--------|---------------------------------------------------|
 | Create          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes          |
+| Create many     | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk     |
+| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]   |
 | Read            | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]   |
 | Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes          |
-| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]   |
 | Delete all      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/all      |
 | Delete multiple | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/multiple |
 | Delete          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]   |
@@ -436,9 +485,10 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | API             | Method | URL                                                      |
 |-----------------|--------|----------------------------------------------------------|
 | Create          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges                 |
+| Create many     | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk            |
+| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
 | Read            | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
 | Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                 |
-| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
 | Delete all      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/all      |
 | Delete multiple | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/multiple |
 | Delete          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |

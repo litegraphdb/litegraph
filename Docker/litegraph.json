@@ -17,6 +17,11 @@
     "LogQueries": false,
     "LogResults": false
   },
+  "Caching": {
+    "Enable": true,
+    "Capacity": 1000,
+    "EvictCount": 100
+  },
   "Rest": {
     "Hostname": "*",
     "Port": 8701,

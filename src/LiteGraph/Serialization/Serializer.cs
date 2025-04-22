@@ -11,9 +11,9 @@
     using ExpressionTree;
 
     /// <summary>
-    /// Serialization helper.
+    /// Serialization.
     /// </summary>
-    public class SerializationHelper : ISerializer
+    public class Serializer : ISerializer
     {
         /// <inheritdoc/>
         public T CopyObject<T>(T obj)

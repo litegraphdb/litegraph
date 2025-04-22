@@ -9,15 +9,13 @@
     using ExpressionTree;
     using LiteGraph.Serialization;
 
-    internal static class Users
+    internal static class UserQueries
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
-        #region Users
-
-        internal static string InsertUserQuery(UserMaster user)
+        internal static string Insert(UserMaster user)
         {
             string ret =
                 "INSERT INTO 'users' "
@@ -37,17 +35,26 @@
             return ret;
         }
 
-        internal static string SelectUserQuery(Guid tenantGuid, string email)
+        internal static string SelectAllInTenant(Guid tenantGuid, int batchSize = 100, int skip = 0, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret = "SELECT * FROM 'users' WHERE tenantguid = '" + tenantGuid + "' ";
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            return ret;
+        }
+
+        internal static string Select(Guid tenantGuid, string email)
         {
             return "SELECT * FROM 'users' WHERE tenantguid = '" + tenantGuid + "' AND email = '" + Sanitizer.Sanitize(email) + "';";
         }
 
-        internal static string SelectUserQuery(Guid tenantGuid, Guid guid)
+        internal static string Select(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'users' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string SelectUsersQuery(
+        internal static string SelectMany(
             Guid? tenantGuid,
             string email,
             int batchSize = 100,
@@ -70,7 +77,7 @@
             return ret;
         }
 
-        internal static string SelectUserTenantsQuery(string email)
+        internal static string SelectTenantsByEmail(string email)
         {
             string ret =
                 "SELECT * FROM 'tenants' WHERE " +
@@ -80,7 +87,7 @@
             return ret;
         }
 
-        internal static string UpdateUserQuery(UserMaster user)
+        internal static string Update(UserMaster user)
         {
             return
                 "UPDATE 'users' SET "
@@ -94,21 +101,36 @@
                 + "RETURNING *;";
         }
 
-        internal static string DeleteUserQuery(string name)
+        internal static string Delete(Guid tenantGuid, Guid userGuid)
         {
-            return "DELETE FROM 'users' WHERE name = '" + Sanitizer.Sanitize(name) + "';";
+            string ret = string.Empty;
+
+            // First delete any credentials associated with this user
+            ret +=
+                "DELETE FROM 'creds' WHERE " +
+                "tenantguid = '" + tenantGuid + "' " +
+                "AND userguid = '" + userGuid + "'; ";
+
+            // Then delete the user
+            ret +=
+                "DELETE FROM 'users' WHERE " +
+                "tenantguid = '" + tenantGuid + "' " +
+                "AND guid = '" + userGuid + "'; ";
+
+            return ret;
         }
 
-        internal static string DeleteUserQuery(Guid tenantGuid, Guid guid)
+        internal static string DeleteAllInTenant(Guid tenantGuid)
         {
-            return "DELETE FROM 'users' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
-        }
+            string ret = string.Empty;
 
-        internal static string DeleteUserCredentialsQuery(Guid guid)
-        {
-            return "DELETE FROM 'creds' WHERE userguid = '" + guid + "';";
-        }
+            // First delete all credentials in the tenant
+            ret += "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "'; ";
 
-        #endregion
+            // Then delete all users in the tenant
+            ret += "DELETE FROM 'users' WHERE tenantguid = '" + tenantGuid + "'; ";
+
+            return ret;
+        }
     }
 }

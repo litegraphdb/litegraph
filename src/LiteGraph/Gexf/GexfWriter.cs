@@ -20,7 +20,7 @@
 
         #region Private-Members
 
-        private SerializationHelper _Serializer = new SerializationHelper();
+        private Serializer _Serializer = new Serializer();
 
         #endregion
 
@@ -30,10 +30,10 @@
         /// Instantiate.
         /// </summary>
         /// <param name="serializer">Serializer.</param>
-        public GexfWriter(SerializationHelper serializer = null)
+        public GexfWriter(Serializer serializer = null)
         {
             if (serializer != null) _Serializer = serializer;
-            else _Serializer = new SerializationHelper();
+            else _Serializer = new Serializer();
         }
 
         #endregion
@@ -143,14 +143,14 @@
             Guid graphGuid, 
             bool includeData = false)
         {
-            LiteGraph.Graph graph = client.ReadGraph(tenantGuid, graphGuid);
+            LiteGraph.Graph graph = client.Graph.ReadByGuid(tenantGuid, graphGuid);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' was found.");
 
             GexfDocument doc = new GexfDocument();
             doc.Graph.DefaultEdgeType = "directed";
             doc.Graph.Attributes.AttributeList.Add(new GexfAttribute("0", "props"));
 
-            foreach (LiteGraph.Node node in client.ReadNodes(tenantGuid, graphGuid))
+            foreach (LiteGraph.Node node in client.Node.ReadMany(tenantGuid, graphGuid))
             {
                 GexfNode gNode = new GexfNode(node.GUID, node.Name);
 
@@ -181,7 +181,7 @@
                 doc.Graph.NodeList.Nodes.Add(gNode);
             }
 
-            foreach (LiteGraph.Edge edge in client.ReadEdges(tenantGuid, graphGuid))
+            foreach (LiteGraph.Edge edge in client.Edge.ReadMany(tenantGuid, graphGuid))
             {
                 GexfEdge gEdge = new GexfEdge(edge.GUID, edge.From, edge.To);
 

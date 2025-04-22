@@ -9,15 +9,13 @@
     using ExpressionTree;
     using LiteGraph.Serialization;
 
-    internal static class Tenants
+    internal static class TenantQueries
     {
         internal static string TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
-        internal static SerializationHelper Serializer = new SerializationHelper();
+        internal static Serializer Serializer = new Serializer();
 
-        #region Tenants
-
-        internal static string InsertTenantQuery(TenantMetadata tenant)
+        internal static string Insert(TenantMetadata tenant)
         {
             string ret =
                 "INSERT INTO 'tenants' "
@@ -33,17 +31,17 @@
             return ret;
         }
 
-        internal static string SelectTenantQuery(string name)
+        internal static string Select(string name)
         {
             return "SELECT * FROM 'tenants' WHERE name = '" + Sanitizer.Sanitize(name) + "';";
         }
 
-        internal static string SelectTenantQuery(Guid guid)
+        internal static string Select(Guid guid)
         {
             return "SELECT * FROM 'tenants' WHERE guid = '" + guid.ToString() + "';";
         }
 
-        internal static string SelectTenantsQuery(
+        internal static string SelectMany(
             int batchSize = 100,
             int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
@@ -56,7 +54,7 @@
             return ret;
         }
 
-        internal static string UpdateTenantQuery(TenantMetadata tenant)
+        internal static string Update(TenantMetadata tenant)
         {
             return
                 "UPDATE 'tenants' SET "
@@ -67,21 +65,19 @@
                 + "RETURNING *;";
         }
 
-        internal static string DeleteTenantQuery(Guid guid)
+        internal static string Delete(Guid tenantGuid)
         {
-            return "DELETE FROM 'tenants' WHERE guid = '" + guid + "';";
+            string ret = string.Empty;
+            ret += "DELETE FROM 'labels' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'tags' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'edges' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'graphs' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'users' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'tenants' WHERE guid = '" + tenantGuid + "'; ";
+            return ret;
         }
-
-        internal static string DeleteTenantUsersQuery(Guid guid)
-        {
-            return "DELETE FROM 'users' WHERE tenantguid = '" + guid + "';";
-        }
-
-        internal static string DeleteTenantCredentialsQuery(Guid guid)
-        {
-            return "DELETE FROM 'creds' WHERE tenantguid = '" + guid + "';";
-        }
-
-        #endregion
     }
 }
