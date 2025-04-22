@@ -392,7 +392,6 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Vectors == null || req.Vectors.Count < 1) throw new ArgumentNullException(nameof(req.Vectors));
-            req.Vector.TenantGUID = req.TenantGUID.Value;
             List<VectorMetadata> obj = _LiteGraph.Vector.CreateMany(req.TenantGUID.Value, req.Vectors);
             return new ResponseContext(req, obj);
         }
