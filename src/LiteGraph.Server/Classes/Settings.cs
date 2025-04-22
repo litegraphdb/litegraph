@@ -32,6 +32,22 @@
         }
 
         /// <summary>
+        /// Caching settings.
+        /// </summary>
+        public CachingSettings Caching
+        {
+            get
+            {
+                return _Caching;
+            }
+            set
+            {
+                if (value == null) value = new CachingSettings();
+                _Caching = value;
+            }
+        }
+
+        /// <summary>
         /// REST settings.
         /// </summary>
         public WebserverSettings Rest
@@ -100,6 +116,7 @@
         #region Private-Members
 
         private LoggingSettings _Logging = new LoggingSettings();
+        private CachingSettings _Caching = new CachingSettings();
         private WebserverSettings _Rest = new WebserverSettings();
         private LiteGraphSettings _LiteGraph = new LiteGraphSettings();
         private EncryptionSettings _Encryption = new EncryptionSettings();

@@ -120,13 +120,9 @@
 
         private static void InitializeGlobals()
         {
-            #region General
+            #region General-and-Environment
 
             _Token = _TokenSource.Token;
-
-            #endregion
-
-            #region Environment
 
             string webserverPortStr = Environment.GetEnvironmentVariable(Constants.WebserverPortEnvironmentVariable);
             if (Int32.TryParse(webserverPortStr, out int webserverPort))
@@ -193,10 +189,6 @@
 
             _Repo = new SqliteGraphRepository(_Settings.LiteGraph.GraphRepositoryFilename);
             _Repo.InitializeRepository();
-            _Repo.Logging.Enable = _Settings.Debug.DatabaseQueries;
-            _Repo.Logging.Logger = LiteGraphLogger;
-            _Repo.Logging.LogQueries = _Settings.Debug.DatabaseQueries;
-            _Repo.Logging.LogResults = _Settings.Debug.DatabaseQueries;
 
             #endregion
 
@@ -209,6 +201,7 @@
             #region LiteGraph-Client
 
             _LiteGraph = new LiteGraphClient(_Repo, _Settings.Logging);
+            _LiteGraph.Caching = _Settings.Caching;
             _LiteGraph.Logging.Enable = _Settings.Debug.DatabaseQueries;
             _LiteGraph.Logging.Logger = LiteGraphLogger;
             _LiteGraph.Logging.LogQueries = _Settings.Debug.DatabaseQueries;
@@ -246,7 +239,30 @@
 
         private static void LiteGraphLogger(SeverityEnum sev, string msg)
         {
-            _Logging.Debug(msg);
+            switch (sev)
+            {
+                case SeverityEnum.Debug:
+                    _Logging.Debug(msg);
+                    break;
+                case SeverityEnum.Info:
+                    _Logging.Info(msg);
+                    break;
+                case SeverityEnum.Warn:
+                    _Logging.Warn(msg);
+                    break;
+                case SeverityEnum.Error:
+                    _Logging.Error(msg);
+                    break;
+                case SeverityEnum.Critical:
+                    _Logging.Critical(msg);
+                    break;
+                case SeverityEnum.Alert:
+                    _Logging.Alert(msg);
+                    break;
+                case SeverityEnum.Emergency:
+                    _Logging.Emergency(msg);
+                    break;
+            }
         }
 
         private static void CreateDefaultRecords()
