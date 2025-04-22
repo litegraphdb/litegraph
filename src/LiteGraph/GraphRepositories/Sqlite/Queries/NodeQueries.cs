@@ -49,9 +49,9 @@
                         "INSERT INTO 'labels' " +
                         "(guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) VALUES " +
                         "('" + label.GUID + "', " +
-                        "'" + label.TenantGUID + "', " +
-                        "'" + label.GraphGUID + "', " +
-                        "'" + label.NodeGUID + "', " +
+                        "'" + node.TenantGUID + "', " +
+                        "'" + node.GraphGUID + "', " +
+                        "'" + node.GUID + "', " +
                         (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(label.Label) + "', " +
                         "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
@@ -75,9 +75,9 @@
                         "INSERT INTO 'tags' " +
                         "(guid, tenantguid, graphguid, nodeguid, edgeguid, tagkey, tagvalue, createdutc, lastupdateutc) VALUES " +
                         "('" + tag.GUID + "', " +
-                        "'" + tag.TenantGUID + "', " +
-                        "'" + tag.GraphGUID + "', " +
-                        "'" + tag.NodeGUID + "', " +
+                        "'" + node.TenantGUID + "', " +
+                        "'" + node.GraphGUID + "', " +
+                        "'" + node.GUID + "', " +
                         (tag.EdgeGUID.HasValue ? "'" + tag.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                         "'" + Sanitizer.Sanitize(tag.Value) + "', " +
@@ -94,16 +94,16 @@
                     string vectorsString = string.Empty;
                     if (vector.Vectors != null && vector.Vectors.Count > 0)
                     {
-                        vectorsString = string.Join(",", vector.Vectors);
+                        vectorsString = Serializer.SerializeJson(vector.Vectors, false);
                     }
 
                     ret +=
                         "INSERT INTO 'vectors' " +
                         "(guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES " +
                         "('" + vector.GUID + "', " +
-                        "'" + vector.TenantGUID + "', " +
-                        "'" + vector.GraphGUID + "', " +
-                        "'" + vector.NodeGUID + "', " +
+                        "'" + node.TenantGUID + "', " +
+                        "'" + node.GraphGUID + "', " +
+                        "'" + node.GUID + "', " +
                         (vector.EdgeGUID.HasValue ? "'" + vector.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +
@@ -158,9 +158,9 @@
                             "INSERT INTO 'labels' " +
                             "(guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) VALUES " +
                             "('" + label.GUID + "', " +
-                            "'" + label.TenantGUID + "', " +
-                            "'" + label.GraphGUID + "', " +
-                            "'" + label.NodeGUID + "', " +
+                            "'" + node.TenantGUID + "', " +
+                            "'" + node.GraphGUID + "', " +
+                            "'" + node.GUID + "', " +
                             (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
                             "'" + Sanitizer.Sanitize(label.Label) + "', " +
                             "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
@@ -184,9 +184,9 @@
                             "INSERT INTO 'tags' " +
                             "(guid, tenantguid, graphguid, nodeguid, edgeguid, tagkey, tagvalue, createdutc, lastupdateutc) VALUES " +
                             "('" + tag.GUID + "', " +
-                            "'" + tag.TenantGUID + "', " +
-                            "'" + tag.GraphGUID + "', " +
-                            "'" + tag.NodeGUID + "', " +
+                            "'" + node.TenantGUID + "', " +
+                            "'" + node.GraphGUID + "', " +
+                            "'" + node.GUID + "', " +
                             (tag.EdgeGUID.HasValue ? "'" + tag.EdgeGUID + "'" : "NULL") + ", " +
                             "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                             "'" + Sanitizer.Sanitize(tag.Value) + "', " +
@@ -203,16 +203,16 @@
                         string vectorsString = string.Empty;
                         if (vector.Vectors != null && vector.Vectors.Count > 0)
                         {
-                            vectorsString = string.Join(",", vector.Vectors);
+                            vectorsString = Serializer.SerializeJson(vector.Vectors, false);
                         }
 
                         ret +=
                             "INSERT INTO 'vectors' " +
                             "(guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES " +
                             "('" + vector.GUID + "', " +
-                            "'" + vector.TenantGUID + "', " +
-                            "'" + vector.GraphGUID + "', " +
-                            "'" + vector.NodeGUID + "', " +
+                            "'" + node.TenantGUID + "', " +
+                            "'" + node.GraphGUID + "', " +
+                            "'" + node.GUID + "', " +
                             (vector.EdgeGUID.HasValue ? "'" + vector.EdgeGUID + "'" : "NULL") + ", " +
                             "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                             vector.Dimensionality + ", " +
@@ -423,9 +423,9 @@
                         "INSERT INTO 'labels' " +
                         "(guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) VALUES " +
                         "('" + label.GUID + "', " +
-                        "'" + label.TenantGUID + "', " +
-                        "'" + label.GraphGUID + "', " +
-                        "'" + label.NodeGUID + "', " +
+                        "'" + node.TenantGUID + "', " +
+                        "'" + node.GraphGUID + "', " +
+                        "'" + node.GUID + "', " +
                         (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(label.Label) + "', " +
                         "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
@@ -449,9 +449,9 @@
                         "INSERT INTO 'tags' " +
                         "(guid, tenantguid, graphguid, nodeguid, edgeguid, tagkey, tagvalue, createdutc, lastupdateutc) VALUES " +
                         "('" + tag.GUID + "', " +
-                        "'" + tag.TenantGUID + "', " +
-                        "'" + tag.GraphGUID + "', " +
-                        "'" + tag.NodeGUID + "', " +
+                        "'" + node.TenantGUID + "', " +
+                        "'" + node.GraphGUID + "', " +
+                        "'" + node.GUID + "', " +
                         (tag.EdgeGUID.HasValue ? "'" + tag.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                         "'" + Sanitizer.Sanitize(tag.Value) + "', " +
@@ -468,16 +468,16 @@
                     string vectorsString = string.Empty;
                     if (vector.Vectors != null && vector.Vectors.Count > 0)
                     {
-                        vectorsString = string.Join(",", vector.Vectors);
+                        vectorsString = Serializer.SerializeJson(vector.Vectors, false);
                     }
 
                     ret +=
                         "INSERT INTO 'vectors' " +
                         "(guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES " +
                         "('" + vector.GUID + "', " +
-                        "'" + vector.TenantGUID + "', " +
-                        "'" + vector.GraphGUID + "', " +
-                        "'" + vector.NodeGUID + "', " +
+                        "'" + node.TenantGUID + "', " +
+                        "'" + node.GraphGUID + "', " +
+                        "'" + node.GUID + "', " +
                         (vector.EdgeGUID.HasValue ? "'" + vector.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +

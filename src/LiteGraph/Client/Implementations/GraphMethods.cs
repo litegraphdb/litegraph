@@ -59,7 +59,7 @@
         /// <inheritdoc />
         public Graph Create(Graph graph)
         {
-            if (graph == null) throw new ArgumentNullException(nameof(Graph));
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
             _Client.ValidateLabels(graph.Labels);
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
