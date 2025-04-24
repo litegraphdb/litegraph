@@ -223,6 +223,69 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                string query = TagQueries.SelectGraph(tenantGuid, graphGuid, null, null, _Repo.SelectBatchSize, skip, order);
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    yield return Converters.TagFromDataRow(result.Rows[i]);
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                string query = TagQueries.SelectNode(tenantGuid, graphGuid, nodeGuid, null, null, _Repo.SelectBatchSize, skip, order);
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    yield return Converters.TagFromDataRow(result.Rows[i]);
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                string query = TagQueries.SelectEdge(tenantGuid, graphGuid, edgeGuid, null, null, _Repo.SelectBatchSize, skip, order);
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    yield return Converters.TagFromDataRow(result.Rows[i]);
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
         public TagMetadata Update(TagMetadata tag)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));

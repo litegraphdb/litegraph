@@ -136,6 +136,39 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
+
+            foreach (TagMetadata tag in _Repo.Tag.ReadManyGraph(tenantGuid, graphGuid, order, skip))
+            {
+                yield return tag;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
+
+            foreach (TagMetadata tag in _Repo.Tag.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip))
+            {
+                yield return tag;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
+
+            foreach (TagMetadata tag in _Repo.Tag.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip))
+            {
+                yield return tag;
+            }
+        }
+
+        /// <inheritdoc />
         public TagMetadata ReadByGuid(Guid tenantGuid, Guid guid)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tag with GUID " + guid);

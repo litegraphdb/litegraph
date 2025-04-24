@@ -223,6 +223,15 @@
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
@@ -344,6 +353,15 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadByGuid(System.Guid,System.Guid)">
@@ -958,6 +976,38 @@
             <param name="skip">Number of records to skip.</param>
             <returns>Labels.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read graph labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Labels.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read node labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuid">Node GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Labels.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read edge labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuid">Edge GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Labels.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.ReadByGuid(System.Guid,System.Guid)">
             <summary>
             Read a label by GUID.
@@ -1253,6 +1303,38 @@
             <param name="edgeGuid">Edge GUID.</param>
             <param name="key">Key.</param>
             <param name="val">Value.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITagMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read graph tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read node tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuid">Node GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read edge tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
             <returns>Tags.</returns>
@@ -2842,6 +2924,38 @@
             <param name="skip">Number of records to skip.</param>
             <returns>Labels.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read graph labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Labels.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read node labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuid">Node GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Labels.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read edge labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuid">Edge GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Labels.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadByGuid(System.Guid,System.Guid)">
             <summary>
             Read a label by GUID.
@@ -3137,6 +3251,38 @@
             <param name="edgeGuid">Edge GUID.</param>
             <param name="key">Key.</param>
             <param name="val">Value.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read graph tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read node tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuid">Node GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Read edge tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
             <returns>Tags.</returns>
@@ -3783,6 +3929,15 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.Update(LiteGraph.LabelMetadata)">
             <inheritdoc />
         </member>
@@ -3901,6 +4056,15 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.Update(LiteGraph.TagMetadata)">

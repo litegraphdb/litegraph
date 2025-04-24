@@ -7,6 +7,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
+    using System.Reflection.Emit;
     using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
@@ -233,6 +234,92 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
                             order);
                     }
                 }
+
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    yield return Converters.LabelFromDataRow(result.Rows[i]);
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                string query = LabelQueries.SelectGraph(
+                    tenantGuid,
+                    graphGuid,
+                    null,
+                    _Repo.SelectBatchSize,
+                    skip,
+                    order);
+
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    yield return Converters.LabelFromDataRow(result.Rows[i]);
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                string query = LabelQueries.SelectNode(
+                    tenantGuid,
+                    graphGuid,
+                    nodeGuid,
+                    null,
+                    _Repo.SelectBatchSize,
+                    skip,
+                    order);
+
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    yield return Converters.LabelFromDataRow(result.Rows[i]);
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                string query = LabelQueries.SelectEdge(
+                    tenantGuid,
+                    graphGuid,
+                    edgeGuid,
+                    null,
+                    _Repo.SelectBatchSize,
+                    skip,
+                    order);
 
                 DataTable result = _Repo.ExecuteQuery(query);
                 if (result == null || result.Rows.Count < 1) break;

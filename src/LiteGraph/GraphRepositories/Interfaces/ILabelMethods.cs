@@ -79,6 +79,52 @@
             int skip = 0);
 
         /// <summary>
+        /// Read graph labels.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.</param>
+        /// <returns>Labels.</returns>
+        IEnumerable<LabelMetadata> ReadManyGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0);
+
+        /// <summary>
+        /// Read node labels.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodeGuid">Node GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.</param>
+        /// <returns>Labels.</returns>
+        IEnumerable<LabelMetadata> ReadManyNode(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0);
+
+        /// <summary>
+        /// Read edge labels.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="edgeGuid">Edge GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.</param>
+        /// <returns>Labels.</returns>
+        IEnumerable<LabelMetadata> ReadManyEdge(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid edgeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0);
+
+        /// <summary>
         /// Read a label by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

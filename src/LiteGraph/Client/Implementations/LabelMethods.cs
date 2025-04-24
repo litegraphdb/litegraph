@@ -147,6 +147,39 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
+
+            foreach (LabelMetadata curr in _Repo.Label.ReadManyGraph(tenantGuid, graphGuid, order, skip))
+            {
+                yield return curr;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
+
+            foreach (LabelMetadata curr in _Repo.Label.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip))
+            {
+                yield return curr;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
+
+            foreach (LabelMetadata curr in _Repo.Label.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip))
+            {
+                yield return curr;
+            }
+        }
+
+        /// <inheritdoc />
         public LabelMetadata ReadByGuid(Guid tenantGuid, Guid guid)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving label with GUID " + guid);
