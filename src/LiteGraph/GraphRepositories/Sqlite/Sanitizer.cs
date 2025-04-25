@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Text.Json;
     using System.Threading.Tasks;
 
 
@@ -87,5 +88,20 @@
             return ret;
         }
 
+        internal static string SanitizeJson(string json)
+        {
+            if (string.IsNullOrEmpty(json)) return json;
+
+            try
+            {
+                JsonDocument.Parse(json);
+            }
+            catch (JsonException e)
+            {
+                throw new ArgumentException("Invalid JSON provided for data.", nameof(json), e);
+            }
+
+            return json.Replace("'", "''");
+        }
     }
 }

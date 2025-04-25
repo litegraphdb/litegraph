@@ -30,7 +30,7 @@
                 + "'" + Sanitizer.Sanitize(graph.Name) + "',";
 
             if (graph.Data == null) ret += "null,";
-            else ret += "'" + Serializer.SerializeJson(graph.Data, false) + "',";
+            else ret += "'" + Sanitizer.SanitizeJson(Serializer.SerializeJson(graph.Data, false)) + "',";
 
             ret +=
                 "'" + graph.CreatedUtc.ToString(TimestampFormat) + "',"
@@ -233,7 +233,7 @@
                 "lastupdateutc = '" + DateTime.UtcNow.ToString(TimestampFormat) + "',";
 
             if (graph.Data == null) ret += "data = null ";
-            else ret += "data = '" + Serializer.SerializeJson(graph.Data, false) + "' ";
+            else ret += "data = '" + Sanitizer.SanitizeJson(Serializer.SerializeJson(graph.Data, false)) + "' ";
 
             ret +=
                 "WHERE guid = '" + graph.GUID + "' " +

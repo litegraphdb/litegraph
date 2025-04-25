@@ -23,7 +23,7 @@
             string ret = string.Empty;
 
             string data = null;
-            if (node.Data != null) data = Serializer.SerializeJson(node.Data, false);
+            if (node.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(node.Data, false));
 
             ret +=
                 "INSERT INTO 'nodes' " +
@@ -134,7 +134,7 @@
                 if (node.TenantGUID != tenantGuid) node.TenantGUID = tenantGuid;
 
                 string data = null;
-                if (node.Data != null) data = Serializer.SerializeJson(node.Data, false);
+                if (node.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(node.Data, false));
 
                 ret +=
                     "INSERT INTO 'nodes' " +
@@ -382,7 +382,7 @@
             string ret = string.Empty;
 
             string data = null;
-            if (node.Data != null) data = Serializer.SerializeJson(node.Data, false);
+            if (node.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(node.Data, false));
 
             ret +=
                 "UPDATE 'nodes' SET " +

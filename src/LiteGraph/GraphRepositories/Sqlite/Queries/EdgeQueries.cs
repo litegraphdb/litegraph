@@ -21,7 +21,7 @@
             string ret = string.Empty;
 
             string data = null;
-            if (edge.Data != null) data = Serializer.SerializeJson(edge.Data, false);
+            if (edge.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(edge.Data, false));
 
             ret +=
                 "INSERT INTO 'edges' " +
@@ -134,7 +134,7 @@
                 if (edge.TenantGUID != tenantGuid) edge.TenantGUID = tenantGuid;
 
                 string data = null;
-                if (edge.Data != null) data = Serializer.SerializeJson(edge.Data, false);
+                if (edge.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(edge.Data, false));
 
                 ret +=
                     "INSERT INTO 'edges' " +
@@ -624,7 +624,7 @@
             string ret = string.Empty;
 
             string data = null;
-            if (edge.Data != null) data = Serializer.SerializeJson(edge.Data, false);
+            if (edge.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(edge.Data, false));
 
             ret +=
                 "UPDATE 'edges' SET " +
