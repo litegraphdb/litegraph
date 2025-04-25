@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.Serialization;
+    using SQLitePCL;
 
     internal static class NodeQueries
     {
@@ -21,7 +22,9 @@
 
             string ret = string.Empty;
 
-            // First insert the node record
+            string data = null;
+            if (node.Data != null) data = Serializer.SerializeJson(node.Data, false);
+
             ret +=
                 "INSERT INTO 'nodes' " +
                 "(guid, tenantguid, graphguid, name, data, createdutc, lastupdateutc) VALUES " +
@@ -29,11 +32,10 @@
                 "'" + node.TenantGUID + "', " +
                 "'" + node.GraphGUID + "', " +
                 "'" + Sanitizer.Sanitize(node.Name) + "', " +
-                "'" + Sanitizer.Sanitize(node.Data?.ToString()) + "', " +
-                "'" + node.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                "'" + node.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                (!String.IsNullOrEmpty(data) ? "'" + data + "', " : "NULL, ") +
+                "'" + node.CreatedUtc.ToString(TimestampFormat) + "', " +
+                "'" + node.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
 
-            // Insert labels if any
             if (node.Labels != null && node.Labels.Count > 0)
             {
                 List<LabelMetadata> labels = LabelMetadata.FromListString(
@@ -54,12 +56,11 @@
                         "'" + node.GUID + "', " +
                         (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(label.Label) + "', " +
-                        "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + label.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + label.CreatedUtc.ToString(TimestampFormat) + "', " +
+                        "'" + label.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
                 }
             }
 
-            // Insert tags if any
             if (node.Tags != null && node.Tags.Count > 0)
             {
                 List<TagMetadata> tags = TagMetadata.FromNameValueCollection(
@@ -86,7 +87,6 @@
                 }
             }
 
-            // Insert vectors if any
             if (node.Vectors != null && node.Vectors.Count > 0)
             {
                 foreach (VectorMetadata vector in node.Vectors)
@@ -108,7 +108,7 @@
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                        "'" + Sanitizer.Sanitize(vectorsString) + "', " +
+                        "'" + vectorsString + "', " +
                         "'" + vector.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
                         "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
@@ -131,12 +131,11 @@
 
             foreach (Node node in nodes)
             {
-                if (node.TenantGUID != tenantGuid)
-                {
-                    node.TenantGUID = tenantGuid;
-                }
+                if (node.TenantGUID != tenantGuid) node.TenantGUID = tenantGuid;
 
-                // Insert node record
+                string data = null;
+                if (node.Data != null) data = Serializer.SerializeJson(node.Data, false);
+
                 ret +=
                     "INSERT INTO 'nodes' " +
                     "(guid, tenantguid, graphguid, name, data, createdutc, lastupdateutc) VALUES " +
@@ -144,11 +143,10 @@
                     "'" + node.TenantGUID + "', " +
                     "'" + node.GraphGUID + "', " +
                     "'" + Sanitizer.Sanitize(node.Name) + "', " +
-                    "'" + Sanitizer.Sanitize(node.Data?.ToString()) + "', " +
-                    "'" + node.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                    "'" + node.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                    (!String.IsNullOrEmpty(data) ? "'" + data + "', " : "NULL, ") +
+                    "'" + node.CreatedUtc.ToString(TimestampFormat) + "', " +
+                    "'" + node.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
 
-                // Insert labels if any
                 if (node.Labels != null && node.Labels.Count > 0)
                 {
                     List<LabelMetadata> labels = LabelMetadata.FromListString(
@@ -169,12 +167,11 @@
                             "'" + node.GUID + "', " +
                             (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
                             "'" + Sanitizer.Sanitize(label.Label) + "', " +
-                            "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                            "'" + label.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                            "'" + label.CreatedUtc.ToString(TimestampFormat) + "', " +
+                            "'" + label.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
                     }
                 }
 
-                // Insert tags if any
                 if (node.Tags != null && node.Tags.Count > 0)
                 {
                     List<TagMetadata> tags = TagMetadata.FromNameValueCollection(
@@ -196,8 +193,8 @@
                             (tag.EdgeGUID.HasValue ? "'" + tag.EdgeGUID + "'" : "NULL") + ", " +
                             "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                             "'" + Sanitizer.Sanitize(tag.Value) + "', " +
-                            "'" + tag.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                            "'" + tag.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                            "'" + tag.CreatedUtc.ToString(TimestampFormat) + "', " +
+                            "'" + tag.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
                     }
                 }
 
@@ -223,9 +220,9 @@
                             "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                             vector.Dimensionality + ", " +
                             "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                            "'" + Sanitizer.Sanitize(vectorsString) + "', " +
-                            "'" + vector.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                            "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                            "'" + vectorsString + "', " +
+                            "'" + vector.CreatedUtc.ToString(TimestampFormat) + "', " +
+                            "'" + vector.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
                     }
                 }
             }
@@ -384,17 +381,18 @@
 
             string ret = string.Empty;
 
-            // First update the node record
+            string data = null;
+            if (node.Data != null) data = Serializer.SerializeJson(node.Data, false);
+
             ret +=
                 "UPDATE 'nodes' SET " +
                 "name = '" + Sanitizer.Sanitize(node.Name) + "', " +
-                "data = '" + Sanitizer.Sanitize(node.Data?.ToString()) + "', " +
-                "lastupdateutc = '" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "' " +
+                "data = " + (!String.IsNullOrEmpty(data) ? "'" + data + "', " : "NULL, ") +
+                "lastupdateutc = '" + DateTime.UtcNow.ToString(TimestampFormat) + "' " +
                 "WHERE tenantguid = '" + node.TenantGUID + "' " +
                 "AND graphguid = '" + node.GraphGUID + "' " +
                 "AND guid = '" + node.GUID + "'; ";
 
-            // Delete existing metadata
             ret +=
                 "DELETE FROM 'labels' WHERE " +
                 "tenantguid = '" + node.TenantGUID + "' " +
@@ -413,7 +411,6 @@
                 "AND graphguid = '" + node.GraphGUID + "' " +
                 "AND nodeguid = '" + node.GUID + "'; ";
 
-            // Insert new labels if any
             if (node.Labels != null && node.Labels.Count > 0)
             {
                 List<LabelMetadata> labels = LabelMetadata.FromListString(
@@ -434,12 +431,11 @@
                         "'" + node.GUID + "', " +
                         (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(label.Label) + "', " +
-                        "'" + label.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + label.CreatedUtc.ToString(TimestampFormat) + "', " +
+                        "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }
             }
 
-            // Insert new tags if any
             if (node.Tags != null && node.Tags.Count > 0)
             {
                 List<TagMetadata> tags = TagMetadata.FromNameValueCollection(
@@ -461,12 +457,11 @@
                         (tag.EdgeGUID.HasValue ? "'" + tag.EdgeGUID + "'" : "NULL") + ", " +
                         "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                         "'" + Sanitizer.Sanitize(tag.Value) + "', " +
-                        "'" + tag.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + tag.CreatedUtc.ToString(TimestampFormat) + "', " +
+                        "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }
             }
 
-            // Insert new vectors if any
             if (node.Vectors != null && node.Vectors.Count > 0)
             {
                 foreach (VectorMetadata vector in node.Vectors)
@@ -488,9 +483,9 @@
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                        "'" + Sanitizer.Sanitize(vectorsString) + "', " +
-                        "'" + vector.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
-                        "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
+                        "'" + vectorsString + "', " +
+                        "'" + vector.CreatedUtc.ToString(TimestampFormat) + "', " +
+                        "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }
             }
 

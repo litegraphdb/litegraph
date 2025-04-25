@@ -22,7 +22,6 @@
 
             string ret = string.Empty;
 
-            // First insert the graph record
             ret +=
                 "INSERT INTO 'graphs' "
                 + "(guid, tenantguid, name, data, createdutc, lastupdateutc) VALUES "
@@ -31,14 +30,13 @@
                 + "'" + Sanitizer.Sanitize(graph.Name) + "',";
 
             if (graph.Data == null) ret += "null,";
-            else ret += "'" + Sanitizer.Sanitize(Serializer.SerializeJson(graph.Data, false)) + "',";
+            else ret += "'" + Serializer.SerializeJson(graph.Data, false) + "',";
 
             ret +=
-                "'" + Sanitizer.Sanitize(graph.CreatedUtc.ToString(TimestampFormat)) + "',"
-                + "'" + Sanitizer.Sanitize(graph.LastUpdateUtc.ToString(TimestampFormat)) + "'"
+                "'" + graph.CreatedUtc.ToString(TimestampFormat) + "',"
+                + "'" + graph.LastUpdateUtc.ToString(TimestampFormat) + "'"
                 + "); ";
 
-            // Insert labels if any
             if (graph.Labels != null && graph.Labels.Count > 0)
             {
                 List<LabelMetadata> labels = LabelMetadata.FromListString(
@@ -64,7 +62,6 @@
                 }
             }
 
-            // Insert tags if any
             if (graph.Tags != null && graph.Tags.Count > 0)
             {
                 List<TagMetadata> tags = TagMetadata.FromNameValueCollection(
@@ -91,7 +88,6 @@
                 }
             }
 
-            // Insert vectors if any
             if (graph.Vectors != null && graph.Vectors.Count > 0)
             {
                 foreach (VectorMetadata vector in graph.Vectors)
@@ -231,20 +227,18 @@
 
             string ret = string.Empty;
 
-            // First update the graph record
             ret +=
                 "UPDATE 'graphs' SET " +
                 "name = '" + Sanitizer.Sanitize(graph.Name) + "', " +
                 "lastupdateutc = '" + DateTime.UtcNow.ToString(TimestampFormat) + "',";
 
             if (graph.Data == null) ret += "data = null ";
-            else ret += "data = '" + Sanitizer.Sanitize(Serializer.SerializeJson(graph.Data, false)) + "' ";
+            else ret += "data = '" + Serializer.SerializeJson(graph.Data, false) + "' ";
 
             ret +=
                 "WHERE guid = '" + graph.GUID + "' " +
                 "AND tenantguid = '" + graph.TenantGUID + "'; ";
 
-            // Delete existing metadata
             ret +=
                 "DELETE FROM 'labels' WHERE " +
                 "tenantguid = '" + graph.TenantGUID + "' " +
@@ -266,7 +260,6 @@
                 "AND nodeguid IS NULL " +
                 "AND edgeguid IS NULL; ";
 
-            // Insert new labels if any
             if (graph.Labels != null && graph.Labels.Count > 0)
             {
                 List<LabelMetadata> labels = LabelMetadata.FromListString(
@@ -292,7 +285,6 @@
                 }
             }
 
-            // Insert new tags if any
             if (graph.Tags != null && graph.Tags.Count > 0)
             {
                 List<TagMetadata> tags = TagMetadata.FromNameValueCollection(
@@ -319,7 +311,6 @@
                 }
             }
 
-            // Insert new vectors if any
             if (graph.Vectors != null && graph.Vectors.Count > 0)
             {
                 foreach (VectorMetadata vector in graph.Vectors)
@@ -341,7 +332,7 @@
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                        "'" + Sanitizer.Sanitize(vectorsString) + "', " +
+                        "'" + vectorsString + "', " +
                         "'" + vector.CreatedUtc.ToString(TimestampFormat) + "', " +
                         "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'); ";
                 }

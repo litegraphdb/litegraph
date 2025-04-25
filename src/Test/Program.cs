@@ -47,6 +47,8 @@
                 else if (userInput.Equals("test1-3")) Test1_3();
                 else if (userInput.Equals("test1-4")) Test1_4();
                 else if (userInput.Equals("test2-1")) Test2_1();
+                else if (userInput.Equals("test3-1")) Test3_1();
+                else if (userInput.Equals("test3-2")) Test3_2();
                 else
                 {
                     string[] parts = userInput.Split(new char[] { ' ' });
@@ -105,6 +107,8 @@
             Console.WriteLine("  test1-3         using sample graph 1, validate retrieval by labels and tags");
             Console.WriteLine("  test1-4         using sample graph 1, validate retrieval by vectors");
             Console.WriteLine("  test2-1         using sample graph 2, validate node retrieval by properties");
+            Console.WriteLine("  test3-1         create test tenant, graph, and node using anonymous data");
+            Console.WriteLine("  test3-2         create test tenant, graph, and node using var");
             Console.WriteLine("");
             Console.WriteLine("  [type] [cmd]    execute a command against a given type");
             Console.WriteLine("  where:");
@@ -919,6 +923,7 @@
             #endregion
 
             #region Edges
+
             Edge joelXfiEdge = _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
@@ -1116,6 +1121,7 @@
                 To = ccpNode.GUID,
                 Name = "DigitalOcean to Control Plane"
             });
+
             #endregion
         }
 
@@ -1143,6 +1149,64 @@
             }
 
             Console.WriteLine("");
+        }
+
+        #endregion
+
+        #region Misc
+
+        static void Test3_1()
+        {
+            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata
+            {
+                Name = "Test"
+            });
+
+            Graph graph = _Client.Graph.Create(new Graph
+            {
+                TenantGUID = tenant.GUID,
+                Name = "Test"
+            });
+
+            Node node1 = new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node1",
+                Data = new { Text = "hello" }
+            };
+
+            Console.WriteLine(Serializer.SerializeJson(node1));
+
+            node1 = _Client.Node.Create(node1);
+        }
+
+        static void Test3_2()
+        {
+            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata
+            {
+                Name = "Test"
+            });
+
+            Graph graph = _Client.Graph.Create(new Graph
+            {
+                TenantGUID = tenant.GUID,
+                Name = "Test"
+            });
+
+            var data = new { Text = "hello" };
+
+            Node node1 = new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node1",
+                Data = data
+            };
+
+            Console.WriteLine(Serializer.SerializeJson(node1));
+
+            node1 = _Client.Node.Create(node1);
         }
 
         #endregion
