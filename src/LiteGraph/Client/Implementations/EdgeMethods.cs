@@ -102,7 +102,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
             _Client.ValidateTenantExists(tenantGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadAllInTenant(tenantGuid, order, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null).ToList();
@@ -123,7 +128,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
@@ -147,7 +157,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, labels, tags, expr, order, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
@@ -165,6 +180,7 @@
         public Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, graphGuid, edgeGuid);
             if (edge == null) return null;
             List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edgeGuid, null).ToList();
@@ -186,6 +202,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip))
             {
                 edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
@@ -206,6 +228,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip))
             {
                 edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
@@ -226,6 +254,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadEdgesToNode(
                 tenantGuid,
                 graphGuid,
@@ -255,6 +289,12 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
         {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
             foreach (Edge edge in _Repo.Edge.ReadEdgesBetweenNodes(
                 tenantGuid,
                 graphGuid,

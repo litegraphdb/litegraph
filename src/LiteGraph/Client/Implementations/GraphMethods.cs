@@ -82,6 +82,11 @@
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
+
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
             _Client.ValidateTenantExists(tenantGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
             foreach (Graph graph in _Repo.Graph.ReadAllInTenant(tenantGuid, order, skip))
@@ -107,6 +112,11 @@
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
+
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
             _Client.ValidateTenantExists(tenantGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
             foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, labels, tags, expr, order, skip))

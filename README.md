@@ -178,6 +178,21 @@ foreach (VectorSearchResult result in graph.SearchVectors(
 }
 ```
 
+### Enumeration Ordering
+
+A variety of `EnumerationOrderEnum` options are available when enumerating objects.
+
+- `CreatedAscending` - sort results in ascending order by creation timestamp
+- `CreatedDescending` - sort results in descending order by creation timestamp
+- `NameAscending` - sort results in ascending order by name
+- `NameDescending` - sort results in descending order by name
+- `GuidAscending` - sort results in ascending order by GUID
+- `GuidDescending` - sort results in descending order by GUID
+- `CostAscending` - for edges only, sort results in ascending order by cost
+- `CostDescending` - for edges only, sort results in descending order by cost
+- `MostConnected` - for nodes only, sort results in descending order by total edge count
+- `LeastConnected` - for nodes only, sort results in ascending order by total edge count
+
 ## REST API
 
 LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph.  Refer to `REST_API.md` and also the Postman collection in the root of this repository for details.  By default, LiteGraph.Server listens on `http://localhost:8701` and is only accessible to `localhost`.  Modify the `litegraph.json` file to change settings including hostname and port.

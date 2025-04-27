@@ -80,6 +80,8 @@
                                 else if (parts[1].Equals("parents")) NodeParents();
                                 else if (parts[1].Equals("children")) NodeChildren();
                                 else if (parts[1].Equals("neighbors")) NodeNeighbors();
+                                else if (parts[1].Equals("mostconnected")) NodeMostConnected();
+                                else if (parts[1].Equals("leastconnected")) NodeLeastConnected();
                             }
                         }
                     }
@@ -116,8 +118,8 @@
             Console.WriteLine("    [cmd]  : create all read exists update delete search");
             Console.WriteLine("");
             Console.WriteLine("  For node operations, additional commands are available");
-            Console.WriteLine("    edgesto    edgesfrom   edgesbetween");
-            Console.WriteLine("    parents    children    neighbors");
+            Console.WriteLine("    edgesto    edgesfrom   edgesbetween   mostconnected");
+            Console.WriteLine("    parents    children    neighbors      leastconnected");
             Console.WriteLine("");
         }
 
@@ -1595,6 +1597,26 @@
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
             object obj = _Client.Node.ReadNeighbors(tenantGuid, graphGuid, guid);
+
+            if (obj != null)
+                Console.WriteLine(Serializer.SerializeJson(obj, true));
+        }
+
+        static void NodeMostConnected()
+        {
+            Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
+            Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
+            object obj = _Client.Node.ReadMostConnected(tenantGuid, graphGuid);
+
+            if (obj != null)
+                Console.WriteLine(Serializer.SerializeJson(obj, true));
+        }
+
+        static void NodeLeastConnected()
+        {
+            Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
+            Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
+            object obj = _Client.Node.ReadLeastConnected(tenantGuid, graphGuid);
 
             if (obj != null)
                 Console.WriteLine(Serializer.SerializeJson(obj, true));

@@ -231,9 +231,9 @@
         }
 
         internal static string SelectAllInTenant(
-            Guid tenantGuid, 
-            int batchSize = 100, 
-            int skip = 0, 
+            Guid tenantGuid,
+            int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret = "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' ";
@@ -244,9 +244,9 @@
         }
 
         internal static string SelectAllInGraph(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid graphGuid,
-            int batchSize = 100, 
+            int batchSize = 100,
             int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
@@ -371,6 +371,218 @@
             ret +=
                 "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
                 + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+
+            return ret;
+        }
+
+        internal static string SelectMostConnected(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels,
+            NameValueCollection tags,
+            Expr nodeFilter = null,
+            int batchSize = 100,
+            int skip = 0)
+        {
+            string ret = 
+                "WITH edge_counts AS ( " +
+                "SELECT " +
+                    "n.guid, " +
+                    "(SELECT COUNT(*) FROM edges WHERE toguid = n.guid) AS edges_in, " +
+                    "(SELECT COUNT(*) FROM edges WHERE fromguid = n.guid) AS edges_out " +
+                "FROM nodes n " +
+                "WHERE n.tenantguid = '" + tenantGuid + "' " +
+                "AND n.graphguid = '" + graphGuid + "' " +
+                ") ";
+
+            ret += 
+                "SELECT nodes.*, " +
+                "COALESCE(edge_counts.edges_in, 0) AS edges_in, " +
+                "COALESCE(edge_counts.edges_out, 0) AS edges_out, " +
+                "COALESCE(edge_counts.edges_in, 0) + COALESCE(edge_counts.edges_out, 0) AS edges_total " +
+                "FROM 'nodes' " +
+                "LEFT JOIN edge_counts ON nodes.guid = edge_counts.guid ";
+
+            if (labels != null && labels.Count > 0)
+                ret += 
+                    "INNER JOIN 'labels' " +
+                    "ON nodes.guid = labels.nodeguid " +
+                    "AND nodes.graphguid = labels.graphguid " +
+                    "AND nodes.tenantguid = labels.tenantguid ";
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    ret +=
+                        "INNER JOIN 'tags' t" + added.ToString() + " " +
+                        "ON nodes.guid = t" + added.ToString() + ".nodeguid " +
+                        "AND nodes.graphguid = t" + added.ToString() + ".graphguid " +
+                        "AND nodes.tenantguid = t" + added.ToString() + ".tenantguid ";
+                    added++;
+                }
+            }
+
+            ret += 
+                "WHERE " +
+                "nodes.tenantguid = '" + tenantGuid + "' " +
+                "AND nodes.graphguid = '" + graphGuid + "' ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                string labelList = "(";
+                int labelsAdded = 0;
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) labelList += ",";
+                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
+                    labelsAdded++;
+                }
+                labelList += ")";
+                ret += "AND labels.label IN " + labelList + " ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    string val = tags.Get(key);
+                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
+                    added++;
+                }
+            }
+
+            if (nodeFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("nodes", nodeFilter);
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND " + filterClause;
+            }
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "GROUP BY nodes.guid ";
+                int labelsAdded = 0;
+                ret += "HAVING ";
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) ret += "AND ";
+                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
+                    labelsAdded++;
+                }
+            }
+
+            ret += "ORDER BY edges_total DESC ";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
+
+            return ret;
+        }
+
+        internal static string SelectLeastConnected(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels,
+            NameValueCollection tags,
+            Expr nodeFilter = null,
+            int batchSize = 100,
+            int skip = 0)
+        {
+            string ret =
+                "WITH edge_counts AS ( " +
+                "SELECT " +
+                    "n.guid, " +
+                    "(SELECT COUNT(*) FROM edges WHERE toguid = n.guid) AS edges_in, " +
+                    "(SELECT COUNT(*) FROM edges WHERE fromguid = n.guid) AS edges_out " +
+                "FROM nodes n " +
+                "WHERE n.tenantguid = '" + tenantGuid + "' " +
+                "AND n.graphguid = '" + graphGuid + "' " +
+                ") ";
+
+            ret +=
+                "SELECT nodes.*, " +
+                "COALESCE(edge_counts.edges_in, 0) AS edges_in, " +
+                "COALESCE(edge_counts.edges_out, 0) AS edges_out, " +
+                "COALESCE(edge_counts.edges_in, 0) + COALESCE(edge_counts.edges_out, 0) AS edges_total " +
+                "FROM 'nodes' " +
+                "LEFT JOIN edge_counts ON nodes.guid = edge_counts.guid ";
+
+            if (labels != null && labels.Count > 0)
+                ret +=
+                    "INNER JOIN 'labels' " +
+                    "ON nodes.guid = labels.nodeguid " +
+                    "AND nodes.graphguid = labels.graphguid " +
+                    "AND nodes.tenantguid = labels.tenantguid ";
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    ret +=
+                        "INNER JOIN 'tags' t" + added.ToString() + " " +
+                        "ON nodes.guid = t" + added.ToString() + ".nodeguid " +
+                        "AND nodes.graphguid = t" + added.ToString() + ".graphguid " +
+                        "AND nodes.tenantguid = t" + added.ToString() + ".tenantguid ";
+                    added++;
+                }
+            }
+
+            ret +=
+                "WHERE " +
+                "nodes.tenantguid = '" + tenantGuid + "' " +
+                "AND nodes.graphguid = '" + graphGuid + "' ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                string labelList = "(";
+                int labelsAdded = 0;
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) labelList += ",";
+                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
+                    labelsAdded++;
+                }
+                labelList += ")";
+                ret += "AND labels.label IN " + labelList + " ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    string val = tags.Get(key);
+                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
+                    added++;
+                }
+            }
+
+            if (nodeFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("nodes", nodeFilter);
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND " + filterClause;
+            }
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "GROUP BY nodes.guid ";
+                int labelsAdded = 0;
+                ret += "HAVING ";
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) ret += "AND ";
+                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
+                    labelsAdded++;
+                }
+            }
+
+            ret += "ORDER BY edges_total ASC ";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
         }

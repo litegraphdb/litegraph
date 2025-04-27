@@ -294,6 +294,12 @@
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <inheritdoc />
         </member>
@@ -1147,6 +1153,36 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Nodes.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <summary>
+            Read the most connected nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="nodeFilter">
+            Node filter expression for Data JSON body.  
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="skip">The number of records to skip.</param>
+            <returns>Nodes.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <summary>
+            Read the least connected nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="nodeFilter">
+            Node filter expression for Data JSON body.  
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="skip">The number of records to skip.</param>
+            <returns>Nodes.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <summary>
             Read node.
@@ -1985,6 +2021,16 @@
         <member name="F:LiteGraph.EnumerationOrderEnum.CostDescending">
             <summary>
             Cost descending.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.EnumerationOrderEnum.MostConnected">
+            <summary>
+            Most connected.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.EnumerationOrderEnum.LeastConnected">
+            <summary>
+            Least connected.
             </summary>
         </member>
         <member name="T:LiteGraph.ExistenceRequest">
@@ -3095,6 +3141,36 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Nodes.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <summary>
+            Read the most connected nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="nodeFilter">
+            Node filter expression for Data JSON body.  
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="skip">The number of records to skip.</param>
+            <returns>Nodes.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <summary>
+            Read the least connected nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="nodeFilter">
+            Node filter expression for Data JSON body.  
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="skip">The number of records to skip.</param>
+            <returns>Nodes.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <summary>
             Read node.
@@ -3968,6 +4044,12 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <inheritdoc />
         </member>
@@ -4644,6 +4726,21 @@
         <member name="P:LiteGraph.Node.Name">
             <summary>
             Name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Node.EdgesIn">
+            <summary>
+            Number of edges connected to this node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Node.EdgesOut">
+            <summary>
+            Number of edges connected from this node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Node.EdgesTotal">
+            <summary>
+            Number of total edges to or from this node.
             </summary>
         </member>
         <member name="P:LiteGraph.Node.CreatedUtc">

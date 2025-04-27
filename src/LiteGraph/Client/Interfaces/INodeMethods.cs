@@ -83,6 +83,48 @@
             int skip = 0);
 
         /// <summary>
+        /// Read the most connected nodes.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="labels">Labels.</param>
+        /// <param name="tags">Tags.</param>
+        /// <param name="nodeFilter">
+        /// Node filter expression for Data JSON body.  
+        /// Expression left terms must follow the form of Sqlite JSON paths.
+        /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+        /// <param name="skip">The number of records to skip.</param>
+        /// <returns>Nodes.</returns>
+        IEnumerable<Node> ReadMostConnected(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr nodeFilter = null,
+            int skip = 0);
+
+        /// <summary>
+        /// Read the least connected nodes.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="labels">Labels.</param>
+        /// <param name="tags">Tags.</param>
+        /// <param name="nodeFilter">
+        /// Node filter expression for Data JSON body.  
+        /// Expression left terms must follow the form of Sqlite JSON paths.
+        /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+        /// <param name="skip">The number of records to skip.</param>
+        /// <returns>Nodes.</returns>
+        IEnumerable<Node> ReadLeastConnected(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr nodeFilter = null,
+            int skip = 0);
+
+        /// <summary>
         /// Read node.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

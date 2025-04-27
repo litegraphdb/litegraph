@@ -151,6 +151,60 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<Node> ReadMostConnected(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            List<string> labels = null, 
+            NameValueCollection tags = null, 
+            Expr nodeFilter = null, 
+            int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMostConnected(tenantGuid, graphGuid, labels, tags, nodeFilter, _Repo.SelectBatchSize, skip));
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    Node node = Converters.NodeFromDataRow(result.Rows[i]);
+                    yield return node;
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Node> ReadLeastConnected(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            List<string> labels = null, 
+            NameValueCollection tags = null, 
+            Expr nodeFilter = null, 
+            int skip = 0)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+
+            while (true)
+            {
+                DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectLeastConnected(tenantGuid, graphGuid, labels, tags, nodeFilter, _Repo.SelectBatchSize, skip));
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    Node node = Converters.NodeFromDataRow(result.Rows[i]);
+                    yield return node;
+                    skip++;
+                }
+
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+        }
+
+        /// <inheritdoc />
         public Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
             DataTable result = _Repo.ExecuteQuery(NodeQueries.Select(tenantGuid, graphGuid, nodeGuid));

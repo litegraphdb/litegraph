@@ -104,6 +104,10 @@
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
 
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
             _Client.ValidateTenantExists(tenantGuid);
 
             foreach (Node node in _Repo.Node.ReadAllInTenant(tenantGuid, order, skip))
@@ -132,16 +136,33 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Node node in _Repo.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+            if (order == EnumerationOrderEnum.MostConnected)
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList();
-                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
+                foreach (Node node in ReadMostConnected(tenantGuid, graphGuid, null, null, null, skip))
+                {
+                    yield return node;
+                }
+            }
+            else if (order == EnumerationOrderEnum.LeastConnected)
+            {
+                foreach (Node node in ReadLeastConnected(tenantGuid, graphGuid, null, null, null, skip))
+                {
+                    yield return node;
+                }
+            }
+            else
+            {
+                foreach (Node node in _Repo.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+                {
+                    List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList();
+                    if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
 
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList();
-                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
+                    List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList();
+                    if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
-                yield return node;
+                    node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
+                    yield return node;
+                }
             }
         }
 
@@ -159,7 +180,74 @@
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
 
-            foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, labels, tags, expr, order, skip))
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
+            if (order == EnumerationOrderEnum.MostConnected)
+            {
+                foreach (Node node in ReadMostConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
+                {
+                    yield return node;
+                }
+            }
+            else if (order == EnumerationOrderEnum.LeastConnected)
+            {
+                foreach (Node node in ReadLeastConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
+                {
+                    yield return node;
+                }
+            }
+            else
+            {
+                foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, labels, tags, expr, order, skip))
+                {
+                    List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
+                    if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
+
+                    List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
+                    if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                    node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
+                    yield return node;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Node> ReadMostConnected(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr expr = null,
+            int skip = 0)
+        {
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
+            foreach (Node node in _Repo.Node.ReadMostConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
+                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
+                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
+                yield return node;
+            }
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Node> ReadLeastConnected(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr expr = null,
+            int skip = 0)
+        {
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
+            foreach (Node node in _Repo.Node.ReadLeastConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
                 if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);

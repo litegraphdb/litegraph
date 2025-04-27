@@ -18,33 +18,52 @@
 
         internal static string GetDataRowStringValue(DataRow row, string column)
         {
-            if (row[column] != null
-                && row[column] != DBNull.Value)
+            if (row.Table.Columns.Contains(column))
             {
-                return row[column].ToString();
+                if (row[column] != null && row[column] != DBNull.Value)
+                {
+                    return row[column].ToString();
+                }
             }
             return null;
         }
 
         internal static object GetDataRowJsonValue(DataRow row, string column)
         {
-            if (row[column] != null
-                && row[column] != DBNull.Value)
+            if (row.Table.Columns.Contains(column))
             {
-                return Serializer.DeserializeJson<object>(row[column].ToString());
+                if (row[column] != null && row[column] != DBNull.Value)
+                {
+                    return Serializer.DeserializeJson<object>(row[column].ToString());
+                }
             }
             return null;
         }
 
         internal static int GetDataRowIntValue(DataRow row, string column)
         {
-            if (row[column] != null
-                && row[column] != DBNull.Value)
+            if (row.Table.Columns.Contains(column))
             {
-                if (Int32.TryParse(row[column].ToString(), out int val))
-                    return val;
+                if (row[column] != null && row[column] != DBNull.Value)
+                {
+                    if (Int32.TryParse(row[column].ToString(), out int val))
+                        return val;
+                }
             }
             return 0;
+        }
+
+        internal static int? GetDataRowNullableIntValue(DataRow row, string column)
+        {
+            if (row.Table.Columns.Contains(column))
+            {
+                if (row[column] != null && row[column] != DBNull.Value)
+                {
+                    if (Int32.TryParse(row[column].ToString(), out int val))
+                        return val;
+                }
+            }
+            return null;
         }
 
         internal static bool IsList(object o)
@@ -699,6 +718,8 @@
                 TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
                 GraphGUID = Guid.Parse(row["graphguid"].ToString()),
                 Name = GetDataRowStringValue(row, "name"),
+                EdgesIn = GetDataRowNullableIntValue(row, "edges_in"),
+                EdgesOut = GetDataRowNullableIntValue(row, "edges_out"),
                 Data = GetDataRowJsonValue(row, "data"),
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())

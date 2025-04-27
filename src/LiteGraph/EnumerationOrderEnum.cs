@@ -37,5 +37,13 @@
         /// Cost descending.
         /// </summary>
         CostDescending,
+        /// <summary>
+        /// Most connected.
+        /// </summary>
+        MostConnected,
+        /// <summary>
+        /// Least connected.
+        /// </summary>
+        LeastConnected
     }
 }

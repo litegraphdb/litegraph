@@ -32,6 +32,53 @@
         public string Name { get; set; } = null;
 
         /// <summary>
+        /// Number of edges connected to this node.
+        /// </summary>
+        public int? EdgesIn
+        {
+            get
+            {
+                return _EdgesIn;
+            }
+            set
+            {
+                if (value != null && value.Value < 0) throw new ArgumentOutOfRangeException(nameof(EdgesIn));
+                _EdgesIn = value;
+            }
+        }
+
+        /// <summary>
+        /// Number of edges connected from this node.
+        /// </summary>
+        public int? EdgesOut
+        {
+            get
+            {
+                return _EdgesOut;
+            }
+            set
+            {
+                if (value != null && value.Value < 0) throw new ArgumentOutOfRangeException(nameof(EdgesOut));
+                _EdgesOut = value;
+            }
+        }
+
+        /// <summary>
+        /// Number of total edges to or from this node.
+        /// </summary>
+        public int? EdgesTotal
+        {
+            get
+            {
+                int? total = null;
+                if (EdgesIn != null || EdgesOut != null) total = 0;
+                if (EdgesIn != null) total += EdgesIn.Value;
+                if (EdgesOut != null) total += EdgesOut.Value;
+                return total;
+            }
+        }
+
+        /// <summary>
         /// Timestamp from creation, in UTC.
         /// </summary>
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
@@ -64,6 +111,9 @@
         #endregion
 
         #region Private-Members
+
+        private int? _EdgesIn = null;
+        private int? _EdgesOut = null;
 
         #endregion
 
