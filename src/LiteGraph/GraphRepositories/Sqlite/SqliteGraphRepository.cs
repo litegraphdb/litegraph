@@ -53,7 +53,7 @@
 
         /// <summary>
         /// Maximum supported statement length.
-        /// Default for Sqlite is 1000000 (see https://www.sqlite.org/limits.html).
+        /// Default for Sqlite is 1,000,000,000 (see https://www.sqlite.org/limits.html).
         /// </summary>
         public int MaxStatementLength
         {
@@ -164,7 +164,7 @@
 
         private string _Filename = "litegraph.db";
         private int _SelectBatchSize = 100;
-        private int _MaxStatementLength = 1000000; // https://www.sqlite.org/limits.html
+        private int _MaxStatementLength = 1000000000; // https://www.sqlite.org/limits.html
         private string _TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
         #endregion

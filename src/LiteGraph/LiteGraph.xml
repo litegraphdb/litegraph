@@ -1980,7 +1980,7 @@
         </member>
         <member name="T:LiteGraph.EnumerationOrderEnum">
             <summary>
-            Enumeration order.
+            Enumeration order. 
             </summary>
         </member>
         <member name="F:LiteGraph.EnumerationOrderEnum.CreatedAscending">
@@ -4320,7 +4320,7 @@
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.MaxStatementLength">
             <summary>
             Maximum supported statement length.
-            Default for Sqlite is 1000000 (see https://www.sqlite.org/limits.html).
+            Default for Sqlite is 1,000,000,000 (see https://www.sqlite.org/limits.html).
             </summary>
         </member>
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.SelectBatchSize">
