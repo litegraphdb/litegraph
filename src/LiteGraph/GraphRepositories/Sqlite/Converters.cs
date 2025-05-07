@@ -156,6 +156,10 @@
                         {
                             clause += expr.Right.ToString();
                         }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
+                        }
                         else
                         {
                             clause += "'" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
@@ -183,6 +187,10 @@
                         else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
                         {
                             clause += expr.Right.ToString();
+                        }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
                         }
                         else
                         {
@@ -212,6 +220,10 @@
                         {
                             clause += expr.Right.ToString();
                         }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
+                        }
                         else
                         {
                             clause += "'" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
@@ -240,6 +252,10 @@
                         {
                             clause += expr.Right.ToString();
                         }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
+                        }
                         else
                         {
                             clause += "'" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
@@ -256,7 +272,7 @@
                     int inAdded = 0;
                     if (!IsList(expr.Right)) return null;
                     List<object> inTempList = ObjectToList(expr.Right);
-                    clause += " IN (";
+                    clause += "IN (";
                     foreach (object currObj in inTempList)
                     {
                         if (currObj == null) continue;
@@ -268,6 +284,10 @@
                         else if (currObj is int || currObj is long || currObj is decimal)
                         {
                             clause += currObj.ToString();
+                        }
+                        else if (currObj is bool)
+                        {
+                            clause += ((bool)currObj) ? "true" : "false";
                         }
                         else
                         {
@@ -287,7 +307,7 @@
                     int notInAdded = 0;
                     if (!IsList(expr.Right)) return null;
                     List<object> notInTempList = ObjectToList(expr.Right);
-                    clause += " NOT IN (";
+                    clause += "NOT IN (";
                     foreach (object currObj in notInTempList)
                     {
                         if (currObj == null) continue;
@@ -299,6 +319,10 @@
                         else if (currObj is int || currObj is long || currObj is decimal)
                         {
                             clause += currObj.ToString();
+                        }
+                        else if (currObj is bool)
+                        {
+                            clause += ((bool)currObj) ? "true" : "false";
                         }
                         else
                         {
@@ -317,12 +341,7 @@
                     if (expr.Right == null) return null;
                     if (expr.Right is string)
                     {
-                        clause +=
-                            "(" +
-                            "'$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' LIKE ('%" + Sanitizer.Sanitize(expr.Right.ToString()) + "') " +
-                            "OR '$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' LIKE ('%" + Sanitizer.Sanitize(expr.Right.ToString()) + "%') " +
-                            "OR '$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' LIKE ('" + Sanitizer.Sanitize(expr.Right.ToString()) + "%')" +
-                            ")";
+                        clause += "LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "%'";
                     }
                     else
                     {
@@ -338,12 +357,7 @@
                     if (expr.Right == null) return null;
                     if (expr.Right is string)
                     {
-                        clause +=
-                            "(" +
-                            "'$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' NOT LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "' " +
-                            "AND '$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' NOT LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "%' " +
-                            "AND '$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' NOT LIKE '" + Sanitizer.Sanitize(expr.Right.ToString()) + "%'" +
-                            ")";
+                        clause += "NOT LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "%'";
                     }
                     else
                     {
@@ -359,7 +373,7 @@
                     if (expr.Right == null) return null;
                     if (expr.Right is string)
                     {
-                        clause += "('$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' LIKE '" + Sanitizer.Sanitize(expr.Right.ToString()) + "%')";
+                        clause += "LIKE '" + Sanitizer.Sanitize(expr.Right.ToString()) + "%'";
                     }
                     else
                     {
@@ -375,7 +389,7 @@
                     if (expr.Right == null) return null;
                     if (expr.Right is string)
                     {
-                        clause += "('$." + Sanitizer.Sanitize(expr.Left.ToString()) + "' NOT LIKE '" + Sanitizer.Sanitize(expr.Right.ToString()) + "%'";
+                        clause += "NOT LIKE '" + Sanitizer.Sanitize(expr.Right.ToString()) + "%'";
                     }
                     else
                     {
@@ -391,7 +405,7 @@
                     if (expr.Right == null) return null;
                     if (expr.Right is string)
                     {
-                        clause += "('$." + Sanitizer.Sanitize(expr.Left.ToString()) + " LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "')";
+                        clause += "LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
                     }
                     else
                     {
@@ -407,7 +421,7 @@
                     if (expr.Right == null) return null;
                     if (expr.Right is string)
                     {
-                        clause += "('$." + Sanitizer.Sanitize(expr.Left.ToString()) + " NOT LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "')";
+                        clause += "NOT LIKE '%" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
                     }
                     else
                     {
@@ -430,11 +444,15 @@
                     {
                         if (expr.Right is DateTime || expr.Right is DateTime?)
                         {
-                            clause += "'$." + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
+                            clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
                         else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
                         {
                             clause += expr.Right.ToString();
+                        }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
                         }
                         else
                         {
@@ -464,6 +482,10 @@
                         {
                             clause += expr.Right.ToString();
                         }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
+                        }
                         else
                         {
                             clause += "'" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
@@ -491,6 +513,10 @@
                         else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
                         {
                             clause += expr.Right.ToString();
+                        }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
                         }
                         else
                         {
@@ -520,6 +546,10 @@
                         {
                             clause += expr.Right.ToString();
                         }
+                        else if (expr.Right is bool)
+                        {
+                            clause += ((bool)expr.Right) ? "true" : "false";
+                        }
                         else
                         {
                             clause += "'" + Sanitizer.Sanitize(expr.Right.ToString()) + "'";
@@ -532,7 +562,7 @@
                 case OperatorEnum.IsNull:
                     #region IsNull
 
-                    clause += " IS NULL";
+                    clause += "IS NULL";
                     break;
 
                 #endregion
@@ -540,7 +570,7 @@
                 case OperatorEnum.IsNotNull:
                     #region IsNotNull
 
-                    clause += " IS NOT NULL";
+                    clause += "IS NOT NULL";
                     break;
 
                     #endregion
