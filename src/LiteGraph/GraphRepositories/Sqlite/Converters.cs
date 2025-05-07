@@ -116,7 +116,7 @@
             if (expr == null) return null;
             if (expr.Left == null) return null;
 
-            string clause = "";
+            string clause = "(";
 
             if (expr.Left is Expr)
             {
@@ -578,7 +578,7 @@
                     #endregion
             }
 
-            clause += " ";
+            clause += ") ";
 
             return clause;
         }
