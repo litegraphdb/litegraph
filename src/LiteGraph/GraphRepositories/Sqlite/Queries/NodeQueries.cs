@@ -351,7 +351,7 @@
             if (nodeFilter != null)
             {
                 string filterClause = Converters.ExpressionToWhereClause("nodes", nodeFilter);
-                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ")";
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
             }
 
             if (labels != null && labels.Count > 0)
@@ -459,7 +459,7 @@
             if (nodeFilter != null)
             {
                 string filterClause = Converters.ExpressionToWhereClause("nodes", nodeFilter);
-                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ")";
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
             }
 
             if (labels != null && labels.Count > 0)
@@ -565,7 +565,7 @@
             if (nodeFilter != null)
             {
                 string filterClause = Converters.ExpressionToWhereClause("nodes", nodeFilter);
-                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ")";
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
             }
 
             if (labels != null && labels.Count > 0)

@@ -197,7 +197,7 @@
             if (graphFilter != null)
             {
                 string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
-                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ")";
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
             }
 
             if (labels != null && labels.Count > 0)

@@ -152,7 +152,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -184,7 +184,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -216,7 +216,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -248,7 +248,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -446,7 +446,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -478,7 +478,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -510,7 +510,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
@@ -542,7 +542,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(expr.Right).ToString(TimestampFormat) + "'";
                         }
-                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal)
+                        else if (expr.Right is int || expr.Right is long || expr.Right is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += expr.Right.ToString();
                         }
