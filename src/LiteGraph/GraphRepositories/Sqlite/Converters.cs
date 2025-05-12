@@ -281,7 +281,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(currObj).ToString(TimestampFormat) + "'";
                         }
-                        else if (currObj is int || currObj is long || currObj is decimal)
+                        else if (currObj is int || currObj is long || currObj is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += currObj.ToString();
                         }
@@ -316,7 +316,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(currObj).ToString(TimestampFormat) + "'";
                         }
-                        else if (currObj is int || currObj is long || currObj is decimal)
+                        else if (currObj is int || currObj is long || currObj is decimal || expr.Right is double || expr.Right is float)
                         {
                             clause += currObj.ToString();
                         }
