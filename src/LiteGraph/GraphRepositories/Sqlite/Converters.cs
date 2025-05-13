@@ -277,11 +277,12 @@
                     {
                         if (currObj == null) continue;
                         if (inAdded > 0) clause += ",";
+
                         if (currObj is DateTime || currObj is DateTime?)
                         {
                             clause += "'" + Convert.ToDateTime(currObj).ToString(TimestampFormat) + "'";
                         }
-                        else if (currObj is int || currObj is long || currObj is decimal || expr.Right is double || expr.Right is float)
+                        else if (currObj is int || currObj is long || currObj is decimal || currObj is double || currObj is float)
                         {
                             clause += currObj.ToString();
                         }
@@ -316,7 +317,7 @@
                         {
                             clause += "'" + Convert.ToDateTime(currObj).ToString(TimestampFormat) + "'";
                         }
-                        else if (currObj is int || currObj is long || currObj is decimal || expr.Right is double || expr.Right is float)
+                        else if (currObj is int || currObj is long || currObj is decimal || currObj is double || currObj is float)
                         {
                             clause += currObj.ToString();
                         }
