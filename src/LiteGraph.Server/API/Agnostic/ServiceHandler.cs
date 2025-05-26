@@ -55,6 +55,32 @@
 
         #region Internal-Methods
 
+        #region Admin-Routes
+
+        internal async Task<ResponseContext> BackupRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.BackupRequest == null) throw new ArgumentNullException(nameof(req.BackupRequest));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            try
+            {
+                _LiteGraph.Admin.Backup(req.BackupRequest.Filename);
+                return new ResponseContext(req);
+            }
+            catch (ArgumentException)
+            {
+                _Logging.Warn(_Header + "invalid filename detected in backup request");
+                return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Invalid filename detected in backup request.");
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        #endregion
+
         #region Tenant-Routes
 
         internal async Task<ResponseContext> TenantCreate(RequestContext req)

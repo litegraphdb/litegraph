@@ -33,6 +33,16 @@
 
         #endregion
 
+        #region Admin
+
+        /// <summary>
+        /// Backup.
+        /// </summary>
+        [EnumMember(Value = "Backup")]
+        Backup,
+
+        #endregion
+
         #region Tenants
 
         /// <summary>

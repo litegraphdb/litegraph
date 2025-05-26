@@ -166,6 +166,11 @@
         #region Objects
 
         /// <summary>
+        /// Backup request.
+        /// </summary>
+        public BackupRequest BackupRequest { get; set; } = null;
+
+        /// <summary>
         /// Tenant GUID.
         /// </summary>
         public Guid? TenantGUID { get; set; } = null;

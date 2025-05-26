@@ -102,6 +102,11 @@
         }
 
         /// <summary>
+        /// Admin methods.
+        /// </summary>
+        public override IAdminMethods Admin { get; }
+
+        /// <summary>
         /// Batch methods.
         /// </summary>
         public override IBatchMethods Batch { get; }
@@ -183,6 +188,7 @@
 
             ConnectionString = "Data Source=" + filename + ";Pooling=false";
 
+            Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
             Credential = new CredentialMethods(this);
             Edge = new EdgeMethods(this);

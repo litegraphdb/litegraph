@@ -74,6 +74,9 @@
         }
 
         /// <inheritdoc />
+        public IAdminMethods Admin { get; }
+
+        /// <inheritdoc />
         public IBatchMethods Batch { get; }
 
         /// <inheritdoc />
@@ -150,6 +153,7 @@
                 _EdgeCache = new LRUCache<Guid, Edge>(Caching.Capacity, Caching.EvictCount);
             }
 
+            Admin = new AdminMethods(this, _Repo);
             Batch = new BatchMethods(this, _Repo);
             Credential = new CredentialMethods(this, _Repo);
             Edge = new EdgeMethods(this, _Repo, _EdgeCache);

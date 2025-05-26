@@ -376,6 +376,8 @@
             {
                 #region POST
 
+                if (matcher.Match("/v1.0/backup", out _UrlParameters)) return RequestTypeEnum.Backup;
+
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/search", out _UrlParameters)) return RequestTypeEnum.GraphSearch;
 
                 if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", out _UrlParameters)) return RequestTypeEnum.GraphExistence;

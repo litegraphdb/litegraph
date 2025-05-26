@@ -100,7 +100,13 @@
 
             _Webserver.Routes.PostAuthentication.Static.Add(HttpMethod.GET, "/v1.0/token", TokenCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Static.Add(HttpMethod.GET, "/v1.0/token/details", TokenDetailsRoute, ExceptionRoute);
-            
+
+            #endregion
+
+            #region Admin
+
+            _Webserver.Routes.PostAuthentication.Static.Add(HttpMethod.POST, "/v1.0/backup", BackupRoute, ExceptionRoute);
+
             #endregion
 
             #region Tenants
@@ -440,6 +446,29 @@
                 ctx.Response.StatusCode = 404;
                 await ctx.Response.Send(_Serializer.SerializeJson(resp.Error, true));
             }
+        }
+
+        #endregion
+
+        #region Admin
+
+        private async Task BackupRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.BackupRequest = _Serializer.DeserializeJson<BackupRequest>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupRequest);
         }
 
         #endregion

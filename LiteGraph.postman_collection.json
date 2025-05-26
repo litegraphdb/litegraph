@@ -8990,6 +8990,46 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Backup",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Filename\": \"my-backup.db\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/backup",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"backup"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		},

@@ -30,6 +30,22 @@
             Caching settings.
             </summary>
         </member>
+        <member name="T:LiteGraph.Client.Implementations.AdminMethods">
+            <summary>
+            Admin methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Admin methods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.Backup(System.String)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Client.Implementations.BatchMethods">
             <summary>
             Batch methods.
@@ -560,6 +576,18 @@
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
             <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IAdminMethods">
+            <summary>
+            Interface for admin methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.Backup(System.String)">
+            <summary>
+            Backup request.
+            </summary>
+            <param name="outputFilename">Output filename.</param>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IBatchMethods">
             <summary>
@@ -2497,6 +2525,11 @@
             Serializer.
             </summary>
         </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.Admin">
+            <summary>
+            Admin methods.
+            </summary>
+        </member>
         <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.Tenant">
             <summary>
             Tenant methods.
@@ -2549,6 +2582,18 @@
         </member>
         <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.InitializeRepository">
             <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.IAdminMethods">
+            <summary>
+            Interface for admin methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IAdminMethods.Backup(System.String)">
+            <summary>
+            Batch existence request.
+            </summary>
+            <param name="outputFilename">Output filename.</param>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.IBatchMethods">
             <summary>
@@ -3789,6 +3834,21 @@
             <param name="filter">Filter.</param>
             <returns>Vector search results containing edges.</returns>
         </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods">
+            <summary>
+            Admin methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Admin methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods.Backup(System.String)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.BatchMethods">
             <summary>
             Batch methods.
@@ -4333,6 +4393,11 @@
             Timestamp format.
             </summary>
         </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.Admin">
+            <summary>
+            Admin methods.
+            </summary>
+        </member>
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.Batch">
             <summary>
             Batch methods.
@@ -4550,6 +4615,9 @@
             <summary>
             Serialization helper.
             </summary>
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.Admin">
+            <inheritdoc />
         </member>
         <member name="P:LiteGraph.LiteGraphClient.Batch">
             <inheritdoc />

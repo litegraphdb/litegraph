@@ -36,6 +36,7 @@
                 if (userInput.Equals("?")) Menu();
                 else if (userInput.Equals("q")) _RunForever = false;
                 else if (userInput.Equals("cls")) Console.Clear();
+                else if (userInput.Equals("backup")) BackupDatabase();
                 else if (userInput.Equals("debug")) ToggleDebug();
                 else if (userInput.Equals("tenant")) SetTenant();
                 else if (userInput.Equals("graph")) SetGraph();
@@ -97,6 +98,7 @@
             Console.WriteLine("  q               quit");
             Console.WriteLine("  cls             clear the screen");
             Console.WriteLine("  debug           enable or disable debug (enabled: " + _Debug + ")");
+            Console.WriteLine("  backup          backup database to a file");
             Console.WriteLine("");
             Console.WriteLine("  tenant          set the tenant GUID (currently " + _TenantGuid + ")");
             Console.WriteLine("  graph           set the graph GUID (currently " + _GraphGuid + ")");
@@ -129,6 +131,13 @@
             {
                 Console.WriteLine(sev.ToString() + " " + msg);
             }
+        }
+
+        static void BackupDatabase()
+        {
+            string filename = Inputty.GetString("Backup filename:", null, true);
+            if (String.IsNullOrEmpty(filename)) return;
+            _Client.Admin.Backup(filename);
         }
 
         static void ToggleDebug()

@@ -54,6 +54,11 @@
         }
 
         /// <summary>
+        /// Admin methods.
+        /// </summary>
+        public abstract IAdminMethods Admin { get; }
+
+        /// <summary>
         /// Tenant methods.
         /// </summary>
         public abstract ITenantMethods Tenant { get; }
