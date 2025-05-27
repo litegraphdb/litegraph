@@ -40,6 +40,26 @@
         /// </summary>
         [EnumMember(Value = "Backup")]
         Backup,
+        /// <summary>
+        /// BackupExists.
+        /// </summary>
+        [EnumMember(Value = "BackupExists")]
+        BackupExists,
+        /// <summary>
+        /// BackupRead.
+        /// </summary>
+        [EnumMember(Value = "BackupRead")]
+        BackupRead,
+        /// <summary>
+        /// BackupEnumerate.
+        /// </summary>
+        [EnumMember(Value = "BackupEnumerate")]
+        BackupEnumerate,
+        /// <summary>
+        /// BackupDelete.
+        /// </summary>
+        [EnumMember(Value = "BackupDelete")]
+        BackupDelete,
 
         #endregion
 

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Reflection.PortableExecutable;
@@ -63,20 +64,49 @@
             if (req.BackupRequest == null) throw new ArgumentNullException(nameof(req.BackupRequest));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            try
-            {
-                _LiteGraph.Admin.Backup(req.BackupRequest.Filename);
-                return new ResponseContext(req);
-            }
-            catch (ArgumentException)
-            {
-                _Logging.Warn(_Header + "invalid filename detected in backup request");
-                return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Invalid filename detected in backup request.");
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            _LiteGraph.Admin.Backup(req.BackupRequest.Filename);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> BackupReadRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            BackupFile data = _LiteGraph.Admin.ReadBackup(req.BackupFilename);
+            return new ResponseContext(req, data);
+        }
+
+        internal async Task<ResponseContext> BackupExistsRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            bool exists = _LiteGraph.Admin.BackupExists(req.BackupFilename);
+            if (exists) return new ResponseContext(req);
+            else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "The specified backup file was not found.");
+        }
+
+        internal async Task<ResponseContext> BackupEnumerateRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            IEnumerable<BackupFile> backups = _LiteGraph.Admin.ListBackups();
+            List<BackupFile> files = backups != null ? backups.ToList() : new List<BackupFile>();
+            return new ResponseContext(req, files);
+        }
+
+        internal async Task<ResponseContext> BackupDeleteRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            _LiteGraph.Admin.DeleteBackup(req.BackupFilename);
+            return new ResponseContext(req);
         }
 
         #endregion

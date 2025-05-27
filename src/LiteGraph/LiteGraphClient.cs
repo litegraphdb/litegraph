@@ -58,6 +58,22 @@
         }
 
         /// <summary>
+        /// Storage settings.
+        /// </summary>
+        public StorageSettings Storage
+        {
+            get
+            {
+                return _Storage;
+            }
+            set
+            {
+                if (value == null) value = new StorageSettings();
+                _Storage = value;
+            }
+        }
+
+        /// <summary>
         /// Serialization helper.
         /// </summary>
         public Serializer Serializer
@@ -112,6 +128,7 @@
 
         private bool _Disposed = false;
         private CachingSettings _Caching = new CachingSettings();
+        private StorageSettings _Storage = new StorageSettings();
         private GraphRepositoryBase _Repo = null;
         private GexfWriter _Gexf = new GexfWriter();
 
@@ -130,10 +147,12 @@
         /// <param name="repo">Graph repository driver.</param>
         /// <param name="logging">Logging.</param>
         /// <param name="caching">Caching settings.</param>
+        /// <param name="storage">Storage settings.</param>
         public LiteGraphClient(
             GraphRepositoryBase repo,
             LoggingSettings logging = null,
-            CachingSettings caching = null)
+            CachingSettings caching = null,
+            StorageSettings storage = null)
         {
             if (repo == null) throw new ArgumentNullException(nameof(repo));
 
@@ -145,6 +164,9 @@
             if (caching != null) Caching = caching;
             else Caching = new CachingSettings();
 
+            if (storage != null) Storage = storage;
+            else Storage = new StorageSettings();
+
             if (Caching.Enable)
             {
                 _TenantCache = new LRUCache<Guid, TenantMetadata>(Caching.Capacity, Caching.EvictCount);
@@ -153,7 +175,7 @@
                 _EdgeCache = new LRUCache<Guid, Edge>(Caching.Capacity, Caching.EvictCount);
             }
 
-            Admin = new AdminMethods(this, _Repo);
+            Admin = new AdminMethods(this, _Repo, _Storage.BackupsDirectory);
             Batch = new BatchMethods(this, _Repo);
             Credential = new CredentialMethods(this, _Repo);
             Edge = new EdgeMethods(this, _Repo, _EdgeCache);

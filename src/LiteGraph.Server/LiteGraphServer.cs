@@ -114,7 +114,8 @@
             }
             else
             {
-                _Settings = _Serializer.DeserializeJson<Settings>(File.ReadAllText(Constants.SettingsFile));
+                string json = File.ReadAllText(Constants.SettingsFile);
+                _Settings = _Serializer.DeserializeJson<Settings>(json);
             }
         }
 

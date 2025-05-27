@@ -70,6 +70,21 @@ Response:
 
 ## Data Structures
 
+### Backup File
+```
+{
+    "Filename": "my-backup.db",
+    "Length": 352256,
+    "MD5Hash": "EF2A390E654BCFE3052DAF7364037DBE",
+    "SHA1Hash": "74625881C00FEF2E654AB9B800A0C8E23CC7CBB0",
+    "SHA256Hash": "584F2D85362F7E7B9755DF7A363120E6FF8F93A162E918E7085C795021D14DCF",
+    "CreatedUtc": "2025-05-27T03:31:10.904886Z",
+    "LastUpdateUtc": "2025-05-27T03:31:10.909897Z",
+    "LastAccessUtc": "2025-05-27T03:31:13.634489Z",
+    "Data": "... base64 data ..."
+}
+```
+
 ### Tenant
 ```
 {
@@ -369,6 +384,18 @@ Valid search types are `CosineSimilarity` `CosineDistance` `EuclidianSimilarity`
 | API                   | Method | URL |
 |-----------------------|--------|-----|
 | Validate connectivity | HEAD   | /   |
+
+## Backup APIs
+
+Backup APIs require administrator bearer token authentication.
+
+| API                | Method | URL                        |
+|--------------------|--------|----------------------------|
+| Create             | POST   | /v1.0/backups              |
+| Read many          | GET    | /v1.0/backups              |
+| Read               | GET    | /v1.0/backups/[guid]       |
+| Delete             | DELETE | /v1.0/backups/[guid]       |
+| Exists             | HEAD   | /v1.0/backups/[guid]       |
 
 ## Tenant APIs
 

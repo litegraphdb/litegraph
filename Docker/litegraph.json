@@ -73,6 +73,9 @@
     "Key": "0000000000000000000000000000000000000000000000000000000000000000",
     "Iv": "00000000000000000000000000000000"
   },
+  "Storage": {
+    "BackupsDirectory": "./backups/"
+  },
   "Debug": {
     "Authentication": false,
     "Exceptions": true,

@@ -1,5 +1,6 @@
 ﻿namespace LiteGraph.Server.Classes
 {
+    using LiteGraph.Serialization;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
@@ -164,6 +165,11 @@
         }
 
         #region Objects
+
+        /// <summary>
+        /// Backup filename.
+        /// </summary>
+        public string BackupFilename { get; set; } = null;
 
         /// <summary>
         /// Backup request.
@@ -369,6 +375,8 @@
 
         private int _Skip = 0;
 
+        private static Serializer _Serializer = new Serializer();
+
         #endregion
 
         #region Constructors-and-Factories
@@ -437,8 +445,11 @@
 
         private void SetRequestValues()
         {
+            // Console.WriteLine("URL parameters:" + Environment.NewLine + _Serializer.SerializeJson(_Url, true));
+
             if (_Url.UrlParameters.Count > 0)
             {
+                if (_Url.UrlParameters.AllKeys.Contains("backupFilename")) BackupFilename = _Url.GetParameter("backupFilename");
                 if (_Url.UrlParameters.AllKeys.Contains("tenantGuid")) TenantGUID = Guid.Parse(_Url.GetParameter("tenantGuid"));
                 if (_Url.UrlParameters.AllKeys.Contains("userGuid")) UserGUID = Guid.Parse(_Url.GetParameter("userGuid"));
                 if (_Url.UrlParameters.AllKeys.Contains("credentialGuid")) CredentialGUID = Guid.Parse(_Url.GetParameter("credentialGuid"));

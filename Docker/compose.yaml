@@ -16,5 +16,6 @@ services:
       - ./litegraph.json:/app/litegraph.json
       - ./litegraph.db:/app/litegraph.db
       - ./logs/:/app/logs/
+      - ./backups/:/app/backups/
     healthcheck:
       test: curl --fail http://localhost:8701

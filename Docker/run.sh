@@ -14,6 +14,7 @@ fi
 #   litegraph.json
 #   litegraph.db
 #   logs/
+#   backups/
 
 # Argument order matters!
 
@@ -25,5 +26,6 @@ docker run \
   -v ./litegraph.json:/app/litegraph.json \
   -v ./litegraph.db:/app/litegraph.db \
   -v ./logs/:/app/logs/ \
+  -v ./backups/:/app/backups/ \
   jchristn/litegraph:$IMG_TAG
 

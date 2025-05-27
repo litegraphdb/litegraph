@@ -11,6 +11,7 @@ REM Items that require persistence
 REM   litegraph.json
 REM   litegraph.db
 REM   logs/
+REM   backups/
 
 REM Argument order matters!
 
@@ -22,6 +23,7 @@ docker run ^
   -v .\litegraph.json:/app/litegraph.json ^
   -v .\litegraph.db:/app/litegraph.db ^
   -v .\logs\:/app/logs/ ^
+  -v .\backups\:/app/backups/ ^
   jchristn/litegraph:%1
 
 GOTO :Done

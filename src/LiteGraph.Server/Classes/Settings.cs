@@ -96,6 +96,22 @@
         }
         
         /// <summary>
+        /// Storage settings.
+        /// </summary>
+        public StorageSettings Storage
+        {
+            get
+            {
+                return _Storage;
+            }
+            set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(Storage));
+                _Storage = value;
+            }
+        }
+
+        /// <summary>
         /// Debug settings.
         /// </summary>
         public DebugSettings Debug
@@ -120,6 +136,7 @@
         private WebserverSettings _Rest = new WebserverSettings();
         private LiteGraphSettings _LiteGraph = new LiteGraphSettings();
         private EncryptionSettings _Encryption = new EncryptionSettings();
+        private StorageSettings _Storage = new StorageSettings();
         private DebugSettings _Debug = new DebugSettings();
 
         #endregion

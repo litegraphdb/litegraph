@@ -4,6 +4,61 @@
         <name>LiteGraph</name>
     </assembly>
     <members>
+        <member name="T:LiteGraph.BackupFile">
+            <summary>
+            Backup file.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.Filename">
+            <summary>
+            Filename.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.Length">
+            <summary>
+            File length.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.MD5Hash">
+            <summary>
+            MD5 hash.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.SHA1Hash">
+            <summary>
+            SHA1 hash.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.SHA256Hash">
+            <summary>
+            SHA256 hash.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.LastAccessUtc">
+            <summary>
+            Timestamp from last access, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.BackupFile.Data">
+            <summary>
+            File contents.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.BackupFile.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.CachingSettings">
             <summary>
             Caching settings.
@@ -36,14 +91,27 @@
             Client implementations are responsible for input validation and cross-cutting logic.
             </summary>
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase,System.String)">
             <summary>
             Admin methods.
             </summary>
             <param name="client">LiteGraph client.</param>
             <param name="repo">Graph repository.</param>
+            <param name="backupDirectory">Backup directory.</param>
         </member>
         <member name="M:LiteGraph.Client.Implementations.AdminMethods.Backup(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.DeleteBackup(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.ListBackups">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.ReadBackup(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupExists(System.String)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.BatchMethods">
@@ -588,6 +656,32 @@
             Backup request.
             </summary>
             <param name="outputFilename">Output filename.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.ListBackups">
+            <summary>
+            List backups request.
+            </summary>
+            <returns>Enumerable of backup files.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.ReadBackup(System.String)">
+            <summary>
+            Read the contents of a backup file.
+            </summary>
+            <param name="backupFilename">Backup filename.</param>
+            <returns>File contents.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupExists(System.String)">
+            <summary>
+            Check if a backup file exists.
+            </summary>
+            <param name="backupFilename">Backup filename.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.DeleteBackup(System.String)">
+            <summary>
+            Delete a backup file.
+            </summary>
+            <param name="backupFilename">Backup filename.</param>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IBatchMethods">
             <summary>
@@ -4457,6 +4551,131 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.InitializeRepository">
             <inheritdoc />
         </member>
+        <member name="T:LiteGraph.Helpers.FileHelpers">
+            <summary>
+            File helpers.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Helpers.FileHelpers.NormalizeDirectory(System.String)">
+            <summary>
+            Normalize a directory.
+            </summary>
+            <param name="directory">Directory.</param>
+            <returns>Directory.</returns>
+        </member>
+        <member name="T:LiteGraph.Helpers.HashHelper">
+            <summary>
+            Hash methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.MD5Hash(System.Byte[])">
+            <summary>
+            Generate an MD5 hash.
+            </summary>
+            <param name="data">Data.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.MD5Hash(System.IO.Stream)">
+            <summary>
+            Generate an MD5 hash.
+            </summary>
+            <param name="stream">Stream.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.MD5Hash(System.String)">
+            <summary>
+            Generate an MD5 hash of a string.
+            </summary>
+            <param name="str">String.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.MD5Hash(System.Collections.Generic.List{System.String})">
+            <summary>
+            Generate an MD5 hash of a list of strings.
+            </summary>
+            <param name="strings">Strings.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.MD5Hash(System.Data.DataTable)">
+            <summary>
+            Generate an MD5 hash of a DataTable.
+            This method concatenates column names (separated by a null character) and all cell values (separated by a null character).  Any null cells have their value replaced with the string NULL.
+            </summary>
+            <param name="dt">DataTable. </param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA1Hash(System.Byte[])">
+            <summary>
+            Generate a SHA1 hash of a byte array.
+            </summary>
+            <param name="data">Data.</param>
+            <returns>SHA1 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA1Hash(System.IO.Stream)">
+            <summary>
+            Generate a SHA1 hash.
+            </summary>
+            <param name="stream">Stream.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA1Hash(System.String)">
+            <summary>
+            Generate a SHA1 hash of a string.
+            </summary>
+            <param name="str">String.</param>
+            <returns>SHA1 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA1Hash(System.Collections.Generic.List{System.String})">
+            <summary>
+            Generate a SHA1 hash of a list of strings.
+            </summary>
+            <param name="strings">Strings.</param>
+            <returns>SHA1 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA1Hash(System.Data.DataTable)">
+            <summary>
+            Generate a SHA1 hash of a DataTable.
+            This method concatenates column names (separated by a null character) and all cell values (separated by a null character).  Any null cells have their value replaced with the string NULL.
+            </summary>
+            <param name="dt">DataTable. </param>
+            <returns>SHA1 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA256Hash(System.Byte[])">
+            <summary>
+            Generate a SHA256 hash of a byte array.
+            </summary>
+            <param name="data">Data.</param>
+            <returns>SHA256 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA256Hash(System.IO.Stream)">
+            <summary>
+            Generate a SHA256 hash.
+            </summary>
+            <param name="stream">Stream.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA256Hash(System.String)">
+            <summary>
+            Generate a SHA256 hash of a string.
+            </summary>
+            <param name="str">String.</param>
+            <returns>SHA256 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA256Hash(System.Collections.Generic.List{System.String})">
+            <summary>
+            Generate a SHA256 hash of a list of strings.
+            </summary>
+            <param name="strings">Strings.</param>
+            <returns>SHA256 hash.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.SHA256Hash(System.Data.DataTable)">
+            <summary>
+            Generate a SHA256 hash of a DataTable.
+            This method concatenates column names (separated by a null character) and all cell values (separated by a null character).  Any null cells have their value replaced with the string NULL.
+            </summary>
+            <param name="dt">DataTable. </param>
+            <returns>SHA256 hash.</returns>
+        </member>
         <member name="T:LiteGraph.Helpers.NvcHelpers">
             <summary>
             Name-value collection helpers.
@@ -4611,6 +4830,11 @@
             Caching settings.
             </summary>
         </member>
+        <member name="P:LiteGraph.LiteGraphClient.Storage">
+            <summary>
+            Storage settings.
+            </summary>
+        </member>
         <member name="P:LiteGraph.LiteGraphClient.Serializer">
             <summary>
             Serialization helper.
@@ -4649,13 +4873,14 @@
         <member name="P:LiteGraph.LiteGraphClient.Vector">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.LiteGraphClient.#ctor(LiteGraph.GraphRepositories.GraphRepositoryBase,LiteGraph.LoggingSettings,LiteGraph.CachingSettings)">
+        <member name="M:LiteGraph.LiteGraphClient.#ctor(LiteGraph.GraphRepositories.GraphRepositoryBase,LiteGraph.LoggingSettings,LiteGraph.CachingSettings,LiteGraph.StorageSettings)">
             <summary>
             Instantiate LiteGraph client.
             </summary>
             <param name="repo">Graph repository driver.</param>
             <param name="logging">Logging.</param>
             <param name="caching">Caching settings.</param>
+            <param name="storage">Storage settings.</param>
         </member>
         <member name="M:LiteGraph.LiteGraphClient.Dispose(System.Boolean)">
             <summary>
@@ -5027,6 +5252,21 @@
         <member name="F:LiteGraph.SeverityEnum.Emergency">
             <summary>
             Emergency messages.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.StorageSettings">
+            <summary>
+            Storage settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.StorageSettings.BackupsDirectory">
+            <summary>
+            Backups directory.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.StorageSettings.#ctor">
+            <summary>
+            Instantiate.
             </summary>
         </member>
         <member name="T:LiteGraph.SyslogServer">
