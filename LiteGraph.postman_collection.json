@@ -7769,7 +7769,45 @@
 							"response": []
 						},
 						{
-							"name": "Search Vectors",
+							"name": "Read first",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"Ordering\": \"CreatedDescending\",\r\n  \"Labels\": [ ],\r\n  \"Tags\": { },\r\n  \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/first",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"first"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Search vectors",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -8201,6 +8239,46 @@
 							"response": []
 						},
 						{
+							"name": "Read first",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"Ordering\": \"CreatedDescending\",\r\n  \"Labels\": [ ],\r\n  \"Tags\": { },\r\n  \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/first",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes",
+										"first"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Search vectors",
 							"request": {
 								"method": "POST",
@@ -8590,6 +8668,46 @@
 										"{{graph}}",
 										"edges",
 										"search"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read first",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/first",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"edges",
+										"first"
 									]
 								}
 							},
