@@ -202,6 +202,9 @@
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <inheritdoc />
         </member>
@@ -262,6 +265,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadMany(System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadFirst(System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
@@ -376,6 +382,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
@@ -838,6 +847,21 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Edges.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <summary>
+            Read first.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="edgeFilter">
+            Edge filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <returns>Edge.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <summary>
             Read edge.
@@ -1013,6 +1037,20 @@
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
             <returns>Graphs.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadFirst(System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <summary>
+            Read first.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags on which to match.</param>
+            <param name="graphFilter">
+            Graph filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <returns>Graph.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadByGuid(System.Guid,System.Guid)">
             <summary>
@@ -1257,6 +1295,21 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <returns>Nodes.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <summary>
+            Read first.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="nodeFilter">
+            Node filter expression for Data JSON body.  
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
             <returns>Nodes.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -2844,6 +2897,21 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Edges.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <summary>
+            Read first.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="edgeFilter">
+            Edge filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <returns>Edge.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <summary>
             Read edge.
@@ -3019,6 +3087,20 @@
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
             <returns>Graphs.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.ReadFirst(System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <summary>
+            Read first.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags on which to match.</param>
+            <param name="graphFilter">
+            Graph filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <returns>Graph.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.ReadByGuid(System.Guid,System.Guid)">
             <summary>
@@ -3279,6 +3361,21 @@
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
             <returns>Nodes.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <summary>
+            Read first.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags.</param>
+            <param name="nodeFilter">
+            Node filter expression for Data JSON body.  
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <returns>Node.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
             <summary>
@@ -4027,6 +4124,9 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <inheritdoc />
         </member>
@@ -4085,6 +4185,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ReadMany(System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ReadFirst(System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
@@ -4196,6 +4299,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
@@ -5109,6 +5215,11 @@
         <member name="P:LiteGraph.SearchRequest.Ordering">
             <summary>
             Ordering.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SearchRequest.MaxResults">
+            <summary>
+            Maximum number of results to retrieve.
             </summary>
         </member>
         <member name="P:LiteGraph.SearchRequest.Skip">

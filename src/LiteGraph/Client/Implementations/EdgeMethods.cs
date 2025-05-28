@@ -177,6 +177,38 @@
         }
 
         /// <inheritdoc />
+        public Edge ReadFirst(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr expr = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
+            Edge edge = _Repo.Edge.ReadFirst(tenantGuid, graphGuid, labels, tags, expr, order);
+
+            if (edge != null)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
+                if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null, null).ToList();
+                if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edge.GUID).ToList();
+                return edge;
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);

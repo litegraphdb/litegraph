@@ -351,6 +351,11 @@
         [EnumMember(Value = "GraphReadMany")]
         GraphReadMany,
         /// <summary>
+        /// GraphReadFirst
+        /// </summary>
+        [EnumMember(Value = "GraphReadFirst")]
+        GraphReadFirst,
+        /// <summary>
         /// GraphSearch
         /// </summary>
         [EnumMember(Value = "GraphSearch")]
@@ -405,6 +410,11 @@
         /// </summary>
         [EnumMember(Value = "NodeReadMany")]
         NodeReadMany,
+        /// <summary>
+        /// NodeReadFirst
+        /// </summary>
+        [EnumMember(Value = "NodeReadFirst")]
+        NodeReadFirst,
         /// <summary>
         /// NodeSearch
         /// </summary>
@@ -464,6 +474,11 @@
         /// EdgeReadMany
         /// </summary>
         [EnumMember(Value = "EdgeReadMany")]
+        EdgeReadFirst,
+        /// <summary>
+        /// EdgeReadFirst
+        /// </summary>
+        [EnumMember(Value = "EdgeReadFirst")]
         EdgeReadMany,
         /// <summary>
         /// EdgeSearch

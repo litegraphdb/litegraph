@@ -83,6 +83,27 @@
             int skip = 0);
 
         /// <summary>
+        /// Read first.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="labels">Labels.</param>
+        /// <param name="tags">Tags.</param>
+        /// <param name="edgeFilter">
+        /// Edge filter expression for Data JSON body.
+        /// Expression left terms must follow the form of Sqlite JSON paths.
+        /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <returns>Edge.</returns>
+        Edge ReadFirst(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr edgeFilter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending);
+
+        /// <summary>
         /// Read edge.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

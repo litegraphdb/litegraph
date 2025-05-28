@@ -388,14 +388,17 @@
 
                     if (matcher.Match("/v1.0/backup", out _UrlParameters)) return RequestTypeEnum.Backup;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/first", out _UrlParameters)) return RequestTypeEnum.GraphReadFirst;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/search", out _UrlParameters)) return RequestTypeEnum.GraphSearch;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", out _UrlParameters)) return RequestTypeEnum.GraphExistence;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/routes", out _UrlParameters)) return RequestTypeEnum.GetRoutes;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/first", out _UrlParameters)) return RequestTypeEnum.NodeReadFirst;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/search", out _UrlParameters)) return RequestTypeEnum.NodeSearch;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/first", out _UrlParameters)) return RequestTypeEnum.EdgeReadFirst;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/search", out _UrlParameters)) return RequestTypeEnum.EdgeSearch;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors", out _UrlParameters)) return RequestTypeEnum.VectorSearch;

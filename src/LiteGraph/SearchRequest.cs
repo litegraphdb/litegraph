@@ -29,6 +29,22 @@
         public EnumerationOrderEnum Ordering { get; set; } = EnumerationOrderEnum.CreatedDescending;
 
         /// <summary>
+        /// Maximum number of results to retrieve.
+        /// </summary>
+        public int MaxResults
+        {
+            get
+            {
+                return _MaxResults;
+            }
+            set
+            {
+                if (value < 1) throw new ArgumentOutOfRangeException(nameof(MaxResults));
+                _MaxResults = value;
+            }
+        }
+
+        /// <summary>
         /// The number of records to skip.
         /// </summary>
         public int Skip
@@ -85,6 +101,7 @@
 
         #region Private-Members
 
+        private int _MaxResults = 100;
         private int _Skip = 0;
         private List<string> _Labels = new List<string>();
         private NameValueCollection _Tags = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);

@@ -131,6 +131,41 @@
         }
 
         /// <inheritdoc />
+        public Graph ReadFirst(
+            Guid tenantGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr expr = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            if (order == EnumerationOrderEnum.CostAscending
+                || order == EnumerationOrderEnum.CostDescending)
+                throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
+
+            if (order == EnumerationOrderEnum.MostConnected
+                || order == EnumerationOrderEnum.LeastConnected)
+                throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
+
+            _Client.ValidateTenantExists(tenantGuid);
+
+            Graph graph = _Repo.Graph.ReadFirst(tenantGuid, labels, tags, expr, order);
+
+            if (graph != null)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graph.GUID, null, null, null).ToList();
+                if (allLabels != null) graph.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graph.GUID, null, null, null, null).ToList();
+                if (allTags != null) graph.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                graph.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID).ToList();
+                return graph;
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public Graph ReadByGuid(Guid tenantGuid, Guid graphGuid)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graph with GUID " + graphGuid);

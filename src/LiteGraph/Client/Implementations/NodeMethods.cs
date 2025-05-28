@@ -213,6 +213,38 @@
         }
 
         /// <inheritdoc />
+        public Node ReadFirst(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr expr = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            if (order == EnumerationOrderEnum.CostAscending
+                || order == EnumerationOrderEnum.CostDescending)
+                throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
+
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+
+            Node node = _Repo.Node.ReadFirst(tenantGuid, graphGuid, labels, tags, expr, order);
+
+            if (node != null)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
+                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
+                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
+                return node;
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public IEnumerable<Node> ReadMostConnected(
             Guid tenantGuid,
             Guid graphGuid,

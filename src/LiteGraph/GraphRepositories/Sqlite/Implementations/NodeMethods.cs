@@ -151,6 +151,35 @@
         }
 
         /// <inheritdoc />
+        public Node ReadFirst(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr nodeFilter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMany(
+                tenantGuid, 
+                graphGuid, 
+                labels, 
+                tags, 
+                nodeFilter, 
+                1, 
+                0, 
+                order));
+
+            if (result == null || result.Rows.Count < 1) return null;
+
+            if (result.Rows.Count > 0)
+            {
+                return Converters.NodeFromDataRow(result.Rows[0]);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public IEnumerable<Node> ReadMostConnected(
             Guid tenantGuid, 
             Guid graphGuid, 

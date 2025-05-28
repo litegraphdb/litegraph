@@ -153,6 +153,35 @@
         }
 
         /// <inheritdoc />
+        public Edge ReadFirst(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr edgeFilter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectMany(
+                tenantGuid, 
+                graphGuid, 
+                labels, 
+                tags, 
+                edgeFilter, 
+                1, 
+                0, 
+                order));
+
+            if (result == null || result.Rows.Count < 1) return null;
+
+            if (result.Rows.Count > 0)
+            {
+                return Converters.EdgeFromDataRow(result.Rows[0]);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             DataTable result = _Repo.ExecuteQuery(EdgeQueries.Select(tenantGuid, graphGuid, edgeGuid));

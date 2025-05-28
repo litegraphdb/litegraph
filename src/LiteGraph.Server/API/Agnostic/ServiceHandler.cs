@@ -578,12 +578,27 @@
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.ExistenceRequest));
             SearchResult sresp = new SearchResult();
             sresp.Graphs = _LiteGraph.Graph.ReadMany(
-                req.TenantGUID.Value, 
+                req.TenantGUID.Value,
                 req.SearchRequest.Labels,
-                req.SearchRequest.Tags, 
-                req.SearchRequest.Expr, 
+                req.SearchRequest.Tags,
+                req.SearchRequest.Expr,
                 req.SearchRequest.Ordering).ToList();
             return new ResponseContext(req, sresp);
+        }
+
+        internal async Task<ResponseContext> GraphReadFirst(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.ExistenceRequest));
+            Graph graph = _LiteGraph.Graph.ReadFirst(
+                req.TenantGUID.Value,
+                req.SearchRequest.Labels,
+                req.SearchRequest.Tags,
+                req.SearchRequest.Expr,
+                req.SearchRequest.Ordering);
+
+            if (graph != null) return new ResponseContext(req, graph);
+            else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
         }
 
         internal async Task<ResponseContext> GraphRead(RequestContext req)
@@ -704,15 +719,33 @@
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             SearchResult sresp = new SearchResult();
             sresp.Nodes = _LiteGraph.Node.ReadMany(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.SearchRequest.Labels,
-                req.SearchRequest.Tags, 
-                req.SearchRequest.Expr, 
+                req.SearchRequest.Tags,
+                req.SearchRequest.Expr,
                 req.SearchRequest.Ordering,
                 req.SearchRequest.Skip).ToList();
             if (sresp.Nodes == null) sresp.Nodes = new List<Node>();
             return new ResponseContext(req, sresp);
+        }
+
+        internal async Task<ResponseContext> NodeReadFirst(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
+            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+
+            Node node = _LiteGraph.Node.ReadFirst(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.SearchRequest.Labels,
+                req.SearchRequest.Tags,
+                req.SearchRequest.Expr,
+                req.SearchRequest.Ordering);
+
+            if (node != null) return new ResponseContext(req, node);
+            else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
         }
 
         internal async Task<ResponseContext> NodeRead(RequestContext req)
@@ -832,13 +865,31 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+
+            Edge edge = _LiteGraph.Edge.ReadFirst(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.SearchRequest.Labels,
+                req.SearchRequest.Tags,
+                req.SearchRequest.Expr,
+                req.SearchRequest.Ordering);
+
+            if (edge != null) return new ResponseContext(req, edge);
+            else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
+        }
+
+        internal async Task<ResponseContext> EdgeReadFirst(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
+            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             SearchResult sresp = new SearchResult();
             sresp.Edges = _LiteGraph.Edge.ReadMany(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.SearchRequest.Labels,
-                req.SearchRequest.Tags, 
-                req.SearchRequest.Expr, 
+                req.SearchRequest.Tags,
+                req.SearchRequest.Expr,
                 req.SearchRequest.Ordering,
                 req.SearchRequest.Skip).ToList();
             return new ResponseContext(req, sresp);

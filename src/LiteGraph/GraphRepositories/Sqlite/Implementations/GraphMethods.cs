@@ -115,6 +115,33 @@
         }
 
         /// <inheritdoc />
+        public Graph ReadFirst(
+            Guid tenantGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr graphFilter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectMany(
+                tenantGuid,
+                labels,
+                tags,
+                graphFilter,
+                1,
+                0,
+                order));
+
+            if (result == null || result.Rows.Count < 1) return null;
+
+            if (result.Rows.Count > 0)
+            {
+                return Converters.GraphFromDataRow(result.Rows[0]);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public Graph ReadByGuid(Guid tenantGuid, Guid guid)
         {
             DataTable result = _Repo.ExecuteQuery(GraphQueries.Select(tenantGuid, guid));
