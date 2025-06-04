@@ -2728,7 +2728,14 @@
             </summary>
         </member>
         <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.InitializeRepository">
-            <inheritdoc />
+            <summary>
+            Initialize the repository.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.Flush">
+            <summary>
+            Flush database contents to disk.  Only required if using an in-memory instance of a LiteGraph database.
+            </summary>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.IAdminMethods">
             <summary>
@@ -4648,14 +4655,20 @@
             Vector methods.
             </summary>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.#ctor(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.#ctor(System.String,System.Boolean)">
             <summary>
             Instantiate.
             </summary>
             <param name="filename">Sqlite database filename.</param>
+            <param name="inMemory">Boolean indicating whether or not the database should be held in-memory and flushed periodically to disk by user instruction.</param>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.InitializeRepository">
             <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.Flush">
+            <summary>
+            Saves the in-memory database back to disk file
+            </summary>
         </member>
         <member name="T:LiteGraph.Helpers.FileHelpers">
             <summary>
@@ -5029,6 +5042,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="includeData">True to include data.</param>
             <returns>GEXF string.</returns>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.Flush">
+            <summary>
+            Flush the database to disk.  Only useful when using an in-memory LiteGraph instance.
+            </summary>
         </member>
         <member name="T:LiteGraph.LoggingSettings">
             <summary>

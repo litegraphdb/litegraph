@@ -6,6 +6,7 @@
     using System.Collections.Specialized;
     using System.ComponentModel.DataAnnotations;
     using System.Data;
+    using System.IO;
     using System.Linq;
     using System.Reflection.Emit;
     using System.Threading.Tasks;
@@ -160,14 +161,17 @@
 
         #region Internal-Members
 
-        internal string ConnectionString = "Data Source=litegraph.db;Pooling=false";
-        internal readonly object QueryLock = new object();
-
         #endregion
 
         #region Private-Members
 
         private string _Filename = "litegraph.db";
+        private bool _InMemory = false;
+
+        private readonly object _QueryLock = new object();
+        private string _ConnectionString = "Data Source=litegraph.db;Pooling=false";
+        private SqliteConnection _SqliteConnection = null;
+
         private int _SelectBatchSize = 100;
         private int _MaxStatementLength = 1000000000; // https://www.sqlite.org/limits.html
         private string _TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
@@ -180,13 +184,20 @@
         /// Instantiate.
         /// </summary>
         /// <param name="filename">Sqlite database filename.</param>
-        public SqliteGraphRepository(string filename = "litegraph.db")
+        /// <param name="inMemory">Boolean indicating whether or not the database should be held in-memory and flushed periodically to disk by user instruction.</param>
+        public SqliteGraphRepository(string filename = "litegraph.db", bool inMemory = false)
         {
             if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
 
+            _InMemory = inMemory;
+
             _Filename = filename;
 
-            ConnectionString = "Data Source=" + filename + ";Pooling=false";
+            if (!_InMemory) _ConnectionString = "Data Source=" + filename + ";Pooling=false";
+            else _ConnectionString = "Data Source=LiteGraphMemory;Mode=Memory;Cache=Shared";
+
+            _SqliteConnection = new SqliteConnection(_ConnectionString);
+            _SqliteConnection.Open();
 
             Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
@@ -208,7 +219,54 @@
         /// <inheritdoc />
         public override void InitializeRepository()
         {
+            if (_InMemory && File.Exists(_Filename))
+            {
+                using (var diskDatabase = new SqliteConnection($"Data Source={_Filename};Pooling=false"))
+                {
+                    diskDatabase.Open();
+                    diskDatabase.BackupDatabase(_SqliteConnection);
+                }
+            }
+
             ExecuteQuery(SetupQueries.CreateTablesAndIndices());
+        }
+
+        /// <summary>
+        /// Saves the in-memory database back to disk file
+        /// </summary>
+        public override void Flush()
+        {
+            if (_InMemory)
+            {
+                // Create a backup first for safety
+                string backupPath = _Filename + ".backup";
+                if (File.Exists(_Filename))
+                {
+                    File.Copy(_Filename, backupPath, true);
+                }
+
+                try
+                {
+                    using (var diskDatabase = new SqliteConnection($"Data Source={_Filename};Pooling=false"))
+                    {
+                        diskDatabase.Open();
+                        // Backup from the instance connection to disk
+                        _SqliteConnection.BackupDatabase(diskDatabase);
+                    }
+
+                    if (File.Exists(backupPath)) File.Delete(backupPath);
+                }
+                catch (Exception e)
+                {
+                    // Restore from backup on failure
+                    if (File.Exists(backupPath))
+                    {
+                        File.Copy(backupPath, _Filename, true);
+                        File.Delete(backupPath);
+                    }
+                    throw new Exception($"Failed to save database. Original file restored from backup. Error: {e.Message}", e);
+                }
+            }
         }
 
         #endregion
@@ -230,35 +288,65 @@
 
             if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
 
-            lock (QueryLock)
+            lock (_QueryLock)
             {
-                using (SqliteConnection conn = new SqliteConnection(ConnectionString))
+                if (_InMemory)
                 {
+                    // Use the instance connection for in-memory operations
                     try
                     {
-                        conn.Open();
-
-                        using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                        using (SqliteCommand cmd = new SqliteCommand(query, _SqliteConnection))
                         {
                             using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
                                 result.Load(rdr);
                             }
                         }
-
-                        conn.Close();
                     }
                     catch (Exception e)
                     {
                         if (isTransaction)
                         {
-                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
+                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", _SqliteConnection))
                                 cmd.ExecuteNonQuery();
                         }
 
                         e.Data.Add("IsTransaction", isTransaction);
                         e.Data.Add("Query", query);
                         throw;
+                    }
+                }
+                else
+                {
+                    // Original code for disk-based operations
+                    using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
+                    {
+                        try
+                        {
+                            conn.Open();
+
+                            using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                            {
+                                using (SqliteDataReader rdr = cmd.ExecuteReader())
+                                {
+                                    result.Load(rdr);
+                                }
+                            }
+
+                            conn.Close();
+                        }
+                        catch (Exception e)
+                        {
+                            if (isTransaction)
+                            {
+                                using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
+                                    cmd.ExecuteNonQuery();
+                            }
+
+                            e.Data.Add("IsTransaction", isTransaction);
+                            e.Data.Add("Query", query);
+                            throw;
+                        }
                     }
                 }
             }
@@ -273,18 +361,18 @@
 
             DataTable result = new DataTable();
 
-            lock (QueryLock)
+            lock (_QueryLock)
             {
-                using (SqliteConnection conn = new SqliteConnection(ConnectionString))
+                if (_InMemory)
                 {
-                    conn.Open();
+                    // Use the instance connection for in-memory operations
                     SqliteTransaction transaction = null;
 
                     try
                     {
                         if (isTransaction)
                         {
-                            transaction = conn.BeginTransaction();
+                            transaction = _SqliteConnection.BeginTransaction();
                         }
 
                         DataTable lastResult = null;
@@ -296,7 +384,7 @@
 
                             if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
 
-                            using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                            using (SqliteCommand cmd = new SqliteCommand(query, _SqliteConnection))
                             {
                                 if (transaction != null)
                                 {
@@ -332,7 +420,70 @@
                     finally
                     {
                         transaction?.Dispose();
-                        conn.Close();
+                    }
+                }
+                else
+                {
+                    // Original code for disk-based operations
+                    using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
+                    {
+                        conn.Open();
+                        SqliteTransaction transaction = null;
+
+                        try
+                        {
+                            if (isTransaction)
+                            {
+                                transaction = conn.BeginTransaction();
+                            }
+
+                            DataTable lastResult = null;
+
+                            foreach (string query in queries.Where(q => !string.IsNullOrEmpty(q)))
+                            {
+                                if (query.Length > MaxStatementLength)
+                                    throw new ArgumentException($"Query exceeds maximum statement length of {MaxStatementLength} characters.");
+
+                                if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
+
+                                using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                                {
+                                    if (transaction != null)
+                                    {
+                                        cmd.Transaction = transaction;
+                                    }
+
+                                    using (SqliteDataReader rdr = cmd.ExecuteReader())
+                                    {
+                                        lastResult = new DataTable();
+                                        lastResult.Load(rdr);
+                                    }
+
+                                    // We'll return the result of the last query that returns data
+                                    if (lastResult != null && lastResult.Rows.Count > 0)
+                                    {
+                                        result = lastResult;
+                                    }
+                                }
+                            }
+
+                            // Commit the transaction if we're using one
+                            transaction?.Commit();
+                        }
+                        catch (Exception e)
+                        {
+                            // Roll back the transaction if an error occurs
+                            transaction?.Rollback();
+
+                            e.Data.Add("IsTransaction", isTransaction);
+                            e.Data.Add("Queries", string.Join("; ", queries));
+                            throw;
+                        }
+                        finally
+                        {
+                            transaction?.Dispose();
+                            conn.Close();
+                        }
                     }
                 }
             }
@@ -340,6 +491,7 @@
             if (Logging.LogResults) Logging.Log(SeverityEnum.Debug, "result: " + (result != null ? result.Rows.Count + " rows" : "(null)"));
             return result;
         }
+
         #endregion
 
         #region Private-Methods

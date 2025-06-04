@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteGraph.Server", "LiteGraph.Server\LiteGraph.Server.csproj", "{5DAF0F2C-6C68-4DF5-A901-62BFD44FC55A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.RamDatabase", "Test.RamDatabase\Test.RamDatabase.csproj", "{5449BE30-6E41-473F-9BFE-262B916FB787}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5DAF0F2C-6C68-4DF5-A901-62BFD44FC55A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DAF0F2C-6C68-4DF5-A901-62BFD44FC55A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DAF0F2C-6C68-4DF5-A901-62BFD44FC55A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5449BE30-6E41-473F-9BFE-262B916FB787}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5449BE30-6E41-473F-9BFE-262B916FB787}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5449BE30-6E41-473F-9BFE-262B916FB787}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5449BE30-6E41-473F-9BFE-262B916FB787}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -119,8 +119,15 @@
 
         #region Public-Methods
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Initialize the repository.
+        /// </summary>
         public abstract void InitializeRepository();
+
+        /// <summary>
+        /// Flush database contents to disk.  Only required if using an in-memory instance of a LiteGraph database.
+        /// </summary>
+        public abstract void Flush();
 
         #endregion
 

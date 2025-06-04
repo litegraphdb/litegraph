@@ -266,6 +266,14 @@
             return _Gexf.RenderAsGexf(this, tenantGuid, graphGuid, includeData);
         }
 
+        /// <summary>
+        /// Flush the database to disk.  Only useful when using an in-memory LiteGraph instance.
+        /// </summary>
+        public void Flush()
+        {
+            _Repo.Flush();
+        }
+
         #endregion
 
         #region Internal-Methods

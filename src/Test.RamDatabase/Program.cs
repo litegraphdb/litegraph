@@ -1,4 +1,4 @@
-﻿namespace Test
+﻿namespace Test.RamDatabase
 {
     using System;
     using System.Collections.Generic;
@@ -14,16 +14,19 @@
 
     class Program
     {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+
         static bool _RunForever = true;
         static bool _Debug = false;
         static Serializer _Serializer = new Serializer();
         static LiteGraphClient _Client = null;
         static Guid _TenantGuid = Guid.Parse("00000000-0000-0000-0000-000000000000");
         static Guid _GraphGuid = Guid.Parse("00000000-0000-0000-0000-000000000000");
-
+        
         static void Main(string[] args)
         {
-            _Client = new LiteGraphClient(new SqliteGraphRepository());
+            _Client = new LiteGraphClient(new SqliteGraphRepository("litegraph.db", true));
             _Client.Logging.MinimumSeverity = 0;
             _Client.Logging.Logger = Logger;
             _Client.Logging.LogQueries = _Debug;
@@ -39,6 +42,7 @@
                 else if (userInput.Equals("q")) _RunForever = false;
                 else if (userInput.Equals("cls")) Console.Clear();
                 else if (userInput.Equals("backup")) BackupDatabase();
+                else if (userInput.Equals("flush")) FlushDatabase();
                 else if (userInput.Equals("debug")) ToggleDebug();
                 else if (userInput.Equals("tenant")) SetTenant();
                 else if (userInput.Equals("graph")) SetGraph();
@@ -101,6 +105,7 @@
             Console.WriteLine("  cls             clear the screen");
             Console.WriteLine("  debug           enable or disable debug (enabled: " + _Debug + ")");
             Console.WriteLine("  backup          backup database to a file");
+            Console.WriteLine("  flush           flush the database to disk");
             Console.WriteLine("");
             Console.WriteLine("  tenant          set the tenant GUID (currently " + _TenantGuid + ")");
             Console.WriteLine("  graph           set the graph GUID (currently " + _GraphGuid + ")");
@@ -140,6 +145,11 @@
             string filename = Inputty.GetString("Backup filename:", null, true);
             if (String.IsNullOrEmpty(filename)) return;
             _Client.Admin.Backup(filename);
+        }
+
+        static void FlushDatabase()
+        {
+            _Client.Flush();
         }
 
         static void ToggleDebug()
@@ -235,7 +245,7 @@
                     Model = "testmodel",
                     Dimensionality = 3,
                     Content = "testcontent",
-                    Vectors = embeddings1                    
+                    Vectors = embeddings1
                 }
             };
 
@@ -266,8 +276,8 @@
                 Name = "1",
                 Labels = StringHelpers.Combine(labelsOdd, labelsNode),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsNode),
-                Vectors = new List<VectorMetadata> 
-                { 
+                Vectors = new List<VectorMetadata>
+                {
                     new VectorMetadata
                     {
                         TenantGUID = tenant.GUID,
@@ -1341,7 +1351,7 @@
             else if (str.Equals("user"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                Guid userGuid =   Inputty.GetGuid("GUID        :", default(Guid));
+                Guid userGuid = Inputty.GetGuid("GUID        :", default(Guid));
                 obj = _Client.User.ReadByGuid(tenantGuid, userGuid);
             }
             else if (str.Equals("cred"))
@@ -1634,5 +1644,8 @@
         }
 
         #endregion
+
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
     }
 }

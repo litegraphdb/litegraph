@@ -17,6 +17,7 @@ LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RES
 - Consolidation of create, update, and delete actions within a single transaction
 - Batch APIs for creation and deletion of labels, tags, vectors, edges, and nodes
 - Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
+- In-memory operation with controlled flushing to disk
 - Dependency updates and bug fixes
 - Minor Postman fixes
 
@@ -62,6 +63,35 @@ foreach (RouteDetail route in graph.GetRoutes(
 
 // Export to GEXF file
 graph.ExportGraphToGexfFile(tenant.GUID, graph.GUID, "mygraph.gexf");
+```
+
+## Simple Example, In-Memory
+
+LiteGraph can be configured to run in-memory, with a specified database filename.  If the database exists, it will be fully loaded into memory, and then **must** later be `Flush()`ed out to disk when done.  If the database does not exist, it will be created.
+
+```csharp
+using LiteGraph;
+
+LiteGraphClient graph = new LiteGraphClient(new SqliteRepository("litegraph.db", true)); // true to run in-memory
+graph.InitializeRepository();
+
+// Create a tenant
+TenantMetadata tenant = graph.CreateTenant(new TenantMetadata { Name = "My tenant" });
+
+// Create a graph
+Graph graph = graph.CreateGraph(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
+
+// Create nodes
+Node node1 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
+Node node2 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
+Node node3 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
+
+// Create edges
+Edge edge1 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
+Edge edge2 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
+
+// Flush to disk
+graph.Flush();
 ```
 
 ## Working with Object Labels, Tags, and Data

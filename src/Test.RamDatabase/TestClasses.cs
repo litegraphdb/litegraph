@@ -1,10 +1,12 @@
-﻿namespace Test
+﻿namespace Test.RamDatabase
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 
     public class GraphMetadata
     {
@@ -53,4 +55,6 @@
     {
         public string Name { get; set; } = null;
     }
+
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 }
