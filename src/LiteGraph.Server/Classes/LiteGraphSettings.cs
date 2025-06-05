@@ -56,6 +56,11 @@
             }
         }
 
+        /// <summary>
+        /// Boolean indicating if the database should be in-memory.
+        /// </summary>
+        public bool InMemory { get; set; } = false;
+
         #endregion
 
         #region Private-Members

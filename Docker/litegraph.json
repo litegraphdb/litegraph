@@ -67,7 +67,8 @@
   "LiteGraph": {
     "AdminBearerToken": "litegraphadmin",
     "GraphRepositoryFilename": "litegraph.db",
-    "MaxConcurrentOperations": 4
+    "MaxConcurrentOperations": 4,
+    "InMemory": false
   },
   "Encryption": {
     "Key": "0000000000000000000000000000000000000000000000000000000000000000",
