@@ -385,6 +385,14 @@ Valid search types are `CosineSimilarity` `CosineDistance` `EuclidianSimilarity`
 |-----------------------|--------|-----|
 | Validate connectivity | HEAD   | /   |
 
+## Admin APIs
+
+Admin APIs require administrator bearer token authentication.
+
+| API                              | Method | URL         |
+|----------------------------------|--------|-------------|
+| Flush in-memory database to disk | POST   | /v1.0/flush |
+
 ## Backup APIs
 
 Backup APIs require administrator bearer token authentication.

@@ -111,6 +111,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/backups", BackupRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/backups/{backupFilename}", BackupDeleteRoute, ExceptionRoute);
 
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/flush", FlushRoute, ExceptionRoute);
+
             #endregion
 
             #region Tenants
@@ -524,6 +526,18 @@
             }
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupDeleteRequest);
+        }
+
+        private async Task FlushRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.FlushRequest);
         }
 
         #endregion

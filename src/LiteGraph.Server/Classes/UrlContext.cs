@@ -388,6 +388,8 @@
 
                     if (matcher.Match("/v1.0/backup", out _UrlParameters)) return RequestTypeEnum.Backup;
 
+                    if (matcher.Match("/v1.0/flush", out _UrlParameters)) return RequestTypeEnum.FlushDatabase;
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/first", out _UrlParameters)) return RequestTypeEnum.GraphReadFirst;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/search", out _UrlParameters)) return RequestTypeEnum.GraphSearch;
 

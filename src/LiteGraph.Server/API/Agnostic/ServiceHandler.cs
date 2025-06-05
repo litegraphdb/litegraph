@@ -109,6 +109,15 @@
             return new ResponseContext(req);
         }
 
+        internal async Task<ResponseContext> FlushRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            _LiteGraph.Flush();
+            return new ResponseContext(req);
+        }
+
         #endregion
 
         #region Tenant-Routes

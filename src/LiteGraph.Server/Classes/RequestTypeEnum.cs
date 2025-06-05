@@ -36,6 +36,12 @@
         #region Admin
 
         /// <summary>
+        /// FlushDatabase.
+        /// </summary>
+        [EnumMember(Value = "FlushDatabase")]
+        FlushDatabase,
+
+        /// <summary>
         /// Backup.
         /// </summary>
         [EnumMember(Value = "Backup")]
