@@ -2208,6 +2208,76 @@
             Least connected.
             </summary>
         </member>
+        <member name="T:LiteGraph.EnumerationQuery">
+            <summary>
+            Object used to request enumeration.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Tenant">
+            <summary>
+            Tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Graph">
+            <summary>
+            Graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.GraphGUID">
+            <summary>
+            Graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.MaxResults">
+            <summary>
+            Maximum number of results to retrieve.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Skip">
+            <summary>
+            The number of records to skip.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.ContinuationToken">
+            <summary>
+            Continuation token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Filters">
+            <summary>
+            Search filters to apply to enumeration.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Labels">
+            <summary>
+            Search labels.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Tags">
+            <summary>
+            Search tags.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Expr">
+            <summary>
+            Expression.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.Ordering">
+            <summary>
+            Order by.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.EnumerationQuery.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.ExistenceRequest">
             <summary>
             Existence check for multiple identifiers request.
@@ -5215,6 +5285,112 @@
             Instantiate the object.
             </summary>
         </member>
+        <member name="T:LiteGraph.SearchConditionEnum">
+            <summary>
+            Available conditions for search filters.
+            </summary> 
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.Equals">
+            <summary>
+            The left and right terms are equal to one another.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.NotEquals">
+            <summary>
+            The left and right terms are not equal to one another.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.GreaterThan">
+            <summary>
+            The left term is greater than the right term.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.GreaterThanOrEqualTo">
+            <summary>
+            The left term is greater than or equal to the right term.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.LessThan">
+            <summary>
+            The left term is less than the right term.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.LessThanOrEqualTo">
+            <summary>
+            The left term is less than or equal to the right term.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.IsNull">
+            <summary>
+            The left term is null.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.IsNotNull">
+            <summary>
+            The left term is not null.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.Contains">
+            <summary>
+            The left term is contained within the right term (list).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.ContainsNot">
+            <summary>
+            The left term is not contained within the right term (list).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.StartsWith">
+            <summary>
+            The left term starts with the right term.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.SearchConditionEnum.EndsWith">
+            <summary>
+            The left term ends with the right term.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.SearchFilter">
+            <summary>
+            A search filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SearchFilter.Field">
+            <summary>
+            The field upon which to match.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SearchFilter.Condition">
+            <summary>
+            The condition by which the parsed document's content is evaluated against the supplied value.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SearchFilter.Value">
+            <summary>
+            The value to be evaluated using the specified condition against the parsed document's content.
+            When using GreaterThan, GreaterThanOrEqualTo, LessThan, or LessThanOrEqualTo, the value supplied must be convertible to decimal.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.SearchFilter.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.SearchFilter.#ctor(System.String,LiteGraph.SearchConditionEnum,System.String)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="field">Field.</param>
+            <param name="condition">SearchCondition.</param>
+            <param name="value">Value.</param>
+        </member>
+        <member name="M:LiteGraph.SearchFilter.EvaluateValue(System.Object)">
+            <summary>
+            Evaluates a value against the search filter.
+            </summary>
+            <param name="value">Value.</param>
+            <returns>True if matched.</returns>
+        </member>
         <member name="T:LiteGraph.SearchRequest">
             <summary>
             Search request.
@@ -5828,6 +6004,66 @@
         <member name="F:LiteGraph.VectorSearchTypeEnum.DotProduct">
             <summary>
             Dot product similarity.  Equivalent to cosine similarity when vectors are normalized, that is, magnitudes are all 1.
+            </summary>
+        </member>
+        <member name="T:View.Models.EnumerationResult`1">
+            <summary>
+            Object returned as the result of an enumeration.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.Success">
+            <summary>
+            Indicates if the statistics operation was successful.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.Timestamp">
+            <summary>
+            Start and end timestamps.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.MaxResults">
+            <summary>
+            Maximum number of results to retrieve.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.Skip">
+            <summary>
+            Skip.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.IterationsRequired">
+            <summary>
+            Iterations required.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.ContinuationToken">
+            <summary>
+            Continuation token.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.EndOfResults">
+            <summary>
+            Boolean indicating end of results.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.TotalRecords">
+            <summary>
+            Total number of records.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.RecordsRemaining">
+            <summary>
+            Number of candidate records remaining in the enumeration.
+            </summary>
+        </member>
+        <member name="P:View.Models.EnumerationResult`1.Objects">
+            <summary>
+            Objects.
+            </summary>
+        </member>
+        <member name="M:View.Models.EnumerationResult`1.#ctor">
+            <summary>
+            Instantiates the object.
             </summary>
         </member>
     </members>
