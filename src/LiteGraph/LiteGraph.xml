@@ -105,10 +105,13 @@
         <member name="M:LiteGraph.Client.Implementations.AdminMethods.DeleteBackup(System.String)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.ListBackups">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupReadAll">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.ReadBackup(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupRead(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupEnumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupExists(System.String)">
@@ -156,6 +159,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByBearerToken(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Update(LiteGraph.Credential)">
@@ -206,6 +212,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -273,6 +282,9 @@
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.Update(LiteGraph.Graph)">
             <inheritdoc />
         </member>
@@ -283,6 +295,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.ExistsByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetStatistics(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetStatistics(System.Guid)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.LabelMethods">
@@ -323,6 +341,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.LabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.Update(LiteGraph.LabelMetadata)">
@@ -396,6 +417,9 @@
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.Update(LiteGraph.Node)">
             <inheritdoc />
         </member>
@@ -466,6 +490,9 @@
         <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.TagMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.TagMethods.Update(LiteGraph.TagMetadata)">
             <inheritdoc />
         </member>
@@ -514,6 +541,9 @@
         <member name="M:LiteGraph.Client.Implementations.TenantMethods.ReadByGuid(System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.TenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.TenantMethods.Update(LiteGraph.TenantMetadata)">
             <inheritdoc />
         </member>
@@ -521,6 +551,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.TenantMethods.ExistsByGuid(System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.TenantMethods.GetStatistics(System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.TenantMethods.GetStatistics">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.UserMethods">
@@ -552,6 +588,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadTenantsByEmail(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.Update(LiteGraph.UserMaster)">
@@ -607,6 +646,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.VectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.Update(LiteGraph.VectorMetadata)">
@@ -666,18 +708,25 @@
             </summary>
             <param name="outputFilename">Output filename.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.ListBackups">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupReadAll">
             <summary>
             List backups request.
             </summary>
             <returns>Enumerable of backup files.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.ReadBackup(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupRead(System.String)">
             <summary>
             Read the contents of a backup file.
             </summary>
             <param name="backupFilename">Backup filename.</param>
             <returns>File contents.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupEnumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupExists(System.String)">
             <summary>
@@ -754,6 +803,13 @@
             </summary>
             <param name="bearerToken">Bearer token.</param>
             <returns>Credential.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Update(LiteGraph.Credential)">
             <summary>
@@ -940,6 +996,13 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Edges.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.Update(LiteGraph.Edge)">
             <summary>
             Update edge.
@@ -1060,6 +1123,13 @@
             <param name="guid">GUID.</param>
             <returns>Graph.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.Update(LiteGraph.Graph)">
             <summary>
             Update a graph.
@@ -1088,6 +1158,21 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.GetStatistics(System.Guid,System.Guid)">
+            <summary>
+            Retrieve graph statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">Graph GUID.</param>
+            <returns>Graph statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.GetStatistics(System.Guid)">
+            <summary>
+            Retrieve graph statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <returns>Dictionary of graph statistics.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.ILabelMethods">
             <summary>
@@ -1181,6 +1266,13 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Label.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.Update(LiteGraph.LabelMetadata)">
             <summary>
@@ -1366,6 +1458,13 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <returns>Node.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.INodeMethods.Update(LiteGraph.Node)">
             <summary>
@@ -1558,6 +1657,13 @@
             <param name="guid">GUID.</param>
             <returns>Tag.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITagMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ITagMethods.Update(LiteGraph.TagMetadata)">
             <summary>
             Update a tag.
@@ -1660,6 +1766,13 @@
             <param name="guid">GUID.</param>
             <returns>Tenant.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ITenantMethods.Update(LiteGraph.TenantMetadata)">
             <summary>
             Update a tenant.
@@ -1680,6 +1793,19 @@
             </summary>
             <param name="guid">GUID.</param>
             <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITenantMethods.GetStatistics(System.Guid)">
+            <summary>
+            Retrieve tenant statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <returns>Tenant statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITenantMethods.GetStatistics">
+            <summary>
+            Retrieve tenant statistics.
+            </summary>
+            <returns>Dictionary of tenant statistics.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IUserMethods">
             <summary>
@@ -1735,6 +1861,13 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
             <returns>User.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Update(LiteGraph.UserMaster)">
             <summary>
@@ -1863,6 +1996,13 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Vector.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.Update(LiteGraph.VectorMetadata)">
             <summary>
@@ -2213,19 +2353,14 @@
             Object used to request enumeration.
             </summary>
         </member>
-        <member name="P:LiteGraph.EnumerationQuery.Tenant">
-            <summary>
-            Tenant.
-            </summary>
-        </member>
         <member name="P:LiteGraph.EnumerationQuery.TenantGUID">
             <summary>
             Tenant GUID.
             </summary>
         </member>
-        <member name="P:LiteGraph.EnumerationQuery.Graph">
+        <member name="P:LiteGraph.EnumerationQuery.UserGUID">
             <summary>
-            Graph.
+            User GUID.
             </summary>
         </member>
         <member name="P:LiteGraph.EnumerationQuery.GraphGUID">
@@ -2233,24 +2368,29 @@
             Graph GUID.
             </summary>
         </member>
+        <member name="P:LiteGraph.EnumerationQuery.Ordering">
+            <summary>
+            Order by.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.IncludeData">
+            <summary>
+            Boolean indicating if an object's data property should be included.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationQuery.IncludeSubordinates">
+            <summary>
+            Boolean indicating if an object's subordinate objects (i.e. labels, tags, vectors) should be included.
+            </summary>
+        </member>
         <member name="P:LiteGraph.EnumerationQuery.MaxResults">
             <summary>
             Maximum number of results to retrieve.
             </summary>
         </member>
-        <member name="P:LiteGraph.EnumerationQuery.Skip">
-            <summary>
-            The number of records to skip.
-            </summary>
-        </member>
         <member name="P:LiteGraph.EnumerationQuery.ContinuationToken">
             <summary>
             Continuation token.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.EnumerationQuery.Filters">
-            <summary>
-            Search filters to apply to enumeration.
             </summary>
         </member>
         <member name="P:LiteGraph.EnumerationQuery.Labels">
@@ -2268,14 +2408,59 @@
             Expression.
             </summary>
         </member>
-        <member name="P:LiteGraph.EnumerationQuery.Ordering">
-            <summary>
-            Order by.
-            </summary>
-        </member>
         <member name="M:LiteGraph.EnumerationQuery.#ctor">
             <summary>
             Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.EnumerationResult`1">
+            <summary>
+            Object returned as the result of an enumeration.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.Success">
+            <summary>
+            Indicates if the statistics operation was successful.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.Timestamp">
+            <summary>
+            Start and end timestamps.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.MaxResults">
+            <summary>
+            Maximum number of results to retrieve.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.ContinuationToken">
+            <summary>
+            Continuation token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.EndOfResults">
+            <summary>
+            Boolean indicating end of results.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.TotalRecords">
+            <summary>
+            Total number of records.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.RecordsRemaining">
+            <summary>
+            Number of candidate records remaining in the enumeration.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.EnumerationResult`1.Objects">
+            <summary>
+            Objects.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.EnumerationResult`1.#ctor">
+            <summary>
+            Instantiates the object.
             </summary>
         </member>
         <member name="T:LiteGraph.ExistenceRequest">
@@ -2882,6 +3067,23 @@
             <param name="bearerToken">Bearer token.</param>
             <returns>Credential.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="userGuid">User GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Update(LiteGraph.Credential)">
             <summary>
             Update a credential.
@@ -3067,6 +3269,29 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Edges.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags upon which to filter.</param>
+            <param name="filter">
+            Edge filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.Update(LiteGraph.Edge)">
             <summary>
             Update edge.
@@ -3187,6 +3412,28 @@
             <param name="guid">GUID.</param>
             <returns>Graph.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.GetRecordCount(System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags upon which to filter.</param>
+            <param name="filter">
+            Edge filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.Update(LiteGraph.Graph)">
             <summary>
             Update a graph.
@@ -3214,6 +3461,21 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.GetStatistics(System.Guid,System.Guid)">
+            <summary>
+            Retrieve graph statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">Graph GUID.</param>
+            <returns>Graph statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.GetStatistics(System.Guid)">
+            <summary>
+            Retrieve graph statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <returns>Dictionary of graph statistics.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.ILabelMethods">
             <summary>
@@ -3307,6 +3569,23 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Label.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.Update(LiteGraph.LabelMetadata)">
             <summary>
@@ -3492,6 +3771,29 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <returns>Node.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="tags">Tags upon which to filter.</param>
+            <param name="filter">
+            Edge filter expression for Data JSON body.
+            Expression left terms must follow the form of Sqlite JSON paths.
+            For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.Update(LiteGraph.Node)">
             <summary>
@@ -3684,6 +3986,23 @@
             <param name="guid">GUID.</param>
             <returns>Tag.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.Update(LiteGraph.TagMetadata)">
             <summary>
             Update a tag.
@@ -3786,6 +4105,21 @@
             <param name="guid">GUID.</param>
             <returns>Tenant.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.GetRecordCount(LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.Update(LiteGraph.TenantMetadata)">
             <summary>
             Update a tenant.
@@ -3806,6 +4140,19 @@
             </summary>
             <param name="guid">GUID.</param>
             <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.GetStatistics(System.Guid)">
+            <summary>
+            Retrieve tenant statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <returns>Tenant statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.GetStatistics">
+            <summary>
+            Retrieve tenant statistics.
+            </summary>
+            <returns>Dictionary of tenant statistics.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.IUserMethods">
             <summary>
@@ -3861,6 +4208,22 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
             <returns>User.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Update(LiteGraph.UserMaster)">
             <summary>
@@ -3989,6 +4352,23 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Vector.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <summary>
+            Enumerate objects.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <returns>Number of records.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.Update(LiteGraph.VectorMetadata)">
             <summary>
@@ -4171,6 +4551,12 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Update(LiteGraph.Credential)">
             <inheritdoc />
         </member>
@@ -4217,6 +4603,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.Update(LiteGraph.Edge)">
@@ -4270,6 +4662,12 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetRecordCount(System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.Update(LiteGraph.Graph)">
             <inheritdoc />
         </member>
@@ -4280,6 +4678,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ExistsByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetStatistics(System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetStatistics(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods">
@@ -4348,6 +4752,12 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.Update(LiteGraph.LabelMetadata)">
             <inheritdoc />
         </member>
@@ -4388,6 +4798,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.Update(LiteGraph.Node)">
@@ -4486,6 +4902,12 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.Update(LiteGraph.TagMetadata)">
             <inheritdoc />
         </member>
@@ -4516,7 +4938,19 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.ReadMany(LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.GetRecordCount(LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.Update(LiteGraph.TenantMetadata)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.GetStatistics">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.GetStatistics(System.Guid)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods">
@@ -4559,6 +4993,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Update(LiteGraph.UserMaster)">
@@ -4628,6 +5068,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.Update(LiteGraph.VectorMetadata)">
@@ -4738,6 +5184,41 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.Flush">
             <summary>
             Saves the in-memory database back to disk file
+            </summary>
+        </member>
+        <member name="T:LiteGraph.GraphStatistics">
+            <summary>
+            Graph statistics.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphStatistics.Nodes">
+            <summary>
+            Number of nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphStatistics.Edges">
+            <summary>
+            Number of edges.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphStatistics.Labels">
+            <summary>
+            Number of labels.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphStatistics.Tags">
+            <summary>
+            Number of tags.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphStatistics.Vectors">
+            <summary>
+            Number of vectors.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphStatistics.#ctor">
+            <summary>
+            Graph statistics.
             </summary>
         </member>
         <member name="T:LiteGraph.Helpers.FileHelpers">
@@ -5285,112 +5766,6 @@
             Instantiate the object.
             </summary>
         </member>
-        <member name="T:LiteGraph.SearchConditionEnum">
-            <summary>
-            Available conditions for search filters.
-            </summary> 
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.Equals">
-            <summary>
-            The left and right terms are equal to one another.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.NotEquals">
-            <summary>
-            The left and right terms are not equal to one another.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.GreaterThan">
-            <summary>
-            The left term is greater than the right term.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.GreaterThanOrEqualTo">
-            <summary>
-            The left term is greater than or equal to the right term.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.LessThan">
-            <summary>
-            The left term is less than the right term.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.LessThanOrEqualTo">
-            <summary>
-            The left term is less than or equal to the right term.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.IsNull">
-            <summary>
-            The left term is null.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.IsNotNull">
-            <summary>
-            The left term is not null.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.Contains">
-            <summary>
-            The left term is contained within the right term (list).
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.ContainsNot">
-            <summary>
-            The left term is not contained within the right term (list).
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.StartsWith">
-            <summary>
-            The left term starts with the right term.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.SearchConditionEnum.EndsWith">
-            <summary>
-            The left term ends with the right term.
-            </summary>
-        </member>
-        <member name="T:LiteGraph.SearchFilter">
-            <summary>
-            A search filter.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.SearchFilter.Field">
-            <summary>
-            The field upon which to match.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.SearchFilter.Condition">
-            <summary>
-            The condition by which the parsed document's content is evaluated against the supplied value.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.SearchFilter.Value">
-            <summary>
-            The value to be evaluated using the specified condition against the parsed document's content.
-            When using GreaterThan, GreaterThanOrEqualTo, LessThan, or LessThanOrEqualTo, the value supplied must be convertible to decimal.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.SearchFilter.#ctor">
-            <summary>
-            Instantiate.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.SearchFilter.#ctor(System.String,LiteGraph.SearchConditionEnum,System.String)">
-            <summary>
-            Instantiate.
-            </summary>
-            <param name="field">Field.</param>
-            <param name="condition">SearchCondition.</param>
-            <param name="value">Value.</param>
-        </member>
-        <member name="M:LiteGraph.SearchFilter.EvaluateValue(System.Object)">
-            <summary>
-            Evaluates a value against the search filter.
-            </summary>
-            <param name="value">Value.</param>
-            <returns>True if matched.</returns>
-        </member>
         <member name="T:LiteGraph.SearchRequest">
             <summary>
             Search request.
@@ -5720,6 +6095,46 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.TenantStatistics">
+            <summary>
+            Tenant statistics.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TenantStatistics.Graphs">
+            <summary>
+            Number of graphs.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TenantStatistics.Nodes">
+            <summary>
+            Number of nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TenantStatistics.Edges">
+            <summary>
+            Number of edges.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TenantStatistics.Labels">
+            <summary>
+            Number of labels.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TenantStatistics.Tags">
+            <summary>
+            Number of tags.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TenantStatistics.Vectors">
+            <summary>
+            Number of vectors.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.TenantStatistics.#ctor">
+            <summary>
+            Tenant statistics.
+            </summary>
+        </member>
         <member name="T:LiteGraph.UserMaster">
             <summary>
             User.
@@ -6004,66 +6419,6 @@
         <member name="F:LiteGraph.VectorSearchTypeEnum.DotProduct">
             <summary>
             Dot product similarity.  Equivalent to cosine similarity when vectors are normalized, that is, magnitudes are all 1.
-            </summary>
-        </member>
-        <member name="T:View.Models.EnumerationResult`1">
-            <summary>
-            Object returned as the result of an enumeration.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.Success">
-            <summary>
-            Indicates if the statistics operation was successful.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.Timestamp">
-            <summary>
-            Start and end timestamps.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.MaxResults">
-            <summary>
-            Maximum number of results to retrieve.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.Skip">
-            <summary>
-            Skip.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.IterationsRequired">
-            <summary>
-            Iterations required.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.ContinuationToken">
-            <summary>
-            Continuation token.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.EndOfResults">
-            <summary>
-            Boolean indicating end of results.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.TotalRecords">
-            <summary>
-            Total number of records.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.RecordsRemaining">
-            <summary>
-            Number of candidate records remaining in the enumeration.
-            </summary>
-        </member>
-        <member name="P:View.Models.EnumerationResult`1.Objects">
-            <summary>
-            Objects.
-            </summary>
-        </member>
-        <member name="M:View.Models.EnumerationResult`1.#ctor">
-            <summary>
-            Instantiates the object.
             </summary>
         </member>
     </members>

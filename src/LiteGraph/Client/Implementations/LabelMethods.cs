@@ -188,6 +188,13 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<LabelMetadata> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            return _Repo.Label.Enumerate(query);
+        }
+
+        /// <inheritdoc />
         public LabelMetadata Update(LabelMetadata label)
         {
             if (label == null) throw new ArgumentNullException(nameof(label));

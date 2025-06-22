@@ -54,6 +54,37 @@
             return ret;
         }
 
+        internal static string GetRecordPage(
+            int batchSize = 100,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            TenantMetadata marker = null)
+        {
+            string ret = "SELECT * FROM 'tenants' WHERE guid IS NOT NULL ";
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker);
+            }
+
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + ";";
+            return ret;
+        }
+
+        internal static string GetRecordCount(
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            TenantMetadata marker = null)
+        {
+            string ret = "SELECT COUNT(*) AS record_count FROM 'tenants' WHERE guid IS NOT NULL ";
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker);
+            }
+
+            return ret;
+        }
+
         internal static string Update(TenantMetadata tenant)
         {
             return
@@ -78,6 +109,93 @@
             ret += "DELETE FROM 'users' WHERE tenantguid = '" + tenantGuid + "'; ";
             ret += "DELETE FROM 'tenants' WHERE guid = '" + tenantGuid + "'; ";
             return ret;
+        }
+
+        internal static string GetStatistics(Guid? tenantGuid = null)
+        {
+            string ret = "";
+            if (tenantGuid == null)
+            {
+                // Return statistics for all tenants
+                ret = "SELECT " +
+                    "t.guid, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM graphs g WHERE g.tenantguid = t.guid) AS graphs, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM nodes n WHERE n.tenantguid = t.guid) AS nodes, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM edges e WHERE e.tenantguid = t.guid) AS edges, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM labels l WHERE l.tenantguid = t.guid) AS labels, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM tags tg WHERE tg.tenantguid = t.guid) AS tags, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM vectors v WHERE v.tenantguid = t.guid) AS vectors " +
+                    "FROM tenants t " +
+                    "ORDER BY t.guid";
+            }
+            else
+            {
+                // Return statistics for a specific tenant
+                ret = "SELECT " +
+                    "t.guid, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM graphs g WHERE g.tenantguid = t.guid) AS graphs, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM nodes n WHERE n.tenantguid = t.guid) AS nodes, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM edges e WHERE e.tenantguid = t.guid) AS edges, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM labels l WHERE l.tenantguid = t.guid) AS labels, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM tags tg WHERE tg.tenantguid = t.guid) AS tags, " +
+                    "(SELECT COUNT(DISTINCT guid) FROM vectors v WHERE v.tenantguid = t.guid) AS vectors " +
+                    "FROM tenants t " +
+                    "WHERE t.guid = '" + tenantGuid.Value + "'";
+            }
+
+            ret += "; ";
+            return ret;
+        }
+
+        private static string OrderByClause(EnumerationOrderEnum order)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                case EnumerationOrderEnum.LeastConnected:
+                case EnumerationOrderEnum.MostConnected:
+                case EnumerationOrderEnum.CreatedDescending:
+                    return "ORDER BY createdutc DESC ";
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "ORDER BY createdutc ASC ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "ORDER BY guid ASC ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "ORDER BY guid DESC ";
+                case EnumerationOrderEnum.NameAscending:
+                    return "ORDER BY name ASC ";
+                case EnumerationOrderEnum.NameDescending:
+                    return "ORDER BY name DESC ";
+                default:
+                    return "ORDER BY createdutc DESC ";
+            }
+        }
+
+        private static string MarkerWhereClause(EnumerationOrderEnum order, TenantMetadata marker)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                case EnumerationOrderEnum.LeastConnected:
+                case EnumerationOrderEnum.MostConnected:
+                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.CreatedDescending:
+                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "guid > '" + marker.GUID + "' ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "guid < '" + marker.GUID + "' ";
+                case EnumerationOrderEnum.NameAscending:
+                    return "name > '" + marker.Name + "' ";
+                case EnumerationOrderEnum.NameDescending:
+                    return "name < '" + marker.Name + "' ";
+                default:
+                    return "guid IS NOT NULL ";
+            }
         }
     }
 }

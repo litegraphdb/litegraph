@@ -1,4 +1,4 @@
-﻿namespace View.Models
+﻿namespace LiteGraph
 {
     using System;
     using System.Collections.Generic;
@@ -35,38 +35,6 @@
             {
                 if (value < 1) throw new ArgumentOutOfRangeException(nameof(MaxResults));
                 _MaxResults = value;
-            }
-        }
-
-        /// <summary>
-        /// Skip.
-        /// </summary>
-        public int Skip
-        {
-            get
-            {
-                return _Skip;
-            }
-            set
-            {
-                if (value < 0) throw new ArgumentOutOfRangeException(nameof(Skip));
-                _Skip = value;
-            }
-        }
-
-        /// <summary>
-        /// Iterations required.
-        /// </summary>
-        public int IterationsRequired
-        {
-            get
-            {
-                return _IterationsRequired;
-            }
-            set
-            {
-                if (value < 1) throw new ArgumentOutOfRangeException(nameof(IterationsRequired));
-                _IterationsRequired = value;
             }
         }
 
@@ -134,8 +102,6 @@
         #region Private-Members
 
         private int _MaxResults = 1000;
-        private int _Skip = 0;
-        private int _IterationsRequired = 1;
         private long _TotalRecords = 0;
         private long _RecordsRemaining = 0;
         private List<T> _Objects = new List<T>();

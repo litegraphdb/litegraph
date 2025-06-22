@@ -6197,6 +6197,55 @@
 							"response": []
 						},
 						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Read",
 							"request": {
 								"method": "GET",
@@ -6212,6 +6261,49 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics (all)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/stats",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"stats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics (single)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/stats",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"stats"
 									]
 								}
 							},
@@ -6415,6 +6507,59 @@
 							"response": []
 						},
 						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/users",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/users",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Read",
 							"request": {
 								"method": "GET",
@@ -6601,6 +6746,59 @@
 							"response": []
 						},
 						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/credentials",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"credentials"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/credentials",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"credentials"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Read",
 							"request": {
 								"method": "GET",
@@ -6778,6 +6976,59 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
 										"tenants",
 										"{{tenant}}",
 										"labels"
@@ -7049,6 +7300,59 @@
 							"response": []
 						},
 						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/tags",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/tags",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Read",
 							"request": {
 								"method": "GET",
@@ -7302,6 +7606,59 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"vectors"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/vectors",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"vectors"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/vectors",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
 										"tenants",
 										"{{tenant}}",
 										"vectors"
@@ -7610,6 +7967,59 @@
 							"response": []
 						},
 						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Read",
 							"request": {
 								"method": "GET",
@@ -7627,6 +8037,53 @@
 										"{{tenant}}",
 										"graphs",
 										"{{graph}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics (all)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/stats",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"stats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics (single)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/stats",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"stats"
 									]
 								}
 							},
@@ -8019,6 +8476,63 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/nodes",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": true,\r\n    \"IncludeSubordinates\": true,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/nodes",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
 										"tenants",
 										"{{tenant}}",
 										"graphs",
@@ -8454,6 +8968,63 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"edges"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/edges",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"edges"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Ordering\": \"CreatedDescending\",\r\n    \"IncludeData\": false,\r\n    \"IncludeSubordinates\": false,\r\n    \"MaxResults\": 5,\r\n    \"ContinuationToken\": null,\r\n    \"Labels\": [ ],\r\n    \"Tags\": { },\r\n    \"Expr\": { }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/edges",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
 										"tenants",
 										"{{tenant}}",
 										"graphs",
@@ -9218,6 +9789,44 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
+										"backups"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate backups",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"Filename\": \"my-backup.db\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/backups",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
 										"backups"
 									]
 								}

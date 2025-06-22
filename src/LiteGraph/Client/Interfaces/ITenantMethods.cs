@@ -1,15 +1,8 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
-    using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for tenant methods.
@@ -42,6 +35,13 @@
         TenantMetadata ReadByGuid(Guid guid);
 
         /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query = null);
+
+        /// <summary>
         /// Update a tenant.
         /// </summary>
         /// <param name="tenant">Tenant.</param>
@@ -61,5 +61,18 @@
         /// <param name="guid">GUID.</param>
         /// <returns>True if exists.</returns>
         bool ExistsByGuid(Guid guid);
+
+        /// <summary>
+        /// Retrieve tenant statistics.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <returns>Tenant statistics.</returns>
+        TenantStatistics GetStatistics(Guid tenantGuid);
+
+        /// <summary>
+        /// Retrieve tenant statistics.
+        /// </summary>
+        /// <returns>Dictionary of tenant statistics.</returns>
+        Dictionary<Guid, TenantStatistics> GetStatistics();
     }
 }

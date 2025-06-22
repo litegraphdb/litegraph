@@ -1,15 +1,10 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
     using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for edge methods.
@@ -213,6 +208,13 @@
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0);
+
+        /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<Edge> Enumerate(EnumerationQuery query = null);
 
         /// <summary>
         /// Update edge.

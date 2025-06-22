@@ -224,6 +224,43 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<Edge> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+
+            EnumerationResult<Edge> er = _Repo.Edge.Enumerate(query);
+
+            if (er != null
+                && er.Objects != null
+                && er.Objects.Count > 0)
+            {
+                if (query.IncludeSubordinates)
+                {
+                    foreach (Edge edge in er.Objects)
+                    {
+                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList();
+                        if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
+
+                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList();
+                        if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                        edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
+                    }
+                }
+
+                if (!query.IncludeData)
+                {
+                    foreach (Edge edge in er.Objects)
+                    {
+                        edge.Data = null;
+                    }
+                }
+            }
+
+            return er;
+        }
+
+        /// <inheritdoc />
         public IEnumerable<Edge> ReadNodeEdges(
             Guid tenantGuid,
             Guid graphGuid,

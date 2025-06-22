@@ -312,6 +312,11 @@
         public SearchRequest SearchRequest { get; set; } = null;
 
         /// <summary>
+        /// Enumeration query.
+        /// </summary>
+        public EnumerationQuery EnumerationQuery { get; set; } = null;
+
+        /// <summary>
         /// Route request.
         /// </summary>
         public RouteRequest RouteRequest { get; set; } = null;
@@ -342,6 +347,22 @@
         }
 
         /// <summary>
+        /// Max keys.
+        /// </summary>
+        public int MaxKeys
+        {
+            get
+            {
+                return _MaxKeys;
+            }
+            set
+            {
+                if (value < 1 || value > 1000) throw new ArgumentOutOfRangeException(nameof(MaxKeys));
+                _MaxKeys = value;
+            }
+        }
+
+        /// <summary>
         /// Force deletion.
         /// </summary>
         public bool Force { get; set; } = false;
@@ -352,6 +373,11 @@
         public bool IncludeData { get; set; } = false;
 
         /// <summary>
+        /// Include subordinates.
+        /// </summary>
+        public bool IncludeSubordinates { get; set; } = false;
+
+        /// <summary>
         /// From GUID.
         /// </summary>
         public Guid? FromGUID { get; set; } = null;
@@ -360,6 +386,11 @@
         /// To GUID.
         /// </summary>
         public Guid? ToGUID { get; set; } = null;
+
+        /// <summary>
+        /// Continuation token.
+        /// </summary>
+        public string ContinuationToken { get; set; } = null;
 
         #endregion
 
@@ -373,6 +404,7 @@
         private AuthenticationContext _Authentication = new AuthenticationContext();
         private AuthorizationContext _Authorization = new AuthorizationContext();
 
+        private int _MaxKeys = 1000;
         private int _Skip = 0;
 
         private static Serializer _Serializer = new Serializer();
@@ -399,6 +431,8 @@
             SetApiVersion();
             SetAuthValues();
             SetRequestValues();
+
+            Data = ctx.Request.DataAsBytes;
         }
 
         #endregion
@@ -445,8 +479,6 @@
 
         private void SetRequestValues()
         {
-            // Console.WriteLine("URL parameters:" + Environment.NewLine + _Serializer.SerializeJson(_Url, true));
-
             if (_Url.UrlParameters.Count > 0)
             {
                 if (_Url.UrlParameters.AllKeys.Contains("backupFilename")) BackupFilename = _Url.GetParameter("backupFilename");
@@ -464,6 +496,9 @@
             if (_Url.QueryExists(Constants.SkipQuerystring))
                 if (Int32.TryParse(_Url.GetQueryValue(Constants.SkipQuerystring), out int skip)) Skip = skip;
 
+            if (_Url.QueryExists(Constants.MaxKeysQuerystring))
+                if (Int32.TryParse(_Url.GetQueryValue(Constants.MaxKeysQuerystring), out int maxKeys)) MaxKeys = maxKeys;
+
             if (_Url.QueryExists(Constants.EnumerationOrderQuerystring))
             {
                 if (Enum.TryParse<EnumerationOrderEnum>(_Url.GetQueryValue(Constants.EnumerationOrderQuerystring), out EnumerationOrderEnum val))
@@ -472,8 +507,10 @@
                 }
             }
 
+            if (_Url.QueryExists(Constants.ContinuationTokenQuerystring)) ContinuationToken = _Url.GetQueryValue(Constants.ContinuationTokenQuerystring);
             if (_Url.QueryExists(Constants.ForceQuerystring)) Force = true;
             if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;
+            if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
             if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
             if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
         }

@@ -62,11 +62,6 @@
         [EnumMember(Value = "BackupReadAll")]
         BackupReadAll,
         /// <summary>
-        /// BackupEnumerate.
-        /// </summary>
-        [EnumMember(Value = "BackupEnumerate")]
-        BackupEnumerate,
-        /// <summary>
         /// BackupDelete.
         /// </summary>
         [EnumMember(Value = "BackupDelete")]
@@ -111,6 +106,11 @@
         /// </summary>
         [EnumMember(Value = "TenantUpdate")]
         TenantUpdate,
+        /// <summary>
+        /// TenantStatistics
+        /// </summary>
+        [EnumMember(Value = "TenantStatistics")]
+        TenantStatistics,
 
         #endregion
 
@@ -411,6 +411,11 @@
         /// </summary>
         [EnumMember(Value = "GraphUpdate")]
         GraphUpdate,
+        /// <summary>
+        /// GraphStatistics
+        /// </summary>
+        [EnumMember(Value = "GraphStatistics")]
+        GraphStatistics,
 
         #endregion
 

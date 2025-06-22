@@ -113,6 +113,13 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<UserMaster> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            return _Repo.User.Enumerate(query);
+        }
+
+        /// <inheritdoc />
         public UserMaster Update(UserMaster user)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));

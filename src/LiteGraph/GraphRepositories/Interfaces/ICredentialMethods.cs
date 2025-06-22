@@ -68,6 +68,27 @@
         Credential ReadByBearerToken(string bearerToken);
 
         /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result containing a page of objects.</returns>
+        EnumerationResult<Credential> Enumerate(EnumerationQuery query);
+
+        /// <summary>
+        /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="userGuid">User GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="markerGuid">Marker GUID.</param>
+        /// <returns>Number of records.</returns>
+        int GetRecordCount(
+            Guid? tenantGuid,
+            Guid? userGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null);
+
+        /// <summary>
         /// Update a credential.
         /// </summary>
         /// <param name="cred">Credential.</param>

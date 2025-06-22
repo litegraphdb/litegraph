@@ -185,6 +185,53 @@
             return ret;
         }
 
+        internal static string GetRecordPage(
+            Guid? tenantGuid,
+            Guid? graphGuid,
+            int batchSize = 100,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            LabelMetadata marker = null)
+        {
+            string ret = "SELECT * FROM 'labels' WHERE guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (graphGuid != null)
+                ret += "AND graphguid = '" + graphGuid.Value.ToString() + "' ";
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker);
+            }
+
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + ";";
+            return ret;
+        }
+
+        internal static string GetRecordCount(
+            Guid? tenantGuid,
+            Guid? graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            LabelMetadata marker = null)
+        {
+            string ret = "SELECT COUNT(*) AS record_count FROM 'labels' WHERE guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (graphGuid != null)
+                ret += "AND graphguid = '" + graphGuid.Value.ToString() + "' ";
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker);
+            }
+
+            return ret;
+        }
+
         internal static string Update(LabelMetadata label)
         {
             return
@@ -266,6 +313,53 @@
                 "AND nodeguid IS NULL " +
                 "AND edgeguid IS NULL;";
             return ret;
+        }
+
+        private static string OrderByClause(EnumerationOrderEnum order)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                case EnumerationOrderEnum.LeastConnected:
+                case EnumerationOrderEnum.MostConnected:
+                case EnumerationOrderEnum.NameAscending:
+                case EnumerationOrderEnum.NameDescending:
+                case EnumerationOrderEnum.CreatedDescending:
+                    return "ORDER BY createdutc DESC ";
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "ORDER BY createdutc ASC ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "ORDER BY guid ASC ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "ORDER BY guid DESC ";
+                default:
+                    return "ORDER BY createdutc DESC ";
+            }
+        }
+
+        private static string MarkerWhereClause(EnumerationOrderEnum order, LabelMetadata marker)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                case EnumerationOrderEnum.LeastConnected:
+                case EnumerationOrderEnum.MostConnected:
+                case EnumerationOrderEnum.NameAscending:
+                case EnumerationOrderEnum.NameDescending:
+                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.CreatedDescending:
+                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "guid > '" + marker.GUID + "' ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "guid < '" + marker.GUID + "' ";
+                default:
+                    return "guid IS NOT NULL ";
+            }
         }
     }
 }

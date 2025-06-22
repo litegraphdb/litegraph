@@ -10,7 +10,10 @@ v4.0.x
 - Consistency in passing of query parameters such as skip to implementations and primitives
 - Consolidation of create, update, and delete actions within a single transaction
 - Batch APIs for creation and deletion of labels, tags, vectors, edges, and nodes
+- Enumeration APIs
+- Statistics APIs
 - Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
+- In-memory operation with controlled flushing to disk
 - Dependency updates and bug fixes
 - Minor Postman fixes
 

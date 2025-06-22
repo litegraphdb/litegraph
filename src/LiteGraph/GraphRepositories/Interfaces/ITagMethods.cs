@@ -135,6 +135,27 @@
         TagMetadata ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result containing a page of objects.</returns>
+        EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query);
+
+        /// <summary>
+        /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="markerGuid">Marker GUID.</param>
+        /// <returns>Number of records.</returns>
+        int GetRecordCount(
+            Guid? tenantGuid,
+            Guid? graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null);
+
+        /// <summary>
         /// Update a tag.
         /// </summary>
         /// <param name="tag">Tag.</param>

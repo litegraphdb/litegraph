@@ -1,15 +1,10 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
     using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for node methods.
@@ -153,6 +148,13 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <returns>Node.</returns>
         Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
+
+        /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<Node> Enumerate(EnumerationQuery query = null);
 
         /// <summary>
         /// Update node.

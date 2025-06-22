@@ -1,15 +1,10 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
     using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for graph methods.
@@ -85,6 +80,13 @@
         Graph ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<Graph> Enumerate(EnumerationQuery query = null);
+
+        /// <summary>
         /// Update a graph.
         /// </summary>
         /// <param name="graph">Graph.</param>
@@ -112,5 +114,20 @@
         /// <param name="guid">GUID.</param>
         /// <returns>True if exists.</returns>
         bool ExistsByGuid(Guid tenantGuid, Guid guid);
+
+        /// <summary>
+        /// Retrieve graph statistics.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guid">Graph GUID.</param>
+        /// <returns>Graph statistics.</returns>
+        GraphStatistics GetStatistics(Guid tenantGuid, Guid guid);
+
+        /// <summary>
+        /// Retrieve graph statistics.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <returns>Dictionary of graph statistics.</returns>
+        Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid);
     }
 }

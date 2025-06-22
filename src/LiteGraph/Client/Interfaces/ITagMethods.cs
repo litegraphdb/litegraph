@@ -1,15 +1,8 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
-    using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for tag methods.
@@ -133,6 +126,13 @@
         /// <param name="guid">GUID.</param>
         /// <returns>Tag.</returns>
         TagMetadata ReadByGuid(Guid tenantGuid, Guid guid);
+
+        /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query = null);
 
         /// <summary>
         /// Update a tag.

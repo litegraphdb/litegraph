@@ -311,6 +311,117 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<Edge> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) throw new ArgumentNullException(nameof(query));
+
+            Edge marker = null;
+
+            if (query.TenantGUID != null && query.ContinuationToken != null && query.GraphGUID != null)
+            {
+                marker = ReadByGuid(query.TenantGUID.Value, query.GraphGUID.Value, query.ContinuationToken.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
+            }
+
+            EnumerationResult<Edge> ret = new EnumerationResult<Edge>
+            {
+                MaxResults = query.MaxResults
+            };
+
+            ret.Timestamp.Start = DateTime.UtcNow;
+            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Labels, query.Tags, query.Expr, query.Ordering, query.ContinuationToken);
+
+            if (ret.TotalRecords < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+            else
+            {
+                DataTable result = _Repo.ExecuteQuery(EdgeQueries.GetRecordPage(
+                    query.TenantGUID,
+                    query.GraphGUID,
+                    query.Labels,
+                    query.Tags,
+                    query.Expr,
+                    query.MaxResults,
+                    query.Ordering,
+                    marker));
+
+                if (result == null || result.Rows.Count < 1)
+                {
+                    ret.ContinuationToken = null;
+                    ret.EndOfResults = true;
+                    ret.RecordsRemaining = 0;
+                    ret.Timestamp.End = DateTime.UtcNow;
+                    return ret;
+                }
+                else
+                {
+                    ret.Objects = Converters.EdgesFromDataTable(result);
+
+                    Edge lastItem = ret.Objects.Last();
+
+                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Labels, query.Tags, query.Expr, query.Ordering, lastItem.GUID);
+
+                    if (ret.RecordsRemaining > 0)
+                    {
+                        ret.ContinuationToken = lastItem.GUID;
+                        ret.EndOfResults = false;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                    else
+                    {
+                        ret.ContinuationToken = null;
+                        ret.EndOfResults = true;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public int GetRecordCount(
+            Guid? tenantGuid,
+            Guid? graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr filter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null)
+        {
+            Edge marker = null;
+            if (tenantGuid != null && graphGuid != null && markerGuid != null)
+            {
+                marker = ReadByGuid(tenantGuid.Value, graphGuid.Value, markerGuid.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
+            }
+
+            DataTable result = _Repo.ExecuteQuery(EdgeQueries.GetRecordCount(
+                tenantGuid,
+                graphGuid,
+                labels,
+                tags,
+                filter,
+                order,
+                marker));
+
+            if (result != null && result.Rows != null && result.Rows.Count > 0)
+            {
+                if (result.Columns.Contains("record_count"))
+                {
+                    return Convert.ToInt32(result.Rows[0]["record_count"]);
+                }
+            }
+            return 0;
+        }
+
+        /// <inheritdoc />
         public Edge Update(Edge edge)
         {
             if (edge == null) throw new ArgumentNullException(nameof(edge));

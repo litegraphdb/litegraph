@@ -307,6 +307,42 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<Node> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            EnumerationResult<Node> er = _Repo.Node.Enumerate(query);
+
+            if (er != null
+                && er.Objects != null
+                && er.Objects.Count > 0)
+            {
+                if (query.IncludeSubordinates)
+                {
+                    foreach (Node node in er.Objects)
+                    {
+                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList();
+                        if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
+
+                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList();
+                        if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                        node.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+                    }
+                }
+
+                if (!query.IncludeData)
+                {
+                    foreach (Node node in er.Objects)
+                    {
+                        node.Data = null;
+                    }
+                }
+            }
+
+            return er;
+        }
+
+        /// <inheritdoc />
         public Node Update(Node node)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));

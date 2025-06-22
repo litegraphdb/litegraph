@@ -7,6 +7,7 @@
     using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
+    using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -101,6 +102,13 @@
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credential with token " + bearerToken);
             return _Repo.Credential.ReadByBearerToken(bearerToken);
+        }
+
+        /// <inheritdoc />
+        public EnumerationResult<Credential> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            return _Repo.Credential.Enumerate(query);
         }
 
         /// <inheritdoc />

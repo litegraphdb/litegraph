@@ -79,6 +79,13 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            return _Repo.Tenant.Enumerate(query);
+        }
+
+        /// <inheritdoc />
         public TenantMetadata Update(TenantMetadata tenant)
         {
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
@@ -129,6 +136,18 @@
         public bool ExistsByGuid(Guid guid)
         {
             return _Repo.Tenant.ExistsByGuid(guid);
+        }
+
+        /// <inheritdoc />
+        public TenantStatistics GetStatistics(Guid tenantGuid)
+        {
+            return _Repo.Tenant.GetStatistics(tenantGuid);
+        }
+
+        /// <inheritdoc />
+        public Dictionary<Guid, TenantStatistics> GetStatistics()
+        {
+            return _Repo.Tenant.GetStatistics();
         }
 
         #endregion
