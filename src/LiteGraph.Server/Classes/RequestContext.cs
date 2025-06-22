@@ -479,40 +479,43 @@
 
         private void SetRequestValues()
         {
-            if (_Url.UrlParameters.Count > 0)
+            if (_Url != null)
             {
-                if (_Url.UrlParameters.AllKeys.Contains("backupFilename")) BackupFilename = _Url.GetParameter("backupFilename");
-                if (_Url.UrlParameters.AllKeys.Contains("tenantGuid")) TenantGUID = Guid.Parse(_Url.GetParameter("tenantGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("userGuid")) UserGUID = Guid.Parse(_Url.GetParameter("userGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("credentialGuid")) CredentialGUID = Guid.Parse(_Url.GetParameter("credentialGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("labelGuid")) LabelGUID = Guid.Parse(_Url.GetParameter("labelGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("tagGuid")) TagGUID = Guid.Parse(_Url.GetParameter("tagGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("vectorGuid")) VectorGUID = Guid.Parse(_Url.GetParameter("vectorGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("graphGuid")) GraphGUID = Guid.Parse(_Url.GetParameter("graphGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("nodeGuid")) NodeGUID = Guid.Parse(_Url.GetParameter("nodeGuid"));
-                if (_Url.UrlParameters.AllKeys.Contains("edgeGuid")) EdgeGUID = Guid.Parse(_Url.GetParameter("edgeGuid"));
-            }
-
-            if (_Url.QueryExists(Constants.SkipQuerystring))
-                if (Int32.TryParse(_Url.GetQueryValue(Constants.SkipQuerystring), out int skip)) Skip = skip;
-
-            if (_Url.QueryExists(Constants.MaxKeysQuerystring))
-                if (Int32.TryParse(_Url.GetQueryValue(Constants.MaxKeysQuerystring), out int maxKeys)) MaxKeys = maxKeys;
-
-            if (_Url.QueryExists(Constants.EnumerationOrderQuerystring))
-            {
-                if (Enum.TryParse<EnumerationOrderEnum>(_Url.GetQueryValue(Constants.EnumerationOrderQuerystring), out EnumerationOrderEnum val))
+                if (_Url.UrlParameters != null && _Url.UrlParameters.Count > 0)
                 {
-                    Order = val;
+                    if (_Url.UrlParameters.AllKeys.Contains("backupFilename")) BackupFilename = _Url.GetParameter("backupFilename");
+                    if (_Url.UrlParameters.AllKeys.Contains("tenantGuid")) TenantGUID = Guid.Parse(_Url.GetParameter("tenantGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("userGuid")) UserGUID = Guid.Parse(_Url.GetParameter("userGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("credentialGuid")) CredentialGUID = Guid.Parse(_Url.GetParameter("credentialGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("labelGuid")) LabelGUID = Guid.Parse(_Url.GetParameter("labelGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("tagGuid")) TagGUID = Guid.Parse(_Url.GetParameter("tagGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("vectorGuid")) VectorGUID = Guid.Parse(_Url.GetParameter("vectorGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("graphGuid")) GraphGUID = Guid.Parse(_Url.GetParameter("graphGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("nodeGuid")) NodeGUID = Guid.Parse(_Url.GetParameter("nodeGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("edgeGuid")) EdgeGUID = Guid.Parse(_Url.GetParameter("edgeGuid"));
                 }
-            }
 
-            if (_Url.QueryExists(Constants.ContinuationTokenQuerystring)) ContinuationToken = _Url.GetQueryValue(Constants.ContinuationTokenQuerystring);
-            if (_Url.QueryExists(Constants.ForceQuerystring)) Force = true;
-            if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;
-            if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
-            if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
-            if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
+                if (_Url.QueryExists(Constants.SkipQuerystring))
+                    if (Int32.TryParse(_Url.GetQueryValue(Constants.SkipQuerystring), out int skip)) Skip = skip;
+
+                if (_Url.QueryExists(Constants.MaxKeysQuerystring))
+                    if (Int32.TryParse(_Url.GetQueryValue(Constants.MaxKeysQuerystring), out int maxKeys)) MaxKeys = maxKeys;
+
+                if (_Url.QueryExists(Constants.EnumerationOrderQuerystring))
+                {
+                    if (Enum.TryParse<EnumerationOrderEnum>(_Url.GetQueryValue(Constants.EnumerationOrderQuerystring), out EnumerationOrderEnum val))
+                    {
+                        Order = val;
+                    }
+                }
+
+                if (_Url.QueryExists(Constants.ContinuationTokenQuerystring)) ContinuationToken = _Url.GetQueryValue(Constants.ContinuationTokenQuerystring);
+                if (_Url.QueryExists(Constants.ForceQuerystring)) Force = true;
+                if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;
+                if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
+                if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
+                if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
+            }
         }
 
         #endregion
