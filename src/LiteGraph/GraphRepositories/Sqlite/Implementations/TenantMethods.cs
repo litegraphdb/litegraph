@@ -98,10 +98,130 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) throw new ArgumentNullException(nameof(query));
+
+            TenantMetadata marker = null;
+
+            if (query.ContinuationToken != null)
+            {
+                marker = ReadByGuid(query.ContinuationToken.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
+            }
+
+            EnumerationResult<TenantMetadata> ret = new EnumerationResult<TenantMetadata>
+            {
+                MaxResults = query.MaxResults
+            };
+
+            ret.Timestamp.Start = DateTime.UtcNow;
+
+            ret.TotalRecords = GetRecordCount(query.Ordering, query.ContinuationToken);
+
+            if (ret.TotalRecords < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+            else
+            {
+                Console.WriteLine("Yay");
+
+                DataTable result = _Repo.ExecuteQuery(TenantQueries.GetRecordPage(
+                    query.MaxResults,
+                    query.Ordering,
+                    marker));
+
+                if (result == null || result.Rows.Count < 1)
+                {
+                    ret.ContinuationToken = null;
+                    ret.EndOfResults = true;
+                    ret.RecordsRemaining = 0;
+                    ret.Timestamp.End = DateTime.UtcNow;
+                    return ret;
+                }
+                else
+                {
+                    ret.Objects = Converters.TenantsFromDataTable(result);
+
+                    TenantMetadata lastItem = ret.Objects.Last();
+
+                    ret.RecordsRemaining = GetRecordCount(query.Ordering, lastItem.GUID);
+
+                    if (ret.RecordsRemaining > 0)
+                    {
+                        ret.ContinuationToken = lastItem.GUID;
+                        ret.EndOfResults = false;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                    else
+                    {
+                        ret.ContinuationToken = null;
+                        ret.EndOfResults = true;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public int GetRecordCount(EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, Guid? markerGuid = null)
+        {
+            TenantMetadata marker = null;
+            if (markerGuid != null)
+            {
+                marker = ReadByGuid(markerGuid.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
+            }
+
+            DataTable result = _Repo.ExecuteQuery(TenantQueries.GetRecordCount(
+                order,
+                marker));
+
+            if (result != null && result.Rows != null && result.Rows.Count > 0)
+            {
+                if (result.Columns.Contains("record_count"))
+                {
+                    return Convert.ToInt32(result.Rows[0]["record_count"]);
+                }
+            }
+            return 0;
+        }
+
+        /// <inheritdoc />
         public TenantMetadata Update(TenantMetadata tenant)
         {
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
             return Converters.TenantFromDataRow(_Repo.ExecuteQuery(TenantQueries.Update(tenant), true).Rows[0]);
+        }
+
+        /// <inheritdoc />
+        public Dictionary<Guid, TenantStatistics> GetStatistics()
+        {
+            Dictionary<Guid, TenantStatistics> ret = new Dictionary<Guid, TenantStatistics>();
+            DataTable table = _Repo.ExecuteQuery(TenantQueries.GetStatistics(null), true);
+            if (table != null && table.Rows.Count > 0)
+            {
+                foreach (DataRow row in table.Rows)
+                {
+                    ret.Add(Guid.Parse(row["guid"].ToString()), Converters.TenantStatisticsFromDataRow(row));
+                }
+            }
+            return ret;
+        }
+
+        /// <inheritdoc />
+        public TenantStatistics GetStatistics(Guid tenantGuid)
+        {
+            DataTable table = _Repo.ExecuteQuery(TenantQueries.GetStatistics(tenantGuid), true);
+            if (table != null && table.Rows.Count > 0) return Converters.TenantStatisticsFromDataRow(table.Rows[0]);
+            return null;
         }
 
         #endregion

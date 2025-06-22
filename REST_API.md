@@ -85,6 +85,104 @@ Response:
 }
 ```
 
+### Enumeration Query
+```
+{
+    "Ordering": "CreatedDescending",
+    "IncludeData": true,
+    "IncludeSubordinates": true,
+    "MaxResults": 5,
+    "ContinuationToken": null,
+    "Labels": [ ],
+    "Tags": { },
+    "Expr": { }
+}
+```
+
+### Enumeration Result
+```
+{
+    "Success": true,
+    "Timestamp": {
+        "Start": "2025-06-22T01:17:42.984885Z",
+        "End": "2025-06-22T01:17:43.066948Z",
+        "TotalMs": 82.06,
+        "Messages": {}
+    },
+    "MaxResults": 5,
+    "ContinuationToken": "ca10f6ca-f4c2-4040-adfe-9de3a81b9f55",
+    "EndOfResults": false,
+    "TotalRecords": 17,
+    "RecordsRemaining": 12,
+    "Objects": [
+        {
+            "TenantGUID": "00000000-0000-0000-0000-000000000000",
+            "GUID": "ebefc55b-6f74-4997-8c87-e95e40cb83d3",
+            "GraphGUID": "00000000-0000-0000-0000-000000000000",
+            "Name": "Active Directory",
+            "CreatedUtc": "2025-06-21T05:23:14.100128Z",
+            "LastUpdateUtc": "2025-06-21T05:23:14.100128Z",
+            "Labels": [],
+            "Tags": {},
+            "Data": {
+                "Name": "Active Directory"
+            },
+            "Vectors": []
+        }, ...
+    ]
+}
+```
+
+### Tenant Statistics (All)
+```
+{
+    "00000000-0000-0000-0000-000000000000": {
+        "Graphs": 1,
+        "Nodes": 17,
+        "Edges": 22,
+        "Labels": 0,
+        "Tags": 0,
+        "Vectors": 0
+    }, ...
+}
+```
+
+### Tenant Statistics (Individual)
+```
+{
+    "Graphs": 1,
+    "Nodes": 17,
+    "Edges": 22,
+    "Labels": 0,
+    "Tags": 0,
+    "Vectors": 0
+}
+```
+
+### Graph Statistics (All)
+```
+{
+    "00000000-0000-0000-0000-000000000000": {
+        "Nodes": 17,
+        "Edges": 22,
+        "Labels": 0,
+        "Tags": 0,
+        "Vectors": 0
+    }
+}
+```
+
+### Graph Statistics (Individual)
+```
+{
+    "Nodes": 17,
+    "Edges": 22,
+    "Labels": 0,
+    "Tags": 0,
+    "Vectors": 0
+}
+```
+
 ### Tenant
 ```
 {

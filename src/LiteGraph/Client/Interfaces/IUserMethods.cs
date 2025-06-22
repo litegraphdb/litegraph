@@ -1,15 +1,8 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
-    using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for user methods.
@@ -72,6 +65,13 @@
         /// <param name="email">Email.</param>
         /// <returns>User.</returns>
         UserMaster ReadByEmail(Guid tenantGuid, string email);
+
+        /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<UserMaster> Enumerate(EnumerationQuery query = null);
 
         /// <summary>
         /// Update a user.

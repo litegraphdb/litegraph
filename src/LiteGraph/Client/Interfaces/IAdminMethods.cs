@@ -1,15 +1,7 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
-    using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
-    using ExpressionTree;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for admin methods.
@@ -27,14 +19,21 @@
         /// List backups request.
         /// </summary>
         /// <returns>Enumerable of backup files.</returns>
-        IEnumerable<BackupFile> ListBackups();
+        IEnumerable<BackupFile> BackupReadAll();
 
         /// <summary>
         /// Read the contents of a backup file.
         /// </summary>
         /// <param name="backupFilename">Backup filename.</param>
         /// <returns>File contents.</returns>
-        BackupFile ReadBackup(string backupFilename);
+        BackupFile BackupRead(string backupFilename);
+
+        /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result.</returns>
+        EnumerationResult<BackupFile> BackupEnumerate(EnumerationQuery query = null);
 
         /// <summary>
         /// Check if a backup file exists.

@@ -335,6 +335,106 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         }
 
         /// <inheritdoc />
+        public EnumerationResult<LabelMetadata> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) throw new ArgumentNullException(nameof(query));
+
+            LabelMetadata marker = null;
+
+            if (query.TenantGUID != null && query.ContinuationToken != null && query.GraphGUID != null)
+            {
+                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
+            }
+
+            EnumerationResult<LabelMetadata> ret = new EnumerationResult<LabelMetadata>
+            {
+                MaxResults = query.MaxResults
+            };
+
+            ret.Timestamp.Start = DateTime.UtcNow;
+            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, query.ContinuationToken);
+
+            if (ret.TotalRecords < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+            else
+            {
+                DataTable result = _Repo.ExecuteQuery(LabelQueries.GetRecordPage(
+                    query.TenantGUID,
+                    query.GraphGUID,
+                    query.MaxResults,
+                    query.Ordering,
+                    marker));
+
+                if (result == null || result.Rows.Count < 1)
+                {
+                    ret.ContinuationToken = null;
+                    ret.EndOfResults = true;
+                    ret.RecordsRemaining = 0;
+                    ret.Timestamp.End = DateTime.UtcNow;
+                    return ret;
+                }
+                else
+                {
+                    ret.Objects = Converters.LabelsFromDataTable(result);
+                    LabelMetadata lastItem = ret.Objects.Last();
+
+                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, lastItem.GUID);
+                    if (ret.RecordsRemaining > 0)
+                    {
+                        ret.ContinuationToken = lastItem.GUID;
+                        ret.EndOfResults = false;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                    else
+                    {
+                        ret.ContinuationToken = null;
+                        ret.EndOfResults = true;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public int GetRecordCount(
+            Guid? tenantGuid,
+            Guid? graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null)
+        {
+            LabelMetadata marker = null;
+            if (tenantGuid != null && graphGuid != null && markerGuid != null)
+            {
+                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
+            }
+
+            DataTable result = _Repo.ExecuteQuery(LabelQueries.GetRecordCount(
+                tenantGuid,
+                graphGuid,
+                order,
+                marker));
+
+            if (result != null && result.Rows != null && result.Rows.Count > 0)
+            {
+                if (result.Columns.Contains("record_count"))
+                {
+                    return Convert.ToInt32(result.Rows[0]["record_count"]);
+                }
+            }
+            return 0;
+        }
+
+        /// <inheritdoc />
         public LabelMetadata Update(LabelMetadata label)
         {
             if (label == null) throw new ArgumentNullException(nameof(label));

@@ -112,7 +112,6 @@
         /// <returns>Edge.</returns>
         Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
 
-
         /// <summary>
         /// Get edges connected to or initiated from a given node.
         /// </summary>
@@ -214,6 +213,36 @@
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0);
+
+        /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result containing a page of objects.</returns>
+        EnumerationResult<Edge> Enumerate(EnumerationQuery query);
+
+        /// <summary>
+        /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="labels">Labels.</param>
+        /// <param name="tags">Tags upon which to filter.</param>
+        /// <param name="filter">
+        /// Edge filter expression for Data JSON body.
+        /// Expression left terms must follow the form of Sqlite JSON paths.
+        /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="markerGuid">Marker GUID.</param>
+        /// <returns>Number of records.</returns>
+        int GetRecordCount(
+            Guid? tenantGuid,
+            Guid? graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr filter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null);
 
         /// <summary>
         /// Update edge.

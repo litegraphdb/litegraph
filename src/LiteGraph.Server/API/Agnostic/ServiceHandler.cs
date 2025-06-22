@@ -58,7 +58,7 @@
 
         #region Admin-Routes
 
-        internal async Task<ResponseContext> BackupRequest(RequestContext req)
+        internal async Task<ResponseContext> BackupExecute(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.BackupRequest == null) throw new ArgumentNullException(nameof(req.BackupRequest));
@@ -68,17 +68,17 @@
             return new ResponseContext(req);
         }
 
-        internal async Task<ResponseContext> BackupReadRequest(RequestContext req)
+        internal async Task<ResponseContext> BackupRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            BackupFile data = _LiteGraph.Admin.ReadBackup(req.BackupFilename);
+            BackupFile data = _LiteGraph.Admin.BackupRead(req.BackupFilename);
             return new ResponseContext(req, data);
         }
 
-        internal async Task<ResponseContext> BackupExistsRequest(RequestContext req)
+        internal async Task<ResponseContext> BackupExists(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
@@ -89,17 +89,26 @@
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "The specified backup file was not found.");
         }
 
-        internal async Task<ResponseContext> BackupEnumerateRequest(RequestContext req)
+        internal async Task<ResponseContext> BackupReadAll(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            IEnumerable<BackupFile> backups = _LiteGraph.Admin.ListBackups();
+            IEnumerable<BackupFile> backups = _LiteGraph.Admin.BackupReadAll();
             List<BackupFile> files = backups != null ? backups.ToList() : new List<BackupFile>();
             return new ResponseContext(req, files);
         }
 
-        internal async Task<ResponseContext> BackupDeleteRequest(RequestContext req)
+        internal async Task<ResponseContext> BackupEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            EnumerationResult<BackupFile> er = _LiteGraph.Admin.BackupEnumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
+        }
+
+        internal async Task<ResponseContext> BackupDelete(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
@@ -109,7 +118,7 @@
             return new ResponseContext(req);
         }
 
-        internal async Task<ResponseContext> FlushRequest(RequestContext req)
+        internal async Task<ResponseContext> FlushDatabase(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
@@ -140,6 +149,15 @@
             return new ResponseContext(req, objs);
         }
 
+        internal async Task<ResponseContext> TenantEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            EnumerationResult<TenantMetadata> er = _LiteGraph.Tenant.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
+        }
+
         internal async Task<ResponseContext> TenantRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
@@ -147,6 +165,16 @@
             TenantMetadata obj = _LiteGraph.Tenant.ReadByGuid(req.TenantGUID.Value);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+        }
+
+        internal async Task<ResponseContext> TenantStatistics(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin && req.TenantGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            object obj = null;
+            if (req.TenantGUID == null) obj = _LiteGraph.Tenant.GetStatistics();
+            else obj = _LiteGraph.Tenant.GetStatistics(req.TenantGUID.Value);
+            return new ResponseContext(req, obj);
         }
 
         internal async Task<ResponseContext> TenantExists(RequestContext req)
@@ -197,6 +225,15 @@
             List<UserMaster> objs = _LiteGraph.User.ReadMany(req.TenantGUID.Value, null, req.Order, req.Skip).ToList();
             if (objs == null) objs = new List<UserMaster>();
             return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> UserEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            EnumerationResult<UserMaster> er = _LiteGraph.User.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> UserRead(RequestContext req)
@@ -266,6 +303,15 @@
             return new ResponseContext(req, objs);
         }
 
+        internal async Task<ResponseContext> CredentialEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            EnumerationResult<Credential> er = _LiteGraph.Credential.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
+        }
+
         internal async Task<ResponseContext> CredentialRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
@@ -322,6 +368,16 @@
             foreach (LabelMetadata label in req.Labels) label.TenantGUID = req.TenantGUID.Value;
             List<LabelMetadata> obj = _LiteGraph.Label.CreateMany(req.TenantGUID.Value, req.Labels);
             return new ResponseContext(req, obj);
+        }
+
+        internal async Task<ResponseContext> LabelEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            req.EnumerationQuery.TenantGUID = req.TenantGUID;
+            req.EnumerationQuery.GraphGUID = req.GraphGUID;
+            EnumerationResult<LabelMetadata> er = _LiteGraph.Label.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> LabelReadMany(RequestContext req)
@@ -393,6 +449,16 @@
             return new ResponseContext(req, obj);
         }
 
+        internal async Task<ResponseContext> TagEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            req.EnumerationQuery.TenantGUID = req.TenantGUID;
+            req.EnumerationQuery.GraphGUID = req.GraphGUID;
+            EnumerationResult<TagMetadata> er = _LiteGraph.Tag.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
+        }
+
         internal async Task<ResponseContext> TagReadMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
@@ -459,6 +525,16 @@
             if (req.Vectors == null || req.Vectors.Count < 1) throw new ArgumentNullException(nameof(req.Vectors));
             List<VectorMetadata> obj = _LiteGraph.Vector.CreateMany(req.TenantGUID.Value, req.Vectors);
             return new ResponseContext(req, obj);
+        }
+
+        internal async Task<ResponseContext> VectorEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            req.EnumerationQuery.TenantGUID = req.TenantGUID;
+            req.EnumerationQuery.GraphGUID = req.GraphGUID;
+            EnumerationResult<VectorMetadata> er = _LiteGraph.Vector.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> VectorReadMany(RequestContext req)
@@ -572,6 +648,15 @@
             return new ResponseContext(req, graphs);
         }
 
+        internal async Task<ResponseContext> GraphEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            req.EnumerationQuery.TenantGUID = req.TenantGUID;
+            EnumerationResult<Graph> er = _LiteGraph.Graph.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
+        }
+
         internal async Task<ResponseContext> GraphExistence(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
@@ -616,6 +701,15 @@
             Graph graph = _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value);
             if (graph == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             else return new ResponseContext(req, graph);
+        }
+
+        internal async Task<ResponseContext> GraphStatistics(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            object obj = null;
+            if (req.GraphGUID == null) obj = _LiteGraph.Graph.GetStatistics(req.TenantGUID.Value);
+            else obj = _LiteGraph.Graph.GetStatistics(req.TenantGUID.Value, req.GraphGUID.Value);
+            return new ResponseContext(req, obj);
         }
 
         internal async Task<ResponseContext> GraphExists(RequestContext req)
@@ -719,6 +813,17 @@
             List<Node> nodes = _LiteGraph.Node.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, req.Order, req.Skip).ToList();
             if (nodes == null) nodes = new List<Node>();
             return new ResponseContext(req, nodes);
+        }
+
+        internal async Task<ResponseContext> NodeEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            req.EnumerationQuery.TenantGUID = req.TenantGUID;
+            req.EnumerationQuery.GraphGUID = req.GraphGUID;
+            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            EnumerationResult<Node> er = _LiteGraph.Node.Enumerate(req.EnumerationQuery);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> NodeSearch(RequestContext req)
@@ -855,6 +960,17 @@
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             req.Edges = _LiteGraph.Edge.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, req.Order, req.Skip).ToList();
             if (req.Edges == null) req.Edges = new List<Edge>();
+            return new ResponseContext(req, req.Edges);
+        }
+
+        internal async Task<ResponseContext> EdgeEnumerate(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            req.EnumerationQuery.TenantGUID = req.TenantGUID;
+            req.EnumerationQuery.GraphGUID = req.GraphGUID;
+            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            EnumerationResult<Edge> er = _LiteGraph.Edge.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, req.Edges);
         }
 

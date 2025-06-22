@@ -57,10 +57,10 @@
         [EnumMember(Value = "BackupRead")]
         BackupRead,
         /// <summary>
-        /// BackupEnumerate.
+        /// BackupReadAll.
         /// </summary>
-        [EnumMember(Value = "BackupEnumerate")]
-        BackupEnumerate,
+        [EnumMember(Value = "BackupReadAll")]
+        BackupReadAll,
         /// <summary>
         /// BackupDelete.
         /// </summary>
@@ -92,15 +92,25 @@
         [EnumMember(Value = "TenantRead")]
         TenantRead,
         /// <summary>
-        /// TenantReadMany
+        /// TenantReadAll
         /// </summary>
-        [EnumMember(Value = "TenantReadMany")]
-        TenantReadMany,
+        [EnumMember(Value = "TenantReadAll")]
+        TenantReadAll,
+        /// <summary>
+        /// TenantEnumerate
+        /// </summary>
+        [EnumMember(Value = "TenantEnumerate")]
+        TenantEnumerate,
         /// <summary>
         /// TenantUpdate
         /// </summary>
         [EnumMember(Value = "TenantUpdate")]
         TenantUpdate,
+        /// <summary>
+        /// TenantStatistics
+        /// </summary>
+        [EnumMember(Value = "TenantStatistics")]
+        TenantStatistics,
 
         #endregion
 
@@ -127,10 +137,15 @@
         [EnumMember(Value = "UserRead")]
         UserRead,
         /// <summary>
-        /// UserReadMany
+        /// UserReadAll
         /// </summary>
-        [EnumMember(Value = "UserReadMany")]
-        UserReadMany,
+        [EnumMember(Value = "UserReadAll")]
+        UserReadAll,
+        /// <summary>
+        /// UserEnumerate
+        /// </summary>
+        [EnumMember(Value = "UserEnumerate")]
+        UserEnumerate,
         /// <summary>
         /// UserReadTenants
         /// </summary>
@@ -167,10 +182,15 @@
         [EnumMember(Value = "CredentialRead")]
         CredentialRead,
         /// <summary>
-        /// CredentialReadMany
+        /// CredentialReadAll
         /// </summary>
-        [EnumMember(Value = "CredentialReadMany")]
-        CredentialReadMany,
+        [EnumMember(Value = "CredentialReadAll")]
+        CredentialReadAll,
+        /// <summary>
+        /// CredentialEnumerate
+        /// </summary>
+        [EnumMember(Value = "CredentialEnumerate")]
+        CredentialEnumerate,
         /// <summary>
         /// CredentialUpdate
         /// </summary>
@@ -212,10 +232,15 @@
         [EnumMember(Value = "LabelRead")]
         LabelRead,
         /// <summary>
-        /// LabelReadMany
+        /// LabelReadAll
         /// </summary>
-        [EnumMember(Value = "LabelReadMany")]
-        LabelReadMany,
+        [EnumMember(Value = "LabelReadAll")]
+        LabelReadAll,
+        /// <summary>
+        /// LabelEnumerate
+        /// </summary>
+        [EnumMember(Value = "LabelEnumerate")]
+        LabelEnumerate,
         /// <summary>
         /// LabelUpdate
         /// </summary>
@@ -257,10 +282,15 @@
         [EnumMember(Value = "VectorRead")]
         VectorRead,
         /// <summary>
-        /// VectorReadMany
+        /// VectorReadAll
         /// </summary>
-        [EnumMember(Value = "VectorReadMany")]
-        VectorReadMany,
+        [EnumMember(Value = "VectorReadAll")]
+        VectorReadAll,
+        /// <summary>
+        /// VectorEnumerate
+        /// </summary>
+        [EnumMember(Value = "VectorEnumerate")]
+        VectorEnumerate,
         /// <summary>
         /// VectorSearch
         /// </summary>
@@ -307,10 +337,15 @@
         [EnumMember(Value = "TagRead")]
         TagRead,
         /// <summary>
-        /// TagReadMany
+        /// TagReadAll
         /// </summary>
-        [EnumMember(Value = "TagReadMany")]
-        TagReadMany,
+        [EnumMember(Value = "TagReadAll")]
+        TagReadAll,
+        /// <summary>
+        /// TagEnumerate
+        /// </summary>
+        [EnumMember(Value = "TagEnumerate")]
+        TagEnumerate,
         /// <summary>
         /// TagUpdate
         /// </summary>
@@ -352,10 +387,15 @@
         [EnumMember(Value = "GraphRead")]
         GraphRead,
         /// <summary>
-        /// GraphReadMany
+        /// GraphReadAll
         /// </summary>
-        [EnumMember(Value = "GraphReadMany")]
-        GraphReadMany,
+        [EnumMember(Value = "GraphReadAll")]
+        GraphReadAll,
+        /// <summary>
+        /// GraphEnumerate
+        /// </summary>
+        [EnumMember(Value = "GraphEnumerate")]
+        GraphEnumerate,
         /// <summary>
         /// GraphReadFirst
         /// </summary>
@@ -371,6 +411,11 @@
         /// </summary>
         [EnumMember(Value = "GraphUpdate")]
         GraphUpdate,
+        /// <summary>
+        /// GraphStatistics
+        /// </summary>
+        [EnumMember(Value = "GraphStatistics")]
+        GraphStatistics,
 
         #endregion
 
@@ -412,10 +457,15 @@
         [EnumMember(Value = "NodeRead")]
         NodeRead,
         /// <summary>
-        /// NodeReadMany
+        /// NodeReadAll
         /// </summary>
-        [EnumMember(Value = "NodeReadMany")]
-        NodeReadMany,
+        [EnumMember(Value = "NodeReadAll")]
+        NodeReadAll,
+        /// <summary>
+        /// NodeEnumerate
+        /// </summary>
+        [EnumMember(Value = "NodeEnumerate")]
+        NodeEnumerate,
         /// <summary>
         /// NodeReadFirst
         /// </summary>
@@ -477,10 +527,15 @@
         [EnumMember(Value = "EdgeRead")]
         EdgeRead,
         /// <summary>
-        /// EdgeReadMany
+        /// EdgeReadAll
         /// </summary>
-        [EnumMember(Value = "EdgeReadMany")]
-        EdgeReadFirst,
+        [EnumMember(Value = "EdgeReadAll")]
+        EdgeReadAll,
+        /// <summary>
+        /// EdgeEnumerate
+        /// </summary>
+        [EnumMember(Value = "EdgeEnumerate")]
+        EdgeEnumerate,
         /// <summary>
         /// EdgeReadFirst
         /// </summary>

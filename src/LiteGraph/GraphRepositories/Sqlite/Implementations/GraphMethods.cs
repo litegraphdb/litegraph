@@ -154,6 +154,114 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<Graph> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) throw new ArgumentNullException(nameof(query));
+
+            Graph marker = null;
+
+            if (query.TenantGUID != null && query.ContinuationToken != null)
+            {
+                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
+            }
+
+            EnumerationResult<Graph> ret = new EnumerationResult<Graph>
+            {
+                MaxResults = query.MaxResults
+            };
+
+            ret.Timestamp.Start = DateTime.UtcNow;
+            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.Labels, query.Tags, query.Expr, query.Ordering, query.ContinuationToken);
+
+            if (ret.TotalRecords < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+            else
+            {
+                DataTable result = _Repo.ExecuteQuery(GraphQueries.GetRecordPage(
+                    query.TenantGUID,
+                    query.Labels,
+                    query.Tags,
+                    query.Expr,
+                    query.MaxResults,
+                    query.Ordering,
+                    marker));
+
+                if (result == null || result.Rows.Count < 1)
+                {
+                    ret.ContinuationToken = null;
+                    ret.EndOfResults = true;
+                    ret.RecordsRemaining = 0;
+                    ret.Timestamp.End = DateTime.UtcNow;
+                    return ret;
+                }
+                else
+                {
+                    ret.Objects = Converters.GraphsFromDataTable(result);
+
+                    Graph lastItem = ret.Objects.Last();
+
+                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.Labels, query.Tags, query.Expr, query.Ordering, lastItem.GUID);
+
+                    if (ret.RecordsRemaining > 0)
+                    {
+                        ret.ContinuationToken = lastItem.GUID;
+                        ret.EndOfResults = false;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                    else
+                    {
+                        ret.ContinuationToken = null;
+                        ret.EndOfResults = true;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public int GetRecordCount(
+            Guid? tenantGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr filter = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null)
+        {
+            Graph marker = null;
+            if (tenantGuid != null && markerGuid != null)
+            {
+                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
+            }
+
+            DataTable result = _Repo.ExecuteQuery(GraphQueries.GetRecordCount(
+                tenantGuid,
+                labels,
+                tags,
+                filter,
+                order,
+                marker));
+
+            if (result != null && result.Rows != null && result.Rows.Count > 0)
+            {
+                if (result.Columns.Contains("record_count"))
+                {
+                    return Convert.ToInt32(result.Rows[0]["record_count"]);
+                }
+            }
+            return 0;
+        }
+
+        /// <inheritdoc />
         public Graph Update(Graph graph)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
@@ -177,6 +285,40 @@
         public bool ExistsByGuid(Guid tenantGuid, Guid graphGuid)
         {
             return (ReadByGuid(tenantGuid, graphGuid) != null);
+        }
+
+        /// <inheritdoc />
+        public Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid)
+        {
+            Dictionary<Guid, GraphStatistics> ret = new Dictionary<Guid, GraphStatistics>();
+            DataTable table = _Repo.ExecuteQuery(GraphQueries.GetStatistics(tenantGuid, null), true);
+            if (table != null && table.Rows.Count > 0)
+            {
+                foreach (DataRow row in table.Rows)
+                {
+                    Guid graphGuid = Guid.Parse(row["guid"].ToString());
+
+                    GraphStatistics stats = new GraphStatistics
+                    {
+                        Nodes = Convert.ToInt32(row["nodes"]),
+                        Edges = Convert.ToInt32(row["edges"]),
+                        Labels = Convert.ToInt32(row["labels"]),
+                        Tags = Convert.ToInt32(row["tags"]),
+                        Vectors = Convert.ToInt32(row["vectors"])
+                    };
+
+                    ret[graphGuid] = stats;
+                }
+            }
+            return ret;
+        }
+
+        /// <inheritdoc />
+        public GraphStatistics GetStatistics(Guid tenantGuid, Guid guid)
+        {
+            DataTable table = _Repo.ExecuteQuery(GraphQueries.GetStatistics(tenantGuid, guid), true);
+            if (table != null && table.Rows.Count > 0) return Converters.GraphStatisticsFromDataRow(table.Rows[0]);
+            return null;
         }
 
         #endregion

@@ -42,6 +42,23 @@
         TenantMetadata ReadByGuid(Guid guid);
 
         /// <summary>
+        /// Enumerate objects.
+        /// </summary>
+        /// <param name="query">Enumeration query.</param>
+        /// <returns>Enumeration result containing a page of objects.</returns>
+        EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query);
+
+        /// <summary>
+        /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+        /// </summary>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="markerGuid">Marker GUID.</param>
+        /// <returns>Number of records.</returns>
+        int GetRecordCount(
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null);
+
+        /// <summary>
         /// Update a tenant.
         /// </summary>
         /// <param name="tenant">Tenant.</param>
@@ -61,5 +78,18 @@
         /// <param name="guid">GUID.</param>
         /// <returns>True if exists.</returns>
         bool ExistsByGuid(Guid guid);
+
+        /// <summary>
+        /// Retrieve tenant statistics.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <returns>Tenant statistics.</returns>
+        TenantStatistics GetStatistics(Guid tenantGuid);
+
+        /// <summary>
+        /// Retrieve tenant statistics.
+        /// </summary>
+        /// <returns>Dictionary of tenant statistics.</returns>
+        Dictionary<Guid, TenantStatistics> GetStatistics();
     }
 }

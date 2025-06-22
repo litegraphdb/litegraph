@@ -207,6 +207,13 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<VectorMetadata> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            return _Repo.Vector.Enumerate(query);
+        }
+
+        /// <inheritdoc />
         public VectorMetadata Update(VectorMetadata vector)
         {
             if (vector == null) throw new ArgumentNullException(nameof(vector));

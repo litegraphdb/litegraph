@@ -11,7 +11,7 @@
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Serialization;
-    using PrettyId;
+    using Timestamps;
 
     using LoggingSettings = LoggingSettings;
 
@@ -50,7 +50,6 @@
         public Credential Create(Credential cred)
         {
             if (cred == null) throw new ArgumentNullException(nameof(cred));
-
             string createQuery = CredentialQueries.Insert(cred);
             DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
             Credential created = Converters.CredentialFromDataRow(createResult.Rows[0]);
@@ -120,6 +119,7 @@
         /// <inheritdoc />
         public Credential ReadByBearerToken(string bearerToken)
         {
+            if (String.IsNullOrEmpty(bearerToken)) throw new ArgumentNullException(nameof(bearerToken));
             DataTable result = _Repo.ExecuteQuery(CredentialQueries.SelectByToken(bearerToken));
             if (result != null && result.Rows.Count == 1) return Converters.CredentialFromDataRow(result.Rows[0]);
             return null;
@@ -155,6 +155,110 @@
 
                 if (result.Rows.Count < _Repo.SelectBatchSize) break;
             }
+        }
+
+        /// <inheritdoc />
+        public EnumerationResult<Credential> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) throw new ArgumentNullException(nameof(query));
+
+            Credential marker = null;
+
+            if (query.TenantGUID != null && query.ContinuationToken != null)
+            {
+                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken + " could not be found.");
+            }
+
+            EnumerationResult<Credential> ret = new EnumerationResult<Credential>
+            {
+                MaxResults = query.MaxResults
+            };
+
+            ret.Timestamp.Start = DateTime.UtcNow;
+
+            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.UserGUID, query.Ordering, query.ContinuationToken);
+
+            if (ret.TotalRecords < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+            else
+            {
+                DataTable result = _Repo.ExecuteQuery(CredentialQueries.GetRecordPage(
+                    query.TenantGUID,
+                    query.UserGUID,
+                    query.MaxResults,
+                    query.Ordering,
+                    marker));
+
+                if (result == null || result.Rows.Count < 1)
+                {
+                    ret.ContinuationToken = null;
+                    ret.EndOfResults = true;
+                    ret.RecordsRemaining = 0;
+                    ret.Timestamp.End = DateTime.UtcNow;
+                    return ret;
+                }
+                else
+                {
+                    ret.Objects = Converters.CredentialFromDataTable(result);
+
+                    Credential lastItem = ret.Objects.Last();
+
+                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.UserGUID, query.Ordering, lastItem.GUID);
+                    if (ret.RecordsRemaining > 0)
+                    {
+                        ret.ContinuationToken = lastItem.GUID;
+                        ret.EndOfResults = false;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                    else
+                    {
+                        ret.ContinuationToken = null;
+                        ret.EndOfResults = true;
+                        ret.Timestamp.End = DateTime.UtcNow;
+                        return ret;
+                    }
+                }
+            } 
+        }
+
+        /// <inheritdoc />
+        public int GetRecordCount(
+            Guid? tenantGuid, 
+            Guid? userGuid, 
+            EnumerationOrderEnum order, 
+            Guid? markerGuid)
+        {
+            Credential marker = null;
+
+            if (tenantGuid != null && markerGuid != null)
+            {
+                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
+            }
+
+            DataTable result = _Repo.ExecuteQuery(CredentialQueries.GetRecordCount(
+                tenantGuid,
+                userGuid,
+                order,
+                marker));
+
+            if (result != null && result.Rows != null && result.Rows.Count > 0)
+            {
+                if (result.Columns.Contains("record_count"))
+                {
+                    return Convert.ToInt32(result.Rows[0]["record_count"]);
+                }
+            }
+
+            return 0;
         }
 
         /// <inheritdoc />

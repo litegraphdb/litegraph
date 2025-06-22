@@ -80,6 +80,53 @@
             return ret;
         }
 
+        internal static string GetRecordPage(
+            Guid? tenantGuid,
+            Guid? userGuid,
+            int batchSize = 100,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Credential marker = null)
+        {
+            string ret = "SELECT * FROM 'creds' WHERE guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (userGuid != null)
+                ret += "AND userguid = '" + userGuid.Value.ToString() + "' ";
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker);
+            }
+
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + ";";
+            return ret;
+        }
+
+        internal static string GetRecordCount(
+            Guid? tenantGuid,
+            Guid? userGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Credential marker = null)
+        {
+            string ret = "SELECT COUNT(*) AS record_count FROM 'creds' WHERE guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (userGuid != null)
+                ret += "AND userguid = '" + userGuid.Value.ToString() + "' ";
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker);
+            }
+
+            return ret;
+        }
+
         internal static string Update(Credential cred)
         {
             return
@@ -104,6 +151,57 @@
         internal static string DeleteAllInTenant(Guid tenantGuid)
         {
             return "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "';";
+        }
+
+        private static string OrderByClause(EnumerationOrderEnum order)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                case EnumerationOrderEnum.LeastConnected:
+                case EnumerationOrderEnum.MostConnected:
+                case EnumerationOrderEnum.CreatedDescending:
+                    return "ORDER BY createdutc DESC ";
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "ORDER BY createdutc ASC ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "ORDER BY guid ASC ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "ORDER BY guid DESC ";
+                case EnumerationOrderEnum.NameAscending:
+                    return "ORDER BY name ASC ";
+                case EnumerationOrderEnum.NameDescending:
+                    return "ORDER BY name DESC ";
+                default:
+                    return "ORDER BY createdutc DESC ";
+            }
+        }
+
+        private static string MarkerWhereClause(EnumerationOrderEnum order, Credential marker)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                case EnumerationOrderEnum.LeastConnected:
+                case EnumerationOrderEnum.MostConnected:
+                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.CreatedAscending: 
+                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.CreatedDescending:
+                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "guid > '" + marker.GUID + "' ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "guid < '" + marker.GUID + "' ";
+                case EnumerationOrderEnum.NameAscending:
+                    return "name > '" + marker.Name + "' ";
+                case EnumerationOrderEnum.NameDescending:
+                    return "name < '" + marker.Name + "' ";
+                default:
+                    return "guid IS NOT NULL ";
+            }
         }
     }
 }

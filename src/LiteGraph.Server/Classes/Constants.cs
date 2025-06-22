@@ -148,6 +148,11 @@
         public static string SkipQuerystring = "skip";
 
         /// <summary>
+        /// Max-keys querystring key.
+        /// </summary>
+        public static string MaxKeysQuerystring = "max-keys";
+
+        /// <summary>
         /// Force querystring key.
         /// </summary>
         public static string ForceQuerystring = "force";
@@ -158,6 +163,11 @@
         public static string IncludeDataQuerystring = "incldata";
 
         /// <summary>
+        /// Include subordinates querystring key.
+        /// </summary>
+        public static string IncludeSubordinatesQuerystring = "inclsub";
+
+        /// <summary>
         /// From GUID querystring key.
         /// </summary>
         public static string FromGuidQuerystring = "from";
@@ -166,6 +176,11 @@
         /// To GUID querystring key.
         /// </summary>
         public static string ToGuidQuerystring = "to";
+
+        /// <summary>
+        /// Continuation token querystring key.
+        /// </summary>
+        public static string ContinuationTokenQuerystring = "token";
 
         #endregion
     }

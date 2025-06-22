@@ -598,6 +598,46 @@
             };
         }
 
+        internal static List<TenantMetadata> TenantsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+
+            List<TenantMetadata> ret = new List<TenantMetadata>();
+
+            foreach (DataRow row in table.Rows)
+                ret.Add(TenantFromDataRow(row));
+
+            return ret;
+        }
+
+        internal static TenantStatistics TenantStatisticsFromDataRow(DataRow row)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+
+            TenantStatistics stats = new TenantStatistics();
+
+            if (row["graphs"] != null && row["graphs"] != DBNull.Value) stats.Graphs = Convert.ToInt32(row["graphs"]);
+            if (row["nodes"] != null && row["nodes"] != DBNull.Value) stats.Nodes = Convert.ToInt32(row["nodes"]);
+            if (row["edges"] != null && row["edges"] != DBNull.Value) stats.Edges = Convert.ToInt32(row["edges"]);
+            if (row["labels"] != null && row["labels"] != DBNull.Value) stats.Labels = Convert.ToInt32(row["labels"]);
+            if (row["tags"] != null && row["tags"] != DBNull.Value) stats.Tags = Convert.ToInt32(row["tags"]);
+            if (row["vectors"] != null && row["vectors"] != DBNull.Value) stats.Vectors = Convert.ToInt32(row["vectors"]);
+
+            return stats;
+        }
+
+        internal static List<TenantStatistics> TenantStatisticsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+
+            List<TenantStatistics> ret = new List<TenantStatistics>();
+
+            foreach (DataRow row in table.Rows)
+                ret.Add(TenantStatisticsFromDataRow(row));
+
+            return ret;
+        }
+
         internal static UserMaster UserFromDataRow(DataRow row)
         {
             if (row == null) return null;
@@ -616,6 +656,18 @@
             };
         }
 
+        internal static List<UserMaster> UsersFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+
+            List<UserMaster> ret = new List<UserMaster>();
+
+            foreach (DataRow row in table.Rows)
+                ret.Add(UserFromDataRow(row));
+
+            return ret;
+        }
+
         internal static Credential CredentialFromDataRow(DataRow row)
         {
             if (row == null) return null;
@@ -631,6 +683,18 @@
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
+        }
+
+        internal static List<Credential> CredentialFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+
+            List<Credential> ret = new List<Credential>();
+
+            foreach (DataRow row in table.Rows)
+                ret.Add(CredentialFromDataRow(row));
+
+            return ret;
         }
 
         internal static TagMetadata TagFromDataRow(DataRow row)
@@ -737,6 +801,45 @@
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
+        }
+
+        internal static List<Graph> GraphsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+
+            List<Graph> ret = new List<Graph>();
+
+            foreach (DataRow row in table.Rows)
+                ret.Add(GraphFromDataRow(row));
+
+            return ret;
+        }
+
+        internal static GraphStatistics GraphStatisticsFromDataRow(DataRow row)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+
+            GraphStatistics stats = new GraphStatistics();
+
+            if (row["nodes"] != null && row["nodes"] != DBNull.Value) stats.Nodes = Convert.ToInt32(row["nodes"]);
+            if (row["edges"] != null && row["edges"] != DBNull.Value) stats.Edges = Convert.ToInt32(row["edges"]);
+            if (row["labels"] != null && row["labels"] != DBNull.Value) stats.Labels = Convert.ToInt32(row["labels"]);
+            if (row["tags"] != null && row["tags"] != DBNull.Value) stats.Tags = Convert.ToInt32(row["tags"]);
+            if (row["vectors"] != null && row["vectors"] != DBNull.Value) stats.Vectors = Convert.ToInt32(row["vectors"]);
+
+            return stats;
+        }
+
+        internal static List<GraphStatistics> GraphStatisticsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+
+            List<GraphStatistics> ret = new List<GraphStatistics>();
+
+            foreach (DataRow row in table.Rows)
+                ret.Add(GraphStatisticsFromDataRow(row));
+
+            return ret;
         }
 
         internal static Node NodeFromDataRow(DataRow row)

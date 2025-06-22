@@ -6,7 +6,7 @@
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Reflection.PortableExecutable;
+    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
     using LiteGraph.Serialization;
@@ -105,7 +105,7 @@
 
             #region Admin
 
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/backups", BackupEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/backups", BackupReadAllRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/backups/{backupFilename}", BackupReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/backups/{backupFilename}", BackupExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/backups", BackupRoute, ExceptionRoute);
@@ -119,7 +119,11 @@
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants", TenantCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants", TenantReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants", TenantEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants", TenantEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/stats", TenantStatisticsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}", TenantReadRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/stats", TenantStatisticsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}", TenantExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}", TenantUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}", TenantDeleteRoute, ExceptionRoute);
@@ -130,6 +134,8 @@
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/users", UserCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/users", UserReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/users", UserEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/users", UserEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/users/{userGuid}", UserReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/users/{userGuid}", UserExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/users/{userGuid}", UserUpdateRoute, ExceptionRoute);
@@ -141,6 +147,8 @@
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/credentials", CredentialCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/credentials", CredentialReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/credentials", CredentialEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/credentials", CredentialEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialUpdateRoute, ExceptionRoute);
@@ -153,6 +161,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels", LabelCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/bulk", LabelCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels", LabelReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/labels", LabelEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/labels", LabelEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelUpdateRoute, ExceptionRoute);
@@ -166,6 +176,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags", TagCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags/bulk", TagCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags", TagReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/tags", TagEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/tags", TagEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagUpdateRoute, ExceptionRoute);
@@ -180,6 +192,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/vectors/bulk", VectorCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/vectors", VectorSearchRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/vectors", VectorReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/vectors", VectorEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/vectors", VectorEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", VectorUpdateRoute, ExceptionRoute);
@@ -193,9 +207,13 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs", GraphCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/first", GraphReadFirstRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/search", GraphSearchRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/stats", GraphStatisticsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", GraphReadRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/stats", GraphStatisticsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", GraphExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs", GraphReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/graphs", GraphEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/graphs", GraphEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", GraphUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", GraphDeleteRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", GraphExistenceRoute, ExceptionRoute);
@@ -212,6 +230,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", NodeReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", NodeEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", NodeEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", NodeDeleteAllRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", NodeDeleteManyRoute, ExceptionRoute);
@@ -236,6 +256,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", EdgeReadManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", EdgeEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", EdgeEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeDeleteAllRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", EdgeDeleteManyRoute, ExceptionRoute);
@@ -477,10 +499,10 @@
             }
 
             req.BackupRequest = _Serializer.DeserializeJson<BackupRequest>(ctx.Request.DataAsString);
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupRequest);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupExecute);
         }
 
-        private async Task BackupEnumerateRoute(HttpContextBase ctx)
+        private async Task BackupReadAllRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             if (!req.Authentication.IsAdmin)
@@ -489,7 +511,7 @@
                 return;
             }
 
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupEnumerateRequest);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupReadAll);
         }
 
         private async Task BackupReadRoute(HttpContextBase ctx)
@@ -501,7 +523,7 @@
                 return;
             }
 
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupReadRequest);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupRead);
         }
 
         private async Task BackupExistsRoute(HttpContextBase ctx)
@@ -513,7 +535,7 @@
                 return;
             }
 
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupExistsRequest);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupExists);
         }
 
         private async Task BackupDeleteRoute(HttpContextBase ctx)
@@ -525,7 +547,7 @@
                 return;
             }
 
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupDeleteRequest);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.BackupDelete);
         }
 
         private async Task FlushRoute(HttpContextBase ctx)
@@ -537,7 +559,7 @@
                 return;
             }
 
-            await WrappedRequestHandler(ctx, req, _ServiceHandler.FlushRequest);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.FlushDatabase);
         }
 
         #endregion
@@ -642,6 +664,21 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantReadMany);
         }
 
+        private async Task TenantEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantEnumerate);
+        }
+
         private async Task TenantReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -651,6 +688,16 @@
                 return;
             }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantRead);
+        }
+
+        private async Task TenantStatisticsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin && req.TenantGUID == null)
+            {
+                await NotAdmin(ctx);
+            }
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantStatistics);
         }
 
         private async Task TenantExistsRoute(HttpContextBase ctx)
@@ -728,6 +775,21 @@
                 return;
             }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.UserReadMany);
+        }
+
+        private async Task UserEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.UserEnumerate);
         }
 
         private async Task UserReadRoute(HttpContextBase ctx)
@@ -817,6 +879,21 @@
                 return;
             }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialReadMany);
+        }
+
+        private async Task CredentialEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialEnumerate);
         }
 
         private async Task CredentialReadRoute(HttpContextBase ctx)
@@ -910,6 +987,14 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelReadMany);
         }
 
+        private async Task LabelEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelEnumerate);
+        }
+
         private async Task LabelReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -993,6 +1078,14 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TagReadMany);
         }
 
+        private async Task TagEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.TagEnumerate);
+        }
+
         private async Task TagReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -1074,6 +1167,14 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorReadMany);
+        }
+
+        private async Task VectorEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorEnumerate);
         }
 
         private async Task VectorReadRoute(HttpContextBase ctx)
@@ -1160,6 +1261,14 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphReadMany);
         }
 
+        private async Task GraphEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphEnumerate);
+        }
+
         private async Task GraphExistenceRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -1206,6 +1315,16 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphRead);
+        }
+
+        private async Task GraphStatisticsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin && req.TenantGUID == null)
+            {
+                await NotAdmin(ctx);
+            }
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphStatistics);
         }
 
         private async Task GraphExistsRoute(HttpContextBase ctx)
@@ -1301,6 +1420,14 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeReadMany);
+        }
+
+        private async Task NodeEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeEnumerate);
         }
 
         private async Task NodeSearchRoute(HttpContextBase ctx)
@@ -1428,6 +1555,14 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeReadMany);
+        }
+
+        private async Task EdgeEnumerateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            else req.EnumerationQuery = BuildEnumerationQuery(req);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeEnumerate);
         }
 
         private async Task EdgesBetweenRoute(HttpContextBase ctx)
@@ -1585,12 +1720,6 @@
 
         #region Private-Methods
 
-        private string GetQueryValue(NameValueCollection nvc, string key)
-        {
-            if (nvc != null && nvc.AllKeys.Contains(key)) return nvc[key];
-            return null;
-        }
-
         private async Task WrappedRequestHandler(HttpContextBase ctx, RequestContext req, Func<RequestContext, Task<ResponseContext>> func)
         {
             try
@@ -1665,6 +1794,17 @@
                 await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message), true));
                 return;
             }
+        }
+
+        private EnumerationQuery BuildEnumerationQuery(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            return new EnumerationQuery
+            {
+                MaxResults = req.MaxKeys,
+                IncludeData = req.IncludeData,
+                ContinuationToken = (!String.IsNullOrEmpty(req.ContinuationToken) ? Guid.Parse(req.ContinuationToken) : null)
+            };
         }
 
         #endregion

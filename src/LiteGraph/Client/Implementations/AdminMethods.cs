@@ -8,6 +8,7 @@
     using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
+    using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -85,7 +86,7 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<BackupFile> ListBackups()
+        public IEnumerable<BackupFile> BackupReadAll()
         {
             if (!Directory.Exists(_BackupDirectory)) Directory.CreateDirectory(_BackupDirectory);
 
@@ -109,7 +110,7 @@
         }
 
         /// <inheritdoc />
-        public BackupFile ReadBackup(string backupFilename)
+        public BackupFile BackupRead(string backupFilename)
         {
             if (String.IsNullOrEmpty(backupFilename)) throw new ArgumentNullException(nameof(backupFilename));
             if (!Directory.Exists(_BackupDirectory))
@@ -139,6 +140,13 @@
                 LastAccessUtc = fi.LastAccessTimeUtc,
                 Data = File.ReadAllBytes(file)
             };
+        }
+
+        /// <inheritdoc />
+        public EnumerationResult<BackupFile> BackupEnumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />

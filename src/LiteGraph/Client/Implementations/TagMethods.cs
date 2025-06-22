@@ -177,6 +177,13 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            return _Repo.Tag.Enumerate(query);
+        }
+
+        /// <inheritdoc />
         public TagMetadata Update(TagMetadata tag)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));

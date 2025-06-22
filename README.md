@@ -16,6 +16,8 @@ LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RES
 - Consistency in passing of query parameters such as skip to implementations and primitives
 - Consolidation of create, update, and delete actions within a single transaction
 - Batch APIs for creation and deletion of labels, tags, vectors, edges, and nodes
+- Enumeration APIs
+- Statistics APIs
 - Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
 - In-memory operation with controlled flushing to disk
 - Dependency updates and bug fixes
@@ -222,6 +224,67 @@ A variety of `EnumerationOrderEnum` options are available when enumerating objec
 - `CostDescending` - for edges only, sort results in descending order by cost
 - `MostConnected` - for nodes only, sort results in descending order by total edge count
 - `LeastConnected` - for nodes only, sort results in ascending order by total edge count
+
+To enumerate, use the enumeration API for the resource you wish.
+
+```csharp
+EnumerationQuery query = new EnumerationQuery
+{
+  Ordering = EnumerationOrderEnum.CreatedDescending,
+  IncludeData = true,
+  IncludeSubordinates = true,
+  MaxResults = 5,
+  ContinuationToken = null,         // set to the continuation token from the last results to paginate
+  Labels = new List<string>,        // labels on which to match
+  Tags = new NameValueCollection(), // tags on which to match
+  Expr = null,                      // expression on which to match from data property
+};
+
+EnumerationResult result = graph.Node.Enumerate(query);
+// returns
+{
+    "Success": true,
+    "Timestamp": {
+        "Start": "2025-06-22T01:17:42.984885Z",
+        "End": "2025-06-22T01:17:43.066948Z",
+        "TotalMs": 82.06,
+        "Messages": {}
+    },
+    "MaxResults": 5,
+    "ContinuationToken": "ca10f6ca-f4c2-4040-adfe-9de3a81b9f55",
+    "EndOfResults": false,    // whether or not the end of the results has been reached
+    "TotalRecords": 17,       // total number of matching records
+    "RecordsRemaining": 12,   // records remaining should you enumerate again
+    "Objects": [
+        {
+            "TenantGUID": "00000000-0000-0000-0000-000000000000",
+            "GUID": "ebefc55b-6f74-4997-8c87-e95e40cb83d3",
+            "GraphGUID": "00000000-0000-0000-0000-000000000000",
+            "Name": "Active Directory",
+            "CreatedUtc": "2025-06-21T05:23:14.100128Z",
+            "LastUpdateUtc": "2025-06-21T05:23:14.100128Z",
+            "Labels": [],
+            "Tags": {},
+            "Data": {
+                "Name": "Active Directory"
+            },
+            "Vectors": []
+        }, ...
+    ]
+}
+```
+
+### Gathering Statistics
+
+Statistics are available both at the tenant level and at the graph level.
+
+```csharp
+Dictionary<Guid, TenantStatistics> allTenantsStats = graph.Tenant.GetStatistics();
+TenantStatistics tenantStatistics = graph.Tenant.GetStatistics(myTenantGuid);
+
+Dictionary<Guid, GraphStatistics> allGraphStatistics = graph.Graph.GetStatistics(myTenantGuid);
+GraphStatistics graphStatistics = graph.Graph.GetStatistics(myTenantGuid, myGraphGuid);
+```
 
 ## REST API
 

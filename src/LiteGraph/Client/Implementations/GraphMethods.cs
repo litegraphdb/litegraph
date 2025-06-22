@@ -89,12 +89,15 @@
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
+
             foreach (Graph graph in _Repo.Graph.ReadAllInTenant(tenantGuid, order, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graph.GUID, null, null, null).ToList();
                 if (allLabels != null) graph.Labels = LabelMetadata.ToListString(allLabels);
+
                 List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graph.GUID, null, null, null, null).ToList();
                 if (allTags != null) graph.Tags = TagMetadata.ToNameValueCollection(allTags);
+
                 graph.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID).ToList();
                 yield return graph;
             }
@@ -192,6 +195,43 @@
         }
 
         /// <inheritdoc />
+        public EnumerationResult<Graph> Enumerate(EnumerationQuery query)
+        {
+            if (query == null) query = new EnumerationQuery();
+            EnumerationResult<Graph> er = _Repo.Graph.Enumerate(query);
+
+
+            if (er != null
+                && er.Objects != null
+                && er.Objects.Count > 0)
+            {
+                if (query.IncludeSubordinates)
+                {
+                    foreach (Graph graph in er.Objects)
+                    {
+                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null).ToList();
+                        if (allLabels != null) graph.Labels = LabelMetadata.ToListString(allLabels);
+
+                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList();
+                        if (allTags != null) graph.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                        graph.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
+                    }
+                }
+
+                if (!query.IncludeData)
+                {
+                    foreach (Graph graph in er.Objects)
+                    {
+                        graph.Data = null;
+                    }
+                }
+            }
+
+            return er;
+        }
+
+        /// <inheritdoc />
         public Graph Update(Graph graph)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
@@ -246,6 +286,18 @@
         {
             _Client.ValidateTenantExists(tenantGuid);
             return _Repo.Graph.ExistsByGuid(tenantGuid, guid);
+        }
+
+        /// <inheritdoc />
+        public GraphStatistics GetStatistics(Guid tenantGuid, Guid guid)
+        {
+            return _Repo.Graph.GetStatistics(tenantGuid, guid);
+        }
+
+        /// <inheritdoc />
+        public Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid)
+        {
+            return _Repo.Graph.GetStatistics(tenantGuid);
         }
 
         #endregion
