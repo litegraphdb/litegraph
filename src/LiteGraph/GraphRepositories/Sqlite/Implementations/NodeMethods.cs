@@ -337,14 +337,16 @@
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(NodeQueries.GetRecordCount(
+            string query = NodeQueries.GetRecordCount(
                 tenantGuid,
                 graphGuid,
                 labels,
                 tags,
                 filter,
                 order,
-                marker));
+                marker);
+
+            DataTable result = _Repo.ExecuteQuery(query);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {

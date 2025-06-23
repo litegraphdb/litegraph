@@ -830,7 +830,7 @@
                     labelsAdded++;
                 }
 
-                ret += ") AS filtered_nodes AS record_count;";
+                ret += ") AS filtered_nodes;";
             }
             else
             {

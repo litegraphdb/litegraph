@@ -52,6 +52,7 @@
                 else if (userInput.Equals("test2-1")) Test2_1();
                 else if (userInput.Equals("test3-1")) Test3_1();
                 else if (userInput.Equals("test3-2")) Test3_2();
+                else if (userInput.Equals("test3-3")) Test3_3();
                 else
                 {
                     string[] parts = userInput.Split(new char[] { ' ' });
@@ -1220,6 +1221,25 @@
             Console.WriteLine(_Serializer.SerializeJson(node1));
 
             node1 = _Client.Node.Create(node1);
+        }
+
+        static void Test3_3()
+        {
+            EnumerationQuery query = new EnumerationQuery
+            {
+                TenantGUID = _TenantGuid,
+                GraphGUID = _GraphGuid,
+                Labels = new List<string> { },
+                IncludeSubordinates = false,
+                IncludeData = false,
+                Ordering = EnumerationOrderEnum.CreatedDescending,
+                MaxResults = 10,
+                Tags = null,
+                Expr = null
+            };
+
+            EnumerationResult<Node> er = _Client.Node.Enumerate(query);
+            Console.WriteLine(_Serializer.SerializeJson(er, true));
         }
 
         #endregion
