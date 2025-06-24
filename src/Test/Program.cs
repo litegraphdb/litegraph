@@ -1229,7 +1229,7 @@
             {
                 TenantGUID = _TenantGuid,
                 GraphGUID = _GraphGuid,
-                Labels = new List<string> { "document" },
+                Labels = new List<string> { },
                 IncludeSubordinates = false,
                 IncludeData = false,
                 Ordering = EnumerationOrderEnum.CreatedDescending,
@@ -1238,8 +1238,14 @@
                 Expr = null
             };
 
-            EnumerationResult<Node> er = _Client.Node.Enumerate(query);
-            Console.WriteLine(_Serializer.SerializeJson(er, true));
+            EnumerationResult<Graph> graphs = _Client.Graph.Enumerate(query);
+            Console.WriteLine(_Serializer.SerializeJson(graphs, true));
+
+            EnumerationResult<Node> nodes = _Client.Node.Enumerate(query);
+            Console.WriteLine(_Serializer.SerializeJson(nodes, true));
+
+            EnumerationResult<Edge> edges = _Client.Edge.Enumerate(query);
+            Console.WriteLine(_Serializer.SerializeJson(edges, true));
         }
 
         #endregion

@@ -9796,44 +9796,6 @@
 							"response": []
 						},
 						{
-							"name": "Enumerate backups",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"Filename\": \"my-backup.db\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/backups",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v2.0",
-										"backups"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Read backup contents",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
