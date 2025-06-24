@@ -234,136 +234,57 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Graph marker = null)
         {
-            string ret;
+            string ret = "SELECT graphs.* FROM 'graphs' WHERE graphs.guid IS NOT NULL ";
 
-            // If we have labels, we need a subquery to handle the GROUP BY/HAVING logic
+            if (tenantGuid != null)
+                ret += "AND graphs.tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            // Handle labels
             if (labels != null && labels.Count > 0)
             {
-                ret = "SELECT * FROM (SELECT graphs.* FROM 'graphs' ";
-
-                ret += "INNER JOIN 'labels' "
-                    + "ON graphs.guid = labels.graphguid "
-                    + "AND graphs.tenantguid = labels.tenantguid ";
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        ret +=
-                            "INNER JOIN 'tags' t" + added.ToString() + " " +
-                            "ON graphs.guid = t" + added.ToString() + ".graphguid " +
-                            "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid ";
-                        added++;
-                    }
-                }
-
-                ret += "WHERE graphs.guid IS NOT NULL ";
-
-                if (tenantGuid != null)
-                    ret += "AND graphs.tenantguid = '" + tenantGuid.Value.ToString() + "' ";
-
-                string labelList = "(";
-                int labelsAdded = 0;
                 foreach (string label in labels)
                 {
-                    if (labelsAdded > 0) labelList += ",";
-                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
-                    labelsAdded++;
+                    ret += "AND EXISTS (SELECT 1 FROM 'labels' " +
+                           "WHERE labels.graphguid = graphs.guid " +
+                           "AND labels.tenantguid = graphs.tenantguid " +
+                           "AND labels.label = '" + Sanitizer.Sanitize(label) + "') ";
                 }
-                labelList += ")";
-
-                ret += "AND labels.label IN " + labelList + " ";
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        string val = tags.Get(key);
-                        ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
-                        if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
-                        else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
-                        added++;
-                    }
-                }
-
-                if (graphFilter != null)
-                {
-                    string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
-                    if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
-                }
-
-                if (marker != null)
-                {
-                    ret += "AND " + MarkerWhereClause(order, marker) + " ";
-                }
-
-                ret += "GROUP BY graphs.guid ";
-
-                labelsAdded = 0;
-                ret += "HAVING ";
-                foreach (string label in labels)
-                {
-                    if (labelsAdded > 0) ret += "AND ";
-                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
-                    labelsAdded++;
-                }
-
-                ret += ") AS filtered_graphs ";
-                ret += OrderByClause(order);
-                ret += "LIMIT " + batchSize + ";";
             }
-            else
+
+            // Handle tags
+            if (tags != null && tags.Count > 0)
             {
-                // No labels - simpler query
-                ret = "SELECT graphs.* FROM 'graphs' ";
-
-                if (tags != null && tags.Count > 0)
+                foreach (string key in tags.AllKeys)
                 {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        ret +=
-                            "INNER JOIN 'tags' t" + added.ToString() + " " +
-                            "ON graphs.guid = t" + added.ToString() + ".graphguid " +
-                            "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid ";
-                        added++;
-                    }
+                    string val = tags.Get(key);
+                    ret += "AND EXISTS (SELECT 1 FROM 'tags' " +
+                           "WHERE tags.graphguid = graphs.guid " +
+                           "AND tags.tenantguid = graphs.tenantguid " +
+                           "AND tags.tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+
+                    if (!String.IsNullOrEmpty(val))
+                        ret += "AND tags.tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else
+                        ret += "AND tags.tagvalue IS NULL ";
+
+                    ret += ") ";
                 }
-
-                ret += "WHERE graphs.guid IS NOT NULL ";
-
-                if (tenantGuid != null)
-                    ret += "AND graphs.tenantguid = '" + tenantGuid.Value.ToString() + "' ";
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        string val = tags.Get(key);
-                        ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
-                        if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
-                        else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
-                        added++;
-                    }
-                }
-
-                if (graphFilter != null)
-                {
-                    string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
-                    if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
-                }
-
-                if (marker != null)
-                {
-                    ret += "AND " + MarkerWhereClause(order, marker) + " ";
-                }
-
-                ret += OrderByClause(order);
-                ret += "LIMIT " + batchSize + ";";
             }
+
+            if (graphFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
+                if (!String.IsNullOrEmpty(filterClause))
+                    ret += "AND (" + filterClause + ") ";
+            }
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker) + " ";
+            }
+
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + ";";
 
             return ret;
         }
@@ -376,143 +297,63 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Graph marker = null)
         {
-            string ret;
+            bool needsDistinct = (tags != null && tags.Count > 0);
+            string ret = needsDistinct
+                ? "SELECT COUNT(DISTINCT graphs.guid) AS record_count FROM 'graphs' "
+                : "SELECT COUNT(*) AS record_count FROM 'graphs' ";
 
-            // If we have labels, we need a subquery to handle the GROUP BY/HAVING logic
+            ret += "WHERE graphs.guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND graphs.tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
             if (labels != null && labels.Count > 0)
             {
-                ret = "SELECT COUNT(*) AS record_count FROM (SELECT graphs.guid FROM 'graphs' ";
-
-                ret += "INNER JOIN 'labels' "
-                    + "ON graphs.guid = labels.graphguid "
-                    + "AND graphs.tenantguid = labels.tenantguid ";
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        ret +=
-                            "INNER JOIN 'tags' t" + added.ToString() + " " +
-                            "ON graphs.guid = t" + added.ToString() + ".graphguid " +
-                            "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid ";
-                        added++;
-                    }
-                }
-
-                ret += "WHERE graphs.guid IS NOT NULL ";
-
-                if (tenantGuid != null)
-                    ret += "AND graphs.tenantguid = '" + tenantGuid.Value.ToString() + "' ";
-
-                string labelList = "(";
-                int labelsAdded = 0;
                 foreach (string label in labels)
                 {
-                    if (labelsAdded > 0) labelList += ",";
-                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
-                    labelsAdded++;
+                    ret += "AND EXISTS (SELECT 1 FROM 'labels' " +
+                           "WHERE labels.graphguid = graphs.guid " +
+                           "AND labels.tenantguid = graphs.tenantguid " +
+                           "AND labels.label = '" + Sanitizer.Sanitize(label) + "') ";
                 }
-                labelList += ")";
-
-                ret += "AND labels.label IN " + labelList + " ";
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        string val = tags.Get(key);
-                        ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
-                        if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
-                        else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
-                        added++;
-                    }
-                }
-
-                if (graphFilter != null)
-                {
-                    string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
-                    if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
-                }
-
-                if (marker != null)
-                {
-                    ret += "AND " + MarkerWhereClause(order, marker) + " ";
-                }
-
-                ret += "GROUP BY graphs.guid ";
-
-                labelsAdded = 0;
-                ret += "HAVING ";
-                foreach (string label in labels)
-                {
-                    if (labelsAdded > 0) ret += "AND ";
-                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
-                    labelsAdded++;
-                }
-
-                ret += ") AS filtered_graphs AS record_count;";
             }
-            else
+
+            if (tags != null && tags.Count > 0)
             {
-                // No labels - check if we need DISTINCT due to tags
-                if (tags != null && tags.Count > 0)
+                foreach (string key in tags.AllKeys)
                 {
-                    ret = "SELECT COUNT(DISTINCT graphs.guid) AS record_count FROM 'graphs' ";
+                    string val = tags.Get(key);
+                    ret += "AND EXISTS (SELECT 1 FROM 'tags' " +
+                           "WHERE tags.graphguid = graphs.guid " +
+                           "AND tags.tenantguid = graphs.tenantguid " +
+                           "AND tags.tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+
+                    if (!String.IsNullOrEmpty(val))
+                        ret += "AND tags.tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else
+                        ret += "AND tags.tagvalue IS NULL ";
+
+                    ret += ") ";
                 }
-                else
-                {
-                    ret = "SELECT COUNT(*) AS record_count FROM 'graphs' ";
-                }
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        ret +=
-                            "INNER JOIN 'tags' t" + added.ToString() + " " +
-                            "ON graphs.guid = t" + added.ToString() + ".graphguid " +
-                            "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid ";
-                        added++;
-                    }
-                }
-
-                ret += "WHERE graphs.guid IS NOT NULL ";
-
-                if (tenantGuid != null)
-                    ret += "AND graphs.tenantguid = '" + tenantGuid.Value.ToString() + "' ";
-
-                if (tags != null && tags.Count > 0)
-                {
-                    int added = 1;
-                    foreach (string key in tags.AllKeys)
-                    {
-                        string val = tags.Get(key);
-                        ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
-                        if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
-                        else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
-                        added++;
-                    }
-                }
-
-                if (graphFilter != null)
-                {
-                    string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
-                    if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
-                }
-
-                if (marker != null)
-                {
-                    ret += "AND " + MarkerWhereClause(order, marker) + " ";
-                }
-
-                ret += ";";
             }
+
+            if (graphFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
+                if (!String.IsNullOrEmpty(filterClause))
+                    ret += "AND (" + filterClause + ") ";
+            }
+
+            if (marker != null)
+            {
+                ret += "AND " + MarkerWhereClause(order, marker) + " ";
+            }
+
+            ret += ";";
 
             return ret;
         }
+
 
         internal static string Update(Graph graph)
         {
@@ -794,19 +635,19 @@
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY graphs.createdutc DESC ";
+                    return "ORDER BY createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY graphs.createdutc ASC ";
+                    return "ORDER BY createdutc ASC ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY graphs.guid ASC ";
+                    return "ORDER BY guid ASC ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY graphs.guid DESC ";
+                    return "ORDER BY guid DESC ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY graphs.name ASC ";
+                    return "ORDER BY name ASC ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY graphs.name DESC ";
+                    return "ORDER BY name DESC ";
                 default:
-                    return "ORDER BY graphs.createdutc DESC ";
+                    return "ORDER BY createdutc DESC ";
             }
         }
 
@@ -828,9 +669,9 @@
                 case EnumerationOrderEnum.GuidDescending:
                     return "graphs.guid < '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "graphs.name > '" + marker.Name + "' ";
+                    return "graphs.name > '" + Sanitizer.Sanitize(marker.Name) + "' ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "graphs.name < '" + marker.Name + "' ";
+                    return "graphs.name < '" + Sanitizer.Sanitize(marker.Name) + "' ";
                 default:
                     return "graphs.guid IS NOT NULL ";
             }

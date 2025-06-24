@@ -7,7 +7,6 @@
     using System.Text.Json;
     using System.Threading.Tasks;
 
-
     internal static class Sanitizer
     {
         internal static string Sanitize(string val)
