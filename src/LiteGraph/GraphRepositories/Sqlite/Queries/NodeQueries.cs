@@ -1297,21 +1297,21 @@
                 case EnumerationOrderEnum.CostDescending:
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "nodes.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "nodes.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "nodes.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "guid > '" + marker.GUID + "' ";
+                    return "nodes.guid > '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "guid < '" + marker.GUID + "' ";
+                    return "nodes.guid < '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "name > '" + marker.Name + "' ";
+                    return "nodes.name > '" + marker.Name + "' ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "name < '" + marker.Name + "' ";
+                    return "nodes.name < '" + marker.Name + "' ";
                 default:
-                    return "guid IS NOT NULL ";
+                    return "nodes.guid IS NOT NULL ";
             }
         }
     }

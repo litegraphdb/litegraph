@@ -1274,21 +1274,21 @@
                 case EnumerationOrderEnum.CostDescending:
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "edges.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "edges.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "edges.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "guid > '" + marker.GUID + "' ";
+                    return "edges.guid > '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "guid < '" + marker.GUID + "' ";
+                    return "edges.guid < '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "name > '" + marker.Name + "' ";
+                    return "edges.name > '" + marker.Name + "' ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "name < '" + marker.Name + "' ";
+                    return "edges.name < '" + marker.Name + "' ";
                 default:
-                    return "guid IS NOT NULL ";
+                    return "edges.guid IS NOT NULL ";
             }
         }
     }

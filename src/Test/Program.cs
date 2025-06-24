@@ -1229,7 +1229,7 @@
             {
                 TenantGUID = _TenantGuid,
                 GraphGUID = _GraphGuid,
-                Labels = new List<string> { },
+                Labels = new List<string> { "document" },
                 IncludeSubordinates = false,
                 IncludeData = false,
                 Ordering = EnumerationOrderEnum.CreatedDescending,
