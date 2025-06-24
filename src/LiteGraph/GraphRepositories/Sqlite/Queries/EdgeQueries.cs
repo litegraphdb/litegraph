@@ -1250,19 +1250,19 @@
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY edges.createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return "ORDER BY edges.createdutc ASC ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return "ORDER BY edges.guid ASC ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return "ORDER BY edges.guid DESC ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY name ASC ";
+                    return "ORDER BY edges.name ASC ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY name DESC ";
+                    return "ORDER BY edges.name DESC ";
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY edges.createdutc DESC ";
             }
         }
 

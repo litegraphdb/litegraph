@@ -794,19 +794,19 @@
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY graphs.createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return "ORDER BY graphs.createdutc ASC ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return "ORDER BY graphs.guid ASC ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return "ORDER BY graphs.guid DESC ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY name ASC ";
+                    return "ORDER BY graphs.name ASC ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY name DESC ";
+                    return "ORDER BY graphs.name DESC ";
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY graphs.createdutc DESC ";
             }
         }
 
@@ -818,21 +818,21 @@
                 case EnumerationOrderEnum.CostDescending:
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "graphs.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "graphs.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return "graphs.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "guid > '" + marker.GUID + "' ";
+                    return "graphs.guid > '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "guid < '" + marker.GUID + "' ";
+                    return "graphs.guid < '" + marker.GUID + "' ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "name > '" + marker.Name + "' ";
+                    return "graphs.name > '" + marker.Name + "' ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "name < '" + marker.Name + "' ";
+                    return "graphs.name < '" + marker.Name + "' ";
                 default:
-                    return "guid IS NOT NULL ";
+                    return "graphs.guid IS NOT NULL ";
             }
         }
     }

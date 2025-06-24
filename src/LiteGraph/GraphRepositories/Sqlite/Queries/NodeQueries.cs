@@ -1273,19 +1273,19 @@
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY nodes.createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return "ORDER BY nodes.createdutc ASC ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return "ORDER BY nodes.guid ASC ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return "ORDER BY nodes.guid DESC ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY name ASC ";
+                    return "ORDER BY nodes.name ASC ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY name DESC ";
+                    return "ORDER BY nodes.name DESC ";
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY nodes.createdutc DESC ";
             }
         }
 
