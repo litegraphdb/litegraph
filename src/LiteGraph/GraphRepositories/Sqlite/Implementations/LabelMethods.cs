@@ -369,6 +369,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
                     query.TenantGUID,
                     query.GraphGUID,
                     query.MaxResults,
+                    query.Skip,
                     query.Ordering,
                     marker));
 

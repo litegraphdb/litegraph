@@ -133,6 +133,7 @@
 
                 DataTable result = _Repo.ExecuteQuery(TenantQueries.GetRecordPage(
                     query.MaxResults,
+                    query.Skip,
                     query.Ordering,
                     marker));
 

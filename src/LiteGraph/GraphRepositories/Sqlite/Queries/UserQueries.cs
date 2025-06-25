@@ -35,7 +35,11 @@
             return ret;
         }
 
-        internal static string SelectAllInTenant(Guid tenantGuid, int batchSize = 100, int skip = 0, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        internal static string SelectAllInTenant(
+            Guid tenantGuid, 
+            int batchSize = 100, 
+            int skip = 0, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret = "SELECT * FROM 'users' WHERE tenantguid = '" + tenantGuid + "' ";
             ret +=
@@ -90,6 +94,7 @@
         internal static string GetRecordPage(
             Guid? tenantGuid,
             int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             UserMaster marker = null)
         {
@@ -104,7 +109,7 @@
             }
 
             ret += OrderByClause(order);
-            ret += "LIMIT " + batchSize + ";";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
             return ret;
         }
 

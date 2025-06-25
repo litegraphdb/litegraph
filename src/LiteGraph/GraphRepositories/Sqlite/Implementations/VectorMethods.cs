@@ -373,6 +373,7 @@
                     query.TenantGUID,
                     query.GraphGUID,
                     query.MaxResults,
+                    query.Skip,
                     query.Ordering,
                     marker));
 

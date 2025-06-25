@@ -193,6 +193,7 @@
                     query.TenantGUID,
                     query.UserGUID,
                     query.MaxResults,
+                    query.Skip,
                     query.Ordering,
                     marker));
 

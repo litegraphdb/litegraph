@@ -228,6 +228,7 @@
             Guid? tenantGuid,
             Guid? graphGuid,
             int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             TagMetadata marker = null)
         {
@@ -245,7 +246,7 @@
             }
 
             ret += OrderByClause(order);
-            ret += "LIMIT " + batchSize + ";";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
             return ret;
         }
 

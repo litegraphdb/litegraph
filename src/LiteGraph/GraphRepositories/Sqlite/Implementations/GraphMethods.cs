@@ -190,6 +190,7 @@
                     query.Tags,
                     query.Expr,
                     query.MaxResults,
+                    query.Skip,
                     query.Ordering,
                     marker));
 

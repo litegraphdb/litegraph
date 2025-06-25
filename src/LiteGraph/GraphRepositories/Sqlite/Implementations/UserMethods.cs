@@ -186,6 +186,7 @@
                 DataTable result = _Repo.ExecuteQuery(UserQueries.GetRecordPage(
                     query.TenantGUID,
                     query.MaxResults,
+                    query.Skip,
                     query.Ordering,
                     marker));
 

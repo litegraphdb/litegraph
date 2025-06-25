@@ -44,7 +44,11 @@
             return "SELECT * FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
-        internal static string SelectAllInTenant(Guid tenantGuid, int batchSize = 100, int skip = 0, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        internal static string SelectAllInTenant(
+            Guid tenantGuid, 
+            int batchSize = 100, 
+            int skip = 0, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret = "SELECT * FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' ";
             ret +=
@@ -84,6 +88,7 @@
             Guid? tenantGuid,
             Guid? userGuid,
             int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Credential marker = null)
         {
@@ -101,7 +106,7 @@
             }
 
             ret += OrderByClause(order);
-            ret += "LIMIT " + batchSize + ";";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
             return ret;
         }
 

@@ -626,6 +626,7 @@
             NameValueCollection tags,
             Expr edgeFilter = null,
             int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Edge marker = null)
         {
@@ -684,7 +685,7 @@
             }
 
             ret += OrderByClause(order);
-            ret += "LIMIT " + batchSize + ";";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
         }
