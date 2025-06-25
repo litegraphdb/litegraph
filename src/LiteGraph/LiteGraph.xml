@@ -2388,6 +2388,11 @@
             Maximum number of results to retrieve.
             </summary>
         </member>
+        <member name="P:LiteGraph.EnumerationQuery.Skip">
+            <summary>
+            The number of records to skip.
+            </summary>
+        </member>
         <member name="P:LiteGraph.EnumerationQuery.ContinuationToken">
             <summary>
             Continuation token.

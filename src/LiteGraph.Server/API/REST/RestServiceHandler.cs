@@ -1802,7 +1802,9 @@
             return new EnumerationQuery
             {
                 MaxResults = req.MaxKeys,
+                Skip = req.Skip,
                 IncludeData = req.IncludeData,
+                IncludeSubordinates = req.IncludeSubordinates,
                 ContinuationToken = (!String.IsNullOrEmpty(req.ContinuationToken) ? Guid.Parse(req.ContinuationToken) : null)
             };
         }

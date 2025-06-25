@@ -63,6 +63,22 @@
         }
 
         /// <summary>
+        /// The number of records to skip.
+        /// </summary>
+        public int Skip
+        {
+            get
+            {
+                return _Skip;
+            }
+            set
+            {
+                if (value < 0) throw new ArgumentOutOfRangeException(nameof(Skip));
+                _Skip = value;
+            }
+        }
+
+        /// <summary>
         /// Continuation token.
         /// </summary>
         public Guid? ContinuationToken { get; set; } = null;
@@ -109,6 +125,7 @@
         #region Private-Members
 
         private int _MaxResults = 1000;
+        private int _Skip = 0;
         private List<string> _Labels = new List<string>();
         private NameValueCollection _Tags = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
 
