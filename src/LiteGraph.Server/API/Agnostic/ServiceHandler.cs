@@ -1008,16 +1008,17 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            SearchResult sresp = new SearchResult();
-            sresp.Edges = _LiteGraph.Edge.ReadMany(
+
+            Edge edge = _LiteGraph.Edge.ReadFirst(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
-                req.SearchRequest.Ordering,
-                req.SearchRequest.Skip).ToList();
-            return new ResponseContext(req, sresp);
+                req.SearchRequest.Ordering);
+
+            if (edge != null) return new ResponseContext(req, edge);
+            else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
         }
 
         internal async Task<ResponseContext> EdgeRead(RequestContext req)
