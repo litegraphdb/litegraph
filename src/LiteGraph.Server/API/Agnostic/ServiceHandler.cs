@@ -971,7 +971,7 @@
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             EnumerationResult<Edge> er = _LiteGraph.Edge.Enumerate(req.EnumerationQuery);
-            return new ResponseContext(req, req.Edges);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> EdgesBetween(RequestContext req)
