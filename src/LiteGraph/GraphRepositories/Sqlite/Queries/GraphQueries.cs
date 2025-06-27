@@ -151,7 +151,9 @@
             if (labels != null && labels.Count > 0)
                 ret += "INNER JOIN 'labels' "
                     + "ON graphs.guid = labels.graphguid "
-                    + "AND graphs.tenantguid = labels.tenantguid ";
+                    + "AND graphs.tenantguid = labels.tenantguid "
+                    + "AND labels.nodeguid IS NULL "
+                    + "AND labels.edgeguid IS NULL ";
 
             if (tags != null && tags.Count > 0)
             {
@@ -161,7 +163,9 @@
                     ret +=
                         "INNER JOIN 'tags' t" + added.ToString() + " " +
                         "ON graphs.guid = t" + added.ToString() + ".graphguid " +
-                        "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid ";
+                        "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid " +
+                        "AND t" + added.ToString() + ".nodeguid IS NULL " +
+                        "AND t" + added.ToString() + ".edgeguid IS NULL ";
                     added++;
                 }
             }
@@ -248,6 +252,8 @@
                     ret += "AND EXISTS (SELECT 1 FROM 'labels' " +
                            "WHERE labels.graphguid = graphs.guid " +
                            "AND labels.tenantguid = graphs.tenantguid " +
+                           "AND labels.nodeguid IS NULL " +
+                           "AND labels.edgeguid IS NULL " +
                            "AND labels.label = '" + Sanitizer.Sanitize(label) + "') ";
                 }
             }
@@ -261,6 +267,8 @@
                     ret += "AND EXISTS (SELECT 1 FROM 'tags' " +
                            "WHERE tags.graphguid = graphs.guid " +
                            "AND tags.tenantguid = graphs.tenantguid " +
+                           "AND tags.nodeguid IS NULL " +
+                           "AND tags.edgeguid IS NULL " +
                            "AND tags.tagkey = '" + Sanitizer.Sanitize(key) + "' ";
 
                     if (!String.IsNullOrEmpty(val))
@@ -315,6 +323,8 @@
                     ret += "AND EXISTS (SELECT 1 FROM 'labels' " +
                            "WHERE labels.graphguid = graphs.guid " +
                            "AND labels.tenantguid = graphs.tenantguid " +
+                           "AND labels.nodeguid IS NULL " +
+                           "AND labels.edgeguid IS NULL " +
                            "AND labels.label = '" + Sanitizer.Sanitize(label) + "') ";
                 }
             }
@@ -327,6 +337,8 @@
                     ret += "AND EXISTS (SELECT 1 FROM 'tags' " +
                            "WHERE tags.graphguid = graphs.guid " +
                            "AND tags.tenantguid = graphs.tenantguid " +
+                           "AND tags.nodeguid IS NULL " +
+                           "AND tags.edgeguid IS NULL " +
                            "AND tags.tagkey = '" + Sanitizer.Sanitize(key) + "' ";
 
                     if (!String.IsNullOrEmpty(val))
@@ -354,7 +366,6 @@
 
             return ret;
         }
-
 
         internal static string Update(Graph graph)
         {
