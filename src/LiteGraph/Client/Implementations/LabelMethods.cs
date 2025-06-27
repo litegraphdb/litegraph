@@ -118,7 +118,11 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadAllInGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<LabelMetadata> ReadAllInGraph(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
@@ -147,7 +151,11 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<LabelMetadata> ReadManyGraph(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
@@ -158,7 +166,12 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<LabelMetadata> ReadManyNode(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid nodeGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
@@ -169,7 +182,12 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<LabelMetadata> ReadManyEdge(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid edgeGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 

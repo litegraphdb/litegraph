@@ -1801,6 +1801,8 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             return new EnumerationQuery
             {
+                TenantGUID = req.TenantGUID,
+                GraphGUID = req.GraphGUID,
                 MaxResults = req.MaxKeys,
                 Skip = req.Skip,
                 IncludeData = req.IncludeData,

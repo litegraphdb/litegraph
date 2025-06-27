@@ -375,7 +375,6 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
-            req.EnumerationQuery.GraphGUID = req.GraphGUID;
             EnumerationResult<LabelMetadata> er = _LiteGraph.Label.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -454,7 +453,6 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
-            req.EnumerationQuery.GraphGUID = req.GraphGUID;
             EnumerationResult<TagMetadata> er = _LiteGraph.Tag.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -532,7 +530,6 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
-            req.EnumerationQuery.GraphGUID = req.GraphGUID;
             EnumerationResult<VectorMetadata> er = _LiteGraph.Vector.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
