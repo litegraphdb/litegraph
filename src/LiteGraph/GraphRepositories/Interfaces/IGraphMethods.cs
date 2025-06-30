@@ -85,6 +85,14 @@
         Graph ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Read graph by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Graphs.</returns>
+        IEnumerable<Graph> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>

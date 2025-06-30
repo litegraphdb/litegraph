@@ -6197,6 +6197,32 @@
 							"response": []
 						},
 						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Enumerate",
 							"request": {
 								"method": "GET",
@@ -6507,6 +6533,34 @@
 							"response": []
 						},
 						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"users"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Enumerate",
 							"request": {
 								"method": "GET",
@@ -6746,6 +6800,34 @@
 							"response": []
 						},
 						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"credentials"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Enumerate",
 							"request": {
 								"method": "GET",
@@ -6979,6 +7061,34 @@
 										"tenants",
 										"{{tenant}}",
 										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/labels?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"labels"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
 									]
 								}
 							},
@@ -7300,6 +7410,34 @@
 							"response": []
 						},
 						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/tags?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"tags"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Enumerate",
 							"request": {
 								"method": "GET",
@@ -7609,6 +7747,34 @@
 										"tenants",
 										"{{tenant}}",
 										"vectors"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/vectors?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"vectors"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
 									]
 								}
 							},
@@ -7961,6 +8127,34 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
 									]
 								}
 							},
@@ -8487,6 +8681,36 @@
 							"response": []
 						},
 						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Enumerate",
 							"request": {
 								"method": "GET",
@@ -8973,6 +9197,36 @@
 										"graphs",
 										"{{graph}}",
 										"edges"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read by GUIDs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges?guids=00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"edges"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,00000000-0000-0000-0000-000000000001"
+										}
 									]
 								}
 							},

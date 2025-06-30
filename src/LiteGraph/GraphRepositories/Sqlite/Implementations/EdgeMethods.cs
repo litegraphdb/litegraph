@@ -182,15 +182,29 @@
         }
 
         /// <inheritdoc />
-        public Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public Edge ReadByGuid(Guid tenantGuid, Guid edgeGuid)
         {
-            DataTable result = _Repo.ExecuteQuery(EdgeQueries.Select(tenantGuid, graphGuid, edgeGuid));
+            DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectByGuid(tenantGuid, edgeGuid));
             if (result != null && result.Rows.Count == 1)
             {
                 Edge edge = Converters.EdgeFromDataRow(result.Rows[0]);
                 return edge;
             }
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.EdgeFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />
@@ -319,7 +333,7 @@
 
             if (query.TenantGUID != null && query.ContinuationToken != null && query.GraphGUID != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.GraphGUID.Value, query.ContinuationToken.Value);
+                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -399,7 +413,7 @@
             Edge marker = null;
             if (tenantGuid != null && graphGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, graphGuid.Value, markerGuid.Value);
+                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
@@ -469,9 +483,9 @@
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public bool ExistsByGuid(Guid tenantGuid, Guid edgeGuid)
         {
-            return (ReadByGuid(tenantGuid, graphGuid, edgeGuid) != null);
+            return (ReadByGuid(tenantGuid, edgeGuid) != null);
         }
 
         #endregion

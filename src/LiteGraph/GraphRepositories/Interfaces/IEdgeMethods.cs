@@ -107,10 +107,17 @@
         /// Read edge.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        /// <param name="graphGuid">Graph GUID.</param>
-        /// <param name="edgeGuid">Edge GUID.</param>
+        /// <param name="guid">Edge GUID.</param>
         /// <returns>Edge.</returns>
-        Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
+        Edge ReadByGuid(Guid tenantGuid, Guid guid);
+
+        /// <summary>
+        /// Read edges by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">Edge GUIDs.</param>
+        /// <returns>Edge.</returns>
+        IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids);
 
         /// <summary>
         /// Get edges connected to or initiated from a given node.
@@ -300,9 +307,8 @@
         /// Check if an edge exists by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
         /// <returns>True if exists.</returns>
-        bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
+        bool ExistsByGuid(Guid tenantGuid, Guid edgeGuid);
     }
 }

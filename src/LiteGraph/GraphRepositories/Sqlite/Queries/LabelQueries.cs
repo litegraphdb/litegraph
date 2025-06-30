@@ -103,9 +103,19 @@
             return ret;
         }
 
-        internal static string Select(Guid tenantGuid, Guid guid)
+        internal static string SelectByGuid(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'labels' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
+        }
+
+        internal static string SelectByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            return
+                "SELECT * FROM 'labels' " +
+                "WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND guid IN (" +
+                string.Join(", ", guids.Select(g => "'" + g + "'")) +
+                ");";
         }
 
         internal static string SelectGraph(

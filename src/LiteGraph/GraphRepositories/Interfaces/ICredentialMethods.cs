@@ -61,6 +61,14 @@
         Credential ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Read credential by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Credential.</returns>
+        IEnumerable<Credential> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Read a credential by bearer token.
         /// </summary>
         /// <param name="bearerToken">Bearer token.</param>

@@ -62,8 +62,8 @@
             if (edge == null) throw new ArgumentNullException(nameof(edge));
             _Client.ValidateTenantExists(edge.TenantGUID);
             _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.GraphGUID, edge.To);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.GraphGUID, edge.From);
+            _Client.ValidateNodeExists(edge.TenantGUID, edge.To);
+            _Client.ValidateNodeExists(edge.TenantGUID, edge.From);
             _Client.ValidateLabels(edge.Labels);
             _Client.ValidateTags(edge.Tags);
             _Client.ValidateVectors(edge.Vectors);
@@ -213,7 +213,7 @@
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, graphGuid, edgeGuid);
+            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid);
             if (edge == null) return null;
             List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edgeGuid, null).ToList();
             if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
@@ -221,6 +221,23 @@
             if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
             edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edge.GUID).ToList();
             return edge;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving edges");
+            foreach (Edge obj in _Repo.Edge.ReadByGuids(tenantGuid, guids))
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, obj.GraphGUID, null, obj.GUID, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, obj.GraphGUID, obj.GUID).ToList();
+                yield return obj;
+            }
         }
 
         /// <inheritdoc />
@@ -388,8 +405,8 @@
             if (edge == null) throw new ArgumentNullException(nameof(edge));
             _Client.ValidateTenantExists(edge.TenantGUID);
             _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.GraphGUID, edge.To);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.GraphGUID, edge.From);
+            _Client.ValidateNodeExists(edge.TenantGUID, edge.To);
+            _Client.ValidateNodeExists(edge.TenantGUID, edge.From);
             _Client.ValidateLabels(edge.Labels);
             _Client.ValidateTags(edge.Tags);
             _Client.ValidateVectors(edge.Vectors);
@@ -405,7 +422,7 @@
         /// <inheritdoc />
         public void DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
-            _Client.ValidateEdgeExists(tenantGuid, graphGuid, edgeGuid);
+            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
             _Repo.Edge.DeleteByGuid(tenantGuid, graphGuid, edgeGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "deleted edge " + edgeGuid + " in graph " + graphGuid);
             _EdgeCache.TryRemove(edgeGuid);
@@ -447,7 +464,7 @@
         public void DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
             _Repo.Edge.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges for node " + nodeGuid);
             _EdgeCache.Clear();
@@ -467,7 +484,7 @@
         public bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            return _Repo.Edge.ExistsByGuid(tenantGuid, graphGuid, edgeGuid);
+            return _Repo.Edge.ExistsByGuid(tenantGuid, edgeGuid);
         }
 
         #endregion

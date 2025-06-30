@@ -56,8 +56,8 @@
 
             _Client.ValidateTenantExists(tag.TenantGUID);
             _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID);
-            if (tag.NodeGUID != null) _Client.ValidateNodeExists(tag.TenantGUID, tag.GraphGUID, tag.NodeGUID.Value);
-            if (tag.EdgeGUID != null) _Client.ValidateEdgeExists(tag.TenantGUID, tag.GraphGUID, tag.EdgeGUID.Value);
+            if (tag.NodeGUID != null) _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value);
+            if (tag.EdgeGUID != null) _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value);
             TagMetadata created = _Repo.Tag.Create(tag);
             _Client.Logging.Log(SeverityEnum.Info, "created tag " + created.GUID);
             return created;
@@ -136,7 +136,11 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<TagMetadata> ReadManyGraph(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
@@ -147,7 +151,12 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<TagMetadata> ReadManyNode(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid nodeGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
@@ -158,7 +167,12 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public IEnumerable<TagMetadata> ReadManyEdge(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid edgeGuid, 
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
+            int skip = 0)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
@@ -177,6 +191,16 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
+            foreach (TagMetadata obj in _Repo.Tag.ReadByGuids(tenantGuid, guids))
+            {
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query)
         {
             if (query == null) query = new EnumerationQuery();
@@ -190,8 +214,8 @@
 
             _Client.ValidateTenantExists(tag.TenantGUID);
             _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID);
-            if (tag.NodeGUID != null) _Client.ValidateNodeExists(tag.TenantGUID, tag.GraphGUID, tag.NodeGUID.Value);
-            if (tag.EdgeGUID != null) _Client.ValidateEdgeExists(tag.TenantGUID, tag.GraphGUID, tag.EdgeGUID.Value);
+            if (tag.NodeGUID != null) _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value);
+            if (tag.EdgeGUID != null) _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value);
             tag = _Repo.Tag.Update(tag);
             _Client.Logging.Log(SeverityEnum.Debug, "updated tag " + tag.GUID);
             return tag;
@@ -251,7 +275,7 @@
         public void DeleteNodeTags(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
             _Repo.Tag.DeleteNodeTags(tenantGuid, graphGuid, nodeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags for node " + nodeGuid);
         }
@@ -260,7 +284,7 @@
         public void DeleteEdgeTags(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, graphGuid, edgeGuid);
+            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
             _Repo.Tag.DeleteEdgeTags(tenantGuid, graphGuid, edgeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags for edge " + edgeGuid);
         }

@@ -327,22 +327,20 @@
             GraphCacheAdd(graph);
         }
 
-        internal void ValidateNodeExists(Guid tenantGuid, Guid? graphGuid, Guid? nodeGuid)
+        internal void ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid)
         {
-            if (graphGuid == null) return;
             if (nodeGuid == null) return;
             if (NodeCacheTryGet(nodeGuid.Value, out var _)) return;
-            Node node = _Repo.Node.ReadByGuid(tenantGuid, graphGuid.Value, nodeGuid.Value);
+            Node node = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid.Value);
             if (node == null) throw new ArgumentException("No node with GUID '" + nodeGuid.Value + "' exists.");
             NodeCacheAdd(node);
         }
 
-        internal void ValidateEdgeExists(Guid tenantGuid, Guid? graphGuid, Guid? edgeGuid)
+        internal void ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid)
         {
-            if (graphGuid == null) return;
             if (edgeGuid == null) return;
             if (EdgeCacheTryGet(edgeGuid.Value, out var _)) return;
-            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, graphGuid.Value, edgeGuid.Value);
+            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid.Value);
             if (edge == null) throw new ArgumentException("No edge with GUID '" + edgeGuid.Value + "' exists.");
             EdgeCacheAdd(edge);
         }

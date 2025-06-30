@@ -59,8 +59,8 @@
             if (vector == null) throw new ArgumentNullException(nameof(vector));
 
             _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID);
-            if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.GraphGUID, vector.NodeGUID.Value);
-            if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.GraphGUID, vector.EdgeGUID.Value);
+            if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value);
+            if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value);
             VectorMetadata created = _Repo.Vector.Create(vector);
             _Client.Logging.Log(SeverityEnum.Info, "created vector " + created.GUID);
             return created;
@@ -82,8 +82,8 @@
                 vector.TenantGUID = tenantGuid;
                 
                 _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID);
-                if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.GraphGUID, vector.NodeGUID.Value);
-                if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.GraphGUID, vector.EdgeGUID.Value);
+                if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value);
+                if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value);
             }
 
             return _Repo.Vector.CreateMany(tenantGuid, vectors);
@@ -207,6 +207,16 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving vectors");
+            foreach (VectorMetadata obj in _Repo.Vector.ReadByGuids(tenantGuid, guids))
+            {
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public EnumerationResult<VectorMetadata> Enumerate(EnumerationQuery query)
         {
             if (query == null) query = new EnumerationQuery();
@@ -220,8 +230,8 @@
 
             _Client.ValidateTenantExists(vector.TenantGUID);
             _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID);
-            if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.GraphGUID, vector.NodeGUID.Value);
-            if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.GraphGUID, vector.EdgeGUID.Value);
+            if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value);
+            if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value);
             vector = _Repo.Vector.Update(vector);
             _Client.Logging.Log(SeverityEnum.Debug, "updated vector GUID " + vector.GUID);
             return vector;
@@ -280,7 +290,7 @@
         public void DeleteNodeVectors(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
             _Repo.Vector.DeleteNodeVectors(tenantGuid, graphGuid, nodeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors for node " + nodeGuid);
         }
@@ -289,7 +299,7 @@
         public void DeleteEdgeVectors(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, graphGuid, edgeGuid);
+            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
             _Repo.Vector.DeleteEdgeVectors(tenantGuid, graphGuid, edgeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors for edge " + edgeGuid);
         }

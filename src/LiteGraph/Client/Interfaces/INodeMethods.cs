@@ -150,6 +150,14 @@
         Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
 
         /// <summary>
+        /// Read nodes by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Nodes.</returns>
+        IEnumerable<Node> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
@@ -196,10 +204,10 @@
         /// Check existence of a node.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
+        /// 
         /// <returns>True if exists.</returns>
-        bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
+        bool ExistsByGuid(Guid tenantGuid, Guid nodeGuid);
 
         /// <summary>
         /// Get nodes that have edges connecting to the specified node.

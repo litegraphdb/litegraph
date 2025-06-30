@@ -98,6 +98,16 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<Credential> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
+            foreach (Credential obj in _Repo.Credential.ReadByGuids(tenantGuid, guids))
+            {
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public Credential ReadByBearerToken(string bearerToken)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credential with token " + bearerToken);

@@ -79,6 +79,16 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving tenants");
+            foreach (TenantMetadata obj in _Repo.Tenant.ReadByGuids(guids))
+            {
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query)
         {
             if (query == null) query = new EnumerationQuery();

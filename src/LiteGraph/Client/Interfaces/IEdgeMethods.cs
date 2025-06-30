@@ -108,6 +108,14 @@
         Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
 
         /// <summary>
+        /// Read edges by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Edges.</returns>
+        IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Get edges connected to or initiated from a given node.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

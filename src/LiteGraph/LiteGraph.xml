@@ -158,6 +158,9 @@
         <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByBearerToken(System.String)">
             <inheritdoc />
         </member>
@@ -212,6 +215,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.Enumerate(LiteGraph.EnumerationQuery)">
@@ -282,6 +288,9 @@
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
@@ -341,6 +350,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
@@ -417,6 +429,9 @@
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
@@ -435,7 +450,7 @@
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.DeleteMany(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ExistsByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -490,6 +505,9 @@
         <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.TagMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
@@ -541,6 +559,9 @@
         <member name="M:LiteGraph.Client.Implementations.TenantMethods.ReadByGuid(System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.TenantMethods.ReadByGuids(System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.TenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <inheritdoc />
         </member>
@@ -588,6 +609,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadTenantsByEmail(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationQuery)">
@@ -646,6 +670,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.VectorMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
@@ -797,6 +824,14 @@
             <param name="guid">GUID.</param>
             <returns>Credential.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read credentials by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Credentials.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByBearerToken(System.String)">
             <summary>
             Read a credential by bearer token.
@@ -926,6 +961,14 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
             <returns>Edge.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read edges by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Edges.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <summary>
@@ -1123,6 +1166,14 @@
             <param name="guid">GUID.</param>
             <returns>Graph.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read graphs by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Graphs.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
             Enumerate objects.
@@ -1266,6 +1317,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Label.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read labels by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Labels.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
@@ -1459,6 +1518,14 @@
             <param name="nodeGuid">Node GUID.</param>
             <returns>Node.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read nodes by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Nodes.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.INodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
             Enumerate objects.
@@ -1502,13 +1569,13 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuids">Node GUIDs.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ExistsByGuid(System.Guid,System.Guid)">
             <summary>
             Check existence of a node.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
+            
             <returns>True if exists.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -1657,6 +1724,14 @@
             <param name="guid">GUID.</param>
             <returns>Tag.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITagMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read tags by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Tags.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ITagMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
             Enumerate objects.
@@ -1766,6 +1841,13 @@
             <param name="guid">GUID.</param>
             <returns>Tenant.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITenantMethods.ReadByGuids(System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read tenants by GUIDs.
+            </summary>
+            <param name="guids">GUIDs.</param>
+            <returns>Tenants.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ITenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
             Enumerate objects.
@@ -1846,6 +1928,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>User.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read users by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Users.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadTenantsByEmail(System.String)">
             <summary>
@@ -1996,6 +2086,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Vector.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read vectors by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Vectors.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
@@ -3065,6 +3163,14 @@
             <param name="guid">GUID.</param>
             <returns>Credential.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read credential by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Credential.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByBearerToken(System.String)">
             <summary>
             Read a credential by bearer token.
@@ -3196,13 +3302,20 @@
             <param name="order">Enumeration order.</param>
             <returns>Edge.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid)">
             <summary>
             Read edge.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
-            <param name="edgeGuid">Edge GUID.</param>
+            <param name="guid">Edge GUID.</param>
+            <returns>Edge.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read edges by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">Edge GUIDs.</param>
             <returns>Edge.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -3349,12 +3462,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuids">Edge GUIDs.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods.ExistsByGuid(System.Guid,System.Guid)">
             <summary>
             Check if an edge exists by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
             <returns>True if exists.</returns>
         </member>
@@ -3416,6 +3528,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Graph.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read graph by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Graphs.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
@@ -3574,6 +3694,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Label.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read labels by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Labels.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
@@ -3768,14 +3896,21 @@
             <param name="skip">The number of records to skip.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid)">
             <summary>
             Read node.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
-            <param name="nodeGuid">Node GUID.</param>
+            <param name="guid">Node GUID.</param>
             <returns>Node.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read nodes by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">Node GUIDs.</param>
+            <returns>Nodes.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
@@ -3836,12 +3971,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuids">Node GUIDs.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.INodeMethods.ExistsByGuid(System.Guid,System.Guid)">
             <summary>
             Check existence of a node.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <returns>True if exists.</returns>
         </member>
@@ -3991,6 +4125,14 @@
             <param name="guid">GUID.</param>
             <returns>Tag.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read tags by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Tags.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
             Enumerate objects.
@@ -4110,6 +4252,13 @@
             <param name="guid">GUID.</param>
             <returns>Tenant.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.ReadByGuids(System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read tenants by GUIDs.
+            </summary>
+            <param name="guids">GUIDs.</param>
+            <returns>Tenants.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ITenantMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
             Enumerate objects.
@@ -4198,6 +4347,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>User.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read users by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Users.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadTenantsByEmail(System.String)">
             <summary>
@@ -4357,6 +4514,14 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
             <returns>Vector.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Read vectors by GUIDs.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guids">GUIDs.</param>
+            <returns>Vectors.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.Enumerate(LiteGraph.EnumerationQuery)">
             <summary>
@@ -4550,6 +4715,9 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByBearerToken(System.String)">
             <inheritdoc />
         </member>
@@ -4595,7 +4763,10 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadFirst(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -4637,7 +4808,7 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.DeleteNodeEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods.ExistsByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods">
@@ -4665,6 +4836,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.Enumerate(LiteGraph.EnumerationQuery)">
@@ -4745,6 +4919,9 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
@@ -4802,7 +4979,10 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.Enumerate(LiteGraph.EnumerationQuery)">
@@ -4826,7 +5006,7 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.DeleteMany(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ExistsByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.NodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -4895,6 +5075,9 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadByGuid(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
             <inheritdoc />
         </member>
@@ -4938,6 +5121,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.ReadByGuid(System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.ReadByGuids(System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TenantMethods.ReadMany(LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -4989,6 +5175,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadTenantsByEmail(System.String)">
@@ -5061,6 +5250,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadByGuid(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32)">
@@ -5385,6 +5577,13 @@
             <param name="replacementChar">Replacement character.</param>
             <param name="charsToRetain">Number of characters to retain.</param>
             <returns>Redacted string.</returns>
+        </member>
+        <member name="M:LiteGraph.Helpers.StringHelpers.StringToGuidList(System.String)">
+            <summary>
+            Convert a CSV string list of GUIDs to a List of Guid.
+            </summary>
+            <param name="str">Input string.</param>
+            <returns>List of GUIDs.</returns>
         </member>
         <member name="T:LiteGraph.Helpers.VectorHelper">
             <summary>

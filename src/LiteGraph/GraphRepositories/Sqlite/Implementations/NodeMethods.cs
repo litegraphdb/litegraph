@@ -234,15 +234,29 @@
         }
 
         /// <inheritdoc />
-        public Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public Node ReadByGuid(Guid tenantGuid, Guid nodeGuid)
         {
-            DataTable result = _Repo.ExecuteQuery(NodeQueries.Select(tenantGuid, graphGuid, nodeGuid));
+            DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectByGuid(tenantGuid, nodeGuid));
             if (result != null && result.Rows.Count == 1)
             {
                 Node node = Converters.NodeFromDataRow(result.Rows[0]);
                 return node;
             }
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Node> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.NodeFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />
@@ -254,7 +268,7 @@
 
             if (query.TenantGUID != null && query.ContinuationToken != null && query.GraphGUID != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.GraphGUID.Value, query.ContinuationToken.Value);
+                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -334,7 +348,7 @@
             Node marker = null;
             if (tenantGuid != null && graphGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, graphGuid.Value, markerGuid.Value);
+                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
@@ -395,9 +409,9 @@
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public bool ExistsByGuid(Guid tenantGuid, Guid nodeGuid)
         {
-            return (ReadByGuid(tenantGuid, graphGuid, nodeGuid) != null);
+            return (ReadByGuid(tenantGuid, nodeGuid) != null);
         }
 
         /// <inheritdoc />
@@ -420,7 +434,7 @@
                     Edge edge = Converters.EdgeFromDataRow(result.Rows[i]);
                     if (edge.To.Equals(nodeGuid))
                     {
-                        Node parent = ReadByGuid(tenantGuid, graphGuid, edge.From);
+                        Node parent = ReadByGuid(tenantGuid, edge.From);
                         if (parent != null) yield return parent;
                         else _Repo.Logging.Log(SeverityEnum.Warn, "node " + edge.From + " referenced in graph " + graphGuid + " but does not exist");
                     }
@@ -452,7 +466,7 @@
                     Edge edge = Converters.EdgeFromDataRow(result.Rows[i]);
                     if (edge.From.Equals(nodeGuid))
                     {
-                        Node child = ReadByGuid(tenantGuid, graphGuid, edge.To);
+                        Node child = ReadByGuid(tenantGuid, edge.To);
                         if (child != null) yield return child;
                         else _Repo.Logging.Log(SeverityEnum.Warn, "node " + edge.To + " referenced in graph " + graphGuid + " but does not exist");
                     }
@@ -478,7 +492,17 @@
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectConnected(tenantGuid, graphGuid, nodeGuid, null, null, null, _Repo.SelectBatchSize, skip, order));
+                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectConnected(
+                    tenantGuid, 
+                    graphGuid, 
+                    nodeGuid, 
+                    null, 
+                    null, 
+                    null, 
+                    _Repo.SelectBatchSize, 
+                    skip, 
+                    order));
+
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -493,7 +517,7 @@
                         }
                         else
                         {
-                            Node neighbor = ReadByGuid(tenantGuid, graphGuid, edge.To);
+                            Node neighbor = ReadByGuid(tenantGuid, edge.To);
                             if (neighbor != null)
                             {
                                 visited.Add(edge.To);
@@ -512,7 +536,7 @@
                         }
                         else
                         {
-                            Node neighbor = ReadByGuid(tenantGuid, graphGuid, edge.From);
+                            Node neighbor = ReadByGuid(tenantGuid, edge.From);
                             if (neighbor != null)
                             {
                                 visited.Add(edge.From);
@@ -543,10 +567,10 @@
             Graph graph = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' exists.");
 
-            Node fromNode = ReadByGuid(tenantGuid, graphGuid, fromNodeGuid);
+            Node fromNode = ReadByGuid(tenantGuid, fromNodeGuid);
             if (fromNode == null) throw new ArgumentException("No node with GUID '" + fromNodeGuid + "' exists in graph '" + graphGuid + "'");
 
-            Node toNode = ReadByGuid(tenantGuid, graphGuid, toNodeGuid);
+            Node toNode = ReadByGuid(tenantGuid, toNodeGuid);
             if (toNode == null) throw new ArgumentException("No node with GUID '" + toNodeGuid + "' exists in graph '" + graphGuid + "'");
 
             #endregion
@@ -613,7 +637,7 @@
 
                 #region Retrieve-Next-Node
 
-                Node nextNode = ReadByGuid(tenantGuid, graph.GUID, nextEdge.To);
+                Node nextNode = ReadByGuid(tenantGuid, nextEdge.To);
                 if (nextNode == null)
                 {
                     _Repo.Logging.Log(SeverityEnum.Warn, "node " + nextEdge.To + " referenced in graph " + graph.GUID + " but does not exist");

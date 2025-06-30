@@ -182,6 +182,11 @@
         /// </summary>
         public static string ContinuationTokenQuerystring = "token";
 
+        /// <summary>
+        /// GUIDs querystring key.
+        /// </summary>
+        public static string GuidsQuerystring = "guids";
+
         #endregion
     }
 }

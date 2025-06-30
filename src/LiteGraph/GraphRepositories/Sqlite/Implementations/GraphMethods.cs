@@ -144,13 +144,27 @@
         /// <inheritdoc />
         public Graph ReadByGuid(Guid tenantGuid, Guid guid)
         {
-            DataTable result = _Repo.ExecuteQuery(GraphQueries.Select(tenantGuid, guid));
+            DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectByGuid(tenantGuid, guid));
             if (result != null && result.Rows.Count == 1)
             {
                 Graph graph = Converters.GraphFromDataRow(result.Rows[0]);
                 return graph;
             }
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Graph> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.GraphFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />

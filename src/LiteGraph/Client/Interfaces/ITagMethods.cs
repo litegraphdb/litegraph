@@ -128,6 +128,14 @@
         TagMetadata ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Read tags by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Tags.</returns>
+        IEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>

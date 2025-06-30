@@ -42,6 +42,13 @@
         TenantMetadata ReadByGuid(Guid guid);
 
         /// <summary>
+        /// Read tenants by GUIDs.
+        /// </summary>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Tenants.</returns>
+        IEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids);
+
+        /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>

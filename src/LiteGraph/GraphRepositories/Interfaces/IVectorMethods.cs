@@ -133,6 +133,14 @@
         VectorMetadata ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Read vectors by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Vectors.</returns>
+        IEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>

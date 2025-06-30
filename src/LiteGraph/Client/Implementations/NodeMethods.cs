@@ -9,6 +9,7 @@
     using System.Runtime.Serialization.Json;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Xml.Linq;
     using Caching;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
@@ -296,7 +297,7 @@
         public Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            Node node = _Repo.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid);
+            Node node = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
             if (node == null) return null;
             List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, nodeGuid, null, null).ToList();
             if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
@@ -304,6 +305,23 @@
             if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
             node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, nodeGuid).ToList();
             return node;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Node> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving nodes");
+            foreach (Node obj in _Repo.Node.ReadByGuids(tenantGuid, guids))
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, obj.GraphGUID, obj.GUID, null, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, obj.GraphGUID, obj.GUID, null, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, obj.GraphGUID, obj.GUID).ToList();
+                yield return obj;
+            }
         }
 
         /// <inheritdoc />
@@ -364,7 +382,7 @@
         /// <inheritdoc />
         public void DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
             _Repo.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted node " + nodeGuid + " in graph " + graphGuid);
             _NodeCache.TryRemove(nodeGuid);
@@ -403,9 +421,9 @@
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public bool ExistsByGuid(Guid tenantGuid, Guid nodeGuid)
         {
-            return _Repo.Node.ExistsByGuid(tenantGuid, graphGuid, nodeGuid);
+            return _Repo.Node.ExistsByGuid(tenantGuid, nodeGuid);
         }
 
         /// <inheritdoc />
@@ -417,7 +435,7 @@
             int skip = 0)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
 
             foreach (Node node in _Repo.Node.ReadParents(tenantGuid, graphGuid, nodeGuid, order, skip))
             {
@@ -434,7 +452,7 @@
             int skip = 0)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
 
             foreach (Node node in _Repo.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid, order, skip))
             {
@@ -451,7 +469,7 @@
             int skip = 0)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
 
             foreach (Node node in _Repo.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid, order, skip))
             {
@@ -470,8 +488,8 @@
             Expr nodeFilter = null)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, fromNodeGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, toNodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, fromNodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, toNodeGuid);
 
             foreach (RouteDetail route in _Repo.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, edgeFilter, nodeFilter))
             {

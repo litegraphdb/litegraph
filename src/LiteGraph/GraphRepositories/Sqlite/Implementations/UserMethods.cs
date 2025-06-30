@@ -105,9 +105,23 @@
         /// <inheritdoc />
         public UserMaster ReadByGuid(Guid tenantGuid, Guid guid)
         {
-            DataTable result = _Repo.ExecuteQuery(UserQueries.Select(tenantGuid, guid));
+            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectByGuid(tenantGuid, guid));
             if (result != null && result.Rows.Count == 1) return Converters.UserFromDataRow(result.Rows[0]);
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.UserFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />
@@ -123,7 +137,7 @@
         /// <inheritdoc />
         public UserMaster ReadByEmail(Guid tenantGuid, string email)
         {
-            DataTable result = _Repo.ExecuteQuery(UserQueries.Select(tenantGuid, email));
+            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectByEmail(tenantGuid, email));
             if (result != null && result.Rows.Count == 1) return Converters.UserFromDataRow(result.Rows[0]);
             return null;
         }

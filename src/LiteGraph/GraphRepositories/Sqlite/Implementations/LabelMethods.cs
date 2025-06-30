@@ -1,20 +1,12 @@
-﻿using SQLitePCL;
-using SyslogLogging;
-
-namespace LiteGraph.GraphRepositories.Sqlite.Implementations
+﻿namespace LiteGraph.GraphRepositories.Sqlite.Implementations
 {
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
-    using System.Reflection.Emit;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
-    using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
 
     using LoggingSettings = LoggingSettings;
 
@@ -175,9 +167,23 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         /// <inheritdoc />
         public LabelMetadata ReadByGuid(Guid tenantGuid, Guid guid)
         {
-            DataTable result = _Repo.ExecuteQuery(LabelQueries.Select(tenantGuid, guid));
+            DataTable result = _Repo.ExecuteQuery(LabelQueries.SelectByGuid(tenantGuid, guid));
             if (result != null && result.Rows.Count == 1) return Converters.LabelFromDataRow(result.Rows[0]);
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(LabelQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.LabelFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />

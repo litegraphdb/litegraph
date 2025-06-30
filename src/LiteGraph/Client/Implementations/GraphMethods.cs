@@ -195,6 +195,23 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<Graph> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
+            foreach (Graph obj in _Repo.Graph.ReadByGuids(tenantGuid, guids))
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, obj.GUID, null, null, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, obj.GUID, null, null, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, obj.GUID).ToList();
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public EnumerationResult<Graph> Enumerate(EnumerationQuery query)
         {
             if (query == null) query = new EnumerationQuery();

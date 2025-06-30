@@ -177,9 +177,23 @@
         /// <inheritdoc />
         public TagMetadata ReadByGuid(Guid tenantGuid, Guid guid)
         {
-            DataTable result = _Repo.ExecuteQuery(TagQueries.Select(tenantGuid, guid));
+            DataTable result = _Repo.ExecuteQuery(TagQueries.SelectByGuid(tenantGuid, guid));
             if (result != null && result.Rows.Count == 1) return Converters.TagFromDataRow(result.Rows[0]);
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(TagQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.TagFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />

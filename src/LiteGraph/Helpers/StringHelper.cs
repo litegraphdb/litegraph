@@ -50,5 +50,25 @@
                 return str.Substring(0, charsToRetain) + new string(replacementChar[0], str.Length - charsToRetain);
             }
         }
+
+        /// <summary>
+        /// Convert a CSV string list of GUIDs to a List of Guid.
+        /// </summary>
+        /// <param name="str">Input string.</param>
+        /// <returns>List of GUIDs.</returns>
+        public static List<Guid> StringToGuidList(string str)
+        {
+            if (String.IsNullOrEmpty(str)) return null;
+            string[] parts = str.Split(',');
+
+            List<Guid> ret = new List<Guid>();
+
+            foreach (string curr in parts)
+            {
+                if (Guid.TryParse(curr, out Guid guid)) ret.Add(guid);
+            }
+
+            return ret;
+        }
     }
 }

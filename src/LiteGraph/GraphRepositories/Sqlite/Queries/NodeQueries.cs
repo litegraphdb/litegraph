@@ -274,12 +274,21 @@
             return ret;
         }
 
-        internal static string Select(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        internal static string SelectByGuid(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'nodes' WHERE "
-                + "guid = '" + nodeGuid + "' "
-                + "AND tenantguid = '" + tenantGuid + "' "
-                + "AND graphguid = '" + graphGuid + "';";
+                + "guid = '" + guid + "' "
+                + "AND tenantguid = '" + tenantGuid + "';";
+        }
+
+        internal static string SelectByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            return
+                "SELECT * FROM 'nodes' " +
+                "WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND guid IN (" +
+                string.Join(", ", guids.Select(g => "'" + g + "'")) +
+                ");";
         }
 
         internal static string SelectMostConnected(

@@ -48,14 +48,24 @@
             return ret;
         }
 
-        internal static string Select(Guid tenantGuid, string email)
+        internal static string SelectByEmail(Guid tenantGuid, string email)
         {
             return "SELECT * FROM 'users' WHERE tenantguid = '" + tenantGuid + "' AND email = '" + Sanitizer.Sanitize(email) + "';";
         }
 
-        internal static string Select(Guid tenantGuid, Guid guid)
+        internal static string SelectByGuid(Guid tenantGuid, Guid guid)
         {
             return "SELECT * FROM 'users' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
+        }
+
+        internal static string SelectByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            return
+                "SELECT * FROM 'users' " +
+                "WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND guid IN (" +
+                string.Join(", ", guids.Select(g => "'" + g + "'")) +
+                ");";
         }
 
         internal static string SelectMany(

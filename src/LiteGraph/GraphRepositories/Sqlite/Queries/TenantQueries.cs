@@ -31,14 +31,23 @@
             return ret;
         }
 
-        internal static string Select(string name)
+        internal static string SelectByName(string name)
         {
             return "SELECT * FROM 'tenants' WHERE name = '" + Sanitizer.Sanitize(name) + "';";
         }
 
-        internal static string Select(Guid guid)
+        internal static string SelectByGuid(Guid guid)
         {
             return "SELECT * FROM 'tenants' WHERE guid = '" + guid.ToString() + "';";
+        }
+
+        internal static string SelectByGuids(List<Guid> guids)
+        {
+            return
+                "SELECT * FROM 'tenants' " +
+                "WHERE guid IN (" +
+                string.Join(", ", guids.Select(g => "'" + g + "'")) +
+                ");";
         }
 
         internal static string SelectMany(

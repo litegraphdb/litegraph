@@ -1,5 +1,6 @@
 ﻿namespace LiteGraph.Server.Classes
 {
+    using LiteGraph.Helpers;
     using LiteGraph.Serialization;
     using System;
     using System.Collections.Generic;
@@ -391,7 +392,7 @@
         /// Continuation token.
         /// </summary>
         public string ContinuationToken { get; set; } = null;
-
+         
         #endregion
 
         #endregion
@@ -515,6 +516,7 @@
                 if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
                 if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
                 if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
+                if (_Url.QueryExists(Constants.GuidsQuerystring)) GUIDs = StringHelpers.StringToGuidList(_Url.GetQueryValue(Constants.GuidsQuerystring));
             }
         }
 

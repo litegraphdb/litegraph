@@ -59,6 +59,14 @@
         UserMaster ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Read users by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Users.</returns>
+        IEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Read tenants associated with a given email address.
         /// </summary>
         /// <param name="email">Email address.</param>

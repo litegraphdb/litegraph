@@ -133,6 +133,14 @@
         LabelMetadata ReadByGuid(Guid tenantGuid, Guid guid);
 
         /// <summary>
+        /// Read labels by GUIDs.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="guids">GUIDs.</param>
+        /// <returns>Labels.</returns>
+        IEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+
+        /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>

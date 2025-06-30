@@ -113,6 +113,16 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving users");
+            foreach (UserMaster obj in _Repo.User.ReadByGuids(tenantGuid, guids))
+            {
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public EnumerationResult<UserMaster> Enumerate(EnumerationQuery query)
         {
             if (query == null) query = new EnumerationQuery();

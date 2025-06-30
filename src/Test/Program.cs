@@ -1433,7 +1433,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                exists = _Client.Node.ExistsByGuid(tenantGuid, graphGuid, guid);
+                exists = _Client.Node.ExistsByGuid(tenantGuid, guid);
             }
             else if (str.Equals("edge"))
             {

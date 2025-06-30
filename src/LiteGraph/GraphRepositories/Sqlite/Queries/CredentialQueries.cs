@@ -44,6 +44,16 @@
             return "SELECT * FROM 'creds' WHERE tenantguid = '" + tenantGuid + "' AND guid = '" + guid + "';";
         }
 
+        internal static string SelectByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            return
+                "SELECT * FROM 'creds' " +
+                "WHERE tenantguid = '" + tenantGuid + "' " +
+                "AND guid IN (" +
+                string.Join(", ", guids.Select(g => "'" + g + "'")) + 
+                ");";
+        }
+
         internal static string SelectAllInTenant(
             Guid tenantGuid, 
             int batchSize = 100, 

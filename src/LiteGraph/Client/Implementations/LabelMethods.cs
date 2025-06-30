@@ -60,12 +60,10 @@
 
             if (label.NodeGUID != null) _Client.ValidateNodeExists(
                 label.TenantGUID,
-                label.GraphGUID,
                 label.NodeGUID.Value);
 
             if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
                 label.TenantGUID,
-                label.GraphGUID,
                 label.EdgeGUID.Value);
 
             LabelMetadata created = _Repo.Label.Create(label);
@@ -87,12 +85,10 @@
 
                 if (label.NodeGUID != null) _Client.ValidateNodeExists(
                     label.TenantGUID,
-                    label.GraphGUID,
                     label.NodeGUID.Value);
 
                 if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
                     label.TenantGUID,
-                    label.GraphGUID,
                     label.EdgeGUID.Value);
 
                 label.TenantGUID = tenantGuid;
@@ -206,6 +202,16 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
+            foreach (LabelMetadata obj in _Repo.Label.ReadByGuids(tenantGuid, guids))
+            {
+                yield return obj;
+            }
+        }
+
+        /// <inheritdoc />
         public EnumerationResult<LabelMetadata> Enumerate(EnumerationQuery query)
         {
             if (query == null) query = new EnumerationQuery();
@@ -222,12 +228,10 @@
 
             if (label.NodeGUID != null) _Client.ValidateNodeExists(
                 label.TenantGUID,
-                label.GraphGUID,
                 label.NodeGUID.Value);
 
             if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
                 label.TenantGUID,
-                label.GraphGUID,
                 label.EdgeGUID.Value);
 
             label = _Repo.Label.Update(label);
@@ -263,7 +267,7 @@
         public void DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, graphGuid, nodeGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
             _Repo.Label.DeleteNodeLabels(tenantGuid, graphGuid, nodeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for node " + nodeGuid);
         }
@@ -272,7 +276,7 @@
         public void DeleteEdgeLabels(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, graphGuid, edgeGuid);
+            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
             _Repo.Label.DeleteEdgeLabels(tenantGuid, graphGuid, edgeGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for edge " + edgeGuid);
         }

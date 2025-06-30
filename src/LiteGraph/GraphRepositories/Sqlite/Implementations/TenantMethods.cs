@@ -70,9 +70,23 @@
         /// <inheritdoc />
         public TenantMetadata ReadByGuid(Guid guid)
         {
-            DataTable result = _Repo.ExecuteQuery(TenantQueries.Select(guid));
+            DataTable result = _Repo.ExecuteQuery(TenantQueries.SelectByGuid(guid));
             if (result != null && result.Rows.Count == 1) return Converters.TenantFromDataRow(result.Rows[0]);
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(TenantQueries.SelectByGuids(guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.TenantFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />

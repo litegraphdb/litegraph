@@ -186,9 +186,23 @@
         /// <inheritdoc />
         public VectorMetadata ReadByGuid(Guid tenantGuid, Guid guid)
         {
-            DataTable result = _Repo.ExecuteQuery(VectorQueries.Select(tenantGuid, guid));
+            DataTable result = _Repo.ExecuteQuery(VectorQueries.SelectByGuid(tenantGuid, guid));
             if (result != null && result.Rows.Count == 1) return Converters.VectorFromDataRow(result.Rows[0]);
             return null;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(VectorQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.VectorFromDataRow(result.Rows[i]);
+            }
         }
 
         /// <inheritdoc />

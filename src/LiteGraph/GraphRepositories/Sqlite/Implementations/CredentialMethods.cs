@@ -117,6 +117,20 @@
         }
 
         /// <inheritdoc />
+        public IEnumerable<Credential> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) yield break;
+            DataTable result = _Repo.ExecuteQuery(CredentialQueries.SelectByGuids(tenantGuid, guids));
+
+            if (result == null || result.Rows.Count < 1) yield break;
+
+            for (int i = 0; i < result.Rows.Count; i++)
+            {
+                yield return Converters.CredentialFromDataRow(result.Rows[i]);
+            }
+        }
+
+        /// <inheritdoc />
         public Credential ReadByBearerToken(string bearerToken)
         {
             if (String.IsNullOrEmpty(bearerToken)) throw new ArgumentNullException(nameof(bearerToken));
