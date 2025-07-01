@@ -1055,7 +1055,7 @@
             }
 
             if (objs == null) objs = new List<Edge>();
-            return new ResponseContext(req, req.Edges);
+            return new ResponseContext(req, objs);
         }
 
         internal async Task<ResponseContext> EdgeEnumerate(RequestContext req)
