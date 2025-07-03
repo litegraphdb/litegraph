@@ -140,7 +140,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<TagMetadata> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a tag.

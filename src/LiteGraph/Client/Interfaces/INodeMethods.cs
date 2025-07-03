@@ -59,6 +59,7 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="nodeFilter">
@@ -70,6 +71,7 @@
         Node ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
@@ -80,6 +82,7 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="nodeFilter">
@@ -92,6 +95,7 @@
         IEnumerable<Node> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
@@ -162,7 +166,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<Node> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<Node> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update node.

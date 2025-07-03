@@ -315,7 +315,7 @@
         /// <summary>
         /// Enumeration query.
         /// </summary>
-        public EnumerationQuery EnumerationQuery { get; set; } = null;
+        public EnumerationRequest EnumerationQuery { get; set; } = null;
 
         /// <summary>
         /// Route request.

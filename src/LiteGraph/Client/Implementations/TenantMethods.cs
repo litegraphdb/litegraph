@@ -89,9 +89,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<TenantMetadata> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             return _Repo.Tenant.Enumerate(query);
         }
 

@@ -86,7 +86,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result containing a page of objects.</returns>
-        EnumerationResult<UserMaster> Enumerate(EnumerationQuery query);
+        EnumerationResult<UserMaster> Enumerate(EnumerationRequest query);
 
         /// <summary>
         /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.

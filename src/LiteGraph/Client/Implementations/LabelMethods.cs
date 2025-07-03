@@ -212,9 +212,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<LabelMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<LabelMetadata> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             return _Repo.Label.Enumerate(query);
         }
 

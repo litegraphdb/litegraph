@@ -61,6 +61,11 @@
         }
 
         /// <summary>
+        /// Name on which to match.
+        /// </summary>
+        public string Name { get; set; } = null;
+
+        /// <summary>
         /// Search labels.
         /// </summary>
         public List<string> Labels

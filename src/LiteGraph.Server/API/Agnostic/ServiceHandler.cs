@@ -103,7 +103,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             EnumerationResult<BackupFile> er = _LiteGraph.Admin.BackupEnumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -164,7 +164,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             EnumerationResult<TenantMetadata> er = _LiteGraph.Tenant.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -253,7 +253,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             EnumerationResult<UserMaster> er = _LiteGraph.User.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -340,7 +340,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             EnumerationResult<Credential> er = _LiteGraph.Credential.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -406,7 +406,7 @@
         internal async Task<ResponseContext> LabelEnumerate(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             EnumerationResult<LabelMetadata> er = _LiteGraph.Label.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
@@ -495,7 +495,7 @@
         internal async Task<ResponseContext> TagEnumerate(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             EnumerationResult<TagMetadata> er = _LiteGraph.Tag.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
@@ -583,7 +583,7 @@
         internal async Task<ResponseContext> VectorEnumerate(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             EnumerationResult<VectorMetadata> er = _LiteGraph.Vector.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
@@ -711,7 +711,7 @@
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Graph.ReadMany(req.TenantGUID.Value, null, null, null, req.Order, req.Skip).ToList();
+                objs = _LiteGraph.Graph.ReadMany(req.TenantGUID.Value, null, null, null, null, req.Order, req.Skip).ToList();
             }
             else
             {
@@ -725,7 +725,7 @@
         internal async Task<ResponseContext> GraphEnumerate(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             EnumerationResult<Graph> er = _LiteGraph.Graph.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
@@ -747,6 +747,7 @@
             SearchResult sresp = new SearchResult();
             sresp.Graphs = _LiteGraph.Graph.ReadMany(
                 req.TenantGUID.Value,
+                req.SearchRequest.Name,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
@@ -760,6 +761,7 @@
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.ExistenceRequest));
             Graph graph = _LiteGraph.Graph.ReadFirst(
                 req.TenantGUID.Value,
+                req.SearchRequest.Name,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
@@ -889,7 +891,7 @@
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Node.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, req.Order, req.Skip).ToList();
+                objs = _LiteGraph.Node.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, null, req.Order, req.Skip).ToList();
             }
             else
             {
@@ -903,7 +905,7 @@
         internal async Task<ResponseContext> NodeEnumerate(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -920,6 +922,7 @@
             sresp.Nodes = _LiteGraph.Node.ReadMany(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
+                req.SearchRequest.Name,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
@@ -938,6 +941,7 @@
             Node node = _LiteGraph.Node.ReadFirst(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
+                req.SearchRequest.Name,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
@@ -1047,7 +1051,7 @@
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Edge.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, req.Order, req.Skip).ToList();
+                objs = _LiteGraph.Edge.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, null, req.Order, req.Skip).ToList();
             }
             else
             {
@@ -1061,7 +1065,7 @@
         internal async Task<ResponseContext> EdgeEnumerate(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationQuery();
+            if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -1089,6 +1093,7 @@
             Edge edge = _LiteGraph.Edge.ReadFirst(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
+                req.SearchRequest.Name,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
@@ -1107,6 +1112,7 @@
             Edge edge = _LiteGraph.Edge.ReadFirst(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
+                req.SearchRequest.Name,
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,

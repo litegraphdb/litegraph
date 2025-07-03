@@ -355,7 +355,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<LabelMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<LabelMetadata> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

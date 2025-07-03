@@ -82,6 +82,7 @@
         /// <inheritdoc />
         public IEnumerable<Graph> ReadMany(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -94,6 +95,7 @@
             {
                 DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectMany(
                     tenantGuid,
+                    name,
                     labels,
                     tags,
                     graphFilter,
@@ -117,6 +119,7 @@
         /// <inheritdoc />
         public Graph ReadFirst(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -124,6 +127,7 @@
         {
             DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectMany(
                 tenantGuid,
+                name,
                 labels,
                 tags,
                 graphFilter,
@@ -168,7 +172,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Graph> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Graph> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

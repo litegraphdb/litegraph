@@ -3,21 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Xml.Linq;
     using Caching;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-    using SQLitePCL;
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Edge methods.
@@ -151,6 +141,7 @@
         public IEnumerable<Edge> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
@@ -163,7 +154,7 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, labels, tags, expr, order, skip))
+            foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
                 if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
@@ -180,6 +171,7 @@
         public Edge ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
@@ -191,7 +183,7 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Edge edge = _Repo.Edge.ReadFirst(tenantGuid, graphGuid, labels, tags, expr, order);
+            Edge edge = _Repo.Edge.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order);
 
             if (edge != null)
             {
@@ -241,9 +233,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Edge> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Edge> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
 
             EnumerationResult<Edge> er = _Repo.Edge.Enumerate(query);
 

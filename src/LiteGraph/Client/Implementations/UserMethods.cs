@@ -123,9 +123,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<UserMaster> Enumerate(EnumerationQuery query)
+        public EnumerationResult<UserMaster> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             return _Repo.User.Enumerate(query);
         }
 

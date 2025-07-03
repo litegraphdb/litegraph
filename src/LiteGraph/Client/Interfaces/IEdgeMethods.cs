@@ -59,6 +59,7 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="edgeFilter">
@@ -71,6 +72,7 @@
         IEnumerable<Edge> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr edgeFilter = null,
@@ -82,6 +84,7 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="edgeFilter">
@@ -93,6 +96,7 @@
         Edge ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr edgeFilter = null,
@@ -222,7 +226,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<Edge> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<Edge> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update edge.

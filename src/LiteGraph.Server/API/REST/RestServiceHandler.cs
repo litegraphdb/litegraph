@@ -673,7 +673,7 @@
                 return;
             }
 
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantEnumerate);
@@ -786,7 +786,7 @@
                 return;
             }
 
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.UserEnumerate);
@@ -890,7 +890,7 @@
                 return;
             }
 
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialEnumerate);
@@ -990,7 +990,7 @@
         private async Task LabelEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelEnumerate);
         }
@@ -1081,7 +1081,7 @@
         private async Task TagEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TagEnumerate);
         }
@@ -1172,7 +1172,7 @@
         private async Task VectorEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.VectorEnumerate);
         }
@@ -1264,7 +1264,7 @@
         private async Task GraphEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphEnumerate);
         }
@@ -1425,7 +1425,7 @@
         private async Task NodeEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.NodeEnumerate);
         }
@@ -1560,7 +1560,7 @@
         private async Task EdgeEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationQuery>(Encoding.UTF8.GetString(req.Data));
+            if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeEnumerate);
         }
@@ -1796,10 +1796,10 @@
             }
         }
 
-        private EnumerationQuery BuildEnumerationQuery(RequestContext req)
+        private EnumerationRequest BuildEnumerationQuery(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            return new EnumerationQuery
+            return new EnumerationRequest
             {
                 TenantGUID = req.TenantGUID,
                 GraphGUID = req.GraphGUID,

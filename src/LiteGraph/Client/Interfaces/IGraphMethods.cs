@@ -35,6 +35,7 @@
         /// Read graphs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags on which to match.</param>
         /// <param name="graphFilter">
@@ -46,6 +47,7 @@
         /// <returns>Graphs.</returns>
         IEnumerable<Graph> ReadMany(
             Guid tenantGuid,
+            string name = null, 
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -56,6 +58,7 @@
         /// Read first.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags on which to match.</param>
         /// <param name="graphFilter">
@@ -66,6 +69,7 @@
         /// <returns>Graph.</returns>
         Graph ReadFirst(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -92,7 +96,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<Graph> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<Graph> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a graph.

@@ -79,7 +79,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<UserMaster> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<UserMaster> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a user.
