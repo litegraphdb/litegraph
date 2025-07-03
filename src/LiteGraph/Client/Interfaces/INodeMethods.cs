@@ -34,11 +34,15 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
         IEnumerable<Node> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read all nodes in a given graph.
@@ -47,12 +51,16 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
         IEnumerable<Node> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read first.
@@ -67,6 +75,8 @@
         /// Expression left terms must follow the form of Sqlite JSON paths.
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
         Node ReadFirst(
             Guid tenantGuid,
@@ -75,7 +85,9 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending);
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read nodes.
@@ -91,6 +103,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
         IEnumerable<Node> ReadMany(
             Guid tenantGuid,
@@ -100,7 +114,9 @@
             NameValueCollection tags = null,
             Expr nodeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read the most connected nodes.
@@ -114,6 +130,8 @@
         /// Expression left terms must follow the form of Sqlite JSON paths.
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
         IEnumerable<Node> ReadMostConnected(
             Guid tenantGuid,
@@ -121,7 +139,9 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read the least connected nodes.
@@ -135,6 +155,8 @@
         /// Expression left terms must follow the form of Sqlite JSON paths.
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
         IEnumerable<Node> ReadLeastConnected(
             Guid tenantGuid,
@@ -142,7 +164,9 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read node.
@@ -150,16 +174,29 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Node.</returns>
-        Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
+        Node ReadByGuid(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid nodeGuid,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read nodes by GUIDs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+        IEnumerable<Node> ReadByGuids(
+            Guid tenantGuid, 
+            List<Guid> guids,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Enumerate objects.

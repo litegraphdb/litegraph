@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>4.0.31</Version>
+		<Version>4.1.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>Read batch by GUID list.</PackageReleaseNotes>
+		<PackageReleaseNotes>Additional retrieval filters.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>

@@ -34,11 +34,15 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read all edges in a given graph.
@@ -47,12 +51,16 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read edges.
@@ -68,6 +76,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadMany(
             Guid tenantGuid,
@@ -77,7 +87,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read first.
@@ -92,6 +104,8 @@
         /// Expression left terms must follow the form of Sqlite JSON paths.
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edge.</returns>
         Edge ReadFirst(
             Guid tenantGuid,
@@ -100,7 +114,9 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr edgeFilter = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending);
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read edge.
@@ -108,16 +124,29 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edge.</returns>
-        Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
+        Edge ReadByGuid(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid edgeGuid,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read edges by GUIDs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+        IEnumerable<Edge> ReadByGuids(
+            Guid tenantGuid, 
+            List<Guid> guids,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Get edges connected to or initiated from a given node.
@@ -133,6 +162,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadNodeEdges(
             Guid tenantGuid,
@@ -142,7 +173,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Get edges from a given node.
@@ -158,6 +191,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadEdgesFromNode(
             Guid tenantGuid,
@@ -167,7 +202,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Get edges to a given node.
@@ -183,6 +220,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadEdgesToNode(
             Guid tenantGuid,
@@ -192,7 +231,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Get edges between two neighboring nodes.
@@ -209,6 +250,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Edges.</returns>
         IEnumerable<Edge> ReadEdgesBetweenNodes(
             Guid tenantGuid,
@@ -219,7 +262,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Enumerate objects.

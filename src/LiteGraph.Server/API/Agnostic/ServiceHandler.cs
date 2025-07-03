@@ -711,11 +711,24 @@
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Graph.ReadMany(req.TenantGUID.Value, null, null, null, null, req.Order, req.Skip).ToList();
+                objs = _LiteGraph.Graph.ReadMany(
+                    req.TenantGUID.Value, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    req.Order, 
+                    req.Skip,
+                    req.IncludeData,
+                    req.IncludeSubordinates).ToList();
             }
             else
             {
-                objs = _LiteGraph.Graph.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                objs = _LiteGraph.Graph.ReadByGuids(
+                    req.TenantGUID.Value, 
+                    req.GUIDs,
+                    req.IncludeData,
+                    req.IncludeSubordinates).ToList();
             }
 
             if (objs == null) objs = new List<Graph>();
@@ -751,7 +764,10 @@
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
-                req.SearchRequest.Ordering).ToList();
+                req.SearchRequest.Ordering,
+                req.SearchRequest.Skip,
+                req.SearchRequest.IncludeData,
+                req.SearchRequest.IncludeSubordinates).ToList();
             return new ResponseContext(req, sresp);
         }
 
@@ -765,7 +781,9 @@
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
-                req.SearchRequest.Ordering);
+                req.SearchRequest.Ordering,
+                req.SearchRequest.IncludeData,
+                req.SearchRequest.IncludeSubordinates);
 
             if (graph != null) return new ResponseContext(req, graph);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
@@ -774,7 +792,11 @@
         internal async Task<ResponseContext> GraphRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            Graph graph = _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value);
+            Graph graph = _LiteGraph.Graph.ReadByGuid(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value,
+                req.IncludeData,
+                req.IncludeSubordinates);
             if (graph == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             else return new ResponseContext(req, graph);
         }
@@ -885,17 +907,30 @@
         internal async Task<ResponseContext> NodeReadMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             List<Node> objs = null;
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Node.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, null, req.Order, req.Skip).ToList();
+                objs = _LiteGraph.Node.ReadMany(
+                    req.TenantGUID.Value, 
+                    req.GraphGUID.Value, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    req.Order, 
+                    req.Skip,
+                    req.IncludeData,
+                    req.IncludeSubordinates).ToList();
             }
             else
             {
-                objs = _LiteGraph.Node.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                objs = _LiteGraph.Node.ReadByGuids(
+                    req.TenantGUID.Value, 
+                    req.GUIDs,
+                    req.IncludeData,
+                    req.IncludeSubordinates).ToList();
             }
 
             if (objs == null) objs = new List<Node>();
@@ -908,7 +943,6 @@
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             EnumerationResult<Node> er = _LiteGraph.Node.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -917,7 +951,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+
             SearchResult sresp = new SearchResult();
             sresp.Nodes = _LiteGraph.Node.ReadMany(
                 req.TenantGUID.Value,
@@ -927,7 +961,9 @@
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
                 req.SearchRequest.Ordering,
-                req.SearchRequest.Skip).ToList();
+                req.SearchRequest.Skip,
+                req.SearchRequest.IncludeData,
+                req.SearchRequest.IncludeSubordinates).ToList();
             if (sresp.Nodes == null) sresp.Nodes = new List<Node>();
             return new ResponseContext(req, sresp);
         }
@@ -936,7 +972,6 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             Node node = _LiteGraph.Node.ReadFirst(
                 req.TenantGUID.Value,
@@ -945,7 +980,9 @@
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
-                req.SearchRequest.Ordering);
+                req.SearchRequest.Ordering,
+                req.SearchRequest.IncludeData,
+                req.SearchRequest.IncludeSubordinates);
 
             if (node != null) return new ResponseContext(req, node);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
@@ -954,8 +991,14 @@
         internal async Task<ResponseContext> NodeRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            Node node = _LiteGraph.Node.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value);
+
+            Node node = _LiteGraph.Node.ReadByGuid(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.NodeGUID.Value,
+                req.IncludeData,
+                req.IncludeSubordinates);
+
             if (node == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             else return new ResponseContext(req, node);
         }
@@ -1046,16 +1089,30 @@
         internal async Task<ResponseContext> EdgeReadMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+
             List<Edge> objs = null;
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Edge.ReadMany(req.TenantGUID.Value, req.GraphGUID.Value, null, null, null, null, req.Order, req.Skip).ToList();
+                objs = _LiteGraph.Edge.ReadMany(
+                    req.TenantGUID.Value, 
+                    req.GraphGUID.Value, 
+                    null, 
+                    null, 
+                    null, 
+                    null, 
+                    req.Order, 
+                    req.Skip,
+                    req.IncludeData,
+                    req.IncludeSubordinates).ToList();
             }
             else
             {
-                objs = _LiteGraph.Edge.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                objs = _LiteGraph.Edge.ReadByGuids(
+                    req.TenantGUID.Value, 
+                    req.GUIDs,
+                    req.IncludeData,
+                    req.IncludeSubordinates).ToList();
             }
 
             if (objs == null) objs = new List<Edge>();
@@ -1068,7 +1125,6 @@
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             EnumerationResult<Edge> er = _LiteGraph.Edge.Enumerate(req.EnumerationQuery);
             return new ResponseContext(req, er);
         }
@@ -1076,9 +1132,6 @@
         internal async Task<ResponseContext> EdgesBetween(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.FromGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "The specified from node does not exist.");
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.ToGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "The specified to node does not exist.");
             req.Edges = _LiteGraph.Edge.ReadEdgesBetweenNodes(req.TenantGUID.Value, req.GraphGUID.Value, req.FromGUID.Value, req.ToGUID.Value).ToList();
             if (req.Edges == null) req.Edges = new List<Edge>();
             return new ResponseContext(req, req.Edges);
@@ -1088,7 +1141,6 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             Edge edge = _LiteGraph.Edge.ReadFirst(
                 req.TenantGUID.Value,
@@ -1097,7 +1149,9 @@
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
-                req.SearchRequest.Ordering);
+                req.SearchRequest.Ordering,
+                req.SearchRequest.IncludeData,
+                req.SearchRequest.IncludeSubordinates);
 
             if (edge != null) return new ResponseContext(req, edge);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
@@ -1107,7 +1161,6 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             Edge edge = _LiteGraph.Edge.ReadFirst(
                 req.TenantGUID.Value,
@@ -1116,7 +1169,9 @@
                 req.SearchRequest.Labels,
                 req.SearchRequest.Tags,
                 req.SearchRequest.Expr,
-                req.SearchRequest.Ordering);
+                req.SearchRequest.Ordering,
+                req.SearchRequest.IncludeData,
+                req.SearchRequest.IncludeSubordinates);
 
             if (edge != null) return new ResponseContext(req, edge);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
@@ -1125,8 +1180,12 @@
         internal async Task<ResponseContext> EdgeRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            Edge edge = _LiteGraph.Edge.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value);
+            Edge edge = _LiteGraph.Edge.ReadByGuid(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.EdgeGUID.Value,
+                req.IncludeData,
+                req.IncludeSubordinates);
             if (edge == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, edge);
         }
@@ -1183,9 +1242,17 @@
         internal async Task<ResponseContext> EdgesFromNode(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Edge> edgesFrom = _LiteGraph.Edge.ReadEdgesFromNode(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value).ToList();
+            List<Edge> edgesFrom = _LiteGraph.Edge.ReadEdgesFromNode(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.NodeGUID.Value,
+                null,
+                null,
+                null,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates).ToList();
             if (edgesFrom == null) edgesFrom = new List<Edge>();
             return new ResponseContext(req, edgesFrom);
         }
@@ -1193,9 +1260,17 @@
         internal async Task<ResponseContext> EdgesToNode(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Edge> edgesTo = _LiteGraph.Edge.ReadEdgesToNode(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value).ToList();
+            List<Edge> edgesTo = _LiteGraph.Edge.ReadEdgesToNode(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.NodeGUID.Value,
+                null,
+                null,
+                null,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates).ToList();
             if (edgesTo == null) edgesTo = new List<Edge>();
             return new ResponseContext(req, edgesTo);
         }
@@ -1203,18 +1278,27 @@
         internal async Task<ResponseContext> AllEdgesToNode(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Edge> allEdges = _LiteGraph.Edge.ReadNodeEdges(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value).ToList();
+            List<Edge> allEdges = _LiteGraph.Edge.ReadNodeEdges(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.NodeGUID.Value,
+                null,
+                null,
+                null,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates).ToList();
             return new ResponseContext(req, allEdges);
         }
 
         internal async Task<ResponseContext> NodeChildren(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Node> nodes = _LiteGraph.Node.ReadChildren(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value).ToList();
+            List<Node> nodes = _LiteGraph.Node.ReadChildren(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.NodeGUID.Value).ToList();
             if (nodes == null) nodes = new List<Node>();
             return new ResponseContext(req, nodes);
         }
@@ -1222,9 +1306,10 @@
         internal async Task<ResponseContext> NodeParents(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Node> parents = _LiteGraph.Node.ReadParents(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value).ToList();
+            List<Node> parents = _LiteGraph.Node.ReadParents(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value, 
+                req.NodeGUID.Value).ToList();
             if (parents == null) parents = new List<Node>();
             return new ResponseContext(req, parents);
         }
@@ -1232,9 +1317,12 @@
         internal async Task<ResponseContext> NodeNeighbors(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Node> neighbors = _LiteGraph.Node.ReadNeighbors(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value).ToList();
+            List<Node> neighbors = _LiteGraph.Node.ReadNeighbors(
+                req.TenantGUID.Value, 
+                req.GraphGUID.Value,
+                req.NodeGUID.Value,
+                req.Order,
+                req.Skip).ToList();
             if (neighbors == null) neighbors = new List<Node>();
             return new ResponseContext(req, neighbors);
         }

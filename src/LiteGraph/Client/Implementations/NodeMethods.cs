@@ -88,7 +88,9 @@
         public IEnumerable<Node> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -100,16 +102,9 @@
 
             _Client.ValidateTenantExists(tenantGuid);
 
-            foreach (Node node in _Repo.Node.ReadAllInTenant(tenantGuid, order, skip))
+            foreach (Node obj in _Repo.Node.ReadAllInTenant(tenantGuid, order, skip))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList();
-                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList();
-                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
-                yield return node;
+                yield return PopulateNode(obj, includeSubordinates, includeData);
             }
         }
 
@@ -118,7 +113,9 @@
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -142,16 +139,9 @@
             }
             else
             {
-                foreach (Node node in _Repo.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+                foreach (Node obj in _Repo.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
                 {
-                    List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList();
-                    if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-
-                    List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList();
-                    if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                    node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
-                    yield return node;
+                    yield return PopulateNode(obj, includeSubordinates, includeData);
                 }
             }
         }
@@ -165,7 +155,9 @@
             NameValueCollection tags = null,
             Expr expr = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -189,16 +181,9 @@
             }
             else
             {
-                foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip))
+                foreach (Node obj in _Repo.Node.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip))
                 {
-                    List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
-                    if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-
-                    List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
-                    if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                    node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
-                    yield return node;
+                    yield return PopulateNode(obj, includeSubordinates, includeData);
                 }
             }
         }
@@ -211,7 +196,9 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -219,18 +206,11 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Node node = _Repo.Node.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order);
+            Node obj = _Repo.Node.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order);
 
-            if (node != null)
+            if (obj != null)
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
-                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
-                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
-                return node;
+                return PopulateNode(obj, includeSubordinates, includeData);
             }
 
             return null;
@@ -243,20 +223,15 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Node node in _Repo.Node.ReadMostConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
+            foreach (Node obj in _Repo.Node.ReadMostConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
-                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
-                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
-                yield return node;
+                yield return PopulateNode(obj, includeSubordinates, includeData);
             }
         }
 
@@ -267,51 +242,44 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Node node in _Repo.Node.ReadLeastConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
+            foreach (Node obj in _Repo.Node.ReadLeastConnected(tenantGuid, graphGuid, labels, tags, expr, skip))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
-                if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, node.GUID, null, null, null).ToList();
-                if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, node.GUID).ToList();
-                yield return node;
+                yield return PopulateNode(obj, includeSubordinates, includeData);
             }
         }
 
         /// <inheritdoc />
-        public Node ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public Node ReadByGuid(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid nodeGuid,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            Node node = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
-            if (node == null) return null;
-            List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, nodeGuid, null, null).ToList();
-            if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
-            List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, nodeGuid, null, null, null).ToList();
-            if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
-            node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, nodeGuid).ToList();
-            return node;
+            Node obj = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            if (obj == null) return null;
+            return PopulateNode(obj, includeSubordinates, includeData);
         }
 
         /// <inheritdoc />
-        public IEnumerable<Node> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public IEnumerable<Node> ReadByGuids(
+            Guid tenantGuid, 
+            List<Guid> guids,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving nodes");
+
             foreach (Node obj in _Repo.Node.ReadByGuids(tenantGuid, guids))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, obj.GraphGUID, obj.GUID, null, null).ToList();
-                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, obj.GraphGUID, obj.GUID, null, null, null).ToList();
-                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                obj.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, obj.GraphGUID, obj.GUID).ToList();
-                yield return obj;
+                yield return PopulateNode(obj, includeSubordinates, includeData);
             }
         }
 
@@ -325,27 +293,21 @@
                 && er.Objects != null
                 && er.Objects.Count > 0)
             {
-                if (query.IncludeSubordinates)
+                foreach (Node obj in er.Objects)
                 {
-                    foreach (Node node in er.Objects)
+                    if (query.IncludeSubordinates)
                     {
-                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null).ToList();
-                        if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
+                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null).ToList();
+                        if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null).ToList();
-                        if (allTags != null) node.Tags = TagMetadata.ToNameValueCollection(allTags);
+                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null, null).ToList();
+                        if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                        node.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+                        obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
                     }
-                }
 
-                if (!query.IncludeData)
-                {
-                    foreach (Node node in er.Objects)
-                    {
-                        node.Data = null;
-                    }
-                }
+                    if (!query.IncludeData) obj.Data = null;
+                }                
             }
 
             return er;
@@ -491,6 +453,25 @@
         #endregion
 
         #region Private-Methods
+
+        private Node PopulateNode(Node obj, bool includeSubordinates, bool includeData)
+        {
+            if (obj == null) return null;
+
+            if (includeSubordinates)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+            }
+
+            if (!includeData) obj.Data = null;
+            return obj;
+        }
 
         #endregion
     }

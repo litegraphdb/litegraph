@@ -90,7 +90,9 @@
         public IEnumerable<Edge> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -98,16 +100,9 @@
 
             _Client.ValidateTenantExists(tenantGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadAllInTenant(tenantGuid, order, skip))
+            foreach (Edge obj in _Repo.Edge.ReadAllInTenant(tenantGuid, order, skip))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null).ToList();
-                if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null, null).ToList();
-                if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -116,7 +111,9 @@
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -124,16 +121,9 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+            foreach (Edge obj in _Repo.Edge.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
-                if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null, null).ToList();
-                if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -146,7 +136,9 @@
             NameValueCollection tags = null,
             Expr expr = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -154,16 +146,9 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip))
+            foreach (Edge obj in _Repo.Edge.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
-                if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null, null).ToList();
-                if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -175,7 +160,9 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -183,52 +170,40 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Edge edge = _Repo.Edge.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order);
+            Edge obj = _Repo.Edge.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order);
 
-            if (edge != null)
-            {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null).ToList();
-                if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, null, edge.GUID, null, null).ToList();
-                if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edge.GUID).ToList();
-                return edge;
-            }
-
+            if (obj != null) return PopulateEdge(obj, includeSubordinates, includeData);
             return null;
         }
 
         /// <inheritdoc />
-        public Edge ReadByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public Edge ReadByGuid(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            Guid edgeGuid,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid);
-            if (edge == null) return null;
-            List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, null, edgeGuid, null).ToList();
-            if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
-            List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, graphGuid, null, edgeGuid, null, null).ToList();
-            if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
-            edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edge.GUID).ToList();
-            return edge;
+            Edge obj = _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid);
+            if (obj == null) return null;
+
+            return PopulateEdge(obj, includeSubordinates, includeData);
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public IEnumerable<Edge> ReadByGuids(
+            Guid tenantGuid, 
+            List<Guid> guids,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving edges");
+
             foreach (Edge obj in _Repo.Edge.ReadByGuids(tenantGuid, guids))
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, obj.GraphGUID, null, obj.GUID, null).ToList();
-                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
-
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(tenantGuid, obj.GraphGUID, null, obj.GUID, null, null).ToList();
-                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                obj.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, obj.GraphGUID, obj.GUID).ToList();
-                yield return obj;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -243,25 +218,22 @@
                 && er.Objects != null
                 && er.Objects.Count > 0)
             {
-                if (query.IncludeSubordinates)
+                foreach (Edge obj in er.Objects)
                 {
-                    foreach (Edge edge in er.Objects)
+                    if (query.IncludeSubordinates)
                     {
-                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList();
-                        if (allLabels != null) edge.Labels = LabelMetadata.ToListString(allLabels);
+                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null).ToList();
+                        if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList();
-                        if (allTags != null) edge.Tags = TagMetadata.ToNameValueCollection(allTags);
+                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                        if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                        edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
+                        obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
                     }
-                }
 
-                if (!query.IncludeData)
-                {
-                    foreach (Edge edge in er.Objects)
+                    if (!query.IncludeData)
                     {
-                        edge.Data = null;
+                        obj.Data = null;
                     }
                 }
             }
@@ -278,7 +250,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -286,12 +260,9 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip))
+            foreach (Edge obj in _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip))
             {
-                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
-                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
-                edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -304,7 +275,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -312,12 +285,9 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip))
+            foreach (Edge obj in _Repo.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip))
             {
-                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
-                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
-                edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -330,7 +300,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -338,7 +310,7 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadEdgesToNode(
+            foreach (Edge obj in _Repo.Edge.ReadEdgesToNode(
                 tenantGuid,
                 graphGuid,
                 nodeGuid,
@@ -348,10 +320,7 @@
                 order,
                 skip))
             {
-                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
-                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
-                edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -365,7 +334,9 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
         {
             if (order == EnumerationOrderEnum.MostConnected
                 || order == EnumerationOrderEnum.LeastConnected)
@@ -373,7 +344,7 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            foreach (Edge edge in _Repo.Edge.ReadEdgesBetweenNodes(
+            foreach (Edge obj in _Repo.Edge.ReadEdgesBetweenNodes(
                 tenantGuid,
                 graphGuid,
                 fromNodeGuid,
@@ -384,10 +355,7 @@
                 order,
                 skip))
             {
-                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
-                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
-                edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
-                yield return edge;
+                yield return PopulateEdge(obj, includeSubordinates, includeData);
             }
         }
 
@@ -482,6 +450,25 @@
         #endregion
 
         #region Private-Methods
+
+        private Edge PopulateEdge(Edge obj, bool includeSubordinates, bool includeData)
+        {
+            if (obj == null) return null;
+
+            if (includeSubordinates)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+            }
+
+            if (!includeData) obj.Data = null;
+            return obj;
+        }
 
         #endregion
     }

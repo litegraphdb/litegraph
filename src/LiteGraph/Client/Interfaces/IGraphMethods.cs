@@ -25,11 +25,15 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graphs.</returns>
         IEnumerable<Graph> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read graphs.
@@ -44,6 +48,8 @@
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graphs.</returns>
         IEnumerable<Graph> ReadMany(
             Guid tenantGuid,
@@ -52,7 +58,9 @@
             NameValueCollection tags = null,
             Expr graphFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read first.
@@ -66,6 +74,8 @@
         /// Expression left terms must follow the form of Sqlite JSON paths.
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
         /// <param name="order">Enumeration order.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graph.</returns>
         Graph ReadFirst(
             Guid tenantGuid,
@@ -73,23 +83,37 @@
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending);
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read a graph by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graph.</returns>
-        Graph ReadByGuid(Guid tenantGuid, Guid guid);
+        Graph ReadByGuid(
+            Guid tenantGuid, 
+            Guid guid,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Read graphs by GUIDs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graphs.</returns>
-        IEnumerable<Graph> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+        IEnumerable<Graph> ReadByGuids(
+            Guid tenantGuid, 
+            List<Guid> guids,
+            bool includeData = false,
+            bool includeSubordinates = false);
 
         /// <summary>
         /// Enumerate objects.

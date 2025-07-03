@@ -202,37 +202,37 @@
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Edge})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.Enumerate(LiteGraph.EnumerationRequest)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.Update(LiteGraph.Edge)">
@@ -276,19 +276,19 @@
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.Create(LiteGraph.Graph)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadMany(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadMany(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadFirst(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadFirst(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.Enumerate(LiteGraph.EnumerationRequest)">
@@ -408,28 +408,28 @@
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Node})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.Enumerate(LiteGraph.EnumerationRequest)">
@@ -903,16 +903,18 @@
             <param name="edges">Edges.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read all edges in a given tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read all edges in a given graph.
             </summary>
@@ -920,9 +922,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read edges.
             </summary>
@@ -937,9 +941,11 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Boolean,System.Boolean)">
             <summary>
             Read first.
             </summary>
@@ -953,26 +959,32 @@
             Expression left terms must follow the form of Sqlite JSON paths.
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edge.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <summary>
             Read edge.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edge.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean)">
             <summary>
             Read edges by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Get edges connected to or initiated from a given node.
             </summary>
@@ -987,9 +999,11 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Get edges from a given node.
             </summary>
@@ -1004,9 +1018,11 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Get edges to a given node.
             </summary>
@@ -1021,9 +1037,11 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Get edges between two neighboring nodes.
             </summary>
@@ -1039,6 +1057,8 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Edges.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.Enumerate(LiteGraph.EnumerationRequest)">
@@ -1122,16 +1142,18 @@
             <param name="graph">Graph.</param>
             <returns>Graph.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read all graphs in a given tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Graphs.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadMany(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadMany(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read graphs.
             </summary>
@@ -1145,9 +1167,11 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Graphs.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadFirst(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadFirst(System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Boolean,System.Boolean)">
             <summary>
             Read first.
             </summary>
@@ -1160,22 +1184,28 @@
             Expression left terms must follow the form of Sqlite JSON paths.
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Graph.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadByGuid(System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <summary>
             Read a graph by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Graph.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean)">
             <summary>
             Read graphs by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Graphs.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.Enumerate(LiteGraph.EnumerationRequest)">
@@ -1433,16 +1463,18 @@
             <param name="nodes">Nodes.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read all nodes in a given tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read all nodes in a given graph.
             </summary>
@@ -1450,9 +1482,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadFirst(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Boolean,System.Boolean)">
             <summary>
             Read first.
             </summary>
@@ -1466,9 +1500,11 @@
             Expression left terms must follow the form of Sqlite JSON paths.
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadMany(System.Guid,System.Guid,System.String,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read nodes.
             </summary>
@@ -1483,9 +1519,11 @@
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read the most connected nodes.
             </summary>
@@ -1498,9 +1536,11 @@
             Expression left terms must follow the form of Sqlite JSON paths.
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadLeastConnected(System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Read the least connected nodes.
             </summary>
@@ -1513,23 +1553,29 @@
             Expression left terms must follow the form of Sqlite JSON paths.
             For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <summary>
             Read node.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Node.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean)">
             <summary>
             Read nodes by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+            <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Nodes.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.INodeMethods.Enumerate(LiteGraph.EnumerationRequest)">
@@ -6010,6 +6056,16 @@
         <member name="P:LiteGraph.SearchRequest.Skip">
             <summary>
             The number of records to skip.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SearchRequest.IncludeData">
+            <summary>
+            Include data.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SearchRequest.IncludeSubordinates">
+            <summary>
+            Include subordinates.
             </summary>
         </member>
         <member name="P:LiteGraph.SearchRequest.Name">

@@ -61,6 +61,16 @@
         }
 
         /// <summary>
+        /// Include data.
+        /// </summary>
+        public bool IncludeData { get; set; } = false;
+
+        /// <summary>
+        /// Include subordinates.
+        /// </summary>
+        public bool IncludeSubordinates { get; set; } = false;
+
+        /// <summary>
         /// Name on which to match.
         /// </summary>
         public string Name { get; set; } = null;
