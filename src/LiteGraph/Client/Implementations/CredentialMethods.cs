@@ -115,9 +115,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Credential> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Credential> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             return _Repo.Credential.Enumerate(query);
         }
 

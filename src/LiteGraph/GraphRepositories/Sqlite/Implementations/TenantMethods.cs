@@ -112,7 +112,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<TenantMetadata> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

@@ -73,7 +73,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<Credential> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<Credential> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a credential.

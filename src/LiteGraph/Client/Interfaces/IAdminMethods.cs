@@ -33,7 +33,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<BackupFile> BackupEnumerate(EnumerationQuery query = null);
+        EnumerationResult<BackupFile> BackupEnumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Check if a backup file exists.

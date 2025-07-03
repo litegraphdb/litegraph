@@ -40,6 +40,7 @@
         /// Read graphs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags on which to match.</param>
         /// <param name="graphFilter">
@@ -51,6 +52,7 @@
         /// <returns>Graphs.</returns>
         IEnumerable<Graph> ReadMany(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -61,6 +63,7 @@
         /// Read first.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags on which to match.</param>
         /// <param name="graphFilter">
@@ -71,6 +74,7 @@
         /// <returns>Graph.</returns>
         Graph ReadFirst(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -97,7 +101,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result containing a page of objects.</returns>
-        EnumerationResult<Graph> Enumerate(EnumerationQuery query);
+        EnumerationResult<Graph> Enumerate(EnumerationRequest query);
 
         /// <summary>
         /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.

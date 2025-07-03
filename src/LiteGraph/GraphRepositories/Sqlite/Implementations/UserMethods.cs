@@ -167,7 +167,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<UserMaster> Enumerate(EnumerationQuery query)
+        public EnumerationResult<UserMaster> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

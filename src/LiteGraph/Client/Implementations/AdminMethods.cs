@@ -143,9 +143,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<BackupFile> BackupEnumerate(EnumerationQuery query)
+        public EnumerationResult<BackupFile> BackupEnumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             throw new NotImplementedException();
         }
 

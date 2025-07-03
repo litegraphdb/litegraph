@@ -262,6 +262,104 @@
             return ret;
         }
 
+        internal static string SelectMany(
+            Guid tenantGuid,
+            Guid graphGuid,
+            string name,
+            List<string> labels,
+            NameValueCollection tags,
+            Expr edgeFilter = null,
+            int batchSize = 100,
+            int skip = 0,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+        {
+            string ret =
+                "SELECT * FROM 'edges' ";
+
+            if (labels != null && labels.Count > 0)
+                ret += "INNER JOIN 'labels' "
+                    + "ON edges.guid = labels.edgeguid "
+                    + "AND edges.graphguid = labels.graphguid "
+                    + "AND edges.tenantguid = labels.tenantguid ";
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    ret +=
+                        "INNER JOIN 'tags' t" + added.ToString() + " " +
+                        "ON edges.guid = t" + added.ToString() + ".edgeguid " +
+                        "AND edges.graphguid = t" + added.ToString() + ".graphguid " +
+                        "AND edges.tenantguid = t" + added.ToString() + ".tenantguid ";
+                    added++;
+                }
+            }
+
+            ret += "WHERE "
+                + "edges.graphguid = '" + graphGuid + "' "
+                + "AND edges.tenantguid = '" + tenantGuid + "' ";
+
+            if (!String.IsNullOrEmpty(name))
+                ret += "AND edges.name LIKE '%" + Sanitizer.Sanitize(name) + "%' ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                string labelList = "(";
+
+                int labelsAdded = 0;
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) labelList += ",";
+                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
+                    labelsAdded++;
+                }
+
+                labelList += ")";
+
+                ret += "AND labels.label IN " + labelList + " ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    string val = tags.Get(key);
+                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
+                    added++;
+                }
+            }
+
+            if (edgeFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("edges", edgeFilter);
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
+            }
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "GROUP BY edges.guid ";
+
+                int labelsAdded = 0;
+                ret += "HAVING ";
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) ret += "AND ";
+                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
+                    labelsAdded++;
+                }
+            }
+
+            ret +=
+                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
+                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+
+            return ret;
+        }
+
         internal static string SelectMany(Guid tenantGuid, List<Guid> guids)
         {
             string ret = "SELECT * FROM 'edges' WHERE tenantguid = '" + tenantGuid + "' AND guid IN (";
@@ -526,100 +624,6 @@
             }
 
             if (edgeFilter != null) ret += "AND " + Converters.ExpressionToWhereClause("edges", edgeFilter) + " ";
-
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
-
-            return ret;
-        }
-
-        internal static string SelectMany(
-            Guid tenantGuid,
-            Guid graphGuid,
-            List<string> labels,
-            NameValueCollection tags,
-            Expr edgeFilter = null,
-            int batchSize = 100,
-            int skip = 0,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
-        {
-            string ret =
-                "SELECT * FROM 'edges' ";
-
-            if (labels != null && labels.Count > 0)
-                ret += "INNER JOIN 'labels' "
-                    + "ON edges.guid = labels.edgeguid "
-                    + "AND edges.graphguid = labels.graphguid "
-                    + "AND edges.tenantguid = labels.tenantguid ";
-
-            if (tags != null && tags.Count > 0)
-            {
-                int added = 1;
-                foreach (string key in tags.AllKeys)
-                {
-                    ret +=
-                        "INNER JOIN 'tags' t" + added.ToString() + " " +
-                        "ON edges.guid = t" + added.ToString() + ".edgeguid " +
-                        "AND edges.graphguid = t" + added.ToString() + ".graphguid " +
-                        "AND edges.tenantguid = t" + added.ToString() + ".tenantguid ";
-                    added++;
-                }
-            }
-
-            ret += "WHERE "
-                + "edges.graphguid = '" + graphGuid + "' "
-                + "AND edges.tenantguid = '" + tenantGuid + "' ";
-
-            if (labels != null && labels.Count > 0)
-            {
-                string labelList = "(";
-
-                int labelsAdded = 0;
-                foreach (string label in labels)
-                {
-                    if (labelsAdded > 0) labelList += ",";
-                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
-                    labelsAdded++;
-                }
-
-                labelList += ")";
-
-                ret += "AND labels.label IN " + labelList + " ";
-            }
-
-            if (tags != null && tags.Count > 0)
-            {
-                int added = 1;
-                foreach (string key in tags.AllKeys)
-                {
-                    string val = tags.Get(key);
-                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
-                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
-                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
-                    added++;
-                }
-            }
-
-            if (edgeFilter != null)
-            {
-                string filterClause = Converters.ExpressionToWhereClause("edges", edgeFilter);
-                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
-            }
-
-            if (labels != null && labels.Count > 0)
-            {
-                ret += "GROUP BY edges.guid ";
-
-                int labelsAdded = 0;
-                ret += "HAVING ";
-                foreach (string label in labels)
-                {
-                    if (labelsAdded > 0) ret += "AND ";
-                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
-                    labelsAdded++;
-                }
-            }
 
             ret +=
                 "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "

@@ -201,9 +201,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<TagMetadata> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             return _Repo.Tag.Enumerate(query);
         }
 

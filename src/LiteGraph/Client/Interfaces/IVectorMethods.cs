@@ -140,7 +140,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<VectorMetadata> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<VectorMetadata> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a vector.

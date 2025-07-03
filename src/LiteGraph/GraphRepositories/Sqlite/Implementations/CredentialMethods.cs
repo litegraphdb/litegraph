@@ -172,7 +172,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Credential> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Credential> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

@@ -149,6 +149,7 @@
 
         internal static string SelectMany(
             Guid tenantGuid,
+            string name,
             List<string> labels,
             NameValueCollection tags,
             Expr graphFilter = null,
@@ -181,6 +182,9 @@
             }
 
             ret += "WHERE graphs.tenantguid = '" + tenantGuid + "' ";
+
+            if (!String.IsNullOrEmpty(name))
+                ret += "AND graphs.name LIKE '%" + Sanitizer.Sanitize(name) + "%' ";
 
             if (labels != null && labels.Count > 0)
             {

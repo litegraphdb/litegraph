@@ -628,7 +628,7 @@
                 "graph"
             };
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, labelGraph))
+            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph))
                 Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
 
             Console.WriteLine("");
@@ -640,7 +640,7 @@
                 "even"
             };
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, labelEvenNodes))
+            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes))
                 Console.WriteLine("| " + node.GUID + ": " + node.Name);
 
             Console.WriteLine("");
@@ -652,7 +652,7 @@
                 "odd"
             };
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, labelOddEdges))
+            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges))
                 Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
 
             Console.WriteLine("");
@@ -669,7 +669,7 @@
             NameValueCollection tagsGraph = new NameValueCollection();
             tagsGraph.Add("type", "graph");
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, tagsGraph))
+            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, null, tagsGraph))
                 Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
 
             Console.WriteLine("");
@@ -679,7 +679,7 @@
             tagsEvenNodes.Add("type", "node");
             tagsEvenNodes.Add("isEven", "true");
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, tagsEvenNodes))
+            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, tagsEvenNodes))
                 Console.WriteLine("| " + node.GUID + ": " + node.Name);
 
             Console.WriteLine("");
@@ -689,7 +689,7 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, tagsOddEdges))
+            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges))
                 Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
 
             Console.WriteLine("");
@@ -711,7 +711,7 @@
             NameValueCollection tagsGraph = new NameValueCollection();
             tagsGraph.Add("type", "graph");
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, labelGraph, tagsGraph))
+            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph, tagsGraph))
                 Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
 
             Console.WriteLine("");
@@ -727,7 +727,7 @@
             tagsEvenNodes.Add("type", "node");
             tagsEvenNodes.Add("isEven", "true");
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, labelEvenNodes, tagsEvenNodes))
+            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, tagsEvenNodes))
                 Console.WriteLine("| " + node.GUID + ": " + node.Name);
 
             Console.WriteLine("");
@@ -743,7 +743,7 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, labelOddEdges, tagsOddEdges))
+            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges))
                 Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
 
             Console.WriteLine("");
@@ -1148,7 +1148,7 @@
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where Name = 'Joel'");
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, e1))
+            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e1))
             {
                 // Console.WriteLine(node.Data.ToString());
                 Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
@@ -1156,7 +1156,7 @@
 
             Console.WriteLine("");
             Console.WriteLine("Retrieve nodes where Age >= 38");
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, e2))
+            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e2))
             {
                 // Console.WriteLine(node.Data.ToString());
                 Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
@@ -1225,7 +1225,7 @@
 
         static void Test3_3()
         {
-            EnumerationQuery query = new EnumerationQuery
+            EnumerationRequest query = new EnumerationRequest
             {
                 TenantGUID = _TenantGuid,
                 GraphGUID = _GraphGuid,
@@ -1525,21 +1525,21 @@
             if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                IEnumerable<Graph> graphResult = _Client.Graph.ReadMany(tenantGuid, null, null, expr, EnumerationOrderEnum.CreatedDescending);
+                IEnumerable<Graph> graphResult = _Client.Graph.ReadMany(tenantGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
                 if (graphResult != null) resultJson = _Serializer.SerializeJson(graphResult.ToList());
             }
             else if (str.Equals("node"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                IEnumerable<Node> nodeResult = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, expr, EnumerationOrderEnum.CreatedDescending);
+                IEnumerable<Node> nodeResult = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
                 if (nodeResult != null) resultJson = _Serializer.SerializeJson(nodeResult.ToList());
             }
             else if (str.Equals("edge"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                IEnumerable<Edge> edgeResult = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, expr, EnumerationOrderEnum.CreatedDescending);
+                IEnumerable<Edge> edgeResult = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
                 if (edgeResult != null) resultJson = _Serializer.SerializeJson(edgeResult.ToList());
             }
 

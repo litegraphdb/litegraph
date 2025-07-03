@@ -217,9 +217,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<VectorMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<VectorMetadata> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             return _Repo.Vector.Enumerate(query);
         }
 

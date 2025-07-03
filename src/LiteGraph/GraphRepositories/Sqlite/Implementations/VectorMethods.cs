@@ -353,7 +353,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<VectorMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<VectorMetadata> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 
@@ -476,7 +476,7 @@
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
 
-            foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, labels, tags, filter))
+            foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, null, labels, tags, filter))
             {
                 graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, graph.GUID, null, null, null).ToList());
                 graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, graph.GUID, null, null, null, null).ToList());
@@ -516,7 +516,7 @@
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
 
-            foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, labels, tags, filter))
+            foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, null, labels, tags, filter))
             {
                 node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList());
                 node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList());
@@ -556,7 +556,7 @@
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
 
-            foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, labels, tags, filter))
+            foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, null, labels, tags, filter))
             {
                 edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null).ToList());
                 edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null, null).ToList());

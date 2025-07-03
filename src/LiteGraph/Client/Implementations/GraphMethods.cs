@@ -3,19 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Data;
     using System.Linq;
-    using System.Reflection.Emit;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
-    using System.Threading.Tasks;
     using Caching;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
 
     using LoggingSettings = LoggingSettings;
 
@@ -106,6 +98,7 @@
         /// <inheritdoc />
         public IEnumerable<Graph> ReadMany(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
@@ -122,7 +115,7 @@
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
-            foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, labels, tags, expr, order, skip))
+            foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, name, labels, tags, expr, order, skip))
             {
                 List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graph.GUID, null, null, null).ToList();
                 if (allLabels != null) graph.Labels = LabelMetadata.ToListString(allLabels);
@@ -136,6 +129,7 @@
         /// <inheritdoc />
         public Graph ReadFirst(
             Guid tenantGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
@@ -151,7 +145,7 @@
 
             _Client.ValidateTenantExists(tenantGuid);
 
-            Graph graph = _Repo.Graph.ReadFirst(tenantGuid, labels, tags, expr, order);
+            Graph graph = _Repo.Graph.ReadFirst(tenantGuid, name, labels, tags, expr, order);
 
             if (graph != null)
             {
@@ -212,9 +206,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Graph> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Graph> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             EnumerationResult<Graph> er = _Repo.Graph.Enumerate(query);
 
 

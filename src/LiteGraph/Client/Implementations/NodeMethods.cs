@@ -3,22 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Data;
     using System.Linq;
-    using System.Reflection.Emit;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Xml.Linq;
     using Caching;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Node methods.
@@ -171,6 +160,7 @@
         public IEnumerable<Node> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
@@ -199,7 +189,7 @@
             }
             else
             {
-                foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, labels, tags, expr, order, skip))
+                foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip))
                 {
                     List<LabelMetadata> allLabels = _Repo.Label.ReadMany(tenantGuid, graphGuid, node.GUID, null, null).ToList();
                     if (allLabels != null) node.Labels = LabelMetadata.ToListString(allLabels);
@@ -217,6 +207,7 @@
         public Node ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr expr = null,
@@ -228,7 +219,7 @@
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Node node = _Repo.Node.ReadFirst(tenantGuid, graphGuid, labels, tags, expr, order);
+            Node node = _Repo.Node.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order);
 
             if (node != null)
             {
@@ -325,9 +316,9 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Node> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Node> Enumerate(EnumerationRequest query)
         {
-            if (query == null) query = new EnumerationQuery();
+            if (query == null) query = new EnumerationRequest();
             EnumerationResult<Node> er = _Repo.Node.Enumerate(query);
 
             if (er != null

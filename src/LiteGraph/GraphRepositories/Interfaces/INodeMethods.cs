@@ -64,6 +64,7 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="nodeFilter">
@@ -76,6 +77,7 @@
         IEnumerable<Node> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
@@ -87,6 +89,7 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="name">Name on which to search.</param>
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="nodeFilter">
@@ -98,6 +101,7 @@
         Node ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
@@ -166,7 +170,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result containing a page of objects.</returns>
-        EnumerationResult<Node> Enumerate(EnumerationQuery query);
+        EnumerationResult<Node> Enumerate(EnumerationRequest query);
 
         /// <summary>
         /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.

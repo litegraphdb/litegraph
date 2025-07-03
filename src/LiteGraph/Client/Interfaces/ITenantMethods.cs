@@ -46,7 +46,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<TenantMetadata> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<TenantMetadata> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a tenant.

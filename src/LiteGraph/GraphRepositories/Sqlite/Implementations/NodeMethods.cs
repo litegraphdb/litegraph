@@ -126,6 +126,7 @@
         public IEnumerable<Node> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
@@ -136,7 +137,17 @@
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMany(tenantGuid, graphGuid, labels, tags, nodeFilter, _Repo.SelectBatchSize, skip, order));
+                DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMany(
+                    tenantGuid, 
+                    graphGuid, 
+                    name,
+                    labels, 
+                    tags, 
+                    nodeFilter, 
+                    _Repo.SelectBatchSize, 
+                    skip, 
+                    order));
+
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -154,6 +165,7 @@
         public Node ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr nodeFilter = null,
@@ -162,6 +174,7 @@
             DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMany(
                 tenantGuid, 
                 graphGuid, 
+                name,
                 labels, 
                 tags, 
                 nodeFilter, 
@@ -260,7 +273,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Node> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Node> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

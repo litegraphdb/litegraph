@@ -138,7 +138,7 @@
         /// </summary>
         /// <param name="query">Enumeration query.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<LabelMetadata> Enumerate(EnumerationQuery query = null);
+        EnumerationResult<LabelMetadata> Enumerate(EnumerationRequest query = null);
 
         /// <summary>
         /// Update a label.

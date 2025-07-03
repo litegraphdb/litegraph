@@ -300,7 +300,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TagMetadata> Enumerate(EnumerationQuery query)
+        public EnumerationResult<TagMetadata> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

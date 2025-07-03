@@ -128,6 +128,7 @@
         public IEnumerable<Edge> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr edgeFilter = null,
@@ -138,7 +139,17 @@
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectMany(tenantGuid, graphGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order));
+                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectMany(
+                    tenantGuid, 
+                    graphGuid, 
+                    name,
+                    labels, 
+                    tags, 
+                    edgeFilter, 
+                    _Repo.SelectBatchSize, 
+                    skip, 
+                    order));
+
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -156,6 +167,7 @@
         public Edge ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr edgeFilter = null,
@@ -164,6 +176,7 @@
             DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectMany(
                 tenantGuid, 
                 graphGuid, 
+                name,
                 labels, 
                 tags, 
                 edgeFilter, 
@@ -325,7 +338,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Edge> Enumerate(EnumerationQuery query)
+        public EnumerationResult<Edge> Enumerate(EnumerationRequest query)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 

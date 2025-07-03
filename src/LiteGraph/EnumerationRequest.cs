@@ -11,7 +11,7 @@
     /// <summary>
     /// Object used to request enumeration.
     /// </summary>
-    public class EnumerationQuery
+    public class EnumerationRequest
     {
         #region Public-Members
 
@@ -136,7 +136,7 @@
         /// <summary>
         /// Instantiate.
         /// </summary>
-        public EnumerationQuery()
+        public EnumerationRequest()
         {
 
         }
