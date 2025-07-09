@@ -336,11 +336,32 @@
                 await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, fe.Message), true));
                 return;
             }
+            catch (ArgumentOutOfRangeException aore)
+            {
+                _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " argument out of range exception building request context" + Environment.NewLine + aore.ToString());
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, aore.Message), true));
+                return;
+            }
+            catch (ArgumentNullException ane)
+            {
+                _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " argument null exception building request context" + Environment.NewLine + ane.ToString());
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ane.Message), true));
+                return;
+            }
+            catch (ArgumentException ae)
+            {
+                _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " argument exception building request context" + Environment.NewLine + ae.ToString());
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message), true));
+                return;
+            }
             catch (Exception e)
             {
                 _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " exception building request context" + Environment.NewLine + e.ToString());
                 ctx.Response.StatusCode = 500;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "Unable to build request context."), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
                 return;
             }
 
@@ -570,22 +591,17 @@
         {
             if (_Settings.Debug.Exceptions) _Logging.Warn(_Header + "exception of type " + e.GetType() + ": " + e.ToString());
 
-            if (e is JsonException)
-            {
-                ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, e.Message), true));
-            }
-            else if (e is FormatException)
-            {
-                ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message), true));
-            }
-            else if (e is InvalidOperationException)
+            if (e is InvalidOperationException)
             {
                 ctx.Response.StatusCode = 409;
                 await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict, null, e.Message), true));
             }
-            else if (e is ArgumentException)
+            else if (
+                e is ArgumentNullException
+                || e is ArgumentOutOfRangeException
+                || e is ArgumentException
+                || e is FormatException
+                || e is JsonException)
             {
                 ctx.Response.StatusCode = 400;
                 await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message), true));
