@@ -2990,7 +2990,7 @@
             </summary>
             <param name="serializer">Serializer.</param>
         </member>
-        <member name="M:LiteGraph.Gexf.GexfWriter.ExportToFile(LiteGraph.LiteGraphClient,System.Guid,System.Guid,System.String,System.Boolean)">
+        <member name="M:LiteGraph.Gexf.GexfWriter.ExportToFile(LiteGraph.LiteGraphClient,System.Guid,System.Guid,System.String,System.Boolean,System.Boolean)">
             <summary>
             Write a GEXF file.
             </summary>
@@ -2999,8 +2999,9 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="filename">Output filename.</param>
             <param name="includeData">True to include node and edge data.</param>
+            <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
         </member>
-        <member name="M:LiteGraph.Gexf.GexfWriter.RenderAsGexf(LiteGraph.LiteGraphClient,System.Guid,System.Guid,System.Boolean)">
+        <member name="M:LiteGraph.Gexf.GexfWriter.RenderAsGexf(LiteGraph.LiteGraphClient,System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <summary>
             Render a graph as a GEXF string.
             </summary>
@@ -3008,6 +3009,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="includeData">True to include node and edge data.</param>
+            <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
             <returns>GEXF document.</returns>
         </member>
         <member name="T:LiteGraph.Graph">
@@ -5838,7 +5840,7 @@
             <param name="data">Data.</param>
             <returns>Instance.</returns>
         </member>
-        <member name="M:LiteGraph.LiteGraphClient.ExportGraphToGexfFile(System.Guid,System.Guid,System.String,System.Boolean)">
+        <member name="M:LiteGraph.LiteGraphClient.ExportGraphToGexfFile(System.Guid,System.Guid,System.String,System.Boolean,System.Boolean)">
             <summary>
             Export graph to GEXF.
             </summary>
@@ -5846,14 +5848,16 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="filename">Filename.</param>
             <param name="includeData">True to include data.</param>
+            <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
         </member>
-        <member name="M:LiteGraph.LiteGraphClient.RenderGraphAsGexf(System.Guid,System.Guid,System.Boolean)">
+        <member name="M:LiteGraph.LiteGraphClient.RenderGraphAsGexf(System.Guid,System.Guid,System.Boolean,System.Boolean)">
             <summary>
             Render a graph as GEXF.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="includeData">True to include data.</param>
+            <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
             <returns>GEXF string.</returns>
         </member>
         <member name="M:LiteGraph.LiteGraphClient.Flush">

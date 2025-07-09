@@ -48,17 +48,19 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="filename">Output filename.</param>
         /// <param name="includeData">True to include node and edge data.</param>
+        /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
         public void ExportToFile(
             LiteGraphClient client, 
             Guid tenantGuid, 
             Guid graphGuid, 
             string filename, 
-            bool includeData = false)
+            bool includeData,
+            bool includeSubordinates)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
 
-            GexfDocument doc = GraphToGexfDocument(client, tenantGuid, graphGuid, includeData);
+            GexfDocument doc = GraphToGexfDocument(client, tenantGuid, graphGuid, includeData, includeSubordinates);
 
             using (FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
@@ -75,15 +77,17 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="includeData">True to include node and edge data.</param>
+        /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
         /// <returns>GEXF document.</returns>
         public string RenderAsGexf(
             LiteGraphClient client, 
             Guid tenantGuid, 
             Guid graphGuid, 
-            bool includeData = false)
+            bool includeData,
+            bool includeSubordinates)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
-            GexfDocument doc = GraphToGexfDocument(client, tenantGuid, graphGuid, includeData);
+            GexfDocument doc = GraphToGexfDocument(client, tenantGuid, graphGuid, includeData, includeSubordinates);
             string xml = SerializeXml<GexfDocument>(doc, true);
             return xml;
         }
@@ -141,7 +145,8 @@
             LiteGraphClient client, 
             Guid tenantGuid, 
             Guid graphGuid, 
-            bool includeData = false)
+            bool includeData,
+            bool includeSubordinates)
         {
             LiteGraph.Graph graph = client.Graph.ReadByGuid(tenantGuid, graphGuid);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' was found.");
@@ -157,19 +162,22 @@
                 if (!String.IsNullOrEmpty(node.Name))
                     gNode.ValueList.Values.Add(new GexfAttributeValue("Name", node.Name));
 
-                if (node.Labels != null)
+                if (includeSubordinates)
                 {
-                    foreach (string label in node.Labels)
+                    if (node.Labels != null)
                     {
-                        gNode.ValueList.Values.Add(new GexfAttributeValue(label, null));
+                        foreach (string label in node.Labels)
+                        {
+                            gNode.ValueList.Values.Add(new GexfAttributeValue(label, null));
+                        }
                     }
-                }
 
-                if (node.Tags != null && node.Tags.Count > 0)
-                {
-                    foreach (string key in node.Tags)
+                    if (node.Tags != null && node.Tags.Count > 0)
                     {
-                        gNode.ValueList.Values.Add(new GexfAttributeValue(key, node.Tags.Get(key)));
+                        foreach (string key in node.Tags)
+                        {
+                            gNode.ValueList.Values.Add(new GexfAttributeValue(key, node.Tags.Get(key)));
+                        }
                     }
                 }
 

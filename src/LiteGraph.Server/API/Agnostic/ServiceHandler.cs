@@ -857,7 +857,8 @@
                 string xml = _LiteGraph.RenderGraphAsGexf(
                     req.TenantGUID.Value,
                     req.GraphGUID.Value,
-                    req.IncludeData);
+                    req.IncludeData,
+                    req.IncludeSubordinates);
 
                 return new ResponseContext(req, xml);
             }

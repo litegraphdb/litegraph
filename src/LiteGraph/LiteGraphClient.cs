@@ -248,10 +248,16 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="filename">Filename.</param>
         /// <param name="includeData">True to include data.</param>
-        public void ExportGraphToGexfFile(Guid tenantGuid, Guid graphGuid, string filename, bool includeData = false)
+        /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
+        public void ExportGraphToGexfFile(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            string filename, 
+            bool includeData,
+            bool includeSubordinates)
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
-            _Gexf.ExportToFile(this, tenantGuid, graphGuid, filename, includeData);
+            _Gexf.ExportToFile(this, tenantGuid, graphGuid, filename, includeData, includeSubordinates);
         }
 
         /// <summary>
@@ -260,10 +266,11 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="includeData">True to include data.</param>
+        /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
         /// <returns>GEXF string.</returns>
-        public string RenderGraphAsGexf(Guid tenantGuid, Guid graphGuid, bool includeData = false)
+        public string RenderGraphAsGexf(Guid tenantGuid, Guid graphGuid, bool includeData, bool includeSubordinates)
         {
-            return _Gexf.RenderAsGexf(this, tenantGuid, graphGuid, includeData);
+            return _Gexf.RenderAsGexf(this, tenantGuid, graphGuid, includeData, includeSubordinates);
         }
 
         /// <summary>
