@@ -155,33 +155,40 @@
             doc.Graph.DefaultEdgeType = "directed";
             doc.Graph.Attributes.AttributeList.Add(new GexfAttribute("0", "props"));
 
-            foreach (LiteGraph.Node node in client.Node.ReadMany(tenantGuid, graphGuid))
+            foreach (LiteGraph.Node node in client.Node.ReadMany(
+                tenantGuid, 
+                graphGuid, 
+                null, 
+                null, 
+                null, 
+                null, 
+                EnumerationOrderEnum.CreatedDescending, 
+                0, 
+                includeData, 
+                includeSubordinates))
             {
                 GexfNode gNode = new GexfNode(node.GUID, node.Name);
 
                 if (!String.IsNullOrEmpty(node.Name))
                     gNode.ValueList.Values.Add(new GexfAttributeValue("Name", node.Name));
 
-                if (includeSubordinates)
+                if (node.Labels != null)
                 {
-                    if (node.Labels != null)
+                    foreach (string label in node.Labels)
                     {
-                        foreach (string label in node.Labels)
-                        {
-                            gNode.ValueList.Values.Add(new GexfAttributeValue(label, null));
-                        }
-                    }
-
-                    if (node.Tags != null && node.Tags.Count > 0)
-                    {
-                        foreach (string key in node.Tags)
-                        {
-                            gNode.ValueList.Values.Add(new GexfAttributeValue(key, node.Tags.Get(key)));
-                        }
+                        gNode.ValueList.Values.Add(new GexfAttributeValue(label, null));
                     }
                 }
 
-                if (node.Data != null && includeData)
+                if (node.Tags != null && node.Tags.Count > 0)
+                {
+                    foreach (string key in node.Tags)
+                    {
+                        gNode.ValueList.Values.Add(new GexfAttributeValue(key, node.Tags.Get(key)));
+                    }
+                }
+
+                if (node.Data != null)
                 {
                     gNode.ValueList.Values.Add(new GexfAttributeValue("Data", _Serializer.SerializeJson(node.Data, false)));
                 }
@@ -189,7 +196,17 @@
                 doc.Graph.NodeList.Nodes.Add(gNode);
             }
 
-            foreach (LiteGraph.Edge edge in client.Edge.ReadMany(tenantGuid, graphGuid))
+            foreach (LiteGraph.Edge edge in client.Edge.ReadMany(
+                tenantGuid, 
+                graphGuid,
+                null,
+                null,
+                null,
+                null,
+                EnumerationOrderEnum.CreatedDescending,
+                0,
+                includeData,
+                includeSubordinates))
             {
                 GexfEdge gEdge = new GexfEdge(edge.GUID, edge.From, edge.To);
 
@@ -214,7 +231,7 @@
                     }
                 }
 
-                if (edge.Data != null && includeData)
+                if (edge.Data != null)
                 {
                     gEdge.ValueList.Values.Add(new GexfAttributeValue("Data", _Serializer.SerializeJson(edge.Data, false)));
                 }
