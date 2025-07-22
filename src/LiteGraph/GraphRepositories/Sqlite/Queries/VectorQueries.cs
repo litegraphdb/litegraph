@@ -28,21 +28,20 @@
                 + "'" + Sanitizer.Sanitize(vector.Model) + "',"
                 + vector.Dimensionality + ","
                 + "'" + Sanitizer.Sanitize(vector.Content) + "',"
-                + "'" + Serializer.SerializeJson(vector.Vectors, false) + "',"
+                + Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors)) + ","
                 + "'" + Sanitizer.Sanitize(vector.CreatedUtc.ToString(TimestampFormat)) + "',"
                 + "'" + Sanitizer.Sanitize(vector.LastUpdateUtc.ToString(TimestampFormat)) + "'"
                 + ") "
                 + "RETURNING *;";
-
             return ret;
         }
+
 
         internal static string InsertMany(Guid tenantGuid, List<VectorMetadata> vectors)
         {
             string ret =
                 "INSERT INTO 'vectors' "
                 + "VALUES ";
-
             for (int i = 0; i < vectors.Count; i++)
             {
                 if (i > 0) ret += ",";
@@ -55,12 +54,11 @@
                     + "'" + Sanitizer.Sanitize(vectors[i].Model) + "',"
                     + vectors[i].Dimensionality + ","
                     + "'" + Sanitizer.Sanitize(vectors[i].Content) + "',"
-                    + "'" + Serializer.SerializeJson(vectors[i].Vectors, false) + "',"
+                    + Converters.BytesToHex(Converters.VectorToBlob(vectors[i].Vectors)) + ","
                     + "'" + DateTime.UtcNow.ToString(TimestampFormat) + "',"
                     + "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'";
                 ret += ")";
             }
-
             ret += ";";
             return ret;
         }
@@ -264,7 +262,7 @@
                 + "model = '" + Sanitizer.Sanitize(vector.Model) + "',"
                 + "dimensionality = " + vector.Dimensionality + ","
                 + "content = '" + Sanitizer.Sanitize(vector.Content) + "',"
-                + "embeddings = '" + Serializer.SerializeJson(vector.Vectors, false) + "' "
+                + "embeddings = " + Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors)) + " "
                 + "WHERE guid = '" + vector.GUID + "' "
                 + "RETURNING *;";
         }

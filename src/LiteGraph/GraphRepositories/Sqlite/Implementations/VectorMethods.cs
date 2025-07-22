@@ -15,7 +15,7 @@
     using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Helpers;
     using LiteGraph.Serialization;
-
+    using Timestamps;
     using LoggingSettings = LoggingSettings;
 
     /// <summary>
@@ -262,7 +262,7 @@
 
         /// <inheritdoc />
         public IEnumerable<VectorMetadata> ReadManyGraph(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
@@ -291,8 +291,8 @@
 
         /// <inheritdoc />
         public IEnumerable<VectorMetadata> ReadManyNode(
-            Guid tenantGuid, 
-            Guid graphGuid, 
+            Guid tenantGuid,
+            Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
@@ -323,8 +323,8 @@
 
         /// <inheritdoc />
         public IEnumerable<VectorMetadata> ReadManyEdge(
-            Guid tenantGuid, 
-            Guid graphGuid, 
+            Guid tenantGuid,
+            Guid graphGuid,
             Guid edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0)
@@ -472,14 +472,19 @@
             Guid tenantGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null)
+            Expr filter = null,
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = 1.0f,
+            float? minInnerProduct = 0.0f)
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
+            if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
+
+            List<VectorSearchResult> candidates = new List<VectorSearchResult>();
 
             foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, null, labels, tags, filter))
             {
-                graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, graph.GUID, null, null, null).ToList());
-                graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, graph.GUID, null, null, null, null).ToList());
                 graph.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID).ToList();
 
                 foreach (VectorMetadata vmd in graph.Vectors)
@@ -492,15 +497,29 @@
                     float? innerProduct = null;
 
                     CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-
-                    yield return new VectorSearchResult
+                    if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
                     {
-                        Graph = graph,
-                        Score = score,
-                        Distance = distance,
-                        InnerProduct = innerProduct,
-                    };
+                        candidates.Add(new VectorSearchResult
+                        {
+                            Graph = graph,
+                            Score = score,
+                            Distance = distance,
+                            InnerProduct = innerProduct,
+                        });
+                    }
                 }
+            }
+
+            List<VectorSearchResult> results = candidates
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Distance)
+                .ThenByDescending(x => x.InnerProduct)
+                .Take(topK ?? int.MaxValue)
+                .ToList();
+
+            foreach (VectorSearchResult result in results)
+            {
+                yield return result;
             }
         }
 
@@ -512,18 +531,23 @@
             Guid graphGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null)
+            Expr filter = null,
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = 1.0f,
+            float? minInnerProduct = 0.0f)
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
+            if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
+
+            List<VectorSearchResult> candidates = new List<VectorSearchResult>();
 
             foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, null, labels, tags, filter))
             {
-                node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null).ToList());
-                node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, node.GraphGUID, node.GUID, null, null, null).ToList());
                 node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
 
                 foreach (VectorMetadata vmd in node.Vectors)
-                { 
+                {
                     if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
                     if (vmd.Vectors.Count != vectors.Count) continue;
 
@@ -532,15 +556,29 @@
                     float? innerProduct = null;
 
                     CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-
-                    yield return new VectorSearchResult
+                    if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
                     {
-                        Node = node,
-                        Score = score,
-                        Distance = distance,
-                        InnerProduct = innerProduct,
-                    };
+                        candidates.Add(new VectorSearchResult
+                        {
+                            Node = node,
+                            Score = score,
+                            Distance = distance,
+                            InnerProduct = innerProduct,
+                        });
+                    }
                 }
+            }
+
+            List<VectorSearchResult> results = candidates
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Distance)
+                .ThenByDescending(x => x.InnerProduct)
+                .Take(topK ?? int.MaxValue)
+                .ToList();
+
+            foreach (VectorSearchResult result in results)
+            {
+                yield return result;
             }
         }
 
@@ -552,14 +590,19 @@
             Guid graphGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null)
+            Expr filter = null,
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = 1.0f,
+            float? minInnerProduct = 0.0f)
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
+            if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
+
+            List<VectorSearchResult> candidates = new List<VectorSearchResult>();
 
             foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, null, labels, tags, filter))
             {
-                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null).ToList());
-                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, edge.GraphGUID, null, edge.GUID, null, null).ToList());
                 edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID).ToList();
 
                 foreach (VectorMetadata vmd in edge.Vectors)
@@ -572,15 +615,29 @@
                     float? innerProduct = null;
 
                     CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-
-                    yield return new VectorSearchResult
+                    if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
                     {
-                        Edge = edge,
-                        Score = score,
-                        Distance = distance,
-                        InnerProduct = innerProduct,
-                    };
+                        candidates.Add(new VectorSearchResult
+                        {
+                            Edge = edge,
+                            Score = score,
+                            Distance = distance,
+                            InnerProduct = innerProduct,
+                        });
+                    }
                 }
+            }
+
+            List<VectorSearchResult> results = candidates
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Distance)
+                .ThenByDescending(x => x.InnerProduct)
+                .Take(topK ?? int.MaxValue)
+                .ToList();
+
+            foreach (VectorSearchResult result in results)
+            {
+                yield return result;
             }
         }
 
@@ -614,6 +671,20 @@
             {
                 throw new ArgumentException("Unknown vector search type " + searchType.ToString() + ".");
             }
+        }
+
+        private bool MeetsConstraints(
+            float? score,
+            float? distance,
+            float? innerProduct,
+            float? minScore,
+            float? maxDistance,
+            float? minInnerProduct)
+        {
+            if (score != null && minScore != null && score.Value < minScore.Value) return false;
+            if (distance != null && maxDistance != null && distance.Value > maxDistance.Value) return false;
+            if (innerProduct != null && minInnerProduct != null && innerProduct.Value < minInnerProduct.Value) return false;
+            return true;
         }
 
         #endregion

@@ -55,6 +55,9 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_users_createdutc' ON 'users' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_users_lastupdateutc' ON 'users' ('lastupdateutc' ASC);");
 
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_users_tenantguid_guid' ON 'users' (tenantguid ASC, guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_users_email_password' ON 'users' (email ASC, password ASC);");
+
             #endregion
 
             #region Credentials
@@ -77,6 +80,9 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_creds_bearertoken' ON 'creds' (bearertoken ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_creds_createdutc' ON 'creds' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_creds_lastupdateutc' ON 'creds' ('lastupdateutc' ASC);");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_creds_tenantguid_guid' ON 'creds' (tenantguid ASC, guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_creds_tenantguid_userguid' ON 'creds' (tenantguid ASC, userguid ASC);");
 
             #endregion
 
@@ -102,6 +108,11 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_label' ON 'labels' (label ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_createdutc' ON 'labels' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_lastupdateutc' ON 'labels' ('lastupdateutc' ASC);");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_tenantguid_guid' ON 'labels' (tenantguid ASC, guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_tenantguid_graphguid' ON 'labels' (tenantguid ASC, graphguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_tenantguid_graphguid_nodeguid' ON 'labels' (tenantguid ASC, graphguid ASC, nodeguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_labels_tenantguid_graphguid_edgeguid' ON 'labels' (tenantguid ASC, graphguid ASC, edgeguid ASC);");
 
             #endregion
 
@@ -130,6 +141,10 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_tags_createdutc' ON 'tags' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_tags_lastupdateutc' ON 'tags' ('lastupdateutc' ASC);");
 
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_tags_tenantguid_graphguid' ON 'tags' (tenantguid ASC, graphguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_tags_tenantguid_graphguid_nodeguid' ON 'tags' (tenantguid ASC, graphguid ASC, nodeguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_tags_tenantguid_graphguid_edgeguid' ON 'tags' (tenantguid ASC, graphguid ASC, edgeguid ASC);");
+
             #endregion
 
             #region Vectors
@@ -144,7 +159,7 @@
                 + "model VARCHAR(256), "
                 + "dimensionality INT, "
                 + "content TEXT, "
-                + "embeddings TEXT, "
+                + "embeddings BLOB, "
                 + "createdutc VARCHAR(64), "
                 + "lastupdateutc VARCHAR(64) "
                 + ");");
@@ -159,6 +174,10 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_vectors_createdutc' ON 'vectors' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_vectors_lastupdateutc' ON 'vectors' ('lastupdateutc' ASC);");
 
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_vectors_tenantguid_graphguid' ON 'vectors' (tenantguid ASC, graphguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_vectors_tenantguid_graphguid_nodeguid' ON 'vectors' (tenantguid ASC, graphguid ASC, nodeguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_vectors_tenantguid_graphguid_edgeguid' ON 'vectors' (tenantguid ASC, graphguid ASC, edgeguid ASC);");
+
             #endregion
 
             #region Graphs
@@ -168,6 +187,9 @@
                 + "guid VARCHAR(64) NOT NULL UNIQUE, "
                 + "tenantguid VARCHAR(64) NOT NULL, "
                 + "name VARCHAR(128), "
+                + "vectorindextype VARCHAR(16), "
+                + "vectorindexfile VARCHAR(256), "
+                + "vectorindexthreshold INT DEFAULT NULL, "
                 + "data TEXT, "
                 + "createdutc VARCHAR(64), "
                 + "lastupdateutc VARCHAR(64) "
@@ -203,6 +225,8 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_lastupdateutc' ON 'nodes' ('lastupdateutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_data' ON 'nodes' (data ASC);");
 
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_tenantguid_graphguid' ON 'nodes' (tenantguid ASC, graphguid ASC);");
+
             #endregion
 
             #region Edges
@@ -230,6 +254,8 @@
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_createdutc' ON 'edges' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_lastupdateutc' ON 'edges' ('lastupdateutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_data' ON 'edges' (data ASC);");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid' ON 'edges' (tenantguid ASC, graphguid ASC);");
 
             #endregion
 

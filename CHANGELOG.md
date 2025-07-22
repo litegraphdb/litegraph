@@ -2,7 +2,7 @@
 
 ## Current Version
 
-v4.0.x
+v4.x
 
 - Major internal refactor for both the graph repository base and the client class
 - Separation of responsibilities; graph repository base owns primitives, client class owns validation and cross-cutting
@@ -14,6 +14,7 @@ v4.0.x
 - Statistics APIs
 - Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
 - In-memory operation with controlled flushing to disk
+- Additional vector search parameters including topK, minimum score, maximum distance, and minimum inner product
 - Dependency updates and bug fixes
 - Minor Postman fixes
 

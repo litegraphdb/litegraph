@@ -8,7 +8,7 @@ LiteGraph is a property graph database with support for graph relationships, tag
 
 LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`).
 
-## New in v4.0.x
+## New in v4.x
 
 - Major internal refactor for both the graph repository base and the client class
 - Separation of responsibilities; graph repository base owns primitives, client class owns validation and cross-cutting
@@ -20,6 +20,7 @@ LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RES
 - Statistics APIs
 - Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
 - In-memory operation with controlled flushing to disk
+- Additional vector search parameters including topK, minimum score, maximum distance, and minimum inner product
 - Dependency updates and bug fixes
 - Minor Postman fixes
 
@@ -173,6 +174,18 @@ It is important to note that vectors have a dimensionality (number of array elem
 
 Further, it is strongly recommended that you make extensive use of labels, tags, and expressions (data filters) when performing a vector search to reduce the number of records against which score, distance, or inner product calculations are performed. 
 
+`VectorSearchResult` objects have three properties used to weigh the similarity or distance of the result to the supplied query:
+- `Score` - a higher score indicates a greater degree of similarity to the query
+- `Distance` - a lower distance indicates a greater proximity to the query
+- `InnerProduct` - a higher inner product indicates a greater degree of similarity to the query
+
+When searching vectors, you can supply one of three requirements thresholds that must be met:
+- `MinimumScore` - only return results with this score or higher
+- `MaximumDistance` - only return results with distance less than the supplied value
+- `MinimumInnerProduct` - only return results with this inner product or higher
+
+Your requirements threshold should match with the `VectorSearchTypeEnum` you supply to the search.
+
 ```csharp
 using ExpressionTree;
 
@@ -204,6 +217,10 @@ foreach (VectorSearchResult result in graph.SearchVectors(
   null,  // labels
   null,  // tags
   null,  // filter
+  10,    // topK
+  0.1,   // minimum score
+  100,   // maximum distance
+  0.1    // minimum inner product
 ))
 {
   Console.WriteLine("Node " + result.Node.GUID + " score " + result.Score);

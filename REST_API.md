@@ -449,11 +449,15 @@ Response:
 ```
 {
     "GraphGUID": "00000000-0000-0000-0000-000000000000",
-    "Domain": "Graph",
+    "Domain": "Node",
     "SearchType": "CosineSimilarity",
     "Labels": [],
     "Tags": {},
     "Expr": null,
+    "TopK": 10,
+    "MinimumScore": 0.1,
+    "MaximumDistance": 100,
+    "MinimumInnerProduct": 0.1,
     "Embeddings": [ 0.1, 0.2, 0.3 ]
 }
 ```

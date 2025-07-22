@@ -322,7 +322,11 @@
                 searchReq.GraphGUID,
                 searchReq.Labels,
                 searchReq.Tags,
-                searchReq.Expr);
+                searchReq.Expr,
+                searchReq.TopK,
+                searchReq.MinimumScore,
+                searchReq.MaximumDistance,
+                searchReq.MinimumInnerProduct);
         }
 
         /// <inheritdoc />
@@ -334,23 +338,76 @@
             Guid? graphGuid = null,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null)
+            Expr filter = null,
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = float.MaxValue,
+            float? minInnerProduct = 0.0f)
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must include at least one value.");
 
             if (domain == VectorSearchDomainEnum.Graph)
             {
-                return _Repo.Vector.SearchGraph(searchType, vectors, tenantGuid, labels, tags, filter);
+                foreach (VectorSearchResult result in _Repo.Vector.SearchGraph(
+                    searchType, 
+                    vectors, 
+                    tenantGuid, 
+                    labels, 
+                    tags, 
+                    filter,
+                    topK,
+                    minScore,
+                    maxDistance,
+                    minInnerProduct))
+                {
+                    result.Graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, result.Graph.GUID, null, null, null).ToList());
+                    result.Graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, result.Graph.GUID, null, null, null, null).ToList());
+                    yield return result;
+                }
             }
             else if (domain == VectorSearchDomainEnum.Node)
             {
                 if (graphGuid == null) throw new ArgumentException("Graph GUID must be supplied when performing a node vector search.");
-                return _Repo.Vector.SearchNode(searchType, vectors, tenantGuid, graphGuid.Value, labels, tags, filter);
+                
+                foreach (VectorSearchResult result in _Repo.Vector.SearchNode(
+                    searchType, 
+                    vectors, 
+                    tenantGuid, 
+                    graphGuid.Value, 
+                    labels, 
+                    tags, 
+                    filter,
+                    topK,
+                    minScore,
+                    maxDistance,
+                    minInnerProduct))
+                {
+                    result.Node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null).ToList());
+                    result.Node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null, null).ToList());
+                    yield return result;
+                }
             }
             else if (domain == VectorSearchDomainEnum.Edge)
             {
                 if (graphGuid == null) throw new ArgumentException("Graph GUID must be supplied when performing an edge vector search.");
-                return _Repo.Vector.SearchEdge(searchType, vectors, tenantGuid, graphGuid.Value, labels, tags, filter);
+                
+                foreach (VectorSearchResult result in _Repo.Vector.SearchEdge(
+                    searchType, 
+                    vectors, 
+                    tenantGuid, 
+                    graphGuid.Value, 
+                    labels,
+                    tags, 
+                    filter,
+                    topK,
+                    minScore,
+                    maxDistance,
+                    minInnerProduct))
+                {
+                    result.Edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null).ToList());
+                    result.Edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null, null).ToList());
+                    yield return result;
+                }
             }
             else
             {
