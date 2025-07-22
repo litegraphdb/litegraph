@@ -216,6 +216,41 @@
             return SHA256Hash(DataTableToString(dt));
         }
 
+        /// <summary>
+        /// Compute MD5, SHA1, and SHA256 hashes in a single pass.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <returns>Tuple containing MD5, SHA1, and SHA256 hashes.</returns>
+        public static (byte[] md5, byte[] sha1, byte[] sha256) ComputeAllHashes(Stream stream)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (!stream.CanRead) throw new ArgumentException("Unable to read from supplied stream.");
+            if (!stream.CanSeek) throw new ArgumentException("Unable to seek in supplied stream.");
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            using (MD5 md5 = MD5.Create())
+            using (SHA1 sha1 = SHA1.Create())
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+
+                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    md5.TransformBlock(buffer, 0, bytesRead, buffer, 0);
+                    sha1.TransformBlock(buffer, 0, bytesRead, buffer, 0);
+                    sha256.TransformBlock(buffer, 0, bytesRead, buffer, 0);
+                }
+
+                md5.TransformFinalBlock(buffer, 0, 0);
+                sha1.TransformFinalBlock(buffer, 0, 0);
+                sha256.TransformFinalBlock(buffer, 0, 0);
+
+                return (md5.Hash, sha1.Hash, sha256.Hash);
+            }
+        }
+
         private static string DataTableToString(DataTable dt)
         {
             StringBuilder sb = new StringBuilder();

@@ -5639,6 +5639,13 @@
             <param name="dt">DataTable. </param>
             <returns>SHA256 hash.</returns>
         </member>
+        <member name="M:LiteGraph.Helpers.HashHelper.ComputeAllHashes(System.IO.Stream)">
+            <summary>
+            Compute MD5, SHA1, and SHA256 hashes in a single pass.
+            </summary>
+            <param name="stream">Stream.</param>
+            <returns>Tuple containing MD5, SHA1, and SHA256 hashes.</returns>
+        </member>
         <member name="T:LiteGraph.Helpers.NvcHelpers">
             <summary>
             Name-value collection helpers.
