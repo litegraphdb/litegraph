@@ -5716,27 +5716,6 @@
             </summary>
             <returns>The sum of the element-wise products</returns>
         </member>
-        <member name="P:LiteGraph.Indexing.Vector.HnswSqliteStorage.EntryPoint">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.AddNodeAsync(System.Guid,System.Collections.Generic.List{System.Single},System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.GetAllNodeIdsAsync(System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.GetCountAsync(System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.GetNodeAsync(System.Guid,System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.RemoveNodeAsync(System.Guid,System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.TryGetNodeAsync(System.Guid,System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
         <member name="T:LiteGraph.Indexing.Vector.VectorIndexTypeEnum">
             <summary>
             Vector index type.

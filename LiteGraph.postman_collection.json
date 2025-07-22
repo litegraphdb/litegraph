@@ -8081,7 +8081,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Domain\": \"Node\",\r\n    \"SearchType\": \"CosineSimilarity\",\r\n    \"Labels\": [],\r\n    \"Tags\": {},\r\n    \"Expr\": null,\r\n    \"Embeddings\": [ 0.1, 0.2, 0.3 ]\r\n}",
+									"raw": "{\r\n    \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Domain\": \"Node\",\r\n    \"SearchType\": \"CosineSimilarity\",\r\n    \"Labels\": [],\r\n    \"Tags\": {},\r\n    \"Expr\": null,\r\n    \"TopK\": 10,\r\n    \"MinimumScore\": 0.1,\r\n    \"MaximumDistance\": 100,\r\n    \"MinimumInnerProduct\": 0.1,\r\n    \"Embeddings\": [ 0.1, 0.2, 0.3 ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
