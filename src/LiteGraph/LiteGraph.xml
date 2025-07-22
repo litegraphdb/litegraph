@@ -711,7 +711,7 @@
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.Search(LiteGraph.VectorSearchRequest)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.VectorMethods.Search(LiteGraph.VectorSearchDomainEnum,LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.Client.Implementations.VectorMethods.Search(LiteGraph.VectorSearchDomainEnum,LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
@@ -3032,6 +3032,30 @@
             Name.
             </summary>
         </member>
+        <member name="P:LiteGraph.Graph.VectorIndexType">
+            <summary>
+            Type of vector indexing to use.
+            Default is None.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Graph.VectorIndexFile">
+            <summary>
+            When vector indexing is enabled, the name of the file used to hold the index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Graph.VectorIndexThreshold">
+            <summary>
+            When vector indexing is enabled, the number of vectors required to use the index.
+            Brute force computation is often faster than use of an index for smaller batches of vectors.
+            Default is null.  When set, the minimum value is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Graph.VectorDimensionality">
+            <summary>
+            When vector indexing is enabled, the dimensionality of vectors that will be stored in this graph.
+            Default is null.  When set, the minimum value is 1.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Graph.CreatedUtc">
             <summary>
             Timestamp from creation, in UTC.
@@ -4674,7 +4698,7 @@
             <param name="guid">GUID.</param>
             <returns>True if exists.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <summary>
             Search graph vectors.
             </summary>
@@ -4684,9 +4708,13 @@
             <param name="labels">Labels.</param>
             <param name="tags">Tags.</param>
             <param name="filter">Filter.</param>
+            <param name="topK">Top K results to retrieve.  Default is 100.</param>
+            <param name="minScore">Minimum score required.</param>
+            <param name="maxDistance">Maximum distance allowed.</param>
+            <param name="minInnerProduct">Minimmum inner product required.</param>
             <returns>Vector search results containing graphs.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.SearchNode(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.SearchNode(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <summary>
             Search node vectors.
             </summary>
@@ -4697,9 +4725,13 @@
             <param name="labels">Labels.</param>
             <param name="tags">Tags.</param>
             <param name="filter">Filter.</param>
+            <param name="topK">Top K results to retrieve.  Default is 100.</param>
+            <param name="minScore">Minimum score required.</param>
+            <param name="maxDistance">Maximum distance allowed.</param>
+            <param name="minInnerProduct">Minimmum inner product required.</param>
             <returns>Vector search results containing nodes.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <summary>
             Search edge vectors.
             </summary>
@@ -4710,6 +4742,10 @@
             <param name="labels">Labels.</param>
             <param name="tags">Tags.</param>
             <param name="filter">Filter.</param>
+            <param name="topK">Top K results to retrieve.  Default is 100.</param>
+            <param name="minScore">Minimum score required.</param>
+            <param name="maxDistance">Maximum distance allowed.</param>
+            <param name="minInnerProduct">Minimmum inner product required.</param>
             <returns>Vector search results containing edges.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods">
@@ -5336,13 +5372,13 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.Update(LiteGraph.VectorMetadata)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchNode(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchNode(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository">
@@ -5679,6 +5715,47 @@
             Calculates the inner (dot) product of two vectors
             </summary>
             <returns>The sum of the element-wise products</returns>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswSqliteStorage.EntryPoint">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.AddNodeAsync(System.Guid,System.Collections.Generic.List{System.Single},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.GetAllNodeIdsAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.GetCountAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.GetNodeAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.RemoveNodeAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswSqliteStorage.TryGetNodeAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.VectorIndexTypeEnum">
+            <summary>
+            Vector index type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Indexing.Vector.VectorIndexTypeEnum.None">
+            <summary>
+            None.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Indexing.Vector.VectorIndexTypeEnum.HnswRam">
+            <summary>
+            Hierarchical navigable small world, in RAM only.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Indexing.Vector.VectorIndexTypeEnum.HnwsSqlite">
+            <summary>
+            Hierarchical navigable small world, in a separate Sqlite database.
+            </summary>
         </member>
         <member name="T:LiteGraph.LabelMetadata">
             <summary>
@@ -6605,6 +6682,26 @@
         <member name="P:LiteGraph.VectorSearchRequest.SearchType">
             <summary>
             Vector search type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorSearchRequest.TopK">
+            <summary>
+            Specify the top K number of results to return.  Default is 100.  Value can be null, but if not null, must be greater than zero.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorSearchRequest.MinimumScore">
+            <summary>
+            Minimum score.  Default value is 0.  Value must be null, or, zero or greater.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorSearchRequest.MaximumDistance">
+            <summary>
+            Maximum distance.  Default value is the maximum float value.  Value must be null, or, greater than zero.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorSearchRequest.MinimumInnerProduct">
+            <summary>
+            Minimum inner product.  Default value is 0.  Value must be null, or, zero or greater.
             </summary>
         </member>
         <member name="P:LiteGraph.VectorSearchRequest.Labels">

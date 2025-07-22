@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteGraph.Server", "LiteGra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.RamDatabase", "Test.RamDatabase\Test.RamDatabase.csproj", "{5449BE30-6E41-473F-9BFE-262B916FB787}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.VectorSearch", "Test.VectorSearch\Test.VectorSearch.csproj", "{B56C3C67-F68F-4635-B9E0-199DEA34A3A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{5449BE30-6E41-473F-9BFE-262B916FB787}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5449BE30-6E41-473F-9BFE-262B916FB787}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5449BE30-6E41-473F-9BFE-262B916FB787}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B56C3C67-F68F-4635-B9E0-199DEA34A3A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B56C3C67-F68F-4635-B9E0-199DEA34A3A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B56C3C67-F68F-4635-B9E0-199DEA34A3A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B56C3C67-F68F-4635-B9E0-199DEA34A3A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

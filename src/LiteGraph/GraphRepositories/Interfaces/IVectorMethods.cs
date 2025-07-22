@@ -244,6 +244,10 @@
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="filter">Filter.</param>
+        /// <param name="topK">Top K results to retrieve.  Default is 100.</param>
+        /// <param name="minScore">Minimum score required.</param>
+        /// <param name="maxDistance">Maximum distance allowed.</param>
+        /// <param name="minInnerProduct">Minimmum inner product required.</param>
         /// <returns>Vector search results containing graphs.</returns>
         IEnumerable<VectorSearchResult> SearchGraph(
             VectorSearchTypeEnum searchType,
@@ -251,7 +255,11 @@
             Guid tenantGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null);
+            Expr filter = null,
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = 1.0f,
+            float? minInnerProduct = 0.0f);
 
         /// <summary>
         /// Search node vectors.
@@ -263,6 +271,10 @@
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="filter">Filter.</param>
+        /// <param name="topK">Top K results to retrieve.  Default is 100.</param>
+        /// <param name="minScore">Minimum score required.</param>
+        /// <param name="maxDistance">Maximum distance allowed.</param>
+        /// <param name="minInnerProduct">Minimmum inner product required.</param>
         /// <returns>Vector search results containing nodes.</returns>
         IEnumerable<VectorSearchResult> SearchNode(
             VectorSearchTypeEnum searchType,
@@ -271,7 +283,11 @@
             Guid graphGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null);
+            Expr filter = null,
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = 1.0f,
+            float? minInnerProduct = 0.0f);
 
         /// <summary>
         /// Search edge vectors.
@@ -283,6 +299,10 @@
         /// <param name="labels">Labels.</param>
         /// <param name="tags">Tags.</param>
         /// <param name="filter">Filter.</param>
+        /// <param name="topK">Top K results to retrieve.  Default is 100.</param>
+        /// <param name="minScore">Minimum score required.</param>
+        /// <param name="maxDistance">Maximum distance allowed.</param>
+        /// <param name="minInnerProduct">Minimmum inner product required.</param>
         /// <returns>Vector search results containing edges.</returns>
         IEnumerable<VectorSearchResult> SearchEdge(
             VectorSearchTypeEnum searchType,
@@ -291,6 +311,10 @@
             Guid graphGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
-            Expr filter = null);
+            Expr filter = null, 
+            int? topK = 100,
+            float? minScore = 0.0f,
+            float? maxDistance = 1.0f,
+            float? minInnerProduct = 0.0f);
     }
 }

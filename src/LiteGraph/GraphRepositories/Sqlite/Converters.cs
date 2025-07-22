@@ -759,7 +759,6 @@
         internal static VectorMetadata VectorFromDataRow(DataRow row)
         {
             if (row == null) return null;
-
             return new VectorMetadata
             {
                 GUID = Guid.Parse(row["guid"].ToString()),
@@ -770,7 +769,7 @@
                 Model = GetDataRowStringValue(row, "model"),
                 Dimensionality = GetDataRowIntValue(row, "dimensionality"),
                 Content = GetDataRowStringValue(row, "content"),
-                Vectors = Serializer.DeserializeJson<List<float>>(GetDataRowStringValue(row, "embeddings")),
+                Vectors = BlobToVector(row["embeddings"] as byte[]),
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
@@ -786,6 +785,37 @@
                 ret.Add(VectorFromDataRow(row));
 
             return ret;
+        }
+
+        internal static byte[] VectorToBlob(List<float> vectors)
+        {
+            if (vectors == null || vectors.Count == 0) return null;
+
+            byte[] bytes = new byte[vectors.Count * 4];
+            for (int i = 0; i < vectors.Count; i++)
+            {
+                byte[] floatBytes = BitConverter.GetBytes(vectors[i]);
+                Buffer.BlockCopy(floatBytes, 0, bytes, i * 4, 4);
+            }
+            return bytes;
+        }
+
+        internal static List<float> BlobToVector(byte[] blob)
+        {
+            if (blob == null || blob.Length == 0) return new List<float>();
+
+            List<float> vectors = new List<float>(blob.Length / 4);
+            for (int i = 0; i < blob.Length; i += 4)
+            {
+                vectors.Add(BitConverter.ToSingle(blob, i));
+            }
+            return vectors;
+        }
+
+        internal static string BytesToHex(byte[] bytes)
+        {
+            if (bytes == null) return "NULL";
+            return "X'" + BitConverter.ToString(bytes).Replace("-", "") + "'";
         }
 
         internal static Graph GraphFromDataRow(DataRow row)

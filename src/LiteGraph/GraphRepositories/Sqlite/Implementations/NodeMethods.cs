@@ -12,9 +12,7 @@
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-    using SQLitePCL;
-    using LoggingSettings = LoggingSettings;
+    using Timestamps;
 
     /// <summary>
     /// Node methods.
@@ -138,14 +136,14 @@
             while (true)
             {
                 DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMany(
-                    tenantGuid, 
-                    graphGuid, 
+                    tenantGuid,
+                    graphGuid,
                     name,
-                    labels, 
-                    tags, 
-                    nodeFilter, 
-                    _Repo.SelectBatchSize, 
-                    skip, 
+                    labels,
+                    tags,
+                    nodeFilter,
+                    _Repo.SelectBatchSize,
+                    skip,
                     order));
 
                 if (result == null || result.Rows.Count < 1) break;
@@ -172,14 +170,14 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             DataTable result = _Repo.ExecuteQuery(NodeQueries.SelectMany(
-                tenantGuid, 
-                graphGuid, 
+                tenantGuid,
+                graphGuid,
                 name,
-                labels, 
-                tags, 
-                nodeFilter, 
-                1, 
-                0, 
+                labels,
+                tags,
+                nodeFilter,
+                1,
+                0,
                 order));
 
             if (result == null || result.Rows.Count < 1) return null;
@@ -194,11 +192,11 @@
 
         /// <inheritdoc />
         public IEnumerable<Node> ReadMostConnected(
-            Guid tenantGuid, 
-            Guid graphGuid, 
-            List<string> labels = null, 
-            NameValueCollection tags = null, 
-            Expr nodeFilter = null, 
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr nodeFilter = null,
             int skip = 0)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
@@ -221,11 +219,11 @@
 
         /// <inheritdoc />
         public IEnumerable<Node> ReadLeastConnected(
-            Guid tenantGuid, 
-            Guid graphGuid, 
-            List<string> labels = null, 
-            NameValueCollection tags = null, 
-            Expr nodeFilter = null, 
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr nodeFilter = null,
             int skip = 0)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
@@ -506,14 +504,14 @@
             while (true)
             {
                 DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectConnected(
-                    tenantGuid, 
-                    graphGuid, 
-                    nodeGuid, 
-                    null, 
-                    null, 
-                    null, 
-                    _Repo.SelectBatchSize, 
-                    skip, 
+                    tenantGuid,
+                    graphGuid,
+                    nodeGuid,
+                    null,
+                    null,
+                    null,
+                    _Repo.SelectBatchSize,
+                    skip,
                     order));
 
                 if (result == null || result.Rows.Count < 1) break;
@@ -632,12 +630,12 @@
             #region Get-Edges
 
             List<Edge> edges = _Repo.Edge.ReadEdgesFromNode(
-                tenantGuid, 
-                graph.GUID, 
-                start.GUID, 
-                null, 
-                null, 
-                edgeFilter, 
+                tenantGuid,
+                graph.GUID,
+                start.GUID,
+                null,
+                null,
+                edgeFilter,
                 EnumerationOrderEnum.CreatedDescending).ToList();
 
             #endregion

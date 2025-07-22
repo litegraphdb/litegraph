@@ -276,9 +276,9 @@
 
         #endregion
 
-        #region Private-Methods
+        #region Internal-Methods
 
-        private Graph PopulateGraph(Graph obj, bool includeSubordinates, bool includeData)
+        internal Graph PopulateGraph(Graph obj, bool includeSubordinates, bool includeData)
         {
             if (obj == null) return null;
 
@@ -296,6 +296,10 @@
             if (!includeData) obj.Data = null;
             return obj;
         }
+
+        #endregion
+
+        #region Private-Methods
 
         #endregion
     }

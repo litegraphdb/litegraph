@@ -169,7 +169,7 @@
         private bool _InMemory = false;
 
         private readonly object _QueryLock = new object();
-        private string _ConnectionString = "Data Source=litegraph.db;Pooling=false";
+        private string _ConnectionString = "Data Source=litegraph.db;Mode=ReadWriteCreate;Cache=Shared;";
         private SqliteConnection _SqliteConnection = null;
 
         private int _SelectBatchSize = 100;
@@ -198,6 +198,8 @@
 
             _SqliteConnection = new SqliteConnection(_ConnectionString);
             _SqliteConnection.Open();
+
+            ApplyPerformanceSettings(_SqliteConnection);
 
             Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
@@ -495,6 +497,19 @@
         #endregion
 
         #region Private-Methods
+        private void ApplyPerformanceSettings(SqliteConnection conn)
+        {
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = 
+                    // "PRAGMA journal_mode = WAL; " +
+                    "PRAGMA synchronous = NORMAL; " +
+                    "PRAGMA cache_size = -128000; " +
+                    "PRAGMA temp_store = MEMORY; " +
+                    "PRAGMA mmap_size = 536870912; ";
+                cmd.ExecuteNonQuery();
+            }
+        }
 
         #endregion
 
