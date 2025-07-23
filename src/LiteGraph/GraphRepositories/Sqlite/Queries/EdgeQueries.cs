@@ -95,7 +95,7 @@
                     string vectorsString = string.Empty;
                     if (vector.Vectors != null && vector.Vectors.Count > 0)
                     {
-                        vectorsString = Serializer.SerializeJson(vector.Vectors, false);
+                        vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
                     }
 
                     ret +=
@@ -109,7 +109,7 @@
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                        "'" + vectorsString + "', " +
+                        vectorsString + ", " +
                         "'" + vector.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
                         "'" + vector.LastUpdateUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
@@ -208,7 +208,7 @@
                         string vectorsString = string.Empty;
                         if (vector.Vectors != null && vector.Vectors.Count > 0)
                         {
-                            vectorsString = Serializer.SerializeJson(vector.Vectors, false);
+                            vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
                         }
 
                         ret +=
@@ -222,7 +222,7 @@
                             "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                             vector.Dimensionality + ", " +
                             "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                            "'" + vectorsString + "', " +
+                            vectorsString + ", " +
                             "'" + vector.CreatedUtc.ToString(TimestampFormat) + "', " +
                             "'" + vector.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
                     }
@@ -775,7 +775,6 @@
             return ret;
         }
 
-
         internal static string Update(Edge edge)
         {
             string ret = string.Empty;
@@ -871,7 +870,7 @@
                     string vectorsString = string.Empty;
                     if (vector.Vectors != null && vector.Vectors.Count > 0)
                     {
-                        vectorsString = Serializer.SerializeJson(vector.Vectors, false);
+                        vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
                     }
 
                     ret +=
@@ -885,7 +884,7 @@
                         "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                         vector.Dimensionality + ", " +
                         "'" + Sanitizer.Sanitize(vector.Content) + "', " +
-                        "'" + vectorsString + "', " +
+                        vectorsString + ", " +
                         "'" + vector.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "', " +
                         "'" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'); ";
                 }
