@@ -73,7 +73,9 @@
 
             string insertQuery = EdgeQueries.InsertMany(tenantGuid, edges);
             string retrieveQuery = EdgeQueries.SelectMany(tenantGuid, edges.Select(n => n.GUID).ToList());
-            DataTable createResult = _Repo.ExecuteQuery(insertQuery, true); 
+
+            // Execute the entire batch with BEGIN/COMMIT and multi-row INSERTs
+            DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
             DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
             created = Converters.EdgesFromDataTable(retrieveResult);
             return created;

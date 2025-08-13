@@ -127,7 +127,13 @@
         {
             if (nodes == null || nodes.Count == 0) return string.Empty;
 
-            string ret = string.Empty;
+            StringBuilder ret = new StringBuilder();
+
+            // Collect all nodes data
+            List<string> nodeValues = new List<string>();
+            List<string> labelValues = new List<string>();
+            List<string> tagValues = new List<string>();
+            List<string> vectorValues = new List<string>();
 
             foreach (Node node in nodes)
             {
@@ -136,17 +142,17 @@
                 string data = null;
                 if (node.Data != null) data = Sanitizer.SanitizeJson(Serializer.SerializeJson(node.Data, false));
 
-                ret +=
-                    "INSERT INTO 'nodes' " +
-                    "(guid, tenantguid, graphguid, name, data, createdutc, lastupdateutc) VALUES " +
+                // Add node value
+                nodeValues.Add(
                     "('" + node.GUID + "', " +
                     "'" + node.TenantGUID + "', " +
                     "'" + node.GraphGUID + "', " +
                     "'" + Sanitizer.Sanitize(node.Name) + "', " +
-                    (!String.IsNullOrEmpty(data) ? "'" + data + "', " : "NULL, ") +
+                    (!String.IsNullOrEmpty(data) ? "'" + data + "'" : "NULL") + ", " +
                     "'" + node.CreatedUtc.ToString(TimestampFormat) + "', " +
-                    "'" + node.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                    "'" + node.LastUpdateUtc.ToString(TimestampFormat) + "')");
 
+                // Collect labels
                 if (node.Labels != null && node.Labels.Count > 0)
                 {
                     List<LabelMetadata> labels = LabelMetadata.FromListString(
@@ -158,20 +164,19 @@
 
                     foreach (LabelMetadata label in labels)
                     {
-                        ret +=
-                            "INSERT INTO 'labels' " +
-                            "(guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) VALUES " +
+                        labelValues.Add(
                             "('" + label.GUID + "', " +
                             "'" + node.TenantGUID + "', " +
                             "'" + node.GraphGUID + "', " +
                             "'" + node.GUID + "', " +
-                            (label.EdgeGUID.HasValue ? "'" + label.EdgeGUID + "'" : "NULL") + ", " +
+                            "NULL, " +
                             "'" + Sanitizer.Sanitize(label.Label) + "', " +
                             "'" + label.CreatedUtc.ToString(TimestampFormat) + "', " +
-                            "'" + label.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                            "'" + label.LastUpdateUtc.ToString(TimestampFormat) + "')");
                     }
                 }
 
+                // Collect tags
                 if (node.Tags != null && node.Tags.Count > 0)
                 {
                     List<TagMetadata> tags = TagMetadata.FromNameValueCollection(
@@ -183,51 +188,79 @@
 
                     foreach (TagMetadata tag in tags)
                     {
-                        ret +=
-                            "INSERT INTO 'tags' " +
-                            "(guid, tenantguid, graphguid, nodeguid, edgeguid, tagkey, tagvalue, createdutc, lastupdateutc) VALUES " +
+                        tagValues.Add(
                             "('" + tag.GUID + "', " +
                             "'" + node.TenantGUID + "', " +
                             "'" + node.GraphGUID + "', " +
                             "'" + node.GUID + "', " +
-                            (tag.EdgeGUID.HasValue ? "'" + tag.EdgeGUID + "'" : "NULL") + ", " +
+                            "NULL, " +
                             "'" + Sanitizer.Sanitize(tag.Key) + "', " +
                             "'" + Sanitizer.Sanitize(tag.Value) + "', " +
                             "'" + tag.CreatedUtc.ToString(TimestampFormat) + "', " +
-                            "'" + tag.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                            "'" + tag.LastUpdateUtc.ToString(TimestampFormat) + "')");
                     }
                 }
 
-                // Insert vectors if any
+                // Collect vectors
                 if (node.Vectors != null && node.Vectors.Count > 0)
                 {
                     foreach (VectorMetadata vector in node.Vectors)
                     {
-                        string vectorsString = string.Empty;
+                        string vectorsString = "NULL";
                         if (vector.Vectors != null && vector.Vectors.Count > 0)
                         {
                             vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
                         }
 
-                        ret +=
-                            "INSERT INTO 'vectors' " +
-                            "(guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES " +
+                        vectorValues.Add(
                             "('" + vector.GUID + "', " +
                             "'" + node.TenantGUID + "', " +
                             "'" + node.GraphGUID + "', " +
                             "'" + node.GUID + "', " +
-                            (vector.EdgeGUID.HasValue ? "'" + vector.EdgeGUID + "'" : "NULL") + ", " +
+                            "NULL, " +
                             "'" + Sanitizer.Sanitize(vector.Model) + "', " +
                             vector.Dimensionality + ", " +
                             "'" + Sanitizer.Sanitize(vector.Content) + "', " +
                             vectorsString + ", " +
                             "'" + vector.CreatedUtc.ToString(TimestampFormat) + "', " +
-                            "'" + vector.LastUpdateUtc.ToString(TimestampFormat) + "'); ";
+                            "'" + vector.LastUpdateUtc.ToString(TimestampFormat) + "')");
                     }
                 }
             }
 
-            return ret;
+            // Build multi-row INSERT for nodes
+            if (nodeValues.Count > 0)
+            {
+                ret.Append("INSERT INTO 'nodes' (guid, tenantguid, graphguid, name, data, createdutc, lastupdateutc) VALUES ");
+                ret.Append(string.Join(", ", nodeValues));
+                ret.Append("; ");
+            }
+
+            // Build multi-row INSERT for labels
+            if (labelValues.Count > 0)
+            {
+                ret.Append("INSERT INTO 'labels' (guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) VALUES ");
+                ret.Append(string.Join(", ", labelValues));
+                ret.Append("; ");
+            }
+
+            // Build multi-row INSERT for tags
+            if (tagValues.Count > 0)
+            {
+                ret.Append("INSERT INTO 'tags' (guid, tenantguid, graphguid, nodeguid, edgeguid, tagkey, tagvalue, createdutc, lastupdateutc) VALUES ");
+                ret.Append(string.Join(", ", tagValues));
+                ret.Append("; ");
+            }
+
+            // Build multi-row INSERT for vectors
+            if (vectorValues.Count > 0)
+            {
+                ret.Append("INSERT INTO 'vectors' (guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES ");
+                ret.Append(string.Join(", ", vectorValues));
+                ret.Append("; ");
+            }
+
+            return ret.ToString();
         }
 
         internal static string SelectAllInTenant(

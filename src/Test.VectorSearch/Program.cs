@@ -16,10 +16,11 @@
         static Random _Random = new Random();
 
         // Constants for the test
-        static int _NodeCount = 1000;
+        static int _NodeCount = 5000;
         static int _VectorDimensionality = 384;
         static int _SearchCount = 5;
         static int _TopResults = 10;
+        static int _BatchSize = 1000; // Batch size for node creation
 
         // Performance tracking
         static class PerformanceMetrics
@@ -46,16 +47,16 @@
             public static long Step3Time { get; set; }
             public static long Step4Time { get; set; }
 
-            // Node insertion performance tracking
-            public static List<long> IndividualNodeInsertionTimes { get; set; } = new List<long>();
+            // Batch insertion performance tracking
+            public static List<long> BatchInsertionTimes { get; set; } = new List<long>();
             public static Dictionary<int, double> BatchAverageInsertionTimes { get; set; } = new Dictionary<int, double>();
             public static double FirstBatchAvgTime { get; set; }
             public static double LastBatchAvgTime { get; set; }
             public static double InsertionDegradationRate { get; set; }
-            public static long MinInsertionTime { get; set; } = long.MaxValue;
-            public static long MaxInsertionTime { get; set; } = 0;
-            public static int MinInsertionIndex { get; set; }
-            public static int MaxInsertionIndex { get; set; }
+            public static long MinBatchTime { get; set; } = long.MaxValue;
+            public static long MaxBatchTime { get; set; } = 0;
+            public static int MinBatchIndex { get; set; }
+            public static int MaxBatchIndex { get; set; }
         }
 
         // Node data class
@@ -72,9 +73,10 @@
             var totalStopwatch = Stopwatch.StartNew();
             DateTime testStartTime = DateTime.Now;
 
-            Console.WriteLine("=== LiteGraph Vector Search Test ===");
+            Console.WriteLine("=== LiteGraph Vector Search Test (Optimized with Batch Insertion) ===");
             Console.WriteLine($"Test started at: {testStartTime:yyyy-MM-dd HH:mm:ss}");
             Console.WriteLine($"Creating {_NodeCount} nodes with {_VectorDimensionality}-dimensional vectors");
+            Console.WriteLine($"Batch size: {_BatchSize} nodes");
             Console.WriteLine();
 
             // Initialize client
@@ -116,10 +118,10 @@
                 Console.WriteLine($"Step 1 total time: {step1Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine();
 
-                // Step 2: Load graph with nodes
-                Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with embeddings...");
+                // Step 2: Load graph with nodes (using batch insertion)
+                Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with embeddings using batch insertion...");
                 var step2Stopwatch = Stopwatch.StartNew();
-                nodes = CreateNodesWithEmbeddings(tenant.GUID, graph.GUID, _NodeCount);
+                nodes = CreateNodesWithEmbeddingsBatch(tenant.GUID, graph.GUID, _NodeCount);
                 step2Stopwatch.Stop();
                 PerformanceMetrics.Step2Time = step2Stopwatch.ElapsedMilliseconds;
                 PerformanceMetrics.NodesCreated = nodes.Count;
@@ -204,6 +206,7 @@
             Console.WriteLine($"  • Node Count:           {_NodeCount:N0}");
             Console.WriteLine($"  • Vector Dimensions:    {_VectorDimensionality:N0}");
             Console.WriteLine($"  • Search Iterations:    {_SearchCount:N0}");
+            Console.WriteLine($"  • Batch Size:           {_BatchSize:N0}");
             Console.WriteLine();
 
             // Execution Timeline
@@ -218,27 +221,29 @@
             Console.WriteLine($"  • Avg Creation Time/Node:   {(PerformanceMetrics.TotalNodeCreationTime / (double)PerformanceMetrics.NodesCreated),8:F2}ms");
             Console.WriteLine();
 
-            // Node Insertion Performance Degradation
-            Console.WriteLine("NODE INSERTION PERFORMANCE DEGRADATION:");
+            // Batch Insertion Performance
+            Console.WriteLine("BATCH INSERTION PERFORMANCE:");
+            Console.WriteLine($"  • Total Batches:            {PerformanceMetrics.BatchInsertionTimes.Count,8:N0}");
             Console.WriteLine($"  • First Batch Avg Time:     {PerformanceMetrics.FirstBatchAvgTime,8:F2}ms/node");
             Console.WriteLine($"  • Last Batch Avg Time:      {PerformanceMetrics.LastBatchAvgTime,8:F2}ms/node");
             Console.WriteLine($"  • Degradation Rate:         {PerformanceMetrics.InsertionDegradationRate,8:F2}%");
-            Console.WriteLine($"  • Min Insertion Time:       {PerformanceMetrics.MinInsertionTime,8:N0}ms (node #{PerformanceMetrics.MinInsertionIndex})");
-            Console.WriteLine($"  • Max Insertion Time:       {PerformanceMetrics.MaxInsertionTime,8:N0}ms (node #{PerformanceMetrics.MaxInsertionIndex})");
+            Console.WriteLine($"  • Min Batch Time:           {PerformanceMetrics.MinBatchTime,8:N0}ms (batch #{PerformanceMetrics.MinBatchIndex})");
+            Console.WriteLine($"  • Max Batch Time:           {PerformanceMetrics.MaxBatchTime,8:N0}ms (batch #{PerformanceMetrics.MaxBatchIndex})");
 
-            if (PerformanceMetrics.IndividualNodeInsertionTimes.Count > 0)
+            if (PerformanceMetrics.BatchInsertionTimes.Count > 0)
             {
-                // Calculate percentiles
-                var sortedTimes = PerformanceMetrics.IndividualNodeInsertionTimes.OrderBy(t => t).ToList();
+                // Calculate percentiles for batch times
+                var sortedTimes = PerformanceMetrics.BatchInsertionTimes.OrderBy(t => t).ToList();
                 int p50Index = (int)(sortedTimes.Count * 0.50);
-                int p90Index = (int)(sortedTimes.Count * 0.90);
-                int p95Index = (int)(sortedTimes.Count * 0.95);
-                int p99Index = (int)(sortedTimes.Count * 0.99);
+                int p90Index = Math.Min((int)(sortedTimes.Count * 0.90), sortedTimes.Count - 1);
+                int p95Index = Math.Min((int)(sortedTimes.Count * 0.95), sortedTimes.Count - 1);
+                int p99Index = Math.Min((int)(sortedTimes.Count * 0.99), sortedTimes.Count - 1);
 
                 Console.WriteLine($"  • P50 (Median):             {sortedTimes[p50Index],8:N0}ms");
                 Console.WriteLine($"  • P90:                      {sortedTimes[p90Index],8:N0}ms");
                 Console.WriteLine($"  • P95:                      {sortedTimes[p95Index],8:N0}ms");
                 Console.WriteLine($"  • P99:                      {sortedTimes[p99Index],8:N0}ms");
+                Console.WriteLine($"  • Average Batch Time:       {PerformanceMetrics.BatchInsertionTimes.Average(),8:F2}ms");
             }
             Console.WriteLine();
 
@@ -299,119 +304,109 @@
             });
         }
 
-        static List<Node> CreateNodesWithEmbeddings(Guid tenantGuid, Guid graphGuid, int count)
+        static List<Node> CreateNodesWithEmbeddingsBatch(Guid tenantGuid, Guid graphGuid, int count)
         {
-            List<Node> nodes = new List<Node>();
+            List<Node> allNodes = new List<Node>();
             var totalNodeCreationTime = 0L;
             var totalEmbeddingTime = 0L;
-            List<long> batchTimes = new List<long>();
-            int batchSize = 100;
-            int currentBatch = 1;
+            int currentBatchNumber = 1;
+            int totalBatches = (count + _BatchSize - 1) / _BatchSize; // Calculate total number of batches
 
-            Console.WriteLine($"Creating {count} nodes with {_VectorDimensionality}-dimensional vectors...");
-            Console.WriteLine("Batch | Nodes    | Batch Time | Avg/Node | Cumulative Avg");
-            Console.WriteLine("------|----------|------------|----------|---------------");
+            Console.WriteLine($"Creating {count} nodes in {totalBatches} batches of {_BatchSize} nodes each...");
+            Console.WriteLine("Batch | Nodes       | Batch Time | Avg/Node | Cumulative Avg");
+            Console.WriteLine("------|-------------|------------|----------|---------------");
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i += _BatchSize)
             {
-                // Generate random embeddings with timing
-                var embeddingStopwatch = Stopwatch.StartNew();
-                List<float> embeddings = GenerateRandomEmbeddings(_VectorDimensionality);
-                embeddingStopwatch.Stop();
-                totalEmbeddingTime += embeddingStopwatch.ElapsedMilliseconds;
+                int batchStart = i;
+                int batchEnd = Math.Min(i + _BatchSize, count);
+                int batchSize = batchEnd - batchStart;
+                List<Node> batchNodes = new List<Node>();
 
-                // Create node with embeddings
-                Guid nodeGuid = Guid.NewGuid();
-                Node node = new Node
+                // Generate all nodes for this batch
+                var batchEmbeddingStopwatch = Stopwatch.StartNew();
+                for (int j = batchStart; j < batchEnd; j++)
                 {
-                    GUID = nodeGuid,
-                    TenantGUID = tenantGuid,
-                    GraphGUID = graphGuid,
-                    Name = $"Node-{i:D5}",
-                    Labels = new List<string> { "test-node", i % 2 == 0 ? "even" : "odd" },
-                    Data = new NodeTestData
+                    // Generate random embeddings
+                    List<float> embeddings = GenerateRandomEmbeddings(_VectorDimensionality);
+
+                    // Create node with embeddings
+                    Guid nodeGuid = Guid.NewGuid();
+                    Node node = new Node
                     {
-                        Index = i,
-                        Category = $"Category-{i % 10}",
-                        Value = _Random.NextDouble() * 1000,
-                        Timestamp = DateTime.UtcNow
-                    },
-                    Vectors = new List<VectorMetadata>
-                    {
-                        new VectorMetadata
+                        GUID = nodeGuid,
+                        TenantGUID = tenantGuid,
+                        GraphGUID = graphGuid,
+                        Name = $"Node-{j:D5}",
+                        Labels = new List<string> { "test-node", j % 2 == 0 ? "even" : "odd" },
+                        Data = new NodeTestData
                         {
-                            TenantGUID = tenantGuid,
-                            GraphGUID = graphGuid,
-                            NodeGUID = nodeGuid,
-                            Model = "test-embeddings",
-                            Dimensionality = _VectorDimensionality,
-                            Content = $"Test content for node {i}",
-                            Vectors = embeddings
+                            Index = j,
+                            Category = $"Category-{j % 10}",
+                            Value = _Random.NextDouble() * 1000,
+                            Timestamp = DateTime.UtcNow
+                        },
+                        Vectors = new List<VectorMetadata>
+                        {
+                            new VectorMetadata
+                            {
+                                TenantGUID = tenantGuid,
+                                GraphGUID = graphGuid,
+                                NodeGUID = nodeGuid,
+                                Model = "test-embeddings",
+                                Dimensionality = _VectorDimensionality,
+                                Content = $"Test content for node {j}",
+                                Vectors = embeddings
+                            }
                         }
-                    }
-                };
+                    };
 
-                var nodeStopwatch = Stopwatch.StartNew();
-                node = _Client.Node.Create(node);
-                nodeStopwatch.Stop();
-
-                long insertionTime = nodeStopwatch.ElapsedMilliseconds;
-                totalNodeCreationTime += insertionTime;
-                batchTimes.Add(insertionTime);
-
-                // Track individual insertion times for degradation analysis
-                PerformanceMetrics.IndividualNodeInsertionTimes.Add(insertionTime);
-
-                // Track min/max insertion times
-                if (insertionTime < PerformanceMetrics.MinInsertionTime)
-                {
-                    PerformanceMetrics.MinInsertionTime = insertionTime;
-                    PerformanceMetrics.MinInsertionIndex = i;
+                    batchNodes.Add(node);
                 }
-                if (insertionTime > PerformanceMetrics.MaxInsertionTime)
+                batchEmbeddingStopwatch.Stop();
+                totalEmbeddingTime += batchEmbeddingStopwatch.ElapsedMilliseconds;
+
+                // Insert the entire batch at once
+                var batchInsertStopwatch = Stopwatch.StartNew();
+                List<Node> createdNodes = _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes);
+                batchInsertStopwatch.Stop();
+
+                long batchInsertTime = batchInsertStopwatch.ElapsedMilliseconds;
+                totalNodeCreationTime += batchInsertTime;
+                PerformanceMetrics.BatchInsertionTimes.Add(batchInsertTime);
+
+                // Track min/max batch times
+                if (batchInsertTime < PerformanceMetrics.MinBatchTime)
                 {
-                    PerformanceMetrics.MaxInsertionTime = insertionTime;
-                    PerformanceMetrics.MaxInsertionIndex = i;
+                    PerformanceMetrics.MinBatchTime = batchInsertTime;
+                    PerformanceMetrics.MinBatchIndex = currentBatchNumber;
+                }
+                if (batchInsertTime > PerformanceMetrics.MaxBatchTime)
+                {
+                    PerformanceMetrics.MaxBatchTime = batchInsertTime;
+                    PerformanceMetrics.MaxBatchIndex = currentBatchNumber;
                 }
 
-                nodes.Add(node);
+                // Calculate averages
+                double batchAvgPerNode = batchInsertTime / (double)batchSize;
+                double cumulativeAvg = totalNodeCreationTime / (double)(batchEnd);
+                PerformanceMetrics.BatchAverageInsertionTimes[currentBatchNumber] = batchAvgPerNode;
 
-                // Report batch statistics on new lines
-                if ((i + 1) % batchSize == 0)
+                // Track first and last batch averages
+                if (currentBatchNumber == 1)
                 {
-                    double batchAvg = batchTimes.Average();
-                    double batchTotal = batchTimes.Sum();
-                    double cumulativeAvg = totalNodeCreationTime / (double)(i + 1);
-                    PerformanceMetrics.BatchAverageInsertionTimes[currentBatch] = batchAvg;
-
-                    if (currentBatch == 1)
-                    {
-                        PerformanceMetrics.FirstBatchAvgTime = batchAvg;
-                    }
-
-                    Console.WriteLine($"{currentBatch,5} | {i - batchSize + 2,4}-{i + 1,4} | {batchTotal,8:F0}ms | {batchAvg,7:F2}ms | {cumulativeAvg,7:F2}ms");
-
-                    batchTimes.Clear();
-                    currentBatch++;
+                    PerformanceMetrics.FirstBatchAvgTime = batchAvgPerNode;
                 }
-            }
+                if (currentBatchNumber == totalBatches)
+                {
+                    PerformanceMetrics.LastBatchAvgTime = batchAvgPerNode;
+                }
 
-            // Handle remaining nodes in the last partial batch
-            if (batchTimes.Count > 0)
-            {
-                double lastBatchAvg = batchTimes.Average();
-                double lastBatchTotal = batchTimes.Sum();
-                double finalCumulativeAvg = totalNodeCreationTime / (double)count;
-                PerformanceMetrics.BatchAverageInsertionTimes[currentBatch] = lastBatchAvg;
-                PerformanceMetrics.LastBatchAvgTime = lastBatchAvg;
+                // Print batch statistics
+                Console.WriteLine($"{currentBatchNumber,5} | {batchStart + 1,5}-{batchEnd,5} | {batchInsertTime,8:F0}ms | {batchAvgPerNode,7:F2}ms | {cumulativeAvg,7:F2}ms");
 
-                int startNode = ((currentBatch - 1) * batchSize) + 1;
-                Console.WriteLine($"{currentBatch,5} | {startNode,4}-{count,4} | {lastBatchTotal,8:F0}ms | {lastBatchAvg,7:F2}ms | {finalCumulativeAvg,7:F2}ms");
-            }
-            else if (currentBatch > 1)
-            {
-                // Use the last complete batch average
-                PerformanceMetrics.LastBatchAvgTime = PerformanceMetrics.BatchAverageInsertionTimes[currentBatch - 1];
+                allNodes.AddRange(createdNodes);
+                currentBatchNumber++;
             }
 
             // Calculate degradation rate
@@ -421,16 +416,18 @@
                     ((PerformanceMetrics.LastBatchAvgTime - PerformanceMetrics.FirstBatchAvgTime) / PerformanceMetrics.FirstBatchAvgTime) * 100;
             }
 
-            Console.WriteLine($"\nInsertion Summary:");
+            Console.WriteLine($"\nBatch Insertion Summary:");
+            Console.WriteLine($"  Total batches: {totalBatches}");
             Console.WriteLine($"  First batch avg: {PerformanceMetrics.FirstBatchAvgTime:F2}ms/node");
             Console.WriteLine($"  Last batch avg: {PerformanceMetrics.LastBatchAvgTime:F2}ms/node");
             Console.WriteLine($"  Degradation: {PerformanceMetrics.InsertionDegradationRate:+0.0;-0.0;0}%");
+            Console.WriteLine($"  Average batch time: {PerformanceMetrics.BatchInsertionTimes.Average():F2}ms");
 
             // Store metrics
             PerformanceMetrics.TotalEmbeddingGenerationTime = totalEmbeddingTime;
             PerformanceMetrics.TotalNodeCreationTime = totalNodeCreationTime;
 
-            return nodes;
+            return allNodes;
         }
 
         static List<float> GenerateRandomEmbeddings(int dimensionality)
@@ -563,7 +560,7 @@
                     _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID);
                     deletedCount++;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Node might already be deleted - silent fail
                 }
