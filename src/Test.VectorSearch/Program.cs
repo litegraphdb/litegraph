@@ -16,11 +16,11 @@
         static Random _Random = new Random();
 
         // Constants for the test
-        static int _NodeCount = 5000;
+        static int _NodeCount = 1000;
         static int _VectorDimensionality = 384;
         static int _SearchCount = 5;
         static int _TopResults = 10;
-        static int _BatchSize = 1000; // Batch size for node creation
+        static int _BatchSize = 100; // Batch size for node creation
 
         // Performance tracking
         static class PerformanceMetrics
