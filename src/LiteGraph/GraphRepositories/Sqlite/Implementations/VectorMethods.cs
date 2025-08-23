@@ -74,6 +74,8 @@
 
             string insertQuery = VectorQueries.InsertMany(tenantGuid, vectors);
             string retrieveQuery = VectorQueries.SelectMany(tenantGuid, vectors.Select(n => n.GUID).ToList());
+
+            // Execute the entire batch with BEGIN/COMMIT and multi-row INSERTs
             DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
             DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
             List<VectorMetadata> created = Converters.VectorsFromDataTable(retrieveResult);
@@ -481,45 +483,103 @@
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
 
-            List<VectorSearchResult> candidates = new List<VectorSearchResult>();
+            // Step 1: Get all filtered vectors with a single query that includes all filtering
+            List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
+            int skip = 0;
 
-            foreach (Graph graph in _Repo.Graph.ReadMany(tenantGuid, null, labels, tags, filter))
+            while (true)
             {
-                graph.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID).ToList();
+                string query = VectorQueries.SelectGraphVectorsWithFilters(
+                    tenantGuid,
+                    labels,
+                    tags,
+                    filter,
+                    _Repo.SelectBatchSize,
+                    skip);
 
-                foreach (VectorMetadata vmd in graph.Vectors)
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
                 {
-                    if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
-                    if (vmd.Vectors.Count != vectors.Count) continue;
-
-                    float? score = null;
-                    float? distance = null;
-                    float? innerProduct = null;
-
-                    CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-                    if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
+                    VectorMetadata vmd = Converters.VectorFromDataRow(result.Rows[i]);
+                    if (vmd.Vectors != null && vmd.Vectors.Count > 0 && vmd.Vectors.Count == vectors.Count)
                     {
-                        candidates.Add(new VectorSearchResult
+                        candidateVectors.Add(vmd);
+                    }
+                }
+
+                skip += result.Rows.Count;
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+
+            // Step 2: Compare vectors and collect matching results
+            Dictionary<Guid, VectorSearchResult> bestResultsByGraph = new Dictionary<Guid, VectorSearchResult>();
+
+            foreach (VectorMetadata vmd in candidateVectors)
+            {
+                float? score = null;
+                float? distance = null;
+                float? innerProduct = null;
+
+                CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
+
+                if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
+                {
+                    // Keep only the best result for each graph
+                    if (!bestResultsByGraph.ContainsKey(vmd.GraphGUID))
+                    {
+                        bestResultsByGraph[vmd.GraphGUID] = new VectorSearchResult
                         {
-                            Graph = graph,
                             Score = score,
                             Distance = distance,
-                            InnerProduct = innerProduct,
-                        });
+                            InnerProduct = innerProduct
+                        };
+                    }
+                    else
+                    {
+                        // Compare and keep the better result
+                        VectorSearchResult existing = bestResultsByGraph[vmd.GraphGUID];
+                        bool isBetter = false;
+
+                        if (score != null && existing.Score != null)
+                            isBetter = score.Value > existing.Score.Value;
+                        else if (distance != null && existing.Distance != null)
+                            isBetter = distance.Value < existing.Distance.Value;
+                        else if (innerProduct != null && existing.InnerProduct != null)
+                            isBetter = innerProduct.Value > existing.InnerProduct.Value;
+
+                        if (isBetter)
+                        {
+                            bestResultsByGraph[vmd.GraphGUID] = new VectorSearchResult
+                            {
+                                Score = score,
+                                Distance = distance,
+                                InnerProduct = innerProduct
+                            };
+                        }
                     }
                 }
             }
 
-            List<VectorSearchResult> results = candidates
-                .OrderByDescending(x => x.Score)
-                .ThenBy(x => x.Distance)
-                .ThenByDescending(x => x.InnerProduct)
+            // Step 3: Sort results and retrieve graphs
+            var sortedResults = bestResultsByGraph
+                .OrderByDescending(x => x.Value.Score)
+                .ThenBy(x => x.Value.Distance)
+                .ThenByDescending(x => x.Value.InnerProduct)
                 .Take(topK ?? int.MaxValue)
                 .ToList();
 
-            foreach (VectorSearchResult result in results)
+            foreach (var kvp in sortedResults)
             {
-                yield return result;
+                Graph graph = _Repo.Graph.ReadByGuid(tenantGuid, kvp.Key);
+                if (graph != null)
+                {
+                    kvp.Value.Graph = graph;
+                    // Optionally load vectors for the graph
+                    graph.Vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID).ToList();
+                    yield return kvp.Value;
+                }
             }
         }
 
@@ -540,45 +600,106 @@
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
 
-            List<VectorSearchResult> candidates = new List<VectorSearchResult>();
+            // Step 1: Get all filtered vectors with a single query that includes all filtering
+            List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
+            int skip = 0;
 
-            foreach (Node node in _Repo.Node.ReadMany(tenantGuid, graphGuid, null, labels, tags, filter))
+            while (true)
             {
-                node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
+                string query = VectorQueries.SelectNodeVectorsWithFilters(
+                    tenantGuid,
+                    graphGuid,
+                    labels,
+                    tags,
+                    filter,
+                    _Repo.SelectBatchSize,
+                    skip);
 
-                foreach (VectorMetadata vmd in node.Vectors)
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
                 {
-                    if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
-                    if (vmd.Vectors.Count != vectors.Count) continue;
-
-                    float? score = null;
-                    float? distance = null;
-                    float? innerProduct = null;
-
-                    CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-                    if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
+                    VectorMetadata vmd = Converters.VectorFromDataRow(result.Rows[i]);
+                    if (vmd.Vectors != null && vmd.Vectors.Count > 0 && vmd.Vectors.Count == vectors.Count)
                     {
-                        candidates.Add(new VectorSearchResult
+                        candidateVectors.Add(vmd);
+                    }
+                }
+
+                skip += result.Rows.Count;
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+
+            // Step 2: Compare vectors and collect matching results
+            Dictionary<Guid, VectorSearchResult> bestResultsByNode = new Dictionary<Guid, VectorSearchResult>();
+
+            foreach (VectorMetadata vmd in candidateVectors)
+            {
+                if (vmd.NodeGUID == null) continue;
+
+                float? score = null;
+                float? distance = null;
+                float? innerProduct = null;
+
+                CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
+
+                if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
+                {
+                    // Keep only the best result for each node
+                    if (!bestResultsByNode.ContainsKey(vmd.NodeGUID.Value))
+                    {
+                        bestResultsByNode[vmd.NodeGUID.Value] = new VectorSearchResult
                         {
-                            Node = node,
                             Score = score,
                             Distance = distance,
-                            InnerProduct = innerProduct,
-                        });
+                            InnerProduct = innerProduct
+                        };
+                    }
+                    else
+                    {
+                        // Compare and keep the better result
+                        VectorSearchResult existing = bestResultsByNode[vmd.NodeGUID.Value];
+                        bool isBetter = false;
+
+                        if (score != null && existing.Score != null)
+                            isBetter = score.Value > existing.Score.Value;
+                        else if (distance != null && existing.Distance != null)
+                            isBetter = distance.Value < existing.Distance.Value;
+                        else if (innerProduct != null && existing.InnerProduct != null)
+                            isBetter = innerProduct.Value > existing.InnerProduct.Value;
+
+                        if (isBetter)
+                        {
+                            bestResultsByNode[vmd.NodeGUID.Value] = new VectorSearchResult
+                            {
+                                Score = score,
+                                Distance = distance,
+                                InnerProduct = innerProduct
+                            };
+                        }
                     }
                 }
             }
 
-            List<VectorSearchResult> results = candidates
-                .OrderByDescending(x => x.Score)
-                .ThenBy(x => x.Distance)
-                .ThenByDescending(x => x.InnerProduct)
+            // Step 3: Sort results and retrieve nodes
+            var sortedResults = bestResultsByNode
+                .OrderByDescending(x => x.Value.Score)
+                .ThenBy(x => x.Value.Distance)
+                .ThenByDescending(x => x.Value.InnerProduct)
                 .Take(topK ?? int.MaxValue)
                 .ToList();
 
-            foreach (VectorSearchResult result in results)
+            foreach (var kvp in sortedResults)
             {
-                yield return result;
+                Node node = _Repo.Node.ReadByGuid(tenantGuid, kvp.Key);
+                if (node != null)
+                {
+                    kvp.Value.Node = node;
+                    // Optionally load vectors for the node
+                    node.Vectors = _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID).ToList();
+                    yield return kvp.Value;
+                }
             }
         }
 
@@ -599,45 +720,106 @@
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
 
-            List<VectorSearchResult> candidates = new List<VectorSearchResult>();
+            // Step 1: Get all filtered vectors with a single query that includes all filtering
+            List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
+            int skip = 0;
 
-            foreach (Edge edge in _Repo.Edge.ReadMany(tenantGuid, graphGuid, null, labels, tags, filter))
+            while (true)
             {
-                edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID).ToList();
+                string query = VectorQueries.SelectEdgeVectorsWithFilters(
+                    tenantGuid,
+                    graphGuid,
+                    labels,
+                    tags,
+                    filter,
+                    _Repo.SelectBatchSize,
+                    skip);
 
-                foreach (VectorMetadata vmd in edge.Vectors)
+                DataTable result = _Repo.ExecuteQuery(query);
+                if (result == null || result.Rows.Count < 1) break;
+
+                for (int i = 0; i < result.Rows.Count; i++)
                 {
-                    if (vmd.Vectors == null || vmd.Vectors.Count < 1) continue;
-                    if (vmd.Vectors.Count != vectors.Count) continue;
-
-                    float? score = null;
-                    float? distance = null;
-                    float? innerProduct = null;
-
-                    CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-                    if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
+                    VectorMetadata vmd = Converters.VectorFromDataRow(result.Rows[i]);
+                    if (vmd.Vectors != null && vmd.Vectors.Count > 0 && vmd.Vectors.Count == vectors.Count)
                     {
-                        candidates.Add(new VectorSearchResult
+                        candidateVectors.Add(vmd);
+                    }
+                }
+
+                skip += result.Rows.Count;
+                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+            }
+
+            // Step 2: Compare vectors and collect matching results
+            Dictionary<Guid, VectorSearchResult> bestResultsByEdge = new Dictionary<Guid, VectorSearchResult>();
+
+            foreach (VectorMetadata vmd in candidateVectors)
+            {
+                if (vmd.EdgeGUID == null) continue;
+
+                float? score = null;
+                float? distance = null;
+                float? innerProduct = null;
+
+                CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
+
+                if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
+                {
+                    // Keep only the best result for each edge
+                    if (!bestResultsByEdge.ContainsKey(vmd.EdgeGUID.Value))
+                    {
+                        bestResultsByEdge[vmd.EdgeGUID.Value] = new VectorSearchResult
                         {
-                            Edge = edge,
                             Score = score,
                             Distance = distance,
-                            InnerProduct = innerProduct,
-                        });
+                            InnerProduct = innerProduct
+                        };
+                    }
+                    else
+                    {
+                        // Compare and keep the better result
+                        VectorSearchResult existing = bestResultsByEdge[vmd.EdgeGUID.Value];
+                        bool isBetter = false;
+
+                        if (score != null && existing.Score != null)
+                            isBetter = score.Value > existing.Score.Value;
+                        else if (distance != null && existing.Distance != null)
+                            isBetter = distance.Value < existing.Distance.Value;
+                        else if (innerProduct != null && existing.InnerProduct != null)
+                            isBetter = innerProduct.Value > existing.InnerProduct.Value;
+
+                        if (isBetter)
+                        {
+                            bestResultsByEdge[vmd.EdgeGUID.Value] = new VectorSearchResult
+                            {
+                                Score = score,
+                                Distance = distance,
+                                InnerProduct = innerProduct
+                            };
+                        }
                     }
                 }
             }
 
-            List<VectorSearchResult> results = candidates
-                .OrderByDescending(x => x.Score)
-                .ThenBy(x => x.Distance)
-                .ThenByDescending(x => x.InnerProduct)
+            // Step 3: Sort results and retrieve edges
+            var sortedResults = bestResultsByEdge
+                .OrderByDescending(x => x.Value.Score)
+                .ThenBy(x => x.Value.Distance)
+                .ThenByDescending(x => x.Value.InnerProduct)
                 .Take(topK ?? int.MaxValue)
                 .ToList();
 
-            foreach (VectorSearchResult result in results)
+            foreach (var kvp in sortedResults)
             {
-                yield return result;
+                Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, kvp.Key);
+                if (edge != null)
+                {
+                    kvp.Value.Edge = edge;
+                    // Optionally load vectors for the edge
+                    edge.Vectors = _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID).ToList();
+                    yield return kvp.Value;
+                }
             }
         }
 

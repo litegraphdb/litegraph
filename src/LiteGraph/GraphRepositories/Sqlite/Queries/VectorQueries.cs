@@ -36,40 +36,49 @@
             return ret;
         }
 
-
         internal static string InsertMany(Guid tenantGuid, List<VectorMetadata> vectors)
         {
-            string ret =
-                "INSERT INTO 'vectors' "
-                + "VALUES ";
-            for (int i = 0; i < vectors.Count; i++)
+            if (vectors == null || vectors.Count == 0) return string.Empty;
+
+            StringBuilder ret = new StringBuilder();
+            ret.Append("BEGIN TRANSACTION; ");
+            ret.Append("INSERT INTO 'vectors' (guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES ");
+
+            List<string> values = new List<string>();
+            foreach (var vector in vectors)
             {
-                if (i > 0) ret += ",";
-                ret += "(";
-                ret += "'" + vectors[i].GUID + "',"
-                    + "'" + tenantGuid + "',"
-                    + "'" + vectors[i].GraphGUID + "',"
-                    + (vectors[i].NodeGUID != null ? "'" + vectors[i].NodeGUID.Value + "'," : "NULL,")
-                    + (vectors[i].EdgeGUID != null ? "'" + vectors[i].EdgeGUID.Value + "'," : "NULL,")
-                    + "'" + Sanitizer.Sanitize(vectors[i].Model) + "',"
-                    + vectors[i].Dimensionality + ","
-                    + "'" + Sanitizer.Sanitize(vectors[i].Content) + "',"
-                    + Converters.BytesToHex(Converters.VectorToBlob(vectors[i].Vectors)) + ","
-                    + "'" + DateTime.UtcNow.ToString(TimestampFormat) + "',"
-                    + "'" + DateTime.UtcNow.ToString(TimestampFormat) + "'";
-                ret += ")";
+                string vectorsString = "NULL";
+                if (vector.Vectors != null && vector.Vectors.Count > 0)
+                {
+                    vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
+                }
+
+                values.Add(
+                    "('" + vector.GUID + "', " +
+                    "'" + tenantGuid + "', " +
+                    "'" + vector.GraphGUID + "', " +
+                    (vector.NodeGUID != null ? "'" + vector.NodeGUID.Value + "'" : "NULL") + ", " +
+                    (vector.EdgeGUID != null ? "'" + vector.EdgeGUID.Value + "'" : "NULL") + ", " +
+                    "'" + Sanitizer.Sanitize(vector.Model) + "', " +
+                    vector.Dimensionality + ", " +
+                    "'" + Sanitizer.Sanitize(vector.Content) + "', " +
+                    vectorsString + ", " +
+                    "'" + DateTime.UtcNow.ToString(TimestampFormat) + "', " +
+                    "'" + DateTime.UtcNow.ToString(TimestampFormat) + "')");
             }
-            ret += ";";
-            return ret;
+
+            ret.Append(string.Join(", ", values));
+            ret.Append("; COMMIT;");
+            return ret.ToString();
         }
 
         internal static string SelectAllInTenant(
-            Guid tenantGuid, 
-            int batchSize = 100, 
+            Guid tenantGuid,
+            int batchSize = 100,
             int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
-            string ret = "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' ";
+            string ret = "SELECT * FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' ";
             ret +=
                 "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
                 + "LIMIT " + batchSize + " OFFSET " + skip + ";";
@@ -77,14 +86,14 @@
         }
 
         internal static string SelectAllInGraph(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid graphGuid,
-            int batchSize = 100, 
-            int skip = 0, 
+            int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret =
-                "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' " +
+                "SELECT * FROM 'vectors' WHERE tenantguid = '" + tenantGuid + "' " +
                 "AND graphguid = '" + graphGuid + "' ";
 
             ret +=
@@ -200,6 +209,282 @@
             ret +=
                 "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
                 + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+
+            return ret;
+        }
+
+        // New method for searching graph vectors with filters
+        internal static string SelectGraphVectorsWithFilters(
+            Guid tenantGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr graphFilter = null,
+            int batchSize = 100,
+            int skip = 0)
+        {
+            string ret = "SELECT DISTINCT vectors.* FROM 'vectors' ";
+            ret += "INNER JOIN 'graphs' ON vectors.graphguid = graphs.guid AND vectors.tenantguid = graphs.tenantguid ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "INNER JOIN 'labels' "
+                    + "ON graphs.guid = labels.graphguid "
+                    + "AND graphs.tenantguid = labels.tenantguid "
+                    + "AND labels.nodeguid IS NULL "
+                    + "AND labels.edgeguid IS NULL ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    ret +=
+                        "INNER JOIN 'tags' t" + added.ToString() + " " +
+                        "ON graphs.guid = t" + added.ToString() + ".graphguid " +
+                        "AND graphs.tenantguid = t" + added.ToString() + ".tenantguid " +
+                        "AND t" + added.ToString() + ".nodeguid IS NULL " +
+                        "AND t" + added.ToString() + ".edgeguid IS NULL ";
+                    added++;
+                }
+            }
+
+            ret += "WHERE vectors.tenantguid = '" + tenantGuid + "' ";
+            ret += "AND vectors.nodeguid IS NULL ";
+            ret += "AND vectors.edgeguid IS NULL ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                string labelList = "(";
+                int labelsAdded = 0;
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) labelList += ",";
+                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
+                    labelsAdded++;
+                }
+                labelList += ")";
+                ret += "AND labels.label IN " + labelList + " ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    string val = tags.Get(key);
+                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
+                    added++;
+                }
+            }
+
+            if (graphFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("graphs", graphFilter);
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
+            }
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "GROUP BY vectors.guid ";
+                int labelsAdded = 0;
+                ret += "HAVING ";
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) ret += "AND ";
+                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
+                    labelsAdded++;
+                }
+            }
+
+            ret += "ORDER BY vectors.createdutc DESC ";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
+
+            return ret;
+        }
+
+        // New method for searching node vectors with filters
+        internal static string SelectNodeVectorsWithFilters(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr nodeFilter = null,
+            int batchSize = 100,
+            int skip = 0)
+        {
+            string ret = "SELECT DISTINCT vectors.* FROM 'vectors' ";
+            ret += "INNER JOIN 'nodes' ON vectors.nodeguid = nodes.guid AND vectors.graphguid = nodes.graphguid AND vectors.tenantguid = nodes.tenantguid ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "INNER JOIN 'labels' "
+                    + "ON nodes.guid = labels.nodeguid "
+                    + "AND nodes.graphguid = labels.graphguid "
+                    + "AND nodes.tenantguid = labels.tenantguid ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    ret +=
+                        "INNER JOIN 'tags' t" + added.ToString() + " " +
+                        "ON nodes.guid = t" + added.ToString() + ".nodeguid " +
+                        "AND nodes.graphguid = t" + added.ToString() + ".graphguid " +
+                        "AND nodes.tenantguid = t" + added.ToString() + ".tenantguid ";
+                    added++;
+                }
+            }
+
+            ret += "WHERE vectors.tenantguid = '" + tenantGuid + "' ";
+            ret += "AND vectors.graphguid = '" + graphGuid + "' ";
+            ret += "AND vectors.nodeguid IS NOT NULL ";
+            ret += "AND vectors.edgeguid IS NULL ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                string labelList = "(";
+                int labelsAdded = 0;
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) labelList += ",";
+                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
+                    labelsAdded++;
+                }
+                labelList += ")";
+                ret += "AND labels.label IN " + labelList + " ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    string val = tags.Get(key);
+                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
+                    added++;
+                }
+            }
+
+            if (nodeFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("nodes", nodeFilter);
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
+            }
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "GROUP BY vectors.guid ";
+                int labelsAdded = 0;
+                ret += "HAVING ";
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) ret += "AND ";
+                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
+                    labelsAdded++;
+                }
+            }
+
+            ret += "ORDER BY vectors.createdutc DESC ";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
+
+            return ret;
+        }
+
+        // New method for searching edge vectors with filters
+        internal static string SelectEdgeVectorsWithFilters(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<string> labels = null,
+            NameValueCollection tags = null,
+            Expr edgeFilter = null,
+            int batchSize = 100,
+            int skip = 0)
+        {
+            string ret = "SELECT DISTINCT vectors.* FROM 'vectors' ";
+            ret += "INNER JOIN 'edges' ON vectors.edgeguid = edges.guid AND vectors.graphguid = edges.graphguid AND vectors.tenantguid = edges.tenantguid ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "INNER JOIN 'labels' "
+                    + "ON edges.guid = labels.edgeguid "
+                    + "AND edges.graphguid = labels.graphguid "
+                    + "AND edges.tenantguid = labels.tenantguid ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    ret +=
+                        "INNER JOIN 'tags' t" + added.ToString() + " " +
+                        "ON edges.guid = t" + added.ToString() + ".edgeguid " +
+                        "AND edges.graphguid = t" + added.ToString() + ".graphguid " +
+                        "AND edges.tenantguid = t" + added.ToString() + ".tenantguid ";
+                    added++;
+                }
+            }
+
+            ret += "WHERE vectors.tenantguid = '" + tenantGuid + "' ";
+            ret += "AND vectors.graphguid = '" + graphGuid + "' ";
+            ret += "AND vectors.nodeguid IS NULL ";
+            ret += "AND vectors.edgeguid IS NOT NULL ";
+
+            if (labels != null && labels.Count > 0)
+            {
+                string labelList = "(";
+                int labelsAdded = 0;
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) labelList += ",";
+                    labelList += "'" + Sanitizer.Sanitize(label) + "'";
+                    labelsAdded++;
+                }
+                labelList += ")";
+                ret += "AND labels.label IN " + labelList + " ";
+            }
+
+            if (tags != null && tags.Count > 0)
+            {
+                int added = 1;
+                foreach (string key in tags.AllKeys)
+                {
+                    string val = tags.Get(key);
+                    ret += "AND t" + added.ToString() + ".tagkey = '" + Sanitizer.Sanitize(key) + "' ";
+                    if (!String.IsNullOrEmpty(val)) ret += "AND t" + added.ToString() + ".tagvalue = '" + Sanitizer.Sanitize(val) + "' ";
+                    else ret += "AND t" + added.ToString() + ".tagvalue IS NULL ";
+                    added++;
+                }
+            }
+
+            if (edgeFilter != null)
+            {
+                string filterClause = Converters.ExpressionToWhereClause("edges", edgeFilter);
+                if (!String.IsNullOrEmpty(filterClause)) ret += "AND (" + filterClause + ") ";
+            }
+
+            if (labels != null && labels.Count > 0)
+            {
+                ret += "GROUP BY vectors.guid ";
+                int labelsAdded = 0;
+                ret += "HAVING ";
+                foreach (string label in labels)
+                {
+                    if (labelsAdded > 0) ret += "AND ";
+                    ret += "SUM(CASE WHEN labels.label = '" + Sanitizer.Sanitize(label) + "' THEN 1 ELSE 0 END) > 0 ";
+                    labelsAdded++;
+                }
+            }
+
+            ret += "ORDER BY vectors.createdutc DESC ";
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
         }

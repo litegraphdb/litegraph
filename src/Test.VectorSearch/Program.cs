@@ -16,10 +16,48 @@
         static Random _Random = new Random();
 
         // Constants for the test
-        static int _NodeCount = 1000;
+        static int _NodeCount = 5000;
         static int _VectorDimensionality = 384;
         static int _SearchCount = 5;
         static int _TopResults = 10;
+        static int _BatchSize = 1000; // Batch size for node creation
+
+        // Performance tracking
+        static class PerformanceMetrics
+        {
+            public static long InitializationTime { get; set; }
+            public static long TenantCreationTime { get; set; }
+            public static long GraphCreationTime { get; set; }
+            public static long TotalNodeCreationTime { get; set; }
+            public static long TotalEmbeddingGenerationTime { get; set; }
+            public static List<long> IndividualSearchTimes { get; set; } = new List<long>();
+            public static Dictionary<int, long> SearchTimePerTestCase { get; set; } = new Dictionary<int, long>();
+            public static long TotalSearchTime { get; set; }
+            public static long QueryGenerationTime { get; set; }
+            public static long NodeDeletionTime { get; set; }
+            public static long GraphDeletionTime { get; set; }
+            public static long TenantDeletionTime { get; set; }
+            public static long TotalCleanupTime { get; set; }
+            public static int NodesCreated { get; set; }
+            public static int NodesDeleted { get; set; }
+            public static List<int> SearchResultCounts { get; set; } = new List<int>();
+            public static List<double> SearchScoreRanges { get; set; } = new List<double>();
+            public static long Step1Time { get; set; }
+            public static long Step2Time { get; set; }
+            public static long Step3Time { get; set; }
+            public static long Step4Time { get; set; }
+
+            // Batch insertion performance tracking
+            public static List<long> BatchInsertionTimes { get; set; } = new List<long>();
+            public static Dictionary<int, double> BatchAverageInsertionTimes { get; set; } = new Dictionary<int, double>();
+            public static double FirstBatchAvgTime { get; set; }
+            public static double LastBatchAvgTime { get; set; }
+            public static double InsertionDegradationRate { get; set; }
+            public static long MinBatchTime { get; set; } = long.MaxValue;
+            public static long MaxBatchTime { get; set; } = 0;
+            public static int MinBatchIndex { get; set; }
+            public static int MaxBatchIndex { get; set; }
+        }
 
         // Node data class
         class NodeTestData
@@ -33,9 +71,12 @@
         static void Main(string[] args)
         {
             var totalStopwatch = Stopwatch.StartNew();
+            DateTime testStartTime = DateTime.Now;
 
-            Console.WriteLine("=== LiteGraph Vector Search Test ===");
+            Console.WriteLine("=== LiteGraph Vector Search Test (Optimized with Batch Insertion) ===");
+            Console.WriteLine($"Test started at: {testStartTime:yyyy-MM-dd HH:mm:ss}");
             Console.WriteLine($"Creating {_NodeCount} nodes with {_VectorDimensionality}-dimensional vectors");
+            Console.WriteLine($"Batch size: {_BatchSize} nodes");
             Console.WriteLine();
 
             // Initialize client
@@ -45,6 +86,7 @@
             _Client.Logging.Logger = null;
             _Client.InitializeRepository();
             initStopwatch.Stop();
+            PerformanceMetrics.InitializationTime = initStopwatch.ElapsedMilliseconds;
             Console.WriteLine($"Client initialization completed in {initStopwatch.ElapsedMilliseconds}ms");
             Console.WriteLine();
 
@@ -61,23 +103,28 @@
                 var tenantStopwatch = Stopwatch.StartNew();
                 tenant = CreateTenant();
                 tenantStopwatch.Stop();
+                PerformanceMetrics.TenantCreationTime = tenantStopwatch.ElapsedMilliseconds;
 
                 var graphStopwatch = Stopwatch.StartNew();
                 graph = CreateGraph(tenant.GUID);
                 graphStopwatch.Stop();
+                PerformanceMetrics.GraphCreationTime = graphStopwatch.ElapsedMilliseconds;
 
                 step1Stopwatch.Stop();
+                PerformanceMetrics.Step1Time = step1Stopwatch.ElapsedMilliseconds;
 
                 Console.WriteLine($"Created tenant: {tenant.GUID} in {tenantStopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine($"Created graph: {graph.GUID} in {graphStopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine($"Step 1 total time: {step1Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine();
 
-                // Step 2: Load graph with nodes
-                Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with embeddings...");
+                // Step 2: Load graph with nodes (using batch insertion)
+                Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with embeddings using batch insertion...");
                 var step2Stopwatch = Stopwatch.StartNew();
-                nodes = CreateNodesWithEmbeddings(tenant.GUID, graph.GUID, _NodeCount);
+                nodes = CreateNodesWithEmbeddingsBatch(tenant.GUID, graph.GUID, _NodeCount);
                 step2Stopwatch.Stop();
+                PerformanceMetrics.Step2Time = step2Stopwatch.ElapsedMilliseconds;
+                PerformanceMetrics.NodesCreated = nodes.Count;
                 Console.WriteLine($"Created {nodes.Count} nodes in {step2Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine($"Average: {step2Stopwatch.ElapsedMilliseconds / (double)nodes.Count:F2}ms per node");
                 Console.WriteLine($"Step 2 total time: {step2Stopwatch.ElapsedMilliseconds}ms");
@@ -88,6 +135,7 @@
                 var step3Stopwatch = Stopwatch.StartNew();
                 PerformVectorSearches(tenant.GUID, graph.GUID);
                 step3Stopwatch.Stop();
+                PerformanceMetrics.Step3Time = step3Stopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"\nStep 3 total time: {step3Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine();
 
@@ -104,18 +152,15 @@
                 var step4Stopwatch = Stopwatch.StartNew();
                 Cleanup(tenant, graph, nodes);
                 step4Stopwatch.Stop();
+                PerformanceMetrics.Step4Time = step4Stopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"Step 4 total time: {step4Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine("Cleanup completed successfully!");
 
                 totalStopwatch.Stop();
-                Console.WriteLine();
-                Console.WriteLine("=== Test Summary ===");
-                Console.WriteLine($"Initialization: {initStopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"Step 1 (Create tenant/graph): {step1Stopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"Step 2 (Create nodes): {step2Stopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"Step 3 (Vector searches): {step3Stopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"Step 4 (Cleanup): {step4Stopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"Total runtime: {totalStopwatch.ElapsedMilliseconds}ms ({totalStopwatch.Elapsed.TotalSeconds:F2} seconds)");
+                DateTime testEndTime = DateTime.Now;
+
+                // Print comprehensive summary
+                PrintComprehensiveSummary(totalStopwatch.ElapsedMilliseconds, testStartTime, testEndTime);
             }
             catch (Exception ex)
             {
@@ -148,6 +193,91 @@
             Console.ReadKey();
         }
 
+        static void PrintComprehensiveSummary(long totalElapsedMs, DateTime startTime, DateTime endTime)
+        {
+            Console.WriteLine();
+            Console.WriteLine("=" + new string('=', 78));
+            Console.WriteLine("                              TEST SUMMARY                                   ");
+            Console.WriteLine("=" + new string('=', 78));
+            Console.WriteLine();
+
+            // Test Configuration
+            Console.WriteLine("TEST CONFIGURATION:");
+            Console.WriteLine($"  • Node Count:           {_NodeCount:N0}");
+            Console.WriteLine($"  • Vector Dimensions:    {_VectorDimensionality:N0}");
+            Console.WriteLine($"  • Search Iterations:    {_SearchCount:N0}");
+            Console.WriteLine($"  • Batch Size:           {_BatchSize:N0}");
+            Console.WriteLine();
+
+            // Execution Timeline
+            Console.WriteLine("EXECUTION TIMELINE:");
+            Console.WriteLine($"  • Total Duration:       {totalElapsedMs:N0}ms ({totalElapsedMs / 1000.0:F2}s)");
+            Console.WriteLine();
+
+            // Node Operations
+            Console.WriteLine("NODE OPERATIONS:");
+            Console.WriteLine($"  • Nodes Created:            {PerformanceMetrics.NodesCreated,8:N0}");
+            Console.WriteLine($"  • Total Creation Time:      {PerformanceMetrics.TotalNodeCreationTime,8:N0}ms");
+            Console.WriteLine($"  • Avg Creation Time/Node:   {(PerformanceMetrics.TotalNodeCreationTime / (double)PerformanceMetrics.NodesCreated),8:F2}ms");
+            Console.WriteLine();
+
+            // Batch Insertion Performance
+            Console.WriteLine("BATCH INSERTION PERFORMANCE:");
+            Console.WriteLine($"  • Total Batches:            {PerformanceMetrics.BatchInsertionTimes.Count,8:N0}");
+            Console.WriteLine($"  • First Batch Avg Time:     {PerformanceMetrics.FirstBatchAvgTime,8:F2}ms/node");
+            Console.WriteLine($"  • Last Batch Avg Time:      {PerformanceMetrics.LastBatchAvgTime,8:F2}ms/node");
+            Console.WriteLine($"  • Degradation Rate:         {PerformanceMetrics.InsertionDegradationRate,8:F2}%");
+            Console.WriteLine($"  • Min Batch Time:           {PerformanceMetrics.MinBatchTime,8:N0}ms (batch #{PerformanceMetrics.MinBatchIndex})");
+            Console.WriteLine($"  • Max Batch Time:           {PerformanceMetrics.MaxBatchTime,8:N0}ms (batch #{PerformanceMetrics.MaxBatchIndex})");
+
+            if (PerformanceMetrics.BatchInsertionTimes.Count > 0)
+            {
+                // Calculate percentiles for batch times
+                var sortedTimes = PerformanceMetrics.BatchInsertionTimes.OrderBy(t => t).ToList();
+                int p50Index = (int)(sortedTimes.Count * 0.50);
+                int p90Index = Math.Min((int)(sortedTimes.Count * 0.90), sortedTimes.Count - 1);
+                int p95Index = Math.Min((int)(sortedTimes.Count * 0.95), sortedTimes.Count - 1);
+                int p99Index = Math.Min((int)(sortedTimes.Count * 0.99), sortedTimes.Count - 1);
+
+                Console.WriteLine($"  • P50 (Median):             {sortedTimes[p50Index],8:N0}ms");
+                Console.WriteLine($"  • P90:                      {sortedTimes[p90Index],8:N0}ms");
+                Console.WriteLine($"  • P95:                      {sortedTimes[p95Index],8:N0}ms");
+                Console.WriteLine($"  • P99:                      {sortedTimes[p99Index],8:N0}ms");
+                Console.WriteLine($"  • Average Batch Time:       {PerformanceMetrics.BatchInsertionTimes.Average(),8:F2}ms");
+            }
+            Console.WriteLine();
+
+            // Vector Search Performance
+            Console.WriteLine("VECTOR SEARCH PERFORMANCE:");
+            if (PerformanceMetrics.IndividualSearchTimes.Count > 0)
+            {
+                Console.WriteLine($"  • Total Searches:           {PerformanceMetrics.IndividualSearchTimes.Count,8:N0}");
+                Console.WriteLine($"  • Total Search Time:        {PerformanceMetrics.TotalSearchTime,8:N0}ms");
+                Console.WriteLine($"  • Average Search Time:      {PerformanceMetrics.IndividualSearchTimes.Average(),8:F2}ms");
+                Console.WriteLine($"  • Min Search Time:          {PerformanceMetrics.IndividualSearchTimes.Min(),8:N0}ms");
+                Console.WriteLine($"  • Max Search Time:          {PerformanceMetrics.IndividualSearchTimes.Max(),8:N0}ms");
+            }
+            Console.WriteLine();
+
+            // Per-Test Step Runtime
+            Console.WriteLine("PER-TEST STEP RUNTIME:");
+            Console.WriteLine($"  • Step 1 (Setup):           {PerformanceMetrics.Step1Time,8:N0}ms");
+            Console.WriteLine($"  • Step 2 (Node Creation):   {PerformanceMetrics.Step2Time,8:N0}ms");
+            Console.WriteLine($"  • Step 3 (Vector Search):   {PerformanceMetrics.Step3Time,8:N0}ms");
+            Console.WriteLine($"  • Step 4 (Cleanup):         {PerformanceMetrics.Step4Time,8:N0}ms");
+            Console.WriteLine();
+
+            // Individual Search Test Case Times
+            Console.WriteLine("SEARCH TIME PER TEST CASE:");
+            foreach (var kvp in PerformanceMetrics.SearchTimePerTestCase.OrderBy(x => x.Key))
+            {
+                Console.WriteLine($"  • Search Test {kvp.Key}:            {kvp.Value,8:N0}ms");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("=" + new string('=', 78));
+        }
+
         static void Logger(SeverityEnum sev, string msg)
         {
             if (!String.IsNullOrEmpty(msg))
@@ -174,80 +304,130 @@
             });
         }
 
-        static List<Node> CreateNodesWithEmbeddings(Guid tenantGuid, Guid graphGuid, int count)
+        static List<Node> CreateNodesWithEmbeddingsBatch(Guid tenantGuid, Guid graphGuid, int count)
         {
-            List<Node> nodes = new List<Node>();
-            var batchStopwatch = new Stopwatch();
+            List<Node> allNodes = new List<Node>();
             var totalNodeCreationTime = 0L;
             var totalEmbeddingTime = 0L;
+            int currentBatchNumber = 1;
+            int totalBatches = (count + _BatchSize - 1) / _BatchSize; // Calculate total number of batches
 
-            for (int i = 0; i < count; i++)
+            Console.WriteLine($"Creating {count} nodes in {totalBatches} batches of {_BatchSize} nodes each...");
+            Console.WriteLine("Batch | Nodes       | Batch Time | Avg/Node | Cumulative Avg");
+            Console.WriteLine("------|-------------|------------|----------|---------------");
+
+            for (int i = 0; i < count; i += _BatchSize)
             {
-                // Generate random embeddings with timing
-                var embeddingStopwatch = Stopwatch.StartNew();
-                List<float> embeddings = GenerateRandomEmbeddings(_VectorDimensionality);
-                embeddingStopwatch.Stop();
-                totalEmbeddingTime += embeddingStopwatch.ElapsedMilliseconds;
+                int batchStart = i;
+                int batchEnd = Math.Min(i + _BatchSize, count);
+                int batchSize = batchEnd - batchStart;
+                List<Node> batchNodes = new List<Node>();
 
-                // Create node with embeddings
-                Guid nodeGuid = Guid.NewGuid();
-                Node node = new Node
+                // Generate all nodes for this batch
+                var batchEmbeddingStopwatch = Stopwatch.StartNew();
+                for (int j = batchStart; j < batchEnd; j++)
                 {
-                    GUID = nodeGuid,
-                    TenantGUID = tenantGuid,
-                    GraphGUID = graphGuid,
-                    Name = $"Node-{i:D5}",
-                    Labels = new List<string> { "test-node", i % 2 == 0 ? "even" : "odd" },
-                    Data = new NodeTestData
+                    // Generate random embeddings
+                    List<float> embeddings = GenerateRandomEmbeddings(_VectorDimensionality);
+
+                    // Create node with embeddings
+                    Guid nodeGuid = Guid.NewGuid();
+                    Node node = new Node
                     {
-                        Index = i,
-                        Category = $"Category-{i % 10}",
-                        Value = _Random.NextDouble() * 1000,
-                        Timestamp = DateTime.UtcNow
-                    },
-                    Vectors = new List<VectorMetadata>
-                    {
-                        new VectorMetadata
+                        GUID = nodeGuid,
+                        TenantGUID = tenantGuid,
+                        GraphGUID = graphGuid,
+                        Name = $"Node-{j:D5}",
+                        Labels = new List<string> { "test-node", j % 2 == 0 ? "even" : "odd" },
+                        Data = new NodeTestData
                         {
-                            TenantGUID = tenantGuid,
-                            GraphGUID = graphGuid,
-                            NodeGUID = nodeGuid,
-                            Model = "test-embeddings",
-                            Dimensionality = _VectorDimensionality,
-                            Content = $"Test content for node {i}",
-                            Vectors = embeddings
+                            Index = j,
+                            Category = $"Category-{j % 10}",
+                            Value = _Random.NextDouble() * 1000,
+                            Timestamp = DateTime.UtcNow
+                        },
+                        Vectors = new List<VectorMetadata>
+                        {
+                            new VectorMetadata
+                            {
+                                TenantGUID = tenantGuid,
+                                GraphGUID = graphGuid,
+                                NodeGUID = nodeGuid,
+                                Model = "test-embeddings",
+                                Dimensionality = _VectorDimensionality,
+                                Content = $"Test content for node {j}",
+                                Vectors = embeddings
+                            }
                         }
-                    }
-                };
+                    };
 
-                var nodeStopwatch = Stopwatch.StartNew();
-                node = _Client.Node.Create(node);
-                nodeStopwatch.Stop();
-                totalNodeCreationTime += nodeStopwatch.ElapsedMilliseconds;
-
-                nodes.Add(node);
-
-                // Progress indicator with batch timing
-                if ((i + 1) % 100 == 0)
-                {
-                    if (batchStopwatch.IsRunning)
-                    {
-                        batchStopwatch.Stop();
-                        Console.Write($"\rProgress: {i + 1}/{count} ({(i + 1) * 100.0 / count:F1}%) - Last 100 nodes: {batchStopwatch.ElapsedMilliseconds}ms      ");
-                    }
-                    else
-                    {
-                        Console.Write($"\rProgress: {i + 1}/{count} ({(i + 1) * 100.0 / count:F1}%)");
-                    }
-                    batchStopwatch.Restart();
+                    batchNodes.Add(node);
                 }
+                batchEmbeddingStopwatch.Stop();
+                totalEmbeddingTime += batchEmbeddingStopwatch.ElapsedMilliseconds;
+
+                // Insert the entire batch at once
+                var batchInsertStopwatch = Stopwatch.StartNew();
+                List<Node> createdNodes = _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes);
+                batchInsertStopwatch.Stop();
+
+                long batchInsertTime = batchInsertStopwatch.ElapsedMilliseconds;
+                totalNodeCreationTime += batchInsertTime;
+                PerformanceMetrics.BatchInsertionTimes.Add(batchInsertTime);
+
+                // Track min/max batch times
+                if (batchInsertTime < PerformanceMetrics.MinBatchTime)
+                {
+                    PerformanceMetrics.MinBatchTime = batchInsertTime;
+                    PerformanceMetrics.MinBatchIndex = currentBatchNumber;
+                }
+                if (batchInsertTime > PerformanceMetrics.MaxBatchTime)
+                {
+                    PerformanceMetrics.MaxBatchTime = batchInsertTime;
+                    PerformanceMetrics.MaxBatchIndex = currentBatchNumber;
+                }
+
+                // Calculate averages
+                double batchAvgPerNode = batchInsertTime / (double)batchSize;
+                double cumulativeAvg = totalNodeCreationTime / (double)(batchEnd);
+                PerformanceMetrics.BatchAverageInsertionTimes[currentBatchNumber] = batchAvgPerNode;
+
+                // Track first and last batch averages
+                if (currentBatchNumber == 1)
+                {
+                    PerformanceMetrics.FirstBatchAvgTime = batchAvgPerNode;
+                }
+                if (currentBatchNumber == totalBatches)
+                {
+                    PerformanceMetrics.LastBatchAvgTime = batchAvgPerNode;
+                }
+
+                // Print batch statistics
+                Console.WriteLine($"{currentBatchNumber,5} | {batchStart + 1,5}-{batchEnd,5} | {batchInsertTime,8:F0}ms | {batchAvgPerNode,7:F2}ms | {cumulativeAvg,7:F2}ms");
+
+                allNodes.AddRange(createdNodes);
+                currentBatchNumber++;
             }
 
-            Console.WriteLine($"\rProgress: {count}/{count} (100.0%)");
-            Console.WriteLine($"Total embedding generation time: {totalEmbeddingTime}ms (avg: {totalEmbeddingTime / (double)count:F2}ms)");
-            Console.WriteLine($"Total node creation time: {totalNodeCreationTime}ms (avg: {totalNodeCreationTime / (double)count:F2}ms)");
+            // Calculate degradation rate
+            if (PerformanceMetrics.FirstBatchAvgTime > 0 && PerformanceMetrics.LastBatchAvgTime > 0)
+            {
+                PerformanceMetrics.InsertionDegradationRate =
+                    ((PerformanceMetrics.LastBatchAvgTime - PerformanceMetrics.FirstBatchAvgTime) / PerformanceMetrics.FirstBatchAvgTime) * 100;
+            }
 
-            return nodes;
+            Console.WriteLine($"\nBatch Insertion Summary:");
+            Console.WriteLine($"  Total batches: {totalBatches}");
+            Console.WriteLine($"  First batch avg: {PerformanceMetrics.FirstBatchAvgTime:F2}ms/node");
+            Console.WriteLine($"  Last batch avg: {PerformanceMetrics.LastBatchAvgTime:F2}ms/node");
+            Console.WriteLine($"  Degradation: {PerformanceMetrics.InsertionDegradationRate:+0.0;-0.0;0}%");
+            Console.WriteLine($"  Average batch time: {PerformanceMetrics.BatchInsertionTimes.Average():F2}ms");
+
+            // Store metrics
+            PerformanceMetrics.TotalEmbeddingGenerationTime = totalEmbeddingTime;
+            PerformanceMetrics.TotalNodeCreationTime = totalNodeCreationTime;
+
+            return allNodes;
         }
 
         static List<float> GenerateRandomEmbeddings(int dimensionality)
@@ -277,18 +457,17 @@
         {
             var totalSearchTime = 0L;
             var searchTimes = new List<long>();
+            var totalQueryGenTime = 0L;
+
+            Console.WriteLine($"\nPerforming {_SearchCount} vector searches...");
 
             for (int searchNum = 1; searchNum <= _SearchCount; searchNum++)
             {
-                Console.WriteLine($"\n--- Search {searchNum} ---");
-
-                // Generate random query embeddings with timing
+                // Generate random query embeddings
                 var queryGenStopwatch = Stopwatch.StartNew();
                 List<float> queryEmbeddings = GenerateRandomEmbeddings(_VectorDimensionality);
                 queryGenStopwatch.Stop();
-
-                Console.WriteLine($"Generated random query vector in {queryGenStopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"First 10 values: [{string.Join(", ", queryEmbeddings.Take(10).Select(f => f.ToString("F3")))}...]");
+                totalQueryGenTime += queryGenStopwatch.ElapsedMilliseconds;
 
                 // Create search request
                 VectorSearchRequest searchRequest = new VectorSearchRequest
@@ -303,65 +482,58 @@
 
                 // Perform search and measure time
                 var searchStopwatch = Stopwatch.StartNew();
-                List<VectorSearchResult> results = _Client.Vector.Search(searchRequest).ToList();
-                searchStopwatch.Stop();
+                List<VectorSearchResult> results = null;
+
+                try
+                {
+                    // Add timeout monitoring
+                    var searchTask = System.Threading.Tasks.Task.Run(() => _Client.Vector.Search(searchRequest).ToList());
+                    int timeoutSeconds = 30;
+
+                    if (searchTask.Wait(TimeSpan.FromSeconds(timeoutSeconds)))
+                    {
+                        results = searchTask.Result;
+                        searchStopwatch.Stop();
+                    }
+                    else
+                    {
+                        searchStopwatch.Stop();
+                        Console.WriteLine($"  Search {searchNum}: TIMEOUT after {timeoutSeconds}s");
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    searchStopwatch.Stop();
+                    Console.WriteLine($"  Search {searchNum}: ERROR - {ex.Message}");
+                    break;
+                }
+
+                if (results == null)
+                {
+                    Console.WriteLine($"  Search {searchNum}: Failed");
+                    continue;
+                }
 
                 totalSearchTime += searchStopwatch.ElapsedMilliseconds;
                 searchTimes.Add(searchStopwatch.ElapsedMilliseconds);
+                PerformanceMetrics.SearchTimePerTestCase[searchNum] = searchStopwatch.ElapsedMilliseconds;
+                PerformanceMetrics.SearchResultCounts.Add(results.Count);
 
-                Console.WriteLine($"Search completed in {searchStopwatch.ElapsedMilliseconds}ms");
-                Console.WriteLine($"Total results returned: {results.Count}");
-
-                // Display top results with timing
-                var sortStopwatch = Stopwatch.StartNew();
-                var topResults = results
-                    .OrderByDescending(r => r.Score)
-                    .Take(_TopResults)
-                    .ToList();
-                sortStopwatch.Stop();
-                Console.WriteLine($"Sorting results took {sortStopwatch.ElapsedMilliseconds}ms");
-
-                Console.WriteLine($"\nTop {_TopResults} matches by cosine similarity:");
-                for (int i = 0; i < topResults.Count; i++)
-                {
-                    var result = topResults[i];
-                    Console.WriteLine($"  {i + 1}. Node: {result.Node.Name}");
-                    Console.WriteLine($"     Score: {result.Score:F6}");
-
-                    // Display node data if available
-                    if (result.Node.Data != null)
-                    {
-                        try
-                        {
-                            var nodeData = _Client.ConvertData<NodeTestData>(result.Node.Data);
-                            Console.WriteLine($"     Category: {nodeData.Category}");
-                            Console.WriteLine($"     Value: {nodeData.Value:F2}");
-                        }
-                        catch
-                        {
-                            // Fallback to raw display
-                            Console.WriteLine($"     Data: {result.Node.Data}");
-                        }
-                    }
-                }
-
-                // Add some statistics
-                if (results.Count > 0)
-                {
-                    var scores = results.Select(r => r.Score ?? 0).ToList();
-                    Console.WriteLine($"\nScore statistics:");
-                    Console.WriteLine($"  Min: {scores.Min():F6}");
-                    Console.WriteLine($"  Max: {scores.Max():F6}");
-                    Console.WriteLine($"  Avg: {scores.Average():F6}");
-                    Console.WriteLine($"  Std Dev: {CalculateStdDev(scores):F6}");
-                }
+                Console.WriteLine($"  Search {searchNum}: {searchStopwatch.ElapsedMilliseconds,6}ms | {results.Count,4} results");
             }
 
-            Console.WriteLine($"\nSearch Performance Summary:");
-            Console.WriteLine($"  Total search time: {totalSearchTime}ms");
-            Console.WriteLine($"  Average search time: {totalSearchTime / (double)_SearchCount:F2}ms");
-            Console.WriteLine($"  Min search time: {searchTimes.Min()}ms");
-            Console.WriteLine($"  Max search time: {searchTimes.Max()}ms");
+            // Store metrics
+            PerformanceMetrics.IndividualSearchTimes = searchTimes;
+            PerformanceMetrics.TotalSearchTime = totalSearchTime;
+            PerformanceMetrics.QueryGenerationTime = totalQueryGenTime;
+
+            if (searchTimes.Count > 0)
+            {
+                Console.WriteLine($"\nSearch Summary:");
+                Console.WriteLine($"  Average: {searchTimes.Average():F2}ms");
+                Console.WriteLine($"  Min: {searchTimes.Min()}ms, Max: {searchTimes.Max()}ms");
+            }
         }
 
         static double CalculateStdDev(List<float> values)
@@ -376,12 +548,10 @@
         static void Cleanup(TenantMetadata tenant, Graph graph, List<Node> nodes)
         {
             var cleanupStopwatch = Stopwatch.StartNew();
-            var nodeDeleteStopwatch = Stopwatch.StartNew();
 
             // Delete nodes
-            Console.WriteLine($"Deleting {nodes.Count} nodes...");
+            Console.WriteLine($"\nCleaning up {nodes.Count} nodes...");
             int deletedCount = 0;
-            var batchStopwatch = new Stopwatch();
 
             foreach (var node in nodes)
             {
@@ -389,49 +559,28 @@
                 {
                     _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID);
                     deletedCount++;
-
-                    if (deletedCount % 100 == 0)
-                    {
-                        if (batchStopwatch.IsRunning)
-                        {
-                            batchStopwatch.Stop();
-                            Console.Write($"\rDeleted {deletedCount}/{nodes.Count} nodes - Last 100: {batchStopwatch.ElapsedMilliseconds}ms");
-                        }
-                        else
-                        {
-                            Console.Write($"\rDeleted {deletedCount}/{nodes.Count} nodes");
-                        }
-                        batchStopwatch.Restart();
-                    }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // Node might already be deleted
-                    Console.WriteLine($"\nWarning: Could not delete node {node.GUID}: {ex.Message}");
+                    // Node might already be deleted - silent fail
                 }
             }
-            nodeDeleteStopwatch.Stop();
-            Console.WriteLine($"\rDeleted {deletedCount}/{nodes.Count} nodes in {nodeDeleteStopwatch.ElapsedMilliseconds}ms");
+
+            PerformanceMetrics.NodesDeleted = deletedCount;
+            PerformanceMetrics.NodeDeletionTime = cleanupStopwatch.ElapsedMilliseconds;
 
             // Delete graph
-            var graphDeleteStopwatch = Stopwatch.StartNew();
-            Console.WriteLine("Deleting graph...");
             _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, force: true);
-            graphDeleteStopwatch.Stop();
-            Console.WriteLine($"Graph deleted in {graphDeleteStopwatch.ElapsedMilliseconds}ms");
+            PerformanceMetrics.GraphDeletionTime = cleanupStopwatch.ElapsedMilliseconds - PerformanceMetrics.NodeDeletionTime;
 
             // Delete tenant
-            var tenantDeleteStopwatch = Stopwatch.StartNew();
-            Console.WriteLine("Deleting tenant...");
             _Client.Tenant.DeleteByGuid(tenant.GUID, force: true);
-            tenantDeleteStopwatch.Stop();
-            Console.WriteLine($"Tenant deleted in {tenantDeleteStopwatch.ElapsedMilliseconds}ms");
+            PerformanceMetrics.TenantDeletionTime = cleanupStopwatch.ElapsedMilliseconds - PerformanceMetrics.NodeDeletionTime - PerformanceMetrics.GraphDeletionTime;
 
             cleanupStopwatch.Stop();
-            Console.WriteLine($"Total cleanup time: {cleanupStopwatch.ElapsedMilliseconds}ms");
-            Console.WriteLine($"  Node deletion: {nodeDeleteStopwatch.ElapsedMilliseconds}ms");
-            Console.WriteLine($"  Graph deletion: {graphDeleteStopwatch.ElapsedMilliseconds}ms");
-            Console.WriteLine($"  Tenant deletion: {tenantDeleteStopwatch.ElapsedMilliseconds}ms");
+            PerformanceMetrics.TotalCleanupTime = cleanupStopwatch.ElapsedMilliseconds;
+
+            Console.WriteLine($"Cleanup completed in {cleanupStopwatch.ElapsedMilliseconds}ms");
         }
     }
 }

@@ -69,6 +69,8 @@
 
             string insertQuery = NodeQueries.InsertMany(tenantGuid, nodes);
             string retrieveQuery = NodeQueries.SelectMany(tenantGuid, nodes.Select(n => n.GUID).ToList());
+
+            // Execute the entire batch with BEGIN/COMMIT and multi-row INSERTs
             DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
             DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
             List<Node> created = Converters.NodesFromDataTable(retrieveResult);
