@@ -74,6 +74,63 @@
         }
 
         /// <summary>
+        /// HNSW M parameter - number of bi-directional links created for each new element during construction.
+        /// Higher values lead to better recall but higher memory consumption and slower insertion.
+        /// Default is 16. Valid range is 2-100.
+        /// </summary>
+        public int? VectorIndexM
+        {
+            get
+            {
+                return _VectorIndexM;
+            }
+            set
+            {
+                if (value != null && (value.Value < 2 || value.Value > 100)) 
+                    throw new ArgumentOutOfRangeException(nameof(VectorIndexM), "M must be between 2 and 100.");
+                _VectorIndexM = value;
+            }
+        }
+
+        /// <summary>
+        /// HNSW Ef parameter - size of the dynamic list used during k-NN search.
+        /// Higher values lead to better recall but slower search.
+        /// Default is 50. Valid range is k to 10000, where k is the number of nearest neighbors requested.
+        /// </summary>
+        public int? VectorIndexEf
+        {
+            get
+            {
+                return _VectorIndexEf;
+            }
+            set
+            {
+                if (value != null && (value.Value < 1 || value.Value > 10000)) 
+                    throw new ArgumentOutOfRangeException(nameof(VectorIndexEf), "Ef must be between 1 and 10000.");
+                _VectorIndexEf = value;
+            }
+        }
+
+        /// <summary>
+        /// HNSW EfConstruction parameter - size of the dynamic list used during index construction.
+        /// Higher values lead to better index quality but slower construction.
+        /// Default is 200. Valid range is 1 to 10000.
+        /// </summary>
+        public int? VectorIndexEfConstruction
+        {
+            get
+            {
+                return _VectorIndexEfConstruction;
+            }
+            set
+            {
+                if (value != null && (value.Value < 1 || value.Value > 10000)) 
+                    throw new ArgumentOutOfRangeException(nameof(VectorIndexEfConstruction), "EfConstruction must be between 1 and 10000");
+                _VectorIndexEfConstruction = value;
+            }
+        }
+
+        /// <summary>
         /// Timestamp from creation, in UTC.
         /// </summary>
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
@@ -109,6 +166,9 @@
 
         private int? _VectorIndexThreshold = null;
         private int? _VectorDimensionality = null;
+        private int? _VectorIndexM = 16;
+        private int? _VectorIndexEf = 50;
+        private int? _VectorIndexEfConstruction = 200;
 
         #endregion
 

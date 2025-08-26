@@ -311,6 +311,11 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/stats", out _UrlParameters)) return RequestTypeEnum.GraphStatistics;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/gexf", out _UrlParameters)) return RequestTypeEnum.GraphExport;
+                    
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexConfig;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexStats;
+                    if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexConfig;
+                    if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexStats;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", out _UrlParameters)) return RequestTypeEnum.NodeReadAll;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", out _UrlParameters)) return RequestTypeEnum.NodeEnumerate;
@@ -384,6 +389,9 @@
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs", out _UrlParameters)) return RequestTypeEnum.GraphCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphUpdate;
+                    
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexEnable;
+                    if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexEnable;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", out _UrlParameters)) return RequestTypeEnum.NodeCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", out _UrlParameters)) return RequestTypeEnum.NodeCreateMany;
@@ -415,6 +423,9 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/search", out _UrlParameters)) return RequestTypeEnum.GraphSearch;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", out _UrlParameters)) return RequestTypeEnum.GraphExistence;
+                    
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexRebuild;
+                    if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexRebuild;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/routes", out _UrlParameters)) return RequestTypeEnum.GetRoutes;
 
@@ -452,6 +463,9 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", out _UrlParameters)) return RequestTypeEnum.VectorDelete;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphDelete;
+                    
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexDisable;
+                    if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexDisable;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", out _UrlParameters)) return RequestTypeEnum.NodeDeleteAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", out _UrlParameters)) return RequestTypeEnum.NodeDeleteMany;

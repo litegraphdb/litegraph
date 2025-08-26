@@ -23,6 +23,7 @@ LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RES
 - Additional vector search parameters including topK, minimum score, maximum distance, and minimum inner product
 - Dependency updates and bug fixes
 - Minor Postman fixes
+- Inclusion of an optional graph-wide HNSW index for graph, node, and edge vectors
 
 ## Bugs, Feedback, or Enhancement Requests
 

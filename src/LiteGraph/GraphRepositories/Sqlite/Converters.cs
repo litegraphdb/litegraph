@@ -822,7 +822,7 @@
         {
             if (row == null) return null;
 
-            return new Graph
+            var graph = new Graph
             {
                 TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
                 GUID = Guid.Parse(row["guid"].ToString()),
@@ -831,6 +831,33 @@
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
+            
+            // Vector index fields
+            if (row.Table.Columns.Contains("vectorindextype") && row["vectorindextype"] != DBNull.Value)
+            {
+                if (Enum.TryParse<Indexing.Vector.VectorIndexTypeEnum>(row["vectorindextype"].ToString(), out var indexType))
+                    graph.VectorIndexType = indexType;
+            }
+            
+            if (row.Table.Columns.Contains("vectorindexfile"))
+                graph.VectorIndexFile = GetDataRowStringValue(row, "vectorindexfile");
+            
+            if (row.Table.Columns.Contains("vectorindexthreshold"))
+                graph.VectorIndexThreshold = GetDataRowNullableIntValue(row, "vectorindexthreshold");
+            
+            if (row.Table.Columns.Contains("vectordimensionality"))
+                graph.VectorDimensionality = GetDataRowNullableIntValue(row, "vectordimensionality");
+            
+            if (row.Table.Columns.Contains("vectorindexm"))
+                graph.VectorIndexM = GetDataRowNullableIntValue(row, "vectorindexm");
+            
+            if (row.Table.Columns.Contains("vectorindexef"))
+                graph.VectorIndexEf = GetDataRowNullableIntValue(row, "vectorindexef");
+            
+            if (row.Table.Columns.Contains("vectorindexefconstruction"))
+                graph.VectorIndexEfConstruction = GetDataRowNullableIntValue(row, "vectorindexefconstruction");
+            
+            return graph;
         }
 
         internal static List<Graph> GraphsFromDataTable(DataTable table)

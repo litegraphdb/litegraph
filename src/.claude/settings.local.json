@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet add package:*)",
+      "Read(/C:\\Code\\LiteGraph\\LiteGraph-4.0/**)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout:*)",
+      "Bash(grep:*)",
+      "Bash(del TestApp.cs TestApp2.cs TestAutoPopulation.cs)",
+      "Bash(del Test.VectorIndexImplementationTestApp2.cs)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(dotnet script:*)",
+      "Bash(del TestConfigApi.cs)",
+      "Bash(pkill:*)",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Code\\LiteGraph\\LiteGraph-4.0"
+    ]
+  }
+}

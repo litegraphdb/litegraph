@@ -300,6 +300,19 @@ Response:
 }
 ```
 
+### Graph Vector Index
+```
+{
+    "VectorIndexType": "HnswSqlite",
+    "VectorIndexFile": "graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "VectorIndexThreshold": null,
+    "VectorDimensionality": 384,
+    "VectorIndexM": 16,
+    "VectorIndexEf": 50,
+    "VectorIndexEfConstruction": 200
+}
+```
+
 ### Node
 ```
 {
@@ -610,6 +623,16 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | Search             | POST   | /v1.0/tenants/[guid]/graphs/search                         |
 | Render as GEXF     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/gexf?incldata    |
 | Batch existence    | POST   | /v1.0/tenants/[guid]/graphs/[guid]/existence               |
+
+## Graph Vector Index APIs
+
+| API                | Method |                                                            |
+|--------------------|--------|------------------------------------------------------------|
+| Enable             | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/vectorindex/enable      |
+| Delete             | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/vectorindex             | 
+| Read configuration | GET    | /v1.0/tenants/[guid]/graphs/[guid]/vectorindex/config      | 
+| Read statistics    | GET    | /v1.0/tenants/[guid]/graphs/[guid]/vectorindex/stats       | 
+| Rebuild index      | POST   | /v1.0/tenants/[guid]/graphs/[guid]/vectorindex/rebuild     | 
 
 ## Node APIs
 

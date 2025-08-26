@@ -12,6 +12,7 @@
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
+    using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
 
     using LoggingSettings = LoggingSettings;
@@ -338,6 +339,89 @@
             DataTable table = _Repo.ExecuteQuery(GraphQueries.GetStatistics(tenantGuid, guid), true);
             if (table != null && table.Rows.Count > 0) return Converters.GraphStatisticsFromDataRow(table.Rows[0]);
             return null;
+        }
+
+        /// <inheritdoc />
+        public async Task EnableVectorIndexingAsync(
+            Guid tenantGuid,
+            Guid graphGuid,
+            VectorIndexConfiguration configuration)
+        {
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+
+            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            if (graph == null)
+                throw new KeyNotFoundException($"Graph {graphGuid} not found.");
+
+            // Apply configuration to the graph object
+            configuration.ApplyToGraph(graph);
+
+            // Get all existing vectors in the graph before enabling indexing
+            List<VectorMetadata> existingVectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid).ToList();
+
+            // Enable indexing using the index manager
+            await _Repo.VectorIndexManager.EnableIndexingAsync(graph, configuration.VectorIndexType, configuration.VectorIndexFile);
+
+            // If there are existing vectors, populate the index
+            if (existingVectors.Count > 0)
+            {
+                await _Repo.VectorIndexManager.RebuildIndexAsync(graph, existingVectors);
+            }
+
+            // Update the graph in the database with all configuration values
+            _Repo.ExecuteQuery(GraphQueries.Update(graph), true);
+        }
+
+        /// <inheritdoc />
+        public async Task DisableVectorIndexingAsync(
+            Guid tenantGuid,
+            Guid graphGuid,
+            bool deleteIndexFile = false)
+        {
+            var graph = ReadByGuid(tenantGuid, graphGuid);
+            if (graph == null)
+                throw new KeyNotFoundException($"Graph {graphGuid} not found.");
+
+            // Disable indexing using the index manager
+            await _Repo.VectorIndexManager.DisableIndexingAsync(graphGuid, deleteIndexFile);
+
+            // Apply disabled configuration to clear all vector index settings
+            var disabledConfig = VectorIndexConfiguration.CreateDisabled();
+            disabledConfig.ApplyToGraph(graph);
+
+            // Update graph in database
+            _Repo.ExecuteQuery(GraphQueries.Update(graph), true);
+        }
+
+        /// <inheritdoc />
+        public async Task RebuildVectorIndexAsync(
+            Guid tenantGuid,
+            Guid graphGuid)
+        {
+            var graph = ReadByGuid(tenantGuid, graphGuid);
+            if (graph == null)
+                throw new KeyNotFoundException($"Graph {graphGuid} not found.");
+
+            if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
+                throw new InvalidOperationException("Graph does not have indexing enabled.");
+
+            // Get all vectors for the graph (including nodes and edges)
+            var vectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid);
+
+            // Rebuild the index
+            await _Repo.VectorIndexManager.RebuildIndexAsync(graph, vectors);
+        }
+
+        /// <inheritdoc />
+        public VectorIndexStatistics GetVectorIndexStatistics(
+            Guid tenantGuid,
+            Guid graphGuid)
+        {
+            var graph = ReadByGuid(tenantGuid, graphGuid);
+            if (graph == null)
+                throw new KeyNotFoundException($"Graph {graphGuid} not found.");
+
+            return _Repo.VectorIndexManager.GetStatistics(graphGuid);
         }
 
         #endregion
