@@ -10160,6 +10160,162 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Vector Index",
+					"item": [
+						{
+							"name": "Read configuration",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/config",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"vectorindex",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/stats",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"vectorindex",
+										"stats"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enable vector index",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"VectorIndexType\": \"HnswSqlite\",\r\n    \"VectorIndexFile\": \"graph-00000000-0000-0000-0000-000000000000-hnsw.db\",\r\n    \"VectorIndexThreshold\": null,\r\n    \"VectorDimensionality\": 384,\r\n    \"VectorIndexM\": 16,\r\n    \"VectorIndexEf\": 50,\r\n    \"VectorIndexEfConstruction\": 200\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/enable",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"vectorindex",
+										"enable"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Rebuild vector index",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/rebuild",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"vectorindex",
+										"rebuild"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete vector index",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"vectorindex"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		},

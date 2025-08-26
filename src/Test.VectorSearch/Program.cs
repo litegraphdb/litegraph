@@ -19,7 +19,6 @@
         static int _NodeCount = 1000;
         static int _VectorDimensionality = 384;
         static int _SearchCount = 5;
-        static int _TopResults = 10;
         static int _BatchSize = 100; // Batch size for node creation
 
         // Performance tracking
@@ -125,8 +124,9 @@
                 step2Stopwatch.Stop();
                 PerformanceMetrics.Step2Time = step2Stopwatch.ElapsedMilliseconds;
                 PerformanceMetrics.NodesCreated = nodes.Count;
-                Console.WriteLine($"Created {nodes.Count} nodes in {step2Stopwatch.ElapsedMilliseconds}ms");
+                Console.WriteLine($"Created {nodes.Count} nodes in {step2Stopwatch.ElapsedMilliseconds}ms ({step2Stopwatch.ElapsedMilliseconds / 1000.0:F1} seconds)");
                 Console.WriteLine($"Average: {step2Stopwatch.ElapsedMilliseconds / (double)nodes.Count:F2}ms per node");
+                Console.WriteLine($"Throughput: {nodes.Count / (step2Stopwatch.ElapsedMilliseconds / 1000.0):F1} nodes/second");
                 Console.WriteLine($"Step 2 total time: {step2Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine();
 

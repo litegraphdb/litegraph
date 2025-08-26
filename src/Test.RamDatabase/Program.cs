@@ -94,6 +94,49 @@
                     }
                 }
             }
+            
+            // Cleanup on exit
+            CleanupTestAssets();
+        }
+        
+        static void CleanupTestAssets()
+        {
+            Console.WriteLine("\n[CLEANUP] Cleaning up test assets...");
+            
+            try
+            {
+                // Dispose the client first
+                _Client?.Dispose();
+                
+                // Clean up database files (including in-memory flushed data)
+                string[] dbFiles = {
+                    "litegraph.db",
+                    "litegraph.db-shm", 
+                    "litegraph.db-wal"
+                };
+                
+                foreach (string file in dbFiles)
+                {
+                    if (System.IO.File.Exists(file))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(file);
+                            Console.WriteLine($"[OK] Deleted {file}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[WARNING] Could not delete {file}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WARNING] Error during cleanup: {ex.Message}");
+            }
+            
+            Console.WriteLine("[OK] Cleanup completed");
         }
 
         static void Menu()

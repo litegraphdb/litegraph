@@ -20,6 +20,7 @@
     using LiteGraph.GraphRepositories.Sqlite.Implementations;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Helpers;
+    using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
     using Microsoft.Data.Sqlite;
     using PrettyId;
@@ -157,6 +158,11 @@
         /// </summary>
         public override IVectorMethods Vector { get; }
 
+        /// <summary>
+        /// Vector index manager.
+        /// </summary>
+        public VectorIndexManager VectorIndexManager { get; private set; }
+
         #endregion
 
         #region Internal-Members
@@ -212,6 +218,10 @@
             Tenant = new TenantMethods(this);
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
+            
+            // Initialize vector index manager
+            var indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");
+            VectorIndexManager = new VectorIndexManager(indexDirectory);
         }
 
         #endregion

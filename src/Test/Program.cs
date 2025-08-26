@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.ComponentModel.Design;
+    using System.IO;
     using System.Linq;
     using ExpressionTree;
     using GetSomeInput;
@@ -91,6 +92,49 @@
                     }
                 }
             }
+            
+            // Cleanup on exit
+            CleanupTestAssets();
+        }
+        
+        static void CleanupTestAssets()
+        {
+            Console.WriteLine("\n[CLEANUP] Cleaning up test assets...");
+            
+            try
+            {
+                // Dispose the client
+                _Client?.Dispose();
+                
+                // Clean up database files
+                string[] dbFiles = {
+                    "litegraph.db",
+                    "litegraph.db-shm",
+                    "litegraph.db-wal"
+                };
+                
+                foreach (string file in dbFiles)
+                {
+                    if (File.Exists(file))
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                            Console.WriteLine($"[OK] Deleted {file}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[WARNING] Could not delete {file}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WARNING] Error during cleanup: {ex.Message}");
+            }
+            
+            Console.WriteLine("[OK] Cleanup completed");
         }
 
         static void Menu()

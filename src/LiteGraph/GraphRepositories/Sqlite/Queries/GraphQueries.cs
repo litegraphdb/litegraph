@@ -24,10 +24,34 @@
 
             ret +=
                 "INSERT INTO 'graphs' "
-                + "(guid, tenantguid, name, data, createdutc, lastupdateutc) VALUES "
+                + "(guid, tenantguid, name, vectorindextype, vectorindexfile, vectorindexthreshold, "
+                + "vectordimensionality, vectorindexm, vectorindexef, vectorindexefconstruction, "
+                + "data, createdutc, lastupdateutc) VALUES "
                 + "('" + graph.GUID + "',"
                 + "'" + graph.TenantGUID + "',"
                 + "'" + Sanitizer.Sanitize(graph.Name) + "',";
+
+            // Vector index fields
+            if (graph.VectorIndexType.HasValue) ret += "'" + graph.VectorIndexType.Value.ToString() + "',";
+            else ret += "null,";
+            
+            if (!string.IsNullOrEmpty(graph.VectorIndexFile)) ret += "'" + Sanitizer.Sanitize(graph.VectorIndexFile) + "',";
+            else ret += "null,";
+            
+            if (graph.VectorIndexThreshold.HasValue) ret += graph.VectorIndexThreshold.Value + ",";
+            else ret += "null,";
+            
+            if (graph.VectorDimensionality.HasValue) ret += graph.VectorDimensionality.Value + ",";
+            else ret += "null,";
+            
+            if (graph.VectorIndexM.HasValue) ret += graph.VectorIndexM.Value + ",";
+            else ret += "null,";
+            
+            if (graph.VectorIndexEf.HasValue) ret += graph.VectorIndexEf.Value + ",";
+            else ret += "null,";
+            
+            if (graph.VectorIndexEfConstruction.HasValue) ret += graph.VectorIndexEfConstruction.Value + ",";
+            else ret += "null,";
 
             if (graph.Data == null) ret += "null,";
             else ret += "'" + Sanitizer.SanitizeJson(Serializer.SerializeJson(graph.Data, false)) + "',";
@@ -390,7 +414,29 @@
             ret +=
                 "UPDATE 'graphs' SET " +
                 "name = '" + Sanitizer.Sanitize(graph.Name) + "', " +
-                "lastupdateutc = '" + DateTime.UtcNow.ToString(TimestampFormat) + "',";
+                "lastupdateutc = '" + DateTime.UtcNow.ToString(TimestampFormat) + "', ";
+            
+            // Vector index fields
+            if (graph.VectorIndexType.HasValue) ret += "vectorindextype = '" + graph.VectorIndexType.Value.ToString() + "', ";
+            else ret += "vectorindextype = null, ";
+            
+            if (!string.IsNullOrEmpty(graph.VectorIndexFile)) ret += "vectorindexfile = '" + Sanitizer.Sanitize(graph.VectorIndexFile) + "', ";
+            else ret += "vectorindexfile = null, ";
+            
+            if (graph.VectorIndexThreshold.HasValue) ret += "vectorindexthreshold = " + graph.VectorIndexThreshold.Value + ", ";
+            else ret += "vectorindexthreshold = null, ";
+            
+            if (graph.VectorDimensionality.HasValue) ret += "vectordimensionality = " + graph.VectorDimensionality.Value + ", ";
+            else ret += "vectordimensionality = null, ";
+            
+            if (graph.VectorIndexM.HasValue) ret += "vectorindexm = " + graph.VectorIndexM.Value + ", ";
+            else ret += "vectorindexm = null, ";
+            
+            if (graph.VectorIndexEf.HasValue) ret += "vectorindexef = " + graph.VectorIndexEf.Value + ", ";
+            else ret += "vectorindexef = null, ";
+            
+            if (graph.VectorIndexEfConstruction.HasValue) ret += "vectorindexefconstruction = " + graph.VectorIndexEfConstruction.Value + ", ";
+            else ret += "vectorindexefconstruction = null, ";
 
             if (graph.Data == null) ret += "data = null ";
             else ret += "data = '" + Sanitizer.SanitizeJson(Serializer.SerializeJson(graph.Data, false)) + "' ";

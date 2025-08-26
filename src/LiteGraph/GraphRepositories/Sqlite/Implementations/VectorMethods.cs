@@ -14,6 +14,7 @@
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Helpers;
+    using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
     using Timestamps;
     using LoggingSettings = LoggingSettings;
@@ -60,6 +61,10 @@
             string createQuery = VectorQueries.Insert(vector);
             DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
             VectorMetadata created = Converters.VectorFromDataRow(createResult.Rows[0]);
+            
+            // Update vector index asynchronously
+            Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForCreateAsync(_Repo, created)).Wait();
+            
             return created;
         }
 
@@ -79,6 +84,10 @@
             DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
             DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
             List<VectorMetadata> created = Converters.VectorsFromDataTable(retrieveResult);
+            
+            // Update vector index asynchronously for batch
+            Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(_Repo, created)).Wait();
+            
             return created;
         }
 
@@ -89,6 +98,9 @@
             if (vector != null)
             {
                 _Repo.ExecuteQuery(VectorQueries.Delete(tenantGuid, guid), true);
+                
+                // Update vector index asynchronously
+                Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(_Repo, tenantGuid, guid, vector.GraphGUID)).Wait();
             }
         }
 
@@ -464,6 +476,10 @@
             string updateQuery = VectorQueries.Update(vector);
             DataTable updateResult = _Repo.ExecuteQuery(updateQuery, true);
             VectorMetadata updated = Converters.VectorFromDataRow(updateResult.Rows[0]);
+            
+            // Update vector index asynchronously
+            Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForUpdateAsync(_Repo, updated)).Wait();
+            
             return updated;
         }
 
@@ -600,6 +616,44 @@
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
 
+            // Try to use HNSW index first if available and no complex filtering
+            bool canUseIndex = (labels == null || labels.Count == 0) && 
+                              (tags == null || tags.Count == 0) && 
+                              filter == null;
+
+            if (canUseIndex)
+            {
+                var graph = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+                if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
+                {
+                    // Use HNSW index for fast search
+                    var indexedResults = Task.Run(async () => await VectorMethodsIndexExtensions.SearchWithIndexAsync(
+                        _Repo, searchType, vectors, graph, topK ?? 100)).Result;
+
+                    if (indexedResults != null)
+                    {
+                        // Convert indexed results to VectorSearchResult and get node info
+                        foreach (var indexResult in indexedResults)
+                        {
+                            var node = _Repo.Node.ReadByGuid(tenantGuid, indexResult.Id);
+                            if (node != null)
+                            {
+                                yield return new VectorSearchResult
+                                {
+                                    Node = node,
+                                    Graph = graph,
+                                    Score = indexResult.Score,
+                                    Distance = searchType == VectorSearchTypeEnum.CosineSimilarity ? 
+                                              (1.0f - indexResult.Score) : indexResult.Score
+                                };
+                            }
+                        }
+                        yield break; // Return indexed results, skip brute force
+                    }
+                }
+            }
+
+            // Fallback to brute force search (original implementation)
             // Step 1: Get all filtered vectors with a single query that includes all filtering
             List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
             int skip = 0;

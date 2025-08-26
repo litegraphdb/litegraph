@@ -9,6 +9,7 @@
     using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
     using LiteGraph.Server.API.Agnostic;
     using LiteGraph.Server.Classes;
@@ -218,6 +219,19 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", GraphDeleteRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", GraphExistenceRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/gexf", GraphGexfExportRoute, ExceptionRoute);
+            
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", GraphEnableVectorIndexRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", GraphGetVectorIndexConfigRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex", GraphDisableVectorIndexRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", GraphRebuildVectorIndexRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", GraphVectorIndexStatsRoute, ExceptionRoute);
+            
+            // v2.0 versions for consistency
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", GraphEnableVectorIndexRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", GraphGetVectorIndexConfigRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex", GraphDisableVectorIndexRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", GraphRebuildVectorIndexRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", GraphVectorIndexStatsRoute, ExceptionRoute);
 
             #endregion
 
@@ -1362,6 +1376,21 @@
             req.Graph = _Serializer.DeserializeJson<Graph>(ctx.Request.DataAsString);
             req.Graph.TenantGUID = req.TenantGUID.Value;
             req.Graph.GUID = req.GraphGUID.Value;
+
+            // Get current graph to preserve vector index properties
+            Graph currentGraph = _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value);
+            if (currentGraph != null)
+            {
+                // Preserve existing vector index properties - these should only be changed through vector index APIs
+                req.Graph.VectorIndexType = currentGraph.VectorIndexType;
+                req.Graph.VectorIndexFile = currentGraph.VectorIndexFile;
+                req.Graph.VectorIndexThreshold = currentGraph.VectorIndexThreshold;
+                req.Graph.VectorDimensionality = currentGraph.VectorDimensionality;
+                req.Graph.VectorIndexM = currentGraph.VectorIndexM;
+                req.Graph.VectorIndexEf = currentGraph.VectorIndexEf;
+                req.Graph.VectorIndexEfConstruction = currentGraph.VectorIndexEfConstruction;
+            }
+
             await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphUpdate);
         }
 
@@ -1397,6 +1426,148 @@
                 await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
             }
         }
+
+        private async Task GraphEnableVectorIndexRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            
+            try
+            {
+                // Parse request body for index configuration
+                string requestData = ctx.Request.DataAsString;
+                VectorIndexConfiguration config;
+                
+                if (string.IsNullOrWhiteSpace(requestData))
+                {
+                    // Use default configuration if no body provided
+                    config = new VectorIndexConfiguration();
+                }
+                else
+                {
+                    config = _Serializer.DeserializeJson<VectorIndexConfiguration>(requestData);
+                    if (config == null)
+                    {
+                        ctx.Response.StatusCode = 400;
+                        ctx.Response.ContentType = Constants.JsonContentType;
+                        await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "Invalid configuration format"), true));
+                        return;
+                    }
+                }
+                
+                // Validate configuration
+                if (!config.IsValid(out string errorMessage))
+                {
+                    ctx.Response.StatusCode = 400;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, errorMessage), true));
+                    return;
+                }
+                
+                await _LiteGraph.Graph.EnableVectorIndexingAsync(
+                    req.TenantGUID.Value,
+                    req.GraphGUID.Value,
+                    config);
+                
+                ctx.Response.StatusCode = 200;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(config, true));
+            }
+            catch (Exception e)
+            {
+                ctx.Response.StatusCode = 500;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+            }
+        }
+
+        private async Task GraphDisableVectorIndexRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            
+            bool deleteFile = false;
+            if (!string.IsNullOrEmpty(req.Query["deleteFile"]))
+            {
+                bool.TryParse(req.Query["deleteFile"], out deleteFile);
+            }
+            
+            await _LiteGraph.Graph.DisableVectorIndexingAsync(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                deleteFile);
+            
+            ctx.Response.StatusCode = 200;
+            await ctx.Response.Send();
+        }
+
+        private async Task GraphRebuildVectorIndexRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            
+            await _LiteGraph.Graph.RebuildVectorIndexAsync(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value);
+            
+            ctx.Response.StatusCode = 200;
+            await ctx.Response.Send();
+        }
+
+        private async Task GraphVectorIndexStatsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            
+            VectorIndexStatistics stats = _LiteGraph.Graph.GetVectorIndexStatistics(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value);
+            
+            if (stats == null)
+            {
+                ctx.Response.StatusCode = 404;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "The specified graph has no configured vector index."), true));
+                return;
+            }
+            
+            ctx.Response.StatusCode = 200;
+            await ctx.Response.Send(_Serializer.SerializeJson(stats, true));
+        }
+
+        private async Task GraphGetVectorIndexConfigRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            
+            try
+            {
+                Graph graph = _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value);
+                if (graph == null)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "Graph not found"), true));
+                    return;
+                }
+
+                // Check if vector indexing is enabled
+                if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "The specified graph has no configured vector index."), true));
+                    return;
+                }
+
+                VectorIndexConfiguration config = new VectorIndexConfiguration(graph);
+                
+                ctx.Response.StatusCode = 200;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(config, true));
+            }
+            catch (Exception e)
+            {
+                ctx.Response.StatusCode = 500;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+            }
+        }
+
 
         #endregion
 

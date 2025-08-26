@@ -6,8 +6,10 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
+    using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
+    using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
     using Microsoft.Data.Sqlite;
 
@@ -165,6 +167,50 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <returns>Dictionary of graph statistics.</returns>
-        Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid); 
+        Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid);
+
+        /// <summary>
+        /// Enable vector indexing for a graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="configuration">Vector index configuration.</param>
+        /// <returns>Task.</returns>
+        Task EnableVectorIndexingAsync(
+            Guid tenantGuid,
+            Guid graphGuid,
+            VectorIndexConfiguration configuration);
+
+        /// <summary>
+        /// Disable vector indexing for a graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="deleteIndexFile">Whether to delete the index file.</param>
+        /// <returns>Task.</returns>
+        Task DisableVectorIndexingAsync(
+            Guid tenantGuid,
+            Guid graphGuid,
+            bool deleteIndexFile = false);
+
+        /// <summary>
+        /// Rebuild the vector index for a graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <returns>Task.</returns>
+        Task RebuildVectorIndexAsync(
+            Guid tenantGuid,
+            Guid graphGuid);
+
+        /// <summary>
+        /// Get vector index statistics for a graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <returns>Vector index statistics or null if no index exists.</returns>
+        VectorIndexStatistics GetVectorIndexStatistics(
+            Guid tenantGuid,
+            Guid graphGuid);
     }
 }

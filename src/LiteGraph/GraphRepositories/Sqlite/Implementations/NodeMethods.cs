@@ -74,6 +74,23 @@
             DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
             DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
             List<Node> created = Converters.NodesFromDataTable(retrieveResult);
+
+            // Update HNSW index for any vectors that were created with the nodes
+            var allVectors = new List<VectorMetadata>();
+            foreach (Node node in nodes)
+            {
+                if (node.Vectors != null && node.Vectors.Count > 0)
+                {
+                    allVectors.AddRange(node.Vectors);
+                }
+            }
+
+            if (allVectors.Count > 0)
+            {
+                // Update vector indices asynchronously
+                Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(_Repo, allVectors)).Wait();
+            }
+
             return created;
         }
 
@@ -399,7 +416,11 @@
         /// <inheritdoc />
         public void DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
         {
+            // Remove from database
             _Repo.ExecuteQuery(NodeQueries.Delete(tenantGuid, graphGuid, nodeGuid), true);
+            
+            // Update vector index if needed
+            Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(_Repo, tenantGuid, nodeGuid, graphGuid)).Wait();
         }
 
         /// <inheritdoc />
@@ -418,7 +439,12 @@
         public void DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
         {
             if (nodeGuids == null || nodeGuids.Count < 1) return;
+            
+            // Remove from database
             _Repo.ExecuteQuery(NodeQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids), true);
+            
+            // Update vector index if needed
+            Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(_Repo, tenantGuid, nodeGuids, graphGuid)).Wait();
         }
 
         /// <inheritdoc />

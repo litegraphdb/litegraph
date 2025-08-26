@@ -4,10 +4,12 @@
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
+    using System.Threading.Tasks;
     using Caching;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
+    using LiteGraph.Indexing.Vector;
 
     using LoggingSettings = LoggingSettings;
 
@@ -272,6 +274,52 @@
         public Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid)
         {
             return _Repo.Graph.GetStatistics(tenantGuid);
+        }
+
+        /// <inheritdoc />
+        public async Task EnableVectorIndexingAsync(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            VectorIndexConfiguration configuration)
+        {
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+
+            // Validate configuration
+            if (!configuration.IsValid(out string errorMessage))
+                throw new ArgumentException($"Invalid vector index configuration: {errorMessage}");
+
+            await _Repo.Graph.EnableVectorIndexingAsync(tenantGuid, graphGuid, configuration);
+
+            // Invalidate cache
+            if (_GraphCache != null) _GraphCache.Remove(graphGuid);
+        }
+
+        /// <inheritdoc />
+        public async Task DisableVectorIndexingAsync(
+            Guid tenantGuid, 
+            Guid graphGuid, 
+            bool deleteIndexFile = false)
+        {
+            await _Repo.Graph.DisableVectorIndexingAsync(tenantGuid, graphGuid, deleteIndexFile);
+
+            // Invalidate cache
+            if (_GraphCache != null) _GraphCache.Remove(graphGuid);
+        }
+
+        /// <inheritdoc />
+        public async Task RebuildVectorIndexAsync(
+            Guid tenantGuid, 
+            Guid graphGuid)
+        {
+            await _Repo.Graph.RebuildVectorIndexAsync(tenantGuid, graphGuid);
+        }
+
+        /// <inheritdoc />
+        public VectorIndexStatistics GetVectorIndexStatistics(
+            Guid tenantGuid, 
+            Guid graphGuid)
+        {
+            return _Repo.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid);
         }
 
         #endregion

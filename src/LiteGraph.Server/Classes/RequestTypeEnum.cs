@@ -416,6 +416,31 @@
         /// </summary>
         [EnumMember(Value = "GraphStatistics")]
         GraphStatistics,
+        /// <summary>
+        /// GraphVectorIndexConfig
+        /// </summary>
+        [EnumMember(Value = "GraphVectorIndexConfig")]
+        GraphVectorIndexConfig,
+        /// <summary>
+        /// GraphVectorIndexStats
+        /// </summary>
+        [EnumMember(Value = "GraphVectorIndexStats")]
+        GraphVectorIndexStats,
+        /// <summary>
+        /// GraphVectorIndexEnable
+        /// </summary>
+        [EnumMember(Value = "GraphVectorIndexEnable")]
+        GraphVectorIndexEnable,
+        /// <summary>
+        /// GraphVectorIndexDisable
+        /// </summary>
+        [EnumMember(Value = "GraphVectorIndexDisable")]
+        GraphVectorIndexDisable,
+        /// <summary>
+        /// GraphVectorIndexRebuild
+        /// </summary>
+        [EnumMember(Value = "GraphVectorIndexRebuild")]
+        GraphVectorIndexRebuild,
 
         #endregion
 

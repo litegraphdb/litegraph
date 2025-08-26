@@ -25,23 +25,17 @@
             {
                 try
                 {
-                    Console.WriteLine($"BackupsDirectory setter called with: '{value}'");
                     if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(BackupsDirectory));
 
-                    Console.WriteLine($"About to call NormalizeDirectory with: '{value}'");
                     _BackupsDirectory = FileHelpers.NormalizeDirectory(value);
-                    Console.WriteLine($"NormalizeDirectory returned: '{_BackupsDirectory}'");
 
                     if (!Directory.Exists(_BackupsDirectory))
                     {
-                        Console.WriteLine($"Creating directory: '{_BackupsDirectory}'");
                         Directory.CreateDirectory(_BackupsDirectory);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"Exception in BackupsDirectory setter: {ex.GetType().Name}: {ex.Message}");
-                    Console.WriteLine($"Value was: '{value}'");
                     throw;
                 }
             }

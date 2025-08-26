@@ -312,6 +312,18 @@
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetStatistics(System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.RebuildVectorIndexAsync(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetVectorIndexStatistics(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Client.Implementations.LabelMethods">
             <summary>
             Label methods.
@@ -1258,6 +1270,40 @@
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <returns>Dictionary of graph statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration)">
+            <summary>
+            Enable vector indexing for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="configuration">Vector index configuration.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean)">
+            <summary>
+            Disable vector indexing for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="deleteIndexFile">Whether to delete the index file.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.RebuildVectorIndexAsync(System.Guid,System.Guid)">
+            <summary>
+            Rebuild the vector index for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.GetVectorIndexStatistics(System.Guid,System.Guid)">
+            <summary>
+            Get vector index statistics for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Vector index statistics or null if no index exists.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.ILabelMethods">
             <summary>
@@ -3056,6 +3102,27 @@
             Default is null.  When set, the minimum value is 1.
             </summary>
         </member>
+        <member name="P:LiteGraph.Graph.VectorIndexM">
+            <summary>
+            HNSW M parameter - number of bi-directional links created for each new element during construction.
+            Higher values lead to better recall but higher memory consumption and slower insertion.
+            Default is 16. Valid range is 2-100.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Graph.VectorIndexEf">
+            <summary>
+            HNSW Ef parameter - size of the dynamic list used during k-NN search.
+            Higher values lead to better recall but slower search.
+            Default is 50. Valid range is k to 10000, where k is the number of nearest neighbors requested.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Graph.VectorIndexEfConstruction">
+            <summary>
+            HNSW EfConstruction parameter - size of the dynamic list used during index construction.
+            Higher values lead to better index quality but slower construction.
+            Default is 200. Valid range is 1 to 10000.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Graph.CreatedUtc">
             <summary>
             Timestamp from creation, in UTC.
@@ -3683,6 +3750,40 @@
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <returns>Dictionary of graph statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration)">
+            <summary>
+            Enable vector indexing for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="configuration">Vector index configuration.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean)">
+            <summary>
+            Disable vector indexing for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="deleteIndexFile">Whether to delete the index file.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.RebuildVectorIndexAsync(System.Guid,System.Guid)">
+            <summary>
+            Rebuild the vector index for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.GetVectorIndexStatistics(System.Guid,System.Guid)">
+            <summary>
+            Get vector index statistics for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Vector index statistics or null if no index exists.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.ILabelMethods">
             <summary>
@@ -4961,6 +5062,18 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetStatistics(System.Guid,System.Guid)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.RebuildVectorIndexAsync(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetVectorIndexStatistics(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods">
             <summary>
             Label methods.
@@ -5381,6 +5494,67 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <inheritdoc />
         </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions">
+            <summary>
+            Extension methods for VectorMethods to integrate with vector indexing.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions.UpdateIndexForCreateAsync(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository,LiteGraph.VectorMetadata)">
+            <summary>
+            Update index when a vector is created.
+            </summary>
+            <param name="repo">Repository.</param>
+            <param name="vector">Created vector.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository,System.Collections.Generic.List{LiteGraph.VectorMetadata})">
+            <summary>
+            Update index when multiple vectors are created.
+            </summary>
+            <param name="repo">Repository.</param>
+            <param name="vectors">Created vectors.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions.UpdateIndexForUpdateAsync(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository,LiteGraph.VectorMetadata)">
+            <summary>
+            Update index when a vector is updated.
+            </summary>
+            <param name="repo">Repository.</param>
+            <param name="vector">Updated vector.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository,System.Guid,System.Guid,System.Guid)">
+            <summary>
+            Update index when a node with vectors is deleted.
+            </summary>
+            <param name="repo">Repository.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="nodeGuid">Node GUID (used as key in the index).</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository,System.Guid,System.Collections.Generic.List{System.Guid},System.Guid)">
+            <summary>
+            Update index when multiple nodes with vectors are deleted.
+            </summary>
+            <param name="repo">Repository.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="nodeGuids">Node GUIDs (used as keys in the index).</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethodsIndexExtensions.SearchWithIndexAsync(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository,LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},LiteGraph.Graph,System.Int32,System.Nullable{System.Int32})">
+            <summary>
+            Search using the vector index if available.
+            </summary>
+            <param name="repo">Repository.</param>
+            <param name="searchType">Search type.</param>
+            <param name="queryVector">Query vector.</param>
+            <param name="graph">Graph to search in.</param>
+            <param name="topK">Number of results.</param>
+            <param name="ef">Search ef parameter.</param>
+            <returns>Indexed search results or null if no index.</returns>
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository">
             <summary>
             Sqlite graph repository.
@@ -5462,6 +5636,11 @@
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.Vector">
             <summary>
             Vector methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.VectorIndexManager">
+            <summary>
+            Vector index manager.
             </summary>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.#ctor(System.String,System.Boolean)">
@@ -5723,6 +5902,364 @@
             </summary>
             <returns>The sum of the element-wise products</returns>
         </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex">
+            <summary>
+            HnswLite implementation of the vector index interface.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.#ctor">
+            <summary>
+            Instantiate the HnswLite vector index.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.InitializeAsync(LiteGraph.Graph,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.AddAsync(System.Guid,System.Collections.Generic.List{System.Single},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.AddBatchAsync(System.Collections.Generic.Dictionary{System.Guid,System.Collections.Generic.List{System.Single}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.UpdateAsync(System.Guid,System.Collections.Generic.List{System.Single},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.RemoveAsync(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.RemoveBatchAsync(System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.SearchAsync(System.Collections.Generic.List{System.Single},System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.SaveAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.LoadAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.GetStatistics">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.ClearAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.Contains(System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.Dispose(System.Boolean)">
+            <summary>
+            Dispose of resources.
+            </summary>
+            <param name="disposing">Disposing.</param>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.RamHnswStorage">
+            <summary>
+            In-memory storage implementation for HNSW index.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.HnswNode">
+            <summary>
+            Simple node implementation for HNSW.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.SqliteHnswStorage">
+            <summary>
+            SQLite storage implementation for HNSW index.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.RamHnswLayerStorage">
+            <summary>
+            In-memory layer storage implementation.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.SqliteHnswLayerStorage">
+            <summary>
+            SQLite-based layer storage implementation.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.IVectorIndex">
+            <summary>
+            Interface for vector index implementations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.InitializeAsync(LiteGraph.Graph,System.Threading.CancellationToken)">
+            <summary>
+            Initialize the vector index.
+            </summary>
+            <param name="graph">Graph containing index configuration.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.AddAsync(System.Guid,System.Collections.Generic.List{System.Single},System.Threading.CancellationToken)">
+            <summary>
+            Add a single vector to the index.
+            </summary>
+            <param name="vectorId">Vector identifier.</param>
+            <param name="vector">Vector data.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.AddBatchAsync(System.Collections.Generic.Dictionary{System.Guid,System.Collections.Generic.List{System.Single}},System.Threading.CancellationToken)">
+            <summary>
+            Add multiple vectors to the index in batch.
+            </summary>
+            <param name="vectors">Dictionary of vector IDs to vector data.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.UpdateAsync(System.Guid,System.Collections.Generic.List{System.Single},System.Threading.CancellationToken)">
+            <summary>
+            Update an existing vector in the index.
+            </summary>
+            <param name="vectorId">Vector identifier.</param>
+            <param name="vector">New vector data.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.RemoveAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Remove a vector from the index.
+            </summary>
+            <param name="vectorId">Vector identifier.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.RemoveBatchAsync(System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Remove multiple vectors from the index.
+            </summary>
+            <param name="vectorIds">List of vector identifiers.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.SearchAsync(System.Collections.Generic.List{System.Single},System.Int32,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Search for the k nearest neighbors to a query vector.
+            </summary>
+            <param name="queryVector">Query vector.</param>
+            <param name="k">Number of neighbors to retrieve.</param>
+            <param name="ef">Dynamic candidate list size for search. Higher values improve recall at the cost of speed.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>List of vector IDs and their distances.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.SaveAsync(System.Threading.CancellationToken)">
+            <summary>
+            Save the index to persistent storage.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.LoadAsync(System.Threading.CancellationToken)">
+            <summary>
+            Load the index from persistent storage.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.GetStatistics">
+            <summary>
+            Get statistics about the index.
+            </summary>
+            <returns>Index statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.ClearAsync(System.Threading.CancellationToken)">
+            <summary>
+            Clear all vectors from the index.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.Contains(System.Guid)">
+            <summary>
+            Check if a vector exists in the index.
+            </summary>
+            <param name="vectorId">Vector identifier.</param>
+            <returns>True if the vector exists.</returns>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.VectorIndexManager">
+            <summary>
+            Manages vector indexes for graphs.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.#ctor(System.String)">
+            <summary>
+            Instantiate the vector index manager.
+            </summary>
+            <param name="storageDirectory">Directory for storing index files.</param>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.GetOrCreateIndexAsync(LiteGraph.Graph,System.Threading.CancellationToken)">
+            <summary>
+            Get or create an index for a graph.
+            </summary>
+            <param name="graph">Graph to get index for.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Vector index or null if indexing is not enabled.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.EnableIndexingAsync(LiteGraph.Graph,LiteGraph.Indexing.Vector.VectorIndexTypeEnum,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Enable indexing for a graph.
+            </summary>
+            <param name="graph">Graph to enable indexing for.</param>
+            <param name="indexType">Type of index to create.</param>
+            <param name="indexFile">Optional index file path.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Created index.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.DisableIndexingAsync(System.Guid,System.Boolean)">
+            <summary>
+            Disable indexing for a graph.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="deleteIndexFile">Whether to delete the index file.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.RebuildIndexAsync(LiteGraph.Graph,System.Collections.Generic.IEnumerable{LiteGraph.VectorMetadata},System.Threading.CancellationToken)">
+            <summary>
+            Rebuild the index for a graph from scratch.
+            </summary>
+            <param name="graph">Graph to rebuild index for.</param>
+            <param name="vectors">All vectors to add to the index.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Rebuilt index.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.GetStatistics(System.Guid)">
+            <summary>
+            Get statistics for a graph's index.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Index statistics or null if no index exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.HasIndex(System.Guid)">
+            <summary>
+            Check if a graph has an active index.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>True if an index exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.GetIndex(System.Guid)">
+            <summary>
+            Get the index for a graph.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Vector index or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.UnloadIndex(System.Guid)">
+            <summary>
+            Remove an index from memory without deleting files.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.SaveAllAsync(System.Threading.CancellationToken)">
+            <summary>
+            Save all indexes to persistent storage.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.Dispose(System.Boolean)">
+            <summary>
+            Dispose of resources.
+            </summary>
+            <param name="disposing">Disposing.</param>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.ConcurrentDictionaryExtensions">
+            <summary>
+            Extension methods for ConcurrentDictionary to support async factory.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.ConcurrentDictionaryExtensions.GetOrAddAsync``2(System.Collections.Concurrent.ConcurrentDictionary{``0,``1},``0,System.Func{``0,System.Threading.Tasks.Task{``1}})">
+            <summary>
+            Get or add with async factory.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.VectorIndexStatistics">
+            <summary>
+            Statistics for a vector index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.VectorCount">
+            <summary>
+            Total number of vectors in the index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.Dimensions">
+            <summary>
+            Dimensionality of vectors in the index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.IndexType">
+            <summary>
+            Type of index being used.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.M">
+            <summary>
+            M parameter (number of bi-directional links per node).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.EfConstruction">
+            <summary>
+            EfConstruction parameter (size of dynamic candidate list during index construction).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.DefaultEf">
+            <summary>
+            Default Ef parameter (size of dynamic candidate list during search).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.IndexFile">
+            <summary>
+            Index file path if using persistent storage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.IndexFileSizeBytes">
+            <summary>
+            Size of the index file in bytes (if applicable).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.EstimatedMemoryBytes">
+            <summary>
+            Estimated memory usage in bytes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.LastRebuildUtc">
+            <summary>
+            Last time the index was rebuilt.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.LastAddUtc">
+            <summary>
+            Last time a vector was added.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.LastRemoveUtc">
+            <summary>
+            Last time a vector was removed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.LastSearchUtc">
+            <summary>
+            Last time a search was performed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.IsLoaded">
+            <summary>
+            Whether the index is currently loaded in memory.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexStatistics.DistanceMetric">
+            <summary>
+            Distance metric being used.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Indexing.Vector.VectorIndexTypeEnum">
             <summary>
             Vector index type.
@@ -5738,7 +6275,7 @@
             Hierarchical navigable small world, in RAM only.
             </summary>
         </member>
-        <member name="F:LiteGraph.Indexing.Vector.VectorIndexTypeEnum.HnwsSqlite">
+        <member name="F:LiteGraph.Indexing.Vector.VectorIndexTypeEnum.HnswSqlite">
             <summary>
             Hierarchical navigable small world, in a separate Sqlite database.
             </summary>
@@ -6541,6 +7078,85 @@
             <param name="serializer">Serializer.</param>
             <param name="user">User.</param>
             <returns>User.</returns>
+        </member>
+        <member name="T:LiteGraph.VectorIndexConfiguration">
+            <summary>
+            Configuration for vector indexing.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorIndexType">
+            <summary>
+            Type of vector indexing to use.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorIndexFile">
+            <summary>
+            When vector indexing is enabled, the name of the file used to hold the index.
+            Required for SQLite-based indices.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorIndexThreshold">
+            <summary>
+            When vector indexing is enabled, the number of vectors required to use the index.
+            Brute force computation is often faster than use of an index for smaller batches of vectors.
+            Default is null. When set, the minimum value is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorDimensionality">
+            <summary>
+            When vector indexing is enabled, the dimensionality of vectors that will be stored in this graph.
+            Required for vector indexing. When set, the minimum value is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorIndexM">
+            <summary>
+            HNSW M parameter - number of bi-directional links created for each new element during construction.
+            Higher values lead to better recall but higher memory consumption and slower insertion.
+            Default is 16. Valid range is 2-100.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorIndexEf">
+            <summary>
+            HNSW Ef parameter - size of the dynamic list used during k-NN search.
+            Higher values lead to better recall but slower search.
+            Default is 50. Valid range is 1 to 10000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexConfiguration.VectorIndexEfConstruction">
+            <summary>
+            HNSW EfConstruction parameter - size of the dynamic list used during index construction.
+            Higher values lead to better index quality but slower construction.
+            Default is 200. Valid range is 1 to 10000.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.VectorIndexConfiguration.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.VectorIndexConfiguration.#ctor(LiteGraph.Graph)">
+            <summary>
+            Instantiate the object from a Graph.
+            </summary>
+            <param name="graph">Graph object.</param>
+        </member>
+        <member name="M:LiteGraph.VectorIndexConfiguration.ApplyToGraph(LiteGraph.Graph)">
+            <summary>
+            Apply this configuration to a Graph object.
+            </summary>
+            <param name="graph">Graph to update.</param>
+        </member>
+        <member name="M:LiteGraph.VectorIndexConfiguration.IsValid(System.String@)">
+            <summary>
+            Validate the configuration.
+            </summary>
+            <returns>True if valid, false otherwise.</returns>
+        </member>
+        <member name="M:LiteGraph.VectorIndexConfiguration.CreateDisabled">
+            <summary>
+            Create a configuration for disabling vector indexing.
+            </summary>
+            <returns>VectorIndexConfiguration with indexing disabled.</returns>
         </member>
         <member name="T:LiteGraph.VectorMetadata">
             <summary>

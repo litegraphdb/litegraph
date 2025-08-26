@@ -143,7 +143,6 @@
             }
             else
             {
-                Console.WriteLine("Yay");
 
                 DataTable result = _Repo.ExecuteQuery(TenantQueries.GetRecordPage(
                     query.MaxResults,
