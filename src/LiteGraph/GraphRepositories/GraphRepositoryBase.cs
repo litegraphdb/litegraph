@@ -9,6 +9,7 @@
     using ExpressionTree;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Interfaces;
+    using LiteGraph.GraphRepositories.Sqlite.Implementations;
     using LiteGraph.Serialization;
     using Microsoft.Data.Sqlite;
 
@@ -107,6 +108,11 @@
         /// Batch methods.
         /// </summary>
         public abstract IBatchMethods Batch { get; }
+
+        /// <summary>
+        /// Vector index methods.
+        /// </summary>
+        public abstract IVectorIndexMethods VectorIndex { get; }
 
         #endregion
 
