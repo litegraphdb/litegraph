@@ -158,6 +158,9 @@
         /// </summary>
         public override IVectorMethods Vector { get; }
 
+        /// <inheritdoc />
+        public override IVectorIndexMethods VectorIndex { get; }
+
         /// <summary>
         /// Vector index manager.
         /// </summary>
@@ -218,6 +221,7 @@
             Tenant = new TenantMethods(this);
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
+            VectorIndex = new VectorIndexMethods(this);
             
             // Initialize vector index manager
             var indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");

@@ -205,8 +205,8 @@
 
             if (disposing)
             {
-                _Repo = null;
                 Logging = null;
+                _Repo = null;
             }
 
             _Disposed = true;

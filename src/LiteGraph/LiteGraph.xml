@@ -3230,6 +3230,11 @@
             Batch methods.
             </summary>
         </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.VectorIndex">
+            <summary>
+            Vector index methods.
+            </summary>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.InitializeRepository">
             <summary>
             Initialize the repository.
@@ -4849,6 +4854,33 @@
             <param name="minInnerProduct">Minimmum inner product required.</param>
             <returns>Vector search results containing edges.</returns>
         </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods">
+            <summary>
+            Vector index methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Vector index methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods.GetConfiguration(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods.GetStatistics(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods.EnableVectorIndexAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods.RebuildVectorIndexAsync(System.Guid,System.Guid)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.VectorIndexMethods.DeleteVectorIndexAsync(System.Guid,System.Guid,System.Boolean)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -5073,6 +5105,54 @@
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetVectorIndexStatistics(System.Guid,System.Guid)">
             <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.IVectorIndexMethods">
+            <summary>
+            Interface for vector index methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.IVectorIndexMethods.GetConfiguration(System.Guid,System.Guid)">
+            <summary>
+            Get the vector index configuration for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Vector index configuration.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.IVectorIndexMethods.GetStatistics(System.Guid,System.Guid)">
+            <summary>
+            Get the vector index statistics for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Vector index statistics.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.IVectorIndexMethods.EnableVectorIndexAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration)">
+            <summary>
+            Enable vector indexing on a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="configuration">Vector index configuration.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.IVectorIndexMethods.RebuildVectorIndexAsync(System.Guid,System.Guid)">
+            <summary>
+            Rebuild the vector index for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.IVectorIndexMethods.DeleteVectorIndexAsync(System.Guid,System.Guid,System.Boolean)">
+            <summary>
+            Delete (disable) the vector index for a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="deleteIndexFile">Whether to delete the persistent index file.</param>
+            <returns>Task.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods">
             <summary>
@@ -5637,6 +5717,9 @@
             <summary>
             Vector methods.
             </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.VectorIndex">
+            <inheritdoc />
         </member>
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.VectorIndexManager">
             <summary>
