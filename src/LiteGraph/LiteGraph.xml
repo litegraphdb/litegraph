@@ -5985,6 +5985,46 @@
             </summary>
             <returns>The sum of the element-wise products</returns>
         </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswIndexState">
+            <summary>
+            Represents the state of an HNSW index for serialization/deserialization.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.EntryPoint">
+            <summary>
+            The entry point node GUID for the HNSW index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.NodeCount">
+            <summary>
+            The total number of nodes in the index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.LastSaved">
+            <summary>
+            Timestamp when the index state was last saved.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.Node">
+            <summary>
+            Collection of nodes in the index.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswNodeState">
+            <summary>
+            Represents a single node in the HNSW index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Id">
+            <summary>
+            The unique identifier for the node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Vector">
+            <summary>
+            The vector data for the node.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex">
             <summary>
             HnswLite implementation of the vector index interface.

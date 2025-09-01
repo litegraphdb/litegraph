@@ -543,20 +543,20 @@ namespace LiteGraph.Indexing.Vector
                     try
                     {
                         List<Guid> allNodeIds = _Storage.GetAllNodeIdsAsync().Result?.ToList() ?? new List<Guid>();
-                        List<object> nodes = new List<object>();
+                        List<HnswNodeState> nodes = new List<HnswNodeState>();
 
                         foreach (Guid nodeId in allNodeIds)
                         {
                             IHnswNode node = _Storage.GetNodeAsync(nodeId).Result;
                             if (node == null) continue;
-                            nodes.Add(new
+                            nodes.Add(new HnswNodeState
                             {
                                 Id = nodeId,
                                 Vector = node.Vector
                             });
                         }
 
-                        object data = new
+                        HnswIndexState data = new HnswIndexState
                         {
                             EntryPoint = _Storage.EntryPoint,
                             NodeCount = _Storage.GetCountAsync().Result,
@@ -591,39 +591,26 @@ namespace LiteGraph.Indexing.Vector
                     try
                     {
                         string json = File.ReadAllText(_FilePath);
-                        using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
+                        HnswIndexState indexState = System.Text.Json.JsonSerializer.Deserialize<HnswIndexState>(json);
+
+                        if (indexState == null) return;
 
                         // Load nodes first
-                        if (document.RootElement.TryGetProperty("Node", out System.Text.Json.JsonElement nodesElement) &&
-                            nodesElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        if (indexState.Node != null)
                         {
-                            foreach (System.Text.Json.JsonElement nodeEl in nodesElement.EnumerateArray())
+                            foreach (HnswNodeState nodeState in indexState.Node)
                             {
-                                if (!nodeEl.TryGetProperty("Id", out System.Text.Json.JsonElement idEl)) continue;
-                                if (idEl.ValueKind != System.Text.Json.JsonValueKind.String) continue;
-                                if (!Guid.TryParse(idEl.GetString(), out Guid id)) continue;
-
-                                if (!nodeEl.TryGetProperty("Vector", out System.Text.Json.JsonElement vecEl)) continue;
-                                List<float> vector = new List<float>();
-                                if (vecEl.ValueKind == System.Text.Json.JsonValueKind.Array)
+                                if (nodeState.Vector != null && nodeState.Vector.Count > 0)
                                 {
-                                    foreach (System.Text.Json.JsonElement v in vecEl.EnumerateArray())
-                                    {
-                                        if (v.ValueKind == System.Text.Json.JsonValueKind.Number && v.TryGetSingle(out float f))
-                                            vector.Add(f);
-                                    }
+                                    _Storage.AddNodeAsync(nodeState.Id, nodeState.Vector).Wait();
                                 }
-                                _Storage.AddNodeAsync(id, vector).Wait();
                             }
                         }
 
-                        if (document.RootElement.TryGetProperty("EntryPoint", out System.Text.Json.JsonElement entryPointElement))
+                        // Set entry point
+                        if (indexState.EntryPoint.HasValue)
                         {
-                            if (entryPointElement.ValueKind == System.Text.Json.JsonValueKind.String &&
-                                Guid.TryParse(entryPointElement.GetString(), out Guid entryPointGuid))
-                            {
-                                _Storage.EntryPoint = entryPointGuid;
-                            }
+                            _Storage.EntryPoint = indexState.EntryPoint.Value;
                         }
                     }
                     catch
