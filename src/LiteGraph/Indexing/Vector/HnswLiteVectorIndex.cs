@@ -542,12 +542,12 @@ namespace LiteGraph.Indexing.Vector
                 {
                     try
                     {
-                        var allNodeIds = _Storage.GetAllNodeIdsAsync().Result?.ToList() ?? new List<Guid>();
-                        var nodes = new List<object>();
+                        List<Guid> allNodeIds = _Storage.GetAllNodeIdsAsync().Result?.ToList() ?? new List<Guid>();
+                        List<object> nodes = new List<object>();
 
-                        foreach (var nodeId in allNodeIds)
+                        foreach (Guid nodeId in allNodeIds)
                         {
-                            var node = _Storage.GetNodeAsync(nodeId).Result;
+                            IHnswNode node = _Storage.GetNodeAsync(nodeId).Result;
                             if (node == null) continue;
                             nodes.Add(new
                             {
@@ -597,17 +597,17 @@ namespace LiteGraph.Indexing.Vector
                         if (document.RootElement.TryGetProperty("Node", out System.Text.Json.JsonElement nodesElement) &&
                             nodesElement.ValueKind == System.Text.Json.JsonValueKind.Array)
                         {
-                            foreach (var nodeEl in nodesElement.EnumerateArray())
+                            foreach (System.Text.Json.JsonElement nodeEl in nodesElement.EnumerateArray())
                             {
-                                if (!nodeEl.TryGetProperty("Id", out var idEl)) continue;
+                                if (!nodeEl.TryGetProperty("Id", out System.Text.Json.JsonElement idEl)) continue;
                                 if (idEl.ValueKind != System.Text.Json.JsonValueKind.String) continue;
                                 if (!Guid.TryParse(idEl.GetString(), out Guid id)) continue;
 
-                                if (!nodeEl.TryGetProperty("Vector", out var vecEl)) continue;
-                                var vector = new List<float>();
+                                if (!nodeEl.TryGetProperty("Vector", out System.Text.Json.JsonElement vecEl)) continue;
+                                List<float> vector = new List<float>();
                                 if (vecEl.ValueKind == System.Text.Json.JsonValueKind.Array)
                                 {
-                                    foreach (var v in vecEl.EnumerateArray())
+                                    foreach (System.Text.Json.JsonElement v in vecEl.EnumerateArray())
                                     {
                                         if (v.ValueKind == System.Text.Json.JsonValueKind.Number && v.TryGetSingle(out float f))
                                             vector.Add(f);

@@ -1,31 +1,16 @@
 ﻿namespace LiteGraph.GraphRepositories.Sqlite
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.ComponentModel.DataAnnotations;
     using System.Data;
     using System.IO;
     using System.Linq;
-    using System.Reflection.Emit;
-    using System.Threading.Tasks;
-    using System.Xml.Linq;
-    using System.Xml.Schema;
-    using Caching;
-    using ExpressionTree;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Interfaces;
-    using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Implementations;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Helpers;
     using LiteGraph.Indexing.Vector;
-    using LiteGraph.Serialization;
     using Microsoft.Data.Sqlite;
-    using PrettyId;
-
-    using LoggingSettings = LiteGraph.LoggingSettings;
 
     /// <summary>
     /// Sqlite graph repository.
@@ -224,7 +209,7 @@
             VectorIndex = new VectorIndexMethods(this);
             
             // Initialize vector index manager
-            var indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");
+            string indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");
             VectorIndexManager = new VectorIndexManager(indexDirectory);
         }
 
@@ -237,7 +222,7 @@
         {
             if (_InMemory && File.Exists(_Filename))
             {
-                using (var diskDatabase = new SqliteConnection($"Data Source={_Filename};Pooling=false"))
+                using (SqliteConnection diskDatabase = new SqliteConnection($"Data Source={_Filename};Pooling=false"))
                 {
                     diskDatabase.Open();
                     diskDatabase.BackupDatabase(_SqliteConnection);
@@ -263,7 +248,7 @@
 
                 try
                 {
-                    using (var diskDatabase = new SqliteConnection($"Data Source={_Filename};Pooling=false"))
+                    using (SqliteConnection diskDatabase = new SqliteConnection($"Data Source={_Filename};Pooling=false"))
                     {
                         diskDatabase.Open();
                         // Backup from the instance connection to disk
@@ -513,7 +498,7 @@
         #region Private-Methods
         private void ApplyPerformanceSettings(SqliteConnection conn)
         {
-            using (var cmd = conn.CreateCommand())
+            using (SqliteCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandText = 
                     // "PRAGMA journal_mode = WAL; " +

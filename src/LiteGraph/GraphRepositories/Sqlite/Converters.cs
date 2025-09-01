@@ -4,9 +4,6 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Data;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.Serialization;
 
@@ -78,7 +75,7 @@
         {
             if (obj == null) return null;
             List<object> ret = new List<object>();
-            var enumerator = ((IEnumerable)obj).GetEnumerator();
+            IEnumerator enumerator = ((IEnumerable)obj).GetEnumerator();
             while (enumerator.MoveNext())
             {
                 ret.Add(enumerator.Current);
@@ -822,7 +819,7 @@
         {
             if (row == null) return null;
 
-            var graph = new Graph
+            Graph graph = new Graph
             {
                 TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
                 GUID = Guid.Parse(row["guid"].ToString()),
@@ -835,7 +832,7 @@
             // Vector index fields
             if (row.Table.Columns.Contains("vectorindextype") && row["vectorindextype"] != DBNull.Value)
             {
-                if (Enum.TryParse<Indexing.Vector.VectorIndexTypeEnum>(row["vectorindextype"].ToString(), out var indexType))
+                if (Enum.TryParse<Indexing.Vector.VectorIndexTypeEnum>(row["vectorindextype"].ToString(), out Indexing.Vector.VectorIndexTypeEnum indexType))
                     graph.VectorIndexType = indexType;
             }
             

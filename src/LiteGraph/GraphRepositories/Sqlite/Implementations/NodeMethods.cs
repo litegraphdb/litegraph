@@ -5,14 +5,11 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using Timestamps;
 
     /// <summary>
     /// Node methods.
@@ -76,7 +73,7 @@
             List<Node> created = Converters.NodesFromDataTable(retrieveResult);
 
             // Update HNSW index for any vectors that were created with the nodes
-            var allVectors = new List<VectorMetadata>();
+            List<VectorMetadata> allVectors = new List<VectorMetadata>();
             foreach (Node node in nodes)
             {
                 if (node.Vectors != null && node.Vectors.Count > 0)

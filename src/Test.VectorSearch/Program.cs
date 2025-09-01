@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using GetSomeInput;
+    using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.Serialization;
@@ -69,7 +69,7 @@
 
         static void Main(string[] args)
         {
-            var totalStopwatch = Stopwatch.StartNew();
+            Stopwatch totalStopwatch = Stopwatch.StartNew();
             DateTime testStartTime = DateTime.Now;
 
             Console.WriteLine("=== LiteGraph Vector Search Test (Optimized with Batch Insertion) ===");
@@ -79,7 +79,7 @@
             Console.WriteLine();
 
             // Initialize client
-            var initStopwatch = Stopwatch.StartNew();
+            Stopwatch initStopwatch = Stopwatch.StartNew();
             _Client = new LiteGraphClient(new SqliteGraphRepository("litegraph.db", true));
             _Client.Logging.MinimumSeverity = 0;
             _Client.Logging.Logger = null;
@@ -97,14 +97,14 @@
             {
                 // Step 1: Create tenant and graph
                 Console.WriteLine("Step 1: Creating tenant and graph...");
-                var step1Stopwatch = Stopwatch.StartNew();
+                Stopwatch step1Stopwatch = Stopwatch.StartNew();
 
-                var tenantStopwatch = Stopwatch.StartNew();
+                Stopwatch tenantStopwatch = Stopwatch.StartNew();
                 tenant = CreateTenant();
                 tenantStopwatch.Stop();
                 PerformanceMetrics.TenantCreationTime = tenantStopwatch.ElapsedMilliseconds;
 
-                var graphStopwatch = Stopwatch.StartNew();
+                Stopwatch graphStopwatch = Stopwatch.StartNew();
                 graph = CreateGraph(tenant.GUID);
                 graphStopwatch.Stop();
                 PerformanceMetrics.GraphCreationTime = graphStopwatch.ElapsedMilliseconds;
@@ -119,7 +119,7 @@
 
                 // Step 2: Load graph with nodes (using batch insertion)
                 Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with embeddings using batch insertion...");
-                var step2Stopwatch = Stopwatch.StartNew();
+                Stopwatch step2Stopwatch = Stopwatch.StartNew();
                 nodes = CreateNodesWithEmbeddingsBatch(tenant.GUID, graph.GUID, _NodeCount);
                 step2Stopwatch.Stop();
                 PerformanceMetrics.Step2Time = step2Stopwatch.ElapsedMilliseconds;
@@ -132,7 +132,7 @@
 
                 // Step 3: Perform vector searches
                 Console.WriteLine($"Step 3: Performing {_SearchCount} cosine similarity searches (minimum score 0.1)...");
-                var step3Stopwatch = Stopwatch.StartNew();
+                Stopwatch step3Stopwatch = Stopwatch.StartNew();
                 PerformVectorSearches(tenant.GUID, graph.GUID);
                 step3Stopwatch.Stop();
                 PerformanceMetrics.Step3Time = step3Stopwatch.ElapsedMilliseconds;
@@ -149,7 +149,7 @@
                 Console.ReadKey();
                 Console.WriteLine();
 
-                var step4Stopwatch = Stopwatch.StartNew();
+                Stopwatch step4Stopwatch = Stopwatch.StartNew();
                 Cleanup(tenant, graph, nodes);
                 step4Stopwatch.Stop();
                 PerformanceMetrics.Step4Time = step4Stopwatch.ElapsedMilliseconds;
@@ -173,7 +173,7 @@
                     Console.WriteLine("Attempting cleanup after error...");
                     try
                     {
-                        var cleanupStopwatch = Stopwatch.StartNew();
+                        Stopwatch cleanupStopwatch = Stopwatch.StartNew();
                         Cleanup(tenant, graph, nodes);
                         cleanupStopwatch.Stop();
                         Console.WriteLine($"Error cleanup completed in {cleanupStopwatch.ElapsedMilliseconds}ms");
@@ -233,7 +233,7 @@
             if (PerformanceMetrics.BatchInsertionTimes.Count > 0)
             {
                 // Calculate percentiles for batch times
-                var sortedTimes = PerformanceMetrics.BatchInsertionTimes.OrderBy(t => t).ToList();
+                List<long> sortedTimes = PerformanceMetrics.BatchInsertionTimes.OrderBy(t => t).ToList();
                 int p50Index = (int)(sortedTimes.Count * 0.50);
                 int p90Index = Math.Min((int)(sortedTimes.Count * 0.90), sortedTimes.Count - 1);
                 int p95Index = Math.Min((int)(sortedTimes.Count * 0.95), sortedTimes.Count - 1);
@@ -269,7 +269,7 @@
 
             // Individual Search Test Case Times
             Console.WriteLine("SEARCH TIME PER TEST CASE:");
-            foreach (var kvp in PerformanceMetrics.SearchTimePerTestCase.OrderBy(x => x.Key))
+            foreach (KeyValuePair<int, long> kvp in PerformanceMetrics.SearchTimePerTestCase.OrderBy(x => x.Key))
             {
                 Console.WriteLine($"  • Search Test {kvp.Key}:            {kvp.Value,8:N0}ms");
             }
@@ -307,8 +307,8 @@
         static List<Node> CreateNodesWithEmbeddingsBatch(Guid tenantGuid, Guid graphGuid, int count)
         {
             List<Node> allNodes = new List<Node>();
-            var totalNodeCreationTime = 0L;
-            var totalEmbeddingTime = 0L;
+            long totalNodeCreationTime = 0L;
+            long totalEmbeddingTime = 0L;
             int currentBatchNumber = 1;
             int totalBatches = (count + _BatchSize - 1) / _BatchSize; // Calculate total number of batches
 
@@ -324,7 +324,7 @@
                 List<Node> batchNodes = new List<Node>();
 
                 // Generate all nodes for this batch
-                var batchEmbeddingStopwatch = Stopwatch.StartNew();
+                Stopwatch batchEmbeddingStopwatch = Stopwatch.StartNew();
                 for (int j = batchStart; j < batchEnd; j++)
                 {
                     // Generate random embeddings
@@ -367,7 +367,7 @@
                 totalEmbeddingTime += batchEmbeddingStopwatch.ElapsedMilliseconds;
 
                 // Insert the entire batch at once
-                var batchInsertStopwatch = Stopwatch.StartNew();
+                Stopwatch batchInsertStopwatch = Stopwatch.StartNew();
                 List<Node> createdNodes = _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes);
                 batchInsertStopwatch.Stop();
 
@@ -455,16 +455,16 @@
 
         static void PerformVectorSearches(Guid tenantGuid, Guid graphGuid)
         {
-            var totalSearchTime = 0L;
-            var searchTimes = new List<long>();
-            var totalQueryGenTime = 0L;
+            long totalSearchTime = 0L;
+            List<long> searchTimes = new List<long>();
+            long totalQueryGenTime = 0L;
 
             Console.WriteLine($"\nPerforming {_SearchCount} vector searches...");
 
             for (int searchNum = 1; searchNum <= _SearchCount; searchNum++)
             {
                 // Generate random query embeddings
-                var queryGenStopwatch = Stopwatch.StartNew();
+                Stopwatch queryGenStopwatch = Stopwatch.StartNew();
                 List<float> queryEmbeddings = GenerateRandomEmbeddings(_VectorDimensionality);
                 queryGenStopwatch.Stop();
                 totalQueryGenTime += queryGenStopwatch.ElapsedMilliseconds;
@@ -481,13 +481,13 @@
                 };
 
                 // Perform search and measure time
-                var searchStopwatch = Stopwatch.StartNew();
+                Stopwatch searchStopwatch = Stopwatch.StartNew();
                 List<VectorSearchResult> results = null;
 
                 try
                 {
                     // Add timeout monitoring
-                    var searchTask = System.Threading.Tasks.Task.Run(() => _Client.Vector.Search(searchRequest).ToList());
+                    Task<List<VectorSearchResult>> searchTask = Task.Run(() => _Client.Vector.Search(searchRequest).ToList());
                     int timeoutSeconds = 30;
 
                     if (searchTask.Wait(TimeSpan.FromSeconds(timeoutSeconds)))
@@ -547,13 +547,13 @@
 
         static void Cleanup(TenantMetadata tenant, Graph graph, List<Node> nodes)
         {
-            var cleanupStopwatch = Stopwatch.StartNew();
+            Stopwatch cleanupStopwatch = Stopwatch.StartNew();
 
             // Delete nodes
             Console.WriteLine($"\nCleaning up {nodes.Count} nodes...");
             int deletedCount = 0;
 
-            foreach (var node in nodes)
+            foreach (Node node in nodes)
             {
                 try
                 {

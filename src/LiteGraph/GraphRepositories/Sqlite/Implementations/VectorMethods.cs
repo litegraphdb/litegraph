@@ -5,19 +5,13 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
     using System.Threading.Tasks;
-    using System.Xml.Linq;
     using ExpressionTree;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Helpers;
     using LiteGraph.Indexing.Vector;
-    using LiteGraph.Serialization;
-    using Timestamps;
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Vector methods.
@@ -579,14 +573,14 @@
             }
 
             // Step 3: Sort results and retrieve graphs
-            var sortedResults = bestResultsByGraph
+            List<KeyValuePair<Guid, VectorSearchResult>> sortedResults = bestResultsByGraph
                 .OrderByDescending(x => x.Value.Score)
                 .ThenBy(x => x.Value.Distance)
                 .ThenByDescending(x => x.Value.InnerProduct)
                 .Take(topK ?? int.MaxValue)
                 .ToList();
 
-            foreach (var kvp in sortedResults)
+            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in sortedResults)
             {
                 Graph graph = _Repo.Graph.ReadByGuid(tenantGuid, kvp.Key);
                 if (graph != null)
@@ -623,19 +617,19 @@
 
             if (canUseIndex)
             {
-                var graph = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+                Graph graph = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid);
                 if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
                 {
                     // Use HNSW index for fast search
-                    var indexedResults = Task.Run(async () => await VectorMethodsIndexExtensions.SearchWithIndexAsync(
+                    IEnumerable<(Guid Id, float Score)> indexedResults = Task.Run(async () => await VectorMethodsIndexExtensions.SearchWithIndexAsync(
                         _Repo, searchType, vectors, graph, topK ?? 100)).Result;
 
                     if (indexedResults != null)
                     {
                         // Convert indexed results to VectorSearchResult and get node info
-                        foreach (var indexResult in indexedResults)
+                        foreach ((Guid Id, float Score) indexResult in indexedResults)
                         {
-                            var node = _Repo.Node.ReadByGuid(tenantGuid, indexResult.Id);
+                            Node node = _Repo.Node.ReadByGuid(tenantGuid, indexResult.Id);
                             if (node != null)
                             {
                                 yield return new VectorSearchResult
@@ -737,14 +731,14 @@
             }
 
             // Step 3: Sort results and retrieve nodes
-            var sortedResults = bestResultsByNode
+            List<KeyValuePair<Guid, VectorSearchResult>> sortedResults = bestResultsByNode
                 .OrderByDescending(x => x.Value.Score)
                 .ThenBy(x => x.Value.Distance)
                 .ThenByDescending(x => x.Value.InnerProduct)
                 .Take(topK ?? int.MaxValue)
                 .ToList();
 
-            foreach (var kvp in sortedResults)
+            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in sortedResults)
             {
                 Node node = _Repo.Node.ReadByGuid(tenantGuid, kvp.Key);
                 if (node != null)
@@ -857,14 +851,14 @@
             }
 
             // Step 3: Sort results and retrieve edges
-            var sortedResults = bestResultsByEdge
+            List<KeyValuePair<Guid, VectorSearchResult>> sortedResults = bestResultsByEdge
                 .OrderByDescending(x => x.Value.Score)
                 .ThenBy(x => x.Value.Distance)
                 .ThenByDescending(x => x.Value.InnerProduct)
                 .Take(topK ?? int.MaxValue)
                 .ToList();
 
-            foreach (var kvp in sortedResults)
+            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in sortedResults)
             {
                 Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, kvp.Key);
                 if (edge != null)
