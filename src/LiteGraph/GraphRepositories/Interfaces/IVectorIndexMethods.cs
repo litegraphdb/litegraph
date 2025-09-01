@@ -1,4 +1,4 @@
-﻿namespace LiteGraph.GraphRepositories.Sqlite.Implementations
+﻿namespace LiteGraph.GraphRepositories.Interfaces
 {
     using System;
     using System.Threading.Tasks;
