@@ -1,15 +1,18 @@
 ﻿namespace LiteGraph.GraphRepositories.Sqlite.Implementations
 {
+    using ExpressionTree;
+    using LiteGraph.GraphRepositories.Interfaces;
+    using LiteGraph.GraphRepositories.Sqlite;
+    using LiteGraph.GraphRepositories.Sqlite.Queries;
+    using LiteGraph.Indexing.Vector;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
-    using ExpressionTree;
-    using LiteGraph.GraphRepositories.Interfaces;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
+    using System.Xml.Linq;
+    using LiteGraph.Indexing.Vector;
 
     /// <summary>
     /// Node methods.
@@ -407,6 +410,39 @@
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
             Node updated = Converters.NodeFromDataRow(_Repo.ExecuteQuery(NodeQueries.Update(node), true).Rows[0]);
+            // Populate the vectors from the database after the update operation
+            updated.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+
+            // Update HNSW index for any vectors that were updated
+            if (updated.Vectors != null && updated.Vectors.Count > 0)
+            {
+                Task.Run(async () =>
+                {
+                    Graph graph = _Repo.Graph.ReadByGuid(node.TenantGUID, node.GraphGUID);
+                    if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
+                    {
+
+                        VectorIndexStatistics stats = _Repo.VectorIndexManager.GetStatistics(node.GraphGUID);
+                        if (stats != null && stats.VectorCount > 0)
+                        {
+                            foreach (VectorMetadata vector in updated.Vectors)
+                            {
+                                if (vector.Vectors != null && vector.Vectors.Count > 0)
+                                {
+                                    await VectorMethodsIndexExtensions.UpdateIndexForUpdateAsync(_Repo, vector);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _Repo.Logging.Log(SeverityEnum.Warn, $"Vector index for graph {node.GraphGUID} is empty or invalid, rebuilding...");
+                            List<VectorMetadata> allGraphVectors = _Repo.Vector.ReadAllInGraph(node.TenantGUID, node.GraphGUID).ToList();
+                            await _Repo.VectorIndexManager.RebuildIndexAsync(graph, allGraphVectors);
+                        }
+                    }
+
+                }).Wait();
+            }
             return updated;
         }
 
@@ -415,7 +451,7 @@
         {
             // Remove from database
             _Repo.ExecuteQuery(NodeQueries.Delete(tenantGuid, graphGuid, nodeGuid), true);
-            
+
             // Update vector index if needed
             Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(_Repo, tenantGuid, nodeGuid, graphGuid)).Wait();
         }
@@ -436,10 +472,10 @@
         public void DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
         {
             if (nodeGuids == null || nodeGuids.Count < 1) return;
-            
+
             // Remove from database
             _Repo.ExecuteQuery(NodeQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids), true);
-            
+
             // Update vector index if needed
             Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(_Repo, tenantGuid, nodeGuids, graphGuid)).Wait();
         }
