@@ -1,17 +1,15 @@
 ﻿namespace LiteGraph.GraphRepositories.Sqlite.Implementations
 {
-    using ExpressionTree;
-    using LiteGraph.GraphRepositories.Interfaces;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Indexing.Vector;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Xml.Linq;
+    using ExpressionTree;
+    using LiteGraph.GraphRepositories.Interfaces;
+    using LiteGraph.GraphRepositories.Sqlite;
+    using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Indexing.Vector;
 
     /// <summary>
