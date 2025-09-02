@@ -407,40 +407,7 @@
         public Node Update(Node node)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
-            Node updated = Converters.NodeFromDataRow(_Repo.ExecuteQuery(NodeQueries.Update(node), true).Rows[0]);
-            // Populate the vectors from the database after the update operation
-            updated.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
-
-            // Update HNSW index for any vectors that were updated
-            if (updated.Vectors != null && updated.Vectors.Count > 0)
-            {
-                Task.Run(async () =>
-                {
-                    Graph graph = _Repo.Graph.ReadByGuid(node.TenantGUID, node.GraphGUID);
-                    if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
-                    {
-
-                        VectorIndexStatistics stats = _Repo.VectorIndexManager.GetStatistics(node.GraphGUID);
-                        if (stats != null && stats.VectorCount > 0)
-                        {
-                            foreach (VectorMetadata vector in updated.Vectors)
-                            {
-                                if (vector.Vectors != null && vector.Vectors.Count > 0)
-                                {
-                                    await VectorMethodsIndexExtensions.UpdateIndexForUpdateAsync(_Repo, vector);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            _Repo.Logging.Log(SeverityEnum.Warn, $"Vector index for graph {node.GraphGUID} is empty or invalid, rebuilding...");
-                            List<VectorMetadata> allGraphVectors = _Repo.Vector.ReadAllInGraph(node.TenantGUID, node.GraphGUID).ToList();
-                            await _Repo.VectorIndexManager.RebuildIndexAsync(graph, allGraphVectors);
-                        }
-                    }
-
-                }).Wait();
-            }
+            Node updated = Converters.NodeFromDataRow(_Repo.ExecuteQuery(NodeQueries.Update(node), true).Rows[0]);    
             return updated;
         }
 
