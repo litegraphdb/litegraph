@@ -3,8 +3,8 @@
     using System;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.Indexing.Vector;
     using LiteGraph.GraphRepositories.Interfaces;
+    using LiteGraph.Indexing.Vector;
 
     /// <summary>
     /// Vector index methods.
