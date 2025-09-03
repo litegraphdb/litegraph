@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
-    using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Interfaces;
+    using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.Indexing.Vector;
 
     /// <summary>
