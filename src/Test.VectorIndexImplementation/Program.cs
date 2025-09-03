@@ -9,8 +9,8 @@ namespace Test.VectorIndexImplementation
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using LiteGraph;
-    using LiteGraph.Indexing.Vector;
     using LiteGraph.GraphRepositories.Sqlite;
+    using LiteGraph.Indexing.Vector;
 
     /// <summary>
     /// Comprehensive Vector Index Test Program
@@ -429,7 +429,7 @@ namespace Test.VectorIndexImplementation
             {
                 Console.WriteLine($"[PROCESSING] Running {_SearchIterations} search iterations with different search types...");
 
-                var searchTypes = new[]
+                VectorSearchTypeEnum[] searchTypes = new[]
                 {
                     VectorSearchTypeEnum.CosineSimilarity,
                     VectorSearchTypeEnum.EuclidianDistance,
@@ -438,7 +438,7 @@ namespace Test.VectorIndexImplementation
 
                 bool allSearchesPassed = true;
 
-                foreach (var searchType in searchTypes)
+                foreach (VectorSearchTypeEnum searchType in searchTypes)
                 {
                     Console.WriteLine($"\n[SEARCH TYPE] {searchType}");
                     
@@ -471,7 +471,7 @@ namespace Test.VectorIndexImplementation
                             Console.WriteLine($"     Search {i + 1}: {searchTimer.ElapsedMilliseconds}ms, {results.Count} results");
                             for (int j = 0; j < Math.Min(3, results.Count); j++)
                             {
-                                var result = results[j];
+                                VectorSearchResult result = results[j];
                                 string nodeId = result.Node?.GUID.ToString().Substring(0, 8) ?? "Unknown";
                                 Console.WriteLine($"       Result {j + 1}: Distance={result.Distance:F6}, Score={result.Score:F6}, Node={nodeId}");
                             }
@@ -598,7 +598,7 @@ namespace Test.VectorIndexImplementation
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
 
                     // Check if any removed nodes appear in results
-                    foreach (var result in results)
+                    foreach (VectorSearchResult result in results)
                     {
                         if (result.Node != null && _RemovedNodes.Any(rn => rn.GUID == result.Node.GUID))
                         {
@@ -738,7 +738,7 @@ namespace Test.VectorIndexImplementation
             
             List<VectorSearchResult> filtered = new List<VectorSearchResult>();
             
-            foreach (var result in results)
+            foreach (VectorSearchResult result in results)
             {
                 bool includeResult = false;
                 

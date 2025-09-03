@@ -50,7 +50,7 @@ namespace LiteGraph.Indexing.Vector
         public async Task InitializeAsync(Graph graph, CancellationToken cancellationToken = default)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
-            if (!graph.VectorDimensionality.HasValue) 
+            if (!graph.VectorDimensionality.HasValue)
                 throw new ArgumentException("Graph must have VectorDimensionality set for indexing.");
             if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 throw new ArgumentException("Graph must have VectorIndexType set to HnswRam or HnswSqlite.");
@@ -150,8 +150,8 @@ namespace LiteGraph.Indexing.Vector
 
         /// <inheritdoc />
         public async Task<List<(Guid Id, float Distance)>> SearchAsync(
-            List<float> queryVector, 
-            int k, 
+            List<float> queryVector,
+            int k,
             int? ef = null,
             CancellationToken cancellationToken = default)
         {
@@ -161,6 +161,11 @@ namespace LiteGraph.Indexing.Vector
 
             // Set search ef parameter (defaults to graph's VectorIndexEf or 50)
             int searchEf = ef ?? _Graph?.VectorIndexEf ?? 50;
+            if (_Storage?.EntryPoint == null)
+            {
+                _LastSearchUtc = DateTime.UtcNow;
+                return new List<(Guid Id, float Distance)>();
+            }
             IEnumerable<VectorResult> results = await _Index.GetTopKAsync(queryVector, k, Math.Max(searchEf, k), cancellationToken);
             _LastSearchUtc = DateTime.UtcNow;
 
@@ -171,7 +176,7 @@ namespace LiteGraph.Indexing.Vector
         public async Task SaveAsync(CancellationToken cancellationToken = default)
         {
             if (_Index == null) throw new InvalidOperationException("Index not initialized.");
-            
+
             // For SQLite storage, the index is automatically persisted
             // For RAM storage, we need to export/import state
             if (_Graph?.VectorIndexType == VectorIndexTypeEnum.HnswRam && !string.IsNullOrEmpty(_Graph.VectorIndexFile))
@@ -188,7 +193,7 @@ namespace LiteGraph.Indexing.Vector
         public async Task LoadAsync(CancellationToken cancellationToken = default)
         {
             if (_Index == null) throw new InvalidOperationException("Index not initialized.");
-            
+
             if (_Graph?.VectorIndexType == VectorIndexTypeEnum.HnswRam && !string.IsNullOrEmpty(_Graph.VectorIndexFile))
             {
                 if (File.Exists(_Graph.VectorIndexFile))
@@ -237,7 +242,7 @@ namespace LiteGraph.Indexing.Vector
             if (!string.IsNullOrEmpty(stats.IndexFile))
             {
                 long totalSize = 0;
-                
+
                 // For SQLite indices, include both main and layer files
                 if (_Graph?.VectorIndexType == VectorIndexTypeEnum.HnswSqlite)
                 {
@@ -246,7 +251,7 @@ namespace LiteGraph.Indexing.Vector
                     {
                         totalSize += new FileInfo(stats.IndexFile).Length;
                     }
-                    
+
                     // Check layer storage file
                     string layerFile = stats.IndexFile + ".layers";
                     if (File.Exists(layerFile))
@@ -262,7 +267,7 @@ namespace LiteGraph.Indexing.Vector
                         totalSize = new FileInfo(stats.IndexFile).Length;
                     }
                 }
-                
+
                 stats.IndexFileSizeBytes = totalSize;
             }
 
@@ -470,14 +475,14 @@ namespace LiteGraph.Indexing.Vector
                 LoadFromFile();
             }
 
-            public Guid? EntryPoint 
-            { 
-                get => _Storage.EntryPoint; 
-                set 
-                { 
+            public Guid? EntryPoint
+            {
+                get => _Storage.EntryPoint;
+                set
+                {
                     _Storage.EntryPoint = value;
                     SaveToFile();
-                } 
+                }
             }
 
             public async Task AddNodeAsync(Guid id, List<float> vector, CancellationToken cancellationToken = default)
@@ -532,28 +537,42 @@ namespace LiteGraph.Indexing.Vector
             private void SaveToFile()
             {
                 if (_Disposed) return;
-                
+
                 lock (_Lock)
                 {
                     try
                     {
-                        // Create a simple JSON representation for persistence
-                        object data = new
+                        List<Guid> allNodeIds = _Storage.GetAllNodeIdsAsync().Result?.ToList() ?? new List<Guid>();
+                        List<HnswNodeState> nodes = new List<HnswNodeState>();
+
+                        foreach (Guid nodeId in allNodeIds)
+                        {
+                            IHnswNode node = _Storage.GetNodeAsync(nodeId).Result;
+                            if (node == null) continue;
+                            nodes.Add(new HnswNodeState
+                            {
+                                Id = nodeId,
+                                Vector = node.Vector
+                            });
+                        }
+
+                        HnswIndexState data = new HnswIndexState
                         {
                             EntryPoint = _Storage.EntryPoint,
                             NodeCount = _Storage.GetCountAsync().Result,
-                            LastSaved = DateTime.UtcNow
+                            LastSaved = DateTime.UtcNow,
+                            Node = nodes
                         };
-                        
+
                         string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                        
+
                         // Ensure directory exists
                         string directory = Path.GetDirectoryName(_FilePath);
                         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                         {
                             Directory.CreateDirectory(directory);
                         }
-                        
+
                         File.WriteAllText(_FilePath, json);
                     }
                     catch
@@ -566,19 +585,32 @@ namespace LiteGraph.Indexing.Vector
             private void LoadFromFile()
             {
                 if (!File.Exists(_FilePath)) return;
-                
+
                 lock (_Lock)
                 {
                     try
                     {
                         string json = File.ReadAllText(_FilePath);
-                        using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
-                        
-                        if (document.RootElement.TryGetProperty("EntryPoint", out System.Text.Json.JsonElement entryPointElement) && 
-                            entryPointElement.ValueKind == System.Text.Json.JsonValueKind.String &&
-                            Guid.TryParse(entryPointElement.GetString(), out Guid entryPoint))
+                        HnswIndexState indexState = System.Text.Json.JsonSerializer.Deserialize<HnswIndexState>(json);
+
+                        if (indexState == null) return;
+
+                        // Load nodes first
+                        if (indexState.Node != null)
                         {
-                            _Storage.EntryPoint = entryPoint;
+                            foreach (HnswNodeState nodeState in indexState.Node)
+                            {
+                                if (nodeState.Vector != null && nodeState.Vector.Count > 0)
+                                {
+                                    _Storage.AddNodeAsync(nodeState.Id, nodeState.Vector).Wait();
+                                }
+                            }
+                        }
+
+                        // Set entry point
+                        if (indexState.EntryPoint.HasValue)
+                        {
+                            _Storage.EntryPoint = indexState.EntryPoint.Value;
                         }
                     }
                     catch
@@ -587,7 +619,6 @@ namespace LiteGraph.Indexing.Vector
                     }
                 }
             }
-
             public void Dispose()
             {
                 if (!_Disposed)
@@ -683,7 +714,7 @@ namespace LiteGraph.Indexing.Vector
             private void LoadFromFile()
             {
                 if (_Disposed) return;
-                
+
                 lock (_Lock)
                 {
                     if (File.Exists(_FilePath))
@@ -712,7 +743,7 @@ namespace LiteGraph.Indexing.Vector
             private void SaveToFile()
             {
                 if (_Disposed) return;
-                
+
                 lock (_Lock)
                 {
                     try
@@ -720,11 +751,11 @@ namespace LiteGraph.Indexing.Vector
                         Dictionary<string, int> data = _Storage.GetAllNodeLayers()
                             .ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
                         string json = Serializer.SerializeJson(data, true);
-                        
+
                         string directory = Path.GetDirectoryName(_FilePath);
                         if (!Directory.Exists(directory))
                             Directory.CreateDirectory(directory);
-                            
+
                         File.WriteAllText(_FilePath, json);
                     }
                     catch (Exception)

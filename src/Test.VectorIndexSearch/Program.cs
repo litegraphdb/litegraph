@@ -6,7 +6,6 @@ namespace Test.VectorIndexSearch
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using GetSomeInput;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Implementations;
@@ -117,7 +116,7 @@ namespace Test.VectorIndexSearch
 
         static async Task Main(string[] args)
         {
-            var totalStopwatch = Stopwatch.StartNew();
+            Stopwatch totalStopwatch = Stopwatch.StartNew();
             DateTime testStartTime = DateTime.Now;
 
             Console.WriteLine("=== LiteGraph Vector Index Search Test (HNSW RAM vs SQLite Comparison) ===");
@@ -176,10 +175,10 @@ namespace Test.VectorIndexSearch
 
         static async Task RunHnswTest(TestRunMetrics metrics, string dbPath, string indexFile)
         {
-            var testStopwatch = Stopwatch.StartNew();
+            Stopwatch testStopwatch = Stopwatch.StartNew();
 
             // Initialize client
-            var initStopwatch = Stopwatch.StartNew();
+            Stopwatch initStopwatch = Stopwatch.StartNew();
             _Client = new LiteGraphClient(new SqliteGraphRepository(dbPath, true));
             _Client.Logging.MinimumSeverity = 0;
             _Client.Logging.Logger = null;
@@ -197,10 +196,10 @@ namespace Test.VectorIndexSearch
             {
                 // Step 1: Create tenant and graph with HNSW indexing
                 Console.WriteLine("Step 1: Creating tenant and graph with HNSW index configuration...");
-                var step1Stopwatch = Stopwatch.StartNew();
+                Stopwatch step1Stopwatch = Stopwatch.StartNew();
 
                 // Create tenant
-                var tenantStopwatch = Stopwatch.StartNew();
+                Stopwatch tenantStopwatch = Stopwatch.StartNew();
                 tenant = _Client.Tenant.Create(new TenantMetadata
                 {
                     GUID = Guid.NewGuid(),
@@ -211,7 +210,7 @@ namespace Test.VectorIndexSearch
                 Console.WriteLine($"  Tenant created in {tenantStopwatch.ElapsedMilliseconds}ms");
 
                 // Create graph with HNSW configuration
-                var graphStopwatch = Stopwatch.StartNew();
+                Stopwatch graphStopwatch = Stopwatch.StartNew();
                 graph = _Client.Graph.Create(new Graph
                 {
                     TenantGUID = tenant.GUID,
@@ -243,30 +242,30 @@ namespace Test.VectorIndexSearch
 
                 // Step 2: Create nodes in batches
                 Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with vectors (batch insertion)...");
-                var step2Stopwatch = Stopwatch.StartNew();
-                var embeddingStopwatch = new Stopwatch();
-                var categories = new[] { "Technology", "Science", "Engineering", "Mathematics", "Research", "Development", "Analysis", "Innovation" };
+                Stopwatch step2Stopwatch = Stopwatch.StartNew();
+                Stopwatch embeddingStopwatch = new Stopwatch();
+                string[] categories = new[] { "Technology", "Science", "Engineering", "Mathematics", "Research", "Development", "Analysis", "Innovation" };
                 int totalBatches = (_NodeCount + _BatchSize - 1) / _BatchSize;
 
                 for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++)
                 {
-                    var batchTotalStopwatch = Stopwatch.StartNew();
-                    var batchNodes = new List<Node>();
+                    Stopwatch batchTotalStopwatch = Stopwatch.StartNew();
+                    List<Node> batchNodes = new List<Node>();
                     int batchStart = batchIndex * _BatchSize;
                     int batchEnd = Math.Min(batchStart + _BatchSize, _NodeCount);
                     int currentBatchSize = batchEnd - batchStart;
 
                     // Track node preparation time
-                    var batchPrepStopwatch = Stopwatch.StartNew();
+                    Stopwatch batchPrepStopwatch = Stopwatch.StartNew();
                     for (int i = batchStart; i < batchEnd; i++)
                     {
                         // Generate embeddings
                         embeddingStopwatch.Start();
-                        var embeddings = GenerateRandomVector(_VectorDimensionality);
+                        List<float> embeddings = GenerateRandomVector(_VectorDimensionality);
                         embeddingStopwatch.Stop();
 
-                        var nodeGuid = Guid.NewGuid();
-                        var node = new Node
+                        Guid nodeGuid = Guid.NewGuid();
+                        Node node = new Node
                         {
                             TenantGUID = tenant.GUID,
                             GraphGUID = graph.GUID,
@@ -300,8 +299,8 @@ namespace Test.VectorIndexSearch
                     batchPrepStopwatch.Stop();
 
                     // Batch insert
-                    var batchInsertStopwatch = Stopwatch.StartNew();
-                    var createdNodes = _Client.Node.CreateMany(tenant.GUID, graph.GUID, batchNodes);
+                    Stopwatch batchInsertStopwatch = Stopwatch.StartNew();
+                    List<Node> createdNodes = _Client.Node.CreateMany(tenant.GUID, graph.GUID, batchNodes);
                     batchInsertStopwatch.Stop();
                     nodes.AddRange(createdNodes);
                     metrics.NodesCreated += createdNodes.Count;
@@ -368,7 +367,7 @@ namespace Test.VectorIndexSearch
                 Console.WriteLine($"  Average time per node: {(double)metrics.TotalNodeCreationTime / metrics.NodesCreated:F2}ms");
 
                 // Validate data was created successfully
-                var testNode = _Client.Node.ReadFirst(tenant.GUID, graph.GUID, null, null, null, null, EnumerationOrderEnum.CreatedDescending, true, true);
+                Node testNode = _Client.Node.ReadFirst(tenant.GUID, graph.GUID, null, null, null, null, EnumerationOrderEnum.CreatedDescending, true, true);
                 if (testNode == null)
                 {
                     Console.WriteLine("  WARNING: No nodes found after creation!");
@@ -379,7 +378,7 @@ namespace Test.VectorIndexSearch
                 // Get index statistics
                 try
                 {
-                    var repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
+                    SqliteGraphRepository repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
                     if (repo != null)
                     {
                         metrics.IndexStats = repo.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID);
@@ -409,16 +408,16 @@ namespace Test.VectorIndexSearch
                 // Step 3: Perform vector searches
                 Console.WriteLine($"Step 3: Performing {_SearchCount} vector searches using {metrics.TestName} index...");
                 
-                var step3Stopwatch = Stopwatch.StartNew();
+                Stopwatch step3Stopwatch = Stopwatch.StartNew();
 
                 for (int i = 0; i < _SearchCount; i++)
                 {
-                    var queryStopwatch = Stopwatch.StartNew();
-                    var queryVector = GenerateRandomVector(_VectorDimensionality);
+                    Stopwatch queryStopwatch = Stopwatch.StartNew();
+                    List<float> queryVector = GenerateRandomVector(_VectorDimensionality);
                     queryStopwatch.Stop();
                     metrics.QueryGenerationTime += queryStopwatch.ElapsedMilliseconds;
 
-                    var searchStopwatch = Stopwatch.StartNew();
+                    Stopwatch searchStopwatch = Stopwatch.StartNew();
                     List<VectorSearchResult> results = new List<VectorSearchResult>();
 
 
@@ -428,10 +427,10 @@ namespace Test.VectorIndexSearch
                         // Use HNSW index search
                         try
                         {
-                            var repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
+                            SqliteGraphRepository repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
                             if (repo != null)
                             {
-                                var indexResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
+                                List<(Guid Id, float Score)> indexResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
                                     repo,
                                     VectorSearchTypeEnum.CosineSimilarity,
                                     queryVector,
@@ -442,10 +441,10 @@ namespace Test.VectorIndexSearch
                                 if (indexResults != null && indexResults.Count > 0)
                                 {
                                     // Convert HNSW results to VectorSearchResult format
-                                    foreach (var indexResult in indexResults)
+                                    foreach ((Guid Id, float Score) indexResult in indexResults)
                                     {
                                         // In HNSW indexing, the vector ID corresponds to the node GUID
-                                        var node = _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true);
+                                        Node node = _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true);
                                         
                                         results.Add(new VectorSearchResult
                                         {
@@ -514,7 +513,7 @@ namespace Test.VectorIndexSearch
 
                     if (results.Count > 0)
                     {
-                        var scores = results.Where(r => r.Score.HasValue).Select(r => r.Score.Value).ToList();
+                        List<float> scores = results.Where(r => r.Score.HasValue).Select(r => r.Score.Value).ToList();
                         if (scores.Count > 0)
                         {
                             double scoreRange = scores.Max() - scores.Min();
@@ -544,11 +543,11 @@ namespace Test.VectorIndexSearch
 
                 // Step 4: Cleanup
                 Console.WriteLine("Step 4: Cleaning up test data...");
-                var step4Stopwatch = Stopwatch.StartNew();
+                Stopwatch step4Stopwatch = Stopwatch.StartNew();
 
                 // Delete nodes
-                var nodeDeletionStopwatch = Stopwatch.StartNew();
-                foreach (var node in nodes)
+                Stopwatch nodeDeletionStopwatch = Stopwatch.StartNew();
+                foreach (Node node in nodes)
                 {
                     _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID);
                     metrics.NodesDeleted++;
@@ -557,13 +556,13 @@ namespace Test.VectorIndexSearch
                 metrics.NodeDeletionTime = nodeDeletionStopwatch.ElapsedMilliseconds;
 
                 // Delete graph
-                var graphDeletionStopwatch = Stopwatch.StartNew();
+                Stopwatch graphDeletionStopwatch = Stopwatch.StartNew();
                 _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true);
                 graphDeletionStopwatch.Stop();
                 metrics.GraphDeletionTime = graphDeletionStopwatch.ElapsedMilliseconds;
 
                 // Delete tenant
-                var tenantDeletionStopwatch = Stopwatch.StartNew();
+                Stopwatch tenantDeletionStopwatch = Stopwatch.StartNew();
                 _Client.Tenant.DeleteByGuid(tenant.GUID, true);
                 tenantDeletionStopwatch.Stop();
                 metrics.TenantDeletionTime = tenantDeletionStopwatch.ElapsedMilliseconds;
@@ -772,7 +771,7 @@ namespace Test.VectorIndexSearch
 
         static List<float> GenerateRandomVector(int dimensions)
         {
-            var vector = new List<float>(dimensions);
+            List<float> vector = new List<float>(dimensions);
             for (int i = 0; i < dimensions; i++)
             {
                 // Generate random values between -1 and 1

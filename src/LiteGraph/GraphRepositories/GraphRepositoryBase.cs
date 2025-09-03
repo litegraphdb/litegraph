@@ -108,6 +108,11 @@
         /// </summary>
         public abstract IBatchMethods Batch { get; }
 
+        /// <summary>
+        /// Vector index methods.
+        /// </summary>
+        public abstract IVectorIndexMethods VectorIndex { get; }
+
         #endregion
 
         #region Private-Members

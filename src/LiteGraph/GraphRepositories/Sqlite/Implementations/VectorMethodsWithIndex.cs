@@ -21,11 +21,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         {
             if (vector == null || vector.Vectors == null || vector.Vectors.Count == 0) return;
 
-            var graph = repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID);
+            Graph graph = repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
-            var index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
+            IVectorIndex index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
             if (index != null && vector.NodeGUID.HasValue)
             {
                 // Store node GUID in the index so we can retrieve nodes from search results
@@ -44,26 +44,26 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
             if (vectors == null || vectors.Count == 0) return;
 
             // Group vectors by graph
-            var vectorsByGraph = vectors
+            IEnumerable<IGrouping<Guid, VectorMetadata>> vectorsByGraph = vectors
                 .Where(v => v.Vectors != null && v.Vectors.Count > 0)
                 .GroupBy(v => v.GraphGUID);
 
-            foreach (var graphGroup in vectorsByGraph)
+            foreach (IGrouping<Guid, VectorMetadata> graphGroup in vectorsByGraph)
             {
-                var graphGuid = graphGroup.Key;
-                var graphVectors = graphGroup.ToList();
+                Guid graphGuid = graphGroup.Key;
+                List<VectorMetadata> graphVectors = graphGroup.ToList();
                 
                 if (graphVectors.Count == 0) continue;
 
-                var graph = repo.Graph.ReadByGuid(graphVectors[0].TenantGUID, graphGuid);
+                Graph graph = repo.Graph.ReadByGuid(graphVectors[0].TenantGUID, graphGuid);
                 if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                     continue;
 
-                var index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
+                IVectorIndex index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
                 if (index != null)
                 {
                     // Store node GUIDs in the index so we can retrieve nodes from search results
-                    var batch = graphVectors.Where(v => v.NodeGUID.HasValue).ToDictionary(v => v.NodeGUID.Value, v => v.Vectors);
+                    Dictionary<Guid, List<float>> batch = graphVectors.Where(v => v.NodeGUID.HasValue).ToDictionary(v => v.NodeGUID.Value, v => v.Vectors);
                     if (batch.Count > 0)
                         await index.AddBatchAsync(batch);
                 }
@@ -80,11 +80,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         {
             if (vector == null || vector.Vectors == null || vector.Vectors.Count == 0) return;
 
-            var graph = repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID);
+            Graph graph = repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
-            var index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
+            IVectorIndex index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
             if (index != null && vector.NodeGUID.HasValue)
             {
                 await index.UpdateAsync(vector.NodeGUID.Value, vector.Vectors);
@@ -101,11 +101,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         /// <returns>Task.</returns>
         public static async Task UpdateIndexForDeleteAsync(SqliteGraphRepository repo, Guid tenantGuid, Guid nodeGuid, Guid graphGuid)
         {
-            var graph = repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = repo.Graph.ReadByGuid(tenantGuid, graphGuid);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
-            var index = repo.VectorIndexManager.GetIndex(graphGuid);
+            IVectorIndex index = repo.VectorIndexManager.GetIndex(graphGuid);
             if (index != null)
             {
                 // Use nodeGuid as the key since that's what we store in the index
@@ -125,11 +125,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         {
             if (nodeGuids == null || nodeGuids.Count == 0) return;
 
-            var graph = repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = repo.Graph.ReadByGuid(tenantGuid, graphGuid);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
-            var index = repo.VectorIndexManager.GetIndex(graphGuid);
+            IVectorIndex index = repo.VectorIndexManager.GetIndex(graphGuid);
             if (index != null)
             {
                 // Use nodeGuids as keys since that's what we store in the index
@@ -158,16 +158,16 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return null;
 
-            var index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
+            IVectorIndex index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph);
             if (index == null)
                 return null;
 
             // Perform indexed search
-            var results = await index.SearchAsync(queryVector, topK, ef ?? graph.VectorIndexEf);
+            IEnumerable<(Guid Id, float Distance)> results = await index.SearchAsync(queryVector, topK, ef ?? graph.VectorIndexEf);
 
             // Convert distance to appropriate score based on search type
-            var scoredResults = new List<(Guid Id, float Score)>();
-            foreach (var result in results)
+            List<(Guid Id, float Score)> scoredResults = new List<(Guid Id, float Score)>();
+            foreach ((Guid Id, float Distance) result in results)
             {
                 float score = result.Distance;
 
