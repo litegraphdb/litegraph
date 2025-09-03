@@ -1,13 +1,12 @@
-﻿namespace LiteGraph.GraphRepositories.Sqlite.Implementations
+namespace LiteGraph.Client.Interfaces
 {
     using System;
     using System.Threading.Tasks;
-    using LiteGraph;
     using LiteGraph.Indexing.Vector;
 
     /// <summary>
-    /// Interface for vector index methods.
-    /// Client implementations are responsible for input validation and cross-cutting logic.
+    /// Interface for vector index methods in the client.
+    /// Provides client-side validation and error handling for vector index operations.
     /// </summary>
     public interface IVectorIndexMethods
     {
@@ -54,4 +53,3 @@
         Task DeleteVectorIndexAsync(Guid tenantGuid, Guid graphGuid, bool deleteIndexFile = false);
     }
 }
-

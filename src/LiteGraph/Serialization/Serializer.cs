@@ -129,7 +129,7 @@
                     throw new JsonException("Expected start of object");
                 }
 
-                var collection = new NameValueCollection();
+                NameValueCollection collection = new NameValueCollection();
 
                 while (reader.Read())
                 {
@@ -162,9 +162,9 @@
                     // If the value contains commas, split it and add each value separately
                     if (!string.IsNullOrEmpty(value) && value.Contains(","))
                     {
-                        var values = value.Split(',')
+                        IEnumerable<string> values = value.Split(',')
                                         .Select(v => v.Trim());
-                        foreach (var v in values)
+                        foreach (string v in values)
                         {
                             collection.Add(key, v);
                         }
@@ -180,7 +180,7 @@
 
             public override void Write(Utf8JsonWriter writer, NameValueCollection value, JsonSerializerOptions options)
             {
-                var val = value.Keys.Cast<string>()
+                Dictionary<string, string> val = value.Keys.Cast<string>()
                     .ToDictionary(k => k, k => string.Join(", ", value.GetValues(k)));
                 System.Text.Json.JsonSerializer.Serialize(writer, val);
             }

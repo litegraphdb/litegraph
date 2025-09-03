@@ -1,21 +1,14 @@
 ﻿namespace LiteGraph
 {
     using System;
-    using ExpressionTree;
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Linq;
+    using System.Collections.Specialized;
+    using Caching;
+    using LiteGraph.Client.Implementations;
+    using LiteGraph.Client.Interfaces;
     using LiteGraph.Gexf;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.Serialization;
-    using System.Xml.Linq;
-    using System.Collections.Specialized;
-    using System.Reflection.Metadata.Ecma335;
-    using SQLitePCL;
-    using LiteGraph.Client.Interfaces;
-    using LiteGraph.Client.Implementations;
-    using Caching;
 
     /// <summary>
     /// LiteGraph client.
@@ -122,6 +115,9 @@
         /// <inheritdoc />
         public IVectorMethods Vector { get; }
 
+        /// <inheritdoc />
+        public IVectorIndexMethods VectorIndex { get; }
+
         #endregion
 
         #region Private-Members
@@ -136,7 +132,6 @@
         private LRUCache<Guid, Graph> _GraphCache = null;
         private LRUCache<Guid, Node> _NodeCache = null;
         private LRUCache<Guid, Edge> _EdgeCache = null;
-
         #endregion
 
         #region Constructors-and-Factories
@@ -186,6 +181,7 @@
             Tenant = new TenantMethods(this, _Repo, _TenantCache);
             User = new UserMethods(this, _Repo);
             Vector = new VectorMethods(this, _Repo);
+            VectorIndex = new VectorIndexMethods(this, _Repo);
         }
 
         #endregion

@@ -5,14 +5,12 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using Timestamps;
+    using LiteGraph.Indexing.Vector;
 
     /// <summary>
     /// Node methods.
@@ -76,7 +74,7 @@
             List<Node> created = Converters.NodesFromDataTable(retrieveResult);
 
             // Update HNSW index for any vectors that were created with the nodes
-            var allVectors = new List<VectorMetadata>();
+            List<VectorMetadata> allVectors = new List<VectorMetadata>();
             foreach (Node node in nodes)
             {
                 if (node.Vectors != null && node.Vectors.Count > 0)
@@ -409,7 +407,7 @@
         public Node Update(Node node)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
-            Node updated = Converters.NodeFromDataRow(_Repo.ExecuteQuery(NodeQueries.Update(node), true).Rows[0]);
+            Node updated = Converters.NodeFromDataRow(_Repo.ExecuteQuery(NodeQueries.Update(node), true).Rows[0]);    
             return updated;
         }
 
@@ -418,7 +416,7 @@
         {
             // Remove from database
             _Repo.ExecuteQuery(NodeQueries.Delete(tenantGuid, graphGuid, nodeGuid), true);
-            
+
             // Update vector index if needed
             Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(_Repo, tenantGuid, nodeGuid, graphGuid)).Wait();
         }
@@ -439,10 +437,10 @@
         public void DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
         {
             if (nodeGuids == null || nodeGuids.Count < 1) return;
-            
+
             // Remove from database
             _Repo.ExecuteQuery(NodeQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids), true);
-            
+
             // Update vector index if needed
             Task.Run(async () => await VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(_Repo, tenantGuid, nodeGuids, graphGuid)).Wait();
         }

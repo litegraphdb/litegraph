@@ -57,7 +57,7 @@ namespace LiteGraph.Indexing.Vector
 
             return await _Indexes.GetOrAddAsync<Guid, IVectorIndex>(graph.GUID, async (guid) =>
             {
-                var index = new HnswLiteVectorIndex();
+                HnswLiteVectorIndex index = new HnswLiteVectorIndex();
                 
                 // Ensure index file path is set
                 if (string.IsNullOrEmpty(graph.VectorIndexFile))
@@ -95,7 +95,7 @@ namespace LiteGraph.Indexing.Vector
                 throw new ArgumentException("Graph must have VectorDimensionality set before enabling indexing.");
 
             // Remove existing index if any
-            if (_Indexes.TryRemove(graph.GUID, out var existingIndex))
+            if (_Indexes.TryRemove(graph.GUID, out IVectorIndex existingIndex))
             {
                 existingIndex.Dispose();
             }
@@ -111,12 +111,12 @@ namespace LiteGraph.Indexing.Vector
             }
             else
             {
-                var extension = indexType == VectorIndexTypeEnum.HnswRam ? ".hnsw" : ".sqlite";
+                string extension = indexType == VectorIndexTypeEnum.HnswRam ? ".hnsw" : ".sqlite";
                 graph.VectorIndexFile = Path.Combine(_StorageDirectory, $"{graph.GUID}{extension}");
             }
 
             // Create and initialize new index
-            var index = new HnswLiteVectorIndex();
+            HnswLiteVectorIndex index = new HnswLiteVectorIndex();
             await index.InitializeAsync(graph, cancellationToken);
             
             _Indexes[graph.GUID] = index;
@@ -131,9 +131,9 @@ namespace LiteGraph.Indexing.Vector
         /// <returns>Task.</returns>
         public async Task DisableIndexingAsync(Guid graphGuid, bool deleteIndexFile = false)
         {
-            if (_Indexes.TryRemove(graphGuid, out var index))
+            if (_Indexes.TryRemove(graphGuid, out IVectorIndex index))
             {
-                var stats = index.GetStatistics();
+                VectorIndexStatistics stats = index.GetStatistics();
                 index.Dispose();
 
                 if (deleteIndexFile && !string.IsNullOrEmpty(stats.IndexFile))
@@ -144,7 +144,7 @@ namespace LiteGraph.Indexing.Vector
                             File.Delete(stats.IndexFile);
                         
                         // Also delete mapping file for RAM indexes
-                        var mappingFile = stats.IndexFile + ".mapping";
+                        string mappingFile = stats.IndexFile + ".mapping";
                         if (File.Exists(mappingFile))
                             File.Delete(mappingFile);
                     }
@@ -175,7 +175,7 @@ namespace LiteGraph.Indexing.Vector
                 throw new ArgumentException("Graph must have indexing enabled.");
 
             // Remove existing index
-            if (_Indexes.TryRemove(graph.GUID, out var existingIndex))
+            if (_Indexes.TryRemove(graph.GUID, out IVectorIndex existingIndex))
             {
                 existingIndex.Dispose();
             }
@@ -188,7 +188,7 @@ namespace LiteGraph.Indexing.Vector
                     if (File.Exists(graph.VectorIndexFile))
                         File.Delete(graph.VectorIndexFile);
                     
-                    var mappingFile = graph.VectorIndexFile + ".mapping";
+                    string mappingFile = graph.VectorIndexFile + ".mapping";
                     if (File.Exists(mappingFile))
                         File.Delete(mappingFile);
                 }
@@ -199,16 +199,16 @@ namespace LiteGraph.Indexing.Vector
             }
 
             // Create new index
-            var index = new HnswLiteVectorIndex();
+            HnswLiteVectorIndex index = new HnswLiteVectorIndex();
             await index.InitializeAsync(graph, cancellationToken);
 
             // Add all vectors in batches
             if (vectors != null)
             {
-                var batch = new Dictionary<Guid, List<float>>();
+                Dictionary<Guid, List<float>> batch = new Dictionary<Guid, List<float>>();
                 const int batchSize = 1000;
 
-                foreach (var vector in vectors)
+                foreach (VectorMetadata vector in vectors)
                 {
                     if (vector.Vectors != null && vector.Vectors.Count > 0 && vector.NodeGUID.HasValue)
                     {
@@ -268,7 +268,7 @@ namespace LiteGraph.Indexing.Vector
         /// <returns>Vector index or null if not found.</returns>
         public IVectorIndex GetIndex(Guid graphGuid)
         {
-            _Indexes.TryGetValue(graphGuid, out var index);
+            _Indexes.TryGetValue(graphGuid, out IVectorIndex index);
             return index;
         }
 
@@ -278,7 +278,7 @@ namespace LiteGraph.Indexing.Vector
         /// <param name="graphGuid">Graph GUID.</param>
         public void UnloadIndex(Guid graphGuid)
         {
-            if (_Indexes.TryRemove(graphGuid, out var index))
+            if (_Indexes.TryRemove(graphGuid, out IVectorIndex index))
             {
                 index.Dispose();
             }
@@ -291,7 +291,7 @@ namespace LiteGraph.Indexing.Vector
         /// <returns>Task.</returns>
         public async Task SaveAllAsync(CancellationToken cancellationToken = default)
         {
-            var tasks = _Indexes.Values.Select(index => index.SaveAsync(cancellationToken));
+            IEnumerable<Task> tasks = _Indexes.Values.Select(index => index.SaveAsync(cancellationToken));
             await Task.WhenAll(tasks);
         }
 
@@ -316,7 +316,7 @@ namespace LiteGraph.Indexing.Vector
             {
                 if (disposing)
                 {
-                    foreach (var index in _Indexes.Values)
+                    foreach (IVectorIndex index in _Indexes.Values)
                     {
                         index?.Dispose();
                     }
@@ -342,7 +342,7 @@ namespace LiteGraph.Indexing.Vector
             TKey key,
             Func<TKey, Task<TValue>> valueFactory)
         {
-            if (dictionary.TryGetValue(key, out var value))
+            if (dictionary.TryGetValue(key, out TValue value))
                 return value;
 
             value = await valueFactory(key);

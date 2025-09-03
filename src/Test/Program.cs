@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.ComponentModel.Design;
     using System.IO;
     using System.Linq;
     using ExpressionTree;
@@ -1252,7 +1251,7 @@
                 Name = "Test"
             });
 
-            var data = new { Text = "hello" };
+            object data = new { Text = "hello" };
 
             Node node1 = new Node
             {

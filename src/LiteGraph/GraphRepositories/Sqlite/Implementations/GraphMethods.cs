@@ -5,17 +5,12 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Indexing.Vector;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Graph methods.
@@ -378,7 +373,7 @@
             Guid graphGuid,
             bool deleteIndexFile = false)
         {
-            var graph = ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = ReadByGuid(tenantGuid, graphGuid);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
@@ -386,7 +381,7 @@
             await _Repo.VectorIndexManager.DisableIndexingAsync(graphGuid, deleteIndexFile);
 
             // Apply disabled configuration to clear all vector index settings
-            var disabledConfig = VectorIndexConfiguration.CreateDisabled();
+            VectorIndexConfiguration disabledConfig = VectorIndexConfiguration.CreateDisabled();
             disabledConfig.ApplyToGraph(graph);
 
             // Update graph in database
@@ -398,7 +393,7 @@
             Guid tenantGuid,
             Guid graphGuid)
         {
-            var graph = ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = ReadByGuid(tenantGuid, graphGuid);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
@@ -406,7 +401,7 @@
                 throw new InvalidOperationException("Graph does not have indexing enabled.");
 
             // Get all vectors for the graph (including nodes and edges)
-            var vectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid);
+            IEnumerable<VectorMetadata> vectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid);
 
             // Rebuild the index
             await _Repo.VectorIndexManager.RebuildIndexAsync(graph, vectors);
@@ -417,7 +412,7 @@
             Guid tenantGuid,
             Guid graphGuid)
         {
-            var graph = ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = ReadByGuid(tenantGuid, graphGuid);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
