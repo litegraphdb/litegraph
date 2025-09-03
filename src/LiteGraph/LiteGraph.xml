@@ -6086,21 +6086,6 @@
             Collection of nodes in the index.
             </summary>
         </member>
-        <member name="T:LiteGraph.Indexing.Vector.HnswNodeState">
-            <summary>
-            Represents a single node in the HNSW index.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Id">
-            <summary>
-            The unique identifier for the node.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Vector">
-            <summary>
-            The vector data for the node.
-            </summary>
-        </member>
         <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex">
             <summary>
             HnswLite implementation of the vector index interface.
@@ -6179,6 +6164,21 @@
         <member name="T:LiteGraph.Indexing.Vector.HnswLiteVectorIndex.SqliteHnswLayerStorage">
             <summary>
             SQLite-based layer storage implementation.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.HnswNodeState">
+            <summary>
+            Represents a single node in the HNSW index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Id">
+            <summary>
+            The unique identifier for the node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Vector">
+            <summary>
+            The vector data for the node.
             </summary>
         </member>
         <member name="T:LiteGraph.Indexing.Vector.IVectorIndex">
