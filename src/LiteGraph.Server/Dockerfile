@@ -17,11 +17,11 @@ WORKDIR /src
 COPY . .
 
 # Restore dependencies
-RUN dotnet restore "LiteGraph.Server/LiteGraph.Server.csproj"
+RUN dotnet restore LiteGraph.Server/LiteGraph.Server.csproj
 
 # Build the application
 WORKDIR /src/LiteGraph.Server
-RUN dotnet build "LiteGraph.Server.csproj" -c Release -o /app/build /p:GeneratePackageOnBuild=false
+RUN dotnet build LiteGraph.Server.csproj -c Release -o /app/build /p:GeneratePackageOnBuild=false
 
 
 #
@@ -30,7 +30,7 @@ RUN dotnet build "LiteGraph.Server.csproj" -c Release -o /app/build /p:GenerateP
 #
 #
 FROM build AS publish
-RUN dotnet publish "LiteGraph.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:GeneratePackageOnBuild=false /p:ErrorOnDuplicatePublishOutputFiles=false
+RUN dotnet publish LiteGraph.Server.csproj -c Release -o /app/publish /p:UseAppHost=false /p:GeneratePackageOnBuild=false /p:ErrorOnDuplicatePublishOutputFiles=false
 
 
 #
