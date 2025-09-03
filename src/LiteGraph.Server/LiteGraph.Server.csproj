@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -29,11 +29,7 @@
 		</None>
 		<None Include="clean.bat">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="Dockerbuild.bat">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="Dockerrun.bat">
+		</None>		<None Include="Dockerrun.bat">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Include="Dockerrun.sh">
