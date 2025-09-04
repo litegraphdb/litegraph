@@ -41,7 +41,6 @@
             if (vectors == null || vectors.Count == 0) return string.Empty;
 
             StringBuilder ret = new StringBuilder();
-            ret.Append("BEGIN TRANSACTION; ");
             ret.Append("INSERT INTO 'vectors' (guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) VALUES ");
 
             List<string> values = new List<string>();
@@ -68,7 +67,7 @@
             }
 
             ret.Append(string.Join(", ", values));
-            ret.Append("; COMMIT;");
+            ret.Append(";");
             return ret.ToString();
         }
 
