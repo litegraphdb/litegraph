@@ -42,9 +42,6 @@ namespace LiteGraph.Client.Implementations
         /// <inheritdoc />
         public VectorIndexConfiguration GetConfiguration(Guid tenantGuid, Guid graphGuid)
         {
-            if (tenantGuid == Guid.Empty) throw new ArgumentException("Tenant GUID cannot be empty.", nameof(tenantGuid));
-            if (graphGuid == Guid.Empty) throw new ArgumentException("Graph GUID cannot be empty.", nameof(graphGuid));
-
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
@@ -54,9 +51,6 @@ namespace LiteGraph.Client.Implementations
         /// <inheritdoc />
         public VectorIndexStatistics GetStatistics(Guid tenantGuid, Guid graphGuid)
         {
-            if (tenantGuid == Guid.Empty) throw new ArgumentException("Tenant GUID cannot be empty.", nameof(tenantGuid));
-            if (graphGuid == Guid.Empty) throw new ArgumentException("Graph GUID cannot be empty.", nameof(graphGuid));
-
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
@@ -66,12 +60,7 @@ namespace LiteGraph.Client.Implementations
         /// <inheritdoc />
         public async Task EnableVectorIndexAsync(Guid tenantGuid, Guid graphGuid, VectorIndexConfiguration configuration)
         {
-            if (tenantGuid == Guid.Empty) throw new ArgumentException("Tenant GUID cannot be empty.", nameof(tenantGuid));
-            if (graphGuid == Guid.Empty) throw new ArgumentException("Graph GUID cannot be empty.", nameof(graphGuid));
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-
-            if (!configuration.IsValid(out string errorMessage))
-                throw new ArgumentException($"Invalid vector index configuration: {errorMessage}");
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
@@ -82,9 +71,6 @@ namespace LiteGraph.Client.Implementations
         /// <inheritdoc />
         public async Task RebuildVectorIndexAsync(Guid tenantGuid, Guid graphGuid)
         {
-            if (tenantGuid == Guid.Empty) throw new ArgumentException("Tenant GUID cannot be empty.", nameof(tenantGuid));
-            if (graphGuid == Guid.Empty) throw new ArgumentException("Graph GUID cannot be empty.", nameof(graphGuid));
-
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
@@ -94,9 +80,6 @@ namespace LiteGraph.Client.Implementations
         /// <inheritdoc />
         public async Task DeleteVectorIndexAsync(Guid tenantGuid, Guid graphGuid, bool deleteIndexFile = false)
         {
-            if (tenantGuid == Guid.Empty) throw new ArgumentException("Tenant GUID cannot be empty.", nameof(tenantGuid));
-            if (graphGuid == Guid.Empty) throw new ArgumentException("Graph GUID cannot be empty.", nameof(graphGuid));
-
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
