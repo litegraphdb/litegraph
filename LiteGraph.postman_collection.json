@@ -8470,7 +8470,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Domain\": \"Graph\",\r\n    \"SearchType\": \"CosineSimliarity\",\r\n    \"Labels\": [],\r\n    \"Tags\": {},\r\n    \"Expr\": null,\r\n    \"Embeddings\": [ 0.1, 0.2, 0.3 ]\r\n}",
+									"raw": "{\r\n    \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Domain\": \"Graph\",\r\n    \"SearchType\": \"CosineSimilarity\",\r\n    \"Labels\": [],\r\n    \"Tags\": {},\r\n    \"Expr\": null,\r\n    \"Embeddings\": [ 0.1, 0.2, 0.3 ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -9551,7 +9551,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Domain\": \"Edge\",\r\n    \"SearchType\": \"CosineSimliarity\",\r\n    \"Labels\": [],\r\n    \"Tags\": {},\r\n    \"Expr\": null,\r\n    \"Embeddings\": [ 0.1, 0.2, 0.3 ]\r\n}",
+									"raw": "{\r\n    \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Domain\": \"Edge\",\r\n    \"SearchType\": \"CosineSimilarity\",\r\n    \"Labels\": [],\r\n    \"Tags\": {},\r\n    \"Expr\": null,\r\n    \"Embeddings\": [ 0.1, 0.2, 0.3 ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
