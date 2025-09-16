@@ -2,18 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
-    using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
+    using RestWrapper;
 
     /// <summary>
     /// User methods.
@@ -23,12 +16,30 @@
     {
         #region Public-Members
 
+        /// <summary>
+        /// Timeout, in milliseconds.  Default is 600 seconds.
+        /// </summary>
+        public int TimeoutMs
+        {
+            get
+            {
+                return _TimeoutMs;
+            }
+            set
+            {
+                if (value < 1) throw new ArgumentOutOfRangeException(nameof(TimeoutMs));
+                _TimeoutMs = value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
 
         private LiteGraphClient _Client = null;
         private GraphRepositoryBase _Repo = null;
+
+        private int _TimeoutMs = 600 * 1000;
 
         #endregion
 
@@ -166,6 +177,101 @@
         public bool ExistsByEmail(Guid tenantGuid, string email)
         {
             return _Repo.User.ExistsByEmail(tenantGuid, email);
+        }
+
+        /// <inheritdoc />
+        public async Task<AuthenticationToken> CreateAuthToken(string email, string password, Guid tenantGuid, CancellationToken token = default)
+        {
+            if (string.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
+            if (string.IsNullOrEmpty(password)) throw new ArgumentNullException(nameof(password));
+
+            string url = _Client.Endpoint + "/v1.0/token";
+            using (RestRequest req = new RestRequest(url))
+            {
+                req.TimeoutMilliseconds = TimeoutMs;
+                if (!string.IsNullOrWhiteSpace(email)) req.Headers.Add("x-email", email);
+                if (!string.IsNullOrWhiteSpace(password)) req.Headers.Add("x-password", password);
+                if (!string.IsNullOrWhiteSpace(tenantGuid.ToString())) req.Headers.Add("x-tenant-guid", tenantGuid.ToString());
+
+                using (RestResponse resp = await req.SendAsync(token).ConfigureAwait(false))
+                {
+                    if (resp != null)
+                    {
+                        if (_Client.Logging.ConsoleLogging) _Client.Logging.Log(SeverityEnum.Debug, "response (status " + resp.StatusCode + "): " + Environment.NewLine + resp.DataAsString);
+
+                        if (resp.StatusCode >= 200 && resp.StatusCode <= 299)
+                        {
+                            _Client.Logging.Log(SeverityEnum.Debug, "success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
+                            if (!String.IsNullOrEmpty(resp.DataAsString))
+                            {
+                                _Client.Logging.Log(SeverityEnum.Debug, "deserializing response body");
+                                return _Client.Serializer.DeserializeJson<AuthenticationToken>(resp.DataAsString);
+                            }
+                            else
+                            {
+                                _Client.Logging.Log(SeverityEnum.Debug, "empty response body, returning null");
+                                return null;
+                            }
+                        }
+                        else
+                        {
+                            _Client.Logging.Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        _Client.Logging.Log(SeverityEnum.Warn, "no response from " + url);
+                        return null;
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<AuthenticationToken> ReadTokenDetail(string authToken, CancellationToken token = default)
+        {
+            if (string.IsNullOrEmpty(authToken)) throw new ArgumentNullException(nameof(authToken));
+
+            string url = _Client.Endpoint + "/v1.0/token/details";
+            using (RestRequest req = new RestRequest(url))
+            {
+                req.TimeoutMilliseconds = TimeoutMs;
+                if (!string.IsNullOrWhiteSpace(authToken)) req.Headers.Add("x-token", authToken);
+
+                using (RestResponse resp = await req.SendAsync(token).ConfigureAwait(false))
+                {
+                    if (resp != null)
+                    {
+                        if (_Client.Logging.ConsoleLogging) _Client.Logging.Log(SeverityEnum.Debug, "response (status " + resp.StatusCode + "): " + Environment.NewLine + resp.DataAsString);
+
+                        if (resp.StatusCode >= 200 && resp.StatusCode <= 299)
+                        {
+                            _Client.Logging.Log(SeverityEnum.Debug, "success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
+                            if (!String.IsNullOrEmpty(resp.DataAsString))
+                            {
+                                _Client.Logging.Log(SeverityEnum.Debug, "deserializing response body");
+                                return _Client.Serializer.DeserializeJson<AuthenticationToken>(resp.DataAsString);
+                            }
+                            else
+                            {
+                                _Client.Logging.Log(SeverityEnum.Debug, "empty response body, returning null");
+                                return null;
+                            }
+                        }
+                        else
+                        {
+                            _Client.Logging.Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        _Client.Logging.Log(SeverityEnum.Warn, "no response from " + url);
+                        return null;
+                    }
+                }
+            }
         }
 
         #endregion

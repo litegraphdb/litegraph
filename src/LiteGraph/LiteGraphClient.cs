@@ -82,6 +82,11 @@
             }
         }
 
+        /// <summary>
+        /// Base URL of the LiteGraph server.
+        /// </summary>
+        public string Endpoint { get; private set; }  
+
         /// <inheritdoc />
         public IAdminMethods Admin { get; }
 
@@ -182,6 +187,16 @@
             User = new UserMethods(this, _Repo);
             Vector = new VectorMethods(this, _Repo);
             VectorIndex = new VectorIndexMethods(this, _Repo);
+        }
+
+        /// <summary>
+        /// Instantiate LiteGraph client.
+        /// </summary>
+        /// <param name="endpoint">Base URL of the LiteGraph server.</param>
+        public LiteGraphClient(string endpoint = "http://localhost:8000/")
+        {
+            if (string.IsNullOrEmpty(endpoint)) throw new ArgumentNullException(nameof(endpoint));
+            Endpoint = endpoint.TrimEnd('/');
         }
 
         #endregion

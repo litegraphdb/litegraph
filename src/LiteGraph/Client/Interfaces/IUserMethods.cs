@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph;
 
     /// <summary>
@@ -116,5 +118,23 @@
         /// <param name="email">Email.</param>
         /// <returns>True if exists.</returns>
         bool ExistsByEmail(Guid tenantGuid, string email);
+
+        /// <summary>
+        /// Create an authentication token using email, password, and tenant GUID.
+        /// </summary>
+        /// <param name="email">Email address for authentication.</param>
+        /// <param name="password">Password for authentication.</param>
+        /// <param name="tenantGuid">Tenant GUID for authentication.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Authentication token details.</returns>
+        Task<AuthenticationToken> CreateAuthToken(string email, string password, Guid tenantGuid, CancellationToken token = default);
+
+        /// <summary>
+        /// Read authentication token details.
+        /// </summary>
+        /// <param name="authToken">Authentication token (security token).</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Authentication token details.</returns>
+        Task<AuthenticationToken> ReadTokenDetail(string authToken, CancellationToken token = default);
     }
 }
