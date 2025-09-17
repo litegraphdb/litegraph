@@ -709,10 +709,10 @@
         <member name="M:LiteGraph.Client.Implementations.UserMethods.ExistsByEmail(System.Guid,System.String)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.CreateAuthToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.GenerateAuthenticationToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadTokenDetail(System.String,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadAuthenticationToken(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.VectorIndexMethods">
@@ -2192,7 +2192,7 @@
             <param name="email">Email.</param>
             <returns>True if exists.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.CreateAuthToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.GenerateAuthenticationToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Create an authentication token using email, password, and tenant GUID.
             </summary>
@@ -2202,7 +2202,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Authentication token details.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadTokenDetail(System.String,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadAuthenticationToken(System.String,System.Threading.CancellationToken)">
             <summary>
             Read authentication token details.
             </summary>

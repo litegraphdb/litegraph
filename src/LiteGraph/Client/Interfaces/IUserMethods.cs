@@ -127,7 +127,7 @@
         /// <param name="tenantGuid">Tenant GUID for authentication.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Authentication token details.</returns>
-        Task<AuthenticationToken> CreateAuthToken(string email, string password, Guid tenantGuid, CancellationToken token = default);
+        Task<AuthenticationToken> GenerateAuthenticationToken(string email, string password, Guid tenantGuid, CancellationToken token = default);
 
         /// <summary>
         /// Read authentication token details.
@@ -135,6 +135,6 @@
         /// <param name="authToken">Authentication token (security token).</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Authentication token details.</returns>
-        Task<AuthenticationToken> ReadTokenDetail(string authToken, CancellationToken token = default);
+        Task<AuthenticationToken> ReadAuthenticationToken(string authToken, CancellationToken token = default);
     }
 }

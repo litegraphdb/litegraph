@@ -180,7 +180,7 @@
         }
 
         /// <inheritdoc />
-        public async Task<AuthenticationToken> CreateAuthToken(string email, string password, Guid tenantGuid, CancellationToken token = default)
+        public async Task<AuthenticationToken> GenerateAuthenticationToken(string email, string password, Guid tenantGuid, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
             if (string.IsNullOrEmpty(password)) throw new ArgumentNullException(nameof(password));
@@ -229,7 +229,7 @@
         }
 
         /// <inheritdoc />
-        public async Task<AuthenticationToken> ReadTokenDetail(string authToken, CancellationToken token = default)
+        public async Task<AuthenticationToken> ReadAuthenticationToken(string authToken, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(authToken)) throw new ArgumentNullException(nameof(authToken));
 
