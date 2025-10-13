@@ -1,0 +1,80 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor directories
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*.usertasks
+
+# Test projects - exclude all test directories
+Test/
+Test.*/
+**/Test/
+**/Test.*/
+
+# Build scripts and Docker files in subdirectories (not the main one)
+**/Dockerfile
+!LiteGraph.Server/Dockerfile
+
+# Backup and temporary directories
+backups/
+**/backups/
+indexes/
+**/indexes/
+logs/
+**/logs/
+temp/
+**/temp/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Documentation and markdown (not needed in image)
+*.md
+!**/README.md
+
+# Environment and config files with secrets
+.env
+.env.*
+secrets.json
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build and script files
+*.bat
+*.sh
+build-docker.*
+clean.*
+Dockerrun.*
+CopyDbFromTest.*
+
+# Package and publish artifacts
+*.nupkg
+*.snupkg
+publish/
+
+# Postman collections and test files (not needed in image)
+*.postman_collection.json
+*.postman_environment.json

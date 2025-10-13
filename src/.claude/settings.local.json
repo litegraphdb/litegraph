@@ -17,7 +17,9 @@
       "Bash(dotnet script:*)",
       "Bash(del TestConfigApi.cs)",
       "Bash(pkill:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(dir \"C:\\Code\\LiteGraph\\LiteGraph-4.0\\src\\LiteGraph.Server\")",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": [],
