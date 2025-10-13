@@ -415,59 +415,6 @@
             }
         }
 
-        /// <inheritdoc />
-        public IEnumerable<VectorSearchResult> SearchGraph(
-            VectorSearchTypeEnum searchType,
-            List<float> vectors,
-            Guid tenantGuid,
-            List<string> labels = null,
-            NameValueCollection tags = null,
-            Expr filter = null)
-        {
-            if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
-
-            foreach (VectorSearchResult result in _Repo.Vector.SearchGraph(searchType, vectors, tenantGuid, labels, tags, filter))
-            {
-                yield return result;
-            }
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<VectorSearchResult> SearchNode(
-            VectorSearchTypeEnum searchType,
-            List<float> vectors,
-            Guid tenantGuid,
-            Guid graphGuid,
-            List<string> labels = null,
-            NameValueCollection tags = null,
-            Expr filter = null)
-        {
-            if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
-
-            foreach (VectorSearchResult result in _Repo.Vector.SearchNode(searchType, vectors, tenantGuid, graphGuid, labels, tags, filter))
-            {
-                yield return result;
-            }
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<VectorSearchResult> SearchEdge(
-            VectorSearchTypeEnum searchType,
-            List<float> vectors,
-            Guid tenantGuid,
-            Guid graphGuid,
-            List<string> labels = null,
-            NameValueCollection tags = null,
-            Expr filter = null)
-        {
-            if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must contain at least one vector.");
-
-            foreach (VectorSearchResult result in _Repo.Vector.SearchEdge(searchType, vectors, tenantGuid, graphGuid, labels, tags, filter))
-            {
-                yield return result;
-            }
-        }
-
         #endregion
 
         #region Private-Methods

@@ -653,40 +653,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.VectorSearchRequest == null) throw new ArgumentNullException(nameof(req.VectorSearchRequest));
             if (req.GraphGUID != null && !_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<VectorSearchResult> results = null;
-            if (req.VectorSearchRequest.Domain == VectorSearchDomainEnum.Graph)
-            {
-                results = _LiteGraph.Vector.SearchGraph(
-                    req.VectorSearchRequest.SearchType,
-                    req.VectorSearchRequest.Embeddings,
-                    req.VectorSearchRequest.TenantGUID,
-                    req.VectorSearchRequest.Labels,
-                    req.VectorSearchRequest.Tags,
-                    req.VectorSearchRequest.Expr).ToList();
-            }
-            else if (req.VectorSearchRequest.Domain == VectorSearchDomainEnum.Node)
-            {
-                results = _LiteGraph.Vector.SearchNode(
-                    req.VectorSearchRequest.SearchType,
-                    req.VectorSearchRequest.Embeddings,
-                    req.VectorSearchRequest.TenantGUID,
-                    req.VectorSearchRequest.GraphGUID.Value,
-                    req.VectorSearchRequest.Labels,
-                    req.VectorSearchRequest.Tags,
-                    req.VectorSearchRequest.Expr).ToList();
-            }
-            else if (req.VectorSearchRequest.Domain == VectorSearchDomainEnum.Edge)
-            {
-                results = _LiteGraph.Vector.SearchEdge(
-                    req.VectorSearchRequest.SearchType,
-                    req.VectorSearchRequest.Embeddings,
-                    req.VectorSearchRequest.TenantGUID,
-                    req.VectorSearchRequest.GraphGUID.Value,
-                    req.VectorSearchRequest.Labels,
-                    req.VectorSearchRequest.Tags,
-                    req.VectorSearchRequest.Expr).ToList();
-            }
-
+            IEnumerable<VectorSearchResult> results = _LiteGraph.Vector.Search(req.VectorSearchRequest).ToList();
             return new ResponseContext(req, results);
         }
 

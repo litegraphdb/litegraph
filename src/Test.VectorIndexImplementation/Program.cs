@@ -451,11 +451,15 @@ namespace Test.VectorIndexImplementation
                         
                         Stopwatch searchTimer = Stopwatch.StartNew();
                         // Get more results initially, then filter based on search type
-                        List<VectorSearchResult> allResults = _Client.Vector.SearchNode(
-                            searchType,
-                            searchVector,
-                            _Tenant.GUID,
-                            _Graph.GUID
+                        List<VectorSearchResult> allResults = _Client.Vector.Search(
+                            new VectorSearchRequest
+                            {
+                                TenantGUID = _Tenant.GUID,
+                                GraphGUID = _Graph.GUID,
+                                Domain = VectorSearchDomainEnum.Node,
+                                SearchType = searchType,
+                                Embeddings = searchVector
+                            }
                         ).Take(_MaxSearchResults * 2).ToList(); // Get extra results for filtering
                         
                         // Filter results based on search type and thresholds
@@ -587,12 +591,16 @@ namespace Test.VectorIndexImplementation
                 for (int i = 0; i < searchCount; i++)
                 {
                     List<float> searchVector = GenerateRandomVector(_VectorDimensionality);
-                    
-                    List<VectorSearchResult> allResults = _Client.Vector.SearchNode(
-                        VectorSearchTypeEnum.CosineSimilarity,
-                        searchVector,
-                        _Tenant.GUID,
-                        _Graph.GUID
+
+                    List<VectorSearchResult> allResults = _Client.Vector.Search(
+                        new VectorSearchRequest
+                        {
+                            TenantGUID = _Tenant.GUID,
+                            GraphGUID = _Graph.GUID,
+                            Domain = VectorSearchDomainEnum.Node,
+                            SearchType = VectorSearchTypeEnum.CosineDistance,
+                            Embeddings = searchVector
+                        }
                     ).Take(_MaxSearchResults * 2).ToList();
                     
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
@@ -648,11 +656,15 @@ namespace Test.VectorIndexImplementation
                     List<float> searchVector = GenerateRandomVector(_VectorDimensionality);
                     
                     Stopwatch searchTimer = Stopwatch.StartNew();
-                    List<VectorSearchResult> allResults = _Client.Vector.SearchNode(
-                        VectorSearchTypeEnum.CosineSimilarity,
-                        searchVector,
-                        _Tenant.GUID,
-                        _Graph.GUID
+                    List<VectorSearchResult> allResults = _Client.Vector.Search(
+                        new VectorSearchRequest
+                        {
+                            TenantGUID = _Tenant.GUID,
+                            GraphGUID = _Graph.GUID,
+                            Domain = VectorSearchDomainEnum.Node,
+                            SearchType = VectorSearchTypeEnum.CosineSimilarity,
+                            Embeddings = searchVector
+                        }
                     ).Take(_MaxSearchResults * 2).ToList();
                     
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
