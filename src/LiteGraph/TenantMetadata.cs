@@ -23,7 +23,18 @@
         /// <summary>
         /// Name.
         /// </summary>
-        public string Name { get; set; } = null;
+        public string Name
+        {
+            get
+            {
+                return _Name;
+            }
+            set
+            {
+                if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(Name));
+                _Name = value;
+            }
+        }
 
         /// <summary>
         /// Active.
@@ -43,6 +54,8 @@
         #endregion
 
         #region Private-Members
+
+        private string _Name = "Tenant name";
 
         #endregion
 
