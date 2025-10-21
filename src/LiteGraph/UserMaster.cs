@@ -81,7 +81,6 @@
             }
             set
             {
-                if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(Password));
                 _Password = value;
             }
         }
