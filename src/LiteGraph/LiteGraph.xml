@@ -4,6 +4,66 @@
         <name>LiteGraph</name>
     </assembly>
     <members>
+        <member name="T:LiteGraph.AuthenticationToken">
+            <summary>
+            Authentication token details.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.TimestampUtc">
+            <summary>
+            Timestamp when the token was issued, in UTC time.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.ExpirationUtc">
+            <summary>
+            Timestamp when the token will expire, in UTC time.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.IsExpired">
+            <summary>
+            Boolean to indicate if the token is expired.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.Random">
+            <summary>
+            Random string.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.Tenant">
+            <summary>
+            Tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.UserGUID">
+            <summary>
+            User GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.User">
+            <summary>
+            User.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.Token">
+            <summary>
+            Token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.AuthenticationToken.Valid">
+            <summary>
+            Boolean indicating whether or not the token is valid.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.AuthenticationToken.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.BackupFile">
             <summary>
             Backup file.
@@ -598,6 +658,11 @@
             Client implementations are responsible for input validation and cross-cutting logic.
             </summary>
         </member>
+        <member name="P:LiteGraph.Client.Implementations.UserMethods.TimeoutMs">
+            <summary>
+            Timeout, in milliseconds.  Default is 600 seconds.
+            </summary>
+        </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
             <summary>
             User methods.
@@ -642,6 +707,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.ExistsByEmail(System.Guid,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.GenerateAuthenticationToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadAuthenticationToken(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.VectorIndexMethods">
@@ -2111,6 +2182,24 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
             <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.GenerateAuthenticationToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Create an authentication token using email, password, and tenant GUID.
+            </summary>
+            <param name="email">Email address for authentication.</param>
+            <param name="password">Password for authentication.</param>
+            <param name="tenantGuid">Tenant GUID for authentication.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Authentication token details.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadAuthenticationToken(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Read authentication token details.
+            </summary>
+            <param name="authToken">Authentication token (security token).</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Authentication token details.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IVectorIndexMethods">
             <summary>
@@ -6526,6 +6615,11 @@
             Serialization helper.
             </summary>
         </member>
+        <member name="P:LiteGraph.LiteGraphClient.Endpoint">
+            <summary>
+            Base URL of the LiteGraph server.
+            </summary>
+        </member>
         <member name="P:LiteGraph.LiteGraphClient.Admin">
             <inheritdoc />
         </member>
@@ -6570,6 +6664,12 @@
             <param name="logging">Logging.</param>
             <param name="caching">Caching settings.</param>
             <param name="storage">Storage settings.</param>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.#ctor(System.String)">
+            <summary>
+            Instantiate LiteGraph client.
+            </summary>
+            <param name="endpoint">Base URL of the LiteGraph server.</param>
         </member>
         <member name="M:LiteGraph.LiteGraphClient.Dispose(System.Boolean)">
             <summary>
