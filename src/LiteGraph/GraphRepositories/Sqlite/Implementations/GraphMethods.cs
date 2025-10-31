@@ -7,6 +7,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using ExpressionTree;
+    using LiteGraph;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
@@ -417,6 +418,88 @@
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
             return _Repo.VectorIndexManager.GetStatistics(graphGuid);
+        }
+
+        /// <inheritdoc />
+        public SearchResult GetSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+
+            SearchResult result = new SearchResult
+            {
+                Nodes = new List<Node>(),
+                Edges = new List<Edge>(),
+                Graphs = new List<Graph>()
+            };
+
+            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' exists.");
+            result.Graphs.Add(graph);
+
+            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
+            if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
+
+            if (maxDepth == 0)
+            {
+                result.Nodes.Add(startingNode);
+                return result;
+            }
+
+            // Track visited nodes to avoid cycles
+            HashSet<Guid> visitedNodes = new HashSet<Guid>();
+            HashSet<Guid> visitedEdges = new HashSet<Guid>();
+
+            // Breadth-first traversal using a queue
+            Queue<(Node node, int depth)> nodeQueue = new Queue<(Node, int)>();
+            nodeQueue.Enqueue((startingNode, 0));
+            visitedNodes.Add(startingNode.GUID);
+            result.Nodes.Add(startingNode);
+
+            while (nodeQueue.Count > 0)
+            {
+                (Node currentNode, int currentDepth) = nodeQueue.Dequeue();
+                if (currentDepth >= maxDepth) continue;
+
+                // Get all edges connected to this node (both from and to)
+                IEnumerable<Edge> connectedEdges = _Repo.Edge.ReadNodeEdges(
+                    tenantGuid,
+                    graphGuid,
+                    currentNode.GUID);
+
+                foreach (Edge edge in connectedEdges)
+                {
+                    if (visitedEdges.Contains(edge.GUID)) continue;
+                    visitedEdges.Add(edge.GUID);
+                    result.Edges.Add(edge);
+
+                    Guid neighborGuid;
+                    if (edge.From.Equals(currentNode.GUID))
+                        neighborGuid = edge.To;
+                    else
+                        neighborGuid = edge.From;
+
+                    // If we haven't visited this neighbor yet, add it to the queue
+                    if (!visitedNodes.Contains(neighborGuid))
+                    {
+                        Node neighbor = _Repo.Node.ReadByGuid(tenantGuid, neighborGuid);
+                        if (neighbor != null && neighbor.GraphGUID == graphGuid)
+                        {
+                            visitedNodes.Add(neighborGuid);
+                            result.Nodes.Add(neighbor);
+                            nodeQueue.Enqueue((neighbor, currentDepth + 1));
+                        }
+                        else if (neighbor == null)
+                            _Repo.Logging.Log(SeverityEnum.Warn, "node " + neighborGuid + " referenced in graph " + graphGuid + " but does not exist");
+                    }
+                }
+            }
+
+            return result;
         }
 
         #endregion

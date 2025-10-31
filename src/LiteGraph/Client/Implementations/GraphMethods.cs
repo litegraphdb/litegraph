@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Caching;
     using ExpressionTree;
+    using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Indexing.Vector;
@@ -322,6 +323,54 @@
             return _Repo.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid);
         }
 
+        /// <inheritdoc />
+        public SearchResult GetSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            bool includeData = false,
+            bool includeSubordinates = false)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            _Client.ValidateTenantExists(tenantGuid);
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth);
+
+            SearchResult result = _Repo.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth);
+
+            // Populate graphs
+            if (result.Graphs != null && result.Graphs.Count > 0)
+            {
+                for (int i = 0; i < result.Graphs.Count; i++)
+                {
+                    result.Graphs[i] = PopulateGraph(result.Graphs[i], includeSubordinates, includeData);
+                }
+            }
+
+            // Populate nodes
+            if (result.Nodes != null && result.Nodes.Count > 0)
+            {
+                for (int i = 0; i < result.Nodes.Count; i++)
+                {
+                    result.Nodes[i] = PopulateNode(result.Nodes[i], includeSubordinates, includeData);
+                }
+            }
+
+            // Populate edges
+            if (result.Edges != null && result.Edges.Count > 0)
+            {
+                for (int i = 0; i < result.Edges.Count; i++)
+                {
+                    result.Edges[i] = PopulateEdge(result.Edges[i], includeSubordinates, includeData);
+                }
+            }
+
+            return result;
+        }
+
         #endregion
 
         #region Internal-Methods
@@ -339,6 +388,44 @@
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                 obj.Vectors = _Repo.Vector.ReadManyGraph(obj.TenantGUID, obj.GUID).ToList();
+            }
+
+            if (!includeData) obj.Data = null;
+            return obj;
+        }
+
+        internal Node PopulateNode(Node obj, bool includeSubordinates, bool includeData)
+        {
+            if (obj == null) return null;
+
+            if (includeSubordinates)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+            }
+
+            if (!includeData) obj.Data = null;
+            return obj;
+        }
+
+        internal Edge PopulateEdge(Edge obj, bool includeSubordinates, bool includeData)
+        {
+            if (obj == null) return null;
+
+            if (includeSubordinates)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
             }
 
             if (!includeData) obj.Data = null;

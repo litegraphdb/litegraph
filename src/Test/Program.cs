@@ -53,6 +53,7 @@
                 else if (userInput.Equals("test3-1")) Test3_1();
                 else if (userInput.Equals("test3-2")) Test3_2();
                 else if (userInput.Equals("test3-3")) Test3_3();
+                else if (userInput.Equals("subgraph")) TestSubgraph();
                 else
                 {
                     string[] parts = userInput.Split(new char[] { ' ' });
@@ -159,6 +160,7 @@
             Console.WriteLine("  test2-1         using sample graph 2, validate node retrieval by properties");
             Console.WriteLine("  test3-1         create test tenant, graph, and node using anonymous data");
             Console.WriteLine("  test3-2         create test tenant, graph, and node using var");
+            Console.WriteLine("  subgraph        test subgraph retrieval from a starting node");
             Console.WriteLine("");
             Console.WriteLine("  [type] [cmd]    execute a command against a given type");
             Console.WriteLine("  where:");
@@ -1700,6 +1702,358 @@
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
+        }
+
+        static void TestSubgraph()
+        {
+            Console.WriteLine("");
+            Console.WriteLine("=== CREATING TEST DATA FOR SUBGRAPH TEST ===");
+            Console.WriteLine("");
+
+            #region Create Tenant and Graph
+
+            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Subgraph Test Tenant" });
+            Console.WriteLine("| Created tenant: " + tenant.GUID);
+
+            Graph graph = _Client.Graph.Create(new Graph
+            {
+                TenantGUID = tenant.GUID,
+                Name = "Subgraph Test Graph"
+            });
+            Console.WriteLine("| Created graph: " + graph.GUID);
+            Console.WriteLine("");
+
+            #endregion
+
+            #region Create Nodes
+
+            // Create a hierarchical structure for testing:
+            // Node A (root/starting node)
+            //   -> Node B, C (layer 1)
+            //       -> Node D, E (from B, layer 2)
+            //       -> Node F (from C, layer 2)
+            //           -> Node G (from D, layer 3)
+
+            Console.WriteLine("| Creating test nodes...");
+            Node nodeA = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node A (Root)",
+                Data = new { Type = "Root", Level = 0 }
+            });
+            Console.WriteLine("  | Created Node A: " + nodeA.GUID);
+
+            Node nodeB = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node B (Layer 1)",
+                Data = new { Type = "Layer1", Level = 1 }
+            });
+            Console.WriteLine("  | Created Node B: " + nodeB.GUID);
+
+            Node nodeC = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node C (Layer 1)",
+                Data = new { Type = "Layer1", Level = 1 }
+            });
+            Console.WriteLine("  | Created Node C: " + nodeC.GUID);
+
+            Node nodeD = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node D (Layer 2)",
+                Data = new { Type = "Layer2", Level = 2 }
+            });
+            Console.WriteLine("  | Created Node D: " + nodeD.GUID);
+
+            Node nodeE = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node E (Layer 2)",
+                Data = new { Type = "Layer2", Level = 2 }
+            });
+            Console.WriteLine("  | Created Node E: " + nodeE.GUID);
+
+            Node nodeF = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node F (Layer 2)",
+                Data = new { Type = "Layer2", Level = 2 }
+            });
+            Console.WriteLine("  | Created Node F: " + nodeF.GUID);
+
+            Node nodeG = _Client.Node.Create(new Node
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                Name = "Node G (Layer 3)",
+                Data = new { Type = "Layer3", Level = 3 }
+            });
+            Console.WriteLine("  | Created Node G: " + nodeG.GUID);
+            Console.WriteLine("");
+
+            #endregion
+
+            #region Create Edges
+
+            Console.WriteLine("| Creating test edges...");
+            Edge edgeAB = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeA.GUID,
+                To = nodeB.GUID,
+                Name = "A -> B",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge A->B: " + edgeAB.GUID);
+
+            Edge edgeAC = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeA.GUID,
+                To = nodeC.GUID,
+                Name = "A -> C",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge A->C: " + edgeAC.GUID);
+
+            Edge edgeBD = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeB.GUID,
+                To = nodeD.GUID,
+                Name = "B -> D",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge B->D: " + edgeBD.GUID);
+
+            Edge edgeBE = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeB.GUID,
+                To = nodeE.GUID,
+                Name = "B -> E",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge B->E: " + edgeBE.GUID);
+
+            Edge edgeCF = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeC.GUID,
+                To = nodeF.GUID,
+                Name = "C -> F",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge C->F: " + edgeCF.GUID);
+
+            Edge edgeDG = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeD.GUID,
+                To = nodeG.GUID,
+                Name = "D -> G",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge D->G: " + edgeDG.GUID);
+
+            // Add a back edge to test bidirectional traversal
+            Edge edgeCA = _Client.Edge.Create(new Edge
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                From = nodeC.GUID,
+                To = nodeA.GUID,
+                Name = "C -> A (back edge)",
+                Cost = 1
+            });
+            Console.WriteLine("  | Created Edge C->A (back): " + edgeCA.GUID);
+            Console.WriteLine("");
+
+            #endregion
+
+            #region Test Subgraph Retrieval
+
+            Console.WriteLine("=== TESTING SUBGRAPH RETRIEVAL ===");
+            Console.WriteLine("");
+            Console.WriteLine("Graph Structure:");
+            Console.WriteLine("  A (root)");
+            Console.WriteLine("  ├─> B");
+            Console.WriteLine("  │   ├─> D");
+            Console.WriteLine("  │   │   └─> G");
+            Console.WriteLine("  │   └─> E");
+            Console.WriteLine("  └─> C");
+            Console.WriteLine("      ├─> F");
+            Console.WriteLine("      └─> A (back edge)");
+            Console.WriteLine("");
+
+            int maxDepth = Inputty.GetInteger("Max Depth (0 = starting node only, 1 = neighbors, 2 = two layers):", 2, false, false);
+            bool includeData = Inputty.GetBoolean("Include Data :", false);
+            bool includeSubordinates = Inputty.GetBoolean("Include Subordinates (labels, tags, vectors):", false);
+
+            Console.WriteLine("");
+            Console.WriteLine("Retrieving subgraph starting from Node A (" + nodeA.GUID + ") with max depth " + maxDepth);
+            Console.WriteLine("");
+
+            try
+            {
+                SearchResult result = _Client.Graph.GetSubgraph(
+                    tenant.GUID,
+                    graph.GUID,
+                    nodeA.GUID,
+                    maxDepth,
+                    includeData,
+                    includeSubordinates);
+
+                if (result == null)
+                {
+                    Console.WriteLine("Result is null");
+                    return;
+                }
+
+                Console.WriteLine("=== SUBGRAPH RESULTS ===");
+                Console.WriteLine("");
+
+                // Graph information
+                if (result.Graphs != null && result.Graphs.Count > 0)
+                {
+                    Console.WriteLine("Graphs: " + result.Graphs.Count);
+                    foreach (Graph resultGraph in result.Graphs)
+                    {
+                        Console.WriteLine("  - Graph GUID: " + resultGraph.GUID + ", Name: " + resultGraph.Name);
+                    }
+                    Console.WriteLine("");
+                }
+
+                // Node information
+                if (result.Nodes != null)
+                {
+                    Console.WriteLine("Nodes: " + result.Nodes.Count);
+                    foreach (Node node in result.Nodes)
+                    {
+                        Console.WriteLine("  - Node GUID: " + node.GUID + ", Name: " + node.Name);
+                        if (includeSubordinates)
+                        {
+                            if (node.Labels != null && node.Labels.Count > 0)
+                                Console.WriteLine("    Labels: " + string.Join(", ", node.Labels));
+                            if (node.Tags != null && node.Tags.Count > 0)
+                            {
+                                Console.Write("    Tags: ");
+                                for (int i = 0; i < node.Tags.Count; i++)
+                                {
+                                    if (i > 0) Console.Write(", ");
+                                    Console.Write(node.Tags.Keys[i] + "=" + node.Tags[i]);
+                                }
+                                Console.WriteLine("");
+                            }
+                            if (node.Vectors != null && node.Vectors.Count > 0)
+                                Console.WriteLine("    Vectors: " + node.Vectors.Count);
+                        }
+                    }
+                    Console.WriteLine("");
+                }
+
+                // Edge information
+                if (result.Edges != null)
+                {
+                    Console.WriteLine("Edges: " + result.Edges.Count);
+                    foreach (Edge edge in result.Edges)
+                    {
+                        Console.WriteLine("  - Edge GUID: " + edge.GUID + ", Name: " + edge.Name);
+                        Console.WriteLine("    From: " + edge.From + " -> To: " + edge.To + ", Cost: " + edge.Cost);
+                        if (includeSubordinates)
+                        {
+                            if (edge.Labels != null && edge.Labels.Count > 0)
+                                Console.WriteLine("    Labels: " + string.Join(", ", edge.Labels));
+                            if (edge.Tags != null && edge.Tags.Count > 0)
+                            {
+                                Console.Write("    Tags: ");
+                                for (int i = 0; i < edge.Tags.Count; i++)
+                                {
+                                    if (i > 0) Console.Write(", ");
+                                    Console.Write(edge.Tags.Keys[i] + "=" + edge.Tags[i]);
+                                }
+                                Console.WriteLine("");
+                            }
+                            if (edge.Vectors != null && edge.Vectors.Count > 0)
+                                Console.WriteLine("    Vectors: " + edge.Vectors.Count);
+                        }
+                    }
+                    Console.WriteLine("");
+                }
+
+                // Validation checks
+                Console.WriteLine("=== VALIDATION ===");
+                Console.WriteLine("");
+
+                // Verify all edges connect nodes in the result set
+                if (result.Edges != null && result.Nodes != null)
+                {
+                    HashSet<Guid> nodeGuids = new HashSet<Guid>(result.Nodes.Select(n => n.GUID));
+                    int invalidEdges = 0;
+
+                    foreach (Edge edge in result.Edges)
+                    {
+                        if (!nodeGuids.Contains(edge.From) || !nodeGuids.Contains(edge.To))
+                        {
+                            Console.WriteLine("  [WARNING] Edge " + edge.GUID + " connects to nodes outside the subgraph!");
+                            invalidEdges++;
+                        }
+                    }
+
+                    if (invalidEdges == 0)
+                    {
+                        Console.WriteLine("  [OK] All edges connect nodes within the subgraph");
+                    }
+                    else
+                    {
+                        Console.WriteLine("  [ERROR] " + invalidEdges + " edge(s) connect to nodes outside the subgraph");
+                    }
+                }
+
+                // Verify depth constraint
+                Console.WriteLine("");
+                Console.WriteLine("  Max Depth Requested: " + maxDepth);
+                Console.WriteLine("  Nodes Retrieved: " + (result.Nodes?.Count ?? 0));
+                Console.WriteLine("  Edges Retrieved: " + (result.Edges?.Count ?? 0));
+
+                // Serialized JSON output
+                Console.WriteLine("");
+                Console.WriteLine("=== JSON OUTPUT ===");
+                Console.WriteLine("");
+                Console.WriteLine(_Serializer.SerializeJson(result, true));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("[ERROR] Exception occurred:");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+            }
+
+            Console.WriteLine("");
+            Console.WriteLine("=== TEST SUMMARY ===");
+            Console.WriteLine("Tenant GUID: " + tenant.GUID);
+            Console.WriteLine("Graph GUID: " + graph.GUID);
+            Console.WriteLine("Starting Node: Node A (" + nodeA.GUID + ")");
+            Console.WriteLine("");
+            Console.WriteLine("Test data created successfully. You can use these GUIDs for manual testing.");
+            Console.WriteLine("");
+
+            #endregion
         }
 
         #endregion

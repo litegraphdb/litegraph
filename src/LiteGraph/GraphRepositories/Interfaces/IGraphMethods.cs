@@ -212,5 +212,19 @@
         VectorIndexStatistics GetVectorIndexStatistics(
             Guid tenantGuid,
             Guid graphGuid);
+
+        /// <summary>
+        /// Retrieve a subgraph starting from a specific node, traversing up to a specified depth.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodeGuid">Starting node GUID.</param>
+        /// <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+        /// <returns>Search result containing nodes and edges in the subgraph.</returns>
+        SearchResult GetSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2);
     }
 }
