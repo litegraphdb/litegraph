@@ -25,22 +25,65 @@
         /// <summary>
         /// First name.
         /// </summary>
-        public string FirstName { get; set; } = string.Empty;
+        public string FirstName
+        {
+            get
+            {
+                return _FirstName;
+            }
+            set
+            {
+                if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(FirstName));
+                _FirstName = value;
+            }
+        }
 
         /// <summary>
         /// Last name.
         /// </summary>
-        public string LastName { get; set; } = string.Empty;
+        public string LastName
+        {
+            get
+            {
+                return _LastName;
+            }
+            set
+            {
+                if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(LastName));
+                _LastName = value;
+            }
+        }
 
         /// <summary>
         /// Email.
         /// </summary>
-        public string Email { get; set; } = string.Empty;
+        public string Email
+        {
+            get
+            {
+                return _Email;
+            }
+            set
+            {
+                if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(Email));
+                _Email = value;
+            }
+        }
 
         /// <summary>
         /// Password.
         /// </summary>
-        public string Password { get; set; } = string.Empty;
+        public string Password
+        {
+            get
+            {
+                return _Password;
+            }
+            set
+            {
+                _Password = value;
+            }
+        }
 
         /// <summary>
         /// Active.
@@ -60,6 +103,11 @@
         #endregion
 
         #region Private-Members
+
+        private string _FirstName = "First";
+        private string _LastName = "Last";
+        private string _Email = "email@address.com";
+        private string _Password = "password";
 
         #endregion
 

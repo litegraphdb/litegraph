@@ -40,7 +40,18 @@
         /// <summary>
         /// Key.
         /// </summary>
-        public string Key { get; set; } = string.Empty;
+        public string Key
+        {   
+            get
+            {
+                return _Key;
+            }
+            set
+            {
+                if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(Key));
+                _Key = value;
+            }
+        }
 
         /// <summary>
         /// Value.
@@ -60,6 +71,8 @@
         #endregion
 
         #region Private-Members
+
+        private string _Key = "key";
 
         #endregion
 

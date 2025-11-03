@@ -139,15 +139,8 @@
                 Console.WriteLine($"\nStep 3 total time: {step3Stopwatch.ElapsedMilliseconds}ms");
                 Console.WriteLine();
 
-                Console.WriteLine("Press ENTER to continue");
-                Console.ReadLine();
-                Console.WriteLine("");
-
                 // Step 4: Cleanup
                 Console.WriteLine("Step 4: Cleaning up resources...");
-                Console.Write("Press any key to delete all test data...");
-                Console.ReadKey();
-                Console.WriteLine();
 
                 Stopwatch step4Stopwatch = Stopwatch.StartNew();
                 Cleanup(tenant, graph, nodes);
@@ -189,8 +182,6 @@
             }
 
             Console.WriteLine();
-            Console.WriteLine("Test completed. Press any key to exit...");
-            Console.ReadKey();
         }
 
         static void PrintComprehensiveSummary(long totalElapsedMs, DateTime startTime, DateTime endTime)

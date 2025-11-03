@@ -70,6 +70,7 @@
             _Webserver.Routes.AuthenticateRequest = AuthenticateRequest;
             _Webserver.Routes.PostRouting = PostRoutingHandler;
             _Webserver.Routes.Preflight = OptionsHandler;
+            _Webserver.Routes.Exception = ExceptionRoute;
 
             InitializeRoutes();
 
@@ -453,6 +454,11 @@
 
             ctx.Timestamp.End = DateTime.UtcNow;
             _Logging.Debug(msg);
+        }
+
+        internal async Task ExceptionHandler(HttpContextBase @base, Exception exception)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

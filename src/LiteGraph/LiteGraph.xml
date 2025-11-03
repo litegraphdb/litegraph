@@ -828,15 +828,6 @@
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.Search(LiteGraph.VectorSearchDomainEnum,LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Nullable{System.Guid},System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single})">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.VectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Client.Implementations.VectorMethods.SearchNode(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.Client.Implementations.VectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
-            <inheritdoc />
-        </member>
         <member name="T:LiteGraph.Client.Interfaces.IAdminMethods">
             <summary>
             Interface for admin methods.
@@ -2462,44 +2453,6 @@
             </summary>
             <param name="req">Search request.</param>
             <returns>Vector search results.</returns>
-        </member>
-        <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.SearchGraph(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
-            <summary>
-            Search graph vectors.
-            </summary>
-            <param name="searchType">Vector search type.</param>
-            <param name="vectors">Vectors.</param>
-            <param name="tenantGuid">Tenant GUID.</param>
-            <param name="labels">Labels.</param>
-            <param name="tags">Tags.</param>
-            <param name="filter">Filter.</param>
-            <returns>Vector search results containing graphs.</returns>
-        </member>
-        <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.SearchNode(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
-            <summary>
-            Search node vectors.
-            </summary>
-            <param name="searchType">Vector search type.</param>
-            <param name="vectors">Vectors.</param>
-            <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
-            <param name="labels">Labels.</param>
-            <param name="tags">Tags.</param>
-            <param name="filter">Filter.</param>
-            <returns>Vector search results containing nodes.</returns>
-        </member>
-        <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr)">
-            <summary>
-            Search edge vectors.
-            </summary>
-            <param name="searchType">Vector search type.</param>
-            <param name="vectors">Vectors.</param>
-            <param name="tenantGuid">Tenant GUID.</param>
-            <param name="graphGuid">Graph GUID.</param>
-            <param name="labels">Labels.</param>
-            <param name="tags">Tags.</param>
-            <param name="filter">Filter.</param>
-            <returns>Vector search results containing edges.</returns>
         </member>
         <member name="T:LiteGraph.Constants">
             <summary>

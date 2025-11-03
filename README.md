@@ -2,11 +2,11 @@
 
 # LiteGraph
 
-[![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) 
+[![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/) [![Dashboard](https://img.shields.io/badge/dashboard-github.com/litegraphdb/ui-green)](https://github.com/litegraphdb/ui) 
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`).
+LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`). For comprehensive documentation, visit [litegraph.readme.io](https://litegraph.readme.io/). A web-based dashboard UI is available at [github.com/litegraphdb/ui](https://github.com/litegraphdb/ui).
 
 ## New in v4.x
 
@@ -27,11 +27,11 @@ LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RES
 
 ## Bugs, Feedback, or Enhancement Requests
 
-Please feel free to start an issue or a discussion!
+Please feel free to start an issue or a discussion! For detailed documentation and guides, visit [litegraph.readme.io](https://litegraph.readme.io/).
 
-## Simple Example, Embedded 
+## Simple Example, Embedded
 
-Embedding LiteGraph into your application is simple and requires no configuration of users or credentials.  Refer to the ```Test``` project for a full example.
+Embedding LiteGraph into your application is simple and requires no configuration of users or credentials.  Refer to the ```Test``` project for a full example, or visit the [documentation](https://litegraph.readme.io/) for more comprehensive examples and guides.
 
 ```csharp
 using LiteGraph;
@@ -306,7 +306,9 @@ GraphStatistics graphStatistics = graph.Graph.GetStatistics(myTenantGuid, myGrap
 
 ## REST API
 
-LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph.  Refer to `REST_API.md` and also the Postman collection in the root of this repository for details.  By default, LiteGraph.Server listens on `http://localhost:8701` and is only accessible to `localhost`.  Modify the `litegraph.json` file to change settings including hostname and port.
+LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph.  Refer to `REST_API.md` and also the Postman collection in the root of this repository for details. For comprehensive API documentation, visit [litegraph.readme.io](https://litegraph.readme.io/). A web-based dashboard UI for managing your LiteGraph instances is available at [github.com/litegraphdb/ui](https://github.com/litegraphdb/ui).
+
+By default, LiteGraph.Server listens on `http://localhost:8701` and is only accessible to `localhost`.  Modify the `litegraph.json` file to change settings including hostname and port.
 
 Listening on a specific hostname should not require elevated privileges.  However, listening on any hostname (i.e. using `*` or `0.0.0.0` will require elevated privileges).
 
