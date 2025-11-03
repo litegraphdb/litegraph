@@ -1901,11 +1901,16 @@
             Console.WriteLine("");
 
             int maxDepth = Inputty.GetInteger("Max Depth (0 = starting node only, 1 = neighbors, 2 = two layers):", 2, false, false);
+            int maxNodes = Inputty.GetInteger("Max Nodes (0 = unlimited):", 0, false, false);
+            int maxEdges = Inputty.GetInteger("Max Edges (0 = unlimited):", 0, false, false);
             bool includeData = Inputty.GetBoolean("Include Data :", false);
             bool includeSubordinates = Inputty.GetBoolean("Include Subordinates (labels, tags, vectors):", false);
 
             Console.WriteLine("");
-            Console.WriteLine("Retrieving subgraph starting from Node A (" + nodeA.GUID + ") with max depth " + maxDepth);
+            Console.WriteLine("Retrieving subgraph starting from Node A (" + nodeA.GUID + ")");
+            Console.WriteLine("  Max Depth: " + maxDepth + (maxDepth == 0 ? " (starting node only)" : maxDepth == 1 ? " (immediate neighbors)" : " (two layers)"));
+            Console.WriteLine("  Max Nodes: " + (maxNodes == 0 ? "unlimited" : maxNodes.ToString()));
+            Console.WriteLine("  Max Edges: " + (maxEdges == 0 ? "unlimited" : maxEdges.ToString()));
             Console.WriteLine("");
 
             try
@@ -1915,6 +1920,8 @@
                     graph.GUID,
                     nodeA.GUID,
                     maxDepth,
+                    maxNodes,
+                    maxEdges,
                     includeData,
                     includeSubordinates);
 
@@ -2024,11 +2031,23 @@
                     }
                 }
 
-                // Verify depth constraint
+                // Verify constraints
                 Console.WriteLine("");
                 Console.WriteLine("  Max Depth Requested: " + maxDepth);
+                Console.WriteLine("  Max Nodes Requested: " + (maxNodes == 0 ? "unlimited" : maxNodes.ToString()));
+                Console.WriteLine("  Max Edges Requested: " + (maxEdges == 0 ? "unlimited" : maxEdges.ToString()));
                 Console.WriteLine("  Nodes Retrieved: " + (result.Nodes?.Count ?? 0));
                 Console.WriteLine("  Edges Retrieved: " + (result.Edges?.Count ?? 0));
+                
+                // Check if thresholds were hit
+                if (maxNodes > 0 && (result.Nodes?.Count ?? 0) >= maxNodes)
+                {
+                    Console.WriteLine("  [INFO] Max nodes threshold reached (" + maxNodes + ")");
+                }
+                if (maxEdges > 0 && (result.Edges?.Count ?? 0) >= maxEdges)
+                {
+                    Console.WriteLine("  [INFO] Max edges threshold reached (" + maxEdges + ")");
+                }
 
                 // Serialized JSON output
                 Console.WriteLine("");

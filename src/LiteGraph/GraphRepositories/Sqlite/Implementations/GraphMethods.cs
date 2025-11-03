@@ -425,9 +425,13 @@
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
-            int maxDepth = 2)
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0)
         {
             if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
 
             SearchResult result = new SearchResult
             {
@@ -460,12 +464,14 @@
             visitedNodes.Add(startingNode.GUID);
             result.Nodes.Add(startingNode);
 
-            while (nodeQueue.Count > 0)
+            bool nodesThresholdReached = (maxNodes > 0 && result.Nodes.Count >= maxNodes);
+            bool edgesThresholdReached = (maxEdges > 0 && result.Edges.Count >= maxEdges);
+
+            while (nodeQueue.Count > 0 && !nodesThresholdReached && !edgesThresholdReached)
             {
                 (Node currentNode, int currentDepth) = nodeQueue.Dequeue();
                 if (currentDepth >= maxDepth) continue;
 
-                // Get all edges connected to this node (both from and to)
                 IEnumerable<Edge> connectedEdges = _Repo.Edge.ReadNodeEdges(
                     tenantGuid,
                     graphGuid,
@@ -473,9 +479,13 @@
 
                 foreach (Edge edge in connectedEdges)
                 {
+                    if (maxEdges > 0 && result.Edges.Count >= maxEdges)
+                    {
+                        edgesThresholdReached = true;
+                        break;
+                    }
+
                     if (visitedEdges.Contains(edge.GUID)) continue;
-                    visitedEdges.Add(edge.GUID);
-                    result.Edges.Add(edge);
 
                     Guid neighborGuid;
                     if (edge.From.Equals(currentNode.GUID))
@@ -483,15 +493,30 @@
                     else
                         neighborGuid = edge.From;
 
-                    // If we haven't visited this neighbor yet, add it to the queue
-                    if (!visitedNodes.Contains(neighborGuid))
+                    bool needNewNode = !visitedNodes.Contains(neighborGuid);
+
+                    if (needNewNode && maxNodes > 0 && result.Nodes.Count >= maxNodes)
+                    {
+                        nodesThresholdReached = true;
+                        continue;
+                    }
+
+                    visitedEdges.Add(edge.GUID);
+                    result.Edges.Add(edge);
+
+                    if (needNewNode)
                     {
                         Node neighbor = _Repo.Node.ReadByGuid(tenantGuid, neighborGuid);
                         if (neighbor != null && neighbor.GraphGUID == graphGuid)
                         {
                             visitedNodes.Add(neighborGuid);
                             result.Nodes.Add(neighbor);
-                            nodeQueue.Enqueue((neighbor, currentDepth + 1));
+
+                            if (maxNodes > 0 && result.Nodes.Count >= maxNodes)
+                                nodesThresholdReached = true;
+
+                            if (!nodesThresholdReached)
+                                nodeQueue.Enqueue((neighbor, currentDepth + 1));
                         }
                         else if (neighbor == null)
                             _Repo.Logging.Log(SeverityEnum.Warn, "node " + neighborGuid + " referenced in graph " + graphGuid + " but does not exist");

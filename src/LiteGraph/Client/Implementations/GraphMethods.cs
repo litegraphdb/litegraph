@@ -329,17 +329,22 @@
             Guid graphGuid,
             Guid nodeGuid,
             int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0,
             bool includeData = false,
             bool includeSubordinates = false)
         {
             if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
             _Client.ValidateNodeExists(tenantGuid, nodeGuid);
 
-            _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth);
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
 
-            SearchResult result = _Repo.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth);
+            SearchResult result = _Repo.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges);
 
             // Populate graphs
             if (result.Graphs != null && result.Graphs.Count > 0)

@@ -219,6 +219,8 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Starting node GUID.</param>
         /// <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+        /// <param name="maxNodes">Maximum number of nodes to retrieve (0 = unlimited).</param>
+        /// <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Search result containing nodes and edges in the subgraph.</returns>
@@ -227,6 +229,8 @@
             Guid graphGuid,
             Guid nodeGuid,
             int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0,
             bool includeData = false,
             bool includeSubordinates = false);
     }
