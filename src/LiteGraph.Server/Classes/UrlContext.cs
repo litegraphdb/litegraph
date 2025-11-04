@@ -120,9 +120,9 @@
         /// <param name="query">Query.</param>
         /// <param name="headers">Headers.</param>
         public UrlContext(
-            HttpMethod method, 
-            string url, 
-            NameValueCollection query = null, 
+            HttpMethod method,
+            string url,
+            NameValueCollection query = null,
             NameValueCollection headers = null)
         {
             if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
@@ -160,7 +160,7 @@
             {
                 Log("no parameters");
             }
-            
+
             Log("retrieving parameter " + key + ": " + (!String.IsNullOrEmpty(ret) ? ret : "(null)"));
             return ret;
         }
@@ -311,7 +311,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/stats", out _UrlParameters)) return RequestTypeEnum.GraphStatistics;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/gexf", out _UrlParameters)) return RequestTypeEnum.GraphExport;
-                    
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexConfig;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexStats;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexConfig;
@@ -326,6 +326,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/neighbors", out _UrlParameters)) return RequestTypeEnum.NodeNeighbors;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/parents", out _UrlParameters)) return RequestTypeEnum.NodeParents;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/children", out _UrlParameters)) return RequestTypeEnum.NodeChildren;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/subgraph", out _UrlParameters)) return RequestTypeEnum.GraphSubgraph;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", out _UrlParameters)) return RequestTypeEnum.EdgeReadMany;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", out _UrlParameters)) return RequestTypeEnum.EdgeEnumerate;
@@ -389,7 +390,7 @@
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs", out _UrlParameters)) return RequestTypeEnum.GraphCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphUpdate;
-                    
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexEnable;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexEnable;
 
@@ -423,7 +424,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/search", out _UrlParameters)) return RequestTypeEnum.GraphSearch;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", out _UrlParameters)) return RequestTypeEnum.GraphExistence;
-                    
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexRebuild;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexRebuild;
 
@@ -463,7 +464,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/vectors/{vectorGuid}", out _UrlParameters)) return RequestTypeEnum.VectorDelete;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphDelete;
-                    
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexDisable;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexDisable;
 
