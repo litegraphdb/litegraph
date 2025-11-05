@@ -446,6 +446,11 @@
         /// </summary>
         [EnumMember(Value = "GraphSubgraph")]
         GraphSubgraph,
+        /// <summary>
+        /// GraphSubgraphStatistics
+        /// </summary>
+        [EnumMember(Value = "GraphSubgraphStatistics")]
+        GraphSubgraphStatistics,
 
         #endregion
 

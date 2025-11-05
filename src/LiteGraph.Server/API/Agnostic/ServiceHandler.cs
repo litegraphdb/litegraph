@@ -8,6 +8,7 @@
     using System.Reflection.PortableExecutable;
     using System.Text;
     using System.Threading.Tasks;
+    using LiteGraph;
     using LiteGraph.Serialization;
     using LiteGraph.Server.Classes;
     using LiteGraph.Server.Services;
@@ -814,6 +815,24 @@
                 req.IncludeSubordinates);
 
             return new ResponseContext(req, result);
+        }
+
+        internal async Task<ResponseContext> GraphSubgraphStatistics(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.TenantGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Tenant GUID is required.");
+            if (req.GraphGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Graph GUID is required.");
+            if (req.NodeGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Node GUID is required.");
+
+            GraphStatistics stats = _LiteGraph.Graph.GetSubgraphStatistics(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.NodeGUID.Value,
+                req.MaxDepth,
+                req.MaxNodes,
+                req.MaxEdges);
+
+            return new ResponseContext(req, stats);
         }
 
         internal async Task<ResponseContext> GraphDelete(RequestContext req)

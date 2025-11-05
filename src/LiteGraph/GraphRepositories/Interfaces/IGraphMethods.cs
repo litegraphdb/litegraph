@@ -230,5 +230,24 @@
             int maxDepth = 2,
             int maxNodes = 0,
             int maxEdges = 0);
+
+        /// <summary>
+        /// Get statistics for a subgraph starting from a specific node, traversing up to a specified depth.
+        /// This method performs lightweight traversal and returns complete statistics.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodeGuid">Starting node GUID.</param>
+        /// <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+        /// <param name="maxNodes">Maximum number of nodes to retrieve (0 = unlimited).</param>
+        /// <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
+        /// <returns>GraphStatistics with node/edge counts and label/tag/vector counts.</returns>
+        GraphStatistics GetSubgraphStatistics(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0);
     }
 }

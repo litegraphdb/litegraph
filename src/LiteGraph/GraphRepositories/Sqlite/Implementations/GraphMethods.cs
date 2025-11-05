@@ -527,6 +527,35 @@
             return result;
         }
 
+        /// <inheritdoc />
+        public GraphStatistics GetSubgraphStatistics(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+
+            DataTable table = _Repo.ExecuteQuery(GraphQueries.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges), true);
+            if (table != null && table.Rows.Count > 0)
+            {
+                DataRow row = table.Rows[0];
+                return new GraphStatistics
+                {
+                    Nodes = Convert.ToInt32(row["nodes"]),
+                    Edges = Convert.ToInt32(row["edges"]),
+                    Labels = Convert.ToInt32(row["labels"]),
+                    Tags = Convert.ToInt32(row["tags"]),
+                    Vectors = Convert.ToInt32(row["vectors"])
+                };
+            }
+            return new GraphStatistics { Nodes = 0, Edges = 0, Labels = 0, Tags = 0, Vectors = 0 };
+        }
+
         #endregion
 
         #region Private-Methods

@@ -387,6 +387,9 @@
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetSubgraph(System.Guid,System.Guid,System.Guid,System.Int32,System.Int32,System.Int32,System.Boolean,System.Boolean)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetSubgraphStatistics(System.Guid,System.Guid,System.Guid,System.Int32,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Client.Implementations.LabelMethods">
             <summary>
             Label methods.
@@ -1411,6 +1414,18 @@
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <returns>Search result containing nodes and edges in the subgraph.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.GetSubgraphStatistics(System.Guid,System.Guid,System.Guid,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Get statistics for a subgraph starting from a specific node, traversing up to a specified depth.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuid">Starting node GUID.</param>
+            <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+            <param name="maxNodes">Maximum number of nodes to retrieve (0 = unlimited).</param>
+            <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
+            <returns>Graph statistics containing node and edge counts for the subgraph.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.ILabelMethods">
             <summary>
@@ -3937,6 +3952,19 @@
             <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
             <returns>Search result containing nodes and edges in the subgraph.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IGraphMethods.GetSubgraphStatistics(System.Guid,System.Guid,System.Guid,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Get statistics for a subgraph starting from a specific node, traversing up to a specified depth.
+            This method performs lightweight traversal and returns complete statistics.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuid">Starting node GUID.</param>
+            <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+            <param name="maxNodes">Maximum number of nodes to retrieve (0 = unlimited).</param>
+            <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
+            <returns>GraphStatistics with node/edge counts and label/tag/vector counts.</returns>
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.ILabelMethods">
             <summary>
             Interface for label methods.
@@ -5275,6 +5303,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetSubgraph(System.Guid,System.Guid,System.Guid,System.Int32,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.GraphMethods.GetSubgraphStatistics(System.Guid,System.Guid,System.Guid,System.Int32,System.Int32,System.Int32)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods">
