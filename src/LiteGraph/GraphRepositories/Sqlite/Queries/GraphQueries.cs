@@ -698,140 +698,84 @@
             return ret;
         }
 
-        internal static string GetSubgraphStatistics(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, int maxDepth = 2, int maxNodes = 0, int maxEdges = 0)
+        internal static string CountLabelsForSubgraph(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
         {
-            string ret = "WITH RECURSIVE starting_node AS (";
-            ret += "SELECT guid FROM nodes WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND guid = '" + nodeGuid + "' ";
-            ret += "), ";
+            string ret = "SELECT COUNT(DISTINCT guid) FROM (";
 
-            ret += "subgraph_traversal(nodeguid, edgeguid, depth, visited_path) AS (";
-
-            ret += "SELECT " +
-                "sn.guid AS nodeguid, " +
-                "NULL AS edgeguid, " +
-                "0 AS depth, " +
-                "'" + nodeGuid + "' AS visited_path " +
-                "FROM starting_node sn ";
-
-            ret += "UNION ALL ";
-
-            // Recursive case: traverse to neighbors (avoiding cycles)
-            ret += "SELECT " +
-                "CASE WHEN e.fromguid = st.nodeguid THEN e.toguid ELSE e.fromguid END AS nodeguid, " +
-                "e.guid AS edgeguid, " +
-                "st.depth + 1 AS depth, " +
-                "st.visited_path || '|' || CASE WHEN e.fromguid = st.nodeguid THEN e.toguid ELSE e.fromguid END AS visited_path " +
-                "FROM subgraph_traversal st " +
-                "INNER JOIN edges e ON " +
-                "(e.fromguid = st.nodeguid OR e.toguid = st.nodeguid) " +
-                "AND e.tenantguid = '" + tenantGuid + "' " +
-                "AND e.graphguid = '" + graphGuid + "' " +
-                "WHERE st.depth < " + maxDepth + " ";
-
-            // Check if the neighbor GUID appears in the path (either with pipe separator or at start/end)
-            ret += "AND (" +
-                "INSTR(st.visited_path, '|' || CASE WHEN e.fromguid = st.nodeguid THEN e.toguid ELSE e.fromguid END || '|') = 0 " +
-                "AND st.visited_path NOT LIKE (CASE WHEN e.fromguid = st.nodeguid THEN e.toguid ELSE e.fromguid END || '|%') " +
-                "AND st.visited_path NOT LIKE ('%|' || CASE WHEN e.fromguid = st.nodeguid THEN e.toguid ELSE e.fromguid END) " +
-                "AND st.visited_path != (CASE WHEN e.fromguid = st.nodeguid THEN e.toguid ELSE e.fromguid END)" +
-                ") ";
-
-            ret += "), ";
-
-            // Collect distinct nodes and edges in traversal order (by minimum depth encountered)
-            ret += "traversal_nodes AS (SELECT DISTINCT nodeguid FROM subgraph_traversal WHERE nodeguid IS NOT NULL), ";
-            ret += "traversal_edges AS (SELECT DISTINCT edgeguid FROM subgraph_traversal WHERE edgeguid IS NOT NULL), ";
-            ret += "ordered_nodes AS (SELECT nodeguid, MIN(depth) AS first_depth FROM subgraph_traversal WHERE nodeguid IS NOT NULL GROUP BY nodeguid ORDER BY first_depth, nodeguid), ";
-
-            // Ordered traversal edges (by first appearance depth)
-            ret += "ordered_edges AS (SELECT edgeguid, MIN(depth) AS first_depth FROM subgraph_traversal WHERE edgeguid IS NOT NULL GROUP BY edgeguid ORDER BY first_depth, edgeguid), ";
-
-            // If maxEdges specified, limit edges and filter nodes to only those connected by the limited edges
-            string nodesCTE;
-            string edgesCTE;
-
-            if (maxNodes > 0 && maxEdges > 0)
+            if (nodeGuids != null && nodeGuids.Count > 0)
             {
-                // Both limits: take first maxNodes nodes, filter edges to those connecting these nodes, then limit to maxEdges
-                nodesCTE = "subgraph_nodes AS (SELECT nodeguid FROM ordered_nodes LIMIT " + maxNodes + "), ";
-                edgesCTE = "subgraph_edges AS (SELECT DISTINCT e.guid AS edgeguid FROM edges e " +
-                    "INNER JOIN subgraph_nodes sn1 ON e.fromguid = sn1.nodeguid " +
-                    "INNER JOIN subgraph_nodes sn2 ON e.toguid = sn2.nodeguid " +
-                    "WHERE e.tenantguid = '" + tenantGuid + "' AND e.graphguid = '" + graphGuid + "' " +
-                    "AND e.guid IN (SELECT edgeguid FROM ordered_edges) " +
-                    "ORDER BY (SELECT first_depth FROM ordered_edges WHERE edgeguid = e.guid) " +
-                    "LIMIT " + maxEdges + ") ";
-            }
-            else if (maxNodes > 0)
-            {
-                // Only maxNodes: limit nodes, then filter edges to only those connecting the limited nodes
-                nodesCTE = "subgraph_nodes AS (SELECT nodeguid FROM ordered_nodes LIMIT " + maxNodes + "), ";
-                edgesCTE = "subgraph_edges AS (SELECT DISTINCT e.guid AS edgeguid FROM edges e " +
-                    "INNER JOIN subgraph_nodes sn1 ON e.fromguid = sn1.nodeguid " +
-                    "INNER JOIN subgraph_nodes sn2 ON e.toguid = sn2.nodeguid " +
-                    "WHERE e.tenantguid = '" + tenantGuid + "' AND e.graphguid = '" + graphGuid + "' " +
-                    "AND e.guid IN (SELECT edgeguid FROM ordered_edges)) ";
-            }
-            else if (maxEdges > 0)
-            {
-                // Only maxEdges: limit edges first, then filter nodes to only those connected by the limited edges
-                edgesCTE = "subgraph_edges AS (SELECT edgeguid FROM ordered_edges LIMIT " + maxEdges + "), ";
-                nodesCTE = "subgraph_nodes AS (SELECT DISTINCT n.guid AS nodeguid FROM nodes n " +
-                    "INNER JOIN edges e ON (e.fromguid = n.guid OR e.toguid = n.guid) " +
-                    "WHERE e.guid IN (SELECT edgeguid FROM subgraph_edges) " +
-                    "AND n.tenantguid = '" + tenantGuid + "' AND n.graphguid = '" + graphGuid + "') ";
-            }
-            else
-            {
-                // No limits: use all nodes and edges
-                nodesCTE = "subgraph_nodes AS (SELECT nodeguid FROM ordered_nodes), ";
-                edgesCTE = "subgraph_edges AS (SELECT edgeguid FROM ordered_edges) ";
+                string nodeGuidList = "(" + string.Join(", ", nodeGuids.Select(g => "'" + g + "'")) + ")";
+                ret += "SELECT guid FROM labels WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND nodeguid IN " + nodeGuidList;
             }
 
-            if (maxEdges > 0 && maxNodes == 0)
+            if (edgeGuids != null && edgeGuids.Count > 0)
             {
-                ret += edgesCTE + nodesCTE;
+                string edgeGuidList = "(" + string.Join(", ", edgeGuids.Select(g => "'" + g + "'")) + ")";
+                if (nodeGuids != null && nodeGuids.Count > 0)
+                {
+                    ret += " UNION ";
+                }
+                ret += "SELECT guid FROM labels WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND edgeguid IN " + edgeGuidList;
             }
-            else
+
+            if ((nodeGuids == null || nodeGuids.Count == 0) && (edgeGuids == null || edgeGuids.Count == 0))
+                ret += "SELECT guid FROM labels WHERE 1=0";
+
+            ret += ");";
+            return ret;
+        }
+
+        internal static string CountTagsForSubgraph(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        {
+            string ret = "SELECT COUNT(DISTINCT guid) FROM (";
+
+            if (nodeGuids != null && nodeGuids.Count > 0)
             {
-                ret += nodesCTE + edgesCTE;
+                string nodeGuidList = "(" + string.Join(", ", nodeGuids.Select(g => "'" + g + "'")) + ")";
+                ret += "SELECT guid FROM tags WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND nodeguid IN " + nodeGuidList;
             }
 
-            ret += "SELECT ";
+            if (edgeGuids != null && edgeGuids.Count > 0)
+            {
+                string edgeGuidList = "(" + string.Join(", ", edgeGuids.Select(g => "'" + g + "'")) + ")";
+                if (nodeGuids != null && nodeGuids.Count > 0)
+                {
+                    ret += " UNION ";
+                }
+                ret += "SELECT guid FROM tags WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND edgeguid IN " + edgeGuidList;
+            }
 
-            // Count nodes (using COALESCE to handle empty results)
-            ret += "COALESCE((SELECT COUNT(*) FROM subgraph_nodes), 0) AS nodes, ";
+            if ((nodeGuids == null || nodeGuids.Count == 0) && (edgeGuids == null || edgeGuids.Count == 0))
+                ret += "SELECT guid FROM tags WHERE 1=0"; 
 
-            // Count edges (using COALESCE to handle empty results)
-            ret += "COALESCE((SELECT COUNT(*) FROM subgraph_edges), 0) AS edges, ";
+            ret += ");";
+            return ret;
+        }
 
-            // Count labels (for nodes and edges) - using UNION to get distinct, handle empty subgraphs
-            ret += "COALESCE((SELECT COUNT(DISTINCT guid) FROM (";
-            ret += "SELECT guid FROM labels WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid IN (SELECT nodeguid FROM subgraph_nodes) ";
-            ret += "UNION ";
-            ret += "SELECT guid FROM labels WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' " +
-                "AND edgeguid IN (SELECT edgeguid FROM subgraph_edges)";
-            ret += ")), 0) AS labels, ";
+        internal static string CountVectorsForSubgraph(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        {
+            string ret = "SELECT COUNT(DISTINCT guid) FROM (";
 
-            // Count tags (for nodes and edges) - using UNION to get distinct, handle empty subgraphs
-            ret += "COALESCE((SELECT COUNT(DISTINCT guid) FROM (";
-            ret += "SELECT guid FROM tags WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid IN (SELECT nodeguid FROM subgraph_nodes) ";
-            ret += "UNION ";
-            ret += "SELECT guid FROM tags WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' " +
-                "AND edgeguid IN (SELECT edgeguid FROM subgraph_edges)";
-            ret += ")), 0) AS tags, ";
+            if (nodeGuids != null && nodeGuids.Count > 0)
+            {
+                string nodeGuidList = "(" + string.Join(", ", nodeGuids.Select(g => "'" + g + "'")) + ")";
+                ret += "SELECT guid FROM vectors WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND nodeguid IN " + nodeGuidList + " AND edgeguid IS NULL";
+            }
 
-            // Count vectors (for nodes and edges) - using UNION to get distinct, handle empty subgraphs
-            ret += "COALESCE((SELECT COUNT(DISTINCT guid) FROM (";
-            ret += "SELECT guid FROM vectors WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' " +
-                "AND nodeguid IN (SELECT nodeguid FROM subgraph_nodes) AND edgeguid IS NULL ";
-            ret += "UNION ";
-            ret += "SELECT guid FROM vectors WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' " +
-                "AND edgeguid IN (SELECT edgeguid FROM subgraph_edges) AND nodeguid IS NULL";
-            ret += ")), 0) AS vectors; ";
+            if (edgeGuids != null && edgeGuids.Count > 0)
+            {
+                string edgeGuidList = "(" + string.Join(", ", edgeGuids.Select(g => "'" + g + "'")) + ")";
+                if (nodeGuids != null && nodeGuids.Count > 0)
+                {
+                    ret += " UNION ";
+                }
+                ret += "SELECT guid FROM vectors WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND edgeguid IN " + edgeGuidList + " AND nodeguid IS NULL";
+            }
 
+            if ((nodeGuids == null || nodeGuids.Count == 0) && (edgeGuids == null || edgeGuids.Count == 0))
+                ret += "SELECT guid FROM vectors WHERE 1=0";
+
+            ret += ");";
             return ret;
         }
 
