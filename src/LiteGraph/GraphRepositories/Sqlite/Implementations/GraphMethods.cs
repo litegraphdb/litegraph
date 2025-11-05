@@ -454,12 +454,11 @@
                 return result;
             }
 
-            // Track visited nodes to avoid cycles
             HashSet<Guid> visitedNodes = new HashSet<Guid>();
             HashSet<Guid> visitedEdges = new HashSet<Guid>();
-
-            // Breadth-first traversal using a queue
+            Dictionary<Guid, int> pendingNeighborDepths = new Dictionary<Guid, int>();
             Queue<(Node node, int depth)> nodeQueue = new Queue<(Node, int)>();
+
             nodeQueue.Enqueue((startingNode, 0));
             visitedNodes.Add(startingNode.GUID);
             result.Nodes.Add(startingNode);
@@ -467,8 +466,44 @@
             bool nodesThresholdReached = (maxNodes > 0 && result.Nodes.Count >= maxNodes);
             bool edgesThresholdReached = (maxEdges > 0 && result.Edges.Count >= maxEdges);
 
-            while (nodeQueue.Count > 0 && !nodesThresholdReached && !edgesThresholdReached)
+            while ((nodeQueue.Count > 0 || pendingNeighborDepths.Count > 0) && !nodesThresholdReached && !edgesThresholdReached)
             {
+                if (pendingNeighborDepths.Count > 0 && (nodeQueue.Count == 0 || pendingNeighborDepths.Count >= 10))
+                {
+                    List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
+                    if (neighborGuidsToLoad.Count > 0)
+                    {
+                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                            .Where(n => n.GraphGUID == graphGuid)
+                            .ToDictionary(n => n.GUID, n => n);
+
+                        foreach (Guid neighborGuid in neighborGuidsToLoad)
+                        {
+                            if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
+                            {
+                                visitedNodes.Add(neighborGuid);
+                                result.Nodes.Add(neighbor);
+
+                                if (maxNodes > 0 && result.Nodes.Count >= maxNodes)
+                                {
+                                    nodesThresholdReached = true;
+                                    break;
+                                }
+
+                                if (!nodesThresholdReached && pendingNeighborDepths.TryGetValue(neighborGuid, out int neighborDepth))
+                                    if (neighborDepth <= maxDepth)
+                                        nodeQueue.Enqueue((neighbor, neighborDepth));
+                            }
+                            else
+                                _Repo.Logging.Log(SeverityEnum.Warn, "node " + neighborGuid + " referenced in graph " + graphGuid + " but does not exist");
+                        }
+                        pendingNeighborDepths.Clear();
+                    }
+                }
+
+                if (nodesThresholdReached || edgesThresholdReached) break;
+                if (nodeQueue.Count == 0) continue;
+
                 (Node currentNode, int currentDepth) = nodeQueue.Dequeue();
                 if (currentDepth >= maxDepth) continue;
 
@@ -494,6 +529,10 @@
                         neighborGuid = edge.From;
 
                     bool needNewNode = !visitedNodes.Contains(neighborGuid);
+                    int neighborDepth = currentDepth + 1;
+
+                    if (needNewNode && neighborDepth > maxDepth)
+                        continue;
 
                     if (needNewNode && maxNodes > 0 && result.Nodes.Count >= maxNodes)
                     {
@@ -504,22 +543,27 @@
                     visitedEdges.Add(edge.GUID);
                     result.Edges.Add(edge);
 
-                    if (needNewNode)
+                    if (needNewNode && neighborDepth <= maxDepth && !pendingNeighborDepths.ContainsKey(neighborGuid))
+                        pendingNeighborDepths[neighborGuid] = neighborDepth;
+                }
+            }
+
+            if (pendingNeighborDepths.Count > 0 && !nodesThresholdReached)
+            {
+                List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
+                if (neighborGuidsToLoad.Count > 0)
+                {
+                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        .Where(n => n.GraphGUID == graphGuid)
+                        .ToDictionary(n => n.GUID, n => n);
+
+                    foreach (Guid neighborGuid in neighborGuidsToLoad)
                     {
-                        Node neighbor = _Repo.Node.ReadByGuid(tenantGuid, neighborGuid);
-                        if (neighbor != null && neighbor.GraphGUID == graphGuid)
+                        if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
                         {
                             visitedNodes.Add(neighborGuid);
                             result.Nodes.Add(neighbor);
-
-                            if (maxNodes > 0 && result.Nodes.Count >= maxNodes)
-                                nodesThresholdReached = true;
-
-                            if (!nodesThresholdReached)
-                                nodeQueue.Enqueue((neighbor, currentDepth + 1));
                         }
-                        else if (neighbor == null)
-                            _Repo.Logging.Log(SeverityEnum.Warn, "node " + neighborGuid + " referenced in graph " + graphGuid + " but does not exist");
                     }
                 }
             }
@@ -579,10 +623,8 @@
                                 }
 
                                 if (!nodesThresholdReached && pendingNeighborDepths.TryGetValue(neighborGuid, out int neighborDepth))
-                                {
-                                    if (neighborDepth < maxDepth)
+                                    if (neighborDepth <= maxDepth)
                                         nodeQueue.Enqueue((neighborGuid, neighborDepth));
-                                }
                             }
                         }
                         pendingNeighborDepths.Clear();
@@ -638,10 +680,8 @@
                         .ToDictionary(n => n.GUID, n => n);
 
                     foreach (Guid neighborGuid in neighborGuidsToLoad)
-                    {
                         if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
                             visitedNodes.Add(neighborGuid);
-                    }
                 }
             }
 
