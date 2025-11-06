@@ -187,6 +187,21 @@
         /// </summary>
         public static string GuidsQuerystring = "guids";
 
+        /// <summary>
+        /// MaxDepth querystring key.
+        /// </summary>
+        public static string MaxDepth = "maxDepth";
+
+        /// <summary>
+        /// MaxNodes querystring key.
+        /// </summary>
+        public static string MaxNodes = "maxNodes";
+
+        /// <summary>
+        /// MaxEdges querystring key.
+        /// </summary>
+        public static string MaxEdges = "maxEdges";
+
         #endregion
     }
 }

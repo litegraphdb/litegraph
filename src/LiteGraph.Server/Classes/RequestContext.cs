@@ -530,18 +530,15 @@
                 if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;
                 if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
 
-                if (_Url.QueryExists("maxDepth"))
-                {
-                    if (int.TryParse(_Url.GetQueryValue("maxDepth"), out int maxDepth)) MaxDepth = maxDepth;
-                }
-                if (_Url.QueryExists("maxNodes"))
-                {
-                    if (int.TryParse(_Url.GetQueryValue("maxNodes"), out int maxNodes)) MaxNodes = maxNodes;
-                }
-                if (_Url.QueryExists("maxEdges"))
-                {
-                    if (int.TryParse(_Url.GetQueryValue("maxEdges"), out int maxEdges)) MaxEdges = maxEdges;
-                }
+                if (_Url.QueryExists(Constants.MaxDepth))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.MaxDepth), out int maxDepth)) MaxDepth = maxDepth;
+
+                if (_Url.QueryExists(Constants.MaxNodes))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.MaxNodes), out int maxNodes)) MaxNodes = maxNodes;
+
+                if (_Url.QueryExists(Constants.MaxEdges))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.MaxEdges), out int maxEdges)) MaxEdges = maxEdges;
+
                 if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
                 if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
                 if (_Url.QueryExists(Constants.GuidsQuerystring)) GUIDs = StringHelpers.StringToGuidList(_Url.GetQueryValue(Constants.GuidsQuerystring));
