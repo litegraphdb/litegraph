@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Caching;
     using ExpressionTree;
+    using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Indexing.Vector;
@@ -149,7 +150,7 @@
 
         /// <inheritdoc />
         public Graph ReadByGuid(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid graphGuid,
             bool includeData = false,
             bool includeSubordinates = false)
@@ -164,7 +165,7 @@
 
         /// <inheritdoc />
         public IEnumerable<Graph> ReadByGuids(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             List<Guid> guids,
             bool includeData = false,
             bool includeSubordinates = false)
@@ -278,8 +279,8 @@
 
         /// <inheritdoc />
         public async Task EnableVectorIndexingAsync(
-            Guid tenantGuid, 
-            Guid graphGuid, 
+            Guid tenantGuid,
+            Guid graphGuid,
             VectorIndexConfiguration configuration)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
@@ -296,8 +297,8 @@
 
         /// <inheritdoc />
         public async Task DisableVectorIndexingAsync(
-            Guid tenantGuid, 
-            Guid graphGuid, 
+            Guid tenantGuid,
+            Guid graphGuid,
             bool deleteIndexFile = false)
         {
             await _Repo.Graph.DisableVectorIndexingAsync(tenantGuid, graphGuid, deleteIndexFile);
@@ -308,7 +309,7 @@
 
         /// <inheritdoc />
         public async Task RebuildVectorIndexAsync(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid graphGuid)
         {
             await _Repo.Graph.RebuildVectorIndexAsync(tenantGuid, graphGuid);
@@ -316,10 +317,84 @@
 
         /// <inheritdoc />
         public VectorIndexStatistics GetVectorIndexStatistics(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid graphGuid)
         {
             return _Repo.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid);
+        }
+
+        /// <inheritdoc />
+        public SearchResult GetSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0,
+            bool includeData = false,
+            bool includeSubordinates = false)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+
+            _Client.ValidateTenantExists(tenantGuid);
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
+
+            SearchResult result = _Repo.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges);
+
+            // Populate graphs
+            if (result.Graphs != null && result.Graphs.Count > 0)
+            {
+                for (int i = 0; i < result.Graphs.Count; i++)
+                {
+                    result.Graphs[i] = PopulateGraph(result.Graphs[i], includeSubordinates, includeData);
+                }
+            }
+
+            // Populate nodes
+            if (result.Nodes != null && result.Nodes.Count > 0)
+            {
+                for (int i = 0; i < result.Nodes.Count; i++)
+                {
+                    result.Nodes[i] = PopulateNode(result.Nodes[i], includeSubordinates, includeData);
+                }
+            }
+
+            // Populate edges
+            if (result.Edges != null && result.Edges.Count > 0)
+            {
+                for (int i = 0; i < result.Edges.Count; i++)
+                {
+                    result.Edges[i] = PopulateEdge(result.Edges[i], includeSubordinates, includeData);
+                }
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        public GraphStatistics GetSubgraphStatistics(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+
+            _Client.ValidateTenantExists(tenantGuid);
+            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+
+            _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph statistics starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
+            return _Repo.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges);
         }
 
         #endregion
@@ -339,6 +414,44 @@
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                 obj.Vectors = _Repo.Vector.ReadManyGraph(obj.TenantGUID, obj.GUID).ToList();
+            }
+
+            if (!includeData) obj.Data = null;
+            return obj;
+        }
+
+        internal Node PopulateNode(Node obj, bool includeSubordinates, bool includeData)
+        {
+            if (obj == null) return null;
+
+            if (includeSubordinates)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+            }
+
+            if (!includeData) obj.Data = null;
+            return obj;
+        }
+
+        internal Edge PopulateEdge(Edge obj, bool includeSubordinates, bool includeData)
+        {
+            if (obj == null) return null;
+
+            if (includeSubordinates)
+            {
+                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null).ToList();
+                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+
+                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
+
+                obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
             }
 
             if (!includeData) obj.Data = null;

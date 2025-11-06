@@ -55,7 +55,7 @@
         /// <returns>Graphs.</returns>
         IEnumerable<Graph> ReadMany(
             Guid tenantGuid,
-            string name = null, 
+            string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
@@ -98,7 +98,7 @@
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graph.</returns>
         Graph ReadByGuid(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             Guid guid,
             bool includeData = false,
             bool includeSubordinates = false);
@@ -112,7 +112,7 @@
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <returns>Graphs.</returns>
         IEnumerable<Graph> ReadByGuids(
-            Guid tenantGuid, 
+            Guid tenantGuid,
             List<Guid> guids,
             bool includeData = false,
             bool includeSubordinates = false);
@@ -211,5 +211,45 @@
         VectorIndexStatistics GetVectorIndexStatistics(
             Guid tenantGuid,
             Guid graphGuid);
+
+        /// <summary>
+        /// Retrieve a subgraph starting from a specific node, traversing up to a specified depth.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodeGuid">Starting node GUID.</param>
+        /// <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+        /// <param name="maxNodes">Maximum number of nodes to retrieve (0 = unlimited).</param>
+        /// <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
+        /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
+        /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <returns>Search result containing nodes and edges in the subgraph.</returns>
+        SearchResult GetSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0,
+            bool includeData = false,
+            bool includeSubordinates = false);
+
+        /// <summary>
+        /// Get statistics for a subgraph starting from a specific node, traversing up to a specified depth.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodeGuid">Starting node GUID.</param>
+        /// <param name="maxDepth">Maximum depth to traverse (0 = only the starting node, 1 = immediate neighbors, etc.).</param>
+        /// <param name="maxNodes">Maximum number of nodes to retrieve (0 = unlimited).</param>
+        /// <param name="maxEdges">Maximum number of edges to retrieve (0 = unlimited).</param>
+        /// <returns>Graph statistics containing node and edge counts for the subgraph.</returns>
+        GraphStatistics GetSubgraphStatistics(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0);
     }
 }

@@ -34,22 +34,22 @@
             // Vector index fields
             if (graph.VectorIndexType.HasValue) ret += "'" + graph.VectorIndexType.Value.ToString() + "',";
             else ret += "null,";
-            
+
             if (!string.IsNullOrEmpty(graph.VectorIndexFile)) ret += "'" + Sanitizer.Sanitize(graph.VectorIndexFile) + "',";
             else ret += "null,";
-            
+
             if (graph.VectorIndexThreshold.HasValue) ret += graph.VectorIndexThreshold.Value + ",";
             else ret += "null,";
-            
+
             if (graph.VectorDimensionality.HasValue) ret += graph.VectorDimensionality.Value + ",";
             else ret += "null,";
-            
+
             if (graph.VectorIndexM.HasValue) ret += graph.VectorIndexM.Value + ",";
             else ret += "null,";
-            
+
             if (graph.VectorIndexEf.HasValue) ret += graph.VectorIndexEf.Value + ",";
             else ret += "null,";
-            
+
             if (graph.VectorIndexEfConstruction.HasValue) ret += graph.VectorIndexEfConstruction.Value + ",";
             else ret += "null,";
 
@@ -144,9 +144,9 @@
         }
 
         internal static string SelectAllInTenant(
-            Guid tenantGuid, 
-            int batchSize = 100, 
-            int skip = 0, 
+            Guid tenantGuid,
+            int batchSize = 100,
+            int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret = "SELECT * FROM 'graphs' WHERE tenantguid = '" + tenantGuid + "' ";
@@ -415,26 +415,26 @@
                 "UPDATE 'graphs' SET " +
                 "name = '" + Sanitizer.Sanitize(graph.Name) + "', " +
                 "lastupdateutc = '" + DateTime.UtcNow.ToString(TimestampFormat) + "', ";
-            
+
             // Vector index fields
             if (graph.VectorIndexType.HasValue) ret += "vectorindextype = '" + graph.VectorIndexType.Value.ToString() + "', ";
             else ret += "vectorindextype = null, ";
-            
+
             if (!string.IsNullOrEmpty(graph.VectorIndexFile)) ret += "vectorindexfile = '" + Sanitizer.Sanitize(graph.VectorIndexFile) + "', ";
             else ret += "vectorindexfile = null, ";
-            
+
             if (graph.VectorIndexThreshold.HasValue) ret += "vectorindexthreshold = " + graph.VectorIndexThreshold.Value + ", ";
             else ret += "vectorindexthreshold = null, ";
-            
+
             if (graph.VectorDimensionality.HasValue) ret += "vectordimensionality = " + graph.VectorDimensionality.Value + ", ";
             else ret += "vectordimensionality = null, ";
-            
+
             if (graph.VectorIndexM.HasValue) ret += "vectorindexm = " + graph.VectorIndexM.Value + ", ";
             else ret += "vectorindexm = null, ";
-            
+
             if (graph.VectorIndexEf.HasValue) ret += "vectorindexef = " + graph.VectorIndexEf.Value + ", ";
             else ret += "vectorindexef = null, ";
-            
+
             if (graph.VectorIndexEfConstruction.HasValue) ret += "vectorindexefconstruction = " + graph.VectorIndexEfConstruction.Value + ", ";
             else ret += "vectorindexefconstruction = null, ";
 
@@ -695,6 +695,87 @@
             }
 
             ret += "; ";
+            return ret;
+        }
+
+        internal static string CountLabelsForSubgraph(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        {
+            string ret = "SELECT COUNT(DISTINCT guid) FROM (";
+
+            if (nodeGuids != null && nodeGuids.Count > 0)
+            {
+                string nodeGuidList = "(" + string.Join(", ", nodeGuids.Select(g => "'" + g + "'")) + ")";
+                ret += "SELECT guid FROM labels WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND nodeguid IN " + nodeGuidList;
+            }
+
+            if (edgeGuids != null && edgeGuids.Count > 0)
+            {
+                string edgeGuidList = "(" + string.Join(", ", edgeGuids.Select(g => "'" + g + "'")) + ")";
+                if (nodeGuids != null && nodeGuids.Count > 0)
+                {
+                    ret += " UNION ";
+                }
+                ret += "SELECT guid FROM labels WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND edgeguid IN " + edgeGuidList;
+            }
+
+            if ((nodeGuids == null || nodeGuids.Count == 0) && (edgeGuids == null || edgeGuids.Count == 0))
+                ret += "SELECT guid FROM labels WHERE 1=0";
+
+            ret += ");";
+            return ret;
+        }
+
+        internal static string CountTagsForSubgraph(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        {
+            string ret = "SELECT COUNT(DISTINCT guid) FROM (";
+
+            if (nodeGuids != null && nodeGuids.Count > 0)
+            {
+                string nodeGuidList = "(" + string.Join(", ", nodeGuids.Select(g => "'" + g + "'")) + ")";
+                ret += "SELECT guid FROM tags WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND nodeguid IN " + nodeGuidList;
+            }
+
+            if (edgeGuids != null && edgeGuids.Count > 0)
+            {
+                string edgeGuidList = "(" + string.Join(", ", edgeGuids.Select(g => "'" + g + "'")) + ")";
+                if (nodeGuids != null && nodeGuids.Count > 0)
+                {
+                    ret += " UNION ";
+                }
+                ret += "SELECT guid FROM tags WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND edgeguid IN " + edgeGuidList;
+            }
+
+            if ((nodeGuids == null || nodeGuids.Count == 0) && (edgeGuids == null || edgeGuids.Count == 0))
+                ret += "SELECT guid FROM tags WHERE 1=0"; 
+
+            ret += ");";
+            return ret;
+        }
+
+        internal static string CountVectorsForSubgraph(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        {
+            string ret = "SELECT COUNT(DISTINCT guid) FROM (";
+
+            if (nodeGuids != null && nodeGuids.Count > 0)
+            {
+                string nodeGuidList = "(" + string.Join(", ", nodeGuids.Select(g => "'" + g + "'")) + ")";
+                ret += "SELECT guid FROM vectors WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND nodeguid IN " + nodeGuidList + " AND edgeguid IS NULL";
+            }
+
+            if (edgeGuids != null && edgeGuids.Count > 0)
+            {
+                string edgeGuidList = "(" + string.Join(", ", edgeGuids.Select(g => "'" + g + "'")) + ")";
+                if (nodeGuids != null && nodeGuids.Count > 0)
+                {
+                    ret += " UNION ";
+                }
+                ret += "SELECT guid FROM vectors WHERE tenantguid = '" + tenantGuid + "' AND graphguid = '" + graphGuid + "' AND edgeguid IN " + edgeGuidList + " AND nodeguid IS NULL";
+            }
+
+            if ((nodeGuids == null || nodeGuids.Count == 0) && (edgeGuids == null || edgeGuids.Count == 0))
+                ret += "SELECT guid FROM vectors WHERE 1=0";
+
+            ret += ");";
             return ret;
         }
 

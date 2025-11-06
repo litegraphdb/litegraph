@@ -7,6 +7,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using ExpressionTree;
+    using LiteGraph;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
@@ -417,6 +418,308 @@
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
             return _Repo.VectorIndexManager.GetStatistics(graphGuid);
+        }
+
+        /// <inheritdoc />
+        public SearchResult GetSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+
+            SearchResult result = new SearchResult
+            {
+                Nodes = new List<Node>(),
+                Edges = new List<Edge>(),
+                Graphs = new List<Graph>()
+            };
+
+            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' exists.");
+            result.Graphs.Add(graph);
+
+            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
+            if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
+
+            if (maxDepth == 0)
+            {
+                result.Nodes.Add(startingNode);
+                return result;
+            }
+
+            HashSet<Guid> visitedNodes = new HashSet<Guid>();
+            HashSet<Guid> visitedEdges = new HashSet<Guid>();
+            Dictionary<Guid, int> pendingNeighborDepths = new Dictionary<Guid, int>();
+            Queue<(Node node, int depth)> nodeQueue = new Queue<(Node, int)>();
+
+            nodeQueue.Enqueue((startingNode, 0));
+            visitedNodes.Add(startingNode.GUID);
+            result.Nodes.Add(startingNode);
+
+            bool nodesThresholdReached = (maxNodes > 0 && result.Nodes.Count >= maxNodes);
+            bool edgesThresholdReached = (maxEdges > 0 && result.Edges.Count >= maxEdges);
+
+            while ((nodeQueue.Count > 0 || pendingNeighborDepths.Count > 0) && !nodesThresholdReached && !edgesThresholdReached)
+            {
+                if (pendingNeighborDepths.Count > 0 && (nodeQueue.Count == 0 || pendingNeighborDepths.Count >= 10))
+                {
+                    List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
+                    if (neighborGuidsToLoad.Count > 0)
+                    {
+                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                            .Where(n => n.GraphGUID == graphGuid)
+                            .ToDictionary(n => n.GUID, n => n);
+
+                        foreach (Guid neighborGuid in neighborGuidsToLoad)
+                        {
+                            if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
+                            {
+                                visitedNodes.Add(neighborGuid);
+                                result.Nodes.Add(neighbor);
+
+                                if (maxNodes > 0 && result.Nodes.Count >= maxNodes)
+                                {
+                                    nodesThresholdReached = true;
+                                    break;
+                                }
+
+                                if (!nodesThresholdReached && pendingNeighborDepths.TryGetValue(neighborGuid, out int neighborDepth))
+                                    if (neighborDepth <= maxDepth)
+                                        nodeQueue.Enqueue((neighbor, neighborDepth));
+                            }
+                            else
+                                _Repo.Logging.Log(SeverityEnum.Warn, "node " + neighborGuid + " referenced in graph " + graphGuid + " but does not exist");
+                        }
+                        pendingNeighborDepths.Clear();
+                    }
+                }
+
+                if (nodesThresholdReached || edgesThresholdReached) break;
+                if (nodeQueue.Count == 0) continue;
+
+                (Node currentNode, int currentDepth) = nodeQueue.Dequeue();
+                if (currentDepth >= maxDepth) continue;
+
+                IEnumerable<Edge> connectedEdges = _Repo.Edge.ReadNodeEdges(
+                    tenantGuid,
+                    graphGuid,
+                    currentNode.GUID);
+
+                foreach (Edge edge in connectedEdges)
+                {
+                    if (maxEdges > 0 && result.Edges.Count >= maxEdges)
+                    {
+                        edgesThresholdReached = true;
+                        break;
+                    }
+
+                    if (visitedEdges.Contains(edge.GUID)) continue;
+
+                    Guid neighborGuid;
+                    if (edge.From.Equals(currentNode.GUID))
+                        neighborGuid = edge.To;
+                    else
+                        neighborGuid = edge.From;
+
+                    bool needNewNode = !visitedNodes.Contains(neighborGuid);
+                    int neighborDepth = currentDepth + 1;
+
+                    if (needNewNode && neighborDepth > maxDepth)
+                        continue;
+
+                    if (needNewNode && maxNodes > 0 && result.Nodes.Count >= maxNodes)
+                    {
+                        nodesThresholdReached = true;
+                        continue;
+                    }
+
+                    visitedEdges.Add(edge.GUID);
+                    result.Edges.Add(edge);
+
+                    if (needNewNode && neighborDepth <= maxDepth && !pendingNeighborDepths.ContainsKey(neighborGuid))
+                        pendingNeighborDepths[neighborGuid] = neighborDepth;
+                }
+            }
+
+            if (pendingNeighborDepths.Count > 0 && !nodesThresholdReached)
+            {
+                List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
+                if (neighborGuidsToLoad.Count > 0)
+                {
+                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        .Where(n => n.GraphGUID == graphGuid)
+                        .ToDictionary(n => n.GUID, n => n);
+
+                    foreach (Guid neighborGuid in neighborGuidsToLoad)
+                    {
+                        if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
+                        {
+                            visitedNodes.Add(neighborGuid);
+                            result.Nodes.Add(neighbor);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        public GraphStatistics GetSubgraphStatistics(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            int maxDepth = 2,
+            int maxNodes = 0,
+            int maxEdges = 0)
+        {
+            if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+            if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
+            if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+
+            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
+            if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
+
+            HashSet<Guid> visitedNodes = new HashSet<Guid>();
+            HashSet<Guid> visitedEdges = new HashSet<Guid>();
+            Dictionary<Guid, int> pendingNeighborDepths = new Dictionary<Guid, int>();
+
+            Queue<(Guid nodeGuid, int depth)> nodeQueue = new Queue<(Guid, int)>();
+            nodeQueue.Enqueue((nodeGuid, 0));
+            visitedNodes.Add(nodeGuid);
+
+            bool nodesThresholdReached = (maxNodes > 0 && visitedNodes.Count >= maxNodes);
+            bool edgesThresholdReached = (maxEdges > 0 && visitedEdges.Count >= maxEdges);
+
+            while ((nodeQueue.Count > 0 || pendingNeighborDepths.Count > 0) && !nodesThresholdReached && !edgesThresholdReached)
+            {
+                if (pendingNeighborDepths.Count > 0 && (nodeQueue.Count == 0 || pendingNeighborDepths.Count >= 10))
+                {
+                    List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
+                    if (neighborGuidsToLoad.Count > 0)
+                    {
+                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                            .Where(n => n.GraphGUID == graphGuid)
+                            .ToDictionary(n => n.GUID, n => n);
+
+                        foreach (Guid neighborGuid in neighborGuidsToLoad)
+                        {
+                            if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
+                            {
+                                visitedNodes.Add(neighborGuid);
+
+                                if (maxNodes > 0 && visitedNodes.Count >= maxNodes)
+                                {
+                                    nodesThresholdReached = true;
+                                    break;
+                                }
+
+                                if (!nodesThresholdReached && pendingNeighborDepths.TryGetValue(neighborGuid, out int neighborDepth))
+                                    if (neighborDepth <= maxDepth)
+                                        nodeQueue.Enqueue((neighborGuid, neighborDepth));
+                            }
+                        }
+                        pendingNeighborDepths.Clear();
+                    }
+                }
+
+                if (nodesThresholdReached || edgesThresholdReached) break;
+                if (nodeQueue.Count == 0) continue;
+
+                (Guid currentNodeGuid, int currentDepth) = nodeQueue.Dequeue();
+                if (currentDepth >= maxDepth) continue;
+
+                IEnumerable<Edge> connectedEdges = _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, currentNodeGuid);
+
+                foreach (Edge edge in connectedEdges)
+                {
+                    if (maxEdges > 0 && visitedEdges.Count >= maxEdges)
+                    {
+                        edgesThresholdReached = true;
+                        break;
+                    }
+
+                    if (visitedEdges.Contains(edge.GUID)) continue;
+
+                    Guid neighborGuid;
+                    if (edge.From.Equals(currentNodeGuid))
+                        neighborGuid = edge.To;
+                    else
+                        neighborGuid = edge.From;
+
+                    bool needNewNode = !visitedNodes.Contains(neighborGuid);
+
+                    if (needNewNode && maxNodes > 0 && visitedNodes.Count >= maxNodes)
+                    {
+                        nodesThresholdReached = true;
+                        continue;
+                    }
+
+                    visitedEdges.Add(edge.GUID);
+
+                    if (needNewNode && !pendingNeighborDepths.ContainsKey(neighborGuid))
+                        pendingNeighborDepths[neighborGuid] = currentDepth + 1;
+                }
+            }
+
+            if (pendingNeighborDepths.Count > 0 && !nodesThresholdReached)
+            {
+                List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
+                if (neighborGuidsToLoad.Count > 0)
+                {
+                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        .Where(n => n.GraphGUID == graphGuid)
+                        .ToDictionary(n => n.GUID, n => n);
+
+                    foreach (Guid neighborGuid in neighborGuidsToLoad)
+                        if (loadedNodes.TryGetValue(neighborGuid, out Node neighbor))
+                            visitedNodes.Add(neighborGuid);
+                }
+            }
+
+            int nodeCount = visitedNodes.Count;
+            int edgeCount = visitedEdges.Count;
+            int labelsCount = 0;
+            int tagsCount = 0;
+            int vectorsCount = 0;
+
+            if (nodeCount > 0 || edgeCount > 0)
+            {
+                List<Guid> nodeGuidList = visitedNodes.ToList();
+                List<Guid> edgeGuidList = visitedEdges.ToList();
+
+                // Count labels
+                DataTable labelsTable = _Repo.ExecuteQuery(GraphQueries.CountLabelsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true);
+                if (labelsTable != null && labelsTable.Rows.Count > 0)
+                    labelsCount = Convert.ToInt32(labelsTable.Rows[0][0]);
+
+                // Count tags
+                DataTable tagsTable = _Repo.ExecuteQuery(GraphQueries.CountTagsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true);
+                if (tagsTable != null && tagsTable.Rows.Count > 0)
+                    tagsCount = Convert.ToInt32(tagsTable.Rows[0][0]);
+
+                // Count vectors
+                DataTable vectorsTable = _Repo.ExecuteQuery(GraphQueries.CountVectorsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true);
+                if (vectorsTable != null && vectorsTable.Rows.Count > 0)
+                    vectorsCount = Convert.ToInt32(vectorsTable.Rows[0][0]);
+            }
+
+            return new GraphStatistics
+            {
+                Nodes = nodeCount,
+                Edges = edgeCount,
+                Labels = labelsCount,
+                Tags = tagsCount,
+                Vectors = vectorsCount
+            };
         }
 
         #endregion

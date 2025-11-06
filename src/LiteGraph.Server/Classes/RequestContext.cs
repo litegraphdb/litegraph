@@ -45,7 +45,7 @@
                 return null;
             }
         }
-        
+
         /// <summary>
         /// HTTP context.
         /// </summary>
@@ -379,6 +379,21 @@
         public bool IncludeSubordinates { get; set; } = false;
 
         /// <summary>
+        /// Max depth for subgraph traversal.
+        /// </summary>
+        public int MaxDepth { get; set; } = 2;
+
+        /// <summary>
+        /// Max nodes for subgraph retrieval.
+        /// </summary>
+        public int MaxNodes { get; set; } = 0;
+
+        /// <summary>
+        /// Max edges for subgraph retrieval.
+        /// </summary>
+        public int MaxEdges { get; set; } = 0;
+
+        /// <summary>
         /// From GUID.
         /// </summary>
         public Guid? FromGUID { get; set; } = null;
@@ -392,7 +407,7 @@
         /// Continuation token.
         /// </summary>
         public string ContinuationToken { get; set; } = null;
-         
+
         #endregion
 
         #endregion
@@ -514,6 +529,16 @@
                 if (_Url.QueryExists(Constants.ForceQuerystring)) Force = true;
                 if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;
                 if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
+
+                if (_Url.QueryExists(Constants.MaxDepth))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.MaxDepth), out int maxDepth)) MaxDepth = maxDepth;
+
+                if (_Url.QueryExists(Constants.MaxNodes))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.MaxNodes), out int maxNodes)) MaxNodes = maxNodes;
+
+                if (_Url.QueryExists(Constants.MaxEdges))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.MaxEdges), out int maxEdges)) MaxEdges = maxEdges;
+
                 if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
                 if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
                 if (_Url.QueryExists(Constants.GuidsQuerystring)) GUIDs = StringHelpers.StringToGuidList(_Url.GetQueryValue(Constants.GuidsQuerystring));

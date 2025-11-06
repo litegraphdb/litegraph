@@ -441,6 +441,16 @@
         /// </summary>
         [EnumMember(Value = "GraphVectorIndexRebuild")]
         GraphVectorIndexRebuild,
+        /// <summary>
+        /// GraphSubgraph
+        /// </summary>
+        [EnumMember(Value = "GraphSubgraph")]
+        GraphSubgraph,
+        /// <summary>
+        /// GraphSubgraphStatistics
+        /// </summary>
+        [EnumMember(Value = "GraphSubgraphStatistics")]
+        GraphSubgraphStatistics,
 
         #endregion
 

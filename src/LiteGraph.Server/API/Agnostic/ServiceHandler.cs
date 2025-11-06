@@ -8,6 +8,7 @@
     using System.Reflection.PortableExecutable;
     using System.Text;
     using System.Threading.Tasks;
+    using LiteGraph;
     using LiteGraph.Serialization;
     using LiteGraph.Server.Classes;
     using LiteGraph.Server.Services;
@@ -22,7 +23,7 @@
         #region Internal-Members
 
         #endregion
-        
+
         #region Private-Members
 
         private readonly string _Header = "[ServiceHandler] ";
@@ -234,7 +235,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            
+
             List<UserMaster> objs = null;
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
@@ -416,7 +417,7 @@
         internal async Task<ResponseContext> LabelReadMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            
+
             List<LabelMetadata> objs = null;
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
@@ -680,12 +681,12 @@
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
                 objs = _LiteGraph.Graph.ReadMany(
-                    req.TenantGUID.Value, 
-                    null, 
-                    null, 
-                    null, 
-                    null, 
-                    req.Order, 
+                    req.TenantGUID.Value,
+                    null,
+                    null,
+                    null,
+                    null,
+                    req.Order,
                     req.Skip,
                     req.IncludeData,
                     req.IncludeSubordinates).ToList();
@@ -693,7 +694,7 @@
             else
             {
                 objs = _LiteGraph.Graph.ReadByGuids(
-                    req.TenantGUID.Value, 
+                    req.TenantGUID.Value,
                     req.GUIDs,
                     req.IncludeData,
                     req.IncludeSubordinates).ToList();
@@ -761,7 +762,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             Graph graph = _LiteGraph.Graph.ReadByGuid(
-                req.TenantGUID.Value, 
+                req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.IncludeData,
                 req.IncludeSubordinates);
@@ -794,6 +795,44 @@
             req.Graph = _LiteGraph.Graph.Update(req.Graph);
             if (req.Graph == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             else return new ResponseContext(req, req.Graph);
+        }
+
+        internal async Task<ResponseContext> GraphSubgraph(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.TenantGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Tenant GUID is required.");
+            if (req.GraphGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Graph GUID is required.");
+            if (req.NodeGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Node GUID is required.");
+
+            SearchResult result = _LiteGraph.Graph.GetSubgraph(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.NodeGUID.Value,
+                req.MaxDepth,
+                req.MaxNodes,
+                req.MaxEdges,
+                req.IncludeData,
+                req.IncludeSubordinates);
+
+            return new ResponseContext(req, result);
+        }
+
+        internal async Task<ResponseContext> GraphSubgraphStatistics(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.TenantGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Tenant GUID is required.");
+            if (req.GraphGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Graph GUID is required.");
+            if (req.NodeGUID == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "Node GUID is required.");
+
+            GraphStatistics stats = _LiteGraph.Graph.GetSubgraphStatistics(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.NodeGUID.Value,
+                req.MaxDepth,
+                req.MaxNodes,
+                req.MaxEdges);
+
+            return new ResponseContext(req, stats);
         }
 
         internal async Task<ResponseContext> GraphDelete(RequestContext req)
@@ -882,13 +921,13 @@
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
                 objs = _LiteGraph.Node.ReadMany(
-                    req.TenantGUID.Value, 
-                    req.GraphGUID.Value, 
-                    null, 
-                    null, 
-                    null, 
-                    null, 
-                    req.Order, 
+                    req.TenantGUID.Value,
+                    req.GraphGUID.Value,
+                    null,
+                    null,
+                    null,
+                    null,
+                    req.Order,
                     req.Skip,
                     req.IncludeData,
                     req.IncludeSubordinates).ToList();
@@ -896,7 +935,7 @@
             else
             {
                 objs = _LiteGraph.Node.ReadByGuids(
-                    req.TenantGUID.Value, 
+                    req.TenantGUID.Value,
                     req.GUIDs,
                     req.IncludeData,
                     req.IncludeSubordinates).ToList();
@@ -962,8 +1001,8 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
 
             Node node = _LiteGraph.Node.ReadByGuid(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.IncludeData,
                 req.IncludeSubordinates);
@@ -1064,13 +1103,13 @@
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
                 objs = _LiteGraph.Edge.ReadMany(
-                    req.TenantGUID.Value, 
-                    req.GraphGUID.Value, 
-                    null, 
-                    null, 
-                    null, 
-                    null, 
-                    req.Order, 
+                    req.TenantGUID.Value,
+                    req.GraphGUID.Value,
+                    null,
+                    null,
+                    null,
+                    null,
+                    req.Order,
                     req.Skip,
                     req.IncludeData,
                     req.IncludeSubordinates).ToList();
@@ -1078,7 +1117,7 @@
             else
             {
                 objs = _LiteGraph.Edge.ReadByGuids(
-                    req.TenantGUID.Value, 
+                    req.TenantGUID.Value,
                     req.GUIDs,
                     req.IncludeData,
                     req.IncludeSubordinates).ToList();
@@ -1152,8 +1191,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             Edge edge = _LiteGraph.Edge.ReadByGuid(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.EdgeGUID.Value,
                 req.IncludeData,
                 req.IncludeSubordinates);
@@ -1214,8 +1253,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<Edge> edgesFrom = _LiteGraph.Edge.ReadEdgesFromNode(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 null,
                 null,
@@ -1232,8 +1271,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<Edge> edgesTo = _LiteGraph.Edge.ReadEdgesToNode(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 null,
                 null,
@@ -1250,8 +1289,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<Edge> allEdges = _LiteGraph.Edge.ReadNodeEdges(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 null,
                 null,
@@ -1267,8 +1306,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<Node> nodes = _LiteGraph.Node.ReadChildren(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.NodeGUID.Value).ToList();
             if (nodes == null) nodes = new List<Node>();
             return new ResponseContext(req, nodes);
@@ -1278,8 +1317,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<Node> parents = _LiteGraph.Node.ReadParents(
-                req.TenantGUID.Value, 
-                req.GraphGUID.Value, 
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
                 req.NodeGUID.Value).ToList();
             if (parents == null) parents = new List<Node>();
             return new ResponseContext(req, parents);
@@ -1289,7 +1328,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<Node> neighbors = _LiteGraph.Node.ReadNeighbors(
-                req.TenantGUID.Value, 
+                req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.Order,
