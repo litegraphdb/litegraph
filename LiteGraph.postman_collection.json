@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "5269185a-3c51-4852-b2b1-0c88cc62377a",
+		"_postman_id": "8520d6f6-f55a-40c2-adea-b2a2ffac91b0",
 		"name": "LiteGraph",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "720438"
+		"_exporter_id": "29322786",
+		"_collection_link": "https://revstream-dev-team-5511.postman.co/workspace/RevStream-Dev-Team-Workspace~7777a008-b8e7-471d-89fa-2d6abd61007d/collection/29322786-8520d6f6-f55a-40c2-adea-b2a2ffac91b0?action=share&source=collection_link&creator=29322786"
 	},
 	"item": [
 		{
@@ -8601,6 +8602,95 @@
 										{
 											"key": "incldata",
 											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Subgraph",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/{{node}}/subgraph?maxDepth=2&maxNodes=0&maxEdges=0&incldata&inclsub",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes",
+										"{{node}}",
+										"subgraph"
+									],
+									"query": [
+										{
+											"key": "maxDepth",
+											"value": "2"
+										},
+										{
+											"key": "maxNodes",
+											"value": "0"
+										},
+										{
+											"key": "maxEdges",
+											"value": "0"
+										},
+										{
+											"key": "incldata",
+											"value": null
+										},
+										{
+											"key": "inclsub",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GetSubgraphStatistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/{{node}}/subgraph/stats?maxDepth=2&maxNodes=0&maxEdges=0",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes",
+										"{{node}}",
+										"subgraph",
+										"stats"
+									],
+									"query": [
+										{
+											"key": "maxDepth",
+											"value": "2"
+										},
+										{
+											"key": "maxNodes",
+											"value": "0"
+										},
+										{
+											"key": "maxEdges",
+											"value": "0"
 										}
 									]
 								}
