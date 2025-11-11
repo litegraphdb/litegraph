@@ -130,7 +130,7 @@
                 authToken.Tenant = _Repo.Tenant.ReadByGuid(authToken.TenantGUID.Value);
                 authToken.User = _Repo.User.ReadByGuid(authToken.TenantGUID.Value, authToken.UserGUID.Value);
 
-                if (authToken.User != null) authToken.User.Password = null;
+                if (authToken.User != null) authToken.User = UserMaster.Redact(_Serializer, authToken.User);
             }
 
             authToken.Random = null;
