@@ -185,7 +185,7 @@
             };
 
             ret.Timestamp.Start = DateTime.UtcNow;
-            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.Ordering, query.ContinuationToken);
+            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.Ordering, null);
 
             if (ret.TotalRecords < 1)
             {
