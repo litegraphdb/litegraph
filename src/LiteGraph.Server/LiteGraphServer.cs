@@ -315,9 +315,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.Credential.ExistsByGuid(cred.TenantGUID, cred.GUID))
+            if (!_Repo.Credential.ExistsByGuid(cred.TenantGUID, cred.GUID).GetAwaiter().GetResult())
             {
-                cred = _Repo.Credential.Create(cred);
+                cred = _Repo.Credential.Create(cred).GetAwaiter().GetResult();
                 Console.WriteLine("| Created credential : " + cred.GUID + " bearer token: " + cred.BearerToken);
             }
 

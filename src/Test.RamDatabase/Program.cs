@@ -1317,7 +1317,7 @@
                     TenantGUID = Inputty.GetGuid("Tenant GUID:", _TenantGuid),
                     UserGUID = Inputty.GetGuid("User GUID:", default(Guid)),
                     Name = Inputty.GetString("Name:", null, false)
-                });
+                }).GetAwaiter().GetResult();
             }
             else if (str.Equals("graph"))
             {
@@ -1357,7 +1357,7 @@
             else if (str.Equals("cred"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.Credential.ReadMany(tenantGuid, null, null);
+                obj = _Client.Credential.ReadMany(tenantGuid, null, null).GetAwaiter().GetResult();
             }
             else if (str.Equals("graph"))
             {
@@ -1400,7 +1400,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid credGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                obj = _Client.Credential.ReadByGuid(tenantGuid, credGuid);
+                obj = _Client.Credential.ReadByGuid(tenantGuid, credGuid).GetAwaiter().GetResult();
             }
             else if (str.Equals("graph"))
             {
@@ -1446,7 +1446,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid credGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                exists = _Client.Credential.ExistsByGuid(tenantGuid, credGuid);
+                exists = _Client.Credential.ExistsByGuid(tenantGuid, credGuid).GetAwaiter().GetResult();
             }
             else if (str.Equals("graph"))
             {
@@ -1516,7 +1516,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid credGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                _Client.Credential.DeleteByGuid(tenantGuid, credGuid);
+                _Client.Credential.DeleteByGuid(tenantGuid, credGuid).GetAwaiter().GetResult();
             }
             else if (str.Equals("graph"))
             {

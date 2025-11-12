@@ -115,7 +115,7 @@
                 if (_Repo.User.ReadAllInTenant(guid).Any())
                     throw new InvalidOperationException("The specified tenant has dependent users.");
 
-                if (_Repo.Credential.ReadAllInTenant(guid).Any())
+                if (_Repo.Credential.ReadAllInTenant(guid).GetAwaiter().GetResult().Any())
                     throw new InvalidOperationException("The specified tenant has dependent credentials.");
 
                 if (_Repo.Graph.ReadAllInTenant(guid).Any())

@@ -190,7 +190,7 @@
             <param name="client">LiteGraph client.</param>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.Client.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest)">
+        <member name="M:LiteGraph.Client.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.CredentialMethods">
@@ -206,40 +206,40 @@
             <param name="client">LiteGraph client.</param>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Create(LiteGraph.Credential)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Create(LiteGraph.Credential,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByBearerToken(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ReadByBearerToken(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Update(LiteGraph.Credential)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.Update(LiteGraph.Credential,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.DeleteByUser(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.DeleteByUser(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.CredentialMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.EdgeMethods">
@@ -888,13 +888,14 @@
             Client implementations are responsible for input validation and cross-cutting logic.
             </summary>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IBatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest)">
+        <member name="M:LiteGraph.Client.Interfaces.IBatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
             <summary>
             Batch existence request.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="req">Existence request.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Existence result.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.ICredentialMethods">
@@ -903,23 +904,25 @@
             Client implementations are responsible for input validation and cross-cutting logic.
             </summary>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Create(LiteGraph.Credential)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Create(LiteGraph.Credential,System.Threading.CancellationToken)">
             <summary>
             Create a credential.
             </summary>
             <param name="credential">Credential.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read all credentials in a given tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credentials.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read credentials.
             </summary>
@@ -928,71 +931,81 @@
             <param name="bearerToken">Bearer token.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credentials.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Read a credential by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read credentials by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credentials.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByBearerToken(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByBearerToken(System.String,System.Threading.CancellationToken)">
             <summary>
             Read a credential by bearer token.
             </summary>
             <param name="bearerToken">Bearer token.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <summary>
             Enumerate objects.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Update(LiteGraph.Credential)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.Update(LiteGraph.Credential,System.Threading.CancellationToken)">
             <summary>
             Update a credential.
             </summary>
             <param name="cred">Credential.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete credentials associated with a tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete a credential.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.DeleteByUser(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.DeleteByUser(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete credentials associated with a user.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="userGuid">User GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Check if a credential exists by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IEdgeMethods">
@@ -3420,13 +3433,14 @@
             Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
             </summary>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IBatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IBatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
             <summary>
             Batch existence request.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="req">Existence request.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Existence result.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods">
@@ -3435,23 +3449,25 @@
             Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
             </summary>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Create(LiteGraph.Credential)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Create(LiteGraph.Credential,System.Threading.CancellationToken)">
             <summary>
             Create a credential.
             </summary>
             <param name="credential">Credential.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read all credentials in tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credentials.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read credentials.
             </summary>
@@ -3460,39 +3476,44 @@
             <param name="bearerToken">Bearer token.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credentials.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Read a credential by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read credential by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByBearerToken(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ReadByBearerToken(System.String,System.Threading.CancellationToken)">
             <summary>
             Read a credential by bearer token.
             </summary>
             <param name="bearerToken">Bearer token.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <summary>
             Enumerate objects.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Enumeration result containing a page of objects.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
             </summary>
@@ -3500,41 +3521,47 @@
             <param name="userGuid">User GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Number of records.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Update(LiteGraph.Credential)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.Update(LiteGraph.Credential,System.Threading.CancellationToken)">
             <summary>
             Update a credential.
             </summary>
             <param name="cred">Credential.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete credentials associated with a tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete a credential.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.DeleteByUser(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.DeleteByUser(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete credentials associated with a user.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="userGuid">User GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Check if a credential exists by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.IEdgeMethods">
@@ -5111,7 +5138,7 @@
             </summary>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods">
@@ -5126,43 +5153,43 @@
             </summary>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Create(LiteGraph.Credential)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Create(LiteGraph.Credential,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.DeleteByUser(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.DeleteByUser(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByBearerToken(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadByBearerToken(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Update(LiteGraph.Credential)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods.Update(LiteGraph.Credential,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.EdgeMethods">

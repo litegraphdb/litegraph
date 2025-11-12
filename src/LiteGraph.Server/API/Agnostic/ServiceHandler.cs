@@ -309,7 +309,7 @@
             if (req.Credential == null) throw new ArgumentNullException(nameof(req.Credential));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.Credential.TenantGUID = req.TenantGUID.Value;
-            Credential obj = _LiteGraph.Credential.Create(req.Credential);
+            Credential obj = await _LiteGraph.Credential.Create(req.Credential).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -322,11 +322,11 @@
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Credential.ReadMany(req.TenantGUID.Value, null, null, req.Order, req.Skip).ToList();
+                objs = (await _LiteGraph.Credential.ReadMany(req.TenantGUID.Value, null, null, req.Order, req.Skip).ConfigureAwait(false)).ToList();
             }
             else
             {
-                objs = _LiteGraph.Credential.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                objs = (await _LiteGraph.Credential.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ConfigureAwait(false)).ToList();
             }
 
             if (objs == null) objs = new List<Credential>();
@@ -338,7 +338,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
-            EnumerationResult<Credential> er = _LiteGraph.Credential.Enumerate(req.EnumerationQuery);
+            EnumerationResult<Credential> er = await _LiteGraph.Credential.Enumerate(req.EnumerationQuery).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -346,7 +346,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            Credential obj = _LiteGraph.Credential.ReadByGuid(req.TenantGUID.Value, req.CredentialGUID.Value);
+            Credential obj = await _LiteGraph.Credential.ReadByGuid(req.TenantGUID.Value, req.CredentialGUID.Value).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -355,7 +355,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (_LiteGraph.Credential.ExistsByGuid(req.TenantGUID.Value, req.CredentialGUID.Value)) return new ResponseContext(req);
+            if (await _LiteGraph.Credential.ExistsByGuid(req.TenantGUID.Value, req.CredentialGUID.Value).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -365,7 +365,7 @@
             if (req.Credential == null) throw new ArgumentNullException(nameof(req.Credential));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.Credential.TenantGUID = req.TenantGUID.Value;
-            Credential obj = _LiteGraph.Credential.Update(req.Credential);
+            Credential obj = await _LiteGraph.Credential.Update(req.Credential).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, obj);
         }
@@ -374,7 +374,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            _LiteGraph.Credential.DeleteByGuid(req.TenantGUID.Value, req.CredentialGUID.Value);
+            await _LiteGraph.Credential.DeleteByGuid(req.TenantGUID.Value, req.CredentialGUID.Value).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 

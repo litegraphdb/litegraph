@@ -219,7 +219,7 @@
                 {
                     #region User
 
-                    req.Authentication.Credential = _Repo.Credential.ReadByBearerToken(req.Authentication.BearerToken);
+                    req.Authentication.Credential = _Repo.Credential.ReadByBearerToken(req.Authentication.BearerToken).GetAwaiter().GetResult();
                     if (req.Authentication.Credential == null)
                     {
                         _Logging.Warn(_Header + "unable to find bearer token " + req.Authentication.BearerToken);
