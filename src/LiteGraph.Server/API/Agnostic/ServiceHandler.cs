@@ -713,7 +713,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.ExistenceRequest == null) throw new ArgumentNullException(nameof(req.ExistenceRequest));
             if (!req.ExistenceRequest.ContainsExistenceRequest()) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "No valid existence filters are present in the request.");
-            ExistenceResult resp = _LiteGraph.Batch.Existence(req.TenantGUID.Value, req.GraphGUID.Value, req.ExistenceRequest);
+            ExistenceResult resp = await _LiteGraph.Batch.Existence(req.TenantGUID.Value, req.GraphGUID.Value, req.ExistenceRequest).ConfigureAwait(false);
             return new ResponseContext(req, resp);
         }
 

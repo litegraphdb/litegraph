@@ -3,16 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Batch methods.
@@ -46,9 +41,10 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public ExistenceResult Existence(Guid tenantGuid, Guid graphGuid, ExistenceRequest req)
+        public async Task<ExistenceResult> Existence(Guid tenantGuid, Guid graphGuid, ExistenceRequest req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
+            token.ThrowIfCancellationRequested();
 
             ExistenceResult resp = new ExistenceResult();
 
@@ -60,11 +56,13 @@
                 resp.MissingNodes = new List<Guid>();
 
                 string nodesQuery = NodeQueries.BatchExists(tenantGuid, graphGuid, req.Nodes);
-                DataTable nodesResult = _Repo.ExecuteQuery(nodesQuery);
+                token.ThrowIfCancellationRequested();
+                DataTable nodesResult = await _Repo.ExecuteQueryAsync(nodesQuery, false, token).ConfigureAwait(false);
                 if (nodesResult != null && nodesResult.Rows != null && nodesResult.Rows.Count > 0)
                 {
                     foreach (DataRow row in nodesResult.Rows)
                     {
+                        token.ThrowIfCancellationRequested();
                         if (row["exists"] != null && row["exists"] != DBNull.Value)
                         {
                             int exists = Convert.ToInt32(row["exists"]);
@@ -87,11 +85,13 @@
                 resp.MissingEdges = new List<Guid>();
 
                 string edgesQuery = EdgeQueries.BatchExists(tenantGuid, graphGuid, req.Edges);
-                DataTable edgesResult = _Repo.ExecuteQuery(edgesQuery);
+                token.ThrowIfCancellationRequested();
+                DataTable edgesResult = await _Repo.ExecuteQueryAsync(edgesQuery, false, token).ConfigureAwait(false);
                 if (edgesResult != null && edgesResult.Rows != null && edgesResult.Rows.Count > 0)
                 {
                     foreach (DataRow row in edgesResult.Rows)
                     {
+                        token.ThrowIfCancellationRequested();
                         if (row["exists"] != null && row["exists"] != DBNull.Value)
                         {
                             int exists = Convert.ToInt32(row["exists"]);
@@ -114,11 +114,13 @@
                 resp.MissingEdgesBetween = new List<EdgeBetween>();
 
                 string betweenQuery = EdgeQueries.BatchExistsBetween(tenantGuid, graphGuid, req.EdgesBetween);
-                DataTable betweenResult = _Repo.ExecuteQuery(betweenQuery);
+                token.ThrowIfCancellationRequested();
+                DataTable betweenResult = await _Repo.ExecuteQueryAsync(betweenQuery, false, token).ConfigureAwait(false);
                 if (betweenResult != null && betweenResult.Rows != null && betweenResult.Rows.Count > 0)
                 {
                     foreach (DataRow row in betweenResult.Rows)
                     {
+                        token.ThrowIfCancellationRequested();
                         if (row["exists"] != null && row["exists"] != DBNull.Value)
                         {
                             int exists = Convert.ToInt32(row["exists"]);

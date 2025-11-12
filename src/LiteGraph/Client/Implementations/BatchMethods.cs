@@ -1,19 +1,10 @@
 ﻿namespace LiteGraph.Client.Implementations
 {
     using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Batch methods.
@@ -50,14 +41,15 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public ExistenceResult Existence(Guid tenantGuid, Guid graphGuid, ExistenceRequest req)
+        public async Task<ExistenceResult> Existence(Guid tenantGuid, Guid graphGuid, ExistenceRequest req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.ContainsExistenceRequest()) throw new ArgumentException("Supplied existence request contains no valid existence filters.");
+            token.ThrowIfCancellationRequested();
 
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            return _Repo.Batch.Existence(tenantGuid, graphGuid, req);  
+            return await _Repo.Batch.Existence(tenantGuid, graphGuid, req, token).ConfigureAwait(false);  
         }
 
         #endregion

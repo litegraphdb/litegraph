@@ -1,15 +1,9 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
-    using ExpressionTree;
+    using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Interface for batch methods.
@@ -23,7 +17,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="req">Existence request.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Existence result.</returns>
-        ExistenceResult Existence(Guid tenantGuid, Guid graphGuid, ExistenceRequest req);
+        Task<ExistenceResult> Existence(Guid tenantGuid, Guid graphGuid, ExistenceRequest req, CancellationToken token = default);
     }
 }
