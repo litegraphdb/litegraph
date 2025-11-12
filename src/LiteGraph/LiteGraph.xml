@@ -159,22 +159,22 @@
             <param name="repo">Graph repository.</param>
             <param name="backupDirectory">Backup directory.</param>
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.Backup(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.Backup(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.DeleteBackup(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.DeleteBackup(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupReadAll">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupReadAll(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupRead(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupRead(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupEnumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupEnumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupExists(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupExists(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.BatchMethods">
@@ -837,44 +837,50 @@
             Client implementations are responsible for input validation and cross-cutting logic.
             </summary>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.Backup(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.Backup(System.String,System.Threading.CancellationToken)">
             <summary>
             Backup request.
             </summary>
             <param name="outputFilename">Output filename.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupReadAll">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupReadAll(System.Threading.CancellationToken)">
             <summary>
             List backups request.
             </summary>
+            <param name="token">Cancellation token.</param>
             <returns>Enumerable of backup files.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupRead(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupRead(System.String,System.Threading.CancellationToken)">
             <summary>
             Read the contents of a backup file.
             </summary>
             <param name="backupFilename">Backup filename.</param>
+            <param name="token">Cancellation token.</param>
             <returns>File contents.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupEnumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupEnumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <summary>
             Enumerate objects.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupExists(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupExists(System.String,System.Threading.CancellationToken)">
             <summary>
             Check if a backup file exists.
             </summary>
             <param name="backupFilename">Backup filename.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.DeleteBackup(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.DeleteBackup(System.String,System.Threading.CancellationToken)">
             <summary>
             Delete a backup file.
             </summary>
             <param name="backupFilename">Backup filename.</param>
+            <param name="token">Cancellation token.</param>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IBatchMethods">
             <summary>
@@ -3401,11 +3407,12 @@
             Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
             </summary>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IAdminMethods.Backup(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IAdminMethods.Backup(System.String,System.Threading.CancellationToken)">
             <summary>
             Batch existence request.
             </summary>
             <param name="outputFilename">Output filename.</param>
+            <param name="token">Cancellation token.</param>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.IBatchMethods">
             <summary>
@@ -5089,7 +5096,7 @@
             </summary>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods.Backup(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods.Backup(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.BatchMethods">

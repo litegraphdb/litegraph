@@ -185,7 +185,7 @@
         {
             string filename = Inputty.GetString("Backup filename:", null, true);
             if (String.IsNullOrEmpty(filename)) return;
-            _Client.Admin.Backup(filename);
+            _Client.Admin.Backup(filename).GetAwaiter().GetResult();
         }
 
         static void ToggleDebug()

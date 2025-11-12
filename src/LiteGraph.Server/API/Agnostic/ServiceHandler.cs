@@ -2,19 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Reflection.PortableExecutable;
-    using System.Text;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.Serialization;
     using LiteGraph.Server.Classes;
     using LiteGraph.Server.Services;
     using SyslogLogging;
-    using Timestamps;
-    using WatsonWebserver.Core;
 
     internal class ServiceHandler
     {
@@ -66,7 +61,7 @@
             if (req.BackupRequest == null) throw new ArgumentNullException(nameof(req.BackupRequest));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            _LiteGraph.Admin.Backup(req.BackupRequest.Filename);
+            await _LiteGraph.Admin.Backup(req.BackupRequest.Filename).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -76,7 +71,7 @@
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            BackupFile data = _LiteGraph.Admin.BackupRead(req.BackupFilename);
+            BackupFile data = await _LiteGraph.Admin.BackupRead(req.BackupFilename).ConfigureAwait(false);
             return new ResponseContext(req, data);
         }
 
@@ -86,7 +81,7 @@
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            bool exists = _LiteGraph.Admin.BackupExists(req.BackupFilename);
+            bool exists = await _LiteGraph.Admin.BackupExists(req.BackupFilename).ConfigureAwait(false);
             if (exists) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "The specified backup file was not found.");
         }
@@ -96,7 +91,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            IEnumerable<BackupFile> backups = _LiteGraph.Admin.BackupReadAll();
+            IEnumerable<BackupFile> backups = await _LiteGraph.Admin.BackupReadAll().ConfigureAwait(false);
             List<BackupFile> files = backups != null ? backups.ToList() : new List<BackupFile>();
             return new ResponseContext(req, files);
         }
@@ -106,7 +101,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
-            EnumerationResult<BackupFile> er = _LiteGraph.Admin.BackupEnumerate(req.EnumerationQuery);
+            EnumerationResult<BackupFile> er = await _LiteGraph.Admin.BackupEnumerate(req.EnumerationQuery).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -116,7 +111,7 @@
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            _LiteGraph.Admin.DeleteBackup(req.BackupFilename);
+            await _LiteGraph.Admin.DeleteBackup(req.BackupFilename).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 

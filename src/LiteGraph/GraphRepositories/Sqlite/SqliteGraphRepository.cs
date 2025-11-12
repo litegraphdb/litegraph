@@ -5,6 +5,8 @@
     using System.Data;
     using System.IO;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite.Implementations;
@@ -348,6 +350,89 @@
                             e.Data.Add("Query", query);
                             throw;
                         }
+                    }
+                }
+            }
+
+            if (Logging.LogResults) Logging.Log(SeverityEnum.Debug, "result: " + query + ": " + (result != null ? result.Rows.Count + " rows" : "(null)"));
+            return result;
+        }
+
+        internal async Task<DataTable> ExecuteQueryAsync(string query, bool isTransaction = false, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(query)) throw new ArgumentNullException(query);
+            if (query.Length > MaxStatementLength) throw new ArgumentException("Query exceeds maximum statement length of " + MaxStatementLength + " characters.");
+
+            token.ThrowIfCancellationRequested();
+
+            DataTable result = new DataTable();
+
+            if (isTransaction)
+            {
+                query = query.Trim();
+                query = "BEGIN TRANSACTION; " + query + " END TRANSACTION;";
+            }
+
+            if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
+
+            if (_InMemory)
+            {
+                // Use the instance connection for in-memory operations
+                try
+                {
+                    using (SqliteCommand cmd = new SqliteCommand(query, _SqliteConnection))
+                    {
+                        token.ThrowIfCancellationRequested();
+                        using (SqliteDataReader rdr = await cmd.ExecuteReaderAsync(token).ConfigureAwait(false))
+                        {
+                            result.Load(rdr);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (isTransaction)
+                    {
+                        using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", _SqliteConnection))
+                            await cmd.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+                    }
+
+                    e.Data.Add("IsTransaction", isTransaction);
+                    e.Data.Add("Query", query);
+                    throw;
+                }
+            }
+            else
+            {
+                // Original code for disk-based operations
+                using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
+                {
+                    try
+                    {
+                        await conn.OpenAsync(token).ConfigureAwait(false);
+
+                        using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                        {
+                            token.ThrowIfCancellationRequested();
+                            using (SqliteDataReader rdr = await cmd.ExecuteReaderAsync(token).ConfigureAwait(false))
+                            {
+                                result.Load(rdr);
+                            }
+                        }
+
+                        conn.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        if (isTransaction)
+                        {
+                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
+                                await cmd.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+                        }
+
+                        e.Data.Add("IsTransaction", isTransaction);
+                        e.Data.Add("Query", query);
+                        throw;
                     }
                 }
             }

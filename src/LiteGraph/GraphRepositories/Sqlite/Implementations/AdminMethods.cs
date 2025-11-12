@@ -1,18 +1,10 @@
 ﻿namespace LiteGraph.GraphRepositories.Sqlite.Implementations
 {
     using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Admin methods.
@@ -46,11 +38,12 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public void Backup(string outputFilename)
+        public async Task Backup(string outputFilename, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(outputFilename)) throw new ArgumentNullException(nameof(outputFilename));
+            token.ThrowIfCancellationRequested();
             string query = "VACUUM INTO '" + Sanitizer.Sanitize(outputFilename) + "';";
-            _Repo.ExecuteQuery(query);
+            await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
         }
 
         #endregion
