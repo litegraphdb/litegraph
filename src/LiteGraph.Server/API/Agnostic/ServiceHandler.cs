@@ -388,7 +388,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Label == null) throw new ArgumentNullException(nameof(req.Label));
             req.Label.TenantGUID = req.TenantGUID.Value;
-            LabelMetadata obj = _LiteGraph.Label.Create(req.Label);
+            LabelMetadata obj = await _LiteGraph.Label.Create(req.Label, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -397,7 +397,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Labels == null || req.Labels.Count < 1) throw new ArgumentNullException(nameof(req.Labels));
             foreach (LabelMetadata label in req.Labels) label.TenantGUID = req.TenantGUID.Value;
-            List<LabelMetadata> obj = _LiteGraph.Label.CreateMany(req.TenantGUID.Value, req.Labels);
+            List<LabelMetadata> obj = await _LiteGraph.Label.CreateMany(req.TenantGUID.Value, req.Labels, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -406,7 +406,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
-            EnumerationResult<LabelMetadata> er = _LiteGraph.Label.Enumerate(req.EnumerationQuery);
+            EnumerationResult<LabelMetadata> er = await _LiteGraph.Label.Enumerate(req.EnumerationQuery, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -418,11 +418,27 @@
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Label.ReadMany(req.TenantGUID.Value, req.GraphGUID, req.NodeGUID, req.EdgeGUID, null, req.Order, req.Skip).ToList();
+                objs = new List<LabelMetadata>();
+                await foreach (LabelMetadata label in _LiteGraph.Label.ReadMany(
+                    req.TenantGUID.Value,
+                    req.GraphGUID,
+                    req.NodeGUID,
+                    req.EdgeGUID,
+                    null,
+                    req.Order,
+                    req.Skip,
+                    CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(label);
+                }
             }
             else
             {
-                objs = _LiteGraph.Label.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                objs = new List<LabelMetadata>();
+                await foreach (LabelMetadata label in _LiteGraph.Label.ReadByGuids(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(label);
+                }
             }
 
             if (objs == null) objs = new List<LabelMetadata>();
@@ -432,7 +448,7 @@
         internal async Task<ResponseContext> LabelRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            LabelMetadata obj = _LiteGraph.Label.ReadByGuid(req.TenantGUID.Value, req.LabelGUID.Value);
+            LabelMetadata obj = await _LiteGraph.Label.ReadByGuid(req.TenantGUID.Value, req.LabelGUID.Value, CancellationToken.None).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -440,7 +456,7 @@
         internal async Task<ResponseContext> LabelExists(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (_LiteGraph.Label.ExistsByGuid(req.TenantGUID.Value, req.LabelGUID.Value)) return new ResponseContext(req);
+            if (await _LiteGraph.Label.ExistsByGuid(req.TenantGUID.Value, req.LabelGUID.Value, CancellationToken.None).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -449,7 +465,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Label == null) throw new ArgumentNullException(nameof(req.Label));
             req.Label.TenantGUID = req.TenantGUID.Value;
-            LabelMetadata obj = _LiteGraph.Label.Update(req.Label);
+            LabelMetadata obj = await _LiteGraph.Label.Update(req.Label, CancellationToken.None).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, obj);
         }
@@ -457,14 +473,14 @@
         internal async Task<ResponseContext> LabelDelete(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            _LiteGraph.Label.DeleteByGuid(req.TenantGUID.Value, req.LabelGUID.Value);
+            await _LiteGraph.Label.DeleteByGuid(req.TenantGUID.Value, req.LabelGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
         internal async Task<ResponseContext> LabelDeleteMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            _LiteGraph.Label.DeleteMany(req.TenantGUID.Value, req.GUIDs);
+            await _LiteGraph.Label.DeleteMany(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 

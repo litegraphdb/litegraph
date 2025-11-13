@@ -5,6 +5,7 @@ namespace Test.Enumeration
     using System.Collections.Specialized;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
 
@@ -501,25 +502,25 @@ namespace Test.Enumeration
                         GraphGUID = _GraphGuid,
                         Label = $"Label-{i:D3}"
                     };
-                    labels.Add(_Client.Label.Create(label));
+                    labels.Add(_Client.Label.Create(label, CancellationToken.None).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
                 bool test1Pass = TestEnumerateAllAtOnce(
                     testName + "-AllAtOnce",
-                    () => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }),
+                    () => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
                 bool test2Pass = TestEnumerateWithSkip(
                     testName + "-WithSkip",
-                    (skip) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
                 bool test3Pass = TestEnumerateWithContinuationToken(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)

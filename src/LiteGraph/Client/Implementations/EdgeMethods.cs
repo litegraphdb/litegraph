@@ -64,7 +64,12 @@
             _Client.ValidateVectors(edge.Vectors);
 
             Edge created = await _Repo.Edge.Create(edge, token).ConfigureAwait(false);
-            created.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
+            List<LabelMetadata> createdLabels = new List<LabelMetadata>();
+            await foreach (LabelMetadata label in _Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null,token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                createdLabels.Add(label);
+            }
+            created.Labels = LabelMetadata.ToListString(createdLabels);
             created.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
             created.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created edge " + created.GUID + " in graph " + created.GraphGUID);
@@ -86,7 +91,12 @@
             foreach (Edge edge in created)
             {
                 token.ThrowIfCancellationRequested();
-                edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
+                List<LabelMetadata> edgeLabels = new List<LabelMetadata>();
+                await foreach (LabelMetadata label in _Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null,token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    edgeLabels.Add(label);
+                }
+                edge.Labels = LabelMetadata.ToListString(edgeLabels);
                 edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
                 edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
                 _EdgeCache.AddReplace(edge.GUID, edge);
@@ -113,7 +123,7 @@
 
             await foreach (Edge obj in _Repo.Edge.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -136,7 +146,7 @@
 
             await foreach (Edge obj in _Repo.Edge.ReadAllInGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -163,7 +173,7 @@
 
             await foreach (Edge obj in _Repo.Edge.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -189,7 +199,7 @@
 
             Edge obj = await _Repo.Edge.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order, token).ConfigureAwait(false);
 
-            if (obj != null) return PopulateEdge(obj, includeSubordinates, includeData);
+            if (obj != null) return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             return null;
         }
 
@@ -208,7 +218,7 @@
             Edge obj = await _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid, token).ConfigureAwait(false);
             if (obj == null) return null;
 
-            return PopulateEdge(obj, includeSubordinates, includeData);
+            return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -224,7 +234,7 @@
 
             await foreach (Edge obj in _Repo.Edge.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -245,8 +255,12 @@
                     token.ThrowIfCancellationRequested();
                     if (query.IncludeSubordinates)
                     {
-                        List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null).ToList();
-                        if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+                        List<LabelMetadata> allLabels = new List<LabelMetadata>();
+                        await foreach (LabelMetadata label in _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null,token: token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            allLabels.Add(label);
+                        }
+                        if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
                         List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
                         if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
@@ -287,7 +301,7 @@
 
             await foreach (Edge obj in _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -314,7 +328,7 @@
 
             await foreach (Edge obj in _Repo.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -350,7 +364,7 @@
                 skip,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -388,7 +402,7 @@
                 skip,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
-                yield return PopulateEdge(obj, includeSubordinates, includeData);
+                yield return await PopulateEdge(obj, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
         }
 
@@ -407,7 +421,12 @@
             _Client.ValidateVectors(edge.Vectors);
 
             Edge updated = await _Repo.Edge.Update(edge, token).ConfigureAwait(false);
-            updated.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null).ToList());
+            List<LabelMetadata> updatedLabels = new List<LabelMetadata>();
+            await foreach (LabelMetadata label in _Repo.Label.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, EnumerationOrderEnum.CreatedDescending, 0, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                updatedLabels.Add(label);
+            }
+            updated.Labels = LabelMetadata.ToListString(updatedLabels);
             updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
             updated.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Debug, "updated edge " + updated.GUID + " in graph " + updated.GraphGUID);
@@ -496,14 +515,18 @@
 
         #region Internal-Methods
 
-        internal Edge PopulateEdge(Edge obj, bool includeSubordinates, bool includeData)
+        internal async Task<Edge> PopulateEdge(Edge obj, bool includeSubordinates, bool includeData, CancellationToken token = default)
         {
             if (obj == null) return null;
 
             if (includeSubordinates)
             {
-                List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null).ToList();
-                if (allLabels != null) obj.Labels = LabelMetadata.ToListString(allLabels);
+                List<LabelMetadata> allLabels = new List<LabelMetadata>();
+                await foreach (LabelMetadata label in _Repo.Label.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allLabels.Add(label);
+                }
+                if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
                 List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
