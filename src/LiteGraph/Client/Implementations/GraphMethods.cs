@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caching;
     using ExpressionTree;
@@ -52,14 +54,15 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public Graph Create(Graph graph)
+        public async Task<Graph> Create(Graph graph, CancellationToken token = default)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
+            token.ThrowIfCancellationRequested();
             _Client.ValidateLabels(graph.Labels);
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
             _Client.ValidateTenantExists(graph.TenantGUID);
-            graph = _Repo.Graph.Create(graph);
+            graph = await _Repo.Graph.Create(graph, token).ConfigureAwait(false);
             graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null).ToList());
             graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList());
             graph.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
@@ -69,12 +72,13 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Graph> ReadAllInTenant(
+        public async IAsyncEnumerable<Graph> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false)
+            bool includeSubordinates = false,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -87,14 +91,14 @@
             _Client.ValidateTenantExists(tenantGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
 
-            foreach (Graph obj in _Repo.Graph.ReadAllInTenant(tenantGuid, order, skip))
+            await foreach (Graph obj in _Repo.Graph.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return PopulateGraph(obj, includeSubordinates, includeData);
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<Graph> ReadMany(
+        public async IAsyncEnumerable<Graph> ReadMany(
             Guid tenantGuid,
             string name = null,
             List<string> labels = null,
@@ -103,7 +107,8 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false)
+            bool includeSubordinates = false,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -116,14 +121,14 @@
             _Client.ValidateTenantExists(tenantGuid);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
 
-            foreach (Graph obj in _Repo.Graph.ReadMany(tenantGuid, name, labels, tags, expr, order, skip))
+            await foreach (Graph obj in _Repo.Graph.ReadMany(tenantGuid, name, labels, tags, expr, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return PopulateGraph(obj, includeSubordinates, includeData);
             }
         }
 
         /// <inheritdoc />
-        public Graph ReadFirst(
+        public async Task<Graph> ReadFirst(
             Guid tenantGuid,
             string name = null,
             List<string> labels = null,
@@ -131,7 +136,8 @@
             Expr expr = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             bool includeData = false,
-            bool includeSubordinates = false)
+            bool includeSubordinates = false,
+            CancellationToken token = default)
         {
             if (order == EnumerationOrderEnum.CostAscending
                 || order == EnumerationOrderEnum.CostDescending)
@@ -141,48 +147,53 @@
                 || order == EnumerationOrderEnum.LeastConnected)
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
+            token.ThrowIfCancellationRequested();
             _Client.ValidateTenantExists(tenantGuid);
 
-            Graph obj = _Repo.Graph.ReadFirst(tenantGuid, name, labels, tags, expr, order);
+            Graph obj = await _Repo.Graph.ReadFirst(tenantGuid, name, labels, tags, expr, order, token).ConfigureAwait(false);
             if (obj == null) return null;
             return PopulateGraph(obj, includeSubordinates, includeData);
         }
 
         /// <inheritdoc />
-        public Graph ReadByGuid(
+        public async Task<Graph> ReadByGuid(
             Guid tenantGuid,
             Guid graphGuid,
             bool includeData = false,
-            bool includeSubordinates = false)
+            bool includeSubordinates = false,
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graph with GUID " + graphGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
 
-            Graph obj = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+            Graph obj = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (obj == null) return null;
             return PopulateGraph(obj, includeSubordinates, includeData);
         }
 
         /// <inheritdoc />
-        public IEnumerable<Graph> ReadByGuids(
+        public async IAsyncEnumerable<Graph> ReadByGuids(
             Guid tenantGuid,
             List<Guid> guids,
             bool includeData = false,
-            bool includeSubordinates = false)
+            bool includeSubordinates = false,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
 
-            foreach (Graph obj in _Repo.Graph.ReadByGuids(tenantGuid, guids))
+            await foreach (Graph obj in _Repo.Graph.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return PopulateGraph(obj, includeSubordinates, includeData);
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Graph> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<Graph>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
-            EnumerationResult<Graph> er = _Repo.Graph.Enumerate(query);
+            token.ThrowIfCancellationRequested();
+            EnumerationResult<Graph> er = await _Repo.Graph.Enumerate(query, token).ConfigureAwait(false);
 
             if (er != null
                 && er.Objects != null
@@ -190,6 +201,7 @@
             {
                 foreach (Graph obj in er.Objects)
                 {
+                    token.ThrowIfCancellationRequested();
                     if (query.IncludeSubordinates)
                     {
                         List<LabelMetadata> allLabels = _Repo.Label.ReadMany(obj.TenantGUID, obj.GUID, null, null, null).ToList();
@@ -209,15 +221,16 @@
         }
 
         /// <inheritdoc />
-        public Graph Update(Graph graph)
+        public async Task<Graph> Update(Graph graph, CancellationToken token = default)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
+            token.ThrowIfCancellationRequested();
             _Client.ValidateTenantExists(graph.TenantGUID);
             _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID);
             _Client.ValidateLabels(graph.Labels);
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
-            Graph updated = _Repo.Graph.Update(graph);
+            Graph updated = await _Repo.Graph.Update(graph, token).ConfigureAwait(false);
             updated.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null).ToList());
             updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList());
             updated.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
@@ -227,69 +240,84 @@
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid graphGuid, bool force = false)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, bool force = false, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
             _Client.Logging.Log(SeverityEnum.Info, "deleting graph " + graphGuid);
 
             if (!force)
             {
-                if (_Repo.Node.ReadMany(tenantGuid, graphGuid).Any())
+                bool hasNodes = false;
+                using (var nodeEnumerator = _Repo.Node.ReadMany(tenantGuid, graphGuid).GetEnumerator())
+                {
+                    hasNodes = nodeEnumerator.MoveNext();
+                }
+                if (hasNodes)
                     throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
 
-                if (_Repo.Edge.ReadMany(tenantGuid, graphGuid).Any())
-                    throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
+                await using (var edgeEnumerator = _Repo.Edge.ReadMany(tenantGuid, graphGuid, null, null, null, null, EnumerationOrderEnum.CreatedDescending, 0, default, default, token).GetAsyncEnumerator())
+                {
+                    if (await edgeEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
+                }
             }
 
-            _Repo.Graph.DeleteByGuid(tenantGuid, graphGuid);
+            await _Repo.Graph.DeleteByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted graph " + graphGuid + " (force " + force + ")");
             _GraphCache.TryRemove(graphGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             _Client.ValidateTenantExists(tenantGuid);
-            foreach (Graph graph in ReadMany(tenantGuid))
+            await foreach (Graph graph in ReadMany(tenantGuid, null, null, null, null, EnumerationOrderEnum.CreatedDescending, 0, false, false, token).WithCancellation(token).ConfigureAwait(false))
             {
-                DeleteByGuid(tenantGuid, graph.GUID);
+                await DeleteByGuid(tenantGuid, graph.GUID, false, token).ConfigureAwait(false);
             }
             _Client.Logging.Log(SeverityEnum.Info, "deleted graphs in tenant " + tenantGuid);
             _GraphCache.Clear();
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid guid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             _Client.ValidateTenantExists(tenantGuid);
-            return _Repo.Graph.ExistsByGuid(tenantGuid, guid);
+            return await _Repo.Graph.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public GraphStatistics GetStatistics(Guid tenantGuid, Guid guid)
+        public async Task<GraphStatistics> GetStatistics(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            return _Repo.Graph.GetStatistics(tenantGuid, guid);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Graph.GetStatistics(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid)
+        public async Task<Dictionary<Guid, GraphStatistics>> GetStatistics(Guid tenantGuid, CancellationToken token = default)
         {
-            return _Repo.Graph.GetStatistics(tenantGuid);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Graph.GetStatistics(tenantGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task EnableVectorIndexingAsync(
             Guid tenantGuid,
             Guid graphGuid,
-            VectorIndexConfiguration configuration)
+            VectorIndexConfiguration configuration,
+            CancellationToken token = default)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            token.ThrowIfCancellationRequested();
 
             // Validate configuration
             if (!configuration.IsValid(out string errorMessage))
                 throw new ArgumentException($"Invalid vector index configuration: {errorMessage}");
 
-            await _Repo.Graph.EnableVectorIndexingAsync(tenantGuid, graphGuid, configuration);
+            await _Repo.Graph.EnableVectorIndexingAsync(tenantGuid, graphGuid, configuration, token).ConfigureAwait(false);
 
             // Invalidate cache
             if (_GraphCache != null) _GraphCache.Remove(graphGuid);
@@ -299,9 +327,11 @@
         public async Task DisableVectorIndexingAsync(
             Guid tenantGuid,
             Guid graphGuid,
-            bool deleteIndexFile = false)
+            bool deleteIndexFile = false,
+            CancellationToken token = default)
         {
-            await _Repo.Graph.DisableVectorIndexingAsync(tenantGuid, graphGuid, deleteIndexFile);
+            token.ThrowIfCancellationRequested();
+            await _Repo.Graph.DisableVectorIndexingAsync(tenantGuid, graphGuid, deleteIndexFile, token).ConfigureAwait(false);
 
             // Invalidate cache
             if (_GraphCache != null) _GraphCache.Remove(graphGuid);
@@ -310,21 +340,25 @@
         /// <inheritdoc />
         public async Task RebuildVectorIndexAsync(
             Guid tenantGuid,
-            Guid graphGuid)
+            Guid graphGuid,
+            CancellationToken token = default)
         {
-            await _Repo.Graph.RebuildVectorIndexAsync(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Repo.Graph.RebuildVectorIndexAsync(tenantGuid, graphGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public VectorIndexStatistics GetVectorIndexStatistics(
+        public async Task<VectorIndexStatistics> GetVectorIndexStatistics(
             Guid tenantGuid,
-            Guid graphGuid)
+            Guid graphGuid,
+            CancellationToken token = default)
         {
-            return _Repo.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public SearchResult GetSubgraph(
+        public async Task<SearchResult> GetSubgraph(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -332,11 +366,13 @@
             int maxNodes = 0,
             int maxEdges = 0,
             bool includeData = false,
-            bool includeSubordinates = false)
+            bool includeSubordinates = false,
+            CancellationToken token = default)
         {
             if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
             if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+            token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
@@ -344,13 +380,14 @@
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
 
-            SearchResult result = _Repo.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges);
+            SearchResult result = await _Repo.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges, token).ConfigureAwait(false);
 
             // Populate graphs
             if (result.Graphs != null && result.Graphs.Count > 0)
             {
                 for (int i = 0; i < result.Graphs.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     result.Graphs[i] = PopulateGraph(result.Graphs[i], includeSubordinates, includeData);
                 }
             }
@@ -360,6 +397,7 @@
             {
                 for (int i = 0; i < result.Nodes.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     result.Nodes[i] = PopulateNode(result.Nodes[i], includeSubordinates, includeData);
                 }
             }
@@ -369,6 +407,7 @@
             {
                 for (int i = 0; i < result.Edges.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     result.Edges[i] = PopulateEdge(result.Edges[i], includeSubordinates, includeData);
                 }
             }
@@ -377,24 +416,26 @@
         }
 
         /// <inheritdoc />
-        public GraphStatistics GetSubgraphStatistics(
+        public async Task<GraphStatistics> GetSubgraphStatistics(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             int maxDepth = 2,
             int maxNodes = 0,
-            int maxEdges = 0)
+            int maxEdges = 0,
+            CancellationToken token = default)
         {
             if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
             if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+            token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
             _Client.ValidateNodeExists(tenantGuid, nodeGuid);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph statistics starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
-            return _Repo.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges);
+            return await _Repo.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges, token).ConfigureAwait(false);
         }
 
         #endregion

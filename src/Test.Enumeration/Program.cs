@@ -312,28 +312,28 @@ namespace Test.Enumeration
                         Name = $"Graph-{i:D3}",
                         Data = null
                     };
-                    graphs.Add(_Client.Graph.Create(graph));
+                    graphs.Add(_Client.Graph.Create(graph).GetAwaiter().GetResult());
                 }
 
                 // Store first graph for later tests
                 _GraphGuid = graphs[0].GUID;
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<Graph>(
                     testName + "-AllAtOnce",
-                    () => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }),
+                    () => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<Graph>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<Graph>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)

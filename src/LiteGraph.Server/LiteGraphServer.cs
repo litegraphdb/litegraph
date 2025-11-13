@@ -329,9 +329,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.Graph.ExistsByGuid(graph.TenantGUID, graph.GUID))
+            if (!_Repo.Graph.ExistsByGuid(graph.TenantGUID, graph.GUID, default).GetAwaiter().GetResult())
             {
-                graph = _Repo.Graph.Create(graph);
+                graph = _Repo.Graph.Create(graph, default).GetAwaiter().GetResult();
                 Console.WriteLine("| Created graph      : " + graph.GUID + " " + graph.Name);
             }
 

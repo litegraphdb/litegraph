@@ -295,7 +295,7 @@
                 Labels = labelsGraph,
                 Tags = tagsGraph,
                 Vectors = graphVectors
-            });
+            }, default).GetAwaiter().GetResult();
 
             #endregion
 
@@ -673,8 +673,19 @@
                 "graph"
             };
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph))
-                Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+            var graphEnumerator = _Client.Graph.ReadMany(tenantGuid, null, labelGraph, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (graphEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Graph graph = graphEnumerator.Current;
+                    Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+                }
+            }
+            finally
+            {
+                graphEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes with labels 'node' and 'even'");
@@ -697,18 +708,18 @@
                 "odd"
             };
 
-            var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges).GetAsyncEnumerator();
+            var edgeEnumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges).GetAsyncEnumerator();
             try
             {
-                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                while (edgeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
                 {
-                    Edge edge = enumerator.Current;
+                    Edge edge = edgeEnumerator.Current;
                     Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
                 }
             }
             finally
             {
-                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                edgeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
 
             Console.WriteLine("");
@@ -725,8 +736,19 @@
             NameValueCollection tagsGraph = new NameValueCollection();
             tagsGraph.Add("type", "graph");
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, null, tagsGraph))
-                Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+            var graphEnumerator = _Client.Graph.ReadMany(tenantGuid, null, null, tagsGraph, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (graphEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Graph graph = graphEnumerator.Current;
+                    Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+                }
+            }
+            finally
+            {
+                graphEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where tag 'type' = 'node' and 'isEven' = 'true'");
@@ -745,18 +767,18 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges).GetAsyncEnumerator();
+            var edgeEnumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges).GetAsyncEnumerator();
             try
             {
-                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                while (edgeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
                 {
-                    Edge edge = enumerator.Current;
+                    Edge edge = edgeEnumerator.Current;
                     Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
                 }
             }
             finally
             {
-                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                edgeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
 
             Console.WriteLine("");
@@ -778,8 +800,19 @@
             NameValueCollection tagsGraph = new NameValueCollection();
             tagsGraph.Add("type", "graph");
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph, tagsGraph))
-                Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+            var graphEnumerator = _Client.Graph.ReadMany(tenantGuid, null, labelGraph, tagsGraph, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (graphEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Graph graph = graphEnumerator.Current;
+                    Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+                }
+            }
+            finally
+            {
+                graphEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where labels 'node' and 'even' are present, and tag 'type' = 'node' and 'isEven' = 'true'");
@@ -810,18 +843,18 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges).GetAsyncEnumerator();
+            var edgeEnumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges).GetAsyncEnumerator();
             try
             {
-                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                while (edgeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
                 {
-                    Edge edge = enumerator.Current;
+                    Edge edge = edgeEnumerator.Current;
                     Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
                 }
             }
             finally
             {
-                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                edgeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
 
             Console.WriteLine("");
@@ -958,7 +991,7 @@
             {
                 TenantGUID = tenant.GUID,
                 Name = "Sample Graph 2"
-            });
+            }, default).GetAwaiter().GetResult();
 
             #endregion
 
@@ -1258,7 +1291,7 @@
             {
                 TenantGUID = tenant.GUID,
                 Name = "Test"
-            });
+            }, default).GetAwaiter().GetResult();
 
             Node node1 = new Node
             {
@@ -1284,7 +1317,7 @@
             {
                 TenantGUID = tenant.GUID,
                 Name = "Test"
-            });
+            }, default).GetAwaiter().GetResult();
 
             object data = new { Text = "hello" };
 
@@ -1316,7 +1349,7 @@
                 Expr = null
             };
 
-            EnumerationResult<Graph> graphs = _Client.Graph.Enumerate(query);
+            EnumerationResult<Graph> graphs = _Client.Graph.Enumerate(query, default).GetAwaiter().GetResult();
             Console.WriteLine(_Serializer.SerializeJson(graphs, true));
 
             EnumerationResult<Node> nodes = _Client.Node.Enumerate(query);
@@ -1377,7 +1410,7 @@
                 {
                     TenantGUID = Inputty.GetGuid("Tenant GUID:", _TenantGuid),
                     Name = Inputty.GetString("Name:", null, false)
-                });
+                }, default).GetAwaiter().GetResult();
             }
             else if (str.Equals("node"))
             {
@@ -1414,7 +1447,20 @@
             else if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.Graph.ReadMany(tenantGuid);
+                List<Graph> graphs = new List<Graph>();
+                var enumerator = _Client.Graph.ReadMany(tenantGuid, token: default).GetAsyncEnumerator();
+                try
+                {
+                    while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        graphs.Add(enumerator.Current);
+                    }
+                }
+                finally
+                {
+                    enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                obj = graphs;
             }
             else if (str.Equals("node"))
             {
@@ -1471,7 +1517,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                obj = _Client.Graph.ReadByGuid(tenantGuid, graphGuid);
+                obj = _Client.Graph.ReadByGuid(tenantGuid, graphGuid, token: default).GetAwaiter().GetResult();
             }
             else if (str.Equals("node"))
             {
@@ -1517,7 +1563,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                exists = _Client.Graph.ExistsByGuid(tenantGuid, graphGuid);
+                exists = _Client.Graph.ExistsByGuid(tenantGuid, graphGuid, default).GetAwaiter().GetResult();
             }
             else if (str.Equals("node"))
             {
@@ -1548,7 +1594,7 @@
             }
             else if (str.Equals("graph"))
             {
-                obj = _Client.Graph.Update(_Serializer.DeserializeJson<Graph>(json));
+                obj = _Client.Graph.Update(_Serializer.DeserializeJson<Graph>(json), default).GetAwaiter().GetResult();
             }
             else if (str.Equals("node"))
             {
@@ -1588,7 +1634,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 bool force = Inputty.GetBoolean("Force       :", true);
-                _Client.Graph.DeleteByGuid(tenantGuid, graphGuid, force);
+                _Client.Graph.DeleteByGuid(tenantGuid, graphGuid, force, default).GetAwaiter().GetResult();
             }
             else if (str.Equals("node"))
             {
@@ -1616,8 +1662,20 @@
             if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                IEnumerable<Graph> graphResult = _Client.Graph.ReadMany(tenantGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
-                if (graphResult != null) resultJson = _Serializer.SerializeJson(graphResult.ToList());
+                List<Graph> graphResult = new List<Graph>();
+                var enumerator = _Client.Graph.ReadMany(tenantGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending,token:  default).GetAsyncEnumerator();
+                try
+                {
+                    while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        graphResult.Add(enumerator.Current);
+                    }
+                }
+                finally
+                {
+                    enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                if (graphResult != null && graphResult.Count > 0) resultJson = _Serializer.SerializeJson(graphResult);
             }
             else if (str.Equals("node"))
             {
@@ -1816,7 +1874,7 @@
             {
                 TenantGUID = tenant.GUID,
                 Name = "Subgraph Test Graph"
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("| Created graph: " + graph.GUID);
             Console.WriteLine("");
 
@@ -2020,7 +2078,8 @@
                     maxNodes,
                     maxEdges,
                     includeData,
-                    includeSubordinates);
+                    includeSubordinates,
+                    default).GetAwaiter().GetResult();
 
                 if (result == null)
                 {

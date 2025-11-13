@@ -8,6 +8,7 @@
     using System.Net;
     using System.Text;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
@@ -1398,7 +1399,7 @@
             req.Graph.GUID = req.GraphGUID.Value;
 
             // Get current graph to preserve vector index properties
-            Graph currentGraph = _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value);
+            Graph currentGraph = await _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token: CancellationToken.None).ConfigureAwait(false);
             if (currentGraph != null)
             {
                 // Preserve existing vector index properties - these should only be changed through vector index APIs
@@ -1486,7 +1487,8 @@
                 await _LiteGraph.Graph.EnableVectorIndexingAsync(
                     req.TenantGUID.Value,
                     req.GraphGUID.Value,
-                    config);
+                    config,
+                    CancellationToken.None).ConfigureAwait(false);
 
                 ctx.Response.StatusCode = 200;
                 ctx.Response.ContentType = Constants.JsonContentType;
@@ -1513,7 +1515,8 @@
             await _LiteGraph.Graph.DisableVectorIndexingAsync(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
-                deleteFile);
+                deleteFile,
+                CancellationToken.None).ConfigureAwait(false);
 
             ctx.Response.StatusCode = 200;
             await ctx.Response.Send();
@@ -1525,7 +1528,8 @@
 
             await _LiteGraph.Graph.RebuildVectorIndexAsync(
                 req.TenantGUID.Value,
-                req.GraphGUID.Value);
+                req.GraphGUID.Value,
+                CancellationToken.None).ConfigureAwait(false);
 
             ctx.Response.StatusCode = 200;
             await ctx.Response.Send();
@@ -1535,9 +1539,10 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
-            VectorIndexStatistics stats = _LiteGraph.Graph.GetVectorIndexStatistics(
+            VectorIndexStatistics stats = await _LiteGraph.Graph.GetVectorIndexStatistics(
                 req.TenantGUID.Value,
-                req.GraphGUID.Value);
+                req.GraphGUID.Value,
+                CancellationToken.None).ConfigureAwait(false);
 
             if (stats == null)
             {
@@ -1556,7 +1561,7 @@
 
             try
             {
-                Graph graph = _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value);
+                Graph graph = await _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token: CancellationToken.None).ConfigureAwait(false);
                 if (graph == null)
                 {
                     ctx.Response.StatusCode = 404;
