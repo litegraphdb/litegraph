@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.Serialization;
@@ -1064,7 +1065,7 @@
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             req.Edge.TenantGUID = req.TenantGUID.Value;
             req.Edge.GraphGUID = req.GraphGUID.Value;
-            req.Edge = _LiteGraph.Edge.Create(req.Edge);
+            req.Edge = await _LiteGraph.Edge.Create(req.Edge, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, req.Edge);
         }
 
@@ -1076,7 +1077,7 @@
 
             try
             {
-                req.Edges = _LiteGraph.Edge.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Edges);
+                req.Edges = await _LiteGraph.Edge.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Edges, CancellationToken.None).ConfigureAwait(false);
                 return new ResponseContext(req, req.Edges);
             }
             catch (KeyNotFoundException knfe)
@@ -1093,11 +1094,11 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<Edge> objs = null;
+            List<Edge> objs = new List<Edge>();
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Edge.ReadMany(
+                await foreach (Edge edge in _LiteGraph.Edge.ReadMany(
                     req.TenantGUID.Value,
                     req.GraphGUID.Value,
                     null,
@@ -1107,18 +1108,25 @@
                     req.Order,
                     req.Skip,
                     req.IncludeData,
-                    req.IncludeSubordinates).ToList();
+                    req.IncludeSubordinates,
+                    CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(edge);
+                }
             }
             else
             {
-                objs = _LiteGraph.Edge.ReadByGuids(
+                await foreach (Edge edge in _LiteGraph.Edge.ReadByGuids(
                     req.TenantGUID.Value,
                     req.GUIDs,
                     req.IncludeData,
-                    req.IncludeSubordinates).ToList();
+                    req.IncludeSubordinates,
+                    CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(edge);
+                }
             }
 
-            if (objs == null) objs = new List<Edge>();
             return new ResponseContext(req, objs);
         }
 
@@ -1128,15 +1136,18 @@
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
-            EnumerationResult<Edge> er = _LiteGraph.Edge.Enumerate(req.EnumerationQuery);
+            EnumerationResult<Edge> er = await _LiteGraph.Edge.Enumerate(req.EnumerationQuery, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> EdgesBetween(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            req.Edges = _LiteGraph.Edge.ReadEdgesBetweenNodes(req.TenantGUID.Value, req.GraphGUID.Value, req.FromGUID.Value, req.ToGUID.Value).ToList();
-            if (req.Edges == null) req.Edges = new List<Edge>();
+            req.Edges = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadEdgesBetweenNodes(req.TenantGUID.Value, req.GraphGUID.Value, req.FromGUID.Value, req.ToGUID.Value, null, null, null, EnumerationOrderEnum.CreatedDescending, 0, false, false, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                req.Edges.Add(edge);
+            }
             return new ResponseContext(req, req.Edges);
         }
 
@@ -1146,7 +1157,8 @@
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
 
             SearchResult sresp = new SearchResult();
-            sresp.Edges = _LiteGraph.Edge.ReadMany(
+            sresp.Edges = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadMany(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.SearchRequest.Name,
@@ -1156,9 +1168,12 @@
                 req.SearchRequest.Ordering,
                 req.SearchRequest.Skip,
                 req.SearchRequest.IncludeData,
-                req.SearchRequest.IncludeSubordinates).ToList();
+                req.SearchRequest.IncludeSubordinates,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                sresp.Edges.Add(edge);
+            }
 
-            if (sresp.Edges == null) sresp.Edges = new List<Edge>();
             return new ResponseContext(req, sresp);
         }
 
@@ -1167,7 +1182,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
 
-            Edge edge = _LiteGraph.Edge.ReadFirst(
+            Edge edge = await _LiteGraph.Edge.ReadFirst(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.SearchRequest.Name,
@@ -1176,7 +1191,8 @@
                 req.SearchRequest.Expr,
                 req.SearchRequest.Ordering,
                 req.SearchRequest.IncludeData,
-                req.SearchRequest.IncludeSubordinates);
+                req.SearchRequest.IncludeSubordinates,
+                CancellationToken.None).ConfigureAwait(false);
 
             if (edge != null) return new ResponseContext(req, edge);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
@@ -1185,12 +1201,13 @@
         internal async Task<ResponseContext> EdgeRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            Edge edge = _LiteGraph.Edge.ReadByGuid(
+            Edge edge = await _LiteGraph.Edge.ReadByGuid(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.EdgeGUID.Value,
                 req.IncludeData,
-                req.IncludeSubordinates);
+                req.IncludeSubordinates,
+                CancellationToken.None).ConfigureAwait(false);
             if (edge == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, edge);
         }
@@ -1199,7 +1216,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (_LiteGraph.Edge.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value)) return new ResponseContext(req);
+            if (await _LiteGraph.Edge.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value, CancellationToken.None).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -1210,7 +1227,7 @@
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             req.Edge.TenantGUID = req.TenantGUID.Value;
             req.Edge.GraphGUID = req.GraphGUID.Value;
-            req.Edge = _LiteGraph.Edge.Update(req.Edge);
+            req.Edge = await _LiteGraph.Edge.Update(req.Edge, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, req.Edge);
         }
 
@@ -1218,8 +1235,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Edge.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            _LiteGraph.Edge.DeleteByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value);
+            if (!await _LiteGraph.Edge.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            await _LiteGraph.Edge.DeleteByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -1227,7 +1244,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            _LiteGraph.Edge.DeleteAllInGraph(req.TenantGUID.Value, req.GraphGUID.Value);
+            await _LiteGraph.Edge.DeleteAllInGraph(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -1236,7 +1253,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.GUIDs == null) throw new ArgumentNullException(nameof(req.GUIDs));
             if (!_LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            _LiteGraph.Edge.DeleteMany(req.TenantGUID.Value, req.GraphGUID.Value, req.GUIDs);
+            await _LiteGraph.Edge.DeleteMany(req.TenantGUID.Value, req.GraphGUID.Value, req.GUIDs, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -1247,7 +1264,8 @@
         internal async Task<ResponseContext> EdgesFromNode(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Edge> edgesFrom = _LiteGraph.Edge.ReadEdgesFromNode(
+            List<Edge> edgesFrom = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadEdgesFromNode(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
@@ -1257,15 +1275,19 @@
                 req.Order,
                 req.Skip,
                 req.IncludeData,
-                req.IncludeSubordinates).ToList();
-            if (edgesFrom == null) edgesFrom = new List<Edge>();
+                req.IncludeSubordinates,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                edgesFrom.Add(edge);
+            }
             return new ResponseContext(req, edgesFrom);
         }
 
         internal async Task<ResponseContext> EdgesToNode(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Edge> edgesTo = _LiteGraph.Edge.ReadEdgesToNode(
+            List<Edge> edgesTo = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadEdgesToNode(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
@@ -1275,15 +1297,19 @@
                 req.Order,
                 req.Skip,
                 req.IncludeData,
-                req.IncludeSubordinates).ToList();
-            if (edgesTo == null) edgesTo = new List<Edge>();
+                req.IncludeSubordinates,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                edgesTo.Add(edge);
+            }
             return new ResponseContext(req, edgesTo);
         }
 
         internal async Task<ResponseContext> AllEdgesToNode(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Edge> allEdges = _LiteGraph.Edge.ReadNodeEdges(
+            List<Edge> allEdges = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadNodeEdges(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
@@ -1293,7 +1319,11 @@
                 req.Order,
                 req.Skip,
                 req.IncludeData,
-                req.IncludeSubordinates).ToList();
+                req.IncludeSubordinates,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                allEdges.Add(edge);
+            }
             return new ResponseContext(req, allEdges);
         }
 

@@ -6,8 +6,10 @@
     using System.Data;
     using System.Linq;
     using System.Reflection.Emit;
+    using System.Runtime.CompilerServices;
     using System.Runtime.Serialization.Json;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.GraphRepositories.Interfaces;
@@ -49,20 +51,23 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public Edge Create(Edge edge)
+        public async Task<Edge> Create(Edge edge, CancellationToken token = default)
         {
             if (edge == null) throw new ArgumentNullException(nameof(edge));
+            token.ThrowIfCancellationRequested();
 
             string insertQuery = EdgeQueries.Insert(edge);
-            DataTable createResult = _Repo.ExecuteQuery(insertQuery, true); 
+            DataTable createResult = await _Repo.ExecuteQueryAsync(insertQuery, true, token).ConfigureAwait(false); 
             Edge created = Converters.EdgeFromDataRow(createResult.Rows[0]);
             return created;
         }
 
         /// <inheritdoc />
-        public List<Edge> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges)
+        public async Task<List<Edge>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges, CancellationToken token = default)
         {
             if (edges == null || edges.Count < 1) return new List<Edge>();
+            token.ThrowIfCancellationRequested();
+
             List<Edge> created = new List<Edge>();
 
             foreach (Edge edge in edges)
@@ -75,21 +80,25 @@
             string retrieveQuery = EdgeQueries.SelectMany(tenantGuid, edges.Select(n => n.GUID).ToList());
 
             // Execute the entire batch with BEGIN/COMMIT and multi-row INSERTs
-            DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
-            DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(insertQuery, true, token).ConfigureAwait(false);
+            DataTable retrieveResult = await _Repo.ExecuteQueryAsync(retrieveQuery, true, token).ConfigureAwait(false);
             created = Converters.EdgesFromDataTable(retrieveResult);
             return created;
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadAllInTenant(
+        public async IAsyncEnumerable<Edge> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
+
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -104,15 +113,19 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadAllInGraph(
+        public async IAsyncEnumerable<Edge> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
+
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectAllInGraph(tenantGuid, graphGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectAllInGraph(tenantGuid, graphGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -127,7 +140,7 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadMany(
+        public async IAsyncEnumerable<Edge> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
             string name = null,
@@ -135,13 +148,16 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            token.ThrowIfCancellationRequested();
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectMany(
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectMany(
                     tenantGuid, 
                     graphGuid, 
                     name,
@@ -150,7 +166,7 @@
                     edgeFilter, 
                     _Repo.SelectBatchSize, 
                     skip, 
-                    order));
+                    order), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1) break;
 
@@ -166,16 +182,19 @@
         }
 
         /// <inheritdoc />
-        public Edge ReadFirst(
+        public async Task<Edge> ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
             string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr edgeFilter = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectMany(
+            token.ThrowIfCancellationRequested();
+
+            DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectMany(
                 tenantGuid, 
                 graphGuid, 
                 name,
@@ -184,7 +203,7 @@
                 edgeFilter, 
                 1, 
                 0, 
-                order));
+                order), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) return null;
 
@@ -197,9 +216,11 @@
         }
 
         /// <inheritdoc />
-        public Edge ReadByGuid(Guid tenantGuid, Guid edgeGuid)
+        public async Task<Edge> ReadByGuid(Guid tenantGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectByGuid(tenantGuid, edgeGuid));
+            token.ThrowIfCancellationRequested();
+
+            DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectByGuid(tenantGuid, edgeGuid), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1)
             {
                 Edge edge = Converters.EdgeFromDataRow(result.Rows[0]);
@@ -209,21 +230,24 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<Edge> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) yield break;
-            DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectByGuids(tenantGuid, guids));
+            token.ThrowIfCancellationRequested();
+
+            DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectByGuids(tenantGuid, guids), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) yield break;
 
             for (int i = 0; i < result.Rows.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 yield return Converters.EdgeFromDataRow(result.Rows[i]);
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadNodeEdges(
+        public async IAsyncEnumerable<Edge> ReadNodeEdges(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -231,13 +255,16 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            token.ThrowIfCancellationRequested();
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectConnected(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectConnected(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -252,7 +279,7 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadEdgesFromNode(
+        public async IAsyncEnumerable<Edge> ReadEdgesFromNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -260,13 +287,16 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            token.ThrowIfCancellationRequested();
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectEdgesFrom(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectEdgesFrom(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -281,7 +311,7 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadEdgesToNode(
+        public async IAsyncEnumerable<Edge> ReadEdgesToNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -289,13 +319,16 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            token.ThrowIfCancellationRequested();
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectEdgesTo(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectEdgesTo(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -310,7 +343,7 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Edge> ReadEdgesBetweenNodes(
+        public async IAsyncEnumerable<Edge> ReadEdgesBetweenNodes(
             Guid tenantGuid,
             Guid graphGuid,
             Guid fromNodeGuid,
@@ -319,13 +352,16 @@
             NameValueCollection tags = null,
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            token.ThrowIfCancellationRequested();
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.SelectEdgesBetween(tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.SelectEdgesBetween(tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, labels, tags, edgeFilter, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
@@ -340,15 +376,16 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Edge> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<Edge>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
+            token.ThrowIfCancellationRequested();
 
             Edge marker = null;
 
             if (query.TenantGUID != null && query.ContinuationToken != null && query.GraphGUID != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                marker = await ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -358,7 +395,7 @@
             };
 
             ret.Timestamp.Start = DateTime.UtcNow;
-            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Labels, query.Tags, query.Expr, query.Ordering, null);
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, query.GraphGUID, query.Labels, query.Tags, query.Expr, query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -370,7 +407,8 @@
             }
             else
             {
-                DataTable result = _Repo.ExecuteQuery(EdgeQueries.GetRecordPage(
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.GetRecordPage(
                     query.TenantGUID,
                     query.GraphGUID,
                     query.Labels,
@@ -379,7 +417,7 @@
                     query.MaxResults,
                     query.Skip,
                     query.Ordering,
-                    marker));
+                    marker), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1)
                 {
@@ -395,7 +433,7 @@
 
                     Edge lastItem = ret.Objects.Last();
 
-                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Labels, query.Tags, query.Expr, query.Ordering, lastItem.GUID);
+                    ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, query.GraphGUID, query.Labels, query.Tags, query.Expr, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
 
                     if (ret.RecordsRemaining > 0)
                     {
@@ -416,30 +454,33 @@
         }
 
         /// <inheritdoc />
-        public int GetRecordCount(
+        public async Task<int> GetRecordCount(
             Guid? tenantGuid,
             Guid? graphGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr filter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            Guid? markerGuid = null)
+            Guid? markerGuid = null,
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
+
             Edge marker = null;
             if (tenantGuid != null && graphGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                marker = await ReadByGuid(tenantGuid.Value, markerGuid.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(EdgeQueries.GetRecordCount(
+            DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.GetRecordCount(
                 tenantGuid,
                 graphGuid,
                 labels,
                 tags,
                 filter,
                 order,
-                marker));
+                marker), false, token).ConfigureAwait(false);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {
@@ -452,55 +493,65 @@
         }
 
         /// <inheritdoc />
-        public Edge Update(Edge edge)
+        public async Task<Edge> Update(Edge edge, CancellationToken token = default)
         {
             if (edge == null) throw new ArgumentNullException(nameof(edge));
-            Edge updated = Converters.EdgeFromDataRow(_Repo.ExecuteQuery(EdgeQueries.Update(edge), true).Rows[0]);
+            token.ThrowIfCancellationRequested();
+
+            DataTable result = await _Repo.ExecuteQueryAsync(EdgeQueries.Update(edge), true, token).ConfigureAwait(false);
+            Edge updated = Converters.EdgeFromDataRow(result.Rows[0]);
             return updated;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(EdgeQueries.Delete(tenantGuid, graphGuid, edgeGuid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(EdgeQueries.Delete(tenantGuid, graphGuid, edgeGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(EdgeQueries.DeleteAllInTenant(tenantGuid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(EdgeQueries.DeleteAllInTenant(tenantGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(EdgeQueries.DeleteAllInGraph(tenantGuid, graphGuid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(EdgeQueries.DeleteAllInGraph(tenantGuid, graphGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids)
+        public async Task DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids, CancellationToken token = default)
         {
             if (edgeGuids == null || edgeGuids.Count < 1) return;
-            _Repo.ExecuteQuery(EdgeQueries.DeleteMany(tenantGuid, graphGuid, edgeGuids), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(EdgeQueries.DeleteMany(tenantGuid, graphGuid, edgeGuids), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public async Task DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            DeleteNodeEdges(tenantGuid, graphGuid, new List<Guid> { nodeGuid });
+            await DeleteNodeEdges(tenantGuid, graphGuid, new List<Guid> { nodeGuid }, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
+        public async Task DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, CancellationToken token = default)
         {
             if (nodeGuids == null || nodeGuids.Count < 1) return;
-            _Repo.ExecuteQuery(EdgeQueries.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuids), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(EdgeQueries.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuids), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid edgeGuid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            return (ReadByGuid(tenantGuid, edgeGuid) != null);
+            token.ThrowIfCancellationRequested();
+            Edge edge = await ReadByGuid(tenantGuid, edgeGuid, token).ConfigureAwait(false);
+            return (edge != null);
         }
 
         #endregion

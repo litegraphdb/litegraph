@@ -3,6 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
 
@@ -16,8 +19,9 @@
         /// Create an edge between two nodes.
         /// </summary>
         /// <param name="edge">Edge.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edge.</returns>
-        Edge Create(Edge edge);
+        Task<Edge> Create(Edge edge, CancellationToken token = default);
 
         /// <summary>
         /// Create multiple edges.
@@ -25,8 +29,9 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edges">Edges.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        List<Edge> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges);
+        Task<List<Edge>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges, CancellationToken token = default);
 
         /// <summary>
         /// Read all edges in a given tenant.
@@ -36,13 +41,15 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadAllInTenant(
+        IAsyncEnumerable<Edge> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read all edges in a given graph.
@@ -53,14 +60,16 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadAllInGraph(
+        IAsyncEnumerable<Edge> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read edges.
@@ -78,8 +87,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadMany(
+        IAsyncEnumerable<Edge> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
             string name = null,
@@ -89,7 +99,8 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read first.
@@ -106,8 +117,9 @@
         /// <param name="order">Enumeration order.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edge.</returns>
-        Edge ReadFirst(
+        Task<Edge> ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
             string name = null,
@@ -116,7 +128,8 @@
             Expr edgeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read edge.
@@ -126,13 +139,15 @@
         /// <param name="edgeGuid">Edge GUID.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edge.</returns>
-        Edge ReadByGuid(
+        Task<Edge> ReadByGuid(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid edgeGuid,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read edges by GUIDs.
@@ -141,12 +156,14 @@
         /// <param name="guids">GUIDs.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadByGuids(
+        IAsyncEnumerable<Edge> ReadByGuids(
             Guid tenantGuid, 
             List<Guid> guids,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get edges connected to or initiated from a given node.
@@ -164,8 +181,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadNodeEdges(
+        IAsyncEnumerable<Edge> ReadNodeEdges(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -175,7 +193,8 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get edges from a given node.
@@ -193,8 +212,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadEdgesFromNode(
+        IAsyncEnumerable<Edge> ReadEdgesFromNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -204,7 +224,8 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get edges to a given node.
@@ -222,8 +243,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadEdgesToNode(
+        IAsyncEnumerable<Edge> ReadEdgesToNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -233,7 +255,8 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get edges between two neighboring nodes.
@@ -252,8 +275,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edges.</returns>
-        IEnumerable<Edge> ReadEdgesBetweenNodes(
+        IAsyncEnumerable<Edge> ReadEdgesBetweenNodes(
             Guid tenantGuid,
             Guid graphGuid,
             Guid fromNodeGuid,
@@ -264,21 +288,24 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<Edge> Enumerate(EnumerationRequest query = null);
+        Task<EnumerationResult<Edge>> Enumerate(EnumerationRequest query = null, CancellationToken token = default);
 
         /// <summary>
         /// Update edge.
         /// </summary>
         /// <param name="edge">Edge.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Edge.</returns>
-        Edge Update(Edge edge);
+        Task<Edge> Update(Edge edge, CancellationToken token = default);
 
         /// <summary>
         /// Delete edge.
@@ -286,20 +313,23 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
-        void DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete all edges from a tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        void DeleteAllInTenant(Guid tenantGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete all edges from a graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
-        void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete multiple edges from a graph.
@@ -307,7 +337,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuids">Edge GUIDs.</param>
-        void DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids, CancellationToken token = default);
 
         /// <summary>
         /// Delete all edges associated with a given node.
@@ -315,7 +346,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
-        void DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete all edges associated with a set of given nodes.
@@ -323,7 +355,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuids">Node GUIDs.</param>
-        void DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, CancellationToken token = default);
 
         /// <summary>
         /// Check if an edge exists by GUID.
@@ -331,7 +364,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>True if exists.</returns>
-        bool ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
+        Task<bool> ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default);
     }
 }

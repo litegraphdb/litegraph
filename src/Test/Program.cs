@@ -523,7 +523,7 @@
                 Cost = 1,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e2 = _Client.Edge.Create(new Edge
             {
@@ -535,7 +535,7 @@
                 Cost = 2,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e3 = _Client.Edge.Create(new Edge
             {
@@ -547,7 +547,7 @@
                 Cost = 3,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e4 = _Client.Edge.Create(new Edge
             {
@@ -559,7 +559,7 @@
                 Cost = 4,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e5 = _Client.Edge.Create(new Edge
             {
@@ -571,7 +571,7 @@
                 Cost = 5,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e6 = _Client.Edge.Create(new Edge
             {
@@ -583,7 +583,7 @@
                 Cost = 6,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e7 = _Client.Edge.Create(new Edge
             {
@@ -595,7 +595,7 @@
                 Cost = 7,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e8 = _Client.Edge.Create(new Edge
             {
@@ -607,7 +607,7 @@
                 Cost = 8,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e9 = _Client.Edge.Create(new Edge
             {
@@ -619,7 +619,7 @@
                 Cost = 9,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e10 = _Client.Edge.Create(new Edge
             {
@@ -631,7 +631,7 @@
                 Cost = 10,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e11 = _Client.Edge.Create(new Edge
             {
@@ -643,7 +643,7 @@
                 Cost = 11,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             Edge e12 = _Client.Edge.Create(new Edge
             {
@@ -655,7 +655,7 @@
                 Cost = 12,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }).GetAwaiter().GetResult();
 
             #endregion
         }
@@ -697,8 +697,19 @@
                 "odd"
             };
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges))
-                Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+            var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges).GetAsyncEnumerator();
+            try
+            {
+                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Edge edge = enumerator.Current;
+                    Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
         }
@@ -734,8 +745,19 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges))
-                Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+            var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges).GetAsyncEnumerator();
+            try
+            {
+                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Edge edge = enumerator.Current;
+                    Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
         }
@@ -788,8 +810,19 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges))
-                Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+            var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges).GetAsyncEnumerator();
+            try
+            {
+                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Edge edge = enumerator.Current;
+                    Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
         }
@@ -990,7 +1023,7 @@
                 From = joelNode.GUID,
                 To = xfiNode.GUID,
                 Name = "Joel to Xfinity"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge joelStarlinkEdge = _Client.Edge.Create(new Edge
             {
@@ -999,7 +1032,7 @@
                 From = joelNode.GUID,
                 To = starlinkNode.GUID,
                 Name = "Joel to Starlink"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge yipXfiEdge = _Client.Edge.Create(new Edge
             {
@@ -1008,7 +1041,7 @@
                 From = yipNode.GUID,
                 To = xfiNode.GUID,
                 Name = "Yip to Xfinity"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge keithStarlinkEdge = _Client.Edge.Create(new Edge
             {
@@ -1017,7 +1050,7 @@
                 From = keithNode.GUID,
                 To = starlinkNode.GUID,
                 Name = "Keith to Starlink"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge keithXfiEdge = _Client.Edge.Create(new Edge
             {
@@ -1026,7 +1059,7 @@
                 From = keithNode.GUID,
                 To = xfiNode.GUID,
                 Name = "Keith to Xfinity"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge keithAttEdge = _Client.Edge.Create(new Edge
             {
@@ -1035,7 +1068,7 @@
                 From = keithNode.GUID,
                 To = attNode.GUID,
                 Name = "Keith to AT&T"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge alexAttEdge = _Client.Edge.Create(new Edge
             {
@@ -1044,7 +1077,7 @@
                 From = alexNode.GUID,
                 To = attNode.GUID,
                 Name = "Alex to AT&T"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge blakeAttEdge = _Client.Edge.Create(new Edge
             {
@@ -1053,7 +1086,7 @@
                 From = blakeNode.GUID,
                 To = attNode.GUID,
                 Name = "Blake to AT&T"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge xfiInternetEdge1 = _Client.Edge.Create(new Edge
             {
@@ -1062,7 +1095,7 @@
                 From = xfiNode.GUID,
                 To = internetNode.GUID,
                 Name = "Xfinity to Internet 1"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge xfiInternetEdge2 = _Client.Edge.Create(new Edge
             {
@@ -1071,7 +1104,7 @@
                 From = xfiNode.GUID,
                 To = internetNode.GUID,
                 Name = "Xfinity to Internet 2"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge starlinkInternetEdge = _Client.Edge.Create(new Edge
             {
@@ -1080,7 +1113,7 @@
                 From = starlinkNode.GUID,
                 To = internetNode.GUID,
                 Name = "Starlink to Internet"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge attInternetEdge1 = _Client.Edge.Create(new Edge
             {
@@ -1089,7 +1122,7 @@
                 From = attNode.GUID,
                 To = internetNode.GUID,
                 Name = "AT&T to Internet 1"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge attInternetEdge2 = _Client.Edge.Create(new Edge
             {
@@ -1098,7 +1131,7 @@
                 From = attNode.GUID,
                 To = internetNode.GUID,
                 Name = "AT&T to Internet 2"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge internetEquinixEdge = _Client.Edge.Create(new Edge
             {
@@ -1107,7 +1140,7 @@
                 From = internetNode.GUID,
                 To = equinixNode.GUID,
                 Name = "Internet to Equinix"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge internetAwsEdge = _Client.Edge.Create(new Edge
             {
@@ -1116,7 +1149,7 @@
                 From = internetNode.GUID,
                 To = awsNode.GUID,
                 Name = "Internet to AWS"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge internetAzureEdge = _Client.Edge.Create(new Edge
             {
@@ -1125,7 +1158,7 @@
                 From = internetNode.GUID,
                 To = azureNode.GUID,
                 Name = "Internet to Azure"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge equinixDoEdge = _Client.Edge.Create(new Edge
             {
@@ -1134,7 +1167,7 @@
                 From = equinixNode.GUID,
                 To = digitalOceanNode.GUID,
                 Name = "Equinix to DigitalOcean"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge equinixAwsEdge = _Client.Edge.Create(new Edge
             {
@@ -1143,7 +1176,7 @@
                 From = equinixNode.GUID,
                 To = awsNode.GUID,
                 Name = "Equinix to AWS"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge equinixRackspaceEdge = _Client.Edge.Create(new Edge
             {
@@ -1152,7 +1185,7 @@
                 From = equinixNode.GUID,
                 To = rackspaceNode.GUID,
                 Name = "Equinix to Rackspace"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge awsWebsiteEdge = _Client.Edge.Create(new Edge
             {
@@ -1161,7 +1194,7 @@
                 From = awsNode.GUID,
                 To = websiteNode.GUID,
                 Name = "AWS to Website"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge azureAdEdge = _Client.Edge.Create(new Edge
             {
@@ -1170,7 +1203,7 @@
                 From = azureNode.GUID,
                 To = adNode.GUID,
                 Name = "Azure to Active Directory"
-            });
+            }).GetAwaiter().GetResult();
 
             Edge doCcpEdge = _Client.Edge.Create(new Edge
             {
@@ -1179,7 +1212,7 @@
                 From = digitalOceanNode.GUID,
                 To = ccpNode.GUID,
                 Name = "DigitalOcean to Control Plane"
-            });
+            }).GetAwaiter().GetResult();
 
             #endregion
         }
@@ -1289,7 +1322,7 @@
             EnumerationResult<Node> nodes = _Client.Node.Enumerate(query);
             Console.WriteLine(_Serializer.SerializeJson(nodes, true));
 
-            EnumerationResult<Edge> edges = _Client.Edge.Enumerate(query);
+            EnumerationResult<Edge> edges = _Client.Edge.Enumerate(query).GetAwaiter().GetResult();
             Console.WriteLine(_Serializer.SerializeJson(edges, true));
         }
 
@@ -1354,7 +1387,7 @@
             else if (str.Equals("edge"))
             {
                 json = Inputty.GetString("JSON:", null, false);
-                obj = _Client.Edge.Create(_Serializer.DeserializeJson<Edge>(json));
+                obj = _Client.Edge.Create(_Serializer.DeserializeJson<Edge>(json)).GetAwaiter().GetResult();
             }
 
             if (obj != null)
@@ -1393,7 +1426,20 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                obj = _Client.Edge.ReadMany(tenantGuid, graphGuid);
+                List<Edge> edges = new List<Edge>();
+                var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid).GetAsyncEnumerator();
+                try
+                {
+                    while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        edges.Add(enumerator.Current);
+                    }
+                }
+                finally
+                {
+                    enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                obj = edges;
             }
 
             if (obj != null)
@@ -1439,7 +1485,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Edge GUID   :", default(Guid));
-                obj = _Client.Edge.ReadByGuid(tenantGuid, graphGuid, guid);
+                obj = _Client.Edge.ReadByGuid(tenantGuid, graphGuid, guid).GetAwaiter().GetResult();
             }
 
             if (obj != null)
@@ -1485,7 +1531,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Edge GUID   :", default(Guid));
-                exists = _Client.Edge.ExistsByGuid(tenantGuid, graphGuid, guid);
+                exists = _Client.Edge.ExistsByGuid(tenantGuid, graphGuid, guid).GetAwaiter().GetResult();
             }
 
             Console.WriteLine("Exists: " + exists);
@@ -1510,7 +1556,7 @@
             }
             else if (str.Equals("edge"))
             {
-                obj = _Client.Edge.Update(_Serializer.DeserializeJson<Edge>(json));
+                obj = _Client.Edge.Update(_Serializer.DeserializeJson<Edge>(json)).GetAwaiter().GetResult();
             }
 
             if (obj != null)
@@ -1556,7 +1602,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Edge GUID   :", default(Guid));
-                _Client.Edge.DeleteByGuid(tenantGuid, graphGuid, guid);
+                _Client.Edge.DeleteByGuid(tenantGuid, graphGuid, guid).GetAwaiter().GetResult();
             }
         }
 
@@ -1584,8 +1630,20 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                IEnumerable<Edge> edgeResult = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
-                if (edgeResult != null) resultJson = _Serializer.SerializeJson(edgeResult.ToList());
+                List<Edge> edgeResult = new List<Edge>();
+                var enumerator = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending).GetAsyncEnumerator();
+                try
+                {
+                    while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        edgeResult.Add(enumerator.Current);
+                    }
+                }
+                finally
+                {
+                    enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                if (edgeResult != null) resultJson = _Serializer.SerializeJson(edgeResult);
             }
 
             Console.WriteLine("");
@@ -1622,7 +1680,20 @@
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Edge.ReadEdgesToNode(tenantGuid, graphGuid, guid);
+            List<Edge> edges = new List<Edge>();
+            var enumerator = _Client.Edge.ReadEdgesToNode(tenantGuid, graphGuid, guid).GetAsyncEnumerator();
+            try
+            {
+                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    edges.Add(enumerator.Current);
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            object obj = edges;
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
@@ -1633,7 +1704,20 @@
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, guid);
+            List<Edge> edges = new List<Edge>();
+            var enumerator = _Client.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, guid).GetAsyncEnumerator();
+            try
+            {
+                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    edges.Add(enumerator.Current);
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            object obj = edges;
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
@@ -1645,7 +1729,20 @@
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid fromGuid = Inputty.GetGuid("From GUID   :", default(Guid));
             Guid toGuid = Inputty.GetGuid("To GUID     :", default(Guid));
-            object obj = _Client.Edge.ReadEdgesBetweenNodes(tenantGuid, graphGuid, fromGuid, toGuid);
+            List<Edge> edges = new List<Edge>();
+            var enumerator = _Client.Edge.ReadEdgesBetweenNodes(tenantGuid, graphGuid, fromGuid, toGuid).GetAsyncEnumerator();
+            try
+            {
+                while (enumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    edges.Add(enumerator.Current);
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            object obj = edges;
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
@@ -1812,7 +1909,7 @@
                 To = nodeB.GUID,
                 Name = "A -> B",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge A->B: " + edgeAB.GUID);
 
             Edge edgeAC = _Client.Edge.Create(new Edge
@@ -1823,7 +1920,7 @@
                 To = nodeC.GUID,
                 Name = "A -> C",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge A->C: " + edgeAC.GUID);
 
             Edge edgeBD = _Client.Edge.Create(new Edge
@@ -1834,7 +1931,7 @@
                 To = nodeD.GUID,
                 Name = "B -> D",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge B->D: " + edgeBD.GUID);
 
             Edge edgeBE = _Client.Edge.Create(new Edge
@@ -1845,7 +1942,7 @@
                 To = nodeE.GUID,
                 Name = "B -> E",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge B->E: " + edgeBE.GUID);
 
             Edge edgeCF = _Client.Edge.Create(new Edge
@@ -1856,7 +1953,7 @@
                 To = nodeF.GUID,
                 Name = "C -> F",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge C->F: " + edgeCF.GUID);
 
             Edge edgeDG = _Client.Edge.Create(new Edge
@@ -1867,7 +1964,7 @@
                 To = nodeG.GUID,
                 Name = "D -> G",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge D->G: " + edgeDG.GUID);
 
             // Add a back edge to test bidirectional traversal
@@ -1879,7 +1976,7 @@
                 To = nodeA.GUID,
                 Name = "C -> A (back edge)",
                 Cost = 1
-            });
+            }).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Edge C->A (back): " + edgeCA.GUID);
             Console.WriteLine("");
 

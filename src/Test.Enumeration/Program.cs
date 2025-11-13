@@ -194,25 +194,25 @@ namespace Test.Enumeration
                         BearerToken = $"token-{i:D3}",
                         Active = true
                     };
-                    credentials.Add(_Client.Credential.Create(credential));
+                    credentials.Add(_Client.Credential.Create(credential).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<Credential>(
                     testName + "-AllAtOnce",
-                    () => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }),
+                    () => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<Credential>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<Credential>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)
@@ -443,25 +443,25 @@ namespace Test.Enumeration
                         Cost = 1,
                         Data = null
                     };
-                    edges.Add(_Client.Edge.Create(edge));
+                    edges.Add(_Client.Edge.Create(edge).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<Edge>(
                     testName + "-AllAtOnce",
-                    () => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }),
+                    () => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<Edge>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<Edge>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)
