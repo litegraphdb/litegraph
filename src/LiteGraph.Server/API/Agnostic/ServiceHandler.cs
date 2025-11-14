@@ -909,11 +909,12 @@
 
             try
             {
-                string xml = _LiteGraph.RenderGraphAsGexf(
+                string xml = await _LiteGraph.RenderGraphAsGexf(
                     req.TenantGUID.Value,
                     req.GraphGUID.Value,
                     req.IncludeData,
-                    req.IncludeSubordinates);
+                    req.IncludeSubordinates,
+                    CancellationToken.None).ConfigureAwait(false);
 
                 return new ResponseContext(req, xml);
             }
