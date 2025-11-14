@@ -480,7 +480,7 @@
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' exists.");
             result.Graphs.Add(graph);
 
-            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            Node startingNode = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
             if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
 
@@ -510,7 +510,12 @@
                     List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                     if (neighborGuidsToLoad.Count > 0)
                     {
-                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        List<Node> nodes = new List<Node>();
+                        await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            nodes.Add(node);
+                        }
+                        Dictionary<Guid, Node> loadedNodes = nodes
                             .Where(n => n.GraphGUID == graphGuid)
                             .ToDictionary(n => n.GUID, n => n);
 
@@ -590,7 +595,12 @@
                 List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                 if (neighborGuidsToLoad.Count > 0)
                 {
-                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                    List<Node> nodes = new List<Node>();
+                    await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        nodes.Add(node);
+                    }
+                    Dictionary<Guid, Node> loadedNodes = nodes
                         .Where(n => n.GraphGUID == graphGuid)
                         .ToDictionary(n => n.GUID, n => n);
 
@@ -623,7 +633,7 @@
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
             token.ThrowIfCancellationRequested();
 
-            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            Node startingNode = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
             if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
 
@@ -646,7 +656,12 @@
                     List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                     if (neighborGuidsToLoad.Count > 0)
                     {
-                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        List<Node> nodes = new List<Node>();
+                        await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            nodes.Add(node);
+                        }
+                        Dictionary<Guid, Node> loadedNodes = nodes
                             .Where(n => n.GraphGUID == graphGuid)
                             .ToDictionary(n => n.GUID, n => n);
 
@@ -718,7 +733,12 @@
                 List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                 if (neighborGuidsToLoad.Count > 0)
                 {
-                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                    List<Node> nodes = new List<Node>();
+                    await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        nodes.Add(node);
+                    }
+                    Dictionary<Guid, Node> loadedNodes = nodes
                         .Where(n => n.GraphGUID == graphGuid)
                         .ToDictionary(n => n.GUID, n => n);
 

@@ -325,7 +325,7 @@
                         Vectors = embeddings2
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node2Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 2 " + node2Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -351,7 +351,7 @@
                         Vectors = embeddings3
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node3Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 3 " + node3Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -377,7 +377,7 @@
                         Vectors = embeddings4
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node4Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 4 " + node4Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -403,7 +403,7 @@
                         Vectors = embeddings1
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node5Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 5 " + node5Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -429,7 +429,7 @@
                         Vectors = embeddings2
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node6Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 6 " + node6Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -455,7 +455,7 @@
                         Vectors = embeddings3
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node7Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 7 " + node7Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -481,7 +481,7 @@
                         Vectors = embeddings4
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             Guid node8Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 8 " + node8Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
@@ -507,7 +507,7 @@
                         Vectors = embeddings1
                     }
                 }
-            });
+            }, default).GetAwaiter().GetResult();
 
             #endregion
 
@@ -696,8 +696,19 @@
                 "even"
             };
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes))
-                Console.WriteLine("| " + node.GUID + ": " + node.Name);
+            var nodeEnumerator = _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Node node = nodeEnumerator.Current;
+                    Console.WriteLine("| " + node.GUID + ": " + node.Name);
+                }
+            }
+            finally
+            {
+                nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving edges with labels 'edge' and 'odd'");
@@ -757,8 +768,19 @@
             tagsEvenNodes.Add("type", "node");
             tagsEvenNodes.Add("isEven", "true");
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, tagsEvenNodes))
-                Console.WriteLine("| " + node.GUID + ": " + node.Name);
+            var nodeEnumerator = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, tagsEvenNodes, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Node node = nodeEnumerator.Current;
+                    Console.WriteLine("| " + node.GUID + ": " + node.Name);
+                }
+            }
+            finally
+            {
+                nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving edges where tag 'type' = 'edge' and 'isEven' = 'false'");
@@ -827,8 +849,19 @@
             tagsEvenNodes.Add("type", "node");
             tagsEvenNodes.Add("isEven", "true");
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, tagsEvenNodes))
-                Console.WriteLine("| " + node.GUID + ": " + node.Name);
+            var nodeEnumerator = _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, tagsEvenNodes, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Node node = nodeEnumerator.Current;
+                    Console.WriteLine("| " + node.GUID + ": " + node.Name);
+                }
+            }
+            finally
+            {
+                nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving edges where labels 'edge' and 'odd' are present, and tag 'type' = 'edge' and 'isEven' = 'false'");
@@ -1023,27 +1056,27 @@
 
             #region Nodes
 
-            Node joelNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = joel });
-            Node yipNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Yip", Data = yip });
-            Node keithNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Keith", Data = keith });
-            Node alexNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Alex", Data = alex });
-            Node blakeNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Blake", Data = blake });
+            Node joelNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = joel }, default).GetAwaiter().GetResult();
+            Node yipNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Yip", Data = yip }, default).GetAwaiter().GetResult();
+            Node keithNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Keith", Data = keith }, default).GetAwaiter().GetResult();
+            Node alexNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Alex", Data = alex }, default).GetAwaiter().GetResult();
+            Node blakeNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Blake", Data = blake }, default).GetAwaiter().GetResult();
 
-            Node xfiNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Xfinity", Data = xfi });
-            Node starlinkNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Starlink", Data = starlink });
-            Node attNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AT&T", Data = att });
+            Node xfiNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Xfinity", Data = xfi }, default).GetAwaiter().GetResult();
+            Node starlinkNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Starlink", Data = starlink }, default).GetAwaiter().GetResult();
+            Node attNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AT&T", Data = att }, default).GetAwaiter().GetResult();
 
-            Node internetNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Internet", Data = internet });
+            Node internetNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Internet", Data = internet }, default).GetAwaiter().GetResult();
 
-            Node equinixNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Equinix", Data = equinix });
-            Node awsNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AWS", Data = aws });
-            Node azureNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Azure", Data = azure });
-            Node digitalOceanNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "DigitalOcean", Data = digitalOcean });
-            Node rackspaceNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Rackspace", Data = rackspace });
+            Node equinixNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Equinix", Data = equinix }, default).GetAwaiter().GetResult();
+            Node awsNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AWS", Data = aws }, default).GetAwaiter().GetResult();
+            Node azureNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Azure", Data = azure }, default).GetAwaiter().GetResult();
+            Node digitalOceanNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "DigitalOcean", Data = digitalOcean }, default).GetAwaiter().GetResult();
+            Node rackspaceNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Rackspace", Data = rackspace }, default).GetAwaiter().GetResult();
 
-            Node ccpNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Control Plane", Data = ccp });
-            Node websiteNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Website", Data = website });
-            Node adNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Active Directory", Data = ad });
+            Node ccpNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Control Plane", Data = ccp }, default).GetAwaiter().GetResult();
+            Node websiteNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Website", Data = website }, default).GetAwaiter().GetResult();
+            Node adNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Active Directory", Data = ad }, default).GetAwaiter().GetResult();
 
             #endregion
 
@@ -1259,18 +1292,36 @@
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where Name = 'Joel'");
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e1))
+            var nodeEnumerator1 = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e1, token: default).GetAsyncEnumerator();
+            try
             {
-                // Console.WriteLine(node.Data.ToString());
-                Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
+                while (nodeEnumerator1.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Node node = nodeEnumerator1.Current;
+                    // Console.WriteLine(node.Data.ToString());
+                    Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
+                }
+            }
+            finally
+            {
+                nodeEnumerator1.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieve nodes where Age >= 38");
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e2))
+            var nodeEnumerator2 = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e2, token: default).GetAsyncEnumerator();
+            try
             {
-                // Console.WriteLine(node.Data.ToString());
-                Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
+                while (nodeEnumerator2.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    Node node = nodeEnumerator2.Current;
+                    // Console.WriteLine(node.Data.ToString());
+                    Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
+                }
+            }
+            finally
+            {
+                nodeEnumerator2.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
 
             Console.WriteLine("");
@@ -1303,7 +1354,7 @@
 
             Console.WriteLine(_Serializer.SerializeJson(node1));
 
-            node1 = _Client.Node.Create(node1);
+            node1 = _Client.Node.Create(node1, default).GetAwaiter().GetResult();
         }
 
         static void Test3_2()
@@ -1331,7 +1382,7 @@
 
             Console.WriteLine(_Serializer.SerializeJson(node1));
 
-            node1 = _Client.Node.Create(node1);
+            node1 = _Client.Node.Create(node1, default).GetAwaiter().GetResult();
         }
 
         static void Test3_3()
@@ -1352,7 +1403,7 @@
             EnumerationResult<Graph> graphs = _Client.Graph.Enumerate(query, default).GetAwaiter().GetResult();
             Console.WriteLine(_Serializer.SerializeJson(graphs, true));
 
-            EnumerationResult<Node> nodes = _Client.Node.Enumerate(query);
+            EnumerationResult<Node> nodes = _Client.Node.Enumerate(query, default).GetAwaiter().GetResult();
             Console.WriteLine(_Serializer.SerializeJson(nodes, true));
 
             EnumerationResult<Edge> edges = _Client.Edge.Enumerate(query).GetAwaiter().GetResult();
@@ -1369,10 +1420,22 @@
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid fromGuid = Inputty.GetGuid("From GUID  :", default(Guid));
             Guid toGuid = Inputty.GetGuid("To GUID    :", default(Guid));
-            object obj = _Client.Node.ReadRoutes(SearchTypeEnum.DepthFirstSearch, tenantGuid, graphGuid, fromGuid, toGuid);
+            List<RouteDetail> routes = new List<RouteDetail>();
+            var routeEnumerator = _Client.Node.ReadRoutes(SearchTypeEnum.DepthFirstSearch, tenantGuid, graphGuid, fromGuid, toGuid, token: default).GetAsyncEnumerator();
+            try
+            {
+                while (routeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    routes.Add(routeEnumerator.Current);
+                }
+            }
+            finally
+            {
+                routeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
 
-            if (obj != null)
-                Console.WriteLine(_Serializer.SerializeJson(obj, true));
+            if (routes.Count > 0)
+                Console.WriteLine(_Serializer.SerializeJson(routes, true));
         }
 
         static void Create(string str)
@@ -1415,7 +1478,7 @@
             else if (str.Equals("node"))
             {
                 json = Inputty.GetString("JSON:", null, false);
-                obj = _Client.Node.Create(_Serializer.DeserializeJson<Node>(json));
+                obj = _Client.Node.Create(_Serializer.DeserializeJson<Node>(json), default).GetAwaiter().GetResult();
             }
             else if (str.Equals("edge"))
             {
@@ -1466,7 +1529,20 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                obj = _Client.Node.ReadMany(tenantGuid, graphGuid);
+                List<Node> nodes = new List<Node>();
+                var nodeEnumerator = _Client.Node.ReadMany(tenantGuid, graphGuid, token: default).GetAsyncEnumerator();
+                try
+                {
+                    while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        nodes.Add(nodeEnumerator.Current);
+                    }
+                }
+                finally
+                {
+                    nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                obj = nodes;
             }
             else if (str.Equals("edge"))
             {
@@ -1524,7 +1600,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                obj = _Client.Node.ReadByGuid(tenantGuid, graphGuid, guid);
+                obj = _Client.Node.ReadByGuid(tenantGuid, graphGuid, guid, default).GetAwaiter().GetResult();
             }
             else if (str.Equals("edge"))
             {
@@ -1570,7 +1646,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                exists = _Client.Node.ExistsByGuid(tenantGuid, guid);
+                exists = _Client.Node.ExistsByGuid(tenantGuid, guid, default).GetAwaiter().GetResult();
             }
             else if (str.Equals("edge"))
             {
@@ -1598,7 +1674,7 @@
             }
             else if (str.Equals("node"))
             {
-                obj = _Client.Node.Update(_Serializer.DeserializeJson<Node>(json));
+                obj = _Client.Node.Update(_Serializer.DeserializeJson<Node>(json), default).GetAwaiter().GetResult();
             }
             else if (str.Equals("edge"))
             {
@@ -1641,7 +1717,7 @@
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                _Client.Node.DeleteByGuid(tenantGuid, graphGuid, guid);
+                _Client.Node.DeleteByGuid(tenantGuid, graphGuid, guid, default).GetAwaiter().GetResult();
             }
             else if (str.Equals("edge"))
             {
@@ -1681,7 +1757,19 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                IEnumerable<Node> nodeResult = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
+                List<Node> nodeResult = new List<Node>();
+                var nodeEnumerator = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending, token: default).GetAsyncEnumerator();
+                try
+                {
+                    while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        nodeResult.Add(nodeEnumerator.Current);
+                    }
+                }
+                finally
+                {
+                    nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
                 if (nodeResult != null) resultJson = _Serializer.SerializeJson(nodeResult.ToList());
             }
             else if (str.Equals("edge"))
@@ -1896,7 +1984,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node A (Root)",
                 Data = new { Type = "Root", Level = 0 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node A: " + nodeA.GUID);
 
             Node nodeB = _Client.Node.Create(new Node
@@ -1905,7 +1993,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node B (Layer 1)",
                 Data = new { Type = "Layer1", Level = 1 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node B: " + nodeB.GUID);
 
             Node nodeC = _Client.Node.Create(new Node
@@ -1914,7 +2002,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node C (Layer 1)",
                 Data = new { Type = "Layer1", Level = 1 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node C: " + nodeC.GUID);
 
             Node nodeD = _Client.Node.Create(new Node
@@ -1923,7 +2011,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node D (Layer 2)",
                 Data = new { Type = "Layer2", Level = 2 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node D: " + nodeD.GUID);
 
             Node nodeE = _Client.Node.Create(new Node
@@ -1932,7 +2020,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node E (Layer 2)",
                 Data = new { Type = "Layer2", Level = 2 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node E: " + nodeE.GUID);
 
             Node nodeF = _Client.Node.Create(new Node
@@ -1941,7 +2029,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node F (Layer 2)",
                 Data = new { Type = "Layer2", Level = 2 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node F: " + nodeF.GUID);
 
             Node nodeG = _Client.Node.Create(new Node
@@ -1950,7 +2038,7 @@
                 GraphGUID = graph.GUID,
                 Name = "Node G (Layer 3)",
                 Data = new { Type = "Layer3", Level = 3 }
-            });
+            }, default).GetAwaiter().GetResult();
             Console.WriteLine("  | Created Node G: " + nodeG.GUID);
             Console.WriteLine("");
 

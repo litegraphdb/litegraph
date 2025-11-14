@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
+    using System.Threading.Tasks;
     using Caching;
     using LiteGraph.Client.Implementations;
     using LiteGraph.Client.Interfaces;
@@ -345,11 +346,11 @@
             GraphCacheAdd(graph);
         }
 
-        internal void ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid)
+        internal async Task ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid, System.Threading.CancellationToken token = default)
         {
             if (nodeGuid == null) return;
             if (NodeCacheTryGet(nodeGuid.Value, out var _)) return;
-            Node node = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid.Value);
+            Node node = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid.Value, token).ConfigureAwait(false);
             if (node == null) throw new ArgumentException("No node with GUID '" + nodeGuid.Value + "' exists.");
             NodeCacheAdd(node);
         }

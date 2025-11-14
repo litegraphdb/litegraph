@@ -57,8 +57,8 @@
 
             _Client.ValidateTenantExists(edge.TenantGUID);
             _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.To);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.From);
+            await _Client.ValidateNodeExists(edge.TenantGUID, edge.To, token).ConfigureAwait(false);
+            await _Client.ValidateNodeExists(edge.TenantGUID, edge.From, token).ConfigureAwait(false);
             _Client.ValidateLabels(edge.Labels);
             _Client.ValidateTags(edge.Tags);
             _Client.ValidateVectors(edge.Vectors);
@@ -414,8 +414,8 @@
 
             _Client.ValidateTenantExists(edge.TenantGUID);
             _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.To);
-            _Client.ValidateNodeExists(edge.TenantGUID, edge.From);
+            await _Client.ValidateNodeExists(edge.TenantGUID, edge.To, token).ConfigureAwait(false);
+            await _Client.ValidateNodeExists(edge.TenantGUID, edge.From, token).ConfigureAwait(false);
             _Client.ValidateLabels(edge.Labels);
             _Client.ValidateTags(edge.Tags);
             _Client.ValidateVectors(edge.Vectors);
@@ -485,7 +485,7 @@
         {
             token.ThrowIfCancellationRequested();
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges for node " + nodeGuid);
             _EdgeCache.Clear();

@@ -263,9 +263,9 @@
             if (!force)
             {
                 bool hasNodes = false;
-                using (var nodeEnumerator = _Repo.Node.ReadMany(tenantGuid, graphGuid).GetEnumerator())
+                await using (var nodeEnumerator = _Repo.Node.ReadMany(tenantGuid, graphGuid, token: token).GetAsyncEnumerator())
                 {
-                    hasNodes = nodeEnumerator.MoveNext();
+                    hasNodes = await nodeEnumerator.MoveNextAsync().ConfigureAwait(false);
                 }
                 if (hasNodes)
                     throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
@@ -390,7 +390,7 @@
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
 
@@ -446,7 +446,7 @@
 
             _Client.ValidateTenantExists(tenantGuid);
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph statistics starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
             return await _Repo.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges, token).ConfigureAwait(false);

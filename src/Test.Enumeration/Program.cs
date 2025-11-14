@@ -375,25 +375,25 @@ namespace Test.Enumeration
                         Name = $"Node-{i:D3}",
                         Data = null
                     };
-                    nodes.Add(_Client.Node.Create(node));
+                    nodes.Add(_Client.Node.Create(node, CancellationToken.None).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
                 bool test1Pass = TestEnumerateAllAtOnce(
                     testName + "-AllAtOnce",
-                    () => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }),
+                    () => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
                 bool test2Pass = TestEnumerateWithSkip(
                     testName + "-WithSkip",
-                    (skip) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
                 bool test3Pass = TestEnumerateWithContinuationToken(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)
@@ -424,7 +424,19 @@ namespace Test.Enumeration
             try
             {
                 // Get nodes to create edges between
-                List<Node> nodes = _Client.Node.ReadAllInGraph(_TenantGuid, _GraphGuid).ToList();
+                List<Node> nodes = new List<Node>();
+                var nodeEnumerator = _Client.Node.ReadAllInGraph(_TenantGuid, _GraphGuid, token: CancellationToken.None).GetAsyncEnumerator();
+                try
+                {
+                    while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                    {
+                        nodes.Add(nodeEnumerator.Current);
+                    }
+                }
+                finally
+                {
+                    nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
                 if (nodes.Count < 2)
                 {
                     throw new Exception("Not enough nodes to create edges");
@@ -610,7 +622,7 @@ namespace Test.Enumeration
             try
             {
                 // Get a node to attach vectors to
-                Node node = _Client.Node.ReadFirst(_TenantGuid, _GraphGuid);
+                Node node = _Client.Node.ReadFirst(_TenantGuid, _GraphGuid, token: CancellationToken.None).GetAwaiter().GetResult();
                 if (node == null)
                 {
                     throw new Exception("No nodes available to attach vectors");

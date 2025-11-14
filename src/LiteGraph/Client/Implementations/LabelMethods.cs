@@ -57,9 +57,9 @@
             _Client.ValidateTenantExists(label.TenantGUID);
             _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
 
-            if (label.NodeGUID != null) _Client.ValidateNodeExists(
+            if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                 label.TenantGUID,
-                label.NodeGUID.Value);
+                label.NodeGUID.Value, token).ConfigureAwait(false);
 
             if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
                 label.TenantGUID,
@@ -233,9 +233,9 @@
             _Client.ValidateTenantExists(label.TenantGUID);
             _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
 
-            if (label.NodeGUID != null) _Client.ValidateNodeExists(
+            if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                 label.TenantGUID,
-                label.NodeGUID.Value);
+                label.NodeGUID.Value, token).ConfigureAwait(false);
 
             if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
                 label.TenantGUID,
@@ -274,7 +274,7 @@
         public async Task DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
             _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteNodeLabels(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for node " + nodeGuid);
         }

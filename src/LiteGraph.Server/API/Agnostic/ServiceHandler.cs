@@ -920,7 +920,7 @@
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             req.Node.TenantGUID = req.TenantGUID.Value;
             req.Node.GraphGUID = req.GraphGUID.Value;
-            req.Node = _LiteGraph.Node.Create(req.Node);
+            req.Node = await _LiteGraph.Node.Create(req.Node, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, req.Node);
         }
 
@@ -932,7 +932,7 @@
 
             try
             {
-                req.Nodes = _LiteGraph.Node.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Nodes);
+                req.Nodes = await _LiteGraph.Node.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Nodes, CancellationToken.None).ConfigureAwait(false);
                 return new ResponseContext(req, req.Nodes);
             }
             catch (InvalidOperationException ioe)
@@ -945,11 +945,11 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<Node> objs = null;
+            List<Node> objs = new List<Node>();
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Node.ReadMany(
+                await foreach (Node node in _LiteGraph.Node.ReadMany(
                     req.TenantGUID.Value,
                     req.GraphGUID.Value,
                     null,
@@ -959,18 +959,25 @@
                     req.Order,
                     req.Skip,
                     req.IncludeData,
-                    req.IncludeSubordinates).ToList();
+                    req.IncludeSubordinates,
+                    CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(node);
+                }
             }
             else
             {
-                objs = _LiteGraph.Node.ReadByGuids(
+                await foreach (Node node in _LiteGraph.Node.ReadByGuids(
                     req.TenantGUID.Value,
                     req.GUIDs,
                     req.IncludeData,
-                    req.IncludeSubordinates).ToList();
+                    req.IncludeSubordinates,
+                    CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(node);
+                }
             }
 
-            if (objs == null) objs = new List<Node>();
             return new ResponseContext(req, objs);
         }
 
@@ -980,7 +987,7 @@
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
             req.EnumerationQuery.GraphGUID = req.GraphGUID;
-            EnumerationResult<Node> er = _LiteGraph.Node.Enumerate(req.EnumerationQuery);
+            EnumerationResult<Node> er = await _LiteGraph.Node.Enumerate(req.EnumerationQuery, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -990,7 +997,8 @@
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
 
             SearchResult sresp = new SearchResult();
-            sresp.Nodes = _LiteGraph.Node.ReadMany(
+            sresp.Nodes = new List<Node>();
+            await foreach (Node node in _LiteGraph.Node.ReadMany(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.SearchRequest.Name,
@@ -1000,8 +1008,11 @@
                 req.SearchRequest.Ordering,
                 req.SearchRequest.Skip,
                 req.SearchRequest.IncludeData,
-                req.SearchRequest.IncludeSubordinates).ToList();
-            if (sresp.Nodes == null) sresp.Nodes = new List<Node>();
+                req.SearchRequest.IncludeSubordinates,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                sresp.Nodes.Add(node);
+            }
             return new ResponseContext(req, sresp);
         }
 
@@ -1010,7 +1021,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.SearchRequest == null) throw new ArgumentNullException(nameof(req.SearchRequest));
 
-            Node node = _LiteGraph.Node.ReadFirst(
+            Node node = await _LiteGraph.Node.ReadFirst(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.SearchRequest.Name,
@@ -1019,7 +1030,8 @@
                 req.SearchRequest.Expr,
                 req.SearchRequest.Ordering,
                 req.SearchRequest.IncludeData,
-                req.SearchRequest.IncludeSubordinates);
+                req.SearchRequest.IncludeSubordinates,
+                CancellationToken.None).ConfigureAwait(false);
 
             if (node != null) return new ResponseContext(req, node);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "No matching records found.");
@@ -1029,12 +1041,13 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            Node node = _LiteGraph.Node.ReadByGuid(
+            Node node = await _LiteGraph.Node.ReadByGuid(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.IncludeData,
-                req.IncludeSubordinates);
+                req.IncludeSubordinates,
+                CancellationToken.None).ConfigureAwait(false);
 
             if (node == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             else return new ResponseContext(req, node);
@@ -1044,7 +1057,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            bool exists = _LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value);
+            bool exists = await _LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value, CancellationToken.None).ConfigureAwait(false);
             if (exists) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -1056,7 +1069,7 @@
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             req.Node.TenantGUID = req.TenantGUID.Value;
             req.Node.GraphGUID = req.GraphGUID.Value;
-            req.Node = _LiteGraph.Node.Update(req.Node);
+            req.Node = await _LiteGraph.Node.Update(req.Node, CancellationToken.None).ConfigureAwait(false);
             if (req.Node != null) return new ResponseContext(req, req.Node);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -1065,8 +1078,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            _LiteGraph.Node.DeleteByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value);
+            if (!await _LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.NodeGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            await _LiteGraph.Node.DeleteByGuid(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -1074,7 +1087,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            _LiteGraph.Node.DeleteAllInGraph(req.TenantGUID.Value, req.GraphGUID.Value);
+            await _LiteGraph.Node.DeleteAllInGraph(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -1083,7 +1096,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.GUIDs == null) throw new ArgumentNullException(nameof(req.GUIDs));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            _LiteGraph.Node.DeleteMany(req.TenantGUID.Value, req.GraphGUID.Value, req.GUIDs);
+            await _LiteGraph.Node.DeleteMany(req.TenantGUID.Value, req.GraphGUID.Value, req.GUIDs, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -1363,35 +1376,47 @@
         internal async Task<ResponseContext> NodeChildren(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Node> nodes = _LiteGraph.Node.ReadChildren(
+            List<Node> nodes = new List<Node>();
+            await foreach (Node node in _LiteGraph.Node.ReadChildren(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
-                req.NodeGUID.Value).ToList();
-            if (nodes == null) nodes = new List<Node>();
+                req.NodeGUID.Value,
+                token: CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                nodes.Add(node);
+            }
             return new ResponseContext(req, nodes);
         }
 
         internal async Task<ResponseContext> NodeParents(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Node> parents = _LiteGraph.Node.ReadParents(
+            List<Node> parents = new List<Node>();
+            await foreach (Node node in _LiteGraph.Node.ReadParents(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
-                req.NodeGUID.Value).ToList();
-            if (parents == null) parents = new List<Node>();
+                req.NodeGUID.Value,
+                token: CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                parents.Add(node);
+            }
             return new ResponseContext(req, parents);
         }
 
         internal async Task<ResponseContext> NodeNeighbors(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Node> neighbors = _LiteGraph.Node.ReadNeighbors(
+            List<Node> neighbors = new List<Node>();
+            await foreach (Node node in _LiteGraph.Node.ReadNeighbors(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.Order,
-                req.Skip).ToList();
-            if (neighbors == null) neighbors = new List<Node>();
+                req.Skip,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                neighbors.Add(node);
+            }
             return new ResponseContext(req, neighbors);
         }
 
@@ -1400,20 +1425,24 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.RouteRequest == null) throw new ArgumentNullException(nameof(req.RouteRequest));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.RouteRequest.From)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!_LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.RouteRequest.To)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            if (!await _LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.RouteRequest.From, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            if (!await _LiteGraph.Node.ExistsByGuid(req.TenantGUID.Value, req.RouteRequest.To, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             RouteResponse sresp = new RouteResponse();
-            List<RouteDetail> routes = _LiteGraph.Node.ReadRoutes(
+            List<RouteDetail> routes = new List<RouteDetail>();
+            await foreach (RouteDetail route in _LiteGraph.Node.ReadRoutes(
                 SearchTypeEnum.DepthFirstSearch,
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.RouteRequest.From,
                 req.RouteRequest.To,
                 req.RouteRequest.EdgeFilter,
-                req.RouteRequest.NodeFilter).ToList();
+                req.RouteRequest.NodeFilter,
+                CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                routes.Add(route);
+            }
 
-            if (routes == null) routes = new List<RouteDetail>();
             routes = routes.OrderBy(r => r.TotalCost).ToList();
             sresp.Routes = routes;
             sresp.Timestamp.End = DateTime.UtcNow;
