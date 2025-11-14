@@ -573,25 +573,25 @@ namespace Test.Enumeration
                         Key = $"Key-{i:D3}",
                         Value = $"Value-{i:D3}"
                     };
-                    tags.Add(_Client.Tag.Create(tag));
+                    tags.Add(_Client.Tag.Create(tag, CancellationToken.None).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<TagMetadata>(
                     testName + "-AllAtOnce",
-                    () => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }),
+                    () => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<TagMetadata>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<TagMetadata>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)

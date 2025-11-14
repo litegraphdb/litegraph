@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Runtime.Serialization.Json;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using LiteGraph.GraphRepositories.Interfaces;
@@ -47,20 +49,22 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public TagMetadata Create(TagMetadata tag)
+        public async Task<TagMetadata> Create(TagMetadata tag, CancellationToken token = default)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
             if (string.IsNullOrEmpty(tag.Key)) throw new ArgumentException("The supplied tag key is null or empty.");
+            token.ThrowIfCancellationRequested();
             string createQuery = TagQueries.Insert(tag);
-            DataTable createResult = createResult = _Repo.ExecuteQuery(createQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
             TagMetadata created = Converters.TagFromDataRow(createResult.Rows[0]);
             return created;
         }
 
         /// <inheritdoc />
-        public List<TagMetadata> CreateMany(Guid tenantGuid, List<TagMetadata> tags)
+        public async Task<List<TagMetadata>> CreateMany(Guid tenantGuid, List<TagMetadata> tags, CancellationToken token = default)
         {
             if (tags == null || tags.Count < 1) return new List<TagMetadata>();
+            token.ThrowIfCancellationRequested();
 
             foreach (TagMetadata Tag in tags)
             {
@@ -69,79 +73,93 @@
 
             string insertQuery = TagQueries.InsertMany(tenantGuid, tags);
             string retrieveQuery = TagQueries.SelectMany(tenantGuid, tags.Select(n => n.GUID).ToList());
-            DataTable createResult = _Repo.ExecuteQuery(insertQuery, true);
-            DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(insertQuery, true, token).ConfigureAwait(false);
+            DataTable retrieveResult = await _Repo.ExecuteQueryAsync(retrieveQuery, true, token).ConfigureAwait(false);
             List<TagMetadata> created = Converters.TagsFromDataTable(retrieveResult);
             return created;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TagQueries.Delete(tenantGuid, guid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TagQueries.Delete(tenantGuid, guid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TagQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TagQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids), false, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, List<Guid> guids)
+        public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TagQueries.DeleteMany(tenantGuid, guids));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TagQueries.DeleteMany(tenantGuid, guids), false, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TagQueries.DeleteAllInTenant(tenantGuid));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TagQueries.DeleteAllInTenant(tenantGuid), false, token).ConfigureAwait(false);
         }
         
         /// <inheritdoc />
-        public void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TagQueries.DeleteAllInGraph(tenantGuid, graphGuid));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TagQueries.DeleteAllInGraph(tenantGuid, graphGuid), false, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteGraphTags(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteGraphTags(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TagQueries.DeleteGraph(tenantGuid, graphGuid));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TagQueries.DeleteGraph(tenantGuid, graphGuid), false, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeTags(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public async Task DeleteNodeTags(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            _Repo.Tag.DeleteMany(tenantGuid, graphGuid, new List<Guid> { nodeGuid }, null);
+            token.ThrowIfCancellationRequested();
+            await DeleteMany(tenantGuid, graphGuid, new List<Guid> { nodeGuid }, null, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteEdgeTags(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public async Task DeleteEdgeTags(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Repo.Label.DeleteMany(tenantGuid, graphGuid, null, new List<Guid> { edgeGuid });
+            token.ThrowIfCancellationRequested();
+            await DeleteMany(tenantGuid, graphGuid, null, new List<Guid> { edgeGuid }, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid tagGuid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid tagGuid, CancellationToken token = default)
         {
-            return (ReadByGuid(tenantGuid, tagGuid) != null);
+            token.ThrowIfCancellationRequested();
+            TagMetadata tag = await ReadByGuid(tenantGuid, tagGuid, token).ConfigureAwait(false);
+            return tag != null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadAllInTenant(
+        public async IAsyncEnumerable<TagMetadata> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(TagQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(TagQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     TagMetadata tag = Converters.TagFromDataRow(result.Rows[i]);
                     yield return tag;
                     skip++;
@@ -152,19 +170,23 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadAllInGraph(
+        public async IAsyncEnumerable<TagMetadata> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(TagQueries.SelectAllInGraph(tenantGuid, graphGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(TagQueries.SelectAllInGraph(tenantGuid, graphGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     TagMetadata tag = Converters.TagFromDataRow(result.Rows[i]);
                     yield return tag;
                     skip++;
@@ -175,29 +197,32 @@
         }
 
         /// <inheritdoc />
-        public TagMetadata ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<TagMetadata> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(TagQueries.SelectByGuid(tenantGuid, guid));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(TagQueries.SelectByGuid(tenantGuid, guid), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1) return Converters.TagFromDataRow(result.Rows[0]);
             return null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) yield break;
-            DataTable result = _Repo.ExecuteQuery(TagQueries.SelectByGuids(tenantGuid, guids));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(TagQueries.SelectByGuids(tenantGuid, guids), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) yield break;
 
             for (int i = 0; i < result.Rows.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 yield return Converters.TagFromDataRow(result.Rows[i]);
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadMany(
+        public async IAsyncEnumerable<TagMetadata> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
@@ -205,12 +230,14 @@
             string key,
             string val,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = null;
                 if (graphGuid == null)
                 {
@@ -223,11 +250,12 @@
                     else query = TagQueries.SelectGraph(tenantGuid, graphGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
                 }
 
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.TagFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -237,18 +265,20 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public async IAsyncEnumerable<TagMetadata> ReadManyGraph(Guid tenantGuid, Guid graphGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = TagQueries.SelectGraph(tenantGuid, graphGuid, null, null, _Repo.SelectBatchSize, skip, order);
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.TagFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -258,18 +288,20 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public async IAsyncEnumerable<TagMetadata> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = TagQueries.SelectNode(tenantGuid, graphGuid, nodeGuid, null, null, _Repo.SelectBatchSize, skip, order);
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.TagFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -279,18 +311,20 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public async IAsyncEnumerable<TagMetadata> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = TagQueries.SelectEdge(tenantGuid, graphGuid, edgeGuid, null, null, _Repo.SelectBatchSize, skip, order);
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.TagFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -300,15 +334,16 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TagMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<TagMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
+            token.ThrowIfCancellationRequested();
 
             TagMetadata marker = null;
 
             if (query.TenantGUID != null && query.ContinuationToken != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                marker = await ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -318,7 +353,7 @@
             };
 
             ret.Timestamp.Start = DateTime.UtcNow;
-            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, null);
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -330,13 +365,13 @@
             }
             else
             {
-                DataTable result = _Repo.ExecuteQuery(TagQueries.GetRecordPage(
+                DataTable result = await _Repo.ExecuteQueryAsync(TagQueries.GetRecordPage(
                     query.TenantGUID,
                     query.GraphGUID,
                     query.MaxResults,
                     query.Skip,
                     query.Ordering,
-                    marker));
+                    marker), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1)
                 {
@@ -352,7 +387,7 @@
 
                     TagMetadata lastItem = ret.Objects.Last();
 
-                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, lastItem.GUID);
+                    ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
 
                     if (ret.RecordsRemaining > 0)
                     {
@@ -373,24 +408,26 @@
         }
 
         /// <inheritdoc />
-        public int GetRecordCount(
+        public async Task<int> GetRecordCount(
             Guid? tenantGuid,
             Guid? graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            Guid? markerGuid = null)
+            Guid? markerGuid = null,
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             TagMetadata marker = null;
             if (tenantGuid != null && graphGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                marker = await ReadByGuid(tenantGuid.Value, markerGuid.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(TagQueries.GetRecordCount(
+            DataTable result = await _Repo.ExecuteQueryAsync(TagQueries.GetRecordCount(
                 tenantGuid,
                 graphGuid,
                 order,
-                marker));
+                marker), false, token).ConfigureAwait(false);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {
@@ -403,13 +440,14 @@
         }
 
         /// <inheritdoc />
-        public TagMetadata Update(TagMetadata tag)
+        public async Task<TagMetadata> Update(TagMetadata tag, CancellationToken token = default)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
             if (string.IsNullOrEmpty(tag.Key)) throw new ArgumentException("The supplied tag key is null or empty.");
+            token.ThrowIfCancellationRequested();
 
             string updateQuery = TagQueries.Update(tag);
-            DataTable updateResult = _Repo.ExecuteQuery(updateQuery, true);
+            DataTable updateResult = await _Repo.ExecuteQueryAsync(updateQuery, true, token).ConfigureAwait(false);
             TagMetadata updated = Converters.TagFromDataRow(updateResult.Rows[0]);
             return updated;
         }

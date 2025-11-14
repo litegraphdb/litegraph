@@ -62,6 +62,7 @@
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
             _Client.ValidateTenantExists(graph.TenantGUID);
+            await _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID, token).ConfigureAwait(false);
             graph = await _Repo.Graph.Create(graph, token).ConfigureAwait(false);
             List<LabelMetadata> createdLabels = new List<LabelMetadata>();
             await foreach (LabelMetadata label in _Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null,token: token).WithCancellation(token).ConfigureAwait(false))
@@ -69,7 +70,12 @@
                 createdLabels.Add(label);
             }
             graph.Labels = LabelMetadata.ToListString(createdLabels);
-            graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList());
+            List<TagMetadata> createdTags = new List<TagMetadata>();
+            await foreach (TagMetadata tag in _Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                createdTags.Add(tag);
+            }
+            graph.Tags = TagMetadata.ToNameValueCollection(createdTags);
             graph.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created graph name " + graph.Name + " GUID " + graph.GUID);
             _GraphCache.AddReplace(graph.GUID, graph);
@@ -170,7 +176,7 @@
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graph with GUID " + graphGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             Graph obj = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (obj == null) return null;
@@ -216,7 +222,11 @@
                         }
                         if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, null).ToList();
+                        List<TagMetadata> allTags = new List<TagMetadata>();
+                        await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            allTags.Add(tag);
+                        }
                         if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                         obj.Vectors = _Repo.Vector.ReadManyGraph(obj.TenantGUID, obj.GUID).ToList();
@@ -235,7 +245,7 @@
             if (graph == null) throw new ArgumentNullException(nameof(graph));
             token.ThrowIfCancellationRequested();
             _Client.ValidateTenantExists(graph.TenantGUID);
-            _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID);
+            await _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID, token).ConfigureAwait(false);
             _Client.ValidateLabels(graph.Labels);
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
@@ -246,7 +256,12 @@
                 updatedLabels.Add(label);
             }
             updated.Labels = LabelMetadata.ToListString(updatedLabels);
-            updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null).ToList());
+            List<TagMetadata> updatedTags = new List<TagMetadata>();
+            await foreach (TagMetadata tag in _Repo.Tag.ReadMany(graph.TenantGUID, graph.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                updatedTags.Add(tag);
+            }
+            updated.Tags = TagMetadata.ToNameValueCollection(updatedTags);
             updated.Vectors = _Repo.Vector.ReadManyGraph(graph.TenantGUID, graph.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Debug, "updated graph with name " + graph.Name + " GUID " + graph.GUID);
             _GraphCache.AddReplace(updated.GUID, updated);
@@ -257,7 +272,7 @@
         public async Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, bool force = false, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleting graph " + graphGuid);
 
             if (!force)
@@ -389,7 +404,7 @@
             token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
@@ -445,7 +460,7 @@
             token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving subgraph statistics starting from node " + nodeGuid + " with max depth " + maxDepth + ", maxNodes " + maxNodes + ", maxEdges " + maxEdges);
@@ -469,7 +484,11 @@
                 }
                 if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, null).ToList();
+                List<TagMetadata> allTags = new List<TagMetadata>();
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allTags.Add(tag);
+                }
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                 obj.Vectors = _Repo.Vector.ReadManyGraph(obj.TenantGUID, obj.GUID).ToList();
@@ -492,7 +511,11 @@
                 }
                 if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null, null).ToList();
+                List<TagMetadata> allTags = new List<TagMetadata>();
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, obj.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allTags.Add(tag);
+                }
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                 obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
@@ -515,7 +538,11 @@
                 }
                 if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                List<TagMetadata> allTags = new List<TagMetadata>();
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allTags.Add(tag);
+                }
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                 obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();

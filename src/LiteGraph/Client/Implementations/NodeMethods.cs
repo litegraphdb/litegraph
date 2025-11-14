@@ -59,7 +59,7 @@
             _Client.ValidateLabels(node.Labels);
             _Client.ValidateVectors(node.Vectors);
             _Client.ValidateTenantExists(node.TenantGUID);
-            _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID);
+            await _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID, token).ConfigureAwait(false);
             Node created = await _Repo.Node.Create(node, token).ConfigureAwait(false);
             List<LabelMetadata> createdLabels = new List<LabelMetadata>();
             await foreach (LabelMetadata label in _Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
@@ -84,7 +84,7 @@
         {
             if (nodes == null) throw new ArgumentNullException(nameof(nodes));
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             List<Node> created = await _Repo.Node.CreateMany(tenantGuid, graphGuid, nodes, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created " + created.Count + " node(s) in graph " + graphGuid);
 
@@ -149,7 +149,7 @@
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             if (order == EnumerationOrderEnum.MostConnected)
             {
@@ -192,7 +192,7 @@
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             if (order == EnumerationOrderEnum.MostConnected)
             {
@@ -234,7 +234,7 @@
                 || order == EnumerationOrderEnum.CostDescending)
                 throw new ArgumentException("Cost-based enumeration orders are only available to edge APIs.");
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
 
             Node obj = await _Repo.Node.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order, token).ConfigureAwait(false);
@@ -259,7 +259,7 @@
             bool includeSubordinates = false,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Node obj in _Repo.Node.ReadMostConnected(tenantGuid, graphGuid, labels, tags, expr, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -279,7 +279,7 @@
             bool includeSubordinates = false,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Node obj in _Repo.Node.ReadLeastConnected(tenantGuid, graphGuid, labels, tags, expr, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -296,7 +296,7 @@
             bool includeSubordinates = false,
             CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             Node obj = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             if (obj == null) return null;
@@ -369,7 +369,7 @@
             _Client.ValidateTags(node.Tags);
             _Client.ValidateVectors(node.Vectors);
             _Client.ValidateTenantExists(node.TenantGUID);
-            _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID);
+            await _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID, token).ConfigureAwait(false);
             Node updated = await _Repo.Node.Update(node, token).ConfigureAwait(false);
             List<LabelMetadata> updatedLabels = new List<LabelMetadata>();
             await foreach (LabelMetadata label in _Repo.Label.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
@@ -412,7 +412,7 @@
         /// <inheritdoc />
         public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             await _Repo.Node.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted nodes for graph " + graphGuid);
@@ -423,7 +423,7 @@
         public async Task DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, CancellationToken token = default)
         {
             if (nodeGuids == null || nodeGuids.Count < 1) return;
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             await _Repo.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted " + nodeGuids.Count + " node(s) for graph " + graphGuid);
@@ -450,7 +450,7 @@
             int skip = 0,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             await foreach (Node node in _Repo.Node.ReadParents(tenantGuid, graphGuid, nodeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -468,7 +468,7 @@
             int skip = 0,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             await foreach (Node node in _Repo.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -486,7 +486,7 @@
             int skip = 0,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
             await foreach (Node node in _Repo.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -506,7 +506,7 @@
             Expr nodeFilter = null,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, fromNodeGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, toNodeGuid, token).ConfigureAwait(false);
 

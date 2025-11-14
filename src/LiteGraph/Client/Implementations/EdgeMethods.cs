@@ -56,7 +56,7 @@
             token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(edge.TenantGUID);
-            _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID);
+            await _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.To, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.From, token).ConfigureAwait(false);
             _Client.ValidateLabels(edge.Labels);
@@ -70,7 +70,12 @@
                 createdLabels.Add(label);
             }
             created.Labels = LabelMetadata.ToListString(createdLabels);
-            created.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+            List<TagMetadata> createdTags = new List<TagMetadata>();
+            await foreach (TagMetadata tag in _Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                createdTags.Add(tag);
+            }
+            created.Tags = TagMetadata.ToNameValueCollection(createdTags);
             created.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Info, "created edge " + created.GUID + " in graph " + created.GraphGUID);
             _EdgeCache.AddReplace(created.GUID, created);
@@ -83,7 +88,7 @@
             if (edges == null) throw new ArgumentNullException(nameof(edges));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             List<Edge> created = await _Repo.Edge.CreateMany(tenantGuid, graphGuid, edges, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created " + created.Count + " edges(s) in graph " + graphGuid);
 
@@ -97,7 +102,12 @@
                     edgeLabels.Add(label);
                 }
                 edge.Labels = LabelMetadata.ToListString(edgeLabels);
-                edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+                List<TagMetadata> edgeTags = new List<TagMetadata>();
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    edgeTags.Add(tag);
+                }
+                edge.Tags = TagMetadata.ToNameValueCollection(edgeTags);
                 edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
                 _EdgeCache.AddReplace(edge.GUID, edge);
             }
@@ -142,7 +152,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadAllInGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -169,7 +179,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadMany(tenantGuid, graphGuid, name, labels, tags, expr, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -195,7 +205,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             Edge obj = await _Repo.Edge.ReadFirst(tenantGuid, graphGuid, name, labels, tags, expr, order, token).ConfigureAwait(false);
 
@@ -213,7 +223,7 @@
             CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             Edge obj = await _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid, token).ConfigureAwait(false);
             if (obj == null) return null;
@@ -262,7 +272,11 @@
                         }
                         if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                        List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                        List<TagMetadata> allTags = new List<TagMetadata>();
+                        await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            allTags.Add(tag);
+                        }
                         if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                         obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
@@ -297,7 +311,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -324,7 +338,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -351,7 +365,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadEdgesToNode(
                 tenantGuid,
@@ -388,7 +402,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadEdgesBetweenNodes(
                 tenantGuid,
@@ -413,7 +427,7 @@
             token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(edge.TenantGUID);
-            _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID);
+            await _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.To, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.From, token).ConfigureAwait(false);
             _Client.ValidateLabels(edge.Labels);
@@ -427,7 +441,12 @@
                 updatedLabels.Add(label);
             }
             updated.Labels = LabelMetadata.ToListString(updatedLabels);
-            updated.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null).ToList());
+            List<TagMetadata> updatedTags = new List<TagMetadata>();
+            await foreach (TagMetadata tag in _Repo.Tag.ReadMany(edge.TenantGUID, edge.GraphGUID, null, edge.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                updatedTags.Add(tag);
+            }
+            updated.Tags = TagMetadata.ToNameValueCollection(updatedTags);
             updated.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
             _Client.Logging.Log(SeverityEnum.Debug, "updated edge " + updated.GUID + " in graph " + updated.GraphGUID);
             _EdgeCache.AddReplace(updated.GUID, updated);
@@ -438,7 +457,7 @@
         public async Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
+            await _Client.ValidateEdgeExists(tenantGuid, edgeGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteByGuid(tenantGuid, graphGuid, edgeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "deleted edge " + edgeGuid + " in graph " + graphGuid);
             _EdgeCache.TryRemove(edgeGuid);
@@ -458,7 +477,7 @@
         public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges in graph " + graphGuid);
             _EdgeCache.Clear();
@@ -470,7 +489,7 @@
             if (edgeGuids == null || edgeGuids.Count < 1) return;
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteMany(tenantGuid, graphGuid, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted " + edgeGuids.Count + " edge(s) in graph " + graphGuid);
 
@@ -484,7 +503,7 @@
         public async Task DeleteNodeEdges(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges for node " + nodeGuid);
@@ -497,7 +516,7 @@
             if (nodeGuids == null || nodeGuids.Count < 1) return;
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges for " + nodeGuids.Count + " node(s)");
             _EdgeCache.Clear();
@@ -507,7 +526,7 @@
         public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             return await _Repo.Edge.ExistsByGuid(tenantGuid, edgeGuid, token).ConfigureAwait(false);
         }
 
@@ -528,7 +547,11 @@
                 }
                 if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
-                List<TagMetadata> allTags = _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null).ToList();
+                List<TagMetadata> allTags = new List<TagMetadata>();
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GraphGUID, null, obj.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allTags.Add(tag);
+                }
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
                 obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();

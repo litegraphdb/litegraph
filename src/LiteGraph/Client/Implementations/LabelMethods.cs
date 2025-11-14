@@ -55,15 +55,15 @@
             token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(label.TenantGUID);
-            _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
+            await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
             if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                 label.TenantGUID,
                 label.NodeGUID.Value, token).ConfigureAwait(false);
 
-            if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
+            if (label.EdgeGUID != null) await _Client.ValidateEdgeExists(
                 label.TenantGUID,
-                label.EdgeGUID.Value);
+                label.EdgeGUID.Value, token).ConfigureAwait(false);
 
             LabelMetadata created = await _Repo.Label.Create(label, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created label " + created.GUID);
@@ -79,17 +79,17 @@
             _Client.ValidateTenantExists(tenantGuid);
             foreach (LabelMetadata label in labels)
             {
-                _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
+                await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(label.Label)) throw new ArgumentException("The supplied label is null or empty.");
 
-                if (label.NodeGUID != null) _Client.ValidateNodeExists(
+                if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                     label.TenantGUID,
-                    label.NodeGUID.Value);
+                    label.NodeGUID.Value, token).ConfigureAwait(false);
 
-                if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
+                if (label.EdgeGUID != null) await _Client.ValidateEdgeExists(
                     label.TenantGUID,
-                    label.EdgeGUID.Value);
+                    label.EdgeGUID.Value, token).ConfigureAwait(false);
 
                 label.TenantGUID = tenantGuid;
             }
@@ -231,15 +231,15 @@
             token.ThrowIfCancellationRequested();
 
             _Client.ValidateTenantExists(label.TenantGUID);
-            _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
+            await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
             if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                 label.TenantGUID,
                 label.NodeGUID.Value, token).ConfigureAwait(false);
 
-            if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
+            if (label.EdgeGUID != null) await _Client.ValidateEdgeExists(
                 label.TenantGUID,
-                label.EdgeGUID.Value);
+                label.EdgeGUID.Value, token).ConfigureAwait(false);
 
             label = await _Repo.Label.Update(label, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "updated label " + label.Label + " in GUID " + label.GUID);
@@ -257,7 +257,7 @@
         /// <inheritdoc />
         public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in graph " + graphGuid);
         }
@@ -265,7 +265,7 @@
         /// <inheritdoc />
         public async Task DeleteGraphLabels(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteGraphLabels(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for graph " + graphGuid);
         }
@@ -273,7 +273,7 @@
         /// <inheritdoc />
         public async Task DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteNodeLabels(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for node " + nodeGuid);
@@ -282,8 +282,8 @@
         /// <inheritdoc />
         public async Task DeleteEdgeLabels(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateEdgeExists(tenantGuid, edgeGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteEdgeLabels(tenantGuid, graphGuid, edgeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for edge " + edgeGuid);
         }
@@ -302,7 +302,7 @@
         public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
             _Client.ValidateTenantExists(tenantGuid);
-            if (graphGuid != null) _Client.ValidateGraphExists(tenantGuid, graphGuid.Value);
+            if (graphGuid != null) await _Client.ValidateGraphExists(tenantGuid, graphGuid.Value, token).ConfigureAwait(false);
             await _Repo.Label.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
         }

@@ -493,7 +493,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Tag == null) throw new ArgumentNullException(nameof(req.Tag));
             req.Tag.TenantGUID = req.TenantGUID.Value;
-            TagMetadata obj = _LiteGraph.Tag.Create(req.Tag);
+            TagMetadata obj = await _LiteGraph.Tag.Create(req.Tag, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -502,7 +502,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Tags == null || req.Tags.Count < 1) throw new ArgumentNullException(nameof(req.Tags));
             foreach (TagMetadata tag in req.Tags) tag.TenantGUID = req.TenantGUID.Value;
-            List<TagMetadata> obj = _LiteGraph.Tag.CreateMany(req.TenantGUID.Value, req.Tags);
+            List<TagMetadata> obj = await _LiteGraph.Tag.CreateMany(req.TenantGUID.Value, req.Tags, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -511,7 +511,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
-            EnumerationResult<TagMetadata> er = _LiteGraph.Tag.Enumerate(req.EnumerationQuery);
+            EnumerationResult<TagMetadata> er = await _LiteGraph.Tag.Enumerate(req.EnumerationQuery, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -519,25 +519,30 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<TagMetadata> objs = null;
+            List<TagMetadata> objs = new List<TagMetadata>();
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Tag.ReadMany(req.TenantGUID.Value, null, null, null, null, null, req.Order, req.Skip).ToList();
+                await foreach (TagMetadata tag in _LiteGraph.Tag.ReadMany(req.TenantGUID.Value, null, null, null, null, null, req.Order, req.Skip, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(tag);
+                }
             }
             else
             {
-                objs = _LiteGraph.Tag.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                await foreach (TagMetadata tag in _LiteGraph.Tag.ReadByGuids(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(tag);
+                }
             }
 
-            if (objs == null) objs = new List<TagMetadata>();
             return new ResponseContext(req, objs);
         }
 
         internal async Task<ResponseContext> TagRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            TagMetadata obj = _LiteGraph.Tag.ReadByGuid(req.TenantGUID.Value, req.TagGUID.Value);
+            TagMetadata obj = await _LiteGraph.Tag.ReadByGuid(req.TenantGUID.Value, req.TagGUID.Value, CancellationToken.None).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -545,7 +550,7 @@
         internal async Task<ResponseContext> TagExists(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (_LiteGraph.Tag.ExistsByGuid(req.TenantGUID.Value, req.TagGUID.Value)) return new ResponseContext(req);
+            if (await _LiteGraph.Tag.ExistsByGuid(req.TenantGUID.Value, req.TagGUID.Value, CancellationToken.None).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -554,7 +559,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Tag == null) throw new ArgumentNullException(nameof(req.Tag));
             req.Tag.TenantGUID = req.TenantGUID.Value;
-            TagMetadata obj = _LiteGraph.Tag.Update(req.Tag);
+            TagMetadata obj = await _LiteGraph.Tag.Update(req.Tag, CancellationToken.None).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, obj);
         }
@@ -562,14 +567,14 @@
         internal async Task<ResponseContext> TagDelete(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            _LiteGraph.Tag.DeleteByGuid(req.TenantGUID.Value, req.TagGUID.Value);
+            await _LiteGraph.Tag.DeleteByGuid(req.TenantGUID.Value, req.TagGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
         internal async Task<ResponseContext> TagDeleteMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            _LiteGraph.Tag.DeleteMany(req.TenantGUID.Value, req.GUIDs);
+            await _LiteGraph.Tag.DeleteMany(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 

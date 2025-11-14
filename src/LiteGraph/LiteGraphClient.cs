@@ -337,11 +337,11 @@
                 throw new ArgumentException("No user with GUID '" + userGuid + "' exists.");
         }
 
-        internal void ValidateGraphExists(Guid tenantGuid, Guid? graphGuid)
+        internal async Task ValidateGraphExists(Guid tenantGuid, Guid? graphGuid, System.Threading.CancellationToken token = default)
         {
             if (graphGuid == null) return;
             if (GraphCacheTryGet(graphGuid.Value, out var _)) return; 
-            Graph graph = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid.Value);
+            Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid.Value, token).ConfigureAwait(false);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid.Value + "' exists.");
             GraphCacheAdd(graph);
         }
@@ -355,11 +355,11 @@
             NodeCacheAdd(node);
         }
 
-        internal void ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid)
+        internal async Task ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid, System.Threading.CancellationToken token = default)
         {
             if (edgeGuid == null) return;
             if (EdgeCacheTryGet(edgeGuid.Value, out var _)) return;
-            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid.Value);
+            Edge edge = await _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid.Value, token).ConfigureAwait(false);
             if (edge == null) throw new ArgumentException("No edge with GUID '" + edgeGuid.Value + "' exists.");
             EdgeCacheAdd(edge);
         }

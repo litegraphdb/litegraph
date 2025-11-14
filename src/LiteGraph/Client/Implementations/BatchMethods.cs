@@ -47,7 +47,7 @@
             if (!req.ContainsExistenceRequest()) throw new ArgumentException("Supplied existence request contains no valid existence filters.");
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
             return await _Repo.Batch.Existence(tenantGuid, graphGuid, req, token).ConfigureAwait(false);  
         }
