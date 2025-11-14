@@ -1,6 +1,7 @@
 namespace LiteGraph.Client.Interfaces
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Indexing.Vector;
 
@@ -15,16 +16,18 @@ namespace LiteGraph.Client.Interfaces
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector index configuration.</returns>
-        VectorIndexConfiguration GetConfiguration(Guid tenantGuid, Guid graphGuid);
+        Task<VectorIndexConfiguration> GetConfiguration(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Get the vector index statistics for a graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector index statistics.</returns>
-        VectorIndexStatistics GetStatistics(Guid tenantGuid, Guid graphGuid);
+        Task<VectorIndexStatistics> GetStatistics(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Enable vector indexing on a graph.
@@ -32,16 +35,18 @@ namespace LiteGraph.Client.Interfaces
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="configuration">Vector index configuration.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Task.</returns>
-        Task EnableVectorIndexAsync(Guid tenantGuid, Guid graphGuid, VectorIndexConfiguration configuration);
+        Task EnableVectorIndex(Guid tenantGuid, Guid graphGuid, VectorIndexConfiguration configuration, CancellationToken token = default);
 
         /// <summary>
         /// Rebuild the vector index for a graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Task.</returns>
-        Task RebuildVectorIndexAsync(Guid tenantGuid, Guid graphGuid);
+        Task RebuildVectorIndex(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete (disable) the vector index for a graph.
@@ -49,7 +54,8 @@ namespace LiteGraph.Client.Interfaces
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="deleteIndexFile">Whether to delete the persistent index file.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Task.</returns>
-        Task DeleteVectorIndexAsync(Guid tenantGuid, Guid graphGuid, bool deleteIndexFile = false);
+        Task DeleteVectorIndex(Guid tenantGuid, Guid graphGuid, bool deleteIndexFile = false, CancellationToken token = default);
     }
 }

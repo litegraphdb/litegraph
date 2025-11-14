@@ -293,7 +293,7 @@
                 TenantGUID = tenantGuid,
                 Name = $"Vector Search Test Graph {DateTime.Now:yyyyMMdd-HHmmss}",
                 Labels = new List<string> { "vector-test", "performance-test" }
-            });
+            }, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         static List<Node> CreateNodesWithEmbeddingsBatch(Guid tenantGuid, Guid graphGuid, int count)
@@ -480,12 +480,12 @@
                 {
                     // Add timeout monitoring
                     List<VectorSearchResult> searchResults = new List<VectorSearchResult>();
-                    var searchEnumerator = _Client.Vector.Search(searchRequest, CancellationToken.None).GetAsyncEnumerator();
+                    int timeoutSeconds = 30;
+                    CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+                    var searchEnumerator = _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(cts.Token).GetAsyncEnumerator();
                     try
                     {
-                        int timeoutSeconds = 30;
-                        CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-                        while (searchEnumerator.MoveNextAsync(cts.Token).GetAwaiter().GetResult())
+                        while (searchEnumerator.MoveNextAsync().GetAwaiter().GetResult())
                         {
                             searchResults.Add(searchEnumerator.Current);
                         }
@@ -500,7 +500,7 @@
                     }
                     finally
                     {
-                        searchEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                        searchEnumerator.DisposeAsync().GetAwaiter().GetResult();
                     }
                 }
                 catch (Exception ex)

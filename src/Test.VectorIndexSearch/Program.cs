@@ -212,7 +212,7 @@ namespace Test.VectorIndexSearch
 
                 // Create graph with HNSW configuration
                 Stopwatch graphStopwatch = Stopwatch.StartNew();
-                graph = _Client.Graph.Create(new Graph
+                graph = await _Client.Graph.Create(new Graph
                 {
                     TenantGUID = tenant.GUID,
                     GUID = Guid.NewGuid(),
@@ -231,7 +231,7 @@ namespace Test.VectorIndexSearch
                         Dimensionality = _VectorDimensionality,
                         IndexType = metrics.IndexType.ToString()
                     }
-                });
+                }, CancellationToken.None).ConfigureAwait(false);
                 graphStopwatch.Stop();
                 metrics.GraphCreationTime = graphStopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"  Graph created with {metrics.TestName} index in {graphStopwatch.ElapsedMilliseconds}ms");
@@ -368,7 +368,7 @@ namespace Test.VectorIndexSearch
                 Console.WriteLine($"  Average time per node: {(double)metrics.TotalNodeCreationTime / metrics.NodesCreated:F2}ms");
 
                 // Validate data was created successfully
-                Node testNode = _Client.Node.ReadFirst(tenant.GUID, graph.GUID, null, null, null, null, EnumerationOrderEnum.CreatedDescending, true, true);
+                Node testNode = await _Client.Node.ReadFirst(tenant.GUID, graph.GUID, null, null, null, null, EnumerationOrderEnum.CreatedDescending, true, true, CancellationToken.None).ConfigureAwait(false);
                 if (testNode == null)
                 {
                     Console.WriteLine("  WARNING: No nodes found after creation!");
@@ -382,7 +382,7 @@ namespace Test.VectorIndexSearch
                     SqliteGraphRepository repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
                     if (repo != null)
                     {
-                        metrics.IndexStats = repo.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID);
+                        metrics.IndexStats = await repo.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID, CancellationToken.None).ConfigureAwait(false);
                         if (metrics.IndexStats != null)
                         {
                             Console.WriteLine("Index Statistics:");
@@ -445,7 +445,7 @@ namespace Test.VectorIndexSearch
                                     foreach ((Guid Id, float Score) indexResult in indexResults)
                                     {
                                         // In HNSW indexing, the vector ID corresponds to the node GUID
-                                        Node node = _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true);
+                                        Node node = await _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true, CancellationToken.None).ConfigureAwait(false);
                                         
                                         results.Add(new VectorSearchResult
                                         {
@@ -490,7 +490,11 @@ namespace Test.VectorIndexSearch
                                 MinimumScore = 0.0f,
                                 TopK = _TopResults
                             };
-                            results = _Client.Vector.Search(searchRequest).ToList();
+                            results = new List<VectorSearchResult>();
+                            await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                            {
+                                results.Add(result);
+                            }
                         }
                     }
                     else
@@ -506,7 +510,11 @@ namespace Test.VectorIndexSearch
                             MinimumScore = 0.0f,
                             TopK = _TopResults
                         };
-                        results = _Client.Vector.Search(searchRequest).ToList();
+                        results = new List<VectorSearchResult>();
+                        await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                        {
+                            results.Add(result);
+                        }
                     }
 
                     searchStopwatch.Stop();
@@ -554,7 +562,7 @@ namespace Test.VectorIndexSearch
                 Stopwatch nodeDeletionStopwatch = Stopwatch.StartNew();
                 foreach (Node node in nodes)
                 {
-                    _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID);
+                    await _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID, CancellationToken.None).ConfigureAwait(false);
                     metrics.NodesDeleted++;
                 }
                 nodeDeletionStopwatch.Stop();
@@ -562,7 +570,7 @@ namespace Test.VectorIndexSearch
 
                 // Delete graph
                 Stopwatch graphDeletionStopwatch = Stopwatch.StartNew();
-                _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true);
+                await _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true, CancellationToken.None).ConfigureAwait(false);
                 graphDeletionStopwatch.Stop();
                 metrics.GraphDeletionTime = graphDeletionStopwatch.ElapsedMilliseconds;
 
