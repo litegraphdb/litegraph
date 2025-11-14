@@ -61,7 +61,7 @@
             _Client.ValidateLabels(graph.Labels);
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
-            _Client.ValidateTenantExists(graph.TenantGUID);
+            await _Client.ValidateTenantExists(graph.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID, token).ConfigureAwait(false);
             graph = await _Repo.Graph.Create(graph, token).ConfigureAwait(false);
             List<LabelMetadata> createdLabels = new List<LabelMetadata>();
@@ -99,7 +99,7 @@
                 || order == EnumerationOrderEnum.LeastConnected)
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
 
             await foreach (Graph obj in _Repo.Graph.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -129,7 +129,7 @@
                 || order == EnumerationOrderEnum.LeastConnected)
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving graphs");
 
             await foreach (Graph obj in _Repo.Graph.ReadMany(tenantGuid, name, labels, tags, expr, order, skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -159,7 +159,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             Graph obj = await _Repo.Graph.ReadFirst(tenantGuid, name, labels, tags, expr, order, token).ConfigureAwait(false);
             if (obj == null) return null;
@@ -244,7 +244,7 @@
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(graph.TenantGUID);
+            await _Client.ValidateTenantExists(graph.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID, token).ConfigureAwait(false);
             _Client.ValidateLabels(graph.Labels);
             _Client.ValidateTags(graph.Tags);
@@ -301,7 +301,7 @@
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await foreach (Graph graph in ReadMany(tenantGuid, null, null, null, null, EnumerationOrderEnum.CreatedDescending, 0, false, false, token).WithCancellation(token).ConfigureAwait(false))
             {
                 await DeleteByGuid(tenantGuid, graph.GUID, false, token).ConfigureAwait(false);
@@ -314,7 +314,7 @@
         public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             return await _Repo.Graph.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
@@ -403,7 +403,7 @@
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 
@@ -459,7 +459,7 @@
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
 

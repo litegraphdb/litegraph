@@ -47,7 +47,7 @@
         {
             if (cred == null) throw new ArgumentNullException(nameof(cred));
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(cred.TenantGUID);
+            await _Client.ValidateTenantExists(cred.TenantGUID, token).ConfigureAwait(false);
             _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID);
             Credential created = await _Repo.Credential.Create(cred, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created credential " + created.GUID);
@@ -117,7 +117,7 @@
         {
             if (cred == null) throw new ArgumentNullException(nameof(cred));
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(cred.TenantGUID);
+            await _Client.ValidateTenantExists(cred.TenantGUID, token).ConfigureAwait(false);
             _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID);
             Credential updated = await _Repo.Credential.Update(cred, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "updated credential " + cred.Name + " GUID " + cred.GUID);
@@ -128,7 +128,7 @@
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Credential.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted credentials for tenant " + tenantGuid);
         }
@@ -137,7 +137,7 @@
         public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             Credential credential = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (credential == null) return;
             await _Repo.Credential.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
@@ -148,7 +148,7 @@
         public async Task DeleteByUser(Guid tenantGuid, Guid userGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             _Client.ValidateUserExists(tenantGuid, userGuid);
             await _Repo.Credential.DeleteByUser(tenantGuid, userGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted credentials for user " + userGuid);

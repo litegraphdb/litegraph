@@ -126,28 +126,28 @@ namespace Test.Enumeration
                     {
                         Name = $"Tenant-{i:D3}"
                     };
-                    tenants.Add(_Client.Tenant.Create(tenant));
+                    tenants.Add(_Client.Tenant.Create(tenant, CancellationToken.None).GetAwaiter().GetResult());
                 }
 
                 // Store first tenant for later tests
                 _TenantGuid = tenants[0].GUID;
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<TenantMetadata>(
                     testName + "-AllAtOnce",
-                    () => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 100 }),
+                    () => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<TenantMetadata>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<TenantMetadata>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)

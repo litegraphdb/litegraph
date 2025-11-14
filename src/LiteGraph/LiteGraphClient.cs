@@ -323,10 +323,10 @@
             }
         }
         
-        internal void ValidateTenantExists(Guid tenantGuid)
+        internal async Task ValidateTenantExists(Guid tenantGuid, System.Threading.CancellationToken token = default)
         {
             if (TenantCacheTryGet(tenantGuid, out var _)) return;
-            TenantMetadata tenant = Tenant.ReadByGuid(tenantGuid);
+            TenantMetadata tenant = await Tenant.ReadByGuid(tenantGuid, token).ConfigureAwait(false);
             if (tenant == null) throw new ArgumentException("No tenant with GUID '" + tenantGuid + "' exists.");
             TenantCacheAdd(tenant);
         }

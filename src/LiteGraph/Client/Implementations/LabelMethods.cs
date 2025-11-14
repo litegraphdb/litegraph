@@ -54,7 +54,7 @@
             if (label == null) throw new ArgumentNullException(nameof(label));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(label.TenantGUID);
+            await _Client.ValidateTenantExists(label.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
             if (label.NodeGUID != null) await _Client.ValidateNodeExists(
@@ -76,7 +76,7 @@
             if (labels == null || labels.Count < 1) return new List<LabelMetadata>();
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             foreach (LabelMetadata label in labels)
             {
                 await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
@@ -230,7 +230,7 @@
             if (label == null) throw new ArgumentNullException(nameof(label));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(label.TenantGUID);
+            await _Client.ValidateTenantExists(label.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
             if (label.NodeGUID != null) await _Client.ValidateNodeExists(
@@ -249,7 +249,7 @@
         /// <inheritdoc />
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
         }
@@ -291,7 +291,7 @@
         /// <inheritdoc />
         public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             LabelMetadata label = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (label == null) return;
             await _Repo.Label.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
@@ -301,7 +301,7 @@
         /// <inheritdoc />
         public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             if (graphGuid != null) await _Client.ValidateGraphExists(tenantGuid, graphGuid.Value, token).ConfigureAwait(false);
             await _Repo.Label.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
@@ -310,7 +310,7 @@
         /// <inheritdoc />
         public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Label.DeleteMany(tenantGuid, guids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
         }
@@ -318,7 +318,7 @@
         /// <inheritdoc />
         public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             return await _Repo.Label.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 

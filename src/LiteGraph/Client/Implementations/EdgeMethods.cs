@@ -55,7 +55,7 @@
             if (edge == null) throw new ArgumentNullException(nameof(edge));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(edge.TenantGUID);
+            await _Client.ValidateTenantExists(edge.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.To, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.From, token).ConfigureAwait(false);
@@ -129,7 +129,7 @@
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             await foreach (Edge obj in _Repo.Edge.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -426,7 +426,7 @@
             if (edge == null) throw new ArgumentNullException(nameof(edge));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(edge.TenantGUID);
+            await _Client.ValidateTenantExists(edge.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(edge.TenantGUID, edge.GraphGUID, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.To, token).ConfigureAwait(false);
             await _Client.ValidateNodeExists(edge.TenantGUID, edge.From, token).ConfigureAwait(false);
@@ -467,7 +467,7 @@
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges in tenant " + tenantGuid);
             _EdgeCache.Clear();

@@ -7,6 +7,7 @@ namespace Test.VectorIndexImplementation
     using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -36,7 +37,7 @@ namespace Test.VectorIndexImplementation
         private static readonly int _EfConstruction = 200;
         private static readonly int _EfSearch = 50;
         private static readonly int _MaxConnections = 16;
-        
+
         // Search Parameters - Configurable thresholds to get actual results
         private static readonly double _MinimumCosineSimilarityScore = 0.0;  // Accept all cosine similarity scores
         private static readonly double _MaximumEuclideanDistance = 10.0;     // Accept distances up to 10.0
@@ -81,7 +82,7 @@ namespace Test.VectorIndexImplementation
 
             // Test VectorIndexConfiguration constructor fix
             await TestVectorIndexConfigurationAsync();
-            
+
             // Test JSON deserialization fix
             await TestJsonDeserializationAsync();
 
@@ -198,7 +199,7 @@ namespace Test.VectorIndexImplementation
                 Name = "HNSW Test Tenant",
                 CreatedUtc = DateTime.UtcNow
             };
-            _Client.Tenant.Create(_Tenant);
+            _Client.Tenant.Create(_Tenant, CancellationToken.None).GetAwaiter().GetResult();
 
             // Create graph
             _Graph = new Graph
@@ -209,7 +210,7 @@ namespace Test.VectorIndexImplementation
                 VectorDimensionality = _VectorDimensionality,
                 CreatedUtc = DateTime.UtcNow
             };
-            _Graph = _Client.Graph.Create(_Graph);
+            _Graph = await _Client.Graph.Create(_Graph).ConfigureAwait(false);
 
             setupTimer.Stop();
             Console.WriteLine($"[OK] Test environment initialized in {setupTimer.ElapsedMilliseconds}ms");
@@ -255,7 +256,7 @@ namespace Test.VectorIndexImplementation
                     nodes.Add(node);
                 }
 
-                List<Node> createdNodes = _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, nodes);
+                List<Node> createdNodes = _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, nodes, CancellationToken.None).GetAwaiter().GetResult();
                 _CreatedNodes.AddRange(createdNodes);
                 creationTimer.Stop();
 
@@ -282,7 +283,7 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine($"[OK] HNSW indexing enabled in {indexTimer.ElapsedMilliseconds}ms");
 
                 // Verify vectors were indexed
-                int vectorCount = GetCurrentVectorCount();
+                int vectorCount =  await GetCurrentVectorCount();
                 Console.WriteLine($"[VERIFICATION] Vectors in index: {vectorCount}");
 
                 if (vectorCount == _InitialVectorCount)
@@ -311,8 +312,8 @@ namespace Test.VectorIndexImplementation
         {
             try
             {
-                VectorIndexStatistics stats = _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID);
-                
+                VectorIndexStatistics stats = await _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID).ConfigureAwait(false);
+
                 if (stats == null)
                 {
                     Console.WriteLine("[FAILED] No index statistics available");
@@ -388,7 +389,7 @@ namespace Test.VectorIndexImplementation
                     additionalNodes.Add(node);
                 }
 
-                List<Node> createdNodes = _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, additionalNodes);
+                List<Node> createdNodes = _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, additionalNodes, CancellationToken.None).GetAwaiter().GetResult();
                 _CreatedNodes.AddRange(createdNodes);
                 addTimer.Stop();
 
@@ -396,7 +397,7 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine($"     Average: {(double)addTimer.ElapsedMilliseconds / createdNodes.Count:F2}ms per vector");
 
                 // Verify new count
-                int totalVectorCount = GetCurrentVectorCount();
+                int totalVectorCount = await GetCurrentVectorCount();
                 int expectedCount = _InitialVectorCount + _AdditionalVectorCount;
 
                 Console.WriteLine($"[VERIFICATION] Total vectors in index: {totalVectorCount} (expected: {expectedCount})");
@@ -441,14 +442,14 @@ namespace Test.VectorIndexImplementation
                 foreach (VectorSearchTypeEnum searchType in searchTypes)
                 {
                     Console.WriteLine($"\n[SEARCH TYPE] {searchType}");
-                    
+
                     List<long> searchTimes = new List<long>();
                     List<int> resultCounts = new List<int>();
 
                     for (int i = 0; i < _SearchIterations; i++)
                     {
                         List<float> searchVector = GenerateRandomVector(_VectorDimensionality);
-                        
+
                         Stopwatch searchTimer = Stopwatch.StartNew();
                         // Get more results initially, then filter based on search type
                         List<VectorSearchResult> allResults = _Client.Vector.Search(
@@ -461,7 +462,7 @@ namespace Test.VectorIndexImplementation
                                 Embeddings = searchVector
                             }
                         ).Take(_MaxSearchResults * 2).ToList(); // Get extra results for filtering
-                        
+
                         // Filter results based on search type and thresholds
                         List<VectorSearchResult> results = FilterSearchResults(allResults, searchType);
                         searchTimer.Stop();
@@ -528,7 +529,7 @@ namespace Test.VectorIndexImplementation
             try
             {
                 Console.WriteLine($"[PROCESSING] Removing {_RemovalCount} vectors from index...");
-                
+
                 // Select nodes to remove (take from the beginning)
                 List<Node> nodesToRemove = _CreatedNodes.Take(_RemovalCount).ToList();
                 _RemovedNodes.AddRange(nodesToRemove);
@@ -552,7 +553,7 @@ namespace Test.VectorIndexImplementation
                 }
 
                 // Verify removal
-                int remainingVectorCount = GetCurrentVectorCount();
+                int remainingVectorCount = await GetCurrentVectorCount();
                 int expectedCount = _InitialVectorCount + _AdditionalVectorCount - _RemovalCount;
 
                 Console.WriteLine($"[VERIFICATION] Remaining vectors in index: {remainingVectorCount} (expected: {expectedCount})");
@@ -602,7 +603,7 @@ namespace Test.VectorIndexImplementation
                             Embeddings = searchVector
                         }
                     ).Take(_MaxSearchResults * 2).ToList();
-                    
+
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
 
                     // Check if any removed nodes appear in results
@@ -654,7 +655,7 @@ namespace Test.VectorIndexImplementation
                 for (int i = 0; i < _SearchIterations; i++)
                 {
                     List<float> searchVector = GenerateRandomVector(_VectorDimensionality);
-                    
+
                     Stopwatch searchTimer = Stopwatch.StartNew();
                     List<VectorSearchResult> allResults = _Client.Vector.Search(
                         new VectorSearchRequest
@@ -666,7 +667,7 @@ namespace Test.VectorIndexImplementation
                             Embeddings = searchVector
                         }
                     ).Take(_MaxSearchResults * 2).ToList();
-                    
+
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
                     searchTimer.Stop();
 
@@ -707,11 +708,11 @@ namespace Test.VectorIndexImplementation
         /// Get the current vector count in the index.
         /// </summary>
         /// <returns>Vector count.</returns>
-        private static int GetCurrentVectorCount()
+        private static async Task<int> GetCurrentVectorCount()
         {
             try
             {
-                VectorIndexStatistics stats = _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID);
+                VectorIndexStatistics stats = await _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID).ConfigureAwait(false);
                 return stats?.VectorCount ?? 0;
             }
             catch
@@ -737,7 +738,7 @@ namespace Test.VectorIndexImplementation
 
             return vector;
         }
-        
+
         /// <summary>
         /// Filter search results based on search type and configurable thresholds.
         /// </summary>
@@ -747,48 +748,48 @@ namespace Test.VectorIndexImplementation
         private static List<VectorSearchResult> FilterSearchResults(List<VectorSearchResult> results, VectorSearchTypeEnum searchType)
         {
             if (results == null || results.Count == 0) return results ?? new List<VectorSearchResult>();
-            
+
             List<VectorSearchResult> filtered = new List<VectorSearchResult>();
-            
+
             foreach (VectorSearchResult result in results)
             {
                 bool includeResult = false;
-                
+
                 switch (searchType)
                 {
                     case VectorSearchTypeEnum.CosineSimilarity:
                         // For cosine similarity, higher scores are better (closer to 1.0)
                         includeResult = result.Score >= _MinimumCosineSimilarityScore;
                         break;
-                        
+
                     case VectorSearchTypeEnum.EuclidianDistance:
                         // For Euclidean distance, lower distances are better
                         includeResult = result.Distance <= _MaximumEuclideanDistance;
                         break;
-                        
+
                     case VectorSearchTypeEnum.DotProduct:
                         // For dot product, higher values are generally better, but can be negative
                         includeResult = result.Score >= _MinimumDotProductScore;
                         break;
-                        
+
                     default:
                         // Include all results for unknown search types
                         includeResult = true;
                         break;
                 }
-                
+
                 if (includeResult)
                 {
                     filtered.Add(result);
                 }
-                
+
                 // Limit the number of results to prevent overwhelming output
                 if (filtered.Count >= _MaxSearchResults)
                 {
                     break;
                 }
             }
-            
+
             return filtered;
         }
 
@@ -800,12 +801,12 @@ namespace Test.VectorIndexImplementation
         {
             Console.WriteLine("\n[CLEANUP] Disposing test resources...");
             Stopwatch cleanupTimer = Stopwatch.StartNew();
-            
+
             try
             {
                 // Dispose client first
                 _Client?.Dispose();
-                
+
                 // Clean up database file
                 if (System.IO.File.Exists(_DatabasePath))
                 {
@@ -819,13 +820,13 @@ namespace Test.VectorIndexImplementation
                         Console.WriteLine($"[WARNING] Could not delete database file {_DatabasePath}: {ex.Message}");
                     }
                 }
-                
+
                 // Clean up any other test artifacts
                 string[] testFiles = {
                     "test_auto_population.db",
                     "test.db"
                 };
-                
+
                 foreach (string file in testFiles)
                 {
                     if (System.IO.File.Exists(file))
@@ -846,7 +847,7 @@ namespace Test.VectorIndexImplementation
             {
                 Console.WriteLine($"[WARNING] Error during cleanup: {ex.Message}");
             }
-            
+
             cleanupTimer.Stop();
             Console.WriteLine($"[OK] Cleanup completed in {cleanupTimer.ElapsedMilliseconds}ms");
         }
@@ -859,7 +860,7 @@ namespace Test.VectorIndexImplementation
         {
             Console.WriteLine("[TEST] VectorIndexConfiguration Constructor Fix");
             Console.WriteLine("------------------------------------------------------------");
-            
+
             try
             {
                 // Create a graph without vector indexing (simulating API scenario)
@@ -879,7 +880,7 @@ namespace Test.VectorIndexImplementation
 
                 Console.WriteLine("[PROCESSING] Creating VectorIndexConfiguration from graph without indexing...");
                 VectorIndexConfiguration config = new VectorIndexConfiguration(graph);
-                
+
                 Console.WriteLine($"[VERIFICATION] VectorIndexType: {config.VectorIndexType}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexFile: {config.VectorIndexFile ?? "null"}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexThreshold: {config.VectorIndexThreshold?.ToString() ?? "null"}");
@@ -887,10 +888,10 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine($"[VERIFICATION] VectorIndexM: {config.VectorIndexM?.ToString() ?? "null"}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexEf: {config.VectorIndexEf?.ToString() ?? "null"}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexEfConstruction: {config.VectorIndexEfConstruction?.ToString() ?? "null"}");
-                
+
                 Console.WriteLine("[SUCCESS] VectorIndexConfiguration constructor fix working correctly!");
                 Console.WriteLine();
-                
+
                 await Task.CompletedTask;
             }
             catch (Exception e)
@@ -910,7 +911,7 @@ namespace Test.VectorIndexImplementation
         {
             Console.WriteLine("[TEST] JSON Deserialization Fix for VectorIndexTypeEnum");
             Console.WriteLine("------------------------------------------------------------");
-            
+
             try
             {
                 string json = @"{
@@ -924,22 +925,22 @@ namespace Test.VectorIndexImplementation
                 }";
 
                 Console.WriteLine("[PROCESSING] Deserializing JSON with 'HnswSqlite' enum value...");
-                
+
                 JsonSerializerOptions options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
                 };
-                
+
                 VectorIndexConfiguration config = System.Text.Json.JsonSerializer.Deserialize<VectorIndexConfiguration>(json, options);
-                
+
                 Console.WriteLine($"[VERIFICATION] VectorIndexType: {config.VectorIndexType}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexFile: {config.VectorIndexFile}");
                 Console.WriteLine($"[VERIFICATION] VectorDimensionality: {config.VectorDimensionality}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexM: {config.VectorIndexM}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexEf: {config.VectorIndexEf}");
                 Console.WriteLine($"[VERIFICATION] VectorIndexEfConstruction: {config.VectorIndexEfConstruction}");
-                
+
                 // Verify the enum was parsed correctly
                 if (config.VectorIndexType == VectorIndexTypeEnum.HnswSqlite)
                 {
@@ -950,7 +951,7 @@ namespace Test.VectorIndexImplementation
                     Console.WriteLine($"[ERROR] Expected HnswSqlite, got {config.VectorIndexType}");
                     throw new Exception("Enum deserialization failed");
                 }
-                
+
                 Console.WriteLine();
                 await Task.CompletedTask;
             }

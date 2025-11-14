@@ -280,9 +280,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.Tenant.ExistsByGuid(tenant.GUID))
+            if (!_Repo.Tenant.ExistsByGuid(tenant.GUID, CancellationToken.None).GetAwaiter().GetResult())
             {
-                tenant = _Repo.Tenant.Create(tenant);
+                tenant = _Repo.Tenant.Create(tenant, CancellationToken.None).GetAwaiter().GetResult();
                 Console.WriteLine("| Created tenant     : " + tenant.GUID);
             }
 

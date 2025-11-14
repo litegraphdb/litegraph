@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -282,7 +283,7 @@
             return _Client.Tenant.Create(new TenantMetadata
             {
                 Name = $"Vector Search Test Tenant {DateTime.Now:yyyyMMdd-HHmmss}"
-            });
+            }, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         static Graph CreateGraph(Guid tenantGuid)
@@ -359,7 +360,7 @@
 
                 // Insert the entire batch at once
                 Stopwatch batchInsertStopwatch = Stopwatch.StartNew();
-                List<Node> createdNodes = _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes);
+                List<Node> createdNodes = _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes, CancellationToken.None).GetAwaiter().GetResult();
                 batchInsertStopwatch.Stop();
 
                 long batchInsertTime = batchInsertStopwatch.ElapsedMilliseconds;
@@ -565,7 +566,7 @@
             PerformanceMetrics.GraphDeletionTime = cleanupStopwatch.ElapsedMilliseconds - PerformanceMetrics.NodeDeletionTime;
 
             // Delete tenant
-            _Client.Tenant.DeleteByGuid(tenant.GUID, force: true);
+            _Client.Tenant.DeleteByGuid(tenant.GUID, force: true, token: CancellationToken.None).GetAwaiter().GetResult();
             PerformanceMetrics.TenantDeletionTime = cleanupStopwatch.ElapsedMilliseconds - PerformanceMetrics.NodeDeletionTime - PerformanceMetrics.GraphDeletionTime;
 
             cleanupStopwatch.Stop();

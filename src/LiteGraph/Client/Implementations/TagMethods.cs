@@ -57,7 +57,7 @@
             if (tag == null) throw new ArgumentNullException(nameof(tag));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tag.TenantGUID);
+            await _Client.ValidateTenantExists(tag.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID, token).ConfigureAwait(false);
             if (tag.NodeGUID != null) await _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value, token).ConfigureAwait(false);
             if (tag.EdgeGUID != null) await _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value, token).ConfigureAwait(false);
@@ -72,7 +72,7 @@
             if (tags == null || tags.Count < 1) return null;
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             foreach (TagMetadata tag in tags)
             {
@@ -95,7 +95,7 @@
             int skip = 0,
             [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
@@ -223,7 +223,7 @@
             if (tag == null) throw new ArgumentNullException(nameof(tag));
             token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tag.TenantGUID);
+            await _Client.ValidateTenantExists(tag.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID, token).ConfigureAwait(false);
             if (tag.NodeGUID != null) await _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value, token).ConfigureAwait(false);
             if (tag.EdgeGUID != null) await _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value, token).ConfigureAwait(false);
@@ -235,7 +235,7 @@
         /// <inheritdoc />
         public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             TagMetadata tag = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (tag == null) return;
             await _Repo.Tag.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
@@ -245,7 +245,7 @@
         /// <inheritdoc />
         public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Tag.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }
@@ -253,7 +253,7 @@
         /// <inheritdoc />
         public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Tag.DeleteMany(tenantGuid, guids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }
@@ -261,7 +261,7 @@
         /// <inheritdoc />
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Tag.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }

@@ -5,6 +5,7 @@
     using System.Collections.Specialized;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using ExpressionTree;
     using GetSomeInput;
     using LiteGraph;
@@ -211,7 +212,7 @@
         {
             #region Tenant
 
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" });
+            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" }, CancellationToken.None).GetAwaiter().GetResult();
 
             #endregion
 
@@ -1014,7 +1015,7 @@
         {
             #region Tenant
 
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" });
+            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" }, CancellationToken.None).GetAwaiter().GetResult();
 
             #endregion
 
@@ -1336,7 +1337,7 @@
             TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata
             {
                 Name = "Test"
-            });
+            }, CancellationToken.None).GetAwaiter().GetResult();
 
             Graph graph = _Client.Graph.Create(new Graph
             {
@@ -1362,7 +1363,7 @@
             TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata
             {
                 Name = "Test"
-            });
+            }, CancellationToken.None).GetAwaiter().GetResult();
 
             Graph graph = _Client.Graph.Create(new Graph
             {
@@ -1445,7 +1446,7 @@
 
             if (str.Equals("tenant"))
             {
-                obj = _Client.Tenant.Create(new TenantMetadata { Name = Inputty.GetString("Name:", null, false) });
+                obj = _Client.Tenant.Create(new TenantMetadata { Name = Inputty.GetString("Name:", null, false) }, CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (str.Equals("user"))
             {
@@ -1495,7 +1496,21 @@
             object obj = null;
             if (str.Equals("tenant"))
             {
-                obj = _Client.Tenant.ReadMany();
+                List<TenantMetadata> tenants = new List<TenantMetadata>();
+                IAsyncEnumerator<TenantMetadata> tenantEnumerator = _Client.Tenant.ReadMany(token: CancellationToken.None).GetAsyncEnumerator();
+                try
+                {
+                    while (tenantEnumerator.MoveNextAsync().AsTask().GetAwaiter().GetResult())
+                    {
+                        tenants.Add(tenantEnumerator.Current);
+                    }
+                }
+                finally
+                {
+                    tenantEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+
+                obj = tenants;
             }
             else if (str.Equals("user"))
             {
@@ -1575,7 +1590,7 @@
             if (str.Equals("tenant"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.Tenant.ReadByGuid(tenantGuid);
+                obj = _Client.Tenant.ReadByGuid(tenantGuid, CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (str.Equals("user"))
             {
@@ -1621,7 +1636,7 @@
             if (str.Equals("tenant"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                exists = _Client.Tenant.ExistsByGuid(tenantGuid);
+                exists = _Client.Tenant.ExistsByGuid(tenantGuid, CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (str.Equals("user"))
             {
@@ -1664,9 +1679,9 @@
             object obj = null;
             string json = Inputty.GetString("JSON:", null, false);
 
-            if (str.Equals("graph"))
+            if (str.Equals("tenant"))
             {
-                obj = _Client.Tenant.Update(_Serializer.DeserializeJson<TenantMetadata>(json));
+                obj = _Client.Tenant.Update(_Serializer.DeserializeJson<TenantMetadata>(json), CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (str.Equals("graph"))
             {
@@ -1691,7 +1706,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 bool force = Inputty.GetBoolean("Force       :", true);
-                _Client.Tenant.DeleteByGuid(tenantGuid, force);
+                _Client.Tenant.DeleteByGuid(tenantGuid, force, CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (str.Equals("user"))
             {
@@ -1955,7 +1970,7 @@
 
             #region Create Tenant and Graph
 
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Subgraph Test Tenant" });
+            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Subgraph Test Tenant" }, CancellationToken.None).GetAwaiter().GetResult();
             Console.WriteLine("| Created tenant: " + tenant.GUID);
 
             Graph graph = _Client.Graph.Create(new Graph

@@ -58,7 +58,7 @@
             _Client.ValidateTags(node.Tags);
             _Client.ValidateLabels(node.Labels);
             _Client.ValidateVectors(node.Vectors);
-            _Client.ValidateTenantExists(node.TenantGUID);
+            await _Client.ValidateTenantExists(node.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID, token).ConfigureAwait(false);
             Node created = await _Repo.Node.Create(node, token).ConfigureAwait(false);
             List<LabelMetadata> createdLabels = new List<LabelMetadata>();
@@ -127,7 +127,7 @@
                 || order == EnumerationOrderEnum.LeastConnected)
                 throw new ArgumentException("Connectedness enumeration orders are only available to node retrieval within a graph.");
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             await foreach (Node obj in _Repo.Node.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
@@ -368,7 +368,7 @@
             _Client.ValidateLabels(node.Labels);
             _Client.ValidateTags(node.Tags);
             _Client.ValidateVectors(node.Vectors);
-            _Client.ValidateTenantExists(node.TenantGUID);
+            await _Client.ValidateTenantExists(node.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(node.TenantGUID, node.GraphGUID, token).ConfigureAwait(false);
             Node updated = await _Repo.Node.Update(node, token).ConfigureAwait(false);
             List<LabelMetadata> updatedLabels = new List<LabelMetadata>();
@@ -402,7 +402,7 @@
         /// <inheritdoc />
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             await _Repo.Node.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted nodes for tenant " + tenantGuid);

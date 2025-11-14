@@ -5,6 +5,7 @@ namespace Test.VectorIndexSearch
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -204,7 +205,7 @@ namespace Test.VectorIndexSearch
                 {
                     GUID = Guid.NewGuid(),
                     Name = $"Vector Index Test Tenant ({metrics.TestName})"
-                });
+                }, CancellationToken.None).GetAwaiter().GetResult();
                 tenantStopwatch.Stop();
                 metrics.TenantCreationTime = tenantStopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"  Tenant created in {tenantStopwatch.ElapsedMilliseconds}ms");
@@ -300,7 +301,7 @@ namespace Test.VectorIndexSearch
 
                     // Batch insert
                     Stopwatch batchInsertStopwatch = Stopwatch.StartNew();
-                    List<Node> createdNodes = _Client.Node.CreateMany(tenant.GUID, graph.GUID, batchNodes);
+                    List<Node> createdNodes = _Client.Node.CreateMany(tenant.GUID, graph.GUID, batchNodes, CancellationToken.None).GetAwaiter().GetResult();
                     batchInsertStopwatch.Stop();
                     nodes.AddRange(createdNodes);
                     metrics.NodesCreated += createdNodes.Count;
@@ -563,7 +564,7 @@ namespace Test.VectorIndexSearch
 
                 // Delete tenant
                 Stopwatch tenantDeletionStopwatch = Stopwatch.StartNew();
-                _Client.Tenant.DeleteByGuid(tenant.GUID, true);
+                _Client.Tenant.DeleteByGuid(tenant.GUID, true, CancellationToken.None).GetAwaiter().GetResult();
                 tenantDeletionStopwatch.Stop();
                 metrics.TenantDeletionTime = tenantDeletionStopwatch.ElapsedMilliseconds;
 
