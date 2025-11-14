@@ -21,7 +21,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         {
             if (vector == null || vector.Vectors == null || vector.Vectors.Count == 0) return;
 
-            Graph graph = repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID);
+            Graph graph = await repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID).ConfigureAwait(false);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
@@ -55,7 +55,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
                 
                 if (graphVectors.Count == 0) continue;
 
-                Graph graph = repo.Graph.ReadByGuid(graphVectors[0].TenantGUID, graphGuid);
+                Graph graph = await repo.Graph.ReadByGuid(graphVectors[0].TenantGUID, graphGuid).ConfigureAwait(false);
                 if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                     continue;
 
@@ -80,7 +80,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         {
             if (vector == null || vector.Vectors == null || vector.Vectors.Count == 0) return;
 
-            Graph graph = repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID);
+            Graph graph = await repo.Graph.ReadByGuid(vector.TenantGUID, vector.GraphGUID).ConfigureAwait(false);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
@@ -101,7 +101,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         /// <returns>Task.</returns>
         public static async Task UpdateIndexForDeleteAsync(SqliteGraphRepository repo, Guid tenantGuid, Guid nodeGuid, Guid graphGuid)
         {
-            Graph graph = repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = await repo.Graph.ReadByGuid(tenantGuid, graphGuid).ConfigureAwait(false);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 
@@ -125,7 +125,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         {
             if (nodeGuids == null || nodeGuids.Count == 0) return;
 
-            Graph graph = repo.Graph.ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = await repo.Graph.ReadByGuid(tenantGuid, graphGuid).ConfigureAwait(false);
             if (graph == null || !graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return;
 

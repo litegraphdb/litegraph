@@ -155,8 +155,11 @@
                         throw new InvalidOperationException("The specified tenant has dependent tags.");
                 }
 
-                if (_Repo.Vector.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent vectors.");
+                await using (var vectorEnumerator = _Repo.Vector.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await vectorEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent vectors.");
+                }
             }
 
             await _Repo.Tenant.DeleteByGuid(guid, force, token).ConfigureAwait(false);

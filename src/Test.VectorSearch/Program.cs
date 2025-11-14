@@ -479,19 +479,28 @@
                 try
                 {
                     // Add timeout monitoring
-                    Task<List<VectorSearchResult>> searchTask = Task.Run(() => _Client.Vector.Search(searchRequest).ToList());
-                    int timeoutSeconds = 30;
-
-                    if (searchTask.Wait(TimeSpan.FromSeconds(timeoutSeconds)))
+                    List<VectorSearchResult> searchResults = new List<VectorSearchResult>();
+                    var searchEnumerator = _Client.Vector.Search(searchRequest, CancellationToken.None).GetAsyncEnumerator();
+                    try
                     {
-                        results = searchTask.Result;
+                        int timeoutSeconds = 30;
+                        CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+                        while (searchEnumerator.MoveNextAsync(cts.Token).GetAwaiter().GetResult())
+                        {
+                            searchResults.Add(searchEnumerator.Current);
+                        }
+                        results = searchResults;
                         searchStopwatch.Stop();
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
                         searchStopwatch.Stop();
-                        Console.WriteLine($"  Search {searchNum}: TIMEOUT after {timeoutSeconds}s");
+                        Console.WriteLine($"  Search {searchNum}: TIMEOUT after 30s");
                         break;
+                    }
+                    finally
+                    {
+                        searchEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
                     }
                 }
                 catch (Exception ex)

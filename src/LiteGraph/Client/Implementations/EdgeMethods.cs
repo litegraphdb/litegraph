@@ -76,7 +76,12 @@
                 createdTags.Add(tag);
             }
             created.Tags = TagMetadata.ToNameValueCollection(createdTags);
-            created.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
+            List<VectorMetadata> createdVectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                createdVectors.Add(vector);
+            }
+            created.Vectors = createdVectors;
             _Client.Logging.Log(SeverityEnum.Info, "created edge " + created.GUID + " in graph " + created.GraphGUID);
             _EdgeCache.AddReplace(created.GUID, created);
             return created;
@@ -108,7 +113,12 @@
                     edgeTags.Add(tag);
                 }
                 edge.Tags = TagMetadata.ToNameValueCollection(edgeTags);
-                edge.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
+                List<VectorMetadata> edgeVectors = new List<VectorMetadata>();
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    edgeVectors.Add(vector);
+                }
+                edge.Vectors = edgeVectors;
                 _EdgeCache.AddReplace(edge.GUID, edge);
             }
 
@@ -279,7 +289,12 @@
                         }
                         if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                        obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+                        List<VectorMetadata> allVectors = new List<VectorMetadata>();
+                        await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            allVectors.Add(vector);
+                        }
+                        obj.Vectors = allVectors;
                     }
 
                     if (!query.IncludeData)
@@ -447,7 +462,12 @@
                 updatedTags.Add(tag);
             }
             updated.Tags = TagMetadata.ToNameValueCollection(updatedTags);
-            updated.Vectors = _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID).ToList();
+            List<VectorMetadata> updatedVectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(edge.TenantGUID, edge.GraphGUID, edge.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                updatedVectors.Add(vector);
+            }
+            updated.Vectors = updatedVectors;
             _Client.Logging.Log(SeverityEnum.Debug, "updated edge " + updated.GUID + " in graph " + updated.GraphGUID);
             _EdgeCache.AddReplace(updated.GUID, updated);
             return updated;
@@ -554,7 +574,12 @@
                 }
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                obj.Vectors = _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+                List<VectorMetadata> allVectors = new List<VectorMetadata>();
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(obj.TenantGUID, obj.GraphGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allVectors.Add(vector);
+                }
+                obj.Vectors = allVectors;
             }
 
             if (!includeData) obj.Data = null;

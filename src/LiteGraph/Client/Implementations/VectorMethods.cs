@@ -6,8 +6,10 @@
     using System.Data;
     using System.Linq;
     using System.Numerics;
+    using System.Runtime.CompilerServices;
     using System.Runtime.Serialization.Json;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph.Client.Interfaces;
@@ -54,267 +56,286 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public VectorMetadata Create(VectorMetadata vector)
+        public async Task<VectorMetadata> Create(VectorMetadata vector, CancellationToken token = default)
         {
             if (vector == null) throw new ArgumentNullException(nameof(vector));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID);
-            if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value);
-            if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value);
-            VectorMetadata created = _Repo.Vector.Create(vector);
+            await _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID, token).ConfigureAwait(false);
+            if (vector.NodeGUID != null) await _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value, token).ConfigureAwait(false);
+            if (vector.EdgeGUID != null) await _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value, token).ConfigureAwait(false);
+            VectorMetadata created = await _Repo.Vector.Create(vector, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created vector " + created.GUID);
             return created;
         }
 
         /// <inheritdoc />
-        public List<VectorMetadata> CreateMany(Guid tenantGuid, List<VectorMetadata> vectors)
+        public async Task<List<VectorMetadata>> CreateMany(Guid tenantGuid, List<VectorMetadata> vectors, CancellationToken token = default)
         {
             if (vectors == null || vectors.Count < 1) return null;
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             foreach (VectorMetadata vector in vectors)
             {
+                token.ThrowIfCancellationRequested();
                 if (string.IsNullOrEmpty(vector.Model)) throw new ArgumentException("The supplied vector model is null or empty.");
                 if (vector.Dimensionality <= 0) throw new ArgumentException("The vector dimensionality must be greater than zero.");
                 if (vector.Vectors == null || vector.Vectors.Count < 1) throw new ArgumentException("The supplied vector object must contain one or more vectors.");
 
                 vector.TenantGUID = tenantGuid;
                 
-                _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID);
-                if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value);
-                if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value);
+                await _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID, token).ConfigureAwait(false);
+                if (vector.NodeGUID != null) await _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value, token).ConfigureAwait(false);
+                if (vector.EdgeGUID != null) await _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value, token).ConfigureAwait(false);
             }
 
-            return _Repo.Vector.CreateMany(tenantGuid, vectors);
+            return await _Repo.Vector.CreateMany(tenantGuid, vectors, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadAllInTenant(
+        public async IAsyncEnumerable<VectorMetadata> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             
-            foreach (VectorMetadata vector in _Repo.Vector.ReadAllInTenant(tenantGuid, order, skip))
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return vector;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadAllInGraph(
+        public async IAsyncEnumerable<VectorMetadata> ReadAllInGraph(
             Guid tenantGuid, 
             Guid graphGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return vector;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadMany(
+        public async IAsyncEnumerable<VectorMetadata> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
             Guid? edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving vectors");
 
-            IEnumerable<VectorMetadata> vectors;
+            IAsyncEnumerable<VectorMetadata> vectors;
 
             if (graphGuid != null && nodeGuid != null && edgeGuid == null)
             {
-                vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid.Value, nodeGuid.Value, order, skip);
+                vectors = _Repo.Vector.ReadManyNode(tenantGuid, graphGuid.Value, nodeGuid.Value, order, skip, token);
             }
             else if (graphGuid != null && nodeGuid == null && edgeGuid != null)
             {
-                vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid.Value, nodeGuid.Value, order, skip);
+                vectors = _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid.Value, edgeGuid.Value, order, skip, token);
             }
             else if (graphGuid != null)
             {
-                vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graphGuid.Value, order, skip);
+                vectors = _Repo.Vector.ReadManyGraph(tenantGuid, graphGuid.Value, order, skip, token);
             }
             else
             {
-                vectors = _Repo.Vector.ReadMany(tenantGuid, null, null, null, order, skip);
+                vectors = _Repo.Vector.ReadMany(tenantGuid, null, null, null, order, skip, token);
             }
 
-            if (vectors != null)
-            {
-                foreach (VectorMetadata vector in vectors)
-                {
-                    yield return vector;
-                }
-            }
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadManyGraph(
-            Guid tenantGuid, 
-            Guid graphGuid,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
-        {
-            foreach (VectorMetadata vector in _Repo.Vector.ReadManyGraph(tenantGuid, graphGuid, order, skip))
+            await foreach (VectorMetadata vector in vectors.WithCancellation(token).ConfigureAwait(false))
             {
                 yield return vector;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadManyNode(
+        public async IAsyncEnumerable<VectorMetadata> ReadManyGraph(
+            Guid tenantGuid, 
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
+        {
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                yield return vector;
+            }
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<VectorMetadata> ReadManyNode(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
-            foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip))
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return vector;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadManyEdge(
+        public async IAsyncEnumerable<VectorMetadata> ReadManyEdge(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
-            foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip))
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return vector;
             }
         }
 
         /// <inheritdoc />
-        public VectorMetadata ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<VectorMetadata> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving vector with GUID " + guid);
+            token.ThrowIfCancellationRequested();
 
-            return _Repo.Vector.ReadByGuid(tenantGuid, guid);
+            return await _Repo.Vector.ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving vectors");
-            foreach (VectorMetadata obj in _Repo.Vector.ReadByGuids(tenantGuid, guids))
+            await foreach (VectorMetadata obj in _Repo.Vector.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return obj;
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<VectorMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<VectorMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
-            return _Repo.Vector.Enumerate(query);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Vector.Enumerate(query, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public VectorMetadata Update(VectorMetadata vector)
+        public async Task<VectorMetadata> Update(VectorMetadata vector, CancellationToken token = default)
         {
             if (vector == null) throw new ArgumentNullException(nameof(vector));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(vector.TenantGUID);
-            _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID);
-            if (vector.NodeGUID != null) _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value);
-            if (vector.EdgeGUID != null) _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value);
-            vector = _Repo.Vector.Update(vector);
+            await _Client.ValidateTenantExists(vector.TenantGUID, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(vector.TenantGUID, vector.GraphGUID, token).ConfigureAwait(false);
+            if (vector.NodeGUID != null) await _Client.ValidateNodeExists(vector.TenantGUID, vector.NodeGUID.Value, token).ConfigureAwait(false);
+            if (vector.EdgeGUID != null) await _Client.ValidateEdgeExists(vector.TenantGUID, vector.EdgeGUID.Value, token).ConfigureAwait(false);
+            vector = await _Repo.Vector.Update(vector, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "updated vector GUID " + vector.GUID);
             return vector;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            VectorMetadata vector = ReadByGuid(tenantGuid, guid);
+            token.ThrowIfCancellationRequested();
+            VectorMetadata vector = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (vector == null) return;
-            _Repo.Vector.DeleteByGuid(tenantGuid, guid);
+            await _Repo.Vector.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vector GUID " + vector.GUID);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Vector.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, List<Guid> guids)
+        public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Vector.DeleteMany(tenantGuid, guids);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteMany(tenantGuid, guids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Vector.DeleteAllInTenant(tenantGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Repo.Vector.DeleteAllInGraph(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors in graph " + graphGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteGraphVectors(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteGraphVectors(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Repo.Vector.DeleteGraphVectors(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteGraphVectors(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors for graph " + graphGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeVectors(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public async Task DeleteNodeVectors(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
-            _Repo.Vector.DeleteNodeVectors(tenantGuid, graphGuid, nodeGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteNodeVectors(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors for node " + nodeGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteEdgeVectors(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public async Task DeleteEdgeVectors(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
-            _Repo.Vector.DeleteEdgeVectors(tenantGuid, graphGuid, edgeGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateEdgeExists(tenantGuid, edgeGuid, token).ConfigureAwait(false);
+            await _Repo.Vector.DeleteEdgeVectors(tenantGuid, graphGuid, edgeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted vectors for edge " + edgeGuid);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid guid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            return _Repo.Vector.ExistsByGuid(tenantGuid, guid);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Vector.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorSearchResult> Search(VectorSearchRequest searchReq)
+        public async IAsyncEnumerable<VectorSearchResult> Search(VectorSearchRequest searchReq, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (searchReq == null) throw new ArgumentNullException(nameof(searchReq));
-            return Search(
+            token.ThrowIfCancellationRequested();
+            await foreach (VectorSearchResult result in Search(
                 searchReq.Domain,
                 searchReq.SearchType,
                 searchReq.Embeddings,
@@ -326,11 +347,15 @@
                 searchReq.TopK,
                 searchReq.MinimumScore,
                 searchReq.MaximumDistance,
-                searchReq.MinimumInnerProduct);
+                searchReq.MinimumInnerProduct,
+                token).WithCancellation(token).ConfigureAwait(false))
+            {
+                yield return result;
+            }
         }
 
         /// <inheritdoc />
-        public IEnumerable<VectorSearchResult> Search(
+        public async IAsyncEnumerable<VectorSearchResult> Search(
             VectorSearchDomainEnum domain,
             VectorSearchTypeEnum searchType,
             List<float> vectors,
@@ -342,13 +367,15 @@
             int? topK = 100,
             float? minScore = 0.0f,
             float? maxDistance = float.MaxValue,
-            float? minInnerProduct = 0.0f)
+            float? minInnerProduct = 0.0f,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (vectors == null || vectors.Count < 1) throw new ArgumentException("The supplied vector list must include at least one value.");
+            token.ThrowIfCancellationRequested();
 
             if (domain == VectorSearchDomainEnum.Graph)
             {
-                foreach (VectorSearchResult result in _Repo.Vector.SearchGraph(
+                await foreach (VectorSearchResult result in _Repo.Vector.SearchGraph(
                     searchType, 
                     vectors, 
                     tenantGuid, 
@@ -358,10 +385,23 @@
                     topK,
                     minScore,
                     maxDistance,
-                    minInnerProduct))
+                    minInnerProduct,
+                    token).WithCancellation(token).ConfigureAwait(false))
                 {
-                    result.Graph.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, result.Graph.GUID, null, null, null).ToList());
-                    result.Graph.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, result.Graph.GUID, null, null, null, null).ToList());
+                    token.ThrowIfCancellationRequested();
+                    List<LabelMetadata> graphLabels = new List<LabelMetadata>();
+                    await foreach (LabelMetadata label in _Repo.Label.ReadMany(tenantGuid, result.Graph.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        graphLabels.Add(label);
+                    }
+                    result.Graph.Labels = LabelMetadata.ToListString(graphLabels);
+                    
+                    List<TagMetadata> graphTags = new List<TagMetadata>();
+                    await foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, result.Graph.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        graphTags.Add(tag);
+                    }
+                    result.Graph.Tags = TagMetadata.ToNameValueCollection(graphTags);
                     yield return result;
                 }
             }
@@ -369,7 +409,7 @@
             {
                 if (graphGuid == null) throw new ArgumentException("Graph GUID must be supplied when performing a node vector search.");
                 
-                foreach (VectorSearchResult result in _Repo.Vector.SearchNode(
+                await foreach (VectorSearchResult result in _Repo.Vector.SearchNode(
                     searchType, 
                     vectors, 
                     tenantGuid, 
@@ -380,10 +420,23 @@
                     topK,
                     minScore,
                     maxDistance,
-                    minInnerProduct))
+                    minInnerProduct,
+                    token).WithCancellation(token).ConfigureAwait(false))
                 {
-                    result.Node.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null).ToList());
-                    result.Node.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null, null).ToList());
+                    token.ThrowIfCancellationRequested();
+                    List<LabelMetadata> nodeLabels = new List<LabelMetadata>();
+                    await foreach (LabelMetadata label in _Repo.Label.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        nodeLabels.Add(label);
+                    }
+                    result.Node.Labels = LabelMetadata.ToListString(nodeLabels);
+                    
+                    List<TagMetadata> nodeTags = new List<TagMetadata>();
+                    await foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        nodeTags.Add(tag);
+                    }
+                    result.Node.Tags = TagMetadata.ToNameValueCollection(nodeTags);
                     yield return result;
                 }
             }
@@ -391,7 +444,7 @@
             {
                 if (graphGuid == null) throw new ArgumentException("Graph GUID must be supplied when performing an edge vector search.");
                 
-                foreach (VectorSearchResult result in _Repo.Vector.SearchEdge(
+                await foreach (VectorSearchResult result in _Repo.Vector.SearchEdge(
                     searchType, 
                     vectors, 
                     tenantGuid, 
@@ -402,10 +455,23 @@
                     topK,
                     minScore,
                     maxDistance,
-                    minInnerProduct))
+                    minInnerProduct,
+                    token).WithCancellation(token).ConfigureAwait(false))
                 {
-                    result.Edge.Labels = LabelMetadata.ToListString(_Repo.Label.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null).ToList());
-                    result.Edge.Tags = TagMetadata.ToNameValueCollection(_Repo.Tag.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null, null).ToList());
+                    token.ThrowIfCancellationRequested();
+                    List<LabelMetadata> edgeLabels = new List<LabelMetadata>();
+                    await foreach (LabelMetadata label in _Repo.Label.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        edgeLabels.Add(label);
+                    }
+                    result.Edge.Labels = LabelMetadata.ToListString(edgeLabels);
+                    
+                    List<TagMetadata> edgeTags = new List<TagMetadata>();
+                    await foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        edgeTags.Add(tag);
+                    }
+                    result.Edge.Tags = TagMetadata.ToNameValueCollection(edgeTags);
                     yield return result;
                 }
             }

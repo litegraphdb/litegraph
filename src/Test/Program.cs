@@ -913,7 +913,20 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by cosine similarity to embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqCosineSim).OrderByDescending(p => p.Score))
+            List<VectorSearchResult> cosineSimResults = new List<VectorSearchResult>();
+            var searchEnumerator = _Client.Vector.Search(searchReqCosineSim, CancellationToken.None).GetAsyncEnumerator();
+            try
+            {
+                while (searchEnumerator.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    cosineSimResults.Add(searchEnumerator.Current);
+                }
+            }
+            finally
+            {
+                searchEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            foreach (VectorSearchResult result in cosineSimResults.OrderByDescending(p => p.Score))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": score " + result.Score);
             }
@@ -934,7 +947,20 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by cosine distance from embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqCosineDis).OrderBy(p => p.Distance))
+            List<VectorSearchResult> cosineDisResults = new List<VectorSearchResult>();
+            var searchEnumerator2 = _Client.Vector.Search(searchReqCosineDis, CancellationToken.None).GetAsyncEnumerator();
+            try
+            {
+                while (searchEnumerator2.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    cosineDisResults.Add(searchEnumerator2.Current);
+                }
+            }
+            finally
+            {
+                searchEnumerator2.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            foreach (VectorSearchResult result in cosineDisResults.OrderBy(p => p.Distance))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": distance " + result.Distance);
             }
@@ -955,7 +981,20 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by Euclidian similarity to embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqEucSim).OrderByDescending(p => p.Score))
+            List<VectorSearchResult> eucSimResults = new List<VectorSearchResult>();
+            var searchEnumerator3 = _Client.Vector.Search(searchReqEucSim, CancellationToken.None).GetAsyncEnumerator();
+            try
+            {
+                while (searchEnumerator3.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    eucSimResults.Add(searchEnumerator3.Current);
+                }
+            }
+            finally
+            {
+                searchEnumerator3.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            foreach (VectorSearchResult result in eucSimResults.OrderByDescending(p => p.Score))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": score " + result.Score);
             }
@@ -976,7 +1015,20 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by Euclidian distance from embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqEucDis).OrderBy(p => p.Distance))
+            List<VectorSearchResult> eucDisResults = new List<VectorSearchResult>();
+            var searchEnumerator4 = _Client.Vector.Search(searchReqEucDis, CancellationToken.None).GetAsyncEnumerator();
+            try
+            {
+                while (searchEnumerator4.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    eucDisResults.Add(searchEnumerator4.Current);
+                }
+            }
+            finally
+            {
+                searchEnumerator4.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            foreach (VectorSearchResult result in eucDisResults.OrderBy(p => p.Distance))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": distance " + result.Distance);
             }
@@ -997,7 +1049,20 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by dot product with embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqDp).OrderByDescending(p => p.InnerProduct))
+            List<VectorSearchResult> dpResults = new List<VectorSearchResult>();
+            var searchEnumerator5 = _Client.Vector.Search(searchReqDp, CancellationToken.None).GetAsyncEnumerator();
+            try
+            {
+                while (searchEnumerator5.MoveNextAsync().GetAwaiter().GetResult())
+                {
+                    dpResults.Add(searchEnumerator5.Current);
+                }
+            }
+            finally
+            {
+                searchEnumerator5.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            foreach (VectorSearchResult result in dpResults.OrderByDescending(p => p.InnerProduct))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": inner product " + result.InnerProduct);
             }

@@ -592,7 +592,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Vector == null) throw new ArgumentNullException(nameof(req.Vector));
             req.Vector.TenantGUID = req.TenantGUID.Value;
-            VectorMetadata obj = _LiteGraph.Vector.Create(req.Vector);
+            VectorMetadata obj = await _LiteGraph.Vector.Create(req.Vector, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -600,7 +600,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Vectors == null || req.Vectors.Count < 1) throw new ArgumentNullException(nameof(req.Vectors));
-            List<VectorMetadata> obj = _LiteGraph.Vector.CreateMany(req.TenantGUID.Value, req.Vectors);
+            List<VectorMetadata> obj = await _LiteGraph.Vector.CreateMany(req.TenantGUID.Value, req.Vectors, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -609,7 +609,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             req.EnumerationQuery.TenantGUID = req.TenantGUID;
-            EnumerationResult<VectorMetadata> er = _LiteGraph.Vector.Enumerate(req.EnumerationQuery);
+            EnumerationResult<VectorMetadata> er = await _LiteGraph.Vector.Enumerate(req.EnumerationQuery, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -617,25 +617,30 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<VectorMetadata> objs = null;
+            List<VectorMetadata> objs = new List<VectorMetadata>();
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.Vector.ReadMany(req.TenantGUID.Value, null, null, null, req.Order, req.Skip).ToList();
+                await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadMany(req.TenantGUID.Value, null, null, null, req.Order, req.Skip, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(vector);
+                }
             }
             else
             {
-                objs = _LiteGraph.Vector.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadByGuids(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(vector);
+                }
             }
 
-            if (objs == null) objs = new List<VectorMetadata>();
             return new ResponseContext(req, objs);
         }
 
         internal async Task<ResponseContext> VectorRead(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            VectorMetadata obj = _LiteGraph.Vector.ReadByGuid(req.TenantGUID.Value, req.VectorGUID.Value);
+            VectorMetadata obj = await _LiteGraph.Vector.ReadByGuid(req.TenantGUID.Value, req.VectorGUID.Value, CancellationToken.None).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -643,7 +648,7 @@
         internal async Task<ResponseContext> VectorExists(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (_LiteGraph.Vector.ExistsByGuid(req.TenantGUID.Value, req.VectorGUID.Value)) return new ResponseContext(req);
+            if (await _LiteGraph.Vector.ExistsByGuid(req.TenantGUID.Value, req.VectorGUID.Value, CancellationToken.None).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -652,7 +657,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Vector == null) throw new ArgumentNullException(nameof(req.Vector));
             req.Vector.TenantGUID = req.TenantGUID.Value;
-            VectorMetadata obj = _LiteGraph.Vector.Update(req.Vector);
+            VectorMetadata obj = await _LiteGraph.Vector.Update(req.Vector, CancellationToken.None).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, obj);
         }
@@ -660,14 +665,14 @@
         internal async Task<ResponseContext> VectorDelete(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            _LiteGraph.Vector.DeleteByGuid(req.TenantGUID.Value, req.VectorGUID.Value);
+            await _LiteGraph.Vector.DeleteByGuid(req.TenantGUID.Value, req.VectorGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
         internal async Task<ResponseContext> VectorDeleteMany(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            _LiteGraph.Vector.DeleteMany(req.TenantGUID.Value, req.GUIDs);
+            await _LiteGraph.Vector.DeleteMany(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
@@ -676,7 +681,11 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.VectorSearchRequest == null) throw new ArgumentNullException(nameof(req.VectorSearchRequest));
             if (req.GraphGUID != null && !await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, CancellationToken.None).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            IEnumerable<VectorSearchResult> results = _LiteGraph.Vector.Search(req.VectorSearchRequest).ToList();
+            List<VectorSearchResult> results = new List<VectorSearchResult>();
+            await foreach (VectorSearchResult result in _LiteGraph.Vector.Search(req.VectorSearchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+            {
+                results.Add(result);
+            }
             return new ResponseContext(req, results);
         }
 

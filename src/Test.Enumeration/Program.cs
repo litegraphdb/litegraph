@@ -641,25 +641,25 @@ namespace Test.Enumeration
                         Dimensionality = 3,
                         Vectors = new List<float> { i, i + 1, i + 2 }
                     };
-                    vectors.Add(_Client.Vector.Create(vector));
+                    vectors.Add(_Client.Vector.Create(vector, CancellationToken.None).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<VectorMetadata>(
                     testName + "-AllAtOnce",
-                    () => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }),
+                    () => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<VectorMetadata>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<VectorMetadata>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)

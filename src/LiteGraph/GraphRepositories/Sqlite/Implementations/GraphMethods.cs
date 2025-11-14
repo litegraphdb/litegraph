@@ -381,7 +381,11 @@
             configuration.ApplyToGraph(graph);
 
             // Get all existing vectors in the graph before enabling indexing
-            List<VectorMetadata> existingVectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid).ToList();
+            List<VectorMetadata> existingVectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                existingVectors.Add(vector);
+            }
 
             // Enable indexing using the index manager
             await _Repo.VectorIndexManager.EnableIndexingAsync(graph, configuration.VectorIndexType, configuration.VectorIndexFile).ConfigureAwait(false);
@@ -434,7 +438,11 @@
                 throw new InvalidOperationException("Graph does not have indexing enabled.");
 
             // Get all vectors for the graph (including nodes and edges)
-            IEnumerable<VectorMetadata> vectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid);
+            List<VectorMetadata> vectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                vectors.Add(vector);
+            }
 
             // Rebuild the index
             await _Repo.VectorIndexManager.RebuildIndexAsync(graph, vectors).ConfigureAwait(false);

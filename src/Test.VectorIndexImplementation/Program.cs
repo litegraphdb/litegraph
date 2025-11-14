@@ -150,7 +150,7 @@ namespace Test.VectorIndexImplementation
                     Console.WriteLine("[FAILED] Some tests failed. Review output above for details.");
                 }
                 Console.WriteLine($"Total execution time: {totalTimer.ElapsedMilliseconds:N0}ms ({totalTimer.Elapsed.TotalSeconds:F1}s)");
-                Console.WriteLine($"Final vector count in index: {GetCurrentVectorCount()}");
+                Console.WriteLine($"Final vector count in index: {await GetCurrentVectorCount().ConfigureAwait(false)}");
                 Console.WriteLine(new string('=', 80));
             }
             catch (Exception ex)
@@ -452,7 +452,8 @@ namespace Test.VectorIndexImplementation
 
                         Stopwatch searchTimer = Stopwatch.StartNew();
                         // Get more results initially, then filter based on search type
-                        List<VectorSearchResult> allResults = _Client.Vector.Search(
+                        List<VectorSearchResult> allResults = new List<VectorSearchResult>();
+                        await foreach (VectorSearchResult result in _Client.Vector.Search(
                             new VectorSearchRequest
                             {
                                 TenantGUID = _Tenant.GUID,
@@ -460,8 +461,13 @@ namespace Test.VectorIndexImplementation
                                 Domain = VectorSearchDomainEnum.Node,
                                 SearchType = searchType,
                                 Embeddings = searchVector
-                            }
-                        ).Take(_MaxSearchResults * 2).ToList(); // Get extra results for filtering
+                            },
+                            CancellationToken.None
+                        ).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                        {
+                            allResults.Add(result);
+                        }
+                        allResults = allResults.Take(_MaxSearchResults * 2).ToList(); // Get extra results for filtering
 
                         // Filter results based on search type and thresholds
                         List<VectorSearchResult> results = FilterSearchResults(allResults, searchType);
@@ -538,7 +544,7 @@ namespace Test.VectorIndexImplementation
 
                 foreach (Node node in nodesToRemove)
                 {
-                    _Client.Node.DeleteByGuid(_Tenant.GUID, _Graph.GUID, node.GUID);
+                    await _Client.Node.DeleteByGuid(_Tenant.GUID, _Graph.GUID, node.GUID, CancellationToken.None).ConfigureAwait(false);
                 }
 
                 removalTimer.Stop();
@@ -593,7 +599,8 @@ namespace Test.VectorIndexImplementation
                 {
                     List<float> searchVector = GenerateRandomVector(_VectorDimensionality);
 
-                    List<VectorSearchResult> allResults = _Client.Vector.Search(
+                    List<VectorSearchResult> allResults = new List<VectorSearchResult>();
+                    await foreach (VectorSearchResult result in _Client.Vector.Search(
                         new VectorSearchRequest
                         {
                             TenantGUID = _Tenant.GUID,
@@ -601,8 +608,13 @@ namespace Test.VectorIndexImplementation
                             Domain = VectorSearchDomainEnum.Node,
                             SearchType = VectorSearchTypeEnum.CosineDistance,
                             Embeddings = searchVector
-                        }
-                    ).Take(_MaxSearchResults * 2).ToList();
+                        },
+                        CancellationToken.None
+                    ).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                    {
+                        allResults.Add(result);
+                    }
+                    allResults = allResults.Take(_MaxSearchResults * 2).ToList();
 
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
 
@@ -657,7 +669,8 @@ namespace Test.VectorIndexImplementation
                     List<float> searchVector = GenerateRandomVector(_VectorDimensionality);
 
                     Stopwatch searchTimer = Stopwatch.StartNew();
-                    List<VectorSearchResult> allResults = _Client.Vector.Search(
+                    List<VectorSearchResult> allResults = new List<VectorSearchResult>();
+                    await foreach (VectorSearchResult result in _Client.Vector.Search(
                         new VectorSearchRequest
                         {
                             TenantGUID = _Tenant.GUID,
@@ -665,8 +678,13 @@ namespace Test.VectorIndexImplementation
                             Domain = VectorSearchDomainEnum.Node,
                             SearchType = VectorSearchTypeEnum.CosineSimilarity,
                             Embeddings = searchVector
-                        }
-                    ).Take(_MaxSearchResults * 2).ToList();
+                        },
+                        CancellationToken.None
+                    ).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                    {
+                        allResults.Add(result);
+                    }
+                    allResults = allResults.Take(_MaxSearchResults * 2).ToList();
 
                     List<VectorSearchResult> results = FilterSearchResults(allResults, VectorSearchTypeEnum.CosineSimilarity);
                     searchTimer.Stop();
@@ -684,7 +702,7 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine($"     Average search time: {avgTime:F1}ms");
                 Console.WriteLine($"     Min/Max search time: {minTime}ms / {maxTime}ms");
                 Console.WriteLine($"     Average results: {avgResults:F1}");
-                Console.WriteLine($"     Current index size: {GetCurrentVectorCount()} vectors");
+                Console.WriteLine($"     Current index size: {await GetCurrentVectorCount().ConfigureAwait(false)} vectors");
 
                 if (avgResults > 0 && avgTime < 1000) // Reasonable performance thresholds
                 {

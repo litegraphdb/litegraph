@@ -469,7 +469,11 @@ namespace Test.VectorIndexSearch
                                         MinimumScore = 0.0f,
                                         TopK = _TopResults
                                     };
-                                    results = _Client.Vector.Search(searchRequest).ToList();
+                                    results = new List<VectorSearchResult>();
+                                    await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                                    {
+                                        results.Add(result);
+                                    }
                                 }
                             }
                         }

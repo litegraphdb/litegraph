@@ -67,13 +67,20 @@
                 createdLabels.Add(label);
             }
             created.Labels = LabelMetadata.ToListString(createdLabels);
+
             List<TagMetadata> createdTags = new List<TagMetadata>();
             await foreach (TagMetadata tag in _Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
             {
                 createdTags.Add(tag);
             }
             created.Tags = TagMetadata.ToNameValueCollection(createdTags);
-            created.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+
+            List<VectorMetadata> createdVectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                createdVectors.Add(vector);
+            }
+            created.Vectors = createdVectors;
             _Client.Logging.Log(SeverityEnum.Info, "created node " + created.GUID + " in graph " + created.GraphGUID);
             _NodeCache.AddReplace(created.GUID, created);
             return created;
@@ -97,13 +104,20 @@
                     nodeLabels.Add(label);
                 }
                 node.Labels = LabelMetadata.ToListString(nodeLabels);
+
                 List<TagMetadata> nodeTags = new List<TagMetadata>();
                 await foreach (TagMetadata tag in _Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
                 {
                     nodeTags.Add(tag);
                 }
                 node.Tags = TagMetadata.ToNameValueCollection(nodeTags);
-                node.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+
+                List<VectorMetadata> nodeVectors = new List<VectorMetadata>();
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    nodeVectors.Add(vector);
+                }
+                node.Vectors = nodeVectors;
                 _NodeCache.AddReplace(node.GUID, node);
             }
 
@@ -349,7 +363,12 @@
                         }
                         if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                        obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+                        List<VectorMetadata> allVectors = new List<VectorMetadata>();
+                        await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            allVectors.Add(vector);
+                        }
+                        obj.Vectors = allVectors;
                     }
 
                     if (!query.IncludeData) obj.Data = null;
@@ -377,13 +396,20 @@
                 updatedLabels.Add(label);
             }
             updated.Labels = LabelMetadata.ToListString(updatedLabels);
+
             List<TagMetadata> updatedTags = new List<TagMetadata>();
             await foreach (TagMetadata tag in _Repo.Tag.ReadMany(node.TenantGUID, node.GraphGUID, node.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
             {
                 updatedTags.Add(tag);
             }
             updated.Tags = TagMetadata.ToNameValueCollection(updatedTags);
-            updated.Vectors = _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID).ToList();
+
+            List<VectorMetadata> updatedVectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(node.TenantGUID, node.GraphGUID, node.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                updatedVectors.Add(vector);
+            }
+            updated.Vectors = updatedVectors;
             _Client.Logging.Log(SeverityEnum.Debug, "updated node " + updated.GUID + " in graph " + updated.GraphGUID);
             _NodeCache.AddReplace(updated.GUID, updated);
             return updated;
@@ -540,7 +566,12 @@
                 }
                 if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
 
-                obj.Vectors = _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID).ToList();
+                List<VectorMetadata> allVectors = new List<VectorMetadata>();
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(obj.TenantGUID, obj.GraphGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    allVectors.Add(vector);
+                }
+                obj.Vectors = allVectors;
             }
 
             if (!includeData) obj.Data = null;
