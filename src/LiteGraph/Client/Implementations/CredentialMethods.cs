@@ -64,9 +64,7 @@
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
-            IEnumerable<Credential> credentials = await _Repo.Credential.ReadAllInTenant(tenantGuid, order, skip, token).ConfigureAwait(false);
-
-            foreach (Credential credential in credentials)
+            await foreach (Credential credential in _Repo.Credential.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 token.ThrowIfCancellationRequested();
                 yield return credential;
@@ -84,9 +82,7 @@
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
-            IEnumerable<Credential> credentials = await _Repo.Credential.ReadMany(tenantGuid, userGuid, bearerToken, order, skip, token).ConfigureAwait(false);
-
-            foreach (Credential credential in credentials)
+            await foreach (Credential credential in _Repo.Credential.ReadMany(tenantGuid, userGuid, bearerToken, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 token.ThrowIfCancellationRequested();
                 yield return credential;
@@ -106,9 +102,7 @@
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
-            IEnumerable<Credential> credentials = await _Repo.Credential.ReadByGuids(tenantGuid, guids, token).ConfigureAwait(false);
-
-            foreach (Credential credential in credentials)
+            await foreach (Credential credential in _Repo.Credential.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 token.ThrowIfCancellationRequested();
                 yield return credential;

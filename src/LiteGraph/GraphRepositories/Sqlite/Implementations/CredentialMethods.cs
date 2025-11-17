@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
@@ -82,16 +83,14 @@
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Credential>> ReadAllInTenant(
+        public async IAsyncEnumerable<Credential> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
-            CancellationToken token = default)
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             token.ThrowIfCancellationRequested();
-
-            List<Credential> credentials = new List<Credential>();
 
             while (true)
             {
@@ -102,19 +101,17 @@
                     skip,
                     order), false, token).ConfigureAwait(false);
 
-                if (result == null || result.Rows.Count < 1) break;
+                if (result == null || result.Rows.Count < 1) yield break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
                     token.ThrowIfCancellationRequested();
-                    credentials.Add(Converters.CredentialFromDataRow(result.Rows[i]));
+                    yield return Converters.CredentialFromDataRow(result.Rows[i]);
                     skip++;
                 }
 
-                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+                if (result.Rows.Count < _Repo.SelectBatchSize) yield break;
             }
-
-            return credentials;
         }
 
         /// <inheritdoc />
@@ -127,22 +124,19 @@
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Credential>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
+        public async IAsyncEnumerable<Credential> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
-            if (guids == null || guids.Count < 1) return new List<Credential>();
+            if (guids == null || guids.Count < 1) yield break;
             token.ThrowIfCancellationRequested();
             DataTable result = await _Repo.ExecuteQueryAsync(CredentialQueries.SelectByGuids(tenantGuid, guids), false, token).ConfigureAwait(false);
 
-            if (result == null || result.Rows.Count < 1) return new List<Credential>();
+            if (result == null || result.Rows.Count < 1) yield break;
 
-            List<Credential> credentials = new List<Credential>();
             for (int i = 0; i < result.Rows.Count; i++)
             {
                 token.ThrowIfCancellationRequested();
-                credentials.Add(Converters.CredentialFromDataRow(result.Rows[i]));
+                yield return Converters.CredentialFromDataRow(result.Rows[i]);
             }
-
-            return credentials;
         }
 
         /// <inheritdoc />
@@ -156,18 +150,16 @@
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Credential>> ReadMany(
+        public async IAsyncEnumerable<Credential> ReadMany(
             Guid? tenantGuid,
             Guid? userGuid,
             string bearerToken,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
-            CancellationToken token = default)
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             token.ThrowIfCancellationRequested();
-
-            List<Credential> credentials = new List<Credential>();
 
             while (true)
             {
@@ -180,19 +172,17 @@
                     skip,
                     order), false, token).ConfigureAwait(false);
 
-                if (result == null || result.Rows.Count < 1) break;
+                if (result == null || result.Rows.Count < 1) yield break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
                     token.ThrowIfCancellationRequested();
-                    credentials.Add(Converters.CredentialFromDataRow(result.Rows[i]));
+                    yield return Converters.CredentialFromDataRow(result.Rows[i]);
                     skip++;
                 }
 
-                if (result.Rows.Count < _Repo.SelectBatchSize) break;
+                if (result.Rows.Count < _Repo.SelectBatchSize) yield break;
             }
-
-            return credentials;
         }
 
         /// <inheritdoc />

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
@@ -27,8 +28,8 @@
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Credentials.</returns>
-        Task<IEnumerable<Credential>> ReadAllInTenant(
+        /// <returns>Async enumerable of credentials.</returns>
+        IAsyncEnumerable<Credential> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
@@ -43,8 +44,8 @@
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Credentials.</returns>
-        Task<IEnumerable<Credential>> ReadMany(
+        /// <returns>Async enumerable of credentials.</returns>
+        IAsyncEnumerable<Credential> ReadMany(
             Guid? tenantGuid,
             Guid? userGuid,
             string bearerToken,
@@ -67,8 +68,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Credential.</returns>
-        Task<IEnumerable<Credential>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
+        /// <returns>Async enumerable of credentials.</returns>
+        IAsyncEnumerable<Credential> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Read a credential by bearer token.

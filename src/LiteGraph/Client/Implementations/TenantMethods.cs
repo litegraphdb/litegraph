@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Caching;
+    using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
 
@@ -120,8 +121,11 @@
                 if (hasUsers)
                     throw new InvalidOperationException("The specified tenant has dependent users.");
 
-                if ((await _Repo.Credential.ReadAllInTenant(guid, token: token).ConfigureAwait(false)).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent credentials.");
+                await using (IAsyncEnumerator<Credential> credentialEnumerator = _Repo.Credential.ReadAllInTenant(guid, token: token).GetAsyncEnumerator(token))
+                {
+                    if (await credentialEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent credentials.");
+                }
 
                 await using (IAsyncEnumerator<Graph> graphEnumerator = _Repo.Graph.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
