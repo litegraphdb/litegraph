@@ -2078,111 +2078,278 @@ namespace Test.Automated
         {
             if (_Client == null) throw new InvalidOperationException("Client is null");
 
-            // Create additional tenants
-            for (int i = 0; i < 5; i++)
+            // Create large set of tenants (50 total including existing)
+            for (int i = 0; i < 50; i++)
             {
                 TenantMetadata tenant = new TenantMetadata
                 {
-                    Name = $"Tenant {i}",
-                    // ContactEmail = $"tenant{i}@example.com"
+                    Name = $"Enum Tenant {i}"
                 };
                 await _Client.Tenant.Create(tenant).ConfigureAwait(false);
             }
 
-            // Test skip functionality
-            List<TenantMetadata> allTenants = new List<TenantMetadata>();
-            await foreach (TenantMetadata tenant in _Client.Tenant.ReadMany())
+            int pageSize = 7;
+            int pageNumber = 0;
+            long totalRetrieved = 0;
+            long expectedTotal = 0;
+
+            EnumerationRequest request = new EnumerationRequest
             {
-                allTenants.Add(tenant);
+                MaxResults = pageSize
+            };
+
+            // Full enumeration with pagination
+            while (true)
+            {
+                EnumerationResult<TenantMetadata>? result = await _Client.Tenant.Enumerate(request).ConfigureAwait(false);
+
+                // Validate EVERY property
+                AssertNotNull(result, $"Page {pageNumber} result");
+                AssertTrue(result.Success, $"Page {pageNumber} Success");
+                AssertNotNull(result.Timestamp, $"Page {pageNumber} Timestamp");
+                AssertEqual(pageSize, result.MaxResults, $"Page {pageNumber} MaxResults");
+                AssertNotNull(result.Objects, $"Page {pageNumber} Objects");
+
+                // Store total on first page
+                if (pageNumber == 0)
+                {
+                    expectedTotal = result.TotalRecords;
+                    AssertTrue(expectedTotal > 50, "Total records should be > 50");
+                }
+                else
+                {
+                    AssertEqual(expectedTotal, result.TotalRecords, $"Page {pageNumber} TotalRecords consistency");
+                }
+
+                // Validate page size
+                if (!result.EndOfResults)
+                {
+                    AssertEqual(pageSize, result.Objects.Count, $"Page {pageNumber} should have {pageSize} records");
+                    AssertNotNull(result.ContinuationToken, $"Page {pageNumber} should have continuation token");
+                }
+                else
+                {
+                    AssertTrue(result.Objects.Count <= pageSize, $"Last page should have <= {pageSize} records");
+                    AssertTrue(result.ContinuationToken == null, $"Last page should not have continuation token");
+                }
+
+                // Validate RecordsRemaining: TotalRecords = (totalRetrieved + currentPage + remaining)
+                long expectedRemaining = expectedTotal - totalRetrieved - result.Objects.Count;
+                AssertEqual(expectedRemaining, result.RecordsRemaining, $"Page {pageNumber} RecordsRemaining");
+
+                // Cross-validate: totalRetrieved + current page + remaining should equal total
+                long calculatedTotal = totalRetrieved + result.Objects.Count + result.RecordsRemaining;
+                AssertEqual(expectedTotal, calculatedTotal, $"Page {pageNumber} total consistency check");
+
+                // Validate EndOfResults
+                if (expectedRemaining == 0)
+                {
+                    AssertTrue(result.EndOfResults, $"Page {pageNumber} should be end of results");
+                }
+                else
+                {
+                    AssertFalse(result.EndOfResults, $"Page {pageNumber} should not be end of results");
+                }
+
+                totalRetrieved += result.Objects.Count;
+                pageNumber++;
+
+                if (result.EndOfResults) break;
+                if (pageNumber > 100) throw new Exception("Safety limit exceeded");
+
+                request.ContinuationToken = result.ContinuationToken;
             }
 
-            List<TenantMetadata> skippedTenants = new List<TenantMetadata>();
-            await foreach (TenantMetadata tenant in _Client.Tenant.ReadMany(skip: 2))
-            {
-                skippedTenants.Add(tenant);
-            }
-
-            AssertTrue(skippedTenants.Count == allTenants.Count - 2, "Skip count");
+            AssertEqual(expectedTotal, totalRetrieved, "Total retrieved should match TotalRecords");
         }
 
         private static async Task TestEnumerationTenantsContinuationToken()
         {
             if (_Client == null) throw new InvalidOperationException("Client is null");
 
-            EnumerationRequest request = new EnumerationRequest
-            {
-                MaxResults = 2
-            };
+            int pageSize = 3;
+            int pageNumber = 0;
+            long totalRetrieved = 0;
+            long expectedTotal = 0;
+            Guid? continuationToken = null;
 
-            EnumerationResult<TenantMetadata>? result = await _Client.Tenant.Enumerate(request).ConfigureAwait(false);
-            AssertNotNull(result, "First page result");
-            AssertNotNull(result.Objects, "First page results");
-
-            if (result.ContinuationToken.HasValue)
+            // Full enumeration using continuation token
+            do
             {
-                if (result.ContinuationToken.HasValue) request.ContinuationToken = result.ContinuationToken.Value;
-                EnumerationResult<TenantMetadata>? result2 = await _Client.Tenant.Enumerate(request).ConfigureAwait(false);
-                AssertNotNull(result2, "Second page result");
+                EnumerationRequest request = new EnumerationRequest
+                {
+                    MaxResults = pageSize,
+                    ContinuationToken = continuationToken
+                };
+
+                EnumerationResult<TenantMetadata>? result = await _Client.Tenant.Enumerate(request).ConfigureAwait(false);
+
+                // Validate EVERY property
+                AssertNotNull(result, $"Page {pageNumber} result");
+                AssertTrue(result.Success, $"Page {pageNumber} Success");
+                AssertNotNull(result.Timestamp, $"Page {pageNumber} Timestamp");
+                AssertEqual(pageSize, result.MaxResults, $"Page {pageNumber} MaxResults");
+                AssertNotNull(result.Objects, $"Page {pageNumber} Objects");
+
+                // Store total on first page
+                if (pageNumber == 0)
+                {
+                    expectedTotal = result.TotalRecords;
+                }
+                else
+                {
+                    AssertEqual(expectedTotal, result.TotalRecords, $"Page {pageNumber} TotalRecords consistency");
+                }
+
+                // Validate page size
+                if (!result.EndOfResults)
+                {
+                    AssertEqual(pageSize, result.Objects.Count, $"Page {pageNumber} count");
+                    AssertNotNull(result.ContinuationToken, $"Page {pageNumber} continuation token");
+                }
+                else
+                {
+                    AssertTrue(result.Objects.Count <= pageSize, $"Last page count");
+                    AssertTrue(result.ContinuationToken == null, $"Last page continuation token");
+                }
+
+                // Validate RecordsRemaining: TotalRecords = (totalRetrieved + currentPage + remaining)
+                long expectedRemaining = expectedTotal - totalRetrieved - result.Objects.Count;
+                AssertEqual(expectedRemaining, result.RecordsRemaining, $"Page {pageNumber} RecordsRemaining");
+
+                // Cross-validate: totalRetrieved + current page + remaining should equal total
+                long calculatedTotal = totalRetrieved + result.Objects.Count + result.RecordsRemaining;
+                AssertEqual(expectedTotal, calculatedTotal, $"Page {pageNumber} total consistency check");
+
+                // Validate EndOfResults
+                AssertEqual(expectedRemaining == 0, result.EndOfResults, $"Page {pageNumber} EndOfResults");
+
+                totalRetrieved += result.Objects.Count;
+                continuationToken = result.ContinuationToken;
+                pageNumber++;
+
+                if (pageNumber > 100) throw new Exception("Safety limit exceeded");
             }
+            while (continuationToken.HasValue);
 
-            AssertTrue(true, "Continuation token test");
+            AssertEqual(expectedTotal, totalRetrieved, "Total retrieved matches TotalRecords");
         }
 
         private static async Task TestEnumerationGraphsPaginated()
         {
             if (_Client == null) throw new InvalidOperationException("Client is null");
 
-            // Create additional graphs
-            for (int i = 0; i < 5; i++)
+            // Create large set of graphs (75 additional)
+            for (int i = 0; i < 75; i++)
             {
                 Graph graph = new Graph
                 {
                     TenantGUID = _TenantGuid,
-                    Name = $"Graph {i}"
+                    Name = $"Enum Graph {i}"
                 };
                 await _Client.Graph.Create(graph).ConfigureAwait(false);
             }
 
+            int pageSize = 10;
+            int pageNumber = 0;
+            long totalRetrieved = 0;
+            long expectedTotal = 0;
+
             EnumerationRequest request = new EnumerationRequest
             {
                 TenantGUID = _TenantGuid,
-                MaxResults = 3
+                MaxResults = pageSize
             };
 
-            EnumerationResult<Graph>? result = await _Client.Graph.Enumerate(request).ConfigureAwait(false);
-            AssertNotNull(result, "Enumeration result");
-            AssertNotNull(result.Objects, "Results");
-            AssertTrue(result.Objects.Count <= 3, "Results count limited");
-
-            // Validate each result
-            foreach (Graph graph in result.Objects)
+            // Full enumeration with pagination
+            while (true)
             {
-                AssertNotEmpty(graph.GUID, "Graph GUID");
-                AssertNotNull(graph.Name, "Graph Name");
-                AssertEqual(_TenantGuid, graph.TenantGUID, "Graph TenantGUID");
+                EnumerationResult<Graph>? result = await _Client.Graph.Enumerate(request).ConfigureAwait(false);
+
+                // Validate EVERY property
+                AssertNotNull(result, $"Page {pageNumber} result");
+                AssertTrue(result.Success, $"Page {pageNumber} Success");
+                AssertNotNull(result.Timestamp, $"Page {pageNumber} Timestamp");
+                AssertEqual(pageSize, result.MaxResults, $"Page {pageNumber} MaxResults");
+                AssertNotNull(result.Objects, $"Page {pageNumber} Objects");
+
+                // Store total on first page
+                if (pageNumber == 0)
+                {
+                    expectedTotal = result.TotalRecords;
+                    AssertTrue(expectedTotal >= 75, "Total records should be >= 75");
+                }
+                else
+                {
+                    AssertEqual(expectedTotal, result.TotalRecords, $"Page {pageNumber} TotalRecords consistency");
+                }
+
+                // Validate page size
+                if (!result.EndOfResults)
+                {
+                    AssertEqual(pageSize, result.Objects.Count, $"Page {pageNumber} count");
+                    AssertNotNull(result.ContinuationToken, $"Page {pageNumber} continuation token");
+                }
+                else
+                {
+                    AssertTrue(result.Objects.Count <= pageSize, $"Last page count");
+                    AssertTrue(result.ContinuationToken == null, $"Last page continuation token");
+                }
+
+                // Validate RecordsRemaining: TotalRecords = (totalRetrieved + currentPage + remaining)
+                long expectedRemaining = expectedTotal - totalRetrieved - result.Objects.Count;
+                AssertEqual(expectedRemaining, result.RecordsRemaining, $"Page {pageNumber} RecordsRemaining");
+
+                // Cross-validate: totalRetrieved + current page + remaining should equal total
+                long calculatedTotal = totalRetrieved + result.Objects.Count + result.RecordsRemaining;
+                AssertEqual(expectedTotal, calculatedTotal, $"Page {pageNumber} total consistency check");
+
+                // Validate EndOfResults
+                AssertEqual(expectedRemaining == 0, result.EndOfResults, $"Page {pageNumber} EndOfResults");
+
+                // Validate each graph object
+                foreach (Graph graph in result.Objects)
+                {
+                    AssertNotEmpty(graph.GUID, "Graph GUID");
+                    AssertNotNull(graph.Name, "Graph Name");
+                    AssertEqual(_TenantGuid, graph.TenantGUID, "Graph TenantGUID");
+                }
+
+                totalRetrieved += result.Objects.Count;
+                pageNumber++;
+
+                if (result.EndOfResults) break;
+                if (pageNumber > 100) throw new Exception("Safety limit exceeded");
+
+                request.ContinuationToken = result.ContinuationToken;
             }
+
+            AssertEqual(expectedTotal, totalRetrieved, "Total retrieved matches TotalRecords");
         }
 
         private static async Task TestEnumerationNodesPaginated()
         {
             if (_Client == null) throw new InvalidOperationException("Client is null");
 
-            // Create additional nodes
-            for (int i = 0; i < 10; i++)
+            // Create large set of nodes (100 additional)
+            for (int i = 0; i < 100; i++)
             {
                 Node node = new Node
                 {
                     TenantGUID = _TenantGuid,
                     GraphGUID = _GraphGuid,
-                    Name = $"Node {i}"
+                    Name = $"Enum Node {i}"
                 };
                 await _Client.Node.Create(node).ConfigureAwait(false);
             }
 
-            int pageSize = 5;
-            int pageCount = 0;
-            string? continuationToken = null;
+            int pageSize = 8;
+            int pageNumber = 0;
+            long totalRetrieved = 0;
+            long expectedTotal = 0;
+            Guid? continuationToken = null;
 
+            // Full enumeration using continuation token
             do
             {
                 EnumerationRequest request = new EnumerationRequest
@@ -2190,14 +2357,53 @@ namespace Test.Automated
                     TenantGUID = _TenantGuid,
                     GraphGUID = _GraphGuid,
                     MaxResults = pageSize,
-                    ContinuationToken = string.IsNullOrEmpty(continuationToken) ? null : Guid.Parse(continuationToken)
+                    ContinuationToken = continuationToken
                 };
 
                 EnumerationResult<Node>? result = await _Client.Node.Enumerate(request).ConfigureAwait(false);
-                AssertNotNull(result, $"Page {pageCount} result");
-                AssertNotNull(result.Objects, $"Page {pageCount} results");
 
-                // Validate each result
+                // Validate EVERY property
+                AssertNotNull(result, $"Page {pageNumber} result");
+                AssertTrue(result.Success, $"Page {pageNumber} Success");
+                AssertNotNull(result.Timestamp, $"Page {pageNumber} Timestamp");
+                AssertEqual(pageSize, result.MaxResults, $"Page {pageNumber} MaxResults");
+                AssertNotNull(result.Objects, $"Page {pageNumber} Objects");
+
+                // Store total on first page
+                if (pageNumber == 0)
+                {
+                    expectedTotal = result.TotalRecords;
+                    AssertTrue(expectedTotal >= 100, "Total records should be >= 100");
+                }
+                else
+                {
+                    AssertEqual(expectedTotal, result.TotalRecords, $"Page {pageNumber} TotalRecords consistency");
+                }
+
+                // Validate page size
+                if (!result.EndOfResults)
+                {
+                    AssertEqual(pageSize, result.Objects.Count, $"Page {pageNumber} count");
+                    AssertNotNull(result.ContinuationToken, $"Page {pageNumber} continuation token");
+                }
+                else
+                {
+                    AssertTrue(result.Objects.Count <= pageSize, $"Last page count");
+                    AssertTrue(result.ContinuationToken == null, $"Last page continuation token");
+                }
+
+                // Validate RecordsRemaining: TotalRecords = (totalRetrieved + currentPage + remaining)
+                long expectedRemaining = expectedTotal - totalRetrieved - result.Objects.Count;
+                AssertEqual(expectedRemaining, result.RecordsRemaining, $"Page {pageNumber} RecordsRemaining");
+
+                // Cross-validate: totalRetrieved + current page + remaining should equal total
+                long calculatedTotal = totalRetrieved + result.Objects.Count + result.RecordsRemaining;
+                AssertEqual(expectedTotal, calculatedTotal, $"Page {pageNumber} total consistency check");
+
+                // Validate EndOfResults
+                AssertEqual(expectedRemaining == 0, result.EndOfResults, $"Page {pageNumber} EndOfResults");
+
+                // Validate each node object
                 foreach (Node node in result.Objects)
                 {
                     AssertNotEmpty(node.GUID, "Node GUID");
@@ -2206,14 +2412,15 @@ namespace Test.Automated
                     AssertEqual(_GraphGuid, node.GraphGUID, "Node GraphGUID");
                 }
 
-                continuationToken = result.ContinuationToken?.ToString();
-                pageCount++;
+                totalRetrieved += result.Objects.Count;
+                continuationToken = result.ContinuationToken;
+                pageNumber++;
 
-                if (pageCount > 10) break; // Safety limit
+                if (pageNumber > 100) throw new Exception("Safety limit exceeded");
             }
-            while (!string.IsNullOrEmpty(continuationToken));
+            while (continuationToken.HasValue);
 
-            AssertTrue(pageCount >= 2, "Multiple pages");
+            AssertEqual(expectedTotal, totalRetrieved, "Total retrieved matches TotalRecords");
         }
 
         // ========================================
