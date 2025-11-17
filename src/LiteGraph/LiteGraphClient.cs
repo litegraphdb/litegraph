@@ -328,7 +328,7 @@
             }
         }
         
-        internal async Task ValidateTenantExists(Guid tenantGuid, System.Threading.CancellationToken token = default)
+        internal async Task ValidateTenantExists(Guid tenantGuid, CancellationToken token = default)
         {
             if (TenantCacheTryGet(tenantGuid, out var _)) return;
             TenantMetadata tenant = await Tenant.ReadByGuid(tenantGuid, token).ConfigureAwait(false);
@@ -336,13 +336,13 @@
             TenantCacheAdd(tenant);
         }
 
-        internal async Task ValidateUserExists(Guid tenantGuid, Guid userGuid, System.Threading.CancellationToken token = default)
+        internal async Task ValidateUserExists(Guid tenantGuid, Guid userGuid, CancellationToken token = default)
         {
             if (!await User.ExistsByGuid(tenantGuid, userGuid, token).ConfigureAwait(false))
                 throw new ArgumentException("No user with GUID '" + userGuid + "' exists.");
         }
 
-        internal async Task ValidateGraphExists(Guid tenantGuid, Guid? graphGuid, System.Threading.CancellationToken token = default)
+        internal async Task ValidateGraphExists(Guid tenantGuid, Guid? graphGuid, CancellationToken token = default)
         {
             if (graphGuid == null) return;
             if (GraphCacheTryGet(graphGuid.Value, out var _)) return; 
@@ -351,7 +351,7 @@
             GraphCacheAdd(graph);
         }
 
-        internal async Task ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid, System.Threading.CancellationToken token = default)
+        internal async Task ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid, CancellationToken token = default)
         {
             if (nodeGuid == null) return;
             if (NodeCacheTryGet(nodeGuid.Value, out var _)) return;
@@ -360,7 +360,7 @@
             NodeCacheAdd(node);
         }
 
-        internal async Task ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid, System.Threading.CancellationToken token = default)
+        internal async Task ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid, CancellationToken token = default)
         {
             if (edgeGuid == null) return;
             if (EdgeCacheTryGet(edgeGuid.Value, out var _)) return;
