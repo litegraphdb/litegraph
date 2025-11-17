@@ -201,7 +201,6 @@
 
         static Task FlushDatabase(CancellationToken token = default)
         {
-            token.ThrowIfCancellationRequested();
             _Client.Flush();
             return Task.CompletedTask;
         }
@@ -215,14 +214,12 @@
 
         static Task SetTenant(CancellationToken token = default)
         {
-            token.ThrowIfCancellationRequested();
             _TenantGuid = Inputty.GetGuid("Tenant GUID:", _TenantGuid);
             return Task.CompletedTask;
         }
 
         static Task SetGraph(CancellationToken token = default)
         {
-            token.ThrowIfCancellationRequested();
             _GraphGuid = Inputty.GetGuid("Graph GUID:", _GraphGuid);
             return Task.CompletedTask;
         }

@@ -60,7 +60,12 @@ namespace Test.VectorIndexImplementation
         /// </summary>
         /// <param name="args">Command line arguments.</param>
         /// <returns>Task.</returns>
-        static async Task Main(string[] args)
+        static Task Main(string[] args)
+        {
+            return MainAsync(args, CancellationToken.None);
+        }
+
+        static async Task MainAsync(string[] args, CancellationToken token = default)
         {
             Console.WriteLine("Comprehensive LiteGraph HNSW Vector Index Test Suite");
             Console.WriteLine("Following HnswLite test patterns for thorough validation");
@@ -81,58 +86,58 @@ namespace Test.VectorIndexImplementation
             Console.WriteLine(new string('=', 80));
 
             // Test VectorIndexConfiguration constructor fix
-            await TestVectorIndexConfigurationAsync();
+            await TestVectorIndexConfigurationAsync(token).ConfigureAwait(false);
 
             // Test JSON deserialization fix
-            await TestJsonDeserializationAsync();
+            await TestJsonDeserializationAsync(token).ConfigureAwait(false);
 
             bool allTestsPassed = true;
             Stopwatch totalTimer = Stopwatch.StartNew();
 
             try
             {
-                await InitializeTestEnvironmentAsync();
+                await InitializeTestEnvironmentAsync(token).ConfigureAwait(false);
 
                 // Test 1: Initial Vector Insertion
                 Console.WriteLine("\n[TEST 1] Initial Vector Insertion and Index Creation");
                 Console.WriteLine(new string('-', 60));
-                bool test1 = await TestInitialVectorInsertionAsync();
+                bool test1 = await TestInitialVectorInsertionAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test1;
 
                 // Test 2: Index Verification
                 Console.WriteLine("\n[TEST 2] Index Verification and Statistics");
                 Console.WriteLine(new string('-', 60));
-                bool test2 = await TestIndexVerificationAsync();
+                bool test2 = await TestIndexVerificationAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test2;
 
                 // Test 3: Additional Vector Insertion
                 Console.WriteLine("\n[TEST 3] Additional Vector Insertion");
                 Console.WriteLine(new string('-', 60));
-                bool test3 = await TestAdditionalVectorInsertionAsync();
+                bool test3 = await TestAdditionalVectorInsertionAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test3;
 
                 // Test 4: Vector Search Performance
                 Console.WriteLine("\n[TEST 4] Vector Search Performance Tests");
                 Console.WriteLine(new string('-', 60));
-                bool test4 = await TestVectorSearchPerformanceAsync();
+                bool test4 = await TestVectorSearchPerformanceAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test4;
 
                 // Test 5: Vector Removal
                 Console.WriteLine("\n[TEST 5] Vector Removal and Index Update");
                 Console.WriteLine(new string('-', 60));
-                bool test5 = await TestVectorRemovalAsync();
+                bool test5 = await TestVectorRemovalAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test5;
 
                 // Test 6: Post-removal Verification
                 Console.WriteLine("\n[TEST 6] Post-removal Index Verification");
                 Console.WriteLine(new string('-', 60));
-                bool test6 = await TestPostRemovalVerificationAsync();
+                bool test6 = await TestPostRemovalVerificationAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test6;
 
                 // Test 7: Final Search Performance
                 Console.WriteLine("\n[TEST 7] Final Search Performance After Modifications");
                 Console.WriteLine(new string('-', 60));
-                bool test7 = await TestFinalSearchPerformanceAsync();
+                bool test7 = await TestFinalSearchPerformanceAsync(token).ConfigureAwait(false);
                 allTestsPassed &= test7;
 
                 totalTimer.Stop();
@@ -150,7 +155,7 @@ namespace Test.VectorIndexImplementation
                     Console.WriteLine("[FAILED] Some tests failed. Review output above for details.");
                 }
                 Console.WriteLine($"Total execution time: {totalTimer.ElapsedMilliseconds:N0}ms ({totalTimer.Elapsed.TotalSeconds:F1}s)");
-                Console.WriteLine($"Final vector count in index: {await GetCurrentVectorCount().ConfigureAwait(false)}");
+                Console.WriteLine($"Final vector count in index: {await GetCurrentVectorCount(token).ConfigureAwait(false)}");
                 Console.WriteLine(new string('=', 80));
             }
             catch (Exception ex)
@@ -160,7 +165,7 @@ namespace Test.VectorIndexImplementation
             }
             finally
             {
-                await CleanupTestEnvironmentAsync();
+                await CleanupTestEnvironmentAsync(token).ConfigureAwait(false);
             }
         }
 
@@ -176,7 +181,7 @@ namespace Test.VectorIndexImplementation
         /// Initialize the test environment with database and graph setup.
         /// </summary>
         /// <returns>Task.</returns>
-        private static async Task InitializeTestEnvironmentAsync()
+        private static async Task InitializeTestEnvironmentAsync(CancellationToken token = default)
         {
             Console.WriteLine("[SETUP] Initializing test environment...");
             Stopwatch setupTimer = Stopwatch.StartNew();
@@ -199,7 +204,7 @@ namespace Test.VectorIndexImplementation
                 Name = "HNSW Test Tenant",
                 CreatedUtc = DateTime.UtcNow
             };
-            _Client.Tenant.Create(_Tenant, CancellationToken.None).GetAwaiter().GetResult();
+            await _Client.Tenant.Create(_Tenant, token).ConfigureAwait(false);
 
             // Create graph
             _Graph = new Graph
@@ -210,7 +215,7 @@ namespace Test.VectorIndexImplementation
                 VectorDimensionality = _VectorDimensionality,
                 CreatedUtc = DateTime.UtcNow
             };
-            _Graph = await _Client.Graph.Create(_Graph).ConfigureAwait(false);
+            _Graph = await _Client.Graph.Create(_Graph, token).ConfigureAwait(false);
 
             setupTimer.Stop();
             Console.WriteLine($"[OK] Test environment initialized in {setupTimer.ElapsedMilliseconds}ms");
@@ -220,7 +225,7 @@ namespace Test.VectorIndexImplementation
         /// Test initial vector insertion and index creation.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestInitialVectorInsertionAsync()
+        private static async Task<bool> TestInitialVectorInsertionAsync(CancellationToken token = default)
         {
             try
             {
@@ -256,7 +261,7 @@ namespace Test.VectorIndexImplementation
                     nodes.Add(node);
                 }
 
-                List<Node> createdNodes = _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, nodes, CancellationToken.None).GetAwaiter().GetResult();
+                List<Node> createdNodes = await _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, nodes, token).ConfigureAwait(false);
                 _CreatedNodes.AddRange(createdNodes);
                 creationTimer.Stop();
 
@@ -277,13 +282,13 @@ namespace Test.VectorIndexImplementation
                     VectorIndexM = _MaxConnections
                 };
 
-                await _Client.Graph.EnableVectorIndexingAsync(_Tenant.GUID, _Graph.GUID, config);
+                await _Client.Graph.EnableVectorIndexingAsync(_Tenant.GUID, _Graph.GUID, config, token).ConfigureAwait(false);
                 indexTimer.Stop();
 
                 Console.WriteLine($"[OK] HNSW indexing enabled in {indexTimer.ElapsedMilliseconds}ms");
 
                 // Verify vectors were indexed
-                int vectorCount =  await GetCurrentVectorCount();
+                int vectorCount =  await GetCurrentVectorCount(token).ConfigureAwait(false);
                 Console.WriteLine($"[VERIFICATION] Vectors in index: {vectorCount}");
 
                 if (vectorCount == _InitialVectorCount)
@@ -308,11 +313,11 @@ namespace Test.VectorIndexImplementation
         /// Test index verification and statistics.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestIndexVerificationAsync()
+        private static async Task<bool> TestIndexVerificationAsync(CancellationToken token = default)
         {
             try
             {
-                VectorIndexStatistics stats = await _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID).ConfigureAwait(false);
+                VectorIndexStatistics stats = await _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID, token).ConfigureAwait(false);
 
                 if (stats == null)
                 {
@@ -354,7 +359,7 @@ namespace Test.VectorIndexImplementation
         /// Test additional vector insertion into existing index.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestAdditionalVectorInsertionAsync()
+        private static async Task<bool> TestAdditionalVectorInsertionAsync(CancellationToken token = default)
         {
             try
             {
@@ -389,7 +394,7 @@ namespace Test.VectorIndexImplementation
                     additionalNodes.Add(node);
                 }
 
-                List<Node> createdNodes = _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, additionalNodes, CancellationToken.None).GetAwaiter().GetResult();
+                List<Node> createdNodes = await _Client.Node.CreateMany(_Tenant.GUID, _Graph.GUID, additionalNodes, token).ConfigureAwait(false);
                 _CreatedNodes.AddRange(createdNodes);
                 addTimer.Stop();
 
@@ -397,7 +402,7 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine($"     Average: {(double)addTimer.ElapsedMilliseconds / createdNodes.Count:F2}ms per vector");
 
                 // Verify new count
-                int totalVectorCount = await GetCurrentVectorCount();
+                int totalVectorCount = await GetCurrentVectorCount(token).ConfigureAwait(false);
                 int expectedCount = _InitialVectorCount + _AdditionalVectorCount;
 
                 Console.WriteLine($"[VERIFICATION] Total vectors in index: {totalVectorCount} (expected: {expectedCount})");
@@ -424,7 +429,7 @@ namespace Test.VectorIndexImplementation
         /// Test vector search performance with multiple search types and iterations.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestVectorSearchPerformanceAsync()
+        private static async Task<bool> TestVectorSearchPerformanceAsync(CancellationToken token = default)
         {
             try
             {
@@ -462,8 +467,8 @@ namespace Test.VectorIndexImplementation
                                 SearchType = searchType,
                                 Embeddings = searchVector
                             },
-                            CancellationToken.None
-                        ).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                            token
+                        ).WithCancellation(token).ConfigureAwait(false))
                         {
                             allResults.Add(result);
                         }
@@ -530,7 +535,7 @@ namespace Test.VectorIndexImplementation
         /// Test vector removal from the index.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestVectorRemovalAsync()
+        private static async Task<bool> TestVectorRemovalAsync(CancellationToken token = default)
         {
             try
             {
@@ -544,7 +549,7 @@ namespace Test.VectorIndexImplementation
 
                 foreach (Node node in nodesToRemove)
                 {
-                    await _Client.Node.DeleteByGuid(_Tenant.GUID, _Graph.GUID, node.GUID, CancellationToken.None).ConfigureAwait(false);
+                    await _Client.Node.DeleteByGuid(_Tenant.GUID, _Graph.GUID, node.GUID, token).ConfigureAwait(false);
                 }
 
                 removalTimer.Stop();
@@ -559,7 +564,7 @@ namespace Test.VectorIndexImplementation
                 }
 
                 // Verify removal
-                int remainingVectorCount = await GetCurrentVectorCount();
+                int remainingVectorCount = await GetCurrentVectorCount(token).ConfigureAwait(false);
                 int expectedCount = _InitialVectorCount + _AdditionalVectorCount - _RemovalCount;
 
                 Console.WriteLine($"[VERIFICATION] Remaining vectors in index: {remainingVectorCount} (expected: {expectedCount})");
@@ -586,7 +591,7 @@ namespace Test.VectorIndexImplementation
         /// Test that removed vectors no longer exist in search results.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestPostRemovalVerificationAsync()
+        private static async Task<bool> TestPostRemovalVerificationAsync(CancellationToken token = default)
         {
             try
             {
@@ -609,8 +614,8 @@ namespace Test.VectorIndexImplementation
                             SearchType = VectorSearchTypeEnum.CosineDistance,
                             Embeddings = searchVector
                         },
-                        CancellationToken.None
-                    ).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                        token
+                    ).WithCancellation(token).ConfigureAwait(false))
                     {
                         allResults.Add(result);
                     }
@@ -655,7 +660,7 @@ namespace Test.VectorIndexImplementation
         /// Test final search performance after all modifications.
         /// </summary>
         /// <returns>True if test passed.</returns>
-        private static async Task<bool> TestFinalSearchPerformanceAsync()
+        private static async Task<bool> TestFinalSearchPerformanceAsync(CancellationToken token = default)
         {
             try
             {
@@ -679,8 +684,8 @@ namespace Test.VectorIndexImplementation
                             SearchType = VectorSearchTypeEnum.CosineSimilarity,
                             Embeddings = searchVector
                         },
-                        CancellationToken.None
-                    ).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                        token
+                    ).WithCancellation(token).ConfigureAwait(false))
                     {
                         allResults.Add(result);
                     }
@@ -702,7 +707,7 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine($"     Average search time: {avgTime:F1}ms");
                 Console.WriteLine($"     Min/Max search time: {minTime}ms / {maxTime}ms");
                 Console.WriteLine($"     Average results: {avgResults:F1}");
-                Console.WriteLine($"     Current index size: {await GetCurrentVectorCount().ConfigureAwait(false)} vectors");
+                Console.WriteLine($"     Current index size: {await GetCurrentVectorCount(token).ConfigureAwait(false)} vectors");
 
                 if (avgResults > 0 && avgTime < 1000) // Reasonable performance thresholds
                 {
@@ -726,11 +731,11 @@ namespace Test.VectorIndexImplementation
         /// Get the current vector count in the index.
         /// </summary>
         /// <returns>Vector count.</returns>
-        private static async Task<int> GetCurrentVectorCount()
+        private static async Task<int> GetCurrentVectorCount(CancellationToken token = default)
         {
             try
             {
-                VectorIndexStatistics stats = await _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID).ConfigureAwait(false);
+                VectorIndexStatistics stats = await _Client.Graph.GetVectorIndexStatistics(_Tenant.GUID, _Graph.GUID, token).ConfigureAwait(false);
                 return stats?.VectorCount ?? 0;
             }
             catch
@@ -815,7 +820,7 @@ namespace Test.VectorIndexImplementation
         /// Clean up test environment and dispose resources.
         /// </summary>
         /// <returns>Task.</returns>
-        private static async Task CleanupTestEnvironmentAsync()
+        private static async Task CleanupTestEnvironmentAsync(CancellationToken token = default)
         {
             Console.WriteLine("\n[CLEANUP] Disposing test resources...");
             Stopwatch cleanupTimer = Stopwatch.StartNew();
@@ -874,7 +879,7 @@ namespace Test.VectorIndexImplementation
         /// Test VectorIndexConfiguration constructor with graph without indexing.
         /// </summary>
         /// <returns>Task.</returns>
-        private static async Task TestVectorIndexConfigurationAsync()
+        private static async Task TestVectorIndexConfigurationAsync(CancellationToken token = default)
         {
             Console.WriteLine("[TEST] VectorIndexConfiguration Constructor Fix");
             Console.WriteLine("------------------------------------------------------------");
@@ -910,7 +915,7 @@ namespace Test.VectorIndexImplementation
                 Console.WriteLine("[SUCCESS] VectorIndexConfiguration constructor fix working correctly!");
                 Console.WriteLine();
 
-                await Task.CompletedTask;
+                await Task.CompletedTask.ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -925,7 +930,7 @@ namespace Test.VectorIndexImplementation
         /// Test JSON deserialization for VectorIndexConfiguration.
         /// </summary>
         /// <returns>Task.</returns>
-        private static async Task TestJsonDeserializationAsync()
+        private static async Task TestJsonDeserializationAsync(CancellationToken token = default)
         {
             Console.WriteLine("[TEST] JSON Deserialization Fix for VectorIndexTypeEnum");
             Console.WriteLine("------------------------------------------------------------");
@@ -971,7 +976,7 @@ namespace Test.VectorIndexImplementation
                 }
 
                 Console.WriteLine();
-                await Task.CompletedTask;
+                await Task.CompletedTask.ConfigureAwait(false);
             }
             catch (Exception e)
             {

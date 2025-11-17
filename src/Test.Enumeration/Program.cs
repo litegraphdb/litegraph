@@ -75,8 +75,6 @@ namespace Test.Enumeration
 
         private static Task InitializeClient(CancellationToken token = default)
         {
-            token.ThrowIfCancellationRequested();
-
             Console.WriteLine("Initializing LiteGraphClient...");
 
             // Delete existing database file to ensure clean state
@@ -97,8 +95,6 @@ namespace Test.Enumeration
 
         private static Task Cleanup(CancellationToken token = default)
         {
-            token.ThrowIfCancellationRequested();
-
             Console.WriteLine("");
             Console.WriteLine("Cleaning up...");
 
@@ -136,7 +132,6 @@ namespace Test.Enumeration
                 List<TenantMetadata> tenants = new List<TenantMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     TenantMetadata tenant = new TenantMetadata
                     {
                         Name = $"Tenant-{i:D3}"
@@ -209,7 +204,6 @@ namespace Test.Enumeration
                 List<Credential> credentials = new List<Credential>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     Credential credential = new Credential
                     {
                         TenantGUID = _TenantGuid,
@@ -269,7 +263,6 @@ namespace Test.Enumeration
                 List<UserMaster> users = new List<UserMaster>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     UserMaster user = new UserMaster
                     {
                         TenantGUID = _TenantGuid,
@@ -330,7 +323,6 @@ namespace Test.Enumeration
                 List<Graph> graphs = new List<Graph>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     Graph graph = new Graph
                     {
                         TenantGUID = _TenantGuid,
@@ -392,7 +384,6 @@ namespace Test.Enumeration
                 List<Node> nodes = new List<Node>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     Node node = new Node
                     {
                         TenantGUID = _TenantGuid,
@@ -464,7 +455,6 @@ namespace Test.Enumeration
                 List<Edge> edges = new List<Edge>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     Edge edge = new Edge
                     {
                         TenantGUID = _TenantGuid,
@@ -527,7 +517,6 @@ namespace Test.Enumeration
                 List<LabelMetadata> labels = new List<LabelMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     LabelMetadata label = new LabelMetadata
                     {
                         TenantGUID = _TenantGuid,
@@ -586,7 +575,6 @@ namespace Test.Enumeration
                 List<TagMetadata> tags = new List<TagMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     TagMetadata tag = new TagMetadata
                     {
                         TenantGUID = _TenantGuid,
@@ -653,7 +641,6 @@ namespace Test.Enumeration
                 List<VectorMetadata> vectors = new List<VectorMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
-                    token.ThrowIfCancellationRequested();
                     VectorMetadata vector = new VectorMetadata
                     {
                         TenantGUID = _TenantGuid,
