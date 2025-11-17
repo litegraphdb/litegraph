@@ -1,6 +1,7 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
@@ -22,8 +23,8 @@
         /// List backups request.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Enumerable of backup files.</returns>
-        Task<IEnumerable<BackupFile>> BackupReadAll(CancellationToken token = default);
+        /// <returns>Async enumerable of backup files.</returns>
+        IAsyncEnumerable<BackupFile> BackupReadAll(CancellationToken token = default);
 
         /// <summary>
         /// Read the contents of a backup file.

@@ -92,8 +92,12 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            IEnumerable<BackupFile> backups = await _LiteGraph.Admin.BackupReadAll(token).ConfigureAwait(false);
-            List<BackupFile> files = backups != null ? backups.ToList() : new List<BackupFile>();
+            List<BackupFile> files = new List<BackupFile>();
+            await foreach (BackupFile backup in _LiteGraph.Admin.BackupReadAll(token).WithCancellation(token).ConfigureAwait(false))
+            {
+                files.Add(backup);
+            }
+
             return new ResponseContext(req, files);
         }
 

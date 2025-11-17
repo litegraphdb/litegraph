@@ -849,7 +849,7 @@
             List backups request.
             </summary>
             <param name="token">Cancellation token.</param>
-            <returns>Enumerable of backup files.</returns>
+            <returns>Async enumerable of backup files.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IAdminMethods.BackupRead(System.String,System.Threading.CancellationToken)">
             <summary>

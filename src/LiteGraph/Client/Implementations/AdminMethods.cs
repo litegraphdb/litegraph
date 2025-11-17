@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
@@ -80,12 +81,11 @@
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<BackupFile>> BackupReadAll(CancellationToken token = default)
+        public async IAsyncEnumerable<BackupFile> BackupReadAll([EnumeratorCancellation] CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             if (!Directory.Exists(_BackupDirectory)) Directory.CreateDirectory(_BackupDirectory);
 
-            List<BackupFile> backupFiles = new List<BackupFile>();
             string[] files = await Task.Run(() => Directory.GetFiles(_BackupDirectory), token).ConfigureAwait(false);
 
             foreach (string file in files)
@@ -94,7 +94,7 @@
                 FileInfo fileInfo = new FileInfo(file);
                 byte[] data = await File.ReadAllBytesAsync(file, token).ConfigureAwait(false);
 
-                backupFiles.Add(new BackupFile
+                yield return new BackupFile
                 {
                     Filename = fileInfo.Name,
                     Length = fileInfo.Length,
@@ -104,10 +104,8 @@
                     CreatedUtc = fileInfo.CreationTimeUtc,
                     LastUpdateUtc = fileInfo.LastWriteTimeUtc,
                     LastAccessUtc = fileInfo.LastAccessTimeUtc
-                });
+                };
             }
-
-            return backupFiles;
         }
 
         /// <inheritdoc />
