@@ -6,6 +6,7 @@ namespace Test.Enumeration
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
 
@@ -37,38 +38,45 @@ namespace Test.Enumeration
         /// Main entry point.
         /// </summary>
         /// <param name="args">Command line arguments.</param>
-        static void Main(string[] args)
+        static Task Main(string[] args)
+        {
+            return MainAsync(args, CancellationToken.None);
+        }
+
+        static async Task MainAsync(string[] args, CancellationToken token = default)
         {
             Console.WriteLine("Test.Enumeration - LiteGraph Enumeration API Test Suite");
             Console.WriteLine("========================================================");
             Console.WriteLine("");
 
-            InitializeClient();
+            await InitializeClient(token).ConfigureAwait(false);
 
             // Run tests for each object type
-            TestTenants();
-            TestUsers();
-            TestCredentials();
-            TestGraphs();
-            TestNodes();
-            TestEdges();
-            TestLabels();
-            TestTags();
-            TestVectors();
+            await TestTenants(token).ConfigureAwait(false);
+            await TestUsers(token).ConfigureAwait(false);
+            await TestCredentials(token).ConfigureAwait(false);
+            await TestGraphs(token).ConfigureAwait(false);
+            await TestNodes(token).ConfigureAwait(false);
+            await TestEdges(token).ConfigureAwait(false);
+            await TestLabels(token).ConfigureAwait(false);
+            await TestTags(token).ConfigureAwait(false);
+            await TestVectors(token).ConfigureAwait(false);
 
             // Print summary
             PrintSummary();
 
             // Cleanup
-            Cleanup();
+            await Cleanup(token).ConfigureAwait(false);
         }
 
         #endregion
 
         #region Private-Methods
 
-        private static void InitializeClient()
+        private static Task InitializeClient(CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
+
             Console.WriteLine("Initializing LiteGraphClient...");
 
             // Delete existing database file to ensure clean state
@@ -83,10 +91,14 @@ namespace Test.Enumeration
             _Client.InitializeRepository();
             Console.WriteLine("Client initialized with clean database.");
             Console.WriteLine("");
+
+            return Task.CompletedTask;
         }
 
-        private static void Cleanup()
+        private static Task Cleanup(CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
+
             Console.WriteLine("");
             Console.WriteLine("Cleaning up...");
 
@@ -109,9 +121,11 @@ namespace Test.Enumeration
             {
                 Console.WriteLine($"Cleanup failed: {ex.Message}");
             }
+
+            return Task.CompletedTask;
         }
 
-        private static void TestTenants()
+        private static async Task TestTenants(CancellationToken token = default)
         {
             string testName = "Tenants";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -122,33 +136,34 @@ namespace Test.Enumeration
                 List<TenantMetadata> tenants = new List<TenantMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     TenantMetadata tenant = new TenantMetadata
                     {
                         Name = $"Tenant-{i:D3}"
                     };
-                    tenants.Add(_Client.Tenant.Create(tenant, CancellationToken.None).GetAwaiter().GetResult());
+                    tenants.Add(await _Client.Tenant.Create(tenant, token).ConfigureAwait(false));
                 }
 
                 // Store first tenant for later tests
                 _TenantGuid = tenants[0].GUID;
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<TenantMetadata>(
+                bool test1Pass = await TestEnumerateAllAtOnce<TenantMetadata>(
                     testName + "-AllAtOnce",
-                    () => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<TenantMetadata>(
+                bool test2Pass = await TestEnumerateWithSkip<TenantMetadata>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<TenantMetadata>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<TenantMetadata>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Tenant.Enumerate(new EnumerationRequest { MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -170,7 +185,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestCredentials()
+        private static async Task TestCredentials(CancellationToken token = default)
         {
             string testName = "Credentials";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -179,19 +194,11 @@ namespace Test.Enumeration
             {
                 // Get existing users (created by TestUsers which runs first)
                 List<UserMaster> existingUsers = new List<UserMaster>();
-                var userEnumerator = _Client.User.ReadAllInTenant(_TenantGuid, token: CancellationToken.None).GetAsyncEnumerator();
-                try
+                await foreach (UserMaster user in _Client.User.ReadAllInTenant(_TenantGuid, token: token)
+                    .WithCancellation(token).ConfigureAwait(false))
                 {
-                    int count = 0;
-                    while (count < 100 && userEnumerator.MoveNextAsync().AsTask().GetAwaiter().GetResult())
-                    {
-                        existingUsers.Add(userEnumerator.Current);
-                        count++;
-                    }
-                }
-                finally
-                {
-                    userEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                    existingUsers.Add(user);
+                    if (existingUsers.Count >= 100) break;
                 }
                 if (existingUsers.Count < 100)
                 {
@@ -202,6 +209,7 @@ namespace Test.Enumeration
                 List<Credential> credentials = new List<Credential>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Credential credential = new Credential
                     {
                         TenantGUID = _TenantGuid,
@@ -209,26 +217,26 @@ namespace Test.Enumeration
                         BearerToken = $"token-{i:D3}",
                         Active = true
                     };
-                    credentials.Add(_Client.Credential.Create(credential).GetAwaiter().GetResult());
+                    credentials.Add(await _Client.Credential.Create(credential, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<Credential>(
+                bool test1Pass = await TestEnumerateAllAtOnce<Credential>(
                     testName + "-AllAtOnce",
-                    () => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<Credential>(
+                bool test2Pass = await TestEnumerateWithSkip<Credential>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<Credential>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<Credential>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Credential.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -250,7 +258,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestUsers()
+        private static async Task TestUsers(CancellationToken token = default)
         {
             string testName = "Users";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -261,6 +269,7 @@ namespace Test.Enumeration
                 List<UserMaster> users = new List<UserMaster>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     UserMaster user = new UserMaster
                     {
                         TenantGUID = _TenantGuid,
@@ -269,26 +278,26 @@ namespace Test.Enumeration
                         FirstName = $"User{i}",
                         LastName = "Test"
                     };
-                    users.Add(_Client.User.Create(user, CancellationToken.None).GetAwaiter().GetResult());
+                    users.Add(await _Client.User.Create(user, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<UserMaster>(
+                bool test1Pass = await TestEnumerateAllAtOnce<UserMaster>(
                     testName + "-AllAtOnce",
-                    () => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<UserMaster>(
+                bool test2Pass = await TestEnumerateWithSkip<UserMaster>(
                     testName + "-WithSkip",
-                    (skip) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<UserMaster>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<UserMaster>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -310,7 +319,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestGraphs()
+        private static async Task TestGraphs(CancellationToken token = default)
         {
             string testName = "Graphs";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -321,35 +330,36 @@ namespace Test.Enumeration
                 List<Graph> graphs = new List<Graph>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Graph graph = new Graph
                     {
                         TenantGUID = _TenantGuid,
                         Name = $"Graph-{i:D3}",
                         Data = null
                     };
-                    graphs.Add(_Client.Graph.Create(graph).GetAwaiter().GetResult());
+                    graphs.Add(await _Client.Graph.Create(graph, token).ConfigureAwait(false));
                 }
 
                 // Store first graph for later tests
                 _GraphGuid = graphs[0].GUID;
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<Graph>(
+                bool test1Pass = await TestEnumerateAllAtOnce<Graph>(
                     testName + "-AllAtOnce",
-                    () => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<Graph>(
+                bool test2Pass = await TestEnumerateWithSkip<Graph>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<Graph>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<Graph>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Graph.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -371,7 +381,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestNodes()
+        private static async Task TestNodes(CancellationToken token = default)
         {
             string testName = "Nodes";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -382,6 +392,7 @@ namespace Test.Enumeration
                 List<Node> nodes = new List<Node>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Node node = new Node
                     {
                         TenantGUID = _TenantGuid,
@@ -389,26 +400,26 @@ namespace Test.Enumeration
                         Name = $"Node-{i:D3}",
                         Data = null
                     };
-                    nodes.Add(_Client.Node.Create(node, CancellationToken.None).GetAwaiter().GetResult());
+                    nodes.Add(await _Client.Node.Create(node, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = await TestEnumerateAllAtOnce(
                     testName + "-AllAtOnce",
-                    () => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = await TestEnumerateWithSkip(
                     testName + "-WithSkip",
-                    (skip) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = await TestEnumerateWithContinuationToken(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Node.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -430,7 +441,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestEdges()
+        private static async Task TestEdges(CancellationToken token = default)
         {
             string testName = "Edges";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -439,17 +450,10 @@ namespace Test.Enumeration
             {
                 // Get nodes to create edges between
                 List<Node> nodes = new List<Node>();
-                var nodeEnumerator = _Client.Node.ReadAllInGraph(_TenantGuid, _GraphGuid, token: CancellationToken.None).GetAsyncEnumerator();
-                try
+                await foreach (Node node in _Client.Node.ReadAllInGraph(_TenantGuid, _GraphGuid, token: token)
+                    .WithCancellation(token).ConfigureAwait(false))
                 {
-                    while (nodeEnumerator.MoveNextAsync().GetAwaiter().GetResult())
-                    {
-                        nodes.Add(nodeEnumerator.Current);
-                    }
-                }
-                finally
-                {
-                    nodeEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                    nodes.Add(node);
                 }
                 if (nodes.Count < 2)
                 {
@@ -460,6 +464,7 @@ namespace Test.Enumeration
                 List<Edge> edges = new List<Edge>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Edge edge = new Edge
                     {
                         TenantGUID = _TenantGuid,
@@ -470,26 +475,26 @@ namespace Test.Enumeration
                         Cost = 1,
                         Data = null
                     };
-                    edges.Add(_Client.Edge.Create(edge).GetAwaiter().GetResult());
+                    edges.Add(await _Client.Edge.Create(edge, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<Edge>(
+                bool test1Pass = await TestEnumerateAllAtOnce<Edge>(
                     testName + "-AllAtOnce",
-                    () => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<Edge>(
+                bool test2Pass = await TestEnumerateWithSkip<Edge>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<Edge>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<Edge>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Edge.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -511,7 +516,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestLabels()
+        private static async Task TestLabels(CancellationToken token = default)
         {
             string testName = "Labels";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -522,32 +527,33 @@ namespace Test.Enumeration
                 List<LabelMetadata> labels = new List<LabelMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     LabelMetadata label = new LabelMetadata
                     {
                         TenantGUID = _TenantGuid,
                         GraphGUID = _GraphGuid,
                         Label = $"Label-{i:D3}"
                     };
-                    labels.Add(_Client.Label.Create(label, CancellationToken.None).GetAwaiter().GetResult());
+                    labels.Add(await _Client.Label.Create(label, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = await TestEnumerateAllAtOnce(
                     testName + "-AllAtOnce",
-                    () => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = await TestEnumerateWithSkip(
                     testName + "-WithSkip",
-                    (skip) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = await TestEnumerateWithContinuationToken(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Label.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -569,7 +575,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestTags()
+        private static async Task TestTags(CancellationToken token = default)
         {
             string testName = "Tags";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -580,6 +586,7 @@ namespace Test.Enumeration
                 List<TagMetadata> tags = new List<TagMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     TagMetadata tag = new TagMetadata
                     {
                         TenantGUID = _TenantGuid,
@@ -587,26 +594,26 @@ namespace Test.Enumeration
                         Key = $"Key-{i:D3}",
                         Value = $"Value-{i:D3}"
                     };
-                    tags.Add(_Client.Tag.Create(tag, CancellationToken.None).GetAwaiter().GetResult());
+                    tags.Add(await _Client.Tag.Create(tag, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<TagMetadata>(
+                bool test1Pass = await TestEnumerateAllAtOnce<TagMetadata>(
                     testName + "-AllAtOnce",
-                    () => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<TagMetadata>(
+                bool test2Pass = await TestEnumerateWithSkip<TagMetadata>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<TagMetadata>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<TagMetadata>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Tag.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -628,7 +635,7 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static void TestVectors()
+        private static async Task TestVectors(CancellationToken token = default)
         {
             string testName = "Vectors";
             Console.WriteLine($"Testing {testName} enumeration...");
@@ -636,7 +643,7 @@ namespace Test.Enumeration
             try
             {
                 // Get a node to attach vectors to
-                Node node = _Client.Node.ReadFirst(_TenantGuid, _GraphGuid, token: CancellationToken.None).GetAwaiter().GetResult();
+                Node node = await _Client.Node.ReadFirst(_TenantGuid, _GraphGuid, token: token).ConfigureAwait(false);
                 if (node == null)
                 {
                     throw new Exception("No nodes available to attach vectors");
@@ -646,6 +653,7 @@ namespace Test.Enumeration
                 List<VectorMetadata> vectors = new List<VectorMetadata>();
                 for (int i = 0; i < 100; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     VectorMetadata vector = new VectorMetadata
                     {
                         TenantGUID = _TenantGuid,
@@ -655,26 +663,26 @@ namespace Test.Enumeration
                         Dimensionality = 3,
                         Vectors = new List<float> { i, i + 1, i + 2 }
                     };
-                    vectors.Add(_Client.Vector.Create(vector, CancellationToken.None).GetAwaiter().GetResult());
+                    vectors.Add(await _Client.Vector.Create(vector, token).ConfigureAwait(false));
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce<VectorMetadata>(
+                bool test1Pass = await TestEnumerateAllAtOnce<VectorMetadata>(
                     testName + "-AllAtOnce",
-                    () => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    () => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 100 }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip<VectorMetadata>(
+                bool test2Pass = await TestEnumerateWithSkip<VectorMetadata>(
                     testName + "-WithSkip",
-                    (skip) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (skip) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, Skip = skip }, token),
+                    100).ConfigureAwait(false);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken<VectorMetadata>(
+                bool test3Pass = await TestEnumerateWithContinuationToken<VectorMetadata>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
-                    100);
+                    (contToken) => _Client.Vector.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, GraphGUID = _GraphGuid, MaxResults = 10, ContinuationToken = contToken }, token),
+                    100).ConfigureAwait(false);
 
                 if (test1Pass && test2Pass && test3Pass)
                 {
@@ -696,11 +704,11 @@ namespace Test.Enumeration
             Console.WriteLine("");
         }
 
-        private static bool TestEnumerateAllAtOnce<T>(string testName, Func<EnumerationResult<T>> enumerateFunc, int expectedCount)
+        private static async Task<bool> TestEnumerateAllAtOnce<T>(string testName, Func<Task<EnumerationResult<T>>> enumerateFunc, int expectedCount)
         {
             try
             {
-                EnumerationResult<T> result = enumerateFunc();
+                EnumerationResult<T> result = await enumerateFunc().ConfigureAwait(false);
 
                 // Print diagnostic information
                 Console.WriteLine($"  {testName}:");
@@ -774,7 +782,7 @@ namespace Test.Enumeration
             }
         }
 
-        private static bool TestEnumerateWithSkip<T>(string testName, Func<int, EnumerationResult<T>> enumerateFunc, int expectedCount)
+        private static async Task<bool> TestEnumerateWithSkip<T>(string testName, Func<int, Task<EnumerationResult<T>>> enumerateFunc, int expectedCount)
         {
             try
             {
@@ -787,7 +795,7 @@ namespace Test.Enumeration
                 while (totalRetrieved < expectedCount)
                 {
                     int skip = pageNumber * 10;
-                    EnumerationResult<T> result = enumerateFunc(skip);
+                    EnumerationResult<T> result = await enumerateFunc(skip).ConfigureAwait(false);
 
                     int expectedPageSize = Math.Min(10, expectedCount - totalRetrieved);
                     bool isLastPage = (totalRetrieved + expectedPageSize) >= expectedCount;
@@ -876,7 +884,7 @@ namespace Test.Enumeration
             }
         }
 
-        private static bool TestEnumerateWithContinuationToken<T>(string testName, Func<Guid?, EnumerationResult<T>> enumerateFunc, int expectedCount)
+        private static async Task<bool> TestEnumerateWithContinuationToken<T>(string testName, Func<Guid?, Task<EnumerationResult<T>>> enumerateFunc, int expectedCount)
         {
             try
             {
@@ -889,7 +897,7 @@ namespace Test.Enumeration
 
                 while (true)
                 {
-                    EnumerationResult<T> result = enumerateFunc(continuationToken);
+                    EnumerationResult<T> result = await enumerateFunc(continuationToken).ConfigureAwait(false);
 
                     int expectedPageSize = Math.Min(10, expectedCount - totalRetrieved);
                     bool isLastPage = (totalRetrieved + expectedPageSize) >= expectedCount;
