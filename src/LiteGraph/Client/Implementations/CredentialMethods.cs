@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
@@ -55,29 +56,41 @@
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Credential>> ReadAllInTenant(
+        public async IAsyncEnumerable<Credential> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
-            CancellationToken token = default)
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
-            return await _Repo.Credential.ReadAllInTenant(tenantGuid, order, skip, token).ConfigureAwait(false);
+            IEnumerable<Credential> credentials = await _Repo.Credential.ReadAllInTenant(tenantGuid, order, skip, token).ConfigureAwait(false);
+
+            foreach (Credential credential in credentials)
+            {
+                token.ThrowIfCancellationRequested();
+                yield return credential;
+            }
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Credential>> ReadMany(
+        public async IAsyncEnumerable<Credential> ReadMany(
             Guid? tenantGuid,
             Guid? userGuid = null,
             string bearerToken = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
-            CancellationToken token = default)
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
-            return await _Repo.Credential.ReadMany(tenantGuid, userGuid, bearerToken, order, skip, token).ConfigureAwait(false);
+            IEnumerable<Credential> credentials = await _Repo.Credential.ReadMany(tenantGuid, userGuid, bearerToken, order, skip, token).ConfigureAwait(false);
+
+            foreach (Credential credential in credentials)
+            {
+                token.ThrowIfCancellationRequested();
+                yield return credential;
+            }
         }
 
         /// <inheritdoc />
@@ -89,11 +102,17 @@
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<Credential>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
+        public async IAsyncEnumerable<Credential> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving credentials");
-            return await _Repo.Credential.ReadByGuids(tenantGuid, guids, token).ConfigureAwait(false);
+            IEnumerable<Credential> credentials = await _Repo.Credential.ReadByGuids(tenantGuid, guids, token).ConfigureAwait(false);
+
+            foreach (Credential credential in credentials)
+            {
+                token.ThrowIfCancellationRequested();
+                yield return credential;
+            }
         }
 
         /// <inheritdoc />

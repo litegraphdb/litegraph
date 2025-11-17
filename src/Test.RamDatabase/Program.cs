@@ -1438,7 +1438,13 @@
             else if (str.Equals("cred"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = await _Client.Credential.ReadMany(tenantGuid, null, null, token: token).ConfigureAwait(false);
+                List<Credential> creds = new List<Credential>();
+                await foreach (Credential credential in _Client.Credential.ReadMany(tenantGuid, null, null, token: token)
+                    .WithCancellation(token).ConfigureAwait(false))
+                {
+                    creds.Add(credential);
+                }
+                obj = creds;
             }
             else if (str.Equals("graph"))
             {

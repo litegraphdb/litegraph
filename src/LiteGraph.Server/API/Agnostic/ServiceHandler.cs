@@ -333,18 +333,23 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<Credential> objs = null;
+            List<Credential> objs = new List<Credential>();
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = (await _LiteGraph.Credential.ReadMany(req.TenantGUID.Value, null, null, req.Order, req.Skip, token).ConfigureAwait(false)).ToList();
+                await foreach (Credential credential in _LiteGraph.Credential.ReadMany(req.TenantGUID.Value, null, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    objs.Add(credential);
+                }
             }
             else
             {
-                objs = (await _LiteGraph.Credential.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).ConfigureAwait(false)).ToList();
+                await foreach (Credential credential in _LiteGraph.Credential.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    objs.Add(credential);
+                }
             }
 
-            if (objs == null) objs = new List<Credential>();
             return new ResponseContext(req, objs);
         }
 

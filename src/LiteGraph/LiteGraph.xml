@@ -920,7 +920,7 @@
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Credentials.</returns>
+            <returns>Async enumerable of credentials.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadMany(System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
@@ -932,7 +932,7 @@
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Credentials.</returns>
+            <returns>Async enumerable of credentials.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -950,7 +950,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Credentials.</returns>
+            <returns>Async enumerable of credentials.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.ICredentialMethods.ReadByBearerToken(System.String,System.Threading.CancellationToken)">
             <summary>
