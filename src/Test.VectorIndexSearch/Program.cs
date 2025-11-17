@@ -115,7 +115,12 @@ namespace Test.VectorIndexSearch
             public DateTime Timestamp { get; set; }
         }
 
-        static async Task Main(string[] args)
+        static Task Main(string[] args)
+        {
+            return MainAsync(args, CancellationToken.None);
+        }
+
+        static async Task MainAsync(string[] args, CancellationToken token = default)
         {
             Stopwatch totalStopwatch = Stopwatch.StartNew();
             DateTime testStartTime = DateTime.Now;
@@ -140,7 +145,7 @@ namespace Test.VectorIndexSearch
                 Console.WriteLine("|                        HNSW RAM TEST                              |");
                 Console.WriteLine("+-------------------------------------------------------------------+");
                 Console.WriteLine();
-                await RunHnswTest(ramMetrics, "litegraph_ram.db", null);
+                await RunHnswTest(ramMetrics, "litegraph_ram.db", null, token).ConfigureAwait(false);
 
                 Console.WriteLine();
                 Console.WriteLine();
@@ -150,7 +155,7 @@ namespace Test.VectorIndexSearch
                 Console.WriteLine("|                      HNSW SQLite TEST                             |");
                 Console.WriteLine("+-------------------------------------------------------------------+");
                 Console.WriteLine();
-                await RunHnswTest(sqliteMetrics, "litegraph_sqlite.db", Path.GetFullPath("test_hnsw_index.sqlite"));
+                await RunHnswTest(sqliteMetrics, "litegraph_sqlite.db", Path.GetFullPath("test_hnsw_index.sqlite"), token).ConfigureAwait(false);
 
                 totalStopwatch.Stop();
 
@@ -174,7 +179,7 @@ namespace Test.VectorIndexSearch
             Console.WriteLine();
         }
 
-        static async Task RunHnswTest(TestRunMetrics metrics, string dbPath, string indexFile)
+        static async Task RunHnswTest(TestRunMetrics metrics, string dbPath, string indexFile, CancellationToken token = default)
         {
             Stopwatch testStopwatch = Stopwatch.StartNew();
 
@@ -201,11 +206,11 @@ namespace Test.VectorIndexSearch
 
                 // Create tenant
                 Stopwatch tenantStopwatch = Stopwatch.StartNew();
-                tenant = _Client.Tenant.Create(new TenantMetadata
+                tenant = await _Client.Tenant.Create(new TenantMetadata
                 {
                     GUID = Guid.NewGuid(),
                     Name = $"Vector Index Test Tenant ({metrics.TestName})"
-                }, CancellationToken.None).GetAwaiter().GetResult();
+                }, token).ConfigureAwait(false);
                 tenantStopwatch.Stop();
                 metrics.TenantCreationTime = tenantStopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"  Tenant created in {tenantStopwatch.ElapsedMilliseconds}ms");
@@ -231,7 +236,7 @@ namespace Test.VectorIndexSearch
                         Dimensionality = _VectorDimensionality,
                         IndexType = metrics.IndexType.ToString()
                     }
-                }, CancellationToken.None).ConfigureAwait(false);
+                }, token).ConfigureAwait(false);
                 graphStopwatch.Stop();
                 metrics.GraphCreationTime = graphStopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"  Graph created with {metrics.TestName} index in {graphStopwatch.ElapsedMilliseconds}ms");
@@ -250,6 +255,7 @@ namespace Test.VectorIndexSearch
 
                 for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Stopwatch batchTotalStopwatch = Stopwatch.StartNew();
                     List<Node> batchNodes = new List<Node>();
                     int batchStart = batchIndex * _BatchSize;
@@ -301,7 +307,7 @@ namespace Test.VectorIndexSearch
 
                     // Batch insert
                     Stopwatch batchInsertStopwatch = Stopwatch.StartNew();
-                    List<Node> createdNodes = _Client.Node.CreateMany(tenant.GUID, graph.GUID, batchNodes, CancellationToken.None).GetAwaiter().GetResult();
+                    List<Node> createdNodes = await _Client.Node.CreateMany(tenant.GUID, graph.GUID, batchNodes, token).ConfigureAwait(false);
                     batchInsertStopwatch.Stop();
                     nodes.AddRange(createdNodes);
                     metrics.NodesCreated += createdNodes.Count;
@@ -368,7 +374,7 @@ namespace Test.VectorIndexSearch
                 Console.WriteLine($"  Average time per node: {(double)metrics.TotalNodeCreationTime / metrics.NodesCreated:F2}ms");
 
                 // Validate data was created successfully
-                Node testNode = await _Client.Node.ReadFirst(tenant.GUID, graph.GUID, null, null, null, null, EnumerationOrderEnum.CreatedDescending, true, true, CancellationToken.None).ConfigureAwait(false);
+                Node testNode = await _Client.Node.ReadFirst(tenant.GUID, graph.GUID, null, null, null, null, EnumerationOrderEnum.CreatedDescending, true, true, token).ConfigureAwait(false);
                 if (testNode == null)
                 {
                     Console.WriteLine("  WARNING: No nodes found after creation!");
@@ -382,7 +388,7 @@ namespace Test.VectorIndexSearch
                     SqliteGraphRepository repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
                     if (repo != null)
                     {
-                        metrics.IndexStats = await repo.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID, CancellationToken.None).ConfigureAwait(false);
+                        metrics.IndexStats = await repo.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID, token).ConfigureAwait(false);
                         if (metrics.IndexStats != null)
                         {
                             Console.WriteLine("Index Statistics:");
@@ -445,7 +451,7 @@ namespace Test.VectorIndexSearch
                                     foreach ((Guid Id, float Score) indexResult in indexResults)
                                     {
                                         // In HNSW indexing, the vector ID corresponds to the node GUID
-                                        Node node = await _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true, CancellationToken.None).ConfigureAwait(false);
+                                        Node node = await _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true, token).ConfigureAwait(false);
                                         
                                         results.Add(new VectorSearchResult
                                         {
@@ -470,7 +476,7 @@ namespace Test.VectorIndexSearch
                                         TopK = _TopResults
                                     };
                                     results = new List<VectorSearchResult>();
-                                    await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                                    await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, token).WithCancellation(token).ConfigureAwait(false))
                                     {
                                         results.Add(result);
                                     }
@@ -491,7 +497,7 @@ namespace Test.VectorIndexSearch
                                 TopK = _TopResults
                             };
                             results = new List<VectorSearchResult>();
-                            await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                            await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, token).WithCancellation(token).ConfigureAwait(false))
                             {
                                 results.Add(result);
                             }
@@ -511,7 +517,7 @@ namespace Test.VectorIndexSearch
                             TopK = _TopResults
                         };
                         results = new List<VectorSearchResult>();
-                        await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                        await foreach (VectorSearchResult result in _Client.Vector.Search(searchRequest, token).WithCancellation(token).ConfigureAwait(false))
                         {
                             results.Add(result);
                         }
@@ -562,7 +568,8 @@ namespace Test.VectorIndexSearch
                 Stopwatch nodeDeletionStopwatch = Stopwatch.StartNew();
                 foreach (Node node in nodes)
                 {
-                    await _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID, CancellationToken.None).ConfigureAwait(false);
+                    token.ThrowIfCancellationRequested();
+                    await _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID, token).ConfigureAwait(false);
                     metrics.NodesDeleted++;
                 }
                 nodeDeletionStopwatch.Stop();
@@ -570,13 +577,13 @@ namespace Test.VectorIndexSearch
 
                 // Delete graph
                 Stopwatch graphDeletionStopwatch = Stopwatch.StartNew();
-                await _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true, CancellationToken.None).ConfigureAwait(false);
+                await _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true, token).ConfigureAwait(false);
                 graphDeletionStopwatch.Stop();
                 metrics.GraphDeletionTime = graphDeletionStopwatch.ElapsedMilliseconds;
 
                 // Delete tenant
                 Stopwatch tenantDeletionStopwatch = Stopwatch.StartNew();
-                _Client.Tenant.DeleteByGuid(tenant.GUID, true, CancellationToken.None).GetAwaiter().GetResult();
+                await _Client.Tenant.DeleteByGuid(tenant.GUID, true, token).ConfigureAwait(false);
                 tenantDeletionStopwatch.Stop();
                 metrics.TenantDeletionTime = tenantDeletionStopwatch.ElapsedMilliseconds;
 
