@@ -6,6 +6,9 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
     using LiteGraph.Serialization;
@@ -21,8 +24,9 @@
         /// Create a user.
         /// </summary>
         /// <param name="user">User.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>User.</returns>
-        UserMaster Create(UserMaster user);
+        Task<UserMaster> Create(UserMaster user, CancellationToken token = default);
 
         /// <summary>
         /// Read all users in a given tenant.
@@ -30,11 +34,13 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Users.</returns>
-        IEnumerable<UserMaster> ReadAllInTenant(
+        IAsyncEnumerable<UserMaster> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read users.
@@ -43,50 +49,57 @@
         /// <param name="email">Email.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Users.</returns>
-        IEnumerable<UserMaster> ReadMany(
+        IAsyncEnumerable<UserMaster> ReadMany(
             Guid? tenantGuid,
             string email,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read a user by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>User.</returns>
-        UserMaster ReadByGuid(Guid tenantGuid, Guid guid);
+        Task<UserMaster> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
         /// Read users by GUIDs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Users.</returns>
-        IEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+        IAsyncEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Read tenants associated with a given email address.
         /// </summary>
         /// <param name="email">Email address.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>List of tenants.</returns>
-        List<TenantMetadata> ReadTenantsByEmail(string email);
+        Task<List<TenantMetadata>> ReadTenantsByEmail(string email, CancellationToken token = default);
 
         /// <summary>
         /// Read a user by email.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="email">Email.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>User.</returns>
-        UserMaster ReadByEmail(Guid tenantGuid, string email);
+        Task<UserMaster> ReadByEmail(Guid tenantGuid, string email, CancellationToken token = default);
 
         /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Enumeration result containing a page of objects.</returns>
-        EnumerationResult<UserMaster> Enumerate(EnumerationRequest query);
+        Task<EnumerationResult<UserMaster>> Enumerate(EnumerationRequest query, CancellationToken token = default);
 
         /// <summary>
         /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
@@ -94,46 +107,53 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="markerGuid">Marker GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Number of records.</returns>
-        int GetRecordCount(
+        Task<int> GetRecordCount(
             Guid? tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            Guid? markerGuid = null);
+            Guid? markerGuid = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Update a user.
         /// </summary>
         /// <param name="user">User.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>User.</returns>
-        UserMaster Update(UserMaster user);
+        Task<UserMaster> Update(UserMaster user, CancellationToken token = default);
 
         /// <summary>
         /// Delete a user.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
-        void DeleteByGuid(Guid tenantGuid, Guid guid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
         /// Delete users associated with a tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        void DeleteAllInTenant(Guid tenantGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default);
 
         /// <summary>
         /// Check if a user exists by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>True if exists.</returns>
-        bool ExistsByGuid(Guid tenantGuid, Guid guid);
+        Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
         /// Check if a user exists by email.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="email">Email.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>True if exists.</returns>
-        bool ExistsByEmail(Guid tenantGuid, string email);
+        Task<bool> ExistsByEmail(Guid tenantGuid, string email, CancellationToken token = default);
     }
 }

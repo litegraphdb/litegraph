@@ -4,15 +4,12 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// User methods.
@@ -46,53 +43,56 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public UserMaster Create(UserMaster user)
+        public async Task<UserMaster> Create(UserMaster user, CancellationToken token = default)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
-            if (ExistsByEmail(user.TenantGUID, user.Email)) throw new InvalidOperationException("A user with the specified email address already exists within the specified tenant.");
+            if (await ExistsByEmail(user.TenantGUID, user.Email, token).ConfigureAwait(false)) throw new InvalidOperationException("A user with the specified email address already exists within the specified tenant.");
             string createQuery = UserQueries.Insert(user);
-            DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
             UserMaster created = Converters.UserFromDataRow(createResult.Rows[0]);
             return created;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(UserQueries.Delete(tenantGuid, guid), true);
+            await _Repo.ExecuteQueryAsync(UserQueries.Delete(tenantGuid, guid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(UserQueries.DeleteAllInTenant(tenantGuid), true);
+            await _Repo.ExecuteQueryAsync(UserQueries.DeleteAllInTenant(tenantGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid userGuid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid userGuid, CancellationToken token = default)
         {
-            return (ReadByGuid(tenantGuid, userGuid) != null);
+            return (await ReadByGuid(tenantGuid, userGuid, token).ConfigureAwait(false) != null);
         }
 
         /// <inheritdoc />
-        public bool ExistsByEmail(Guid tenantGuid, string email)
+        public async Task<bool> ExistsByEmail(Guid tenantGuid, string email, CancellationToken token = default)
         {
-            return (ReadByEmail(tenantGuid, email) != null);
+            return (await ReadByEmail(tenantGuid, email, token).ConfigureAwait(false) != null);
         }
 
         /// <inheritdoc />
-        public IEnumerable<UserMaster> ReadAllInTenant(
+        public async IAsyncEnumerable<UserMaster> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(UserQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     UserMaster user = Converters.UserFromDataRow(result.Rows[i]);
                     yield return user;
                     skip++;
@@ -103,31 +103,32 @@
         }
 
         /// <inheritdoc />
-        public UserMaster ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<UserMaster> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectByGuid(tenantGuid, guid));
+            DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.SelectByGuid(tenantGuid, guid), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1) return Converters.UserFromDataRow(result.Rows[0]);
             return null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) yield break;
-            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectByGuids(tenantGuid, guids));
+            DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.SelectByGuids(tenantGuid, guids), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) yield break;
 
             for (int i = 0; i < result.Rows.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 yield return Converters.UserFromDataRow(result.Rows[i]);
             }
         }
 
         /// <inheritdoc />
-        public List<TenantMetadata> ReadTenantsByEmail(string email)
+        public async Task<List<TenantMetadata>> ReadTenantsByEmail(string email, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectTenantsByEmail(email));
+            DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.SelectTenantsByEmail(email), false, token).ConfigureAwait(false);
             List<TenantMetadata> tenants = new List<TenantMetadata>();
             if (result != null && result.Rows.Count > 0) 
                 foreach (DataRow row in result.Rows) tenants.Add(Converters.TenantFromDataRow(row));
@@ -135,29 +136,32 @@
         }
 
         /// <inheritdoc />
-        public UserMaster ReadByEmail(Guid tenantGuid, string email)
+        public async Task<UserMaster> ReadByEmail(Guid tenantGuid, string email, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(UserQueries.SelectByEmail(tenantGuid, email));
+            DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.SelectByEmail(tenantGuid, email), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1) return Converters.UserFromDataRow(result.Rows[0]);
             return null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<UserMaster> ReadMany(
+        public async IAsyncEnumerable<UserMaster> ReadMany(
             Guid? tenantGuid,
             string email,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(UserQueries.SelectMany(tenantGuid, email, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.SelectMany(tenantGuid, email, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.UserFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -167,7 +171,7 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<UserMaster> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<UserMaster>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
 
@@ -175,7 +179,7 @@
 
             if (query.TenantGUID != null && query.ContinuationToken != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                marker = await ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -185,7 +189,7 @@
             };
 
             ret.Timestamp.Start = DateTime.UtcNow;
-            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.Ordering, null);
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -197,12 +201,12 @@
             }
             else
             {
-                DataTable result = _Repo.ExecuteQuery(UserQueries.GetRecordPage(
+                DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.GetRecordPage(
                     query.TenantGUID,
                     query.MaxResults,
                     query.Skip,
                     query.Ordering,
-                    marker));
+                    marker), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1)
                 {
@@ -218,7 +222,7 @@
 
                     UserMaster lastItem = ret.Objects.Last();
 
-                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.Ordering, lastItem.GUID);
+                    ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
 
                     if (ret.RecordsRemaining > 0)
                     {
@@ -239,19 +243,19 @@
         }
 
         /// <inheritdoc />
-        public int GetRecordCount(Guid? tenantGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, Guid? markerGuid = null)
+        public async Task<int> GetRecordCount(Guid? tenantGuid, EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, Guid? markerGuid = null, CancellationToken token = default)
         {
             UserMaster marker = null;
             if (tenantGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                marker = await ReadByGuid(tenantGuid.Value, markerGuid.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(UserQueries.GetRecordCount(
+            DataTable result = await _Repo.ExecuteQueryAsync(UserQueries.GetRecordCount(
                 tenantGuid,
                 order,
-                marker));
+                marker), false, token).ConfigureAwait(false);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {
@@ -264,10 +268,10 @@
         }
 
         /// <inheritdoc />
-        public UserMaster Update(UserMaster user)
+        public async Task<UserMaster> Update(UserMaster user, CancellationToken token = default)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
-            return Converters.UserFromDataRow(_Repo.ExecuteQuery(UserQueries.Update(user), true).Rows[0]);
+            return Converters.UserFromDataRow((await _Repo.ExecuteQueryAsync(UserQueries.Update(user), true, token).ConfigureAwait(false)).Rows[0]);
         }
 
         #endregion

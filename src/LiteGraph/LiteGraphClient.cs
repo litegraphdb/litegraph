@@ -336,9 +336,9 @@
             TenantCacheAdd(tenant);
         }
 
-        internal void ValidateUserExists(Guid tenantGuid, Guid userGuid)
+        internal async Task ValidateUserExists(Guid tenantGuid, Guid userGuid, System.Threading.CancellationToken token = default)
         {
-            if (!User.ExistsByGuid(tenantGuid, userGuid))
+            if (!await User.ExistsByGuid(tenantGuid, userGuid, token).ConfigureAwait(false))
                 throw new ArgumentException("No user with GUID '" + userGuid + "' exists.");
         }
 

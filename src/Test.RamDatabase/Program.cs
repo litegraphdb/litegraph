@@ -1688,7 +1688,7 @@
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid userGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                exists = _Client.User.ExistsByGuid(tenantGuid, userGuid);
+                exists = _Client.User.ExistsByGuid(tenantGuid, userGuid, CancellationToken.None).GetAwaiter().GetResult();
             }
             else if (str.Equals("cred"))
             {

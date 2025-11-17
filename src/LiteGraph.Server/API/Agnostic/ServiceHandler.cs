@@ -228,7 +228,7 @@
             if (req.User == null) throw new ArgumentNullException(nameof(req.User));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.User.TenantGUID = req.TenantGUID.Value;
-            UserMaster obj = _LiteGraph.User.Create(req.User);
+            UserMaster obj = await _LiteGraph.User.Create(req.User, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -237,18 +237,23 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<UserMaster> objs = null;
+            List<UserMaster> objs = new List<UserMaster>();
 
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = _LiteGraph.User.ReadMany(req.TenantGUID.Value, null, req.Order, req.Skip).ToList();
+                await foreach (UserMaster user in _LiteGraph.User.ReadMany(req.TenantGUID.Value, null, req.Order, req.Skip, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(user);
+                }
             }
             else
             {
-                objs = _LiteGraph.User.ReadByGuids(req.TenantGUID.Value, req.GUIDs).ToList();
+                await foreach (UserMaster user in _LiteGraph.User.ReadByGuids(req.TenantGUID.Value, req.GUIDs, CancellationToken.None).WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    objs.Add(user);
+                }
             }
 
-            if (objs == null) objs = new List<UserMaster>();
             return new ResponseContext(req, objs);
         }
 
@@ -257,7 +262,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
-            EnumerationResult<UserMaster> er = _LiteGraph.User.Enumerate(req.EnumerationQuery);
+            EnumerationResult<UserMaster> er = await _LiteGraph.User.Enumerate(req.EnumerationQuery, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -265,7 +270,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            UserMaster obj = _LiteGraph.User.ReadByGuid(req.TenantGUID.Value, req.UserGUID.Value);
+            UserMaster obj = await _LiteGraph.User.ReadByGuid(req.TenantGUID.Value, req.UserGUID.Value, CancellationToken.None).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -274,7 +279,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (_LiteGraph.User.ExistsByGuid(req.TenantGUID.Value, req.UserGUID.Value)) return new ResponseContext(req);
+            if (await _LiteGraph.User.ExistsByGuid(req.TenantGUID.Value, req.UserGUID.Value, CancellationToken.None).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -284,7 +289,7 @@
             if (req.User == null) throw new ArgumentNullException(nameof(req.User));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.User.TenantGUID = req.TenantGUID.Value;
-            UserMaster obj = _LiteGraph.User.Update(req.User);
+            UserMaster obj = await _LiteGraph.User.Update(req.User, CancellationToken.None).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             return new ResponseContext(req, obj);
         }
@@ -293,14 +298,14 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            _LiteGraph.User.DeleteByGuid(req.TenantGUID.Value, req.UserGUID.Value);
+            await _LiteGraph.User.DeleteByGuid(req.TenantGUID.Value, req.UserGUID.Value, CancellationToken.None).ConfigureAwait(false);
             return new ResponseContext(req);
         }
 
         internal async Task<ResponseContext> UserTenants(RequestContext req)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<TenantMetadata> tenants = _LiteGraph.User.ReadTenantsByEmail(req.Authentication.Email);
+            List<TenantMetadata> tenants = await _LiteGraph.User.ReadTenantsByEmail(req.Authentication.Email, CancellationToken.None).ConfigureAwait(false);
             if (tenants != null && tenants.Count > 0) return new ResponseContext(req, tenants);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }

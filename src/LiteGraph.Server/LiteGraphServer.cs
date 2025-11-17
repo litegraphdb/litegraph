@@ -298,9 +298,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.User.ExistsByGuid(tenant.GUID, user.GUID))
+            if (!_Repo.User.ExistsByGuid(tenant.GUID, user.GUID).GetAwaiter().GetResult())
             {
-                user = _Repo.User.Create(user);
+                user = _Repo.User.Create(user, CancellationToken.None).GetAwaiter().GetResult();
                 Console.WriteLine("| Created user       : " + user.GUID + " email: " + user.Email + " pass: " + user.Password);
             }
 

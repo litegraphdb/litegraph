@@ -178,7 +178,21 @@ namespace Test.Enumeration
             try
             {
                 // Get existing users (created by TestUsers which runs first)
-                List<UserMaster> existingUsers = _Client.User.ReadAllInTenant(_TenantGuid).Take(100).ToList();
+                List<UserMaster> existingUsers = new List<UserMaster>();
+                var userEnumerator = _Client.User.ReadAllInTenant(_TenantGuid, token: CancellationToken.None).GetAsyncEnumerator();
+                try
+                {
+                    int count = 0;
+                    while (count < 100 && userEnumerator.MoveNextAsync().AsTask().GetAwaiter().GetResult())
+                    {
+                        existingUsers.Add(userEnumerator.Current);
+                        count++;
+                    }
+                }
+                finally
+                {
+                    userEnumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
                 if (existingUsers.Count < 100)
                 {
                     throw new Exception($"Expected 100 users to exist, but found only {existingUsers.Count}");
@@ -255,25 +269,25 @@ namespace Test.Enumeration
                         FirstName = $"User{i}",
                         LastName = "Test"
                     };
-                    users.Add(_Client.User.Create(user));
+                    users.Add(_Client.User.Create(user, CancellationToken.None).GetAwaiter().GetResult());
                 }
 
                 // Test 1: Enumerate all at once (max results = 100)
-                bool test1Pass = TestEnumerateAllAtOnce(
+                bool test1Pass = TestEnumerateAllAtOnce<UserMaster>(
                     testName + "-AllAtOnce",
-                    () => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }),
+                    () => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 100 }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 2: Enumerate in pages of 10 using skip
-                bool test2Pass = TestEnumerateWithSkip(
+                bool test2Pass = TestEnumerateWithSkip<UserMaster>(
                     testName + "-WithSkip",
-                    (skip) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }),
+                    (skip) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, Skip = skip }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 // Test 3: Enumerate in pages of 10 using continuation token
-                bool test3Pass = TestEnumerateWithContinuationToken(
+                bool test3Pass = TestEnumerateWithContinuationToken<UserMaster>(
                     testName + "-WithContinuationToken",
-                    (token) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }),
+                    (token) => _Client.User.Enumerate(new EnumerationRequest { TenantGUID = _TenantGuid, MaxResults = 10, ContinuationToken = token }, CancellationToken.None).GetAwaiter().GetResult(),
                     100);
 
                 if (test1Pass && test2Pass && test3Pass)

@@ -119,7 +119,13 @@
 
             if (!force)
             {
-                if (_Repo.User.ReadAllInTenant(guid).Any())
+                bool hasUsers = false;
+                await using (var userEnumerator = _Repo.User.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await userEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        hasUsers = true;
+                }
+                if (hasUsers)
                     throw new InvalidOperationException("The specified tenant has dependent users.");
 
                 if ((await _Repo.Credential.ReadAllInTenant(guid, token: token).ConfigureAwait(false)).Any())

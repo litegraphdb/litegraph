@@ -676,43 +676,43 @@
             <param name="client">LiteGraph client.</param>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.Create(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.Create(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadTenantsByEmail(System.String)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadTenantsByEmail(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.Update(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.Update(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.UserMethods.ExistsByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.Client.Implementations.UserMethods.ExistsByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.UserMethods.GenerateAuthenticationToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
@@ -2246,23 +2246,25 @@
             Client implementations are responsible for input validation and cross-cutting logic.
             </summary>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Create(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Create(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <summary>
             Create a user.
             </summary>
             <param name="user">User.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read all users in a given tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Users.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read users.
             </summary>
@@ -2270,80 +2272,91 @@
             <param name="email">Email.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Users.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Read a user by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read users by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Users.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadTenantsByEmail(System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadTenantsByEmail(System.String,System.Threading.CancellationToken)">
             <summary>
             Read tenants associated with a given email address.
             </summary>
             <param name="email">Email address.</param>
+            <param name="token">Cancellation token.</param>
             <returns>List of tenants.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ReadByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <summary>
             Read a user by email.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <summary>
             Enumerate objects.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Update(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.Update(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <summary>
             Update a user.
             </summary>
             <param name="user">User.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete a user.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete users associated with a tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Check if a user exists by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ExistsByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.Client.Interfaces.IUserMethods.ExistsByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <summary>
             Check if a user exists by email.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IUserMethods.GenerateAuthenticationToken(System.String,System.String,System.Guid,System.Threading.CancellationToken)">
@@ -4974,23 +4987,25 @@
             Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
             </summary>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Create(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Create(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <summary>
             Create a user.
             </summary>
             <param name="user">User.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read all users in a given tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">The number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Users.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read users.
             </summary>
@@ -4998,89 +5013,101 @@
             <param name="email">Email.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Users.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Read a user by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read users by GUIDs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Users.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadTenantsByEmail(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadTenantsByEmail(System.String,System.Threading.CancellationToken)">
             <summary>
             Read tenants associated with a given email address.
             </summary>
             <param name="email">Email address.</param>
+            <param name="token">Cancellation token.</param>
             <returns>List of tenants.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ReadByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <summary>
             Read a user by email.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <summary>
             Enumerate objects.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Enumeration result containing a page of objects.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>Number of records.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Update(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.Update(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <summary>
             Update a user.
             </summary>
             <param name="user">User.</param>
+            <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete a user.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
             Delete users associated with a tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Check if a user exists by GUID.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ExistsByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IUserMethods.ExistsByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <summary>
             Check if a user exists by email.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="email">Email.</param>
+            <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.IVectorIndexMethods">
@@ -5924,46 +5951,46 @@
             </summary>
             <param name="repo">Graph repository.</param>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Create(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Create(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.DeleteByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.DeleteAllInTenant(System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ExistsByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ExistsByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ExistsByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByGuid(System.Guid,System.Guid)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByGuids(System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadTenantsByEmail(System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadTenantsByEmail(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByEmail(System.Guid,System.String)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadByEmail(System.Guid,System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.ReadMany(System.Nullable{System.Guid},System.String,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationRequest)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid})">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Update(LiteGraph.UserMaster)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.UserMethods.Update(LiteGraph.UserMaster,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorIndexMethods">

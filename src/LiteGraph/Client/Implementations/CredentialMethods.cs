@@ -48,7 +48,7 @@
             if (cred == null) throw new ArgumentNullException(nameof(cred));
             token.ThrowIfCancellationRequested();
             await _Client.ValidateTenantExists(cred.TenantGUID, token).ConfigureAwait(false);
-            _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID);
+            await _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID, token).ConfigureAwait(false);
             Credential created = await _Repo.Credential.Create(cred, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created credential " + created.GUID);
             return created;
@@ -118,7 +118,7 @@
             if (cred == null) throw new ArgumentNullException(nameof(cred));
             token.ThrowIfCancellationRequested();
             await _Client.ValidateTenantExists(cred.TenantGUID, token).ConfigureAwait(false);
-            _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID);
+            await _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID, token).ConfigureAwait(false);
             Credential updated = await _Repo.Credential.Update(cred, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "updated credential " + cred.Name + " GUID " + cred.GUID);
             return updated;
@@ -149,7 +149,7 @@
         {
             token.ThrowIfCancellationRequested();
             await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
-            _Client.ValidateUserExists(tenantGuid, userGuid);
+            await _Client.ValidateUserExists(tenantGuid, userGuid, token).ConfigureAwait(false);
             await _Repo.Credential.DeleteByUser(tenantGuid, userGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted credentials for user " + userGuid);
         }
