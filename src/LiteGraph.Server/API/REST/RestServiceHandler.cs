@@ -1932,11 +1932,11 @@
 
         #region Private-Methods
 
-        private async Task WrappedRequestHandler(HttpContextBase ctx, RequestContext req, Func<RequestContext, Task<ResponseContext>> func)
+        private async Task WrappedRequestHandler(HttpContextBase ctx, RequestContext req, Func<RequestContext, CancellationToken, Task<ResponseContext>> func)
         {
             try
             {
-                ResponseContext resp = await func(req);
+                ResponseContext resp = await func(req, CancellationToken.None).ConfigureAwait(false);
                 if (resp == null)
                 {
                     _Logging.Warn(_Header + "no response from agnostic handler");
