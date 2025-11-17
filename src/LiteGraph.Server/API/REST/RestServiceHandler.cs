@@ -392,7 +392,7 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
-            _Authentication.AuthenticateAndAuthorize(req);
+            await _Authentication.AuthenticateAndAuthorize(req, CancellationToken.None).ConfigureAwait(false);
 
             switch (req.Authentication.Result)
             {
@@ -492,7 +492,7 @@
                 return;
             }
 
-            AuthenticationToken token = _Authentication.ReadToken(req.Authentication.SecurityToken);
+            AuthenticationToken token = await _Authentication.ReadToken(req.Authentication.SecurityToken, CancellationToken.None).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
             await ctx.Response.Send(_Serializer.SerializeJson(token, true));
             return;
