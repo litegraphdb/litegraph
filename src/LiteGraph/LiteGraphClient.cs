@@ -330,7 +330,7 @@
         
         internal async Task ValidateTenantExists(Guid tenantGuid, CancellationToken token = default)
         {
-            if (TenantCacheTryGet(tenantGuid, out var _)) return;
+            if (TenantCacheTryGet(tenantGuid, out TenantMetadata _)) return;
             TenantMetadata tenant = await Tenant.ReadByGuid(tenantGuid, token).ConfigureAwait(false);
             if (tenant == null) throw new ArgumentException("No tenant with GUID '" + tenantGuid + "' exists.");
             TenantCacheAdd(tenant);
@@ -345,7 +345,7 @@
         internal async Task ValidateGraphExists(Guid tenantGuid, Guid? graphGuid, CancellationToken token = default)
         {
             if (graphGuid == null) return;
-            if (GraphCacheTryGet(graphGuid.Value, out var _)) return; 
+            if (GraphCacheTryGet(graphGuid.Value, out Graph _)) return; 
             Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid.Value, token).ConfigureAwait(false);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid.Value + "' exists.");
             GraphCacheAdd(graph);
@@ -354,7 +354,7 @@
         internal async Task ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid, CancellationToken token = default)
         {
             if (nodeGuid == null) return;
-            if (NodeCacheTryGet(nodeGuid.Value, out var _)) return;
+            if (NodeCacheTryGet(nodeGuid.Value, out Node _)) return;
             Node node = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid.Value, token).ConfigureAwait(false);
             if (node == null) throw new ArgumentException("No node with GUID '" + nodeGuid.Value + "' exists.");
             NodeCacheAdd(node);
@@ -363,7 +363,7 @@
         internal async Task ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid, CancellationToken token = default)
         {
             if (edgeGuid == null) return;
-            if (EdgeCacheTryGet(edgeGuid.Value, out var _)) return;
+            if (EdgeCacheTryGet(edgeGuid.Value, out Edge _)) return;
             Edge edge = await _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid.Value, token).ConfigureAwait(false);
             if (edge == null) throw new ArgumentException("No edge with GUID '" + edgeGuid.Value + "' exists.");
             EdgeCacheAdd(edge);

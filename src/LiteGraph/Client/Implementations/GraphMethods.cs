@@ -295,14 +295,14 @@
             if (!force)
             {
                 bool hasNodes = false;
-                await using (var nodeEnumerator = _Repo.Node.ReadMany(tenantGuid, graphGuid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<Node> nodeEnumerator = _Repo.Node.ReadMany(tenantGuid, graphGuid, token: token).GetAsyncEnumerator())
                 {
                     hasNodes = await nodeEnumerator.MoveNextAsync().ConfigureAwait(false);
                 }
                 if (hasNodes)
                     throw new InvalidOperationException("The specified graph has dependent nodes or edges.");
 
-                await using (var edgeEnumerator = _Repo.Edge.ReadMany(tenantGuid, graphGuid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<Edge> edgeEnumerator = _Repo.Edge.ReadMany(tenantGuid, graphGuid, token: token).GetAsyncEnumerator())
                 {
                     if (await edgeEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified graph has dependent nodes or edges.");

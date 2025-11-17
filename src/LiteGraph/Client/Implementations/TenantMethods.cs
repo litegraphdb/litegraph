@@ -2,21 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Caching;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Tenant methods.
@@ -120,7 +112,7 @@
             if (!force)
             {
                 bool hasUsers = false;
-                await using (var userEnumerator = _Repo.User.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<UserMaster> userEnumerator = _Repo.User.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await userEnumerator.MoveNextAsync().ConfigureAwait(false))
                         hasUsers = true;
@@ -131,37 +123,37 @@
                 if ((await _Repo.Credential.ReadAllInTenant(guid, token: token).ConfigureAwait(false)).Any())
                     throw new InvalidOperationException("The specified tenant has dependent credentials.");
 
-                await using (var graphEnumerator = _Repo.Graph.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<Graph> graphEnumerator = _Repo.Graph.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await graphEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified tenant has dependent graphs.");
                 }
 
-                await using (var nodeEnumerator = _Repo.Node.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<Node> nodeEnumerator = _Repo.Node.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await nodeEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified tenant has dependent nodes.");
                 }
 
-                await using (var edgeEnumerator = _Repo.Edge.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<Edge> edgeEnumerator = _Repo.Edge.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await edgeEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified tenant has dependent edges.");
                 }
 
-                await using (var labelEnumerator = _Repo.Label.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<LabelMetadata> labelEnumerator = _Repo.Label.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await labelEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified tenant has dependent labels.");
                 }
 
-                await using (var tagEnumerator = _Repo.Tag.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<TagMetadata> tagEnumerator = _Repo.Tag.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await tagEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified tenant has dependent tags.");
                 }
 
-                await using (var vectorEnumerator = _Repo.Vector.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                await using (IAsyncEnumerator<VectorMetadata> vectorEnumerator = _Repo.Vector.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
                 {
                     if (await vectorEnumerator.MoveNextAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("The specified tenant has dependent vectors.");
