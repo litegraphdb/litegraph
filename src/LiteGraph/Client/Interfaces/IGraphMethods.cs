@@ -196,7 +196,7 @@
         /// <param name="configuration">Vector index configuration.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Task.</returns>
-        Task EnableVectorIndexingAsync(
+        Task EnableVectorIndexing(
             Guid tenantGuid,
             Guid graphGuid,
             VectorIndexConfiguration configuration,
@@ -210,7 +210,7 @@
         /// <param name="deleteIndexFile">Whether to delete the index file.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Task.</returns>
-        Task DisableVectorIndexingAsync(
+        Task DisableVectorIndexing(
             Guid tenantGuid,
             Guid graphGuid,
             bool deleteIndexFile = false,
@@ -223,7 +223,7 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Task.</returns>
-        Task RebuildVectorIndexAsync(
+        Task RebuildVectorIndex(
             Guid tenantGuid,
             Guid graphGuid,
             CancellationToken token = default);

@@ -245,9 +245,25 @@
                 }
                 else
                 {
-                    if (edgeGuid != null) query = TagQueries.SelectEdge(tenantGuid, graphGuid.Value, edgeGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
-                    else if (nodeGuid != null) query = TagQueries.SelectNode(tenantGuid, graphGuid.Value, nodeGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
-                    else query = TagQueries.SelectGraph(tenantGuid, graphGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
+                    if (edgeGuid != null)
+                    {
+                        query = TagQueries.SelectEdge(tenantGuid, graphGuid.Value, edgeGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
+                    }
+                    else if (nodeGuid != null)
+                    {
+                        query = TagQueries.SelectNode(tenantGuid, graphGuid.Value, nodeGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(key) && string.IsNullOrEmpty(val))
+                        {
+                            query = TagQueries.SelectAllInGraph(tenantGuid, graphGuid.Value, _Repo.SelectBatchSize, skip, order);
+                        }
+                        else
+                        {
+                            query = TagQueries.SelectGraph(tenantGuid, graphGuid.Value, key, val, _Repo.SelectBatchSize, skip, order);
+                        }
+                    }
                 }
 
                 DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);

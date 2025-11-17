@@ -372,13 +372,13 @@
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetStatistics(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.EnableVectorIndexing(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.DisableVectorIndexing(System.Guid,System.Guid,System.Boolean,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.GraphMethods.RebuildVectorIndexAsync(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.GraphMethods.RebuildVectorIndex(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.GraphMethods.GetVectorIndexStatistics(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -1420,7 +1420,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Dictionary of graph statistics.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.EnableVectorIndexing(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration,System.Threading.CancellationToken)">
             <summary>
             Enable vector indexing for a graph.
             </summary>
@@ -1430,7 +1430,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.DisableVectorIndexing(System.Guid,System.Guid,System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Disable vector indexing for a graph.
             </summary>
@@ -1440,7 +1440,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.RebuildVectorIndexAsync(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IGraphMethods.RebuildVectorIndex(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Rebuild the vector index for a graph.
             </summary>

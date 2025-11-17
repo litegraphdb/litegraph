@@ -1484,7 +1484,7 @@
                     return;
                 }
 
-                await _LiteGraph.Graph.EnableVectorIndexingAsync(
+                await _LiteGraph.Graph.EnableVectorIndexing(
                     req.TenantGUID.Value,
                     req.GraphGUID.Value,
                     config,
@@ -1512,7 +1512,7 @@
                 bool.TryParse(req.Query["deleteFile"], out deleteFile);
             }
 
-            await _LiteGraph.Graph.DisableVectorIndexingAsync(
+            await _LiteGraph.Graph.DisableVectorIndexing(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 deleteFile,
@@ -1526,7 +1526,7 @@
         {
             RequestContext req = (RequestContext)ctx.Metadata;
 
-            await _LiteGraph.Graph.RebuildVectorIndexAsync(
+            await _LiteGraph.Graph.RebuildVectorIndex(
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 CancellationToken.None).ConfigureAwait(false);

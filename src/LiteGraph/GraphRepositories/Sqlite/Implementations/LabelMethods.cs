@@ -259,13 +259,25 @@
                     }
                     else
                     {
-                        query = LabelQueries.SelectGraph(
-                            tenantGuid,
-                            graphGuid.Value,
-                            label,
-                            _Repo.SelectBatchSize,
-                            skip,
-                            order);
+                        if (string.IsNullOrEmpty(label))
+                        {
+                            query = LabelQueries.SelectAllInGraph(
+                                tenantGuid,
+                                graphGuid.Value,
+                                _Repo.SelectBatchSize,
+                                skip,
+                                order);
+                        }
+                        else
+                        {
+                            query = LabelQueries.SelectGraph(
+                                tenantGuid,
+                                graphGuid.Value,
+                                label,
+                                _Repo.SelectBatchSize,
+                                skip,
+                                order);
+                        }
                     }
                 }
 

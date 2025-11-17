@@ -258,26 +258,35 @@
                 }
                 else
                 {
-                    if (edgeGuid != null) query = VectorQueries.SelectEdge(
-                        tenantGuid,
-                        graphGuid.Value,
-                        edgeGuid.Value,
-                        _Repo.SelectBatchSize,
-                        skip,
-                        order);
-                    else if (nodeGuid != null) query = VectorQueries.SelectNode(
-                        tenantGuid,
-                        graphGuid.Value,
-                        nodeGuid.Value,
-                        _Repo.SelectBatchSize,
-                        skip,
-                        order);
-                    else query = VectorQueries.SelectGraph(
-                        tenantGuid,
-                        graphGuid.Value,
-                        _Repo.SelectBatchSize,
-                        skip,
-                        order);
+                    if (edgeGuid != null)
+                    {
+                        query = VectorQueries.SelectEdge(
+                            tenantGuid,
+                            graphGuid.Value,
+                            edgeGuid.Value,
+                            _Repo.SelectBatchSize,
+                            skip,
+                            order);
+                    }
+                    else if (nodeGuid != null)
+                    {
+                        query = VectorQueries.SelectNode(
+                            tenantGuid,
+                            graphGuid.Value,
+                            nodeGuid.Value,
+                            _Repo.SelectBatchSize,
+                            skip,
+                            order);
+                    }
+                    else
+                    {
+                        query = VectorQueries.SelectAllInGraph(
+                            tenantGuid,
+                            graphGuid.Value,
+                            _Repo.SelectBatchSize,
+                            skip,
+                            order);
+                    }
                 }
 
                 DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
@@ -305,7 +314,7 @@
             while (true)
             {
                 token.ThrowIfCancellationRequested();
-                string query = VectorQueries.SelectGraph(
+                string query = VectorQueries.SelectAllInGraph(
                     tenantGuid,
                     graphGuid,
                     _Repo.SelectBatchSize,

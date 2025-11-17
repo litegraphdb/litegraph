@@ -350,7 +350,7 @@
         }
 
         /// <inheritdoc />
-        public async Task EnableVectorIndexingAsync(
+        public async Task EnableVectorIndexing(
             Guid tenantGuid,
             Guid graphGuid,
             VectorIndexConfiguration configuration,
@@ -370,7 +370,7 @@
         }
 
         /// <inheritdoc />
-        public async Task DisableVectorIndexingAsync(
+        public async Task DisableVectorIndexing(
             Guid tenantGuid,
             Guid graphGuid,
             bool deleteIndexFile = false,
@@ -384,7 +384,7 @@
         }
 
         /// <inheritdoc />
-        public async Task RebuildVectorIndexAsync(
+        public async Task RebuildVectorIndex(
             Guid tenantGuid,
             Guid graphGuid,
             CancellationToken token = default)

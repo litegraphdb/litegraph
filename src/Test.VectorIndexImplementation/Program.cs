@@ -282,7 +282,7 @@ namespace Test.VectorIndexImplementation
                     VectorIndexM = _MaxConnections
                 };
 
-                await _Client.Graph.EnableVectorIndexingAsync(_Tenant.GUID, _Graph.GUID, config, token).ConfigureAwait(false);
+                await _Client.Graph.EnableVectorIndexing(_Tenant.GUID, _Graph.GUID, config, token).ConfigureAwait(false);
                 indexTimer.Stop();
 
                 Console.WriteLine($"[OK] HNSW indexing enabled in {indexTimer.ElapsedMilliseconds}ms");

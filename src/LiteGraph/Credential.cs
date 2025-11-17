@@ -36,7 +36,7 @@
         /// <summary>
         /// Access key.
         /// </summary>
-        public string BearerToken { get; set; } = IdGenerator.Generate(64);
+        public string BearerToken { get; set; } = new IdGenerator().Generate(64);
 
         /// <summary>
         /// Active.
