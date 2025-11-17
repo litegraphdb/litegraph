@@ -5,6 +5,7 @@
     using System.IO;
     using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph.GraphRepositories;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.Serialization;
@@ -48,12 +49,12 @@
 
         #region Entrypoint
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Welcome();
             ParseArguments(args);
             InitializeSettings();
-            InitializeGlobals();
+            await InitializeGlobals().ConfigureAwait(false);
 
             _Logging.Info(_Header + "started at " + DateTime.UtcNow + " using process ID " + _ProcessId);
 
@@ -119,7 +120,7 @@
             }
         }
 
-        private static void InitializeGlobals()
+        private static async Task InitializeGlobals()
         {
             #region General-and-Environment
 
@@ -195,7 +196,7 @@
 
             #region Create-Default-Records
 
-            if (_CreateDefaultRecords) CreateDefaultRecords();
+            if (_CreateDefaultRecords) await CreateDefaultRecords().ConfigureAwait(false);
 
             #endregion
 
@@ -266,7 +267,7 @@
             }
         }
 
-        private static void CreateDefaultRecords()
+        private static async Task CreateDefaultRecords()
         {
             #region Metadata-Records
 
@@ -280,9 +281,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.Tenant.ExistsByGuid(tenant.GUID, CancellationToken.None).GetAwaiter().GetResult())
+            if (!await _Repo.Tenant.ExistsByGuid(tenant.GUID, CancellationToken.None).ConfigureAwait(false))
             {
-                tenant = _Repo.Tenant.Create(tenant, CancellationToken.None).GetAwaiter().GetResult();
+                tenant = await _Repo.Tenant.Create(tenant, CancellationToken.None).ConfigureAwait(false);
                 Console.WriteLine("| Created tenant     : " + tenant.GUID);
             }
 
@@ -298,9 +299,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.User.ExistsByGuid(tenant.GUID, user.GUID).GetAwaiter().GetResult())
+            if (!await _Repo.User.ExistsByGuid(tenant.GUID, user.GUID, CancellationToken.None).ConfigureAwait(false))
             {
-                user = _Repo.User.Create(user, CancellationToken.None).GetAwaiter().GetResult();
+                user = await _Repo.User.Create(user, CancellationToken.None).ConfigureAwait(false);
                 Console.WriteLine("| Created user       : " + user.GUID + " email: " + user.Email + " pass: " + user.Password);
             }
 
@@ -315,9 +316,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.Credential.ExistsByGuid(cred.TenantGUID, cred.GUID).GetAwaiter().GetResult())
+            if (!await _Repo.Credential.ExistsByGuid(cred.TenantGUID, cred.GUID, CancellationToken.None).ConfigureAwait(false))
             {
-                cred = _Repo.Credential.Create(cred).GetAwaiter().GetResult();
+                cred = await _Repo.Credential.Create(cred, CancellationToken.None).ConfigureAwait(false);
                 Console.WriteLine("| Created credential : " + cred.GUID + " bearer token: " + cred.BearerToken);
             }
 
@@ -329,9 +330,9 @@
                 CreatedUtc = DateTime.UtcNow
             };
 
-            if (!_Repo.Graph.ExistsByGuid(graph.TenantGUID, graph.GUID, default).GetAwaiter().GetResult())
+            if (!await _Repo.Graph.ExistsByGuid(graph.TenantGUID, graph.GUID, CancellationToken.None).ConfigureAwait(false))
             {
-                graph = _Repo.Graph.Create(graph, default).GetAwaiter().GetResult();
+                graph = await _Repo.Graph.Create(graph, CancellationToken.None).ConfigureAwait(false);
                 Console.WriteLine("| Created graph      : " + graph.GUID + " " + graph.Name);
             }
 
