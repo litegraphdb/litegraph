@@ -62,7 +62,6 @@
             _Client.ValidateTags(graph.Tags);
             _Client.ValidateVectors(graph.Vectors);
             await _Client.ValidateTenantExists(graph.TenantGUID, token).ConfigureAwait(false);
-            await _Client.ValidateGraphExists(graph.TenantGUID, graph.GUID, token).ConfigureAwait(false);
             graph = await _Repo.Graph.Create(graph, token).ConfigureAwait(false);
             List<LabelMetadata> createdLabels = new List<LabelMetadata>();
             await foreach (LabelMetadata label in _Repo.Label.ReadMany(graph.TenantGUID, graph.GUID, null, null, null,token: token).WithCancellation(token).ConfigureAwait(false))
