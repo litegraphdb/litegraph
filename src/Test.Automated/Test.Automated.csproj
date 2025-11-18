@@ -2,6 +2,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LiteGraph\LiteGraph.csproj" />
+    <ProjectReference Include="..\LiteGraph.McpServer\LiteGraph.McpServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Voltaic" Version="0.1.5" />
   </ItemGroup>
 
   <PropertyGroup>
