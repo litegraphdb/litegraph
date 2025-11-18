@@ -220,14 +220,14 @@
                     if (query.IncludeSubordinates)
                     {
                         List<LabelMetadata> allLabels = new List<LabelMetadata>();
-                        await foreach (LabelMetadata label in _Repo.Label.ReadMany(obj.TenantGUID, obj.GUID, null, null, null,token: token).WithCancellation(token).ConfigureAwait(false))
+                        await foreach (LabelMetadata label in _Repo.Label.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
                         {
                             allLabels.Add(label);
                         }
                         if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
                         List<TagMetadata> allTags = new List<TagMetadata>();
-                        await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                        await foreach (TagMetadata tag in _Repo.Tag.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
                         {
                             allTags.Add(tag);
                         }
@@ -495,14 +495,14 @@
             if (includeSubordinates)
             {
                 List<LabelMetadata> allLabels = new List<LabelMetadata>();
-                await foreach (LabelMetadata label in _Repo.Label.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                await foreach (LabelMetadata label in _Repo.Label.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
                 {
                     allLabels.Add(label);
                 }
                 if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
 
                 List<TagMetadata> allTags = new List<TagMetadata>();
-                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(obj.TenantGUID, obj.GUID, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                await foreach (TagMetadata tag in _Repo.Tag.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
                 {
                     allTags.Add(tag);
                 }
