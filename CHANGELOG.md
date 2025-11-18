@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v5.0.x
+
+- Breaking changes: full API migration to async/await
+
+## Previous Versions
+
 v4.x
 
 - Major internal refactor for both the graph repository base and the client class
@@ -18,8 +24,6 @@ v4.x
 - Dependency updates and bug fixes
 - Minor Postman fixes
 - Inclusion of an optional graph-wide HNSW index for graph, node, and edge vectors
-
-## Previous Versions
 
 v3.1.x
 
