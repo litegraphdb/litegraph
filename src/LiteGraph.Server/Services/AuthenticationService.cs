@@ -1,17 +1,15 @@
 ﻿namespace LiteGraph.Server.Services
 {
+    using System;
+    using System.IO;
+    using System.Security.Cryptography;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using SyslogLogging;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Serialization;
     using LiteGraph.Server.Classes;
-    using SyslogLogging;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net.Http.Headers;
-    using System.Security.Cryptography;
-    using System.Text;
-    using System.Threading.Tasks;
 
     internal class AuthenticationService
     {
@@ -58,8 +56,9 @@
         /// Authenticate and authorize.
         /// </summary>
         /// <param name="req">Request context.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Request context.</returns>
-        internal void AuthenticateAndAuthorize(RequestContext req)
+        internal async Task AuthenticateAndAuthorize(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
@@ -76,7 +75,7 @@
                         "| Security token : " + Helpers.StringHelpers.RedactTail(req.Authentication.SecurityToken, "*", 4));
                 }
 
-                Authenticate(req);
+                await Authenticate(req, token).ConfigureAwait(false);
                 Authorize(req);
 
                 if (_Settings.Debug.Authentication)
@@ -119,16 +118,17 @@
         /// Read a token's details.
         /// </summary>
         /// <param name="token">Authentication token string.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Authentication token.</returns>
-        internal AuthenticationToken ReadToken(string token)
+        internal async Task<AuthenticationToken> ReadToken(string token, CancellationToken cancellationToken = default)
         {
             if (String.IsNullOrEmpty(token)) throw new ArgumentNullException(nameof(token));
             AuthenticationToken authToken = ParseSecurityTokenString(token);
 
             if (authToken.TenantGUID != null && authToken.UserGUID != null)
             {
-                authToken.Tenant = _Repo.Tenant.ReadByGuid(authToken.TenantGUID.Value);
-                authToken.User = _Repo.User.ReadByGuid(authToken.TenantGUID.Value, authToken.UserGUID.Value);
+                authToken.Tenant = await _Repo.Tenant.ReadByGuid(authToken.TenantGUID.Value, cancellationToken).ConfigureAwait(false);
+                authToken.User = await _Repo.User.ReadByGuid(authToken.TenantGUID.Value, authToken.UserGUID.Value, cancellationToken).ConfigureAwait(false);
 
                 if (authToken.User != null) authToken.User = UserMaster.Redact(_Serializer, authToken.User);
             }
@@ -142,7 +142,7 @@
 
         #region Private-Methods
 
-        private void Authenticate(RequestContext req)
+        private async Task Authenticate(RequestContext req, CancellationToken cancellationToken = default)
         {
             if (!String.IsNullOrEmpty(req.Authentication.Email)
                 && !String.IsNullOrEmpty(req.Authentication.Password)
@@ -150,7 +150,7 @@
             {
                 #region Credential-Authentication
 
-                req.Authentication.User = _Repo.User.ReadByEmail(req.Authentication.TenantGUID.Value, req.Authentication.Email);
+                req.Authentication.User = await _Repo.User.ReadByEmail(req.Authentication.TenantGUID.Value, req.Authentication.Email, cancellationToken).ConfigureAwait(false);
                 if (req.Authentication.User == null)
                 {
                     _Logging.Warn(_Header + "user with email " + req.Authentication.Email + " not found");
@@ -177,7 +177,7 @@
                     return;
                 }
 
-                req.Authentication.Tenant = _Repo.Tenant.ReadByGuid(req.Authentication.TenantGUID.Value);
+                req.Authentication.Tenant = await _Repo.Tenant.ReadByGuid(req.Authentication.TenantGUID.Value, cancellationToken).ConfigureAwait(false);
                 if (req.Authentication.Tenant == null)
                 {
                     _Logging.Warn(_Header + "tenant " + req.Authentication.TenantGUID + " referenced by user " + req.Authentication.UserGUID + " not found");
@@ -219,7 +219,7 @@
                 {
                     #region User
 
-                    req.Authentication.Credential = _Repo.Credential.ReadByBearerToken(req.Authentication.BearerToken);
+                    req.Authentication.Credential = await _Repo.Credential.ReadByBearerToken(req.Authentication.BearerToken, cancellationToken).ConfigureAwait(false);
                     if (req.Authentication.Credential == null)
                     {
                         _Logging.Warn(_Header + "unable to find bearer token " + req.Authentication.BearerToken);
@@ -238,7 +238,7 @@
                         return;
                     }
 
-                    req.Authentication.Tenant = _Repo.Tenant.ReadByGuid(req.Authentication.Credential.TenantGUID);
+                    req.Authentication.Tenant = await _Repo.Tenant.ReadByGuid(req.Authentication.Credential.TenantGUID, cancellationToken).ConfigureAwait(false);
                     if (req.Authentication.Tenant == null)
                     {
                         _Logging.Warn(_Header + "tenant " + req.Authentication.Credential.TenantGUID + " referenced in credential " + req.Authentication.Credential.GUID + " not found");
@@ -257,7 +257,7 @@
                         return;
                     }
 
-                    req.Authentication.User = _Repo.User.ReadByGuid(req.Authentication.Credential.TenantGUID, req.Authentication.Credential.UserGUID);
+                    req.Authentication.User = await _Repo.User.ReadByGuid(req.Authentication.Credential.TenantGUID, req.Authentication.Credential.UserGUID, cancellationToken).ConfigureAwait(false);
                     if (req.Authentication.User == null)
                     {
                         _Logging.Warn(_Header + "user " + req.Authentication.Credential.UserGUID + " referenced in credential " + req.Authentication.Credential.GUID + " not found");
@@ -308,7 +308,7 @@
                     return;
                 }
 
-                req.Authentication.User = _Repo.User.ReadByGuid(token.TenantGUID.Value, token.UserGUID.Value);
+                req.Authentication.User = await _Repo.User.ReadByGuid(token.TenantGUID.Value, token.UserGUID.Value, cancellationToken).ConfigureAwait(false);
                 if (req.Authentication.User == null)
                 {
                     _Logging.Warn(_Header + "user " + token.UserGUID + " not found");
@@ -327,7 +327,7 @@
                     return;
                 }
 
-                req.Authentication.Tenant = _Repo.Tenant.ReadByGuid(req.Authentication.User.TenantGUID);
+                req.Authentication.Tenant = await _Repo.Tenant.ReadByGuid(req.Authentication.User.TenantGUID, cancellationToken).ConfigureAwait(false);
                 if (req.Authentication.Tenant == null)
                 {
                     _Logging.Warn(_Header + "tenant " + req.Authentication.User.TenantGUID + " not found");

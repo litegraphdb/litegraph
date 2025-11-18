@@ -6,6 +6,9 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
     using LiteGraph.Serialization;
@@ -21,18 +24,21 @@
         /// Create a vector.
         /// </summary>
         /// <param name="vector">Vector.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector.</returns>
-        VectorMetadata Create(VectorMetadata vector);
+        Task<VectorMetadata> Create(VectorMetadata vector, CancellationToken token = default);
 
         /// <summary>
         /// Create multiple vectors.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="vectors">Vectors.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        List<VectorMetadata> CreateMany(
+        Task<List<VectorMetadata>> CreateMany(
             Guid tenantGuid,
-            List<VectorMetadata> vectors);
+            List<VectorMetadata> vectors,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read all vectors in a given tenant.
@@ -40,11 +46,13 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadAllInTenant(
+        IAsyncEnumerable<VectorMetadata> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read all vectors in a given graph.
@@ -53,12 +61,14 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadAllInGraph(
+        IAsyncEnumerable<VectorMetadata> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read vectors.
@@ -69,14 +79,16 @@
         /// <param name="edgeGuid">Edge GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadMany(
+        IAsyncEnumerable<VectorMetadata> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
             Guid? edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read graph vectors.
@@ -85,12 +97,14 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadManyGraph(
+        IAsyncEnumerable<VectorMetadata> ReadManyGraph(
             Guid tenantGuid, 
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read node vectors.
@@ -100,13 +114,15 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadManyNode(
+        IAsyncEnumerable<VectorMetadata> ReadManyNode(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read edge vectors.
@@ -116,36 +132,41 @@
         /// <param name="edgeGuid">Edge GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">Number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadManyEdge(
+        IAsyncEnumerable<VectorMetadata> ReadManyEdge(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read a vector by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector.</returns>
-        VectorMetadata ReadByGuid(Guid tenantGuid, Guid guid);
+        Task<VectorMetadata> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
         /// Read vectors by GUIDs.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vectors.</returns>
-        IEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids);
+        IAsyncEnumerable<VectorMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Enumeration result containing a page of objects.</returns>
-        EnumerationResult<VectorMetadata> Enumerate(EnumerationRequest query);
+        Task<EnumerationResult<VectorMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default);
 
         /// <summary>
         /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
@@ -154,26 +175,30 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="markerGuid">Marker GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Number of records.</returns>
-        int GetRecordCount(
+        Task<int> GetRecordCount(
             Guid? tenantGuid,
             Guid? graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            Guid? markerGuid = null);
+            Guid? markerGuid = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Update a vector.
         /// </summary>
         /// <param name="vector">Vector.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector.</returns>
-        VectorMetadata Update(VectorMetadata vector);
+        Task<VectorMetadata> Update(VectorMetadata vector, CancellationToken token = default);
 
         /// <summary>
         /// Delete a vector.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
-        void DeleteByGuid(Guid tenantGuid, Guid guid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
         /// Delete vectors.
@@ -182,34 +207,39 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuids">Node GUIDs.</param>
         /// <param name="edgeGuids">Edge GUIDs.</param>
-        void DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default);
 
         /// <summary>
         /// Delete vectors.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
-        void DeleteMany(Guid tenantGuid, List<Guid> guids);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Delete all vectors in a tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        void DeleteAllInTenant(Guid tenantGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete all vectors associated with a graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
-        void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete vectors for the graph object itself, leaving subordinate node and edge tags in place.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
-        void DeleteGraphVectors(Guid tenantGuid, Guid graphGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteGraphVectors(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete vectors for a node object.
@@ -217,7 +247,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
-        void DeleteNodeVectors(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteNodeVectors(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete vectors for an edge object.
@@ -225,15 +256,17 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
-        void DeleteEdgeVectors(Guid tenantGuid, Guid graphGuid, Guid edgeGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteEdgeVectors(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default);
 
         /// <summary>
         /// Check if a vector exists by GUID.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guid">GUID.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>True if exists.</returns>
-        bool ExistsByGuid(Guid tenantGuid, Guid guid);
+        Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
         /// Search graph vectors.
@@ -248,8 +281,9 @@
         /// <param name="minScore">Minimum score required.</param>
         /// <param name="maxDistance">Maximum distance allowed.</param>
         /// <param name="minInnerProduct">Minimmum inner product required.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector search results containing graphs.</returns>
-        IEnumerable<VectorSearchResult> SearchGraph(
+        IAsyncEnumerable<VectorSearchResult> SearchGraph(
             VectorSearchTypeEnum searchType,
             List<float> vectors,
             Guid tenantGuid,
@@ -259,7 +293,8 @@
             int? topK = 100,
             float? minScore = 0.0f,
             float? maxDistance = 1.0f,
-            float? minInnerProduct = 0.0f);
+            float? minInnerProduct = 0.0f,
+            CancellationToken token = default);
 
         /// <summary>
         /// Search node vectors.
@@ -275,8 +310,9 @@
         /// <param name="minScore">Minimum score required.</param>
         /// <param name="maxDistance">Maximum distance allowed.</param>
         /// <param name="minInnerProduct">Minimmum inner product required.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector search results containing nodes.</returns>
-        IEnumerable<VectorSearchResult> SearchNode(
+        IAsyncEnumerable<VectorSearchResult> SearchNode(
             VectorSearchTypeEnum searchType,
             List<float> vectors,
             Guid tenantGuid,
@@ -287,7 +323,8 @@
             int? topK = 100,
             float? minScore = 0.0f,
             float? maxDistance = 1.0f,
-            float? minInnerProduct = 0.0f);
+            float? minInnerProduct = 0.0f,
+            CancellationToken token = default);
 
         /// <summary>
         /// Search edge vectors.
@@ -303,8 +340,9 @@
         /// <param name="minScore">Minimum score required.</param>
         /// <param name="maxDistance">Maximum distance allowed.</param>
         /// <param name="minInnerProduct">Minimmum inner product required.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Vector search results containing edges.</returns>
-        IEnumerable<VectorSearchResult> SearchEdge(
+        IAsyncEnumerable<VectorSearchResult> SearchEdge(
             VectorSearchTypeEnum searchType,
             List<float> vectors,
             Guid tenantGuid,
@@ -315,6 +353,7 @@
             int? topK = 100,
             float? minScore = 0.0f,
             float? maxDistance = 1.0f,
-            float? minInnerProduct = 0.0f);
+            float? minInnerProduct = 0.0f,
+            CancellationToken token = default);
     }
 }

@@ -2,11 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Linq;
-    using System.Reflection.Emit;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
@@ -51,268 +49,277 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public LabelMetadata Create(LabelMetadata label)
+        public async Task<LabelMetadata> Create(LabelMetadata label, CancellationToken token = default)
         {
             if (label == null) throw new ArgumentNullException(nameof(label));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(label.TenantGUID);
-            _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
+            await _Client.ValidateTenantExists(label.TenantGUID, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
-            if (label.NodeGUID != null) _Client.ValidateNodeExists(
+            if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                 label.TenantGUID,
-                label.NodeGUID.Value);
+                label.NodeGUID.Value, token).ConfigureAwait(false);
 
-            if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
+            if (label.EdgeGUID != null) await _Client.ValidateEdgeExists(
                 label.TenantGUID,
-                label.EdgeGUID.Value);
+                label.EdgeGUID.Value, token).ConfigureAwait(false);
 
-            LabelMetadata created = _Repo.Label.Create(label);
+            LabelMetadata created = await _Repo.Label.Create(label, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created label " + created.GUID);
             return created;
         }
 
         /// <inheritdoc />
-        public List<LabelMetadata> CreateMany(Guid tenantGuid, List<LabelMetadata> labels)
+        public async Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, CancellationToken token = default)
         {
             if (labels == null || labels.Count < 1) return new List<LabelMetadata>();
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             foreach (LabelMetadata label in labels)
             {
-                _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
+                await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(label.Label)) throw new ArgumentException("The supplied label is null or empty.");
 
-                if (label.NodeGUID != null) _Client.ValidateNodeExists(
+                if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                     label.TenantGUID,
-                    label.NodeGUID.Value);
+                    label.NodeGUID.Value, token).ConfigureAwait(false);
 
-                if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
+                if (label.EdgeGUID != null) await _Client.ValidateEdgeExists(
                     label.TenantGUID,
-                    label.EdgeGUID.Value);
+                    label.EdgeGUID.Value, token).ConfigureAwait(false);
 
                 label.TenantGUID = tenantGuid;
             }
 
-            labels = _Repo.Label.CreateMany(tenantGuid, labels);
+            labels = await _Repo.Label.CreateMany(tenantGuid, labels, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created " + labels.Count + " label(s)");
             return labels;
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadAllInTenant(
+        public async IAsyncEnumerable<LabelMetadata> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
-            foreach (LabelMetadata curr in _Repo.Label.ReadAllInTenant(tenantGuid, order, skip))
+            await foreach (LabelMetadata curr in _Repo.Label.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return curr;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadAllInGraph(
+        public async IAsyncEnumerable<LabelMetadata> ReadAllInGraph(
             Guid tenantGuid, 
             Guid graphGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
-            foreach (LabelMetadata curr in _Repo.Label.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+            await foreach (LabelMetadata curr in _Repo.Label.ReadAllInGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return curr;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadMany(
+        public async IAsyncEnumerable<LabelMetadata> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
             Guid? edgeGuid,
             string label,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
-            foreach (LabelMetadata curr in _Repo.Label.ReadMany(tenantGuid, graphGuid, nodeGuid, edgeGuid, label, order, skip))
+            await foreach (LabelMetadata curr in _Repo.Label.ReadMany(tenantGuid, graphGuid, nodeGuid, edgeGuid, label, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return curr;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyGraph(
+        public async IAsyncEnumerable<LabelMetadata> ReadManyGraph(
             Guid tenantGuid, 
             Guid graphGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
-            foreach (LabelMetadata curr in _Repo.Label.ReadManyGraph(tenantGuid, graphGuid, order, skip))
+            await foreach (LabelMetadata curr in _Repo.Label.ReadManyGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return curr;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyNode(
+        public async IAsyncEnumerable<LabelMetadata> ReadManyNode(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid nodeGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
-            foreach (LabelMetadata curr in _Repo.Label.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip))
+            await foreach (LabelMetadata curr in _Repo.Label.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return curr;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyEdge(
+        public async IAsyncEnumerable<LabelMetadata> ReadManyEdge(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid edgeGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
 
-            foreach (LabelMetadata curr in _Repo.Label.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip))
+            await foreach (LabelMetadata curr in _Repo.Label.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return curr;
             }
         }
 
         /// <inheritdoc />
-        public LabelMetadata ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<LabelMetadata> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving label with GUID " + guid);
 
-            return _Repo.Label.ReadByGuid(tenantGuid, guid);
+            return await _Repo.Label.ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving labels");
-            foreach (LabelMetadata obj in _Repo.Label.ReadByGuids(tenantGuid, guids))
+            await foreach (LabelMetadata obj in _Repo.Label.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return obj;
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<LabelMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<LabelMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
-            return _Repo.Label.Enumerate(query);
+            return await _Repo.Label.Enumerate(query, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public LabelMetadata Update(LabelMetadata label)
+        public async Task<LabelMetadata> Update(LabelMetadata label, CancellationToken token = default)
         {
             if (label == null) throw new ArgumentNullException(nameof(label));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(label.TenantGUID);
-            _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID);
+            await _Client.ValidateTenantExists(label.TenantGUID, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(label.TenantGUID, label.GraphGUID, token).ConfigureAwait(false);
 
-            if (label.NodeGUID != null) _Client.ValidateNodeExists(
+            if (label.NodeGUID != null) await _Client.ValidateNodeExists(
                 label.TenantGUID,
-                label.NodeGUID.Value);
+                label.NodeGUID.Value, token).ConfigureAwait(false);
 
-            if (label.EdgeGUID != null) _Client.ValidateEdgeExists(
+            if (label.EdgeGUID != null) await _Client.ValidateEdgeExists(
                 label.TenantGUID,
-                label.EdgeGUID.Value);
+                label.EdgeGUID.Value, token).ConfigureAwait(false);
 
-            label = _Repo.Label.Update(label);
+            label = await _Repo.Label.Update(label, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "updated label " + label.Label + " in GUID " + label.GUID);
             return label;
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Label.DeleteAllInTenant(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Repo.Label.DeleteAllInGraph(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in graph " + graphGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteGraphLabels(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteGraphLabels(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Repo.Label.DeleteGraphLabels(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteGraphLabels(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for graph " + graphGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public async Task DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
-            _Repo.Label.DeleteNodeLabels(tenantGuid, graphGuid, nodeGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteNodeLabels(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for node " + nodeGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteEdgeLabels(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public async Task DeleteEdgeLabels(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
-            _Repo.Label.DeleteEdgeLabels(tenantGuid, graphGuid, edgeGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateEdgeExists(tenantGuid, edgeGuid, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteEdgeLabels(tenantGuid, graphGuid, edgeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels for edge " + edgeGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            LabelMetadata label = ReadByGuid(tenantGuid, guid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            LabelMetadata label = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (label == null) return;
-            _Repo.Label.DeleteByGuid(tenantGuid, guid);
+            await _Repo.Label.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted label " + label.GUID);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            if (graphGuid != null) _Client.ValidateGraphExists(tenantGuid, graphGuid.Value);
-            _Repo.Label.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            if (graphGuid != null) await _Client.ValidateGraphExists(tenantGuid, graphGuid.Value, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, List<Guid> guids)
+        public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Label.DeleteMany(tenantGuid, guids);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Label.DeleteMany(tenantGuid, guids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted labels in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid guid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            return _Repo.Label.ExistsByGuid(tenantGuid, guid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            return await _Repo.Label.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         #endregion

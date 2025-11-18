@@ -2,19 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caching;
+    using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Tenant methods.
@@ -49,115 +44,150 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public TenantMetadata Create(TenantMetadata tenant)
+        public async Task<TenantMetadata> Create(TenantMetadata tenant, CancellationToken token = default)
         {
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
-            TenantMetadata created = _Repo.Tenant.Create(tenant);
+            token.ThrowIfCancellationRequested();
+            TenantMetadata created = await _Repo.Tenant.Create(tenant, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created tenant name " + created.Name + " GUID " + created.GUID);
             _TenantCache.AddReplace(created.GUID, created);
             return created;
         }
 
         /// <inheritdoc />
-        public IEnumerable<TenantMetadata> ReadMany(EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0)
+        public async IAsyncEnumerable<TenantMetadata> ReadMany(EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, int skip = 0, [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tenants");
 
-            foreach (TenantMetadata tenant in _Repo.Tenant.ReadMany(order, skip))
+            await foreach (TenantMetadata tenant in _Repo.Tenant.ReadMany(order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tenant;
             }
         }
 
         /// <inheritdoc />
-        public TenantMetadata ReadByGuid(Guid guid)
+        public async Task<TenantMetadata> ReadByGuid(Guid guid, CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tenant with GUID " + guid);
-            TenantMetadata tenant = _Repo.Tenant.ReadByGuid(guid);
+            token.ThrowIfCancellationRequested();
+            TenantMetadata tenant = await _Repo.Tenant.ReadByGuid(guid, token).ConfigureAwait(false);
             if (tenant != null) _TenantCache.AddReplace(tenant.GUID, tenant);
             return tenant;
         }
 
         /// <inheritdoc />
-        public IEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids)
+        public async IAsyncEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tenants");
-            foreach (TenantMetadata obj in _Repo.Tenant.ReadByGuids(guids))
+            await foreach (TenantMetadata obj in _Repo.Tenant.ReadByGuids(guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return obj;
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TenantMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<TenantMetadata>> Enumerate(EnumerationRequest query = null, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
-            return _Repo.Tenant.Enumerate(query);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Tenant.Enumerate(query, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public TenantMetadata Update(TenantMetadata tenant)
+        public async Task<TenantMetadata> Update(TenantMetadata tenant, CancellationToken token = default)
         {
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
+            token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "updating tenant with name " + tenant.Name + " GUID " + tenant.GUID);
-            TenantMetadata updated = _Repo.Tenant.Update(tenant);
+            TenantMetadata updated = await _Repo.Tenant.Update(tenant, token).ConfigureAwait(false);
             if (updated != null) _TenantCache.AddReplace(tenant.GUID, tenant);
             return updated;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid guid, bool force = false)
+        public async Task DeleteByGuid(Guid guid, bool force = false, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(guid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(guid, token).ConfigureAwait(false);
 
             if (!force)
             {
-                if (_Repo.User.ReadAllInTenant(guid).Any())
+                bool hasUsers = false;
+                await using (IAsyncEnumerator<UserMaster> userEnumerator = _Repo.User.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await userEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        hasUsers = true;
+                }
+                if (hasUsers)
                     throw new InvalidOperationException("The specified tenant has dependent users.");
 
-                if (_Repo.Credential.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent credentials.");
+                await using (IAsyncEnumerator<Credential> credentialEnumerator = _Repo.Credential.ReadAllInTenant(guid, token: token).GetAsyncEnumerator(token))
+                {
+                    if (await credentialEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent credentials.");
+                }
 
-                if (_Repo.Graph.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent graphs.");
+                await using (IAsyncEnumerator<Graph> graphEnumerator = _Repo.Graph.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await graphEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent graphs.");
+                }
 
-                if (_Repo.Node.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent nodes.");
+                await using (IAsyncEnumerator<Node> nodeEnumerator = _Repo.Node.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await nodeEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent nodes.");
+                }
 
-                if (_Repo.Edge.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent edges.");
+                await using (IAsyncEnumerator<Edge> edgeEnumerator = _Repo.Edge.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await edgeEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent edges.");
+                }
 
-                if (_Repo.Label.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent labels.");
+                await using (IAsyncEnumerator<LabelMetadata> labelEnumerator = _Repo.Label.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await labelEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent labels.");
+                }
 
-                if (_Repo.Tag.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent tags.");
+                await using (IAsyncEnumerator<TagMetadata> tagEnumerator = _Repo.Tag.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await tagEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent tags.");
+                }
 
-                if (_Repo.Vector.ReadAllInTenant(guid).Any())
-                    throw new InvalidOperationException("The specified tenant has dependent vectors.");
+                await using (IAsyncEnumerator<VectorMetadata> vectorEnumerator = _Repo.Vector.ReadAllInTenant(guid, token: token).GetAsyncEnumerator())
+                {
+                    if (await vectorEnumerator.MoveNextAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("The specified tenant has dependent vectors.");
+                }
             }
 
-            _Repo.Tenant.DeleteByGuid(guid, force);
+            await _Repo.Tenant.DeleteByGuid(guid, force, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tenant " + guid + " (force " + force + ")");
             _TenantCache.TryRemove(guid);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid guid)
+        public async Task<bool> ExistsByGuid(Guid guid, CancellationToken token = default)
         {
-            return _Repo.Tenant.ExistsByGuid(guid);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Tenant.ExistsByGuid(guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public TenantStatistics GetStatistics(Guid tenantGuid)
+        public async Task<TenantStatistics> GetStatistics(Guid tenantGuid, CancellationToken token = default)
         {
-            return _Repo.Tenant.GetStatistics(tenantGuid);
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Tenant.GetStatistics(tenantGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public Dictionary<Guid, TenantStatistics> GetStatistics()
+        public async Task<Dictionary<Guid, TenantStatistics>> GetStatistics(CancellationToken token = default)
         {
-            return _Repo.Tenant.GetStatistics();
+            token.ThrowIfCancellationRequested();
+            return await _Repo.Tenant.GetStatistics(token).ConfigureAwait(false);
         }
 
         #endregion

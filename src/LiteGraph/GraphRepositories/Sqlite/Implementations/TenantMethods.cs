@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Runtime.Serialization.Json;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -46,63 +48,73 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public TenantMetadata Create(TenantMetadata tenant)
+        public async Task<TenantMetadata> Create(TenantMetadata tenant, CancellationToken token = default)
         {
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
+            token.ThrowIfCancellationRequested();
             string createQuery = TenantQueries.Insert(tenant);
-            DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
             TenantMetadata created = Converters.TenantFromDataRow(createResult.Rows[0]);
             return created;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid guid, bool force = false)
+        public async Task DeleteByGuid(Guid guid, bool force = false, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(TenantQueries.Delete(guid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(TenantQueries.Delete(guid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, CancellationToken token = default)
         {
-            return (ReadByGuid(tenantGuid) != null);
+            token.ThrowIfCancellationRequested();
+            TenantMetadata tenant = await ReadByGuid(tenantGuid, token).ConfigureAwait(false);
+            return tenant != null;
         }
 
         /// <inheritdoc />
-        public TenantMetadata ReadByGuid(Guid guid)
+        public async Task<TenantMetadata> ReadByGuid(Guid guid, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(TenantQueries.SelectByGuid(guid));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(TenantQueries.SelectByGuid(guid), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1) return Converters.TenantFromDataRow(result.Rows[0]);
             return null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids)
+        public async IAsyncEnumerable<TenantMetadata> ReadByGuids(List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) yield break;
-            DataTable result = _Repo.ExecuteQuery(TenantQueries.SelectByGuids(guids));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(TenantQueries.SelectByGuids(guids), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) yield break;
 
             for (int i = 0; i < result.Rows.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 yield return Converters.TenantFromDataRow(result.Rows[i]);
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TenantMetadata> ReadMany(
+        public async IAsyncEnumerable<TenantMetadata> ReadMany(
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(TenantQueries.SelectMany(_Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(TenantQueries.SelectMany(_Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.TenantFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -112,15 +124,16 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TenantMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<TenantMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
+            token.ThrowIfCancellationRequested();
 
             TenantMetadata marker = null;
 
             if (query.ContinuationToken != null)
             {
-                marker = ReadByGuid(query.ContinuationToken.Value);
+                marker = await ReadByGuid(query.ContinuationToken.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -131,7 +144,7 @@
 
             ret.Timestamp.Start = DateTime.UtcNow;
 
-            ret.TotalRecords = GetRecordCount(query.Ordering, null);
+            ret.TotalRecords = await GetRecordCount(query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -144,11 +157,11 @@
             else
             {
 
-                DataTable result = _Repo.ExecuteQuery(TenantQueries.GetRecordPage(
+                DataTable result = await _Repo.ExecuteQueryAsync(TenantQueries.GetRecordPage(
                     query.MaxResults,
                     query.Skip,
                     query.Ordering,
-                    marker));
+                    marker), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1)
                 {
@@ -164,7 +177,7 @@
 
                     TenantMetadata lastItem = ret.Objects.Last();
 
-                    ret.RecordsRemaining = GetRecordCount(query.Ordering, lastItem.GUID);
+                    ret.RecordsRemaining = await GetRecordCount(query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
 
                     if (ret.RecordsRemaining > 0)
                     {
@@ -185,18 +198,19 @@
         }
 
         /// <inheritdoc />
-        public int GetRecordCount(EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, Guid? markerGuid = null)
+        public async Task<int> GetRecordCount(EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, Guid? markerGuid = null, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             TenantMetadata marker = null;
             if (markerGuid != null)
             {
-                marker = ReadByGuid(markerGuid.Value);
+                marker = await ReadByGuid(markerGuid.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(TenantQueries.GetRecordCount(
+            DataTable result = await _Repo.ExecuteQueryAsync(TenantQueries.GetRecordCount(
                 order,
-                marker));
+                marker), false, token).ConfigureAwait(false);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {
@@ -209,21 +223,25 @@
         }
 
         /// <inheritdoc />
-        public TenantMetadata Update(TenantMetadata tenant)
+        public async Task<TenantMetadata> Update(TenantMetadata tenant, CancellationToken token = default)
         {
             if (tenant == null) throw new ArgumentNullException(nameof(tenant));
-            return Converters.TenantFromDataRow(_Repo.ExecuteQuery(TenantQueries.Update(tenant), true).Rows[0]);
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(TenantQueries.Update(tenant), true, token).ConfigureAwait(false);
+            return Converters.TenantFromDataRow(result.Rows[0]);
         }
 
         /// <inheritdoc />
-        public Dictionary<Guid, TenantStatistics> GetStatistics()
+        public async Task<Dictionary<Guid, TenantStatistics>> GetStatistics(CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             Dictionary<Guid, TenantStatistics> ret = new Dictionary<Guid, TenantStatistics>();
-            DataTable table = _Repo.ExecuteQuery(TenantQueries.GetStatistics(null), true);
+            DataTable table = await _Repo.ExecuteQueryAsync(TenantQueries.GetStatistics(null), true, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0)
             {
                 foreach (DataRow row in table.Rows)
                 {
+                    token.ThrowIfCancellationRequested();
                     ret.Add(Guid.Parse(row["guid"].ToString()), Converters.TenantStatisticsFromDataRow(row));
                 }
             }
@@ -231,9 +249,10 @@
         }
 
         /// <inheritdoc />
-        public TenantStatistics GetStatistics(Guid tenantGuid)
+        public async Task<TenantStatistics> GetStatistics(Guid tenantGuid, CancellationToken token = default)
         {
-            DataTable table = _Repo.ExecuteQuery(TenantQueries.GetStatistics(tenantGuid), true);
+            token.ThrowIfCancellationRequested();
+            DataTable table = await _Repo.ExecuteQueryAsync(TenantQueries.GetStatistics(tenantGuid), true, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0) return Converters.TenantStatisticsFromDataRow(table.Rows[0]);
             return null;
         }

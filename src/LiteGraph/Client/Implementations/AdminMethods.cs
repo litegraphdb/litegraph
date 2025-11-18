@@ -2,21 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.IO;
-    using System.Linq;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
-    using LiteGraph.GraphRepositories.Sqlite;
-    using LiteGraph.GraphRepositories.Sqlite.Queries;
     using LiteGraph.Helpers;
-    using LiteGraph.Serialization;
-
-    using LoggingSettings = LoggingSettings;
 
     /// <summary>
     /// Admin methods.
@@ -63,21 +56,23 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public void Backup(string outputFilename)
+        public async Task Backup(string outputFilename, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(outputFilename)) throw new ArgumentNullException(nameof(outputFilename));
+            token.ThrowIfCancellationRequested();
             string file = _BackupDirectory + outputFilename;
-            _Repo.Admin.Backup(file);
+            await _Repo.Admin.Backup(file, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteBackup(string backupFilename)
+        public async Task DeleteBackup(string backupFilename, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(backupFilename)) throw new ArgumentNullException(nameof(backupFilename));
+            token.ThrowIfCancellationRequested();
             string file = _BackupDirectory + backupFilename;
             if (File.Exists(file))
             {
-                File.Delete(file);
+                await Task.Run(() => File.Delete(file), token).ConfigureAwait(false);
             }
             else
             {
@@ -86,14 +81,18 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<BackupFile> BackupReadAll()
+        public async IAsyncEnumerable<BackupFile> BackupReadAll([EnumeratorCancellation] CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             if (!Directory.Exists(_BackupDirectory)) Directory.CreateDirectory(_BackupDirectory);
 
-            foreach (string file in Directory.GetFiles(_BackupDirectory))
+            string[] files = await Task.Run(() => Directory.GetFiles(_BackupDirectory), token).ConfigureAwait(false);
+
+            foreach (string file in files)
             {
+                token.ThrowIfCancellationRequested();
                 FileInfo fileInfo = new FileInfo(file);
-                byte[] data = File.ReadAllBytes(file);
+                byte[] data = await File.ReadAllBytesAsync(file, token).ConfigureAwait(false);
 
                 yield return new BackupFile
                 {
@@ -110,9 +109,10 @@
         }
 
         /// <inheritdoc />
-        public BackupFile BackupRead(string backupFilename)
+        public async Task<BackupFile> BackupRead(string backupFilename, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(backupFilename)) throw new ArgumentNullException(nameof(backupFilename));
+            token.ThrowIfCancellationRequested();
             if (!Directory.Exists(_BackupDirectory))
             {
                 Directory.CreateDirectory(_BackupDirectory);
@@ -126,7 +126,7 @@
             }
 
             FileInfo fi = new FileInfo(file);
-            byte[] data = File.ReadAllBytes(file);
+            byte[] data = await File.ReadAllBytesAsync(file, token).ConfigureAwait(false);
 
             return new BackupFile
             {
@@ -138,25 +138,27 @@
                 CreatedUtc = fi.CreationTimeUtc,
                 LastUpdateUtc = fi.LastWriteTimeUtc,
                 LastAccessUtc = fi.LastAccessTimeUtc,
-                Data = File.ReadAllBytes(file)
+                Data = data
             };
         }
 
         /// <inheritdoc />
-        public EnumerationResult<BackupFile> BackupEnumerate(EnumerationRequest query)
+        public Task<EnumerationResult<BackupFile>> BackupEnumerate(EnumerationRequest query = null, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
+            token.ThrowIfCancellationRequested();
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public bool BackupExists(string backupFilename)
+        public Task<bool> BackupExists(string backupFilename, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(backupFilename)) throw new ArgumentNullException(nameof(backupFilename));
-            if (!Directory.Exists(_BackupDirectory)) return false;
+            token.ThrowIfCancellationRequested();
+            if (!Directory.Exists(_BackupDirectory)) return Task.FromResult(false);
             string file = _BackupDirectory + backupFilename;
-            if (!File.Exists(file)) return false;
-            return true;
+            if (!File.Exists(file)) return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         #endregion

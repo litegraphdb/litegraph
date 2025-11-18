@@ -3,6 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
 
@@ -16,8 +19,9 @@
         /// Create a node.
         /// </summary>
         /// <param name="node">Node.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Node.</returns>
-        Node Create(Node node);
+        Task<Node> Create(Node node, CancellationToken token = default);
 
         /// <summary>
         /// Create multiple nodes.
@@ -25,8 +29,9 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodes">Nodes.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        List<Node> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes);
+        Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, CancellationToken token = default);
 
         /// <summary>
         /// Read all nodes in a given tenant.
@@ -36,13 +41,15 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadAllInTenant(
+        IAsyncEnumerable<Node> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read all nodes in a given graph.
@@ -53,14 +60,16 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadAllInGraph(
+        IAsyncEnumerable<Node> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read first.
@@ -77,8 +86,9 @@
         /// <param name="order">Enumeration order.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
-        /// <returns>Nodes.</returns>
-        Node ReadFirst(
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Node.</returns>
+        Task<Node> ReadFirst(
             Guid tenantGuid,
             Guid graphGuid,
             string name = null,
@@ -87,7 +97,8 @@
             Expr nodeFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read nodes.
@@ -105,8 +116,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadMany(
+        IAsyncEnumerable<Node> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
             string name = null,
@@ -116,7 +128,8 @@
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read the most connected nodes.
@@ -132,8 +145,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadMostConnected(
+        IAsyncEnumerable<Node> ReadMostConnected(
             Guid tenantGuid,
             Guid graphGuid,
             List<string> labels = null,
@@ -141,7 +155,8 @@
             Expr nodeFilter = null,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read the least connected nodes.
@@ -157,8 +172,9 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadLeastConnected(
+        IAsyncEnumerable<Node> ReadLeastConnected(
             Guid tenantGuid,
             Guid graphGuid,
             List<string> labels = null,
@@ -166,7 +182,8 @@
             Expr nodeFilter = null,
             int skip = 0,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read node.
@@ -176,13 +193,15 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Node.</returns>
-        Node ReadByGuid(
+        Task<Node> ReadByGuid(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid nodeGuid,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read nodes by GUIDs.
@@ -191,26 +210,30 @@
         /// <param name="guids">GUIDs.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadByGuids(
+        IAsyncEnumerable<Node> ReadByGuids(
             Guid tenantGuid, 
             List<Guid> guids,
             bool includeData = false,
-            bool includeSubordinates = false);
+            bool includeSubordinates = false,
+            CancellationToken token = default);
 
         /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<Node> Enumerate(EnumerationRequest query = null);
+        Task<EnumerationResult<Node>> Enumerate(EnumerationRequest query = null, CancellationToken token = default);
 
         /// <summary>
         /// Update node.
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="node">Node.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Node.</returns>
-        Node Update(Node node);
+        Task<Node> Update(Node node, CancellationToken token = default);
 
         /// <summary>
         /// Delete a node and all associated edges.
@@ -218,20 +241,23 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
-        void DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete all nodes from a tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
-        void DeleteAllInTenant(Guid tenantGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete all nodes from a graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
-        void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
 
         /// <summary>
         /// Delete multiple nodes from a graph.
@@ -239,16 +265,17 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuids">Node GUIDs.</param>
-        void DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteMany(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids, CancellationToken token = default);
 
         /// <summary>
         /// Check existence of a node.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
-        /// 
+        /// <param name="token">Cancellation token.</param>
         /// <returns>True if exists.</returns>
-        bool ExistsByGuid(Guid tenantGuid, Guid nodeGuid);
+        Task<bool> ExistsByGuid(Guid tenantGuid, Guid nodeGuid, CancellationToken token = default);
 
         /// <summary>
         /// Get nodes that have edges connecting to the specified node.
@@ -258,13 +285,15 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadParents(
+        IAsyncEnumerable<Node> ReadParents(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get nodes to which the specified node has connecting edges connecting.
@@ -274,13 +303,15 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadChildren(
+        IAsyncEnumerable<Node> ReadChildren(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get neighbors for a given node.
@@ -290,13 +321,15 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="skip">The number of records to skip.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Nodes.</returns>
-        IEnumerable<Node> ReadNeighbors(
+        IAsyncEnumerable<Node> ReadNeighbors(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0);
+            int skip = 0,
+            CancellationToken token = default);
 
         /// <summary>
         /// Get routes between two nodes.
@@ -314,14 +347,16 @@
         /// Node filter expression for Data JSON body.
         /// Expression left terms must follow the form of Sqlite JSON paths.
         /// For example, to retrieve the 'Name' property, use '$.Name', OperatorEnum.Equals, '[name here]'.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Route details.</returns>
-        IEnumerable<RouteDetail> ReadRoutes(
+        IAsyncEnumerable<RouteDetail> ReadRoutes(
             SearchTypeEnum searchType,
             Guid tenantGuid,
             Guid graphGuid,
             Guid fromNodeGuid,
             Guid toNodeGuid,
             Expr edgeFilter = null,
-            Expr nodeFilter = null);
+            Expr nodeFilter = null,
+            CancellationToken token = default);
     }
 }

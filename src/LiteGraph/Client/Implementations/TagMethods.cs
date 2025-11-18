@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Runtime.Serialization.Json;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
@@ -50,74 +52,78 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public TagMetadata Create(TagMetadata tag)
+        public async Task<TagMetadata> Create(TagMetadata tag, CancellationToken token = default)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tag.TenantGUID);
-            _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID);
-            if (tag.NodeGUID != null) _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value);
-            if (tag.EdgeGUID != null) _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value);
-            TagMetadata created = _Repo.Tag.Create(tag);
+            await _Client.ValidateTenantExists(tag.TenantGUID, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID, token).ConfigureAwait(false);
+            if (tag.NodeGUID != null) await _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value, token).ConfigureAwait(false);
+            if (tag.EdgeGUID != null) await _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value, token).ConfigureAwait(false);
+            TagMetadata created = await _Repo.Tag.Create(tag, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created tag " + created.GUID);
             return created;
         }
 
         /// <inheritdoc />
-        public List<TagMetadata> CreateMany(Guid tenantGuid, List<TagMetadata> tags)
+        public async Task<List<TagMetadata>> CreateMany(Guid tenantGuid, List<TagMetadata> tags, CancellationToken token = default)
         {
             if (tags == null || tags.Count < 1) return null;
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             foreach (TagMetadata tag in tags)
             {
-                _Client.ValidateGraphExists(tenantGuid, tag.GraphGUID);
+                await _Client.ValidateGraphExists(tenantGuid, tag.GraphGUID, token).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(tag.Key)) throw new ArgumentException("The supplied tag key is null or empty.");
 
                 tag.TenantGUID = tenantGuid;
             }
 
-            tags = _Repo.Tag.CreateMany(tenantGuid, tags);
+            tags = await _Repo.Tag.CreateMany(tenantGuid, tags, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created " + tags.Count + " tag(s) in tenant " + tenantGuid);
             return tags;
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadAllInTenant(
+        public async IAsyncEnumerable<TagMetadata> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
 
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
-            foreach (TagMetadata tag in _Repo.Tag.ReadAllInTenant(tenantGuid, order, skip))
+            await foreach (TagMetadata tag in _Repo.Tag.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tag;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadAllInGraph(
+        public async IAsyncEnumerable<TagMetadata> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
-            foreach (TagMetadata tag in _Repo.Tag.ReadAllInGraph(tenantGuid, graphGuid, order, skip))
+            await foreach (TagMetadata tag in _Repo.Tag.ReadAllInGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tag;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadMany(
+        public async IAsyncEnumerable<TagMetadata> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
@@ -125,174 +131,179 @@
             string key,
             string val,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
-            foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, graphGuid, nodeGuid, edgeGuid, key, val, order, skip))
+            await foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, graphGuid, nodeGuid, edgeGuid, key, val, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tag;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyGraph(
+        public async IAsyncEnumerable<TagMetadata> ReadManyGraph(
             Guid tenantGuid, 
             Guid graphGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
-            foreach (TagMetadata tag in _Repo.Tag.ReadManyGraph(tenantGuid, graphGuid, order, skip))
+            await foreach (TagMetadata tag in _Repo.Tag.ReadManyGraph(tenantGuid, graphGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tag;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyNode(
+        public async IAsyncEnumerable<TagMetadata> ReadManyNode(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid nodeGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
-            foreach (TagMetadata tag in _Repo.Tag.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip))
+            await foreach (TagMetadata tag in _Repo.Tag.ReadManyNode(tenantGuid, graphGuid, nodeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tag;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadManyEdge(
+        public async IAsyncEnumerable<TagMetadata> ReadManyEdge(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid edgeGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
 
-            foreach (TagMetadata tag in _Repo.Tag.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip))
+            await foreach (TagMetadata tag in _Repo.Tag.ReadManyEdge(tenantGuid, graphGuid, edgeGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return tag;
             }
         }
 
         /// <inheritdoc />
-        public TagMetadata ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<TagMetadata> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tag with GUID " + guid);
 
-            return _Repo.Tag.ReadByGuid(tenantGuid, guid);
+            return await _Repo.Tag.ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public IEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<TagMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tags");
-            foreach (TagMetadata obj in _Repo.Tag.ReadByGuids(tenantGuid, guids))
+            await foreach (TagMetadata obj in _Repo.Tag.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return obj;
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<TagMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<TagMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
-            return _Repo.Tag.Enumerate(query);
+            return await _Repo.Tag.Enumerate(query, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public TagMetadata Update(TagMetadata tag)
+        public async Task<TagMetadata> Update(TagMetadata tag, CancellationToken token = default)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tag.TenantGUID);
-            _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID);
-            if (tag.NodeGUID != null) _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value);
-            if (tag.EdgeGUID != null) _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value);
-            tag = _Repo.Tag.Update(tag);
+            await _Client.ValidateTenantExists(tag.TenantGUID, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tag.TenantGUID, tag.GraphGUID, token).ConfigureAwait(false);
+            if (tag.NodeGUID != null) await _Client.ValidateNodeExists(tag.TenantGUID, tag.NodeGUID.Value, token).ConfigureAwait(false);
+            if (tag.EdgeGUID != null) await _Client.ValidateEdgeExists(tag.TenantGUID, tag.EdgeGUID.Value, token).ConfigureAwait(false);
+            tag = await _Repo.Tag.Update(tag, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "updated tag " + tag.GUID);
             return tag;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            TagMetadata tag = ReadByGuid(tenantGuid, guid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            TagMetadata tag = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (tag == null) return;
-            _Repo.Tag.DeleteByGuid(tenantGuid, guid);
+            await _Repo.Tag.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tag " + tag.GUID);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Tag.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, List<Guid> guids)
+        public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Tag.DeleteMany(tenantGuid, guids);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteMany(tenantGuid, guids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.Tag.DeleteAllInTenant(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Repo.Tag.DeleteAllInGraph(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteGraphTags(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteGraphTags(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Repo.Tag.DeleteGraphTags(tenantGuid, graphGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteGraphTags(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags in graph " + graphGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeTags(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public async Task DeleteNodeTags(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateNodeExists(tenantGuid, nodeGuid);
-            _Repo.Tag.DeleteNodeTags(tenantGuid, graphGuid, nodeGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteNodeTags(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags for node " + nodeGuid);
         }
 
         /// <inheritdoc />
-        public void DeleteEdgeTags(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public async Task DeleteEdgeTags(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
-            _Client.ValidateEdgeExists(tenantGuid, edgeGuid);
-            _Repo.Tag.DeleteEdgeTags(tenantGuid, graphGuid, edgeGuid);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            await _Client.ValidateEdgeExists(tenantGuid, edgeGuid, token).ConfigureAwait(false);
+            await _Repo.Tag.DeleteEdgeTags(tenantGuid, graphGuid, edgeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tags for edge " + edgeGuid);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid guid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            return _Repo.Tag.ExistsByGuid(tenantGuid, guid);
+            return await _Repo.Tag.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         #endregion

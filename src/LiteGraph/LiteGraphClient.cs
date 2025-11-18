@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Caching;
     using LiteGraph.Client.Implementations;
     using LiteGraph.Client.Interfaces;
@@ -260,15 +262,18 @@
         /// <param name="filename">Filename.</param>
         /// <param name="includeData">True to include data.</param>
         /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
-        public void ExportGraphToGexfFile(
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        public async Task ExportGraphToGexfFile(
             Guid tenantGuid, 
             Guid graphGuid, 
             string filename, 
             bool includeData,
-            bool includeSubordinates)
+            bool includeSubordinates,
+            CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
-            _Gexf.ExportToFile(this, tenantGuid, graphGuid, filename, includeData, includeSubordinates);
+            await _Gexf.ExportToFile(this, tenantGuid, graphGuid, filename, includeData, includeSubordinates, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -278,10 +283,11 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="includeData">True to include data.</param>
         /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>GEXF string.</returns>
-        public string RenderGraphAsGexf(Guid tenantGuid, Guid graphGuid, bool includeData, bool includeSubordinates)
+        public async Task<string> RenderGraphAsGexf(Guid tenantGuid, Guid graphGuid, bool includeData, bool includeSubordinates, CancellationToken token = default)
         {
-            return _Gexf.RenderAsGexf(this, tenantGuid, graphGuid, includeData, includeSubordinates);
+            return await _Gexf.RenderAsGexf(this, tenantGuid, graphGuid, includeData, includeSubordinates, token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -322,43 +328,43 @@
             }
         }
         
-        internal void ValidateTenantExists(Guid tenantGuid)
+        internal async Task ValidateTenantExists(Guid tenantGuid, CancellationToken token = default)
         {
-            if (TenantCacheTryGet(tenantGuid, out var _)) return;
-            TenantMetadata tenant = Tenant.ReadByGuid(tenantGuid);
+            if (TenantCacheTryGet(tenantGuid, out TenantMetadata _)) return;
+            TenantMetadata tenant = await Tenant.ReadByGuid(tenantGuid, token).ConfigureAwait(false);
             if (tenant == null) throw new ArgumentException("No tenant with GUID '" + tenantGuid + "' exists.");
             TenantCacheAdd(tenant);
         }
 
-        internal void ValidateUserExists(Guid tenantGuid, Guid userGuid)
+        internal async Task ValidateUserExists(Guid tenantGuid, Guid userGuid, CancellationToken token = default)
         {
-            if (!User.ExistsByGuid(tenantGuid, userGuid))
+            if (!await User.ExistsByGuid(tenantGuid, userGuid, token).ConfigureAwait(false))
                 throw new ArgumentException("No user with GUID '" + userGuid + "' exists.");
         }
 
-        internal void ValidateGraphExists(Guid tenantGuid, Guid? graphGuid)
+        internal async Task ValidateGraphExists(Guid tenantGuid, Guid? graphGuid, CancellationToken token = default)
         {
             if (graphGuid == null) return;
-            if (GraphCacheTryGet(graphGuid.Value, out var _)) return; 
-            Graph graph = _Repo.Graph.ReadByGuid(tenantGuid, graphGuid.Value);
+            if (GraphCacheTryGet(graphGuid.Value, out Graph _)) return; 
+            Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid.Value, token).ConfigureAwait(false);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid.Value + "' exists.");
             GraphCacheAdd(graph);
         }
 
-        internal void ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid)
+        internal async Task ValidateNodeExists(Guid tenantGuid, Guid? nodeGuid, CancellationToken token = default)
         {
             if (nodeGuid == null) return;
-            if (NodeCacheTryGet(nodeGuid.Value, out var _)) return;
-            Node node = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid.Value);
+            if (NodeCacheTryGet(nodeGuid.Value, out Node _)) return;
+            Node node = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid.Value, token).ConfigureAwait(false);
             if (node == null) throw new ArgumentException("No node with GUID '" + nodeGuid.Value + "' exists.");
             NodeCacheAdd(node);
         }
 
-        internal void ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid)
+        internal async Task ValidateEdgeExists(Guid tenantGuid, Guid? edgeGuid, CancellationToken token = default)
         {
             if (edgeGuid == null) return;
-            if (EdgeCacheTryGet(edgeGuid.Value, out var _)) return;
-            Edge edge = _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid.Value);
+            if (EdgeCacheTryGet(edgeGuid.Value, out Edge _)) return;
+            Edge edge = await _Repo.Edge.ReadByGuid(tenantGuid, edgeGuid.Value, token).ConfigureAwait(false);
             if (edge == null) throw new ArgumentException("No edge with GUID '" + edgeGuid.Value + "' exists.");
             EdgeCacheAdd(edge);
         }

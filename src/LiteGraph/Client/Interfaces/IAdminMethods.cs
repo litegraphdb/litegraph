@@ -1,6 +1,9 @@
 ﻿namespace LiteGraph.Client.Interfaces
 {
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph;
 
     /// <summary>
@@ -13,39 +16,45 @@
         /// Backup request.
         /// </summary>
         /// <param name="outputFilename">Output filename.</param>
-        void Backup(string outputFilename);
+        /// <param name="token">Cancellation token.</param>
+        Task Backup(string outputFilename, CancellationToken token = default);
 
         /// <summary>
         /// List backups request.
         /// </summary>
-        /// <returns>Enumerable of backup files.</returns>
-        IEnumerable<BackupFile> BackupReadAll();
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Async enumerable of backup files.</returns>
+        IAsyncEnumerable<BackupFile> BackupReadAll(CancellationToken token = default);
 
         /// <summary>
         /// Read the contents of a backup file.
         /// </summary>
         /// <param name="backupFilename">Backup filename.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>File contents.</returns>
-        BackupFile BackupRead(string backupFilename);
+        Task<BackupFile> BackupRead(string backupFilename, CancellationToken token = default);
 
         /// <summary>
         /// Enumerate objects.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>Enumeration result.</returns>
-        EnumerationResult<BackupFile> BackupEnumerate(EnumerationRequest query = null);
+        Task<EnumerationResult<BackupFile>> BackupEnumerate(EnumerationRequest query = null, CancellationToken token = default);
 
         /// <summary>
         /// Check if a backup file exists.
         /// </summary>
         /// <param name="backupFilename">Backup filename.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>True if exists.</returns>
-        bool BackupExists(string backupFilename);
+        Task<bool> BackupExists(string backupFilename, CancellationToken token = default);
 
         /// <summary>
         /// Delete a backup file.
         /// </summary>
         /// <param name="backupFilename">Backup filename.</param>
-        void DeleteBackup(string backupFilename);
+        /// <param name="token">Cancellation token.</param>
+        Task DeleteBackup(string backupFilename, CancellationToken token = default);
     }
 }

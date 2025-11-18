@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Client.Interfaces;
@@ -61,122 +62,124 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public UserMaster Create(UserMaster user)
+        public async Task<UserMaster> Create(UserMaster user, CancellationToken token = default)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
-            _Client.ValidateTenantExists(user.TenantGUID);
-            UserMaster created = _Repo.User.Create(user);
+            await _Client.ValidateTenantExists(user.TenantGUID, token).ConfigureAwait(false);
+            UserMaster created = await _Repo.User.Create(user, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created user email " + created.Email + " GUID " + created.GUID);
             return created;
         }
 
         /// <inheritdoc />
-        public IEnumerable<UserMaster> ReadAllInTenant(
+        public async IAsyncEnumerable<UserMaster> ReadAllInTenant(
             Guid tenantGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving users");
 
-            foreach (UserMaster user in _Repo.User.ReadAllInTenant(tenantGuid, order, skip))
+            await foreach (UserMaster user in _Repo.User.ReadAllInTenant(tenantGuid, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return user;
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<UserMaster> ReadMany(
+        public async IAsyncEnumerable<UserMaster> ReadMany(
             Guid? tenantGuid,
             string email = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving users");
 
-            foreach (UserMaster user in _Repo.User.ReadMany(tenantGuid, email, order, skip))
+            await foreach (UserMaster user in _Repo.User.ReadMany(tenantGuid, email, order, skip, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return user;
             }
         }
 
         /// <inheritdoc />
-        public UserMaster ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<UserMaster> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving user with GUID " + guid);
 
-            return _Repo.User.ReadByGuid(tenantGuid, guid);
+            return await _Repo.User.ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public UserMaster ReadByEmail(Guid tenantGuid, string email)
+        public async Task<UserMaster> ReadByEmail(Guid tenantGuid, string email, CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving user with email " + email);
 
-            return _Repo.User.ReadByEmail(tenantGuid, email);
+            return await _Repo.User.ReadByEmail(tenantGuid, email, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public List<TenantMetadata> ReadTenantsByEmail(string email)
+        public async Task<List<TenantMetadata>> ReadTenantsByEmail(string email, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tenants associated with user " + email);
-            return _Repo.User.ReadTenantsByEmail(email);
+            return await _Repo.User.ReadTenantsByEmail(email, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public IEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<UserMaster> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving users");
-            foreach (UserMaster obj in _Repo.User.ReadByGuids(tenantGuid, guids))
+            await foreach (UserMaster obj in _Repo.User.ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
             {
                 yield return obj;
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<UserMaster> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<UserMaster>> Enumerate(EnumerationRequest query = null, CancellationToken token = default)
         {
             if (query == null) query = new EnumerationRequest();
-            return _Repo.User.Enumerate(query);
+            return await _Repo.User.Enumerate(query, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public UserMaster Update(UserMaster user)
+        public async Task<UserMaster> Update(UserMaster user, CancellationToken token = default)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
-            _Client.ValidateTenantExists(user.TenantGUID);
-            user = _Repo.User.Update(user);
+            await _Client.ValidateTenantExists(user.TenantGUID, token).ConfigureAwait(false);
+            user = await _Repo.User.Update(user, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "updated user with email " + user.Email + " GUID " + user.GUID);
             return user;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            UserMaster user = _Repo.User.ReadByGuid(tenantGuid, guid);
+            UserMaster user = await _Repo.User.ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             if (user == null) return;
-            _Repo.User.DeleteByGuid(tenantGuid, guid);
+            await _Repo.User.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted user with email " + user.Email + " GUID " + user.GUID);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Repo.User.DeleteAllInTenant(tenantGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Repo.User.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted users for tenant " + tenantGuid);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid guid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            return _Repo.User.ExistsByGuid(tenantGuid, guid);
+            return await _Repo.User.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByEmail(Guid tenantGuid, string email)
+        public async Task<bool> ExistsByEmail(Guid tenantGuid, string email, CancellationToken token = default)
         {
-            return _Repo.User.ExistsByEmail(tenantGuid, email);
+            return await _Repo.User.ExistsByEmail(tenantGuid, email, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

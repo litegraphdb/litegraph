@@ -4,6 +4,9 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.GraphRepositories.Sqlite.Queries;
@@ -42,96 +45,112 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public LabelMetadata Create(LabelMetadata label)
+        public async Task<LabelMetadata> Create(LabelMetadata label, CancellationToken token = default)
         {
             if (label == null) throw new ArgumentNullException(nameof(label));
             if (string.IsNullOrEmpty(label.Label)) throw new ArgumentException("The supplied label is null or empty.");
+            token.ThrowIfCancellationRequested();
             string createQuery = LabelQueries.Insert(label);
-            DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
             LabelMetadata created = Converters.LabelFromDataRow(createResult.Rows[0]);
             return created;
         }
 
         /// <inheritdoc />
-        public List<LabelMetadata> CreateMany(Guid tenantGuid, List<LabelMetadata> labels)
+        public async Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, CancellationToken token = default)
         {
             if (labels == null || labels.Count < 1) return null;
+            token.ThrowIfCancellationRequested();
             string createQuery = LabelQueries.InsertMany(tenantGuid, labels);
             string retrieveQuery = LabelQueries.SelectMany(tenantGuid, labels.Select(n => n.GUID).ToList());
-            DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
-            DataTable retrieveResult = _Repo.ExecuteQuery(retrieveQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
+            DataTable retrieveResult = await _Repo.ExecuteQueryAsync(retrieveQuery, true, token).ConfigureAwait(false);
             List<LabelMetadata> created = Converters.LabelsFromDataTable(retrieveResult);
             return created;
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid guid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(LabelQueries.Delete(tenantGuid, guid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(LabelQueries.Delete(tenantGuid, guid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids)
+        public async Task DeleteMany(Guid tenantGuid, Guid? graphGuid, List<Guid> nodeGuids, List<Guid> edgeGuids, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(LabelQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(LabelQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteMany(Guid tenantGuid, List<Guid> guids)
+        public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) return;
-            _Repo.ExecuteQuery(LabelQueries.DeleteMany(tenantGuid, guids));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(LabelQueries.DeleteMany(tenantGuid, guids), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(LabelQueries.DeleteAllInTenant(tenantGuid));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(LabelQueries.DeleteAllInTenant(tenantGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteAllInGraph(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(LabelQueries.DeleteAllInGraph(tenantGuid, graphGuid));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(LabelQueries.DeleteAllInGraph(tenantGuid, graphGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteGraphLabels(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteGraphLabels(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(LabelQueries.DeleteGraph(tenantGuid, graphGuid));
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(LabelQueries.DeleteGraph(tenantGuid, graphGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid)
+        public async Task DeleteNodeLabels(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
         {
-            _Repo.Label.DeleteMany(tenantGuid, graphGuid, new List<Guid> { nodeGuid }, null);
+            token.ThrowIfCancellationRequested();
+            await DeleteMany(tenantGuid, graphGuid, new List<Guid> { nodeGuid }, null, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteEdgeLabels(Guid tenantGuid, Guid graphGuid, Guid edgeGuid)
+        public async Task DeleteEdgeLabels(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
         {
-            _Repo.Label.DeleteMany(tenantGuid, graphGuid, null, new List<Guid> { edgeGuid });
+            token.ThrowIfCancellationRequested();
+            await DeleteMany(tenantGuid, graphGuid, null, new List<Guid> { edgeGuid }, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid labelGuid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid labelGuid, CancellationToken token = default)
         {
-            return (ReadByGuid(tenantGuid, labelGuid) != null);
+            token.ThrowIfCancellationRequested();
+            LabelMetadata label = await ReadByGuid(tenantGuid, labelGuid, token).ConfigureAwait(false);
+            return label != null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadAllInTenant(
+        public async IAsyncEnumerable<LabelMetadata> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(LabelQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(LabelQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     LabelMetadata label = Converters.LabelFromDataRow(result.Rows[i]);
                     yield return label;
                     skip++;
@@ -142,19 +161,23 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadAllInGraph(
+        public async IAsyncEnumerable<LabelMetadata> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(LabelQueries.SelectAllInGraph(tenantGuid, graphGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(LabelQueries.SelectAllInGraph(tenantGuid, graphGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     LabelMetadata label = Converters.LabelFromDataRow(result.Rows[i]);
                     yield return label;
                     skip++;
@@ -165,41 +188,46 @@
         }
 
         /// <inheritdoc />
-        public LabelMetadata ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<LabelMetadata> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(LabelQueries.SelectByGuid(tenantGuid, guid));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(LabelQueries.SelectByGuid(tenantGuid, guid), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1) return Converters.LabelFromDataRow(result.Rows[0]);
             return null;
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<LabelMetadata> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) yield break;
-            DataTable result = _Repo.ExecuteQuery(LabelQueries.SelectByGuids(tenantGuid, guids));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(LabelQueries.SelectByGuids(tenantGuid, guids), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) yield break;
 
             for (int i = 0; i < result.Rows.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 yield return Converters.LabelFromDataRow(result.Rows[i]);
             }
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadMany(
+        public async IAsyncEnumerable<LabelMetadata> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
             Guid? edgeGuid,
             string label,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = null;
                 if (graphGuid == null)
                 {
@@ -231,21 +259,34 @@
                     }
                     else
                     {
-                        query = LabelQueries.SelectGraph(
-                            tenantGuid,
-                            graphGuid.Value,
-                            label,
-                            _Repo.SelectBatchSize,
-                            skip,
-                            order);
+                        if (string.IsNullOrEmpty(label))
+                        {
+                            query = LabelQueries.SelectAllInGraph(
+                                tenantGuid,
+                                graphGuid.Value,
+                                _Repo.SelectBatchSize,
+                                skip,
+                                order);
+                        }
+                        else
+                        {
+                            query = LabelQueries.SelectGraph(
+                                tenantGuid,
+                                graphGuid.Value,
+                                label,
+                                _Repo.SelectBatchSize,
+                                skip,
+                                order);
+                        }
                     }
                 }
 
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.LabelFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -255,16 +296,18 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyGraph(
+        public async IAsyncEnumerable<LabelMetadata> ReadManyGraph(
             Guid tenantGuid,
             Guid graphGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = LabelQueries.SelectGraph(
                     tenantGuid,
                     graphGuid,
@@ -273,11 +316,12 @@
                     skip,
                     order);
 
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.LabelFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -287,17 +331,19 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyNode(
+        public async IAsyncEnumerable<LabelMetadata> ReadManyNode(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid nodeGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = LabelQueries.SelectNode(
                     tenantGuid,
                     graphGuid,
@@ -307,11 +353,12 @@
                     skip,
                     order);
 
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.LabelFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -321,17 +368,19 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<LabelMetadata> ReadManyEdge(
+        public async IAsyncEnumerable<LabelMetadata> ReadManyEdge(
             Guid tenantGuid, 
             Guid graphGuid, 
             Guid edgeGuid, 
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
+                token.ThrowIfCancellationRequested();
                 string query = LabelQueries.SelectEdge(
                     tenantGuid,
                     graphGuid,
@@ -341,11 +390,12 @@
                     skip,
                     order);
 
-                DataTable result = _Repo.ExecuteQuery(query);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, token: token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     yield return Converters.LabelFromDataRow(result.Rows[i]);
                     skip++;
                 }
@@ -355,15 +405,16 @@
         }
 
         /// <inheritdoc />
-        public EnumerationResult<LabelMetadata> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<LabelMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
+            token.ThrowIfCancellationRequested();
 
             LabelMetadata marker = null;
 
             if (query.TenantGUID != null && query.ContinuationToken != null && query.GraphGUID != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                marker = await ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -373,7 +424,7 @@
             };
 
             ret.Timestamp.Start = DateTime.UtcNow;
-            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, null);
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -385,13 +436,13 @@
             }
             else
             {
-                DataTable result = _Repo.ExecuteQuery(LabelQueries.GetRecordPage(
+                DataTable result = await _Repo.ExecuteQueryAsync(LabelQueries.GetRecordPage(
                     query.TenantGUID,
                     query.GraphGUID,
                     query.MaxResults,
                     query.Skip,
                     query.Ordering,
-                    marker));
+                    marker), token: token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1)
                 {
@@ -406,7 +457,7 @@
                     ret.Objects = Converters.LabelsFromDataTable(result);
                     LabelMetadata lastItem = ret.Objects.Last();
 
-                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, lastItem.GUID);
+                    ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, query.GraphGUID, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
                     if (ret.RecordsRemaining > 0)
                     {
                         ret.ContinuationToken = lastItem.GUID;
@@ -426,24 +477,26 @@
         }
 
         /// <inheritdoc />
-        public int GetRecordCount(
+        public async Task<int> GetRecordCount(
             Guid? tenantGuid,
             Guid? graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            Guid? markerGuid = null)
+            Guid? markerGuid = null,
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             LabelMetadata marker = null;
             if (tenantGuid != null && graphGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                marker = await ReadByGuid(tenantGuid.Value, markerGuid.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(LabelQueries.GetRecordCount(
+            DataTable result = await _Repo.ExecuteQueryAsync(LabelQueries.GetRecordCount(
                 tenantGuid,
                 graphGuid,
                 order,
-                marker));
+                marker), false, token).ConfigureAwait(false);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {
@@ -456,13 +509,14 @@
         }
 
         /// <inheritdoc />
-        public LabelMetadata Update(LabelMetadata label)
+        public async Task<LabelMetadata> Update(LabelMetadata label, CancellationToken token = default)
         {
             if (label == null) throw new ArgumentNullException(nameof(label));
             if (string.IsNullOrEmpty(label.Label)) throw new ArgumentException("The supplied label is null or empty.");
+            token.ThrowIfCancellationRequested();
 
             string updateQuery = LabelQueries.Update(label);
-            DataTable updateResult =  _Repo.ExecuteQuery(updateQuery, true);
+            DataTable updateResult = await _Repo.ExecuteQueryAsync(updateQuery, true, token).ConfigureAwait(false);
             LabelMetadata updated = Converters.LabelFromDataRow(updateResult.Rows[0]);
             return updated;
         }

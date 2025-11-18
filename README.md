@@ -8,22 +8,9 @@ LiteGraph is a property graph database with support for graph relationships, tag
 
 LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`). For comprehensive documentation, visit [litegraph.readme.io](https://litegraph.readme.io/). A web-based dashboard UI is available at [github.com/litegraphdb/ui](https://github.com/litegraphdb/ui).
 
-## New in v4.x
+## New in v5.x
 
-- Major internal refactor for both the graph repository base and the client class
-- Separation of responsibilities; graph repository base owns primitives, client class owns validation and cross-cutting
-- Consistency in interface API names and behaviors
-- Consistency in passing of query parameters such as skip to implementations and primitives
-- Consolidation of create, update, and delete actions within a single transaction
-- Batch APIs for creation and deletion of labels, tags, vectors, edges, and nodes
-- Enumeration APIs
-- Statistics APIs
-- Simple database caching to offload existence validation for tenants, graphs, nodes, and edges
-- In-memory operation with controlled flushing to disk
-- Additional vector search parameters including topK, minimum score, maximum distance, and minimum inner product
-- Dependency updates and bug fixes
-- Minor Postman fixes
-- Inclusion of an optional graph-wide HNSW index for graph, node, and edge vectors
+- Breaking changes: migrated all APIs to full async/await
 
 ## Bugs, Feedback, or Enhancement Requests
 
@@ -36,26 +23,26 @@ Embedding LiteGraph into your application is simple and requires no configuratio
 ```csharp
 using LiteGraph;
 
-LiteGraphClient graph = new LiteGraphClient(new SqliteRepository("litegraph.db"));
-graph.InitializeRepository();
+LiteGraphClient client = new LiteGraphClient(new SqliteRepository("litegraph.db"));
+client.InitializeRepository();
 
 // Create a tenant
-TenantMetadata tenant = graph.CreateTenant(new TenantMetadata { Name = "My tenant" });
+TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "My tenant" });
 
 // Create a graph
-Graph graph = graph.CreateGraph(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
+Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
 
 // Create nodes
-Node node1 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
-Node node2 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
-Node node3 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
+Node node1 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
+Node node2 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
+Node node3 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
 
 // Create edges
-Edge edge1 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
-Edge edge2 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
+Edge edge1 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
+Edge edge2 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
 
 // Find routes
-foreach (RouteDetail route in graph.GetRoutes(
+await foreach (RouteDetail route in client.Node.ReadRoutes(
   SearchTypeEnum.DepthFirstSearch,
   tenant.GUID,
   graph.GUID,
@@ -66,7 +53,7 @@ foreach (RouteDetail route in graph.GetRoutes(
 }
 
 // Export to GEXF file
-graph.ExportGraphToGexfFile(tenant.GUID, graph.GUID, "mygraph.gexf");
+await client.ExportGraphToGexfFile(tenant.GUID, graph.GUID, "mygraph.gexf", false, false);
 ```
 
 ## Simple Example, In-Memory
@@ -76,26 +63,26 @@ LiteGraph can be configured to run in-memory, with a specified database filename
 ```csharp
 using LiteGraph;
 
-LiteGraphClient graph = new LiteGraphClient(new SqliteRepository("litegraph.db", true)); // true to run in-memory
-graph.InitializeRepository();
+LiteGraphClient client = new LiteGraphClient(new SqliteRepository("litegraph.db", true)); // true to run in-memory
+client.InitializeRepository();
 
 // Create a tenant
-TenantMetadata tenant = graph.CreateTenant(new TenantMetadata { Name = "My tenant" });
+TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "My tenant" });
 
 // Create a graph
-Graph graph = graph.CreateGraph(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
+Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
 
 // Create nodes
-Node node1 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
-Node node2 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
-Node node3 = graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
+Node node1 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
+Node node2 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
+Node node3 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
 
 // Create edges
-Edge edge1 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
-Edge edge2 = graph.CreateEdge(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
+Edge edge1 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
+Edge edge2 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
 
 // Flush to disk
-graph.Flush();
+client.Flush();
 ```
 
 ## Working with Object Labels, Tags, and Data
@@ -113,15 +100,15 @@ All of these properties can be used in conjunction with one another when filteri
 ### Storing and Searching Labels
 
 ```csharp
-List<string> labels = new List<string> 
+List<string> labels = new List<string>
 {
   "test",
   "label1"
 };
 
-graph.CreateNode(new Node { TenantGUID = tenant.GUID, Name = "Joel", Labels = labels });
+await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Labels = labels });
 
-foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, labels))
+await foreach (Node node in client.Node.ReadMany(tenant.GUID, graph.GUID, labels: labels))
 {
   Console.WriteLine(...);
 }
@@ -133,9 +120,9 @@ foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, labels))
 NameValueCollection nvc = new NameValueCollection();
 nvc.Add("key", "value");
 
-graph.CreateNode(new Node { TenantGUID = tenant.GUID, Name = "Joel", Tags = nvc });
+await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Tags = nvc });
 
-foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, null, nvc))
+await foreach (Node node in client.Node.ReadMany(tenant.GUID, graph.GUID, tags: nvc))
 {
   Console.WriteLine(...);
 }
@@ -146,7 +133,7 @@ foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, null, nvc))
 ```csharp
 using ExpressionTree;
 
-class Person 
+class Person
 {
   public string Name { get; set; } = null;
   public int Age { get; set; } = 0;
@@ -154,16 +141,16 @@ class Person
 }
 
 Person person1 = new Person { Name = "Joel", Age = 47, City = "San Jose" };
-graph.CreateNode(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = person1 });
+await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = person1 });
 
-Expr expr = new Expr 
+Expr expr = new Expr
 {
   "Left": "City",
   "Operator": "Equals",
   "Right": "San Jose"
 };
 
-foreach (Node node in graph.ReadNodes(tenant.GUID, graph.GUID, null, expr))
+await foreach (Node node in client.Node.ReadMany(tenant.GUID, graph.GUID, nodeFilter: expr))
 {
   Console.WriteLine(...);
 }
@@ -190,7 +177,7 @@ Your requirements threshold should match with the `VectorSearchTypeEnum` you sup
 ```csharp
 using ExpressionTree;
 
-class Person 
+class Person
 {
   public string Name { get; set; } = null;
   public int Age { get; set; } = 0;
@@ -199,7 +186,7 @@ class Person
 
 Person person1 = new Person { Name = "Joel", Age = 47, City = "San Jose" };
 
-VectorMetadata vectors = new VectorMetadata 
+VectorMetadata vectors = new VectorMetadata
 {
   Model = "testmodel",
   Dimensionality = 3,
@@ -207,22 +194,22 @@ VectorMetadata vectors = new VectorMetadata
   Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
 };
 
-graph.CreateNode(new Node { Name = "Joel", Data = person1, Vectors = new List<VectorMetadata> { vectors } });
+await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = person1, Vectors = new List<VectorMetadata> { vectors } });
 
-foreach (VectorSearchResult result in graph.SearchVectors(
-  VectorSearchDomainEnum.Node,
-  VectorSearchTypeEnum.CosineSimilarity,
-  new List<float> { 0.1f, 0.2f, 0.3f },
-  tenant.GUID,
-  graph.GUID,
-  null,  // labels
-  null,  // tags
-  null,  // filter
-  10,    // topK
-  0.1,   // minimum score
-  100,   // maximum distance
-  0.1    // minimum inner product
-))
+VectorSearchRequest req = new VectorSearchRequest
+{
+  TenantGUID = tenant.GUID,
+  GraphGUID = graph.GUID,
+  Domain = VectorSearchDomainEnum.Node,
+  SearchType = VectorSearchTypeEnum.CosineSimilarity,
+  Vectors = new List<float> { 0.1f, 0.2f, 0.3f },
+  TopK = 10,
+  MinimumScore = 0.1,
+  MaximumDistance = 100,
+  MinimumInnerProduct = 0.1
+};
+
+await foreach (VectorSearchResult result in client.Vector.Search(req))
 {
   Console.WriteLine("Node " + result.Node.GUID + " score " + result.Score);
 }
@@ -246,19 +233,20 @@ A variety of `EnumerationOrderEnum` options are available when enumerating objec
 To enumerate, use the enumeration API for the resource you wish.
 
 ```csharp
-EnumerationQuery query = new EnumerationQuery
+EnumerationRequest query = new EnumerationRequest
 {
+  TenantGUID = tenant.GUID,
   Ordering = EnumerationOrderEnum.CreatedDescending,
   IncludeData = true,
   IncludeSubordinates = true,
   MaxResults = 5,
   ContinuationToken = null,         // set to the continuation token from the last results to paginate
-  Labels = new List<string>,        // labels on which to match
+  Labels = new List<string>(),      // labels on which to match
   Tags = new NameValueCollection(), // tags on which to match
-  Expr = null,                      // expression on which to match from data property
+  Filter = null,                    // expression on which to match from data property
 };
 
-EnumerationResult result = graph.Node.Enumerate(query);
+EnumerationResult<Node> result = await client.Node.Enumerate(query);
 // returns
 {
     "Success": true,
@@ -297,11 +285,11 @@ EnumerationResult result = graph.Node.Enumerate(query);
 Statistics are available both at the tenant level and at the graph level.
 
 ```csharp
-Dictionary<Guid, TenantStatistics> allTenantsStats = graph.Tenant.GetStatistics();
-TenantStatistics tenantStatistics = graph.Tenant.GetStatistics(myTenantGuid);
+Dictionary<Guid, TenantStatistics> allTenantsStats = await client.Tenant.GetStatistics();
+TenantStatistics tenantStatistics = await client.Tenant.GetStatistics(myTenantGuid);
 
-Dictionary<Guid, GraphStatistics> allGraphStatistics = graph.Graph.GetStatistics(myTenantGuid);
-GraphStatistics graphStatistics = graph.Graph.GetStatistics(myTenantGuid, myGraphGuid);
+Dictionary<Guid, GraphStatistics> allGraphStatistics = await client.Graph.GetStatistics(myTenantGuid);
+GraphStatistics graphStatistics = await client.Graph.GetStatistics(myTenantGuid, myGraphGuid);
 ```
 
 ## REST API

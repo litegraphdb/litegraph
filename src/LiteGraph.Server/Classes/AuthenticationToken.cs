@@ -36,7 +36,7 @@
         /// <summary>
         /// Random string.
         /// </summary>
-        public string Random { get; set; } = IdGenerator.GenerateBase64();
+        public string Random { get; set; } = new IdGenerator().Generate();
 
         /// <summary>
         /// Tenant GUID.

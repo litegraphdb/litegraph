@@ -651,7 +651,7 @@
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
-        }
+        }  
 
         internal static List<UserMaster> UsersFromDataTable(DataTable table)
         {

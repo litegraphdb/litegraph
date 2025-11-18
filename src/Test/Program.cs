@@ -5,6 +5,8 @@
     using System.Collections.Specialized;
     using System.IO;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ExpressionTree;
     using GetSomeInput;
     using LiteGraph;
@@ -21,7 +23,12 @@
         static Guid _TenantGuid = Guid.Parse("00000000-0000-0000-0000-000000000000");
         static Guid _GraphGuid = Guid.Parse("00000000-0000-0000-0000-000000000000");
 
-        static void Main(string[] args)
+        static Task Main(string[] args)
+        {
+            return MainAsync(args, CancellationToken.None);
+        }
+
+        static async Task MainAsync(string[] args, CancellationToken token = default)
         {
             _Client = new LiteGraphClient(new SqliteGraphRepository());
             _Client.Logging.MinimumSeverity = 0;
@@ -38,22 +45,22 @@
                 if (userInput.Equals("?")) Menu();
                 else if (userInput.Equals("q")) _RunForever = false;
                 else if (userInput.Equals("cls")) Console.Clear();
-                else if (userInput.Equals("backup")) BackupDatabase();
+                else if (userInput.Equals("backup")) await BackupDatabase(token).ConfigureAwait(false);
                 else if (userInput.Equals("debug")) ToggleDebug();
-                else if (userInput.Equals("tenant")) SetTenant();
-                else if (userInput.Equals("graph")) SetGraph();
-                else if (userInput.Equals("load1")) LoadGraph1();
-                else if (userInput.Equals("load2")) LoadGraph2();
-                else if (userInput.Equals("route")) FindRoutes();
-                else if (userInput.Equals("test1-1")) Test1_1();
-                else if (userInput.Equals("test1-2")) Test1_2();
-                else if (userInput.Equals("test1-3")) Test1_3();
-                else if (userInput.Equals("test1-4")) Test1_4();
-                else if (userInput.Equals("test2-1")) Test2_1();
-                else if (userInput.Equals("test3-1")) Test3_1();
-                else if (userInput.Equals("test3-2")) Test3_2();
-                else if (userInput.Equals("test3-3")) Test3_3();
-                else if (userInput.Equals("subgraph")) TestSubgraph();
+                else if (userInput.Equals("tenant")) await SetTenant().ConfigureAwait(false);
+                else if (userInput.Equals("graph")) await SetGraph().ConfigureAwait(false);
+                else if (userInput.Equals("load1")) await LoadGraph1(token).ConfigureAwait(false);
+                else if (userInput.Equals("load2")) await LoadGraph2(token).ConfigureAwait(false);
+                else if (userInput.Equals("route")) await FindRoutes(token).ConfigureAwait(false);
+                else if (userInput.Equals("test1-1")) await Test1_1(token).ConfigureAwait(false);
+                else if (userInput.Equals("test1-2")) await Test1_2(token).ConfigureAwait(false);
+                else if (userInput.Equals("test1-3")) await Test1_3(token).ConfigureAwait(false);
+                else if (userInput.Equals("test1-4")) await Test1_4(token).ConfigureAwait(false);
+                else if (userInput.Equals("test2-1")) await Test2_1(token).ConfigureAwait(false);
+                else if (userInput.Equals("test3-1")) await Test3_1(token).ConfigureAwait(false);
+                else if (userInput.Equals("test3-2")) await Test3_2(token).ConfigureAwait(false);
+                else if (userInput.Equals("test3-3")) await Test3_3(token).ConfigureAwait(false);
+                else if (userInput.Equals("subgraph")) await TestSubgraph(token).ConfigureAwait(false);
                 else
                 {
                     string[] parts = userInput.Split(new char[] { ' ' });
@@ -69,24 +76,24 @@
                             || parts[0].Equals("node")
                             || parts[0].Equals("edge"))
                         {
-                            if (parts[1].Equals("create")) Create(parts[0]);
-                            else if (parts[1].Equals("all")) All(parts[0]);
-                            else if (parts[1].Equals("read")) Read(parts[0]);
-                            else if (parts[1].Equals("exists")) Exists(parts[0]);
-                            else if (parts[1].Equals("update")) Update(parts[0]);
-                            else if (parts[1].Equals("delete")) Delete(parts[0]);
-                            else if (parts[1].Equals("search")) Search(parts[0]);
+                            if (parts[1].Equals("create")) await Create(parts[0], token).ConfigureAwait(false);
+                            else if (parts[1].Equals("all")) await All(parts[0], token).ConfigureAwait(false);
+                            else if (parts[1].Equals("read")) await Read(parts[0], token).ConfigureAwait(false);
+                            else if (parts[1].Equals("exists")) await Exists(parts[0], token).ConfigureAwait(false);
+                            else if (parts[1].Equals("update")) await Update(parts[0], token).ConfigureAwait(false);
+                            else if (parts[1].Equals("delete")) await Delete(parts[0], token).ConfigureAwait(false);
+                            else if (parts[1].Equals("search")) await Search(parts[0], token).ConfigureAwait(false);
 
                             if (parts[0].Equals("node"))
                             {
-                                if (parts[1].Equals("edgesto")) NodeEdgesTo();
-                                else if (parts[1].Equals("edgesfrom")) NodeEdgesFrom();
-                                else if (parts[1].Equals("edgesbetween")) NodeEdgesBetween();
-                                else if (parts[1].Equals("parents")) NodeParents();
-                                else if (parts[1].Equals("children")) NodeChildren();
-                                else if (parts[1].Equals("neighbors")) NodeNeighbors();
-                                else if (parts[1].Equals("mostconnected")) NodeMostConnected();
-                                else if (parts[1].Equals("leastconnected")) NodeLeastConnected();
+                                if (parts[1].Equals("edgesto")) await NodeEdgesTo(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("edgesfrom")) await NodeEdgesFrom(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("edgesbetween")) await NodeEdgesBetween(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("parents")) await NodeParents(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("children")) await NodeChildren(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("neighbors")) await NodeNeighbors(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("mostconnected")) await NodeMostConnected(token).ConfigureAwait(false);
+                                else if (parts[1].Equals("leastconnected")) await NodeLeastConnected(token).ConfigureAwait(false);
                             }
                         }
                     }
@@ -181,11 +188,11 @@
             }
         }
 
-        static void BackupDatabase()
+        static async Task BackupDatabase(CancellationToken token = default)
         {
             string filename = Inputty.GetString("Backup filename:", null, true);
             if (String.IsNullOrEmpty(filename)) return;
-            _Client.Admin.Backup(filename);
+            await _Client.Admin.Backup(filename, token).ConfigureAwait(false);
         }
 
         static void ToggleDebug()
@@ -195,23 +202,25 @@
             _Client.Logging.LogResults = _Debug;
         }
 
-        static void SetTenant()
+        static Task SetTenant()
         {
             _TenantGuid = Inputty.GetGuid("Tenant GUID:", _TenantGuid);
+            return Task.CompletedTask;
         }
 
-        static void SetGraph()
+        static Task SetGraph()
         {
             _GraphGuid = Inputty.GetGuid("Graph GUID:", _GraphGuid);
+            return Task.CompletedTask;
         }
 
         #region Graph-1
 
-        static void LoadGraph1()
+        static async Task LoadGraph1(CancellationToken token = default)
         {
             #region Tenant
 
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" });
+            TenantMetadata tenant = await _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" }, token).ConfigureAwait(false);
 
             #endregion
 
@@ -287,7 +296,7 @@
 
             Console.WriteLine("| Creating graph with GUID " + graphGuid);
 
-            Graph graph = _Client.Graph.Create(new Graph
+            Graph graph = await _Client.Graph.Create(new Graph
             {
                 TenantGUID = tenant.GUID,
                 GUID = graphGuid,
@@ -295,7 +304,7 @@
                 Labels = labelsGraph,
                 Tags = tagsGraph,
                 Vectors = graphVectors
-            });
+            }, token).ConfigureAwait(false);
 
             #endregion
 
@@ -304,7 +313,7 @@
             Guid node1Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 1 " + node1Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n1 = _Client.Node.Create(new Node
+            Node n1 = await _Client.Node.Create(new Node
             {
                 GUID = node1Guid,
                 TenantGUID = tenant.GUID,
@@ -325,12 +334,12 @@
                         Vectors = embeddings2
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node2Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 2 " + node2Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n2 = _Client.Node.Create(new Node
+            Node n2 = await _Client.Node.Create(new Node
             {
                 GUID = node2Guid,
                 TenantGUID = tenant.GUID,
@@ -351,12 +360,12 @@
                         Vectors = embeddings3
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node3Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 3 " + node3Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n3 = _Client.Node.Create(new Node
+            Node n3 = await _Client.Node.Create(new Node
             {
                 GUID = node3Guid,
                 TenantGUID = tenant.GUID,
@@ -377,12 +386,12 @@
                         Vectors = embeddings4
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node4Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 4 " + node4Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n4 = _Client.Node.Create(new Node
+            Node n4 = await _Client.Node.Create(new Node
             {
                 GUID = node4Guid,
                 TenantGUID = tenant.GUID,
@@ -403,12 +412,12 @@
                         Vectors = embeddings1
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node5Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 5 " + node5Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n5 = _Client.Node.Create(new Node
+            Node n5 = await _Client.Node.Create(new Node
             {
                 GUID = node5Guid,
                 TenantGUID = tenant.GUID,
@@ -429,12 +438,12 @@
                         Vectors = embeddings2
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node6Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 6 " + node6Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n6 = _Client.Node.Create(new Node
+            Node n6 = await _Client.Node.Create(new Node
             {
                 GUID = node6Guid,
                 TenantGUID = tenant.GUID,
@@ -455,12 +464,12 @@
                         Vectors = embeddings3
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node7Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 7 " + node7Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n7 = _Client.Node.Create(new Node
+            Node n7 = await _Client.Node.Create(new Node
             {
                 GUID = node7Guid,
                 TenantGUID = tenant.GUID,
@@ -481,12 +490,12 @@
                         Vectors = embeddings4
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             Guid node8Guid = Guid.NewGuid();
             Console.WriteLine("| Creating node 8 " + node8Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
-            Node n8 = _Client.Node.Create(new Node
+            Node n8 = await _Client.Node.Create(new Node
             {
                 GUID = node8Guid,
                 TenantGUID = tenant.GUID,
@@ -507,13 +516,13 @@
                         Vectors = embeddings1
                     }
                 }
-            });
+            }, token).ConfigureAwait(false);
 
             #endregion
 
             #region Edges
 
-            Edge e1 = _Client.Edge.Create(new Edge
+            Edge e1 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -523,9 +532,9 @@
                 Cost = 1,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e2 = _Client.Edge.Create(new Edge
+            Edge e2 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -535,9 +544,9 @@
                 Cost = 2,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e3 = _Client.Edge.Create(new Edge
+            Edge e3 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -547,9 +556,9 @@
                 Cost = 3,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e4 = _Client.Edge.Create(new Edge
+            Edge e4 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -559,9 +568,9 @@
                 Cost = 4,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e5 = _Client.Edge.Create(new Edge
+            Edge e5 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -571,9 +580,9 @@
                 Cost = 5,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e6 = _Client.Edge.Create(new Edge
+            Edge e6 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -583,9 +592,9 @@
                 Cost = 6,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e7 = _Client.Edge.Create(new Edge
+            Edge e7 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -595,9 +604,9 @@
                 Cost = 7,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e8 = _Client.Edge.Create(new Edge
+            Edge e8 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -607,9 +616,9 @@
                 Cost = 8,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e9 = _Client.Edge.Create(new Edge
+            Edge e9 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -619,9 +628,9 @@
                 Cost = 9,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e10 = _Client.Edge.Create(new Edge
+            Edge e10 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -631,9 +640,9 @@
                 Cost = 10,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e11 = _Client.Edge.Create(new Edge
+            Edge e11 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -643,9 +652,9 @@
                 Cost = 11,
                 Labels = StringHelpers.Combine(labelsOdd, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsOdd, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge e12 = _Client.Edge.Create(new Edge
+            Edge e12 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -655,12 +664,12 @@
                 Cost = 12,
                 Labels = StringHelpers.Combine(labelsEven, labelsEdge),
                 Tags = NvcHelpers.Combine(tagsEven, tagsEdge)
-            });
+            }, token).ConfigureAwait(false);
 
             #endregion
         }
 
-        static void Test1_1()
+        static async Task Test1_1(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
@@ -673,8 +682,10 @@
                 "graph"
             };
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph))
+            await foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes with labels 'node' and 'even'");
@@ -685,8 +696,10 @@
                 "even"
             };
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes))
+            await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + node.GUID + ": " + node.Name);
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving edges with labels 'edge' and 'odd'");
@@ -697,13 +710,15 @@
                 "odd"
             };
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges))
+            await foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+            }
 
             Console.WriteLine("");
         }
 
-        static void Test1_2()
+        static async Task Test1_2(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
@@ -714,8 +729,10 @@
             NameValueCollection tagsGraph = new NameValueCollection();
             tagsGraph.Add("type", "graph");
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, null, tagsGraph))
+            await foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, null, tagsGraph, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where tag 'type' = 'node' and 'isEven' = 'true'");
@@ -724,8 +741,10 @@
             tagsEvenNodes.Add("type", "node");
             tagsEvenNodes.Add("isEven", "true");
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, tagsEvenNodes))
+            await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, tagsEvenNodes, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + node.GUID + ": " + node.Name);
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving edges where tag 'type' = 'edge' and 'isEven' = 'false'");
@@ -734,13 +753,15 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges))
+            await foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, tagsOddEdges, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+            }
 
             Console.WriteLine("");
         }
 
-        static void Test1_3()
+        static async Task Test1_3(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
@@ -756,8 +777,10 @@
             NameValueCollection tagsGraph = new NameValueCollection();
             tagsGraph.Add("type", "graph");
 
-            foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph, tagsGraph))
+            await foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, labelGraph, tagsGraph, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + graph.GUID + ": " + graph.Name);
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where labels 'node' and 'even' are present, and tag 'type' = 'node' and 'isEven' = 'true'");
@@ -772,8 +795,10 @@
             tagsEvenNodes.Add("type", "node");
             tagsEvenNodes.Add("isEven", "true");
 
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, tagsEvenNodes))
+            await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, labelEvenNodes, tagsEvenNodes, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + node.GUID + ": " + node.Name);
+            }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving edges where labels 'edge' and 'odd' are present, and tag 'type' = 'edge' and 'isEven' = 'false'");
@@ -788,13 +813,15 @@
             tagsOddEdges.Add("type", "edge");
             tagsOddEdges.Add("isEven", "false");
 
-            foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges))
+            await foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, labelOddEdges, tagsOddEdges, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
                 Console.WriteLine("| " + edge.GUID + ": " + edge.Name);
+            }
 
             Console.WriteLine("");
         }
 
-        static void Test1_4()
+        static async Task Test1_4(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
@@ -813,7 +840,12 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by cosine similarity to embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqCosineSim).OrderByDescending(p => p.Score))
+            List<VectorSearchResult> cosineSimResults = new List<VectorSearchResult>();
+            await foreach (VectorSearchResult result in _Client.Vector.Search(searchReqCosineSim, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                cosineSimResults.Add(result);
+            }
+            foreach (VectorSearchResult result in cosineSimResults.OrderByDescending(p => p.Score))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": score " + result.Score);
             }
@@ -834,7 +866,12 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by cosine distance from embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqCosineDis).OrderBy(p => p.Distance))
+            List<VectorSearchResult> cosineDisResults = new List<VectorSearchResult>();
+            await foreach (VectorSearchResult result in _Client.Vector.Search(searchReqCosineDis, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                cosineDisResults.Add(result);
+            }
+            foreach (VectorSearchResult result in cosineDisResults.OrderBy(p => p.Distance))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": distance " + result.Distance);
             }
@@ -855,7 +892,12 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by Euclidian similarity to embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqEucSim).OrderByDescending(p => p.Score))
+            List<VectorSearchResult> eucSimResults = new List<VectorSearchResult>();
+            await foreach (VectorSearchResult result in _Client.Vector.Search(searchReqEucSim, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                eucSimResults.Add(result);
+            }
+            foreach (VectorSearchResult result in eucSimResults.OrderByDescending(p => p.Score))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": score " + result.Score);
             }
@@ -876,7 +918,12 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by Euclidian distance from embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqEucDis).OrderBy(p => p.Distance))
+            List<VectorSearchResult> eucDisResults = new List<VectorSearchResult>();
+            await foreach (VectorSearchResult result in _Client.Vector.Search(searchReqEucDis, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                eucDisResults.Add(result);
+            }
+            foreach (VectorSearchResult result in eucDisResults.OrderBy(p => p.Distance))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": distance " + result.Distance);
             }
@@ -897,7 +944,12 @@
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes by dot product with embeddings [ 0.1, 0.2, 0.3 ]");
 
-            foreach (VectorSearchResult result in _Client.Vector.Search(searchReqDp).OrderByDescending(p => p.InnerProduct))
+            List<VectorSearchResult> dpResults = new List<VectorSearchResult>();
+            await foreach (VectorSearchResult result in _Client.Vector.Search(searchReqDp, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                dpResults.Add(result);
+            }
+            foreach (VectorSearchResult result in dpResults.OrderByDescending(p => p.InnerProduct))
             {
                 Console.WriteLine("| Node " + result.Node.GUID + " " + result.Node.Name + ": inner product " + result.InnerProduct);
             }
@@ -911,21 +963,21 @@
 
         #region Graph-2
 
-        static void LoadGraph2()
+        static async Task LoadGraph2(CancellationToken token = default)
         {
             #region Tenant
 
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" });
+            TenantMetadata tenant = await _Client.Tenant.Create(new TenantMetadata { Name = "Test tenant" }, token).ConfigureAwait(false);
 
             #endregion
 
             #region Graph
 
-            Graph graph = _Client.Graph.Create(new Graph
+            Graph graph = await _Client.Graph.Create(new Graph
             {
                 TenantGUID = tenant.GUID,
                 Name = "Sample Graph 2"
-            });
+            }, token).ConfigureAwait(false);
 
             #endregion
 
@@ -957,234 +1009,234 @@
 
             #region Nodes
 
-            Node joelNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = joel });
-            Node yipNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Yip", Data = yip });
-            Node keithNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Keith", Data = keith });
-            Node alexNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Alex", Data = alex });
-            Node blakeNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Blake", Data = blake });
+            Node joelNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = joel }, token).ConfigureAwait(false);
+            Node yipNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Yip", Data = yip }, token).ConfigureAwait(false);
+            Node keithNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Keith", Data = keith }, token).ConfigureAwait(false);
+            Node alexNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Alex", Data = alex }, token).ConfigureAwait(false);
+            Node blakeNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Blake", Data = blake }, token).ConfigureAwait(false);
 
-            Node xfiNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Xfinity", Data = xfi });
-            Node starlinkNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Starlink", Data = starlink });
-            Node attNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AT&T", Data = att });
+            Node xfiNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Xfinity", Data = xfi }, token).ConfigureAwait(false);
+            Node starlinkNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Starlink", Data = starlink }, token).ConfigureAwait(false);
+            Node attNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AT&T", Data = att }, token).ConfigureAwait(false);
 
-            Node internetNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Internet", Data = internet });
+            Node internetNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Internet", Data = internet }, token).ConfigureAwait(false);
 
-            Node equinixNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Equinix", Data = equinix });
-            Node awsNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AWS", Data = aws });
-            Node azureNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Azure", Data = azure });
-            Node digitalOceanNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "DigitalOcean", Data = digitalOcean });
-            Node rackspaceNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Rackspace", Data = rackspace });
+            Node equinixNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Equinix", Data = equinix }, token).ConfigureAwait(false);
+            Node awsNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AWS", Data = aws }, token).ConfigureAwait(false);
+            Node azureNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Azure", Data = azure }, token).ConfigureAwait(false);
+            Node digitalOceanNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "DigitalOcean", Data = digitalOcean }, token).ConfigureAwait(false);
+            Node rackspaceNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Rackspace", Data = rackspace }, token).ConfigureAwait(false);
 
-            Node ccpNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Control Plane", Data = ccp });
-            Node websiteNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Website", Data = website });
-            Node adNode = _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Active Directory", Data = ad });
+            Node ccpNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Control Plane", Data = ccp }, token).ConfigureAwait(false);
+            Node websiteNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Website", Data = website }, token).ConfigureAwait(false);
+            Node adNode = await _Client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Active Directory", Data = ad }, token).ConfigureAwait(false);
 
             #endregion
 
             #region Edges
 
-            Edge joelXfiEdge = _Client.Edge.Create(new Edge
+            Edge joelXfiEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = joelNode.GUID,
                 To = xfiNode.GUID,
                 Name = "Joel to Xfinity"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge joelStarlinkEdge = _Client.Edge.Create(new Edge
+            Edge joelStarlinkEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = joelNode.GUID,
                 To = starlinkNode.GUID,
                 Name = "Joel to Starlink"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge yipXfiEdge = _Client.Edge.Create(new Edge
+            Edge yipXfiEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = yipNode.GUID,
                 To = xfiNode.GUID,
                 Name = "Yip to Xfinity"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge keithStarlinkEdge = _Client.Edge.Create(new Edge
+            Edge keithStarlinkEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = keithNode.GUID,
                 To = starlinkNode.GUID,
                 Name = "Keith to Starlink"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge keithXfiEdge = _Client.Edge.Create(new Edge
+            Edge keithXfiEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = keithNode.GUID,
                 To = xfiNode.GUID,
                 Name = "Keith to Xfinity"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge keithAttEdge = _Client.Edge.Create(new Edge
+            Edge keithAttEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = keithNode.GUID,
                 To = attNode.GUID,
                 Name = "Keith to AT&T"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge alexAttEdge = _Client.Edge.Create(new Edge
+            Edge alexAttEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = alexNode.GUID,
                 To = attNode.GUID,
                 Name = "Alex to AT&T"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge blakeAttEdge = _Client.Edge.Create(new Edge
+            Edge blakeAttEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = blakeNode.GUID,
                 To = attNode.GUID,
                 Name = "Blake to AT&T"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge xfiInternetEdge1 = _Client.Edge.Create(new Edge
+            Edge xfiInternetEdge1 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = xfiNode.GUID,
                 To = internetNode.GUID,
                 Name = "Xfinity to Internet 1"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge xfiInternetEdge2 = _Client.Edge.Create(new Edge
+            Edge xfiInternetEdge2 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = xfiNode.GUID,
                 To = internetNode.GUID,
                 Name = "Xfinity to Internet 2"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge starlinkInternetEdge = _Client.Edge.Create(new Edge
+            Edge starlinkInternetEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = starlinkNode.GUID,
                 To = internetNode.GUID,
                 Name = "Starlink to Internet"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge attInternetEdge1 = _Client.Edge.Create(new Edge
+            Edge attInternetEdge1 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = attNode.GUID,
                 To = internetNode.GUID,
                 Name = "AT&T to Internet 1"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge attInternetEdge2 = _Client.Edge.Create(new Edge
+            Edge attInternetEdge2 = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = attNode.GUID,
                 To = internetNode.GUID,
                 Name = "AT&T to Internet 2"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge internetEquinixEdge = _Client.Edge.Create(new Edge
+            Edge internetEquinixEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = internetNode.GUID,
                 To = equinixNode.GUID,
                 Name = "Internet to Equinix"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge internetAwsEdge = _Client.Edge.Create(new Edge
+            Edge internetAwsEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = internetNode.GUID,
                 To = awsNode.GUID,
                 Name = "Internet to AWS"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge internetAzureEdge = _Client.Edge.Create(new Edge
+            Edge internetAzureEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = internetNode.GUID,
                 To = azureNode.GUID,
                 Name = "Internet to Azure"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge equinixDoEdge = _Client.Edge.Create(new Edge
+            Edge equinixDoEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = equinixNode.GUID,
                 To = digitalOceanNode.GUID,
                 Name = "Equinix to DigitalOcean"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge equinixAwsEdge = _Client.Edge.Create(new Edge
+            Edge equinixAwsEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = equinixNode.GUID,
                 To = awsNode.GUID,
                 Name = "Equinix to AWS"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge equinixRackspaceEdge = _Client.Edge.Create(new Edge
+            Edge equinixRackspaceEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = equinixNode.GUID,
                 To = rackspaceNode.GUID,
                 Name = "Equinix to Rackspace"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge awsWebsiteEdge = _Client.Edge.Create(new Edge
+            Edge awsWebsiteEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = awsNode.GUID,
                 To = websiteNode.GUID,
                 Name = "AWS to Website"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge azureAdEdge = _Client.Edge.Create(new Edge
+            Edge azureAdEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = azureNode.GUID,
                 To = adNode.GUID,
                 Name = "Azure to Active Directory"
-            });
+            }, token).ConfigureAwait(false);
 
-            Edge doCcpEdge = _Client.Edge.Create(new Edge
+            Edge doCcpEdge = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 From = digitalOceanNode.GUID,
                 To = ccpNode.GUID,
                 Name = "DigitalOcean to Control Plane"
-            });
+            }, token).ConfigureAwait(false);
 
             #endregion
         }
 
-        static void Test2_1()
+        static async Task Test2_1(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
@@ -1193,17 +1245,17 @@
 
             Console.WriteLine("");
             Console.WriteLine("Retrieving nodes where Name = 'Joel'");
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e1))
+            await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e1, token: token)
+                .WithCancellation(token).ConfigureAwait(false))
             {
-                // Console.WriteLine(node.Data.ToString());
                 Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
             }
 
             Console.WriteLine("");
             Console.WriteLine("Retrieve nodes where Age >= 38");
-            foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e2))
+            await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, e2, token: token)
+                .WithCancellation(token).ConfigureAwait(false))
             {
-                // Console.WriteLine(node.Data.ToString());
                 Console.WriteLine(_Client.ConvertData<Person>(node.Data).ToString());
             }
 
@@ -1214,18 +1266,18 @@
 
         #region Misc
 
-        static void Test3_1()
+        static async Task Test3_1(CancellationToken token = default)
         {
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata
+            TenantMetadata tenant = await _Client.Tenant.Create(new TenantMetadata
             {
                 Name = "Test"
-            });
+            }, token).ConfigureAwait(false);
 
-            Graph graph = _Client.Graph.Create(new Graph
+            Graph graph = await _Client.Graph.Create(new Graph
             {
                 TenantGUID = tenant.GUID,
                 Name = "Test"
-            });
+            }, token).ConfigureAwait(false);
 
             Node node1 = new Node
             {
@@ -1237,21 +1289,21 @@
 
             Console.WriteLine(_Serializer.SerializeJson(node1));
 
-            node1 = _Client.Node.Create(node1);
+            node1 = await _Client.Node.Create(node1, token).ConfigureAwait(false);
         }
 
-        static void Test3_2()
+        static async Task Test3_2(CancellationToken token = default)
         {
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata
+            TenantMetadata tenant = await _Client.Tenant.Create(new TenantMetadata
             {
                 Name = "Test"
-            });
+            }, token).ConfigureAwait(false);
 
-            Graph graph = _Client.Graph.Create(new Graph
+            Graph graph = await _Client.Graph.Create(new Graph
             {
                 TenantGUID = tenant.GUID,
                 Name = "Test"
-            });
+            }, token).ConfigureAwait(false);
 
             object data = new { Text = "hello" };
 
@@ -1265,10 +1317,10 @@
 
             Console.WriteLine(_Serializer.SerializeJson(node1));
 
-            node1 = _Client.Node.Create(node1);
+            node1 = await _Client.Node.Create(node1, token).ConfigureAwait(false);
         }
 
-        static void Test3_3()
+        static async Task Test3_3(CancellationToken token = default)
         {
             EnumerationRequest query = new EnumerationRequest
             {
@@ -1283,13 +1335,13 @@
                 Expr = null
             };
 
-            EnumerationResult<Graph> graphs = _Client.Graph.Enumerate(query);
+            EnumerationResult<Graph> graphs = await _Client.Graph.Enumerate(query, token).ConfigureAwait(false);
             Console.WriteLine(_Serializer.SerializeJson(graphs, true));
 
-            EnumerationResult<Node> nodes = _Client.Node.Enumerate(query);
+            EnumerationResult<Node> nodes = await _Client.Node.Enumerate(query, token).ConfigureAwait(false);
             Console.WriteLine(_Serializer.SerializeJson(nodes, true));
 
-            EnumerationResult<Edge> edges = _Client.Edge.Enumerate(query);
+            EnumerationResult<Edge> edges = await _Client.Edge.Enumerate(query, token).ConfigureAwait(false);
             Console.WriteLine(_Serializer.SerializeJson(edges, true));
         }
 
@@ -1297,270 +1349,301 @@
 
         #region Primitives
 
-        static void FindRoutes()
+        static async Task FindRoutes(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid fromGuid = Inputty.GetGuid("From GUID  :", default(Guid));
             Guid toGuid = Inputty.GetGuid("To GUID    :", default(Guid));
-            object obj = _Client.Node.ReadRoutes(SearchTypeEnum.DepthFirstSearch, tenantGuid, graphGuid, fromGuid, toGuid);
+            List<RouteDetail> routes = new List<RouteDetail>();
+            await foreach (RouteDetail detail in _Client.Node
+                .ReadRoutes(SearchTypeEnum.DepthFirstSearch, tenantGuid, graphGuid, fromGuid, toGuid, token: token)
+                .WithCancellation(token).ConfigureAwait(false))
+            {
+                routes.Add(detail);
+            }
 
-            if (obj != null)
-                Console.WriteLine(_Serializer.SerializeJson(obj, true));
+            if (routes.Count > 0)
+                Console.WriteLine(_Serializer.SerializeJson(routes, true));
         }
 
-        static void Create(string str)
+        static async Task Create(string str, CancellationToken token = default)
         {
             object obj = null;
             string json = null;
 
             if (str.Equals("tenant"))
             {
-                obj = _Client.Tenant.Create(new TenantMetadata { Name = Inputty.GetString("Name:", null, false) });
+                obj = await _Client.Tenant.Create(new TenantMetadata { Name = Inputty.GetString("Name:", null, false) }, token).ConfigureAwait(false);
             }
             else if (str.Equals("user"))
             {
-                obj = _Client.User.Create(new UserMaster
+                obj = await _Client.User.Create(new UserMaster
                 {
                     TenantGUID = Inputty.GetGuid("Tenant GUID:", _TenantGuid),
                     FirstName = Inputty.GetString("First name:", null, false),
                     LastName = Inputty.GetString("Last name:", null, false),
                     Email = Inputty.GetString("Email:", null, false),
                     Password = Inputty.GetString("Password:", null, false)
-                });
+                }, token).ConfigureAwait(false);
             }
             else if (str.Equals("cred"))
             {
-                obj = _Client.Credential.Create(new Credential
+                obj = await _Client.Credential.Create(new Credential
                 {
                     TenantGUID = Inputty.GetGuid("Tenant GUID:", _TenantGuid),
                     UserGUID = Inputty.GetGuid("User GUID:", default(Guid)),
                     Name = Inputty.GetString("Name:", null, false)
-                });
+                }, token).ConfigureAwait(false);
             }
             else if (str.Equals("graph"))
             {
-                obj = _Client.Graph.Create(new Graph
+                obj = await _Client.Graph.Create(new Graph
                 {
                     TenantGUID = Inputty.GetGuid("Tenant GUID:", _TenantGuid),
                     Name = Inputty.GetString("Name:", null, false)
-                });
+                }, token).ConfigureAwait(false);
             }
             else if (str.Equals("node"))
             {
                 json = Inputty.GetString("JSON:", null, false);
-                obj = _Client.Node.Create(_Serializer.DeserializeJson<Node>(json));
+                obj = await _Client.Node.Create(_Serializer.DeserializeJson<Node>(json), token).ConfigureAwait(false);
             }
             else if (str.Equals("edge"))
             {
                 json = Inputty.GetString("JSON:", null, false);
-                obj = _Client.Edge.Create(_Serializer.DeserializeJson<Edge>(json));
+                obj = await _Client.Edge.Create(_Serializer.DeserializeJson<Edge>(json), token).ConfigureAwait(false);
             }
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void All(string str)
+        static async Task All(string str, CancellationToken token = default)
         {
             object obj = null;
             if (str.Equals("tenant"))
             {
-                obj = _Client.Tenant.ReadMany();
+                List<TenantMetadata> tenants = new List<TenantMetadata>();
+                await foreach (TenantMetadata tenant in _Client.Tenant.ReadMany(token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    tenants.Add(tenant);
+                }
+                obj = tenants;
             }
             else if (str.Equals("user"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.User.ReadMany(tenantGuid, null);
+                obj = await Task.Run(() => _Client.User.ReadMany(tenantGuid, null), token).ConfigureAwait(false);
             }
             else if (str.Equals("cred"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.Credential.ReadMany(tenantGuid, null, null);
+                List<Credential> creds = new List<Credential>();
+                await foreach (Credential credential in _Client.Credential.ReadMany(tenantGuid, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    creds.Add(credential);
+                }
+                obj = creds;
             }
             else if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.Graph.ReadMany(tenantGuid);
+                List<Graph> graphs = new List<Graph>();
+                await foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    graphs.Add(graph);
+                }
+                obj = graphs;
             }
             else if (str.Equals("node"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                obj = _Client.Node.ReadMany(tenantGuid, graphGuid);
+                List<Node> nodes = new List<Node>();
+                await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    nodes.Add(node);
+                }
+                obj = nodes;
             }
             else if (str.Equals("edge"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                obj = _Client.Edge.ReadMany(tenantGuid, graphGuid);
+                List<Edge> edges = new List<Edge>();
+                await foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    edges.Add(edge);
+                }
+                obj = edges;
             }
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void Read(string str)
+        static async Task Read(string str, CancellationToken token = default)
         {
             object obj = null;
 
             if (str.Equals("tenant"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                obj = _Client.Tenant.ReadByGuid(tenantGuid);
+                obj = await _Client.Tenant.ReadByGuid(tenantGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("user"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid userGuid =   Inputty.GetGuid("GUID        :", default(Guid));
-                obj = _Client.User.ReadByGuid(tenantGuid, userGuid);
+                obj = await _Client.User.ReadByGuid(tenantGuid, userGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("cred"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid credGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                obj = _Client.Credential.ReadByGuid(tenantGuid, credGuid);
+                obj = await _Client.Credential.ReadByGuid(tenantGuid, credGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                obj = _Client.Graph.ReadByGuid(tenantGuid, graphGuid);
+                obj = await _Client.Graph.ReadByGuid(tenantGuid, graphGuid, token: token).ConfigureAwait(false);
             }
             else if (str.Equals("node"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                obj = _Client.Node.ReadByGuid(tenantGuid, graphGuid, guid);
+                obj = await _Client.Node.ReadByGuid(tenantGuid, graphGuid, guid, token: token).ConfigureAwait(false);
             }
             else if (str.Equals("edge"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Edge GUID   :", default(Guid));
-                obj = _Client.Edge.ReadByGuid(tenantGuid, graphGuid, guid);
+                obj = await _Client.Edge.ReadByGuid(tenantGuid, graphGuid, guid, token: token).ConfigureAwait(false);
             }
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void Exists(string str)
+        static async Task Exists(string str, CancellationToken token = default)
         {
             bool exists = false;
 
             if (str.Equals("tenant"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                exists = _Client.Tenant.ExistsByGuid(tenantGuid);
+                exists = await _Client.Tenant.ExistsByGuid(tenantGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("user"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid userGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                exists = _Client.User.ExistsByGuid(tenantGuid, userGuid);
+                exists = await _Client.User.ExistsByGuid(tenantGuid, userGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("cred"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid credGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                exists = _Client.Credential.ExistsByGuid(tenantGuid, credGuid);
+                exists = await _Client.Credential.ExistsByGuid(tenantGuid, credGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                exists = _Client.Graph.ExistsByGuid(tenantGuid, graphGuid);
+                exists = await _Client.Graph.ExistsByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("node"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                exists = _Client.Node.ExistsByGuid(tenantGuid, guid);
+                exists = await _Client.Node.ExistsByGuid(tenantGuid, guid, token).ConfigureAwait(false);
             }
             else if (str.Equals("edge"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Edge GUID   :", default(Guid));
-                exists = _Client.Edge.ExistsByGuid(tenantGuid, graphGuid, guid);
+                exists = await _Client.Edge.ExistsByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
             }
 
             Console.WriteLine("Exists: " + exists);
         }
 
-        static void Update(string str)
+        static async Task Update(string str, CancellationToken token = default)
         {
             object obj = null;
             string json = Inputty.GetString("JSON:", null, false);
 
-            if (str.Equals("graph"))
+            if (str.Equals("tenant"))
             {
-                obj = _Client.Tenant.Update(_Serializer.DeserializeJson<TenantMetadata>(json));
+                obj = await _Client.Tenant.Update(_Serializer.DeserializeJson<TenantMetadata>(json), token).ConfigureAwait(false);
             }
             else if (str.Equals("graph"))
             {
-                obj = _Client.Graph.Update(_Serializer.DeserializeJson<Graph>(json));
+                obj = await _Client.Graph.Update(_Serializer.DeserializeJson<Graph>(json), token).ConfigureAwait(false);
             }
             else if (str.Equals("node"))
             {
-                obj = _Client.Node.Update(_Serializer.DeserializeJson<Node>(json));
+                obj = await _Client.Node.Update(_Serializer.DeserializeJson<Node>(json), token).ConfigureAwait(false);
             }
             else if (str.Equals("edge"))
             {
-                obj = _Client.Edge.Update(_Serializer.DeserializeJson<Edge>(json));
+                obj = await _Client.Edge.Update(_Serializer.DeserializeJson<Edge>(json), token).ConfigureAwait(false);
             }
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void Delete(string str)
+        static async Task Delete(string str, CancellationToken token = default)
         {
             if (str.Equals("tenant"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 bool force = Inputty.GetBoolean("Force       :", true);
-                _Client.Tenant.DeleteByGuid(tenantGuid, force);
+                await _Client.Tenant.DeleteByGuid(tenantGuid, force, token).ConfigureAwait(false);
             }
             else if (str.Equals("user"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid userGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                _Client.User.DeleteByGuid(tenantGuid, userGuid);
+                await _Client.User.DeleteByGuid(tenantGuid, userGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("cred"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid credGuid = Inputty.GetGuid("GUID        :", default(Guid));
-                _Client.Credential.DeleteByGuid(tenantGuid, credGuid);
+                await _Client.Credential.DeleteByGuid(tenantGuid, credGuid, token).ConfigureAwait(false);
             }
             else if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 bool force = Inputty.GetBoolean("Force       :", true);
-                _Client.Graph.DeleteByGuid(tenantGuid, graphGuid, force);
+                await _Client.Graph.DeleteByGuid(tenantGuid, graphGuid, force, token).ConfigureAwait(false);
             }
             else if (str.Equals("node"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-                _Client.Node.DeleteByGuid(tenantGuid, graphGuid, guid);
+                await _Client.Node.DeleteByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
             }
             else if (str.Equals("edge"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
                 Guid guid = Inputty.GetGuid("Edge GUID   :", default(Guid));
-                _Client.Edge.DeleteByGuid(tenantGuid, graphGuid, guid);
+                await _Client.Edge.DeleteByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
             }
         }
 
-        static void Search(string str)
+        static async Task Search(string str, CancellationToken token = default)
         {
             if (!str.Equals("graph") && !str.Equals("node") && !str.Equals("edge")) return;
 
@@ -1570,22 +1653,37 @@
             if (str.Equals("graph"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
-                IEnumerable<Graph> graphResult = _Client.Graph.ReadMany(tenantGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
-                if (graphResult != null) resultJson = _Serializer.SerializeJson(graphResult.ToList());
+                List<Graph> graphResult = new List<Graph>();
+                await foreach (Graph graph in _Client.Graph.ReadMany(tenantGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending, token: token)
+                    .WithCancellation(token).ConfigureAwait(false))
+                {
+                    graphResult.Add(graph);
+                }
+                if (graphResult != null && graphResult.Count > 0) resultJson = _Serializer.SerializeJson(graphResult);
             }
             else if (str.Equals("node"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                IEnumerable<Node> nodeResult = _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
+                List<Node> nodeResult = new List<Node>();
+                await foreach (Node node in _Client.Node.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending, token: token)
+                    .WithCancellation(token).ConfigureAwait(false))
+                {
+                    nodeResult.Add(node);
+                }
                 if (nodeResult != null) resultJson = _Serializer.SerializeJson(nodeResult.ToList());
             }
             else if (str.Equals("edge"))
             {
                 Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
                 Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-                IEnumerable<Edge> edgeResult = _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending);
-                if (edgeResult != null) resultJson = _Serializer.SerializeJson(edgeResult.ToList());
+                List<Edge> edgeResult = new List<Edge>();
+                await foreach (Edge edge in _Client.Edge.ReadMany(tenantGuid, graphGuid, null, null, null, expr, EnumerationOrderEnum.CreatedDescending, token: token)
+                    .WithCancellation(token).ConfigureAwait(false))
+                {
+                    edgeResult.Add(edge);
+                }
+                if (edgeResult != null) resultJson = _Serializer.SerializeJson(edgeResult);
             }
 
             Console.WriteLine("");
@@ -1617,94 +1715,109 @@
             return expr;
         }
 
-        static void NodeEdgesTo()
+        static async Task NodeEdgesTo(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Edge.ReadEdgesToNode(tenantGuid, graphGuid, guid);
+            List<Edge> edges = new List<Edge>();
+            await foreach (Edge edge in _Client.Edge.ReadEdgesToNode(tenantGuid, graphGuid, guid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                edges.Add(edge);
+            }
+            object obj = edges;
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeEdgesFrom()
+        static async Task NodeEdgesFrom(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, guid);
+            List<Edge> edges = new List<Edge>();
+            await foreach (Edge edge in _Client.Edge.ReadEdgesFromNode(tenantGuid, graphGuid, guid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                edges.Add(edge);
+            }
+            object obj = edges;
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeEdgesBetween()
+        static async Task NodeEdgesBetween(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid fromGuid = Inputty.GetGuid("From GUID   :", default(Guid));
             Guid toGuid = Inputty.GetGuid("To GUID     :", default(Guid));
-            object obj = _Client.Edge.ReadEdgesBetweenNodes(tenantGuid, graphGuid, fromGuid, toGuid);
+            List<Edge> edges = new List<Edge>();
+            await foreach (Edge edge in _Client.Edge.ReadEdgesBetweenNodes(tenantGuid, graphGuid, fromGuid, toGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                edges.Add(edge);
+            }
+            object obj = edges;
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeParents()
+        static async Task NodeParents(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Node.ReadParents(tenantGuid, graphGuid, guid);
+            object obj = await Task.Run(() => _Client.Node.ReadParents(tenantGuid, graphGuid, guid), token).ConfigureAwait(false);
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeChildren()
+        static async Task NodeChildren(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Node.ReadChildren(tenantGuid, graphGuid, guid);
+            object obj = await Task.Run(() => _Client.Node.ReadChildren(tenantGuid, graphGuid, guid), token).ConfigureAwait(false);
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeNeighbors()
+        static async Task NodeNeighbors(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
             Guid guid = Inputty.GetGuid("Node GUID   :", default(Guid));
-            object obj = _Client.Node.ReadNeighbors(tenantGuid, graphGuid, guid);
+            object obj = await Task.Run(() => _Client.Node.ReadNeighbors(tenantGuid, graphGuid, guid), token).ConfigureAwait(false);
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeMostConnected()
+        static async Task NodeMostConnected(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-            object obj = _Client.Node.ReadMostConnected(tenantGuid, graphGuid);
+            object obj = await Task.Run(() => _Client.Node.ReadMostConnected(tenantGuid, graphGuid), token).ConfigureAwait(false);
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void NodeLeastConnected()
+        static async Task NodeLeastConnected(CancellationToken token = default)
         {
             Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
             Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
-            object obj = _Client.Node.ReadLeastConnected(tenantGuid, graphGuid);
+            object obj = await Task.Run(() => _Client.Node.ReadLeastConnected(tenantGuid, graphGuid), token).ConfigureAwait(false);
 
             if (obj != null)
                 Console.WriteLine(_Serializer.SerializeJson(obj, true));
         }
 
-        static void TestSubgraph()
+        static async Task TestSubgraph(CancellationToken token = default)
         {
             Console.WriteLine("");
             Console.WriteLine("=== CREATING TEST DATA FOR SUBGRAPH TEST ===");
@@ -1712,14 +1825,14 @@
 
             #region Create Tenant and Graph
 
-            TenantMetadata tenant = _Client.Tenant.Create(new TenantMetadata { Name = "Subgraph Test Tenant" });
+            TenantMetadata tenant = await _Client.Tenant.Create(new TenantMetadata { Name = "Subgraph Test Tenant" }, token).ConfigureAwait(false);
             Console.WriteLine("| Created tenant: " + tenant.GUID);
 
-            Graph graph = _Client.Graph.Create(new Graph
+            Graph graph = await _Client.Graph.Create(new Graph
             {
                 TenantGUID = tenant.GUID,
                 Name = "Subgraph Test Graph"
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("| Created graph: " + graph.GUID);
             Console.WriteLine("");
 
@@ -1735,67 +1848,67 @@
             //           -> Node G (from D, layer 3)
 
             Console.WriteLine("| Creating test nodes...");
-            Node nodeA = _Client.Node.Create(new Node
+            Node nodeA = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node A (Root)",
                 Data = new { Type = "Root", Level = 0 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node A: " + nodeA.GUID);
 
-            Node nodeB = _Client.Node.Create(new Node
+            Node nodeB = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node B (Layer 1)",
                 Data = new { Type = "Layer1", Level = 1 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node B: " + nodeB.GUID);
 
-            Node nodeC = _Client.Node.Create(new Node
+            Node nodeC = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node C (Layer 1)",
                 Data = new { Type = "Layer1", Level = 1 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node C: " + nodeC.GUID);
 
-            Node nodeD = _Client.Node.Create(new Node
+            Node nodeD = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node D (Layer 2)",
                 Data = new { Type = "Layer2", Level = 2 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node D: " + nodeD.GUID);
 
-            Node nodeE = _Client.Node.Create(new Node
+            Node nodeE = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node E (Layer 2)",
                 Data = new { Type = "Layer2", Level = 2 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node E: " + nodeE.GUID);
 
-            Node nodeF = _Client.Node.Create(new Node
+            Node nodeF = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node F (Layer 2)",
                 Data = new { Type = "Layer2", Level = 2 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node F: " + nodeF.GUID);
 
-            Node nodeG = _Client.Node.Create(new Node
+            Node nodeG = await _Client.Node.Create(new Node
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
                 Name = "Node G (Layer 3)",
                 Data = new { Type = "Layer3", Level = 3 }
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Node G: " + nodeG.GUID);
             Console.WriteLine("");
 
@@ -1804,7 +1917,7 @@
             #region Create Edges
 
             Console.WriteLine("| Creating test edges...");
-            Edge edgeAB = _Client.Edge.Create(new Edge
+            Edge edgeAB = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1812,10 +1925,10 @@
                 To = nodeB.GUID,
                 Name = "A -> B",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge A->B: " + edgeAB.GUID);
 
-            Edge edgeAC = _Client.Edge.Create(new Edge
+            Edge edgeAC = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1823,10 +1936,10 @@
                 To = nodeC.GUID,
                 Name = "A -> C",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge A->C: " + edgeAC.GUID);
 
-            Edge edgeBD = _Client.Edge.Create(new Edge
+            Edge edgeBD = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1834,10 +1947,10 @@
                 To = nodeD.GUID,
                 Name = "B -> D",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge B->D: " + edgeBD.GUID);
 
-            Edge edgeBE = _Client.Edge.Create(new Edge
+            Edge edgeBE = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1845,10 +1958,10 @@
                 To = nodeE.GUID,
                 Name = "B -> E",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge B->E: " + edgeBE.GUID);
 
-            Edge edgeCF = _Client.Edge.Create(new Edge
+            Edge edgeCF = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1856,10 +1969,10 @@
                 To = nodeF.GUID,
                 Name = "C -> F",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge C->F: " + edgeCF.GUID);
 
-            Edge edgeDG = _Client.Edge.Create(new Edge
+            Edge edgeDG = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1867,11 +1980,11 @@
                 To = nodeG.GUID,
                 Name = "D -> G",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge D->G: " + edgeDG.GUID);
 
             // Add a back edge to test bidirectional traversal
-            Edge edgeCA = _Client.Edge.Create(new Edge
+            Edge edgeCA = await _Client.Edge.Create(new Edge
             {
                 TenantGUID = tenant.GUID,
                 GraphGUID = graph.GUID,
@@ -1879,7 +1992,7 @@
                 To = nodeA.GUID,
                 Name = "C -> A (back edge)",
                 Cost = 1
-            });
+            }, token).ConfigureAwait(false);
             Console.WriteLine("  | Created Edge C->A (back): " + edgeCA.GUID);
             Console.WriteLine("");
 
@@ -1915,7 +2028,7 @@
 
             try
             {
-                SearchResult result = _Client.Graph.GetSubgraph(
+                SearchResult result = await _Client.Graph.GetSubgraph(
                     tenant.GUID,
                     graph.GUID,
                     nodeA.GUID,
@@ -1923,7 +2036,8 @@
                     maxNodes,
                     maxEdges,
                     includeData,
-                    includeSubordinates);
+                    includeSubordinates,
+                    token).ConfigureAwait(false);
 
                 if (result == null)
                 {

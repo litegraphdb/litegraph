@@ -3,6 +3,7 @@ namespace LiteGraph.Client.Implementations
     using LiteGraph.GraphRepositories;
     using LiteGraph.Indexing.Vector;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -40,50 +41,55 @@ namespace LiteGraph.Client.Implementations
         #region Public-Methods
 
         /// <inheritdoc />
-        public VectorIndexConfiguration GetConfiguration(Guid tenantGuid, Guid graphGuid)
+        public async Task<VectorIndexConfiguration> GetConfiguration(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            return _Repo.VectorIndex.GetConfiguration(tenantGuid, graphGuid);
+            return await _Repo.VectorIndex.GetConfiguration(tenantGuid, graphGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public VectorIndexStatistics GetStatistics(Guid tenantGuid, Guid graphGuid)
+        public async Task<VectorIndexStatistics> GetStatistics(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            return _Repo.VectorIndex.GetStatistics(tenantGuid, graphGuid);
+            return await _Repo.VectorIndex.GetStatistics(tenantGuid, graphGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task EnableVectorIndexAsync(Guid tenantGuid, Guid graphGuid, VectorIndexConfiguration configuration)
+        public async Task EnableVectorIndex(Guid tenantGuid, Guid graphGuid, VectorIndexConfiguration configuration, CancellationToken token = default)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            token.ThrowIfCancellationRequested();
 
-            _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            await _Repo.VectorIndex.EnableVectorIndexAsync(tenantGuid, graphGuid, configuration);
+            await _Repo.VectorIndex.EnableVectorIndex(tenantGuid, graphGuid, configuration, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task RebuildVectorIndexAsync(Guid tenantGuid, Guid graphGuid)
+        public async Task RebuildVectorIndex(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            await _Repo.VectorIndex.RebuildVectorIndexAsync(tenantGuid, graphGuid);
+            await _Repo.VectorIndex.RebuildVectorIndex(tenantGuid, graphGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task DeleteVectorIndexAsync(Guid tenantGuid, Guid graphGuid, bool deleteIndexFile = false)
+        public async Task DeleteVectorIndex(Guid tenantGuid, Guid graphGuid, bool deleteIndexFile = false, CancellationToken token = default)
         {
-            _Client.ValidateTenantExists(tenantGuid);
-            _Client.ValidateGraphExists(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            await _Repo.VectorIndex.DeleteVectorIndexAsync(tenantGuid, graphGuid, deleteIndexFile);
+            await _Repo.VectorIndex.DeleteVectorIndex(tenantGuid, graphGuid, deleteIndexFile, token).ConfigureAwait(false);
         }
 
         #endregion

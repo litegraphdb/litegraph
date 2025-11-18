@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories.Sqlite;
@@ -67,7 +68,12 @@
             public DateTime Timestamp { get; set; }
         }
 
-        static void Main(string[] args)
+        static Task Main(string[] args)
+        {
+            return MainAsync(args, CancellationToken.None);
+        }
+
+        static async Task MainAsync(string[] args, CancellationToken token = default)
         {
             Stopwatch totalStopwatch = Stopwatch.StartNew();
             DateTime testStartTime = DateTime.Now;
@@ -100,12 +106,12 @@
                 Stopwatch step1Stopwatch = Stopwatch.StartNew();
 
                 Stopwatch tenantStopwatch = Stopwatch.StartNew();
-                tenant = CreateTenant();
+                tenant = await CreateTenant(token).ConfigureAwait(false);
                 tenantStopwatch.Stop();
                 PerformanceMetrics.TenantCreationTime = tenantStopwatch.ElapsedMilliseconds;
 
                 Stopwatch graphStopwatch = Stopwatch.StartNew();
-                graph = CreateGraph(tenant.GUID);
+                graph = await CreateGraph(tenant.GUID, token).ConfigureAwait(false);
                 graphStopwatch.Stop();
                 PerformanceMetrics.GraphCreationTime = graphStopwatch.ElapsedMilliseconds;
 
@@ -120,7 +126,7 @@
                 // Step 2: Load graph with nodes (using batch insertion)
                 Console.WriteLine($"Step 2: Creating {_NodeCount} nodes with embeddings using batch insertion...");
                 Stopwatch step2Stopwatch = Stopwatch.StartNew();
-                nodes = CreateNodesWithEmbeddingsBatch(tenant.GUID, graph.GUID, _NodeCount);
+                nodes = await CreateNodesWithEmbeddingsBatch(tenant.GUID, graph.GUID, _NodeCount, token).ConfigureAwait(false);
                 step2Stopwatch.Stop();
                 PerformanceMetrics.Step2Time = step2Stopwatch.ElapsedMilliseconds;
                 PerformanceMetrics.NodesCreated = nodes.Count;
@@ -133,7 +139,7 @@
                 // Step 3: Perform vector searches
                 Console.WriteLine($"Step 3: Performing {_SearchCount} cosine similarity searches (minimum score 0.1)...");
                 Stopwatch step3Stopwatch = Stopwatch.StartNew();
-                PerformVectorSearches(tenant.GUID, graph.GUID);
+                await PerformVectorSearches(tenant.GUID, graph.GUID, token).ConfigureAwait(false);
                 step3Stopwatch.Stop();
                 PerformanceMetrics.Step3Time = step3Stopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"\nStep 3 total time: {step3Stopwatch.ElapsedMilliseconds}ms");
@@ -143,7 +149,7 @@
                 Console.WriteLine("Step 4: Cleaning up resources...");
 
                 Stopwatch step4Stopwatch = Stopwatch.StartNew();
-                Cleanup(tenant, graph, nodes);
+                await Cleanup(tenant, graph, nodes, token).ConfigureAwait(false);
                 step4Stopwatch.Stop();
                 PerformanceMetrics.Step4Time = step4Stopwatch.ElapsedMilliseconds;
                 Console.WriteLine($"Step 4 total time: {step4Stopwatch.ElapsedMilliseconds}ms");
@@ -167,7 +173,7 @@
                     try
                     {
                         Stopwatch cleanupStopwatch = Stopwatch.StartNew();
-                        Cleanup(tenant, graph, nodes);
+                        await Cleanup(tenant, graph, nodes, token).ConfigureAwait(false);
                         cleanupStopwatch.Stop();
                         Console.WriteLine($"Error cleanup completed in {cleanupStopwatch.ElapsedMilliseconds}ms");
                     }
@@ -277,25 +283,25 @@
             }
         }
 
-        static TenantMetadata CreateTenant()
+        static async Task<TenantMetadata> CreateTenant(CancellationToken token = default)
         {
-            return _Client.Tenant.Create(new TenantMetadata
+            return await _Client.Tenant.Create(new TenantMetadata
             {
                 Name = $"Vector Search Test Tenant {DateTime.Now:yyyyMMdd-HHmmss}"
-            });
+            }, token).ConfigureAwait(false);
         }
 
-        static Graph CreateGraph(Guid tenantGuid)
+        static async Task<Graph> CreateGraph(Guid tenantGuid, CancellationToken token = default)
         {
-            return _Client.Graph.Create(new Graph
+            return await _Client.Graph.Create(new Graph
             {
                 TenantGUID = tenantGuid,
                 Name = $"Vector Search Test Graph {DateTime.Now:yyyyMMdd-HHmmss}",
                 Labels = new List<string> { "vector-test", "performance-test" }
-            });
+            }, token).ConfigureAwait(false);
         }
 
-        static List<Node> CreateNodesWithEmbeddingsBatch(Guid tenantGuid, Guid graphGuid, int count)
+        static async Task<List<Node>> CreateNodesWithEmbeddingsBatch(Guid tenantGuid, Guid graphGuid, int count, CancellationToken token = default)
         {
             List<Node> allNodes = new List<Node>();
             long totalNodeCreationTime = 0L;
@@ -359,7 +365,7 @@
 
                 // Insert the entire batch at once
                 Stopwatch batchInsertStopwatch = Stopwatch.StartNew();
-                List<Node> createdNodes = _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes);
+                List<Node> createdNodes = await _Client.Node.CreateMany(tenantGuid, graphGuid, batchNodes, token).ConfigureAwait(false);
                 batchInsertStopwatch.Stop();
 
                 long batchInsertTime = batchInsertStopwatch.ElapsedMilliseconds;
@@ -380,7 +386,7 @@
 
                 // Calculate averages
                 double batchAvgPerNode = batchInsertTime / (double)batchSize;
-                double cumulativeAvg = totalNodeCreationTime / (double)(batchEnd);
+                double cumulativeAvg = totalNodeCreationTime / batchEnd;
                 PerformanceMetrics.BatchAverageInsertionTimes[currentBatchNumber] = batchAvgPerNode;
 
                 // Track first and last batch averages
@@ -444,7 +450,7 @@
             return embeddings;
         }
 
-        static void PerformVectorSearches(Guid tenantGuid, Guid graphGuid)
+        static async Task PerformVectorSearches(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
             long totalSearchTime = 0L;
             List<long> searchTimes = new List<long>();
@@ -473,25 +479,30 @@
 
                 // Perform search and measure time
                 Stopwatch searchStopwatch = Stopwatch.StartNew();
-                List<VectorSearchResult> results = null;
+                List<VectorSearchResult> results = new List<VectorSearchResult>();
+
+                using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
 
                 try
                 {
-                    // Add timeout monitoring
-                    Task<List<VectorSearchResult>> searchTask = Task.Run(() => _Client.Vector.Search(searchRequest).ToList());
-                    int timeoutSeconds = 30;
-
-                    if (searchTask.Wait(TimeSpan.FromSeconds(timeoutSeconds)))
+                    await foreach (VectorSearchResult result in _Client.Vector
+                        .Search(searchRequest, timeoutCts.Token)
+                        .WithCancellation(timeoutCts.Token)
+                        .ConfigureAwait(false))
                     {
-                        results = searchTask.Result;
-                        searchStopwatch.Stop();
+                        results.Add(result);
                     }
-                    else
-                    {
-                        searchStopwatch.Stop();
-                        Console.WriteLine($"  Search {searchNum}: TIMEOUT after {timeoutSeconds}s");
-                        break;
-                    }
+                }
+                catch (OperationCanceledException) when (!token.IsCancellationRequested)
+                {
+                    searchStopwatch.Stop();
+                    Console.WriteLine($"  Search {searchNum}: TIMEOUT after 30s");
+                    break;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -536,7 +547,7 @@
             return Math.Sqrt(sumOfSquares / (values.Count - 1));
         }
 
-        static void Cleanup(TenantMetadata tenant, Graph graph, List<Node> nodes)
+        static async Task Cleanup(TenantMetadata tenant, Graph graph, List<Node> nodes, CancellationToken token = default)
         {
             Stopwatch cleanupStopwatch = Stopwatch.StartNew();
 
@@ -548,7 +559,7 @@
             {
                 try
                 {
-                    _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID);
+                    await _Client.Node.DeleteByGuid(tenant.GUID, graph.GUID, node.GUID, token).ConfigureAwait(false);
                     deletedCount++;
                 }
                 catch (Exception)
@@ -561,11 +572,11 @@
             PerformanceMetrics.NodeDeletionTime = cleanupStopwatch.ElapsedMilliseconds;
 
             // Delete graph
-            _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, force: true);
+            await _Client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, force: true, token).ConfigureAwait(false);
             PerformanceMetrics.GraphDeletionTime = cleanupStopwatch.ElapsedMilliseconds - PerformanceMetrics.NodeDeletionTime;
 
             // Delete tenant
-            _Client.Tenant.DeleteByGuid(tenant.GUID, force: true);
+            await _Client.Tenant.DeleteByGuid(tenant.GUID, force: true, token).ConfigureAwait(false);
             PerformanceMetrics.TenantDeletionTime = cleanupStopwatch.ElapsedMilliseconds - PerformanceMetrics.NodeDeletionTime - PerformanceMetrics.GraphDeletionTime;
 
             cleanupStopwatch.Stop();

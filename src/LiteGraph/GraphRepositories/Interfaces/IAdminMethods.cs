@@ -1,15 +1,7 @@
 ﻿namespace LiteGraph.GraphRepositories.Interfaces
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Data;
-    using System.Linq;
-    using ExpressionTree;
-    using LiteGraph;
-    using LiteGraph.Serialization;
-    using Microsoft.Data.Sqlite;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Interface for admin methods.
@@ -21,6 +13,7 @@
         /// Batch existence request.
         /// </summary>
         /// <param name="outputFilename">Output filename.</param>
-        void Backup(string outputFilename);
+        /// <param name="token">Cancellation token.</param>
+        Task Backup(string outputFilename, CancellationToken token = default);
     }
 }

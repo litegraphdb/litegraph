@@ -5,6 +5,8 @@
     using System.Collections.Specialized;
     using System.Data;
     using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
@@ -45,28 +47,32 @@
         #region Public-Methods
 
         /// <inheritdoc />
-        public Graph Create(Graph graph)
+        public async Task<Graph> Create(Graph graph, CancellationToken token = default)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
+            token.ThrowIfCancellationRequested();
             string createQuery = GraphQueries.Insert(graph);
-            DataTable createResult = _Repo.ExecuteQuery(createQuery, true);
+            DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
             Graph created = Converters.GraphFromDataRow(createResult.Rows[0]);
             return created;
         }
 
         /// <inheritdoc />
-        public IEnumerable<Graph> ReadAllInTenant(
+        public async IAsyncEnumerable<Graph> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order));
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.SelectAllInTenant(tenantGuid, _Repo.SelectBatchSize, skip, order), false, token).ConfigureAwait(false);
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Graph graph = Converters.GraphFromDataRow(result.Rows[i]);
                     yield return graph;
                     skip++;
@@ -77,20 +83,22 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Graph> ReadMany(
+        public async IAsyncEnumerable<Graph> ReadMany(
             Guid tenantGuid,
             string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0)
+            int skip = 0,
+            [EnumeratorCancellation] CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
 
             while (true)
             {
-                DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectMany(
+                token.ThrowIfCancellationRequested();
+                DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.SelectMany(
                     tenantGuid,
                     name,
                     labels,
@@ -98,12 +106,13 @@
                     graphFilter,
                     _Repo.SelectBatchSize,
                     skip,
-                    order));
+                    order), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1) break;
 
                 for (int i = 0; i < result.Rows.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     Graph graph = Converters.GraphFromDataRow(result.Rows[i]);
                     yield return graph;
                     skip++;
@@ -114,15 +123,17 @@
         }
 
         /// <inheritdoc />
-        public Graph ReadFirst(
+        public async Task<Graph> ReadFirst(
             Guid tenantGuid,
             string name = null,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr graphFilter = null,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectMany(
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.SelectMany(
                 tenantGuid,
                 name,
                 labels,
@@ -130,7 +141,7 @@
                 graphFilter,
                 1,
                 0,
-                order));
+                order), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) return null;
 
@@ -143,9 +154,10 @@
         }
 
         /// <inheritdoc />
-        public Graph ReadByGuid(Guid tenantGuid, Guid guid)
+        public async Task<Graph> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectByGuid(tenantGuid, guid));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.SelectByGuid(tenantGuid, guid), false, token).ConfigureAwait(false);
             if (result != null && result.Rows.Count == 1)
             {
                 Graph graph = Converters.GraphFromDataRow(result.Rows[0]);
@@ -155,29 +167,32 @@
         }
 
         /// <inheritdoc />
-        public IEnumerable<Graph> ReadByGuids(Guid tenantGuid, List<Guid> guids)
+        public async IAsyncEnumerable<Graph> ReadByGuids(Guid tenantGuid, List<Guid> guids, [EnumeratorCancellation] CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) yield break;
-            DataTable result = _Repo.ExecuteQuery(GraphQueries.SelectByGuids(tenantGuid, guids));
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.SelectByGuids(tenantGuid, guids), false, token).ConfigureAwait(false);
 
             if (result == null || result.Rows.Count < 1) yield break;
 
             for (int i = 0; i < result.Rows.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 yield return Converters.GraphFromDataRow(result.Rows[i]);
             }
         }
 
         /// <inheritdoc />
-        public EnumerationResult<Graph> Enumerate(EnumerationRequest query)
+        public async Task<EnumerationResult<Graph>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
+            token.ThrowIfCancellationRequested();
 
             Graph marker = null;
 
             if (query.TenantGUID != null && query.ContinuationToken != null)
             {
-                marker = ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value);
+                marker = await ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken.Value + " could not be found.");
             }
 
@@ -187,7 +202,7 @@
             };
 
             ret.Timestamp.Start = DateTime.UtcNow;
-            ret.TotalRecords = GetRecordCount(query.TenantGUID, query.Labels, query.Tags, query.Expr, query.Ordering, null);
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, query.Labels, query.Tags, query.Expr, query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -199,7 +214,7 @@
             }
             else
             {
-                DataTable result = _Repo.ExecuteQuery(GraphQueries.GetRecordPage(
+                DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.GetRecordPage(
                     query.TenantGUID,
                     query.Labels,
                     query.Tags,
@@ -207,7 +222,7 @@
                     query.MaxResults,
                     query.Skip,
                     query.Ordering,
-                    marker));
+                    marker), false, token).ConfigureAwait(false);
 
                 if (result == null || result.Rows.Count < 1)
                 {
@@ -223,7 +238,7 @@
 
                     Graph lastItem = ret.Objects.Last();
 
-                    ret.RecordsRemaining = GetRecordCount(query.TenantGUID, query.Labels, query.Tags, query.Expr, query.Ordering, lastItem.GUID);
+                    ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, query.Labels, query.Tags, query.Expr, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
 
                     if (ret.RecordsRemaining > 0)
                     {
@@ -244,28 +259,30 @@
         }
 
         /// <inheritdoc />
-        public int GetRecordCount(
+        public async Task<int> GetRecordCount(
             Guid? tenantGuid,
             List<string> labels = null,
             NameValueCollection tags = null,
             Expr filter = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            Guid? markerGuid = null)
+            Guid? markerGuid = null,
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             Graph marker = null;
             if (tenantGuid != null && markerGuid != null)
             {
-                marker = ReadByGuid(tenantGuid.Value, markerGuid.Value);
+                marker = await ReadByGuid(tenantGuid.Value, markerGuid.Value, token).ConfigureAwait(false);
                 if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
             }
 
-            DataTable result = _Repo.ExecuteQuery(GraphQueries.GetRecordCount(
+            DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.GetRecordCount(
                 tenantGuid,
                 labels,
                 tags,
                 filter,
                 order,
-                marker));
+                marker), false, token).ConfigureAwait(false);
 
             if (result != null && result.Rows != null && result.Rows.Count > 0)
             {
@@ -278,40 +295,48 @@
         }
 
         /// <inheritdoc />
-        public Graph Update(Graph graph)
+        public async Task<Graph> Update(Graph graph, CancellationToken token = default)
         {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
-            Graph updated = Converters.GraphFromDataRow(_Repo.ExecuteQuery(GraphQueries.Update(graph), true).Rows[0]);
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(GraphQueries.Update(graph), true, token).ConfigureAwait(false);
+            Graph updated = Converters.GraphFromDataRow(result.Rows[0]);
             return updated;
         }
 
         /// <inheritdoc />
-        public void DeleteAllInTenant(Guid tenantGuid)
+        public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(GraphQueries.DeleteAllInTenant(tenantGuid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(GraphQueries.DeleteAllInTenant(tenantGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public void DeleteByGuid(Guid tenantGuid, Guid graphGuid)
+        public async Task DeleteByGuid(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            _Repo.ExecuteQuery(GraphQueries.Delete(tenantGuid, graphGuid), true);
+            token.ThrowIfCancellationRequested();
+            await _Repo.ExecuteQueryAsync(GraphQueries.Delete(tenantGuid, graphGuid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public bool ExistsByGuid(Guid tenantGuid, Guid graphGuid)
+        public async Task<bool> ExistsByGuid(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
-            return (ReadByGuid(tenantGuid, graphGuid) != null);
+            token.ThrowIfCancellationRequested();
+            Graph graph = await ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
+            return (graph != null);
         }
 
         /// <inheritdoc />
-        public Dictionary<Guid, GraphStatistics> GetStatistics(Guid tenantGuid)
+        public async Task<Dictionary<Guid, GraphStatistics>> GetStatistics(Guid tenantGuid, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             Dictionary<Guid, GraphStatistics> ret = new Dictionary<Guid, GraphStatistics>();
-            DataTable table = _Repo.ExecuteQuery(GraphQueries.GetStatistics(tenantGuid, null), true);
+            DataTable table = await _Repo.ExecuteQueryAsync(GraphQueries.GetStatistics(tenantGuid, null), true, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0)
             {
                 foreach (DataRow row in table.Rows)
                 {
+                    token.ThrowIfCancellationRequested();
                     Guid graphGuid = Guid.Parse(row["guid"].ToString());
 
                     GraphStatistics stats = new GraphStatistics
@@ -330,9 +355,10 @@
         }
 
         /// <inheritdoc />
-        public GraphStatistics GetStatistics(Guid tenantGuid, Guid guid)
+        public async Task<GraphStatistics> GetStatistics(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
-            DataTable table = _Repo.ExecuteQuery(GraphQueries.GetStatistics(tenantGuid, guid), true);
+            token.ThrowIfCancellationRequested();
+            DataTable table = await _Repo.ExecuteQueryAsync(GraphQueries.GetStatistics(tenantGuid, guid), true, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0) return Converters.GraphStatisticsFromDataRow(table.Rows[0]);
             return null;
         }
@@ -341,11 +367,13 @@
         public async Task EnableVectorIndexingAsync(
             Guid tenantGuid,
             Guid graphGuid,
-            VectorIndexConfiguration configuration)
+            VectorIndexConfiguration configuration,
+            CancellationToken token = default)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            token.ThrowIfCancellationRequested();
 
-            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = await ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
@@ -353,48 +381,56 @@
             configuration.ApplyToGraph(graph);
 
             // Get all existing vectors in the graph before enabling indexing
-            List<VectorMetadata> existingVectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid).ToList();
+            List<VectorMetadata> existingVectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                existingVectors.Add(vector);
+            }
 
             // Enable indexing using the index manager
-            await _Repo.VectorIndexManager.EnableIndexingAsync(graph, configuration.VectorIndexType, configuration.VectorIndexFile);
+            await _Repo.VectorIndexManager.EnableIndexingAsync(graph, configuration.VectorIndexType, configuration.VectorIndexFile).ConfigureAwait(false);
 
             // If there are existing vectors, populate the index
             if (existingVectors.Count > 0)
             {
-                await _Repo.VectorIndexManager.RebuildIndexAsync(graph, existingVectors);
+                await _Repo.VectorIndexManager.RebuildIndexAsync(graph, existingVectors).ConfigureAwait(false);
             }
 
             // Update the graph in the database with all configuration values
-            _Repo.ExecuteQuery(GraphQueries.Update(graph), true);
+            await _Repo.ExecuteQueryAsync(GraphQueries.Update(graph), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task DisableVectorIndexingAsync(
             Guid tenantGuid,
             Guid graphGuid,
-            bool deleteIndexFile = false)
+            bool deleteIndexFile = false,
+            CancellationToken token = default)
         {
-            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            Graph graph = await ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
             // Disable indexing using the index manager
-            await _Repo.VectorIndexManager.DisableIndexingAsync(graphGuid, deleteIndexFile);
+            await _Repo.VectorIndexManager.DisableIndexingAsync(graphGuid, deleteIndexFile).ConfigureAwait(false);
 
             // Apply disabled configuration to clear all vector index settings
             VectorIndexConfiguration disabledConfig = VectorIndexConfiguration.CreateDisabled();
             disabledConfig.ApplyToGraph(graph);
 
             // Update graph in database
-            _Repo.ExecuteQuery(GraphQueries.Update(graph), true);
+            await _Repo.ExecuteQueryAsync(GraphQueries.Update(graph), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task RebuildVectorIndexAsync(
             Guid tenantGuid,
-            Guid graphGuid)
+            Guid graphGuid,
+            CancellationToken token = default)
         {
-            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            Graph graph = await ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
@@ -402,18 +438,24 @@
                 throw new InvalidOperationException("Graph does not have indexing enabled.");
 
             // Get all vectors for the graph (including nodes and edges)
-            IEnumerable<VectorMetadata> vectors = _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid);
+            List<VectorMetadata> vectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                vectors.Add(vector);
+            }
 
             // Rebuild the index
-            await _Repo.VectorIndexManager.RebuildIndexAsync(graph, vectors);
+            await _Repo.VectorIndexManager.RebuildIndexAsync(graph, vectors).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public VectorIndexStatistics GetVectorIndexStatistics(
+        public async Task<VectorIndexStatistics> GetVectorIndexStatistics(
             Guid tenantGuid,
-            Guid graphGuid)
+            Guid graphGuid,
+            CancellationToken token = default)
         {
-            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            Graph graph = await ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
@@ -421,17 +463,19 @@
         }
 
         /// <inheritdoc />
-        public SearchResult GetSubgraph(
+        public async Task<SearchResult> GetSubgraph(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             int maxDepth = 2,
             int maxNodes = 0,
-            int maxEdges = 0)
+            int maxEdges = 0,
+            CancellationToken token = default)
         {
             if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
             if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+            token.ThrowIfCancellationRequested();
 
             SearchResult result = new SearchResult
             {
@@ -440,11 +484,11 @@
                 Graphs = new List<Graph>()
             };
 
-            Graph graph = ReadByGuid(tenantGuid, graphGuid);
+            Graph graph = await ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' exists.");
             result.Graphs.Add(graph);
 
-            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            Node startingNode = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
             if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
 
@@ -468,12 +512,18 @@
 
             while ((nodeQueue.Count > 0 || pendingNeighborDepths.Count > 0) && !nodesThresholdReached && !edgesThresholdReached)
             {
+                token.ThrowIfCancellationRequested();
                 if (pendingNeighborDepths.Count > 0 && (nodeQueue.Count == 0 || pendingNeighborDepths.Count >= 10))
                 {
                     List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                     if (neighborGuidsToLoad.Count > 0)
                     {
-                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        List<Node> nodes = new List<Node>();
+                        await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            nodes.Add(node);
+                        }
+                        Dictionary<Guid, Node> loadedNodes = nodes
                             .Where(n => n.GraphGUID == graphGuid)
                             .ToDictionary(n => n.GUID, n => n);
 
@@ -507,13 +557,13 @@
                 (Node currentNode, int currentDepth) = nodeQueue.Dequeue();
                 if (currentDepth >= maxDepth) continue;
 
-                IEnumerable<Edge> connectedEdges = _Repo.Edge.ReadNodeEdges(
+                await foreach (Edge edge in _Repo.Edge.ReadNodeEdges(
                     tenantGuid,
                     graphGuid,
-                    currentNode.GUID);
-
-                foreach (Edge edge in connectedEdges)
+                    currentNode.GUID,
+                    token: token).WithCancellation(token).ConfigureAwait(false))
                 {
+                    token.ThrowIfCancellationRequested();
                     if (maxEdges > 0 && result.Edges.Count >= maxEdges)
                     {
                         edgesThresholdReached = true;
@@ -553,7 +603,12 @@
                 List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                 if (neighborGuidsToLoad.Count > 0)
                 {
-                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                    List<Node> nodes = new List<Node>();
+                    await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        nodes.Add(node);
+                    }
+                    Dictionary<Guid, Node> loadedNodes = nodes
                         .Where(n => n.GraphGUID == graphGuid)
                         .ToDictionary(n => n.GUID, n => n);
 
@@ -572,19 +627,21 @@
         }
 
         /// <inheritdoc />
-        public GraphStatistics GetSubgraphStatistics(
+        public async Task<GraphStatistics> GetSubgraphStatistics(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             int maxDepth = 2,
             int maxNodes = 0,
-            int maxEdges = 0)
+            int maxEdges = 0,
+            CancellationToken token = default)
         {
             if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
             if (maxNodes < 0) throw new ArgumentOutOfRangeException(nameof(maxNodes));
             if (maxEdges < 0) throw new ArgumentOutOfRangeException(nameof(maxEdges));
+            token.ThrowIfCancellationRequested();
 
-            Node startingNode = _Repo.Node.ReadByGuid(tenantGuid, nodeGuid);
+            Node startingNode = await _Repo.Node.ReadByGuid(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             if (startingNode == null) throw new ArgumentException("No node with GUID '" + nodeGuid + "' exists in graph '" + graphGuid + "'");
             if (startingNode.GraphGUID != graphGuid) throw new ArgumentException("Node '" + nodeGuid + "' does not belong to graph '" + graphGuid + "'");
 
@@ -601,12 +658,18 @@
 
             while ((nodeQueue.Count > 0 || pendingNeighborDepths.Count > 0) && !nodesThresholdReached && !edgesThresholdReached)
             {
+                token.ThrowIfCancellationRequested();
                 if (pendingNeighborDepths.Count > 0 && (nodeQueue.Count == 0 || pendingNeighborDepths.Count >= 10))
                 {
                     List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                     if (neighborGuidsToLoad.Count > 0)
                     {
-                        Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                        List<Node> nodes = new List<Node>();
+                        await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                        {
+                            nodes.Add(node);
+                        }
+                        Dictionary<Guid, Node> loadedNodes = nodes
                             .Where(n => n.GraphGUID == graphGuid)
                             .ToDictionary(n => n.GUID, n => n);
 
@@ -637,10 +700,13 @@
                 (Guid currentNodeGuid, int currentDepth) = nodeQueue.Dequeue();
                 if (currentDepth >= maxDepth) continue;
 
-                IEnumerable<Edge> connectedEdges = _Repo.Edge.ReadNodeEdges(tenantGuid, graphGuid, currentNodeGuid);
-
-                foreach (Edge edge in connectedEdges)
+                await foreach (Edge edge in _Repo.Edge.ReadNodeEdges(
+                    tenantGuid,
+                    graphGuid,
+                    currentNodeGuid,
+                    token: token).WithCancellation(token).ConfigureAwait(false))
                 {
+                    token.ThrowIfCancellationRequested();
                     if (maxEdges > 0 && visitedEdges.Count >= maxEdges)
                     {
                         edgesThresholdReached = true;
@@ -675,7 +741,12 @@
                 List<Guid> neighborGuidsToLoad = pendingNeighborDepths.Keys.Where(guid => !visitedNodes.Contains(guid)).ToList();
                 if (neighborGuidsToLoad.Count > 0)
                 {
-                    Dictionary<Guid, Node> loadedNodes = _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad)
+                    List<Node> nodes = new List<Node>();
+                    await foreach (Node node in _Repo.Node.ReadByGuids(tenantGuid, neighborGuidsToLoad, token).WithCancellation(token).ConfigureAwait(false))
+                    {
+                        nodes.Add(node);
+                    }
+                    Dictionary<Guid, Node> loadedNodes = nodes
                         .Where(n => n.GraphGUID == graphGuid)
                         .ToDictionary(n => n.GUID, n => n);
 
@@ -697,17 +768,17 @@
                 List<Guid> edgeGuidList = visitedEdges.ToList();
 
                 // Count labels
-                DataTable labelsTable = _Repo.ExecuteQuery(GraphQueries.CountLabelsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true);
+                DataTable labelsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountLabelsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true, token).ConfigureAwait(false);
                 if (labelsTable != null && labelsTable.Rows.Count > 0)
                     labelsCount = Convert.ToInt32(labelsTable.Rows[0][0]);
 
                 // Count tags
-                DataTable tagsTable = _Repo.ExecuteQuery(GraphQueries.CountTagsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true);
+                DataTable tagsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountTagsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true, token).ConfigureAwait(false);
                 if (tagsTable != null && tagsTable.Rows.Count > 0)
                     tagsCount = Convert.ToInt32(tagsTable.Rows[0][0]);
 
                 // Count vectors
-                DataTable vectorsTable = _Repo.ExecuteQuery(GraphQueries.CountVectorsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true);
+                DataTable vectorsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountVectorsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true, token).ConfigureAwait(false);
                 if (vectorsTable != null && vectorsTable.Rows.Count > 0)
                     vectorsCount = Convert.ToInt32(vectorsTable.Rows[0][0]);
             }

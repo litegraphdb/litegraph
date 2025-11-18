@@ -3,6 +3,8 @@
     using System;
     using System.IO;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
     using System.Xml;
     using System.Xml.Linq;
     using System.Xml.Serialization;
@@ -49,24 +51,28 @@
         /// <param name="filename">Output filename.</param>
         /// <param name="includeData">True to include node and edge data.</param>
         /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
-        public void ExportToFile(
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        public async Task ExportToFile(
             LiteGraphClient client, 
             Guid tenantGuid, 
             Guid graphGuid, 
             string filename, 
             bool includeData,
-            bool includeSubordinates)
+            bool includeSubordinates,
+            CancellationToken token = default)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+            token.ThrowIfCancellationRequested();
 
-            GexfDocument doc = GraphToGexfDocument(client, tenantGuid, graphGuid, includeData, includeSubordinates);
+            GexfDocument doc = await GraphToGexfDocument(client, tenantGuid, graphGuid, includeData, includeSubordinates, token).ConfigureAwait(false);
 
             using (FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                string xml = SerializeXml<GexfDocument>(doc, true);
+                string xml = await SerializeXml<GexfDocument>(doc, true, token).ConfigureAwait(false);
                 byte[] bytes = Encoding.UTF8.GetBytes(xml);
-                fs.Write(bytes, 0, bytes.Length);
+                await fs.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
             }
         }
 
@@ -78,17 +84,20 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="includeData">True to include node and edge data.</param>
         /// <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>GEXF document.</returns>
-        public string RenderAsGexf(
+        public async Task<string> RenderAsGexf(
             LiteGraphClient client, 
             Guid tenantGuid, 
             Guid graphGuid, 
             bool includeData,
-            bool includeSubordinates)
+            bool includeSubordinates,
+            CancellationToken token = default)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
-            GexfDocument doc = GraphToGexfDocument(client, tenantGuid, graphGuid, includeData, includeSubordinates);
-            string xml = SerializeXml<GexfDocument>(doc, true);
+            token.ThrowIfCancellationRequested();
+            GexfDocument doc = await GraphToGexfDocument(client, tenantGuid, graphGuid, includeData, includeSubordinates, token).ConfigureAwait(false);
+            string xml = await SerializeXml<GexfDocument>(doc, true, token).ConfigureAwait(false);
             return xml;
         }
 
@@ -96,9 +105,10 @@
 
         #region Private-Methods
 
-        private string SerializeXml<T>(object obj, bool pretty = true)
+        private Task<string> SerializeXml<T>(object obj, bool pretty = true, CancellationToken token = default)
         {
             if (obj == null) throw new ArgumentNullException(nameof(obj));
+            token.ThrowIfCancellationRequested();
 
             XmlSerializer xmls = new XmlSerializer(typeof(T));
             using (MemoryStream ms = new MemoryStream())
@@ -114,6 +124,7 @@
                     settings.NewLineHandling = NewLineHandling.None;
                     settings.NewLineOnAttributes = false;
                     settings.ConformanceLevel = ConformanceLevel.Document;
+                    settings.Async = true;
                 }
                 else
                 {
@@ -122,6 +133,7 @@
                     settings.NewLineHandling = NewLineHandling.None;
                     settings.NewLineOnAttributes = false;
                     settings.ConformanceLevel = ConformanceLevel.Document;
+                    settings.Async = true;
                 }
 
                 using (XmlWriter writer = XmlWriter.Create(ms, settings))
@@ -137,25 +149,27 @@
                     xml = xml.Remove(0, byteOrderMarkUtf8.Length);
                 }
 
-                return xml;
+                return Task.FromResult(xml);
             }
         }
 
-        private GexfDocument GraphToGexfDocument(
+        private async Task<GexfDocument> GraphToGexfDocument(
             LiteGraphClient client, 
             Guid tenantGuid, 
             Guid graphGuid, 
             bool includeData,
-            bool includeSubordinates)
+            bool includeSubordinates,
+            CancellationToken token = default)
         {
-            LiteGraph.Graph graph = client.Graph.ReadByGuid(tenantGuid, graphGuid);
+            token.ThrowIfCancellationRequested();
+            Graph graph = await client.Graph.ReadByGuid(tenantGuid, graphGuid, token: token).ConfigureAwait(false);
             if (graph == null) throw new ArgumentException("No graph with GUID '" + graphGuid + "' was found.");
 
             GexfDocument doc = new GexfDocument();
             doc.Graph.DefaultEdgeType = "directed";
             doc.Graph.Attributes.AttributeList.Add(new GexfAttribute("0", "props"));
 
-            foreach (LiteGraph.Node node in client.Node.ReadMany(
+            await foreach (Node node in client.Node.ReadMany(
                 tenantGuid, 
                 graphGuid, 
                 null, 
@@ -165,8 +179,10 @@
                 EnumerationOrderEnum.CreatedDescending, 
                 0, 
                 includeData, 
-                includeSubordinates))
+                includeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
             {
+                token.ThrowIfCancellationRequested();
                 GexfNode gNode = new GexfNode(node.GUID, node.Name);
 
                 if (!String.IsNullOrEmpty(node.Name))
@@ -196,7 +212,7 @@
                 doc.Graph.NodeList.Nodes.Add(gNode);
             }
 
-            foreach (LiteGraph.Edge edge in client.Edge.ReadMany(
+            await foreach (Edge edge in client.Edge.ReadMany(
                 tenantGuid, 
                 graphGuid,
                 null,
@@ -206,8 +222,10 @@
                 EnumerationOrderEnum.CreatedDescending,
                 0,
                 includeData,
-                includeSubordinates))
+                includeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
             {
+                token.ThrowIfCancellationRequested();
                 GexfEdge gEdge = new GexfEdge(edge.GUID, edge.From, edge.To);
 
                 if (!String.IsNullOrEmpty(edge.Name))
