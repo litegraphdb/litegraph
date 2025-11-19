@@ -488,17 +488,17 @@ namespace LiteGraph.McpServer
         /// </summary>
         /// <param name="sdkSeverity">SDK severity.</param>
         /// <returns>Syslog severity.</returns>
-        private static Severity MapSdkSeverityToSyslog(LiteGraph.Sdk.SeverityEnum sdkSeverity)
+        private static Severity MapSdkSeverityToSyslog(SeverityEnum sdkSeverity)
         {
             return sdkSeverity switch
             {
-                LiteGraph.Sdk.SeverityEnum.Debug => Severity.Debug,
-                LiteGraph.Sdk.SeverityEnum.Info => Severity.Info,
-                LiteGraph.Sdk.SeverityEnum.Warn => Severity.Warn,
-                LiteGraph.Sdk.SeverityEnum.Error => Severity.Error,
-                LiteGraph.Sdk.SeverityEnum.Alert => Severity.Alert,
-                LiteGraph.Sdk.SeverityEnum.Critical => Severity.Critical,
-                LiteGraph.Sdk.SeverityEnum.Emergency => Severity.Emergency,
+                SeverityEnum.Debug => Severity.Debug,
+                SeverityEnum.Info => Severity.Info,
+                SeverityEnum.Warn => Severity.Warn,
+                SeverityEnum.Error => Severity.Error,
+                SeverityEnum.Alert => Severity.Alert,
+                SeverityEnum.Critical => Severity.Critical,
+                SeverityEnum.Emergency => Severity.Emergency,
                 _ => Severity.Debug
             };
         }
