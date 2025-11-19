@@ -477,9 +477,13 @@ namespace LiteGraph.McpServer
             Console.WriteLine("  Settings are read from litegraph.json file.");
             Console.WriteLine("  If the file doesn't exist, it will be created with default values.");
             Console.WriteLine();
-            Console.WriteLine("  To use a remote LiteGraph server, set LiteGraph.Endpoint in the JSON file.");
-            Console.WriteLine("  To use a local database, set LiteGraph.RepositoryFilename in the JSON file.");
-            Console.WriteLine("  If both are empty, uses in-memory database.");
+            Console.WriteLine("  Required settings:");
+            Console.WriteLine("    LiteGraph.Endpoint    - Remote LiteGraph server endpoint URL (required)");
+            Console.WriteLine("    LiteGraph.ApiKey      - API key for authentication (required)");
+            Console.WriteLine();
+            Console.WriteLine("  Environment variables (optional, override JSON settings):");
+            Console.WriteLine("    LITEGRAPH_ENDPOINT    - Override LiteGraph.Endpoint");
+            Console.WriteLine("    LITEGRAPH_API_KEY     - Override LiteGraph.ApiKey");
             Console.WriteLine();
         }
 
