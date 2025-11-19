@@ -1,6 +1,7 @@
 namespace LiteGraph.McpServer
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Net;
     using System.Text;
@@ -8,6 +9,7 @@ namespace LiteGraph.McpServer
     using System.Threading.Tasks;
     using LiteGraph.McpServer.Classes;
     using LiteGraph.Sdk;
+    using SyslogLogging;
     using Voltaic;
 
     /// <summary>
@@ -30,6 +32,7 @@ namespace LiteGraph.McpServer
         private static bool _ShowConfiguration = false;
 
         private static LiteGraphMcpServerSettings _Settings = new LiteGraphMcpServerSettings();
+        private static LoggingModule _Logging = null!;
         private static LiteGraphSdk? _McpSdk = null;
         private static McpHttpServer? _McpHttpServer = null;
         private static McpTcpServer? _McpTcpServer = null;
@@ -44,12 +47,6 @@ namespace LiteGraph.McpServer
         #endregion
 
         #region Public-Members
-
-
-        /// <summary>
-        /// Occurs when a log message is generated.
-        /// </summary>
-        public event EventHandler<string>? Log;
 
         #endregion
 
@@ -71,12 +68,12 @@ namespace LiteGraph.McpServer
             InitializeSettings();
             InitializeGlobals();
 
-            Console.WriteLine(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId);
+            _Logging.Debug(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId);
 
             EventWaitHandle waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
             Console.CancelKeyPress += (sender, eventArgs) =>
             {
-                Console.WriteLine(_Header + "termination signal received");
+                _Logging.Debug(_Header + "termination signal received");
                 waitHandle.Set();
                 eventArgs.Cancel = true;
             };
@@ -88,7 +85,7 @@ namespace LiteGraph.McpServer
             }
             while (!waitHandleSignal);
 
-            Console.WriteLine(_Header + "stopping at " + DateTime.UtcNow);
+            _Logging.Debug(_Header + "stopping at " + DateTime.UtcNow);
 
             _McpHttpServer?.Stop();
             _McpTcpServer?.Stop();
@@ -110,7 +107,7 @@ namespace LiteGraph.McpServer
         /// <returns>Task.</returns>
         public async Task StartAsync(CancellationToken token = default)
         {
-            Log?.Invoke(this, "Starting LiteGraph MCP servers...");
+            _Logging.Debug(_Header + "Starting LiteGraph MCP servers...");
 
             if (_HttpServer == null || _TcpServer == null || _WebsocketServer == null)
                 throw new InvalidOperationException("Servers have not been initialized");
@@ -119,9 +116,9 @@ namespace LiteGraph.McpServer
             Task tcpTask = _TcpServer.StartAsync(token);
             Task wsTask = _WebsocketServer.StartAsync(token);
 
-            Log?.Invoke(this, $"HTTP Server:       http://{_Settings.Http.Hostname}:{_Settings.Http.Port}/rpc");
-            Log?.Invoke(this, $"TCP Server:        tcp://{_Settings.Tcp.Address}:{_Settings.Tcp.Port}");
-            Log?.Invoke(this, $"WebSocket Server:  ws://{_Settings.WebSocket.Hostname}:{_Settings.WebSocket.Port}/mcp");
+            _Logging.Debug(_Header + "HTTP Server:       http://" + _Settings.Http.Hostname + ":" + _Settings.Http.Port + "/rpc");
+            _Logging.Debug(_Header + "TCP Server:        tcp://" + _Settings.Tcp.Address + ":" + _Settings.Tcp.Port);
+            _Logging.Debug(_Header + "WebSocket Server:  ws://" + _Settings.WebSocket.Hostname + ":" + _Settings.WebSocket.Port + "/mcp");
 
             await Task.WhenAll(httpTask, tcpTask, wsTask);
         }
@@ -290,11 +287,48 @@ namespace LiteGraph.McpServer
 
             Console.WriteLine("Initializing logging");
 
+            List<SyslogServer> syslogServers = new List<SyslogServer>();
+
+            if (_Settings.Logging.Servers != null && _Settings.Logging.Servers.Count > 0)
+            {
+                foreach (LoggingServerSettings server in _Settings.Logging.Servers)
+                {
+                    syslogServers.Add(
+                        new SyslogServer
+                        {
+                            Hostname = server.Hostname,
+                            Port = server.Port
+                        }
+                    );
+
+                    Console.WriteLine("| syslog://" + server.Hostname + ":" + server.Port);
+                }
+            }
+
+            if (syslogServers.Count > 0)
+                _Logging = new LoggingModule(syslogServers);
+            else
+                _Logging = new LoggingModule();
+
+            _Logging.Settings.MinimumSeverity = (Severity)_Settings.Logging.MinimumSeverity;
+            _Logging.Settings.EnableConsole = _Settings.Logging.ConsoleLogging;
+            _Logging.Settings.EnableColors = _Settings.Logging.EnableColors;
+
             if (!String.IsNullOrEmpty(_Settings.Logging.LogDirectory))
             {
                 if (!Directory.Exists(_Settings.Logging.LogDirectory))
                     Directory.CreateDirectory(_Settings.Logging.LogDirectory);
+
+                _Settings.Logging.LogFilename = _Settings.Logging.LogDirectory + _Settings.Logging.LogFilename;
             }
+
+            if (!String.IsNullOrEmpty(_Settings.Logging.LogFilename))
+            {
+                _Logging.Settings.FileLogging = FileLoggingMode.FileWithDate;
+                _Logging.Settings.LogFilename = _Settings.Logging.LogFilename;
+            }
+
+            _Logging.Debug(_Header + "logging initialized");
 
             #endregion
 
@@ -318,15 +352,24 @@ namespace LiteGraph.McpServer
 
             #region LiteGraph-SDK
 
-            Console.WriteLine("Initializing LiteGraph SDK");
+            _Logging.Debug(_Header + "Initializing LiteGraph SDK");
 
             if (string.IsNullOrEmpty(_Settings.LiteGraph.Endpoint))
             {
                 throw new InvalidOperationException("LiteGraph endpoint is required. Please configure 'LiteGraph.Endpoint' in settings or set LITEGRAPH_ENDPOINT environment variable.");
             }
 
-            Console.WriteLine("Connecting to LiteGraph server at: " + _Settings.LiteGraph.Endpoint);
+            _Logging.Debug(_Header + "Connecting to LiteGraph server at: " + _Settings.LiteGraph.Endpoint);
             _McpSdk = new LiteGraphSdk(_Settings.LiteGraph.Endpoint, _Settings.LiteGraph.ApiKey);
+
+            if (_Logging != null)
+            {
+                _McpSdk.Logger = (sev, msg) =>
+                {
+                    Severity syslogSeverity = MapSdkSeverityToSyslog(sev);
+                    _Logging.Log(syslogSeverity, msg);
+                };
+            }
 
             #endregion
 
@@ -379,22 +422,22 @@ namespace LiteGraph.McpServer
 
         private static void ClientConnected(object? sender, ClientConnection e)
         {
-            Console.WriteLine(_Header + "client connection started with session ID " + e.SessionId + " (" + e.Type + ")");
+            _Logging.Debug(_Header + "client connection started with session ID " + e.SessionId + " (" + e.Type + ")");
         }
 
         private static void ClientDisconnected(object? sender, ClientConnection e)
         {
-            Console.WriteLine(_Header + "client connection terminated with session ID " + e.SessionId + " (" + e.Type + ")");
+            _Logging.Debug(_Header + "client connection terminated with session ID " + e.SessionId + " (" + e.Type + ")");
         }
 
         private static void ClientRequestReceived(object? sender, JsonRpcRequestEventArgs e)
         {
-            Console.WriteLine(_Header + "client session " + e.Client.SessionId + " request " + e.Method);
+            _Logging.Debug(_Header + "client session " + e.Client.SessionId + " request " + e.Method);
         }
 
         private static void ClientResponseSent(object? sender, JsonRpcResponseEventArgs e)
         {
-            Console.WriteLine(_Header + "client session " + e.Client.SessionId + " request " + e.Method + " completed (" + e.Duration.TotalMilliseconds + "ms)");
+            _Logging.Debug(_Header + "client session " + e.Client.SessionId + " request " + e.Method + " completed (" + e.Duration.TotalMilliseconds + "ms)");
         }
 
         private static void RegisterMcpTools()
@@ -440,6 +483,25 @@ namespace LiteGraph.McpServer
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// Maps LiteGraph.Sdk.SeverityEnum to SyslogLogging.Severity.
+        /// </summary>
+        /// <param name="sdkSeverity">SDK severity.</param>
+        /// <returns>Syslog severity.</returns>
+        private static Severity MapSdkSeverityToSyslog(LiteGraph.Sdk.SeverityEnum sdkSeverity)
+        {
+            return sdkSeverity switch
+            {
+                LiteGraph.Sdk.SeverityEnum.Debug => Severity.Debug,
+                LiteGraph.Sdk.SeverityEnum.Info => Severity.Info,
+                LiteGraph.Sdk.SeverityEnum.Warn => Severity.Warn,
+                LiteGraph.Sdk.SeverityEnum.Error => Severity.Error,
+                LiteGraph.Sdk.SeverityEnum.Alert => Severity.Alert,
+                LiteGraph.Sdk.SeverityEnum.Critical => Severity.Critical,
+                LiteGraph.Sdk.SeverityEnum.Emergency => Severity.Emergency,
+                _ => Severity.Debug
+            };
+        }
 
         #endregion
     }

@@ -9,6 +9,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="LiteGraph.Sdk" Version="4.1.1" />
+		<PackageReference Include="SyslogLogging" Version="2.0.11" />
 		<PackageReference Include="Voltaic" Version="0.1.5" />
 	</ItemGroup>
 
