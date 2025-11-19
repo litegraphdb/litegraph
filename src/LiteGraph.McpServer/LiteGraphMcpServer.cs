@@ -58,7 +58,7 @@ namespace LiteGraph.McpServer
             InitializeSettings();
             InitializeGlobals();
 
-            _Logging.Info(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId);
+            _Logging.Info(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId + Environment.NewLine);
 
             EventWaitHandle waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
             AssemblyLoadContext.Default.Unloading += (ctx) => waitHandle.Set();
