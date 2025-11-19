@@ -264,6 +264,196 @@ namespace LiteGraph.McpServer.Registrations
                     List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(neighbors ?? new List<Node>(), true);
                 });
+
+            server.RegisterTool(
+                "node/createmany",
+                "Creates multiple nodes in a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodes = new { type = "array", items = new { type = "object" }, description = "Array of node objects to create" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodes" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    if (!args.Value.TryGetProperty("nodes", out JsonElement nodesProp))
+                        throw new ArgumentException("Nodes array is required");
+                    
+                    List<Node> nodes = Serializer.DeserializeJson<List<Node>>(nodesProp.GetRawText());
+                    List<Node> created = sdk.Node.CreateMany(tenantGuid, graphGuid, nodes).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(created, true);
+                });
+
+            server.RegisterTool(
+                "node/getmany",
+                "Reads multiple nodes by their GUIDs",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuids = new { type = "array", items = new { type = "string" }, description = "Array of node GUIDs" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuids" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    if (!args.Value.TryGetProperty("nodeGuids", out JsonElement guidsProp))
+                        throw new ArgumentException("Node GUIDs array is required");
+                    
+                    List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                    List<Node> nodes = sdk.Node.ReadByGuids(tenantGuid, graphGuid, guids).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(nodes, true);
+                });
+
+            server.RegisterTool(
+                "node/update",
+                "Updates a node",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        node = new { type = "object", description = "Node object with GUID and updated properties" }
+                    },
+                    required = new[] { "node" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("node", out JsonElement nodeProp))
+                        throw new ArgumentException("Node object is required");
+                    
+                    Node node = Serializer.DeserializeJson<Node>(nodeProp.GetRawText());
+                    Node updated = sdk.Node.Update(node).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(updated, true);
+                });
+
+            server.RegisterTool(
+                "node/delete",
+                "Deletes a single node by GUID",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuid = new { type = "string", description = "Node GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                    sdk.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return string.Empty;
+                });
+
+            server.RegisterTool(
+                "node/exists",
+                "Checks if a node exists by GUID",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuid = new { type = "string", description = "Node GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                    bool exists = sdk.Node.ExistsByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                });
+
+            server.RegisterTool(
+                "node/search",
+                "Searches nodes with filters",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        searchRequest = new { type = "object", description = "Search request object" }
+                    },
+                    required = new[] { "searchRequest" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                        throw new ArgumentException("Search request is required");
+                    
+                    SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                    SearchResult result = sdk.Node.Search(req).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(result, true);
+                });
+
+            server.RegisterTool(
+                "node/readfirst",
+                "Reads the first node matching search criteria",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        searchRequest = new { type = "object", description = "Search request object" }
+                    },
+                    required = new[] { "searchRequest" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                        throw new ArgumentException("Search request is required");
+                    
+                    SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                    Node node = sdk.Node.ReadFirst(req).GetAwaiter().GetResult();
+                    return node != null ? Serializer.SerializeJson(node, true) : "null";
+                });
+
+            server.RegisterTool(
+                "node/enumerate",
+                "Enumerates nodes with pagination and filtering",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        query = new { type = "object", description = "Enumeration query with pagination options" }
+                    },
+                    required = new string[] { }
+                },
+                (args) =>
+                {
+                    EnumerationRequest query = new EnumerationRequest();
+                    if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
+                        query = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText()) ?? new EnumerationRequest();
+                    
+                    EnumerationResult<Node> result = sdk.Node.Enumerate(query).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(result, true);
+                });
         }
 
         #endregion
@@ -381,6 +571,92 @@ namespace LiteGraph.McpServer.Registrations
                 sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
                 return string.Empty;
             });
+
+            server.RegisterMethod("node/createmany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("nodes", out JsonElement nodesProp))
+                    throw new ArgumentException("Nodes array is required");
+                
+                List<Node> nodes = Serializer.DeserializeJson<List<Node>>(nodesProp.GetRawText());
+                List<Node> created = sdk.Node.CreateMany(tenantGuid, graphGuid, nodes).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(created, true);
+            });
+
+            server.RegisterMethod("node/getmany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("nodeGuids", out JsonElement guidsProp))
+                    throw new ArgumentException("Node GUIDs array is required");
+                
+                List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                List<Node> nodes = sdk.Node.ReadByGuids(tenantGuid, graphGuid, guids).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/update", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("node", out JsonElement nodeProp))
+                    throw new ArgumentException("Node object is required");
+                
+                Node node = Serializer.DeserializeJson<Node>(nodeProp.GetRawText());
+                Node updated = sdk.Node.Update(node).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(updated, true);
+            });
+
+            server.RegisterMethod("node/delete", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                sdk.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("node/exists", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                bool exists = sdk.Node.ExistsByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+            });
+
+            server.RegisterMethod("node/search", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                SearchResult result = sdk.Node.Search(req).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
+            });
+
+            server.RegisterMethod("node/readfirst", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                Node node = sdk.Node.ReadFirst(req).GetAwaiter().GetResult();
+                return node != null ? Serializer.SerializeJson(node, true) : "null";
+            });
+
+            server.RegisterMethod("node/enumerate", (args) =>
+            {
+                EnumerationRequest query = new EnumerationRequest();
+                if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    query = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText()) ?? new EnumerationRequest();
+                
+                EnumerationResult<Node> result = sdk.Node.Enumerate(query).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
+            });
         }
 
         #endregion
@@ -497,6 +773,92 @@ namespace LiteGraph.McpServer.Registrations
                 
                 sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
                 return string.Empty;
+            });
+
+            server.RegisterMethod("node/createmany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("nodes", out JsonElement nodesProp))
+                    throw new ArgumentException("Nodes array is required");
+                
+                List<Node> nodes = Serializer.DeserializeJson<List<Node>>(nodesProp.GetRawText());
+                List<Node> created = sdk.Node.CreateMany(tenantGuid, graphGuid, nodes).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(created, true);
+            });
+
+            server.RegisterMethod("node/getmany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("nodeGuids", out JsonElement guidsProp))
+                    throw new ArgumentException("Node GUIDs array is required");
+                
+                List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                List<Node> nodes = sdk.Node.ReadByGuids(tenantGuid, graphGuid, guids).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/update", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("node", out JsonElement nodeProp))
+                    throw new ArgumentException("Node object is required");
+                
+                Node node = Serializer.DeserializeJson<Node>(nodeProp.GetRawText());
+                Node updated = sdk.Node.Update(node).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(updated, true);
+            });
+
+            server.RegisterMethod("node/delete", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                sdk.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("node/exists", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                bool exists = sdk.Node.ExistsByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+            });
+
+            server.RegisterMethod("node/search", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                SearchResult result = sdk.Node.Search(req).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
+            });
+
+            server.RegisterMethod("node/readfirst", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                Node node = sdk.Node.ReadFirst(req).GetAwaiter().GetResult();
+                return node != null ? Serializer.SerializeJson(node, true) : "null";
+            });
+
+            server.RegisterMethod("node/enumerate", (args) =>
+            {
+                EnumerationRequest query = new EnumerationRequest();
+                if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    query = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText()) ?? new EnumerationRequest();
+                
+                EnumerationResult<Node> result = sdk.Node.Enumerate(query).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
             });
         }
 

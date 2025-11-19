@@ -254,6 +254,7 @@ namespace Test.Automated
             await RunTest("MCP.Tenant.Enumerate", TestMcpTenantEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Tenant.Exists", TestMcpTenantExists).ConfigureAwait(false);
             await RunTest("MCP.Tenant.Statistics", TestMcpTenantStatistics).ConfigureAwait(false);
+            await RunTest("MCP.Tenant.GetMany", TestMcpTenantGetMany).ConfigureAwait(false);
 
             await RunTest("MCP.Graph.Create", TestMcpGraphCreate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Get", TestMcpGraphGet).ConfigureAwait(false);
@@ -262,6 +263,9 @@ namespace Test.Automated
             await RunTest("MCP.Graph.Enumerate", TestMcpGraphEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Exists", TestMcpGraphExists).ConfigureAwait(false);
             await RunTest("MCP.Graph.Statistics", TestMcpGraphStatistics).ConfigureAwait(false);
+            await RunTest("MCP.Graph.GetMany", TestMcpGraphGetMany).ConfigureAwait(false);
+            await RunTest("MCP.Graph.Search", TestMcpGraphSearch).ConfigureAwait(false);
+            await RunTest("MCP.Graph.ReadFirst", TestMcpGraphReadFirst).ConfigureAwait(false);
 
             await RunTest("MCP.Node.Create", TestMcpNodeCreate).ConfigureAwait(false);
             await RunTest("MCP.Node.Get", TestMcpNodeGet).ConfigureAwait(false);
@@ -269,6 +273,14 @@ namespace Test.Automated
             await RunTest("MCP.Node.Parents", TestMcpNodeParents).ConfigureAwait(false);
             await RunTest("MCP.Node.Children", TestMcpNodeChildren).ConfigureAwait(false);
             await RunTest("MCP.Node.Neighbors", TestMcpNodeNeighbors).ConfigureAwait(false);
+            await RunTest("MCP.Node.CreateMany", TestMcpNodeCreateMany).ConfigureAwait(false);
+            await RunTest("MCP.Node.GetMany", TestMcpNodeGetMany).ConfigureAwait(false);
+            await RunTest("MCP.Node.Update", TestMcpNodeUpdate).ConfigureAwait(false);
+            await RunTest("MCP.Node.Delete", TestMcpNodeDelete).ConfigureAwait(false);
+            await RunTest("MCP.Node.Exists", TestMcpNodeExists).ConfigureAwait(false);
+            await RunTest("MCP.Node.Search", TestMcpNodeSearch).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadFirst", TestMcpNodeReadFirst).ConfigureAwait(false);
+            await RunTest("MCP.Node.Enumerate", TestMcpNodeEnumerate).ConfigureAwait(false);
 
             await RunTest("MCP.Graph.Delete", TestMcpGraphDelete).ConfigureAwait(false);
             await RunTest("MCP.Tenant.Delete", TestMcpTenantDelete).ConfigureAwait(false);
@@ -2829,6 +2841,238 @@ namespace Test.Automated
 
             List<Node>? neighbors = _McpSerializer.DeserializeJson<List<Node>>(result);
             AssertNotNull(neighbors, "Neighbors list should not be null");
+        }
+
+        private static async Task TestMcpTenantGetMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("tenant/getmany", new { tenantGuids = new[] { _McpTestTenantGuid.ToString() } });
+            AssertNotNull(result, "Result should not be null");
+
+            List<TenantMetadata>? tenants = _McpSerializer.DeserializeJson<List<TenantMetadata>>(result);
+            AssertNotNull(tenants, "Tenants list should not be null");
+            AssertTrue(tenants!.Count > 0, "Should have at least one tenant");
+        }
+
+        private static async Task TestMcpGraphGetMany()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("graph/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuids = new[] { _McpTestGraphGuid.ToString() } });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Graph>? graphs = _McpSerializer.DeserializeJson<List<Graph>>(result);
+            AssertNotNull(graphs, "Graphs list should not be null");
+            AssertTrue(graphs!.Count > 0, "Should have at least one graph");
+        }
+
+        private static async Task TestMcpGraphSearch()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
+            string reqJson = _McpSerializer.SerializeJson(req, false);
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("graph/search", new { searchRequest = reqObj });
+            AssertNotNull(result, "Result should not be null");
+
+            SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
+            AssertNotNull(searchResult, "Search result should not be null");
+        }
+
+        private static async Task TestMcpGraphReadFirst()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
+            string reqJson = _McpSerializer.SerializeJson(req, false);
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("graph/readfirst", new { searchRequest = reqObj });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            Graph? graph = _McpSerializer.DeserializeJson<Graph>(result);
+            AssertNotNull(graph, "Graph should not be null");
+        }
+
+        private static async Task TestMcpNodeCreateMany()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            List<Node> nodes = new List<Node>
+            {
+                new Node { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Name = "MCP Test Node Many 1" },
+                new Node { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Name = "MCP Test Node Many 2" }
+            };
+            string nodesJson = _McpSerializer.SerializeJson(nodes, false);
+            var nodesObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(nodesJson);
+            string result = await _McpClient!.CallAsync<string>("node/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodes = nodesObj });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? created = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(created, "Created nodes list should not be null");
+            AssertTrue(created!.Count == 2, "Should have created 2 nodes");
+        }
+
+        private static async Task TestMcpNodeGetMany()
+        {
+            await InitializeMcpServer();
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("node/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString() } });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+            AssertTrue(nodes!.Count > 0, "Should have at least one node");
+        }
+
+        private static async Task TestMcpNodeUpdate()
+        {
+            await InitializeMcpServer();
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            // First get the node to update
+            string getResult = await _McpClient!.CallAsync<string>("node/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            Node? node = _McpSerializer.DeserializeJson<Node>(getResult);
+            AssertNotNull(node, "Node should not be null");
+
+            node!.Name = "Updated MCP Node";
+            string nodeJson = _McpSerializer.SerializeJson(node, false);
+            var nodeObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(nodeJson);
+            string result = await _McpClient!.CallAsync<string>("node/update", new { node = nodeObj });
+            AssertNotNull(result, "Result should not be null");
+
+            Node? updated = _McpSerializer.DeserializeJson<Node>(result);
+            AssertNotNull(updated, "Updated node should not be null");
+            AssertEqual("Updated MCP Node", updated!.Name, "Updated node name");
+        }
+
+        private static async Task TestMcpNodeDelete()
+        {
+            await InitializeMcpServer();
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            // Create a temporary node to delete
+            string createResult = await _McpClient!.CallAsync<string>("node/create", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), name = "Temp Node for Delete" });
+            Node? tempNode = _McpSerializer.DeserializeJson<Node>(createResult);
+            AssertNotNull(tempNode, "Temp node should not be null");
+
+            string result = await _McpClient!.CallAsync<string>("node/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
+            // Delete should return empty string
+            AssertTrue(string.IsNullOrEmpty(result), "Delete should return empty string");
+        }
+
+        private static async Task TestMcpNodeExists()
+        {
+            await InitializeMcpServer();
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertTrue(result.Contains("exists"), "Result should contain exists field");
+        }
+
+        private static async Task TestMcpNodeSearch()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
+            string reqJson = _McpSerializer.SerializeJson(req, false);
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("node/search", new { searchRequest = reqObj });
+            AssertNotNull(result, "Result should not be null");
+
+            SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
+            AssertNotNull(searchResult, "Search result should not be null");
+        }
+
+        private static async Task TestMcpNodeReadFirst()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
+            string reqJson = _McpSerializer.SerializeJson(req, false);
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("node/readfirst", new { searchRequest = reqObj });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            Node? node = _McpSerializer.DeserializeJson<Node>(result);
+            AssertNotNull(node, "Node should not be null");
+        }
+
+        private static async Task TestMcpNodeEnumerate()
+        {
+            await InitializeMcpServer();
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
+            string queryJson = _McpSerializer.SerializeJson(query, false);
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("node/enumerate", new { query = queryObj });
+            AssertNotNull(result, "Result should not be null");
+
+            EnumerationResult<Node>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertNotNull(enumResult, "Enumeration result should not be null");
+            AssertTrue(enumResult!.Success, "Enumeration should succeed");
         }
 
         // ========================================

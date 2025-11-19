@@ -204,6 +204,28 @@ namespace LiteGraph.McpServer.Registrations
                     Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
                     return Serializer.SerializeJson(allStats, true);
                 });
+
+            server.RegisterTool(
+                "tenant/getmany",
+                "Reads multiple tenants by their GUIDs",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuids = new { type = "array", items = new { type = "string" }, description = "Array of tenant GUIDs" }
+                    },
+                    required = new[] { "tenantGuids" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("tenantGuids", out JsonElement guidsProp))
+                        throw new ArgumentException("Tenant GUIDs array is required");
+                    
+                    List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                    List<TenantMetadata> tenants = sdk.Tenant.ReadByGuids(guids).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tenants, true);
+                });
         }
 
         #endregion
@@ -294,6 +316,16 @@ namespace LiteGraph.McpServer.Registrations
                 Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
                 return Serializer.SerializeJson(allStats, true);
             });
+
+            server.RegisterMethod("tenant/getmany", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuids", out JsonElement guidsProp))
+                    throw new ArgumentException("Tenant GUIDs array is required");
+                
+                List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                List<TenantMetadata> tenants = sdk.Tenant.ReadByGuids(guids).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tenants, true);
+            });
         }
 
         #endregion
@@ -383,6 +415,16 @@ namespace LiteGraph.McpServer.Registrations
             {
                 Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
                 return Serializer.SerializeJson(allStats, true);
+            });
+
+            server.RegisterMethod("tenant/getmany", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuids", out JsonElement guidsProp))
+                    throw new ArgumentException("Tenant GUIDs array is required");
+                
+                List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                List<TenantMetadata> tenants = sdk.Tenant.ReadByGuids(guids).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tenants, true);
             });
         }
 

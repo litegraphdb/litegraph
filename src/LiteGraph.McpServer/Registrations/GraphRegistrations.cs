@@ -268,6 +268,190 @@ namespace LiteGraph.McpServer.Registrations
                         return Serializer.SerializeJson(allStats, true);
                     }
                 });
+
+            server.RegisterTool(
+                "graph/getmany",
+                "Reads multiple graphs by their GUIDs",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuids = new { type = "array", items = new { type = "string" }, description = "Array of graph GUIDs" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuids" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    if (!args.Value.TryGetProperty("graphGuids", out JsonElement guidsProp))
+                        throw new ArgumentException("Graph GUIDs array is required");
+                    
+                    List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                    List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(graphs, true);
+                });
+
+            server.RegisterTool(
+                "graph/search",
+                "Searches graphs with filters",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        searchRequest = new { type = "object", description = "Search request object" }
+                    },
+                    required = new[] { "searchRequest" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                        throw new ArgumentException("Search request is required");
+                    
+                    SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                    SearchResult result = sdk.Graph.Search(req).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(result, true);
+                });
+
+            server.RegisterTool(
+                "graph/readfirst",
+                "Reads the first graph matching search criteria",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        searchRequest = new { type = "object", description = "Search request object" }
+                    },
+                    required = new[] { "searchRequest" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                        throw new ArgumentException("Search request is required");
+                    
+                    SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                    Graph graph = sdk.Graph.ReadFirst(req).GetAwaiter().GetResult();
+                    return graph != null ? Serializer.SerializeJson(graph, true) : "null";
+                });
+
+            server.RegisterTool(
+                "graph/enablevectorindexing",
+                "Enables vector indexing for a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        config = new { type = "object", description = "Vector index configuration" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "config" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    if (!args.Value.TryGetProperty("config", out JsonElement configProp))
+                        throw new ArgumentException("Vector index configuration is required");
+                    
+                    VectorIndexConfiguration config = Serializer.DeserializeJson<VectorIndexConfiguration>(configProp.GetRawText());
+                    sdk.Graph.EnableVectorIndexing(tenantGuid, graphGuid, config).GetAwaiter().GetResult();
+                    return string.Empty;
+                });
+
+            server.RegisterTool(
+                "graph/rebuildvectorindex",
+                "Rebuilds the vector index for a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    sdk.Graph.RebuildVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return string.Empty;
+                });
+
+            server.RegisterTool(
+                "graph/deletevectorindex",
+                "Deletes the vector index for a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return string.Empty;
+                });
+
+            server.RegisterTool(
+                "graph/getvectorindexconfig",
+                "Reads the vector index configuration for a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    VectorIndexConfiguration config = sdk.Graph.ReadVectorIndexConfig(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(config, true);
+                });
+
+            server.RegisterTool(
+                "graph/getvectorindexstatistics",
+                "Gets vector index statistics for a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    VectorIndexStatistics stats = sdk.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(stats, true);
+                });
         }
 
         #endregion
@@ -405,6 +589,87 @@ namespace LiteGraph.McpServer.Registrations
                     return Serializer.SerializeJson(allStats, true);
                 }
             });
+
+            server.RegisterMethod("graph/getmany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                if (!args.Value.TryGetProperty("graphGuids", out JsonElement guidsProp))
+                    throw new ArgumentException("Graph GUIDs array is required");
+                
+                List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(graphs, true);
+            });
+
+            server.RegisterMethod("graph/search", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                SearchResult result = sdk.Graph.Search(req).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
+            });
+
+            server.RegisterMethod("graph/readfirst", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                Graph graph = sdk.Graph.ReadFirst(req).GetAwaiter().GetResult();
+                return graph != null ? Serializer.SerializeJson(graph, true) : "null";
+            });
+
+            server.RegisterMethod("graph/enablevectorindexing", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("config", out JsonElement configProp))
+                    throw new ArgumentException("Vector index configuration is required");
+                
+                VectorIndexConfiguration config = Serializer.DeserializeJson<VectorIndexConfiguration>(configProp.GetRawText());
+                sdk.Graph.EnableVectorIndexing(tenantGuid, graphGuid, config).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("graph/rebuildvectorindex", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Graph.RebuildVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("graph/deletevectorindex", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("graph/getvectorindexconfig", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                VectorIndexConfiguration config = sdk.Graph.ReadVectorIndexConfig(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(config, true);
+            });
+
+            server.RegisterMethod("graph/getvectorindexstatistics", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                VectorIndexStatistics stats = sdk.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(stats, true);
+            });
         }
 
         #endregion
@@ -541,6 +806,87 @@ namespace LiteGraph.McpServer.Registrations
                     Dictionary<Guid, GraphStatistics> allStats = sdk.Graph.GetStatistics(tenantGuid).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(allStats, true);
                 }
+            });
+
+            server.RegisterMethod("graph/getmany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                if (!args.Value.TryGetProperty("graphGuids", out JsonElement guidsProp))
+                    throw new ArgumentException("Graph GUIDs array is required");
+                
+                List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
+                List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(graphs, true);
+            });
+
+            server.RegisterMethod("graph/search", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                SearchResult result = sdk.Graph.Search(req).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
+            });
+
+            server.RegisterMethod("graph/readfirst", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
+                    throw new ArgumentException("Search request is required");
+                
+                SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqProp.GetRawText());
+                Graph graph = sdk.Graph.ReadFirst(req).GetAwaiter().GetResult();
+                return graph != null ? Serializer.SerializeJson(graph, true) : "null";
+            });
+
+            server.RegisterMethod("graph/enablevectorindexing", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("config", out JsonElement configProp))
+                    throw new ArgumentException("Vector index configuration is required");
+                
+                VectorIndexConfiguration config = Serializer.DeserializeJson<VectorIndexConfiguration>(configProp.GetRawText());
+                sdk.Graph.EnableVectorIndexing(tenantGuid, graphGuid, config).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("graph/rebuildvectorindex", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Graph.RebuildVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("graph/deletevectorindex", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("graph/getvectorindexconfig", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                VectorIndexConfiguration config = sdk.Graph.ReadVectorIndexConfig(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(config, true);
+            });
+
+            server.RegisterMethod("graph/getvectorindexstatistics", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                VectorIndexStatistics stats = sdk.Graph.GetVectorIndexStatistics(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(stats, true);
             });
         }
 

@@ -20,14 +20,6 @@ namespace LiteGraph.McpServer
 
         private bool _Disposed = false;
 
-        private string? _HttpHostname;
-        private string? _TcpAddress;
-        private string? _TcpAddressDisplay;
-        private string? _WebSocketHostname;
-        private int _HttpPort;
-        private int _TcpPort;
-        private int _WebSocketPort;
-
         private McpHttpServer? _HttpServer = null;
         private McpTcpServer? _TcpServer = null;
         private McpWebsocketsServer? _WebsocketServer = null;
@@ -127,9 +119,9 @@ namespace LiteGraph.McpServer
             Task tcpTask = _TcpServer.StartAsync(token);
             Task wsTask = _WebsocketServer.StartAsync(token);
 
-            Log?.Invoke(this, $"HTTP Server:       http://{_HttpHostname}:{_HttpPort}/rpc");
-            Log?.Invoke(this, $"TCP Server:        tcp://{_TcpAddressDisplay}:{_TcpPort}");
-            Log?.Invoke(this, $"WebSocket Server:  ws://{_WebSocketHostname}:{_WebSocketPort}/mcp");
+            Log?.Invoke(this, $"HTTP Server:       http://{_Settings.Http.Hostname}:{_Settings.Http.Port}/rpc");
+            Log?.Invoke(this, $"TCP Server:        tcp://{_Settings.Tcp.Address}:{_Settings.Tcp.Port}");
+            Log?.Invoke(this, $"WebSocket Server:  ws://{_Settings.WebSocket.Hostname}:{_Settings.WebSocket.Port}/mcp");
 
             await Task.WhenAll(httpTask, tcpTask, wsTask);
         }
