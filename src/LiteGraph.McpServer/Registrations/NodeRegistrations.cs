@@ -386,7 +386,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                     bool exists = sdk.Node.ExistsByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                    return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                    return exists.ToString().ToLower();
                 });
 
             server.RegisterTool(

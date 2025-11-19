@@ -402,14 +402,17 @@ namespace LiteGraph.McpServer
             if (_McpHttpServer == null || _McpTcpServer == null || _McpWebsocketServer == null || _McpSdk == null)
                 throw new InvalidOperationException("Servers and SDK have not been initialized");
 
+            Registrations.AdminRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.TenantRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.GraphRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.NodeRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
 
+            Registrations.AdminRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.TenantRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.GraphRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.NodeRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
 
+            Registrations.AdminRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.TenantRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.GraphRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.NodeRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);

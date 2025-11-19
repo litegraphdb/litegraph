@@ -184,7 +184,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterTool(
-                "graph/getSubgraph",
+                "graph/getsubgraph",
                 "Retrieves a subgraph starting from a specific node, traversing up to a specified depth. Useful for graph exploration and traversal.",
                 new
                 {
@@ -236,7 +236,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     bool exists = sdk.Graph.ExistsByGuid(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                    return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                    return exists.ToString().ToLower();
                 });
 
             server.RegisterTool(
@@ -549,7 +549,7 @@ namespace LiteGraph.McpServer.Registrations
                 return "{\"success\": true}";
             });
 
-            server.RegisterMethod("graph/getSubgraph", (args) =>
+            server.RegisterMethod("graph/getsubgraph", (args) =>
             {
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
@@ -767,7 +767,7 @@ namespace LiteGraph.McpServer.Registrations
                 return "{\"success\": true}";
             });
 
-            server.RegisterMethod("graph/getSubgraph", (args) =>
+            server.RegisterMethod("graph/getsubgraph", (args) =>
             {
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");

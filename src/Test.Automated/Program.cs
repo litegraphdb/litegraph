@@ -256,6 +256,13 @@ namespace Test.Automated
             await RunTest("MCP.Tenant.Statistics", TestMcpTenantStatistics).ConfigureAwait(false);
             await RunTest("MCP.Tenant.GetMany", TestMcpTenantGetMany).ConfigureAwait(false);
 
+            await RunTest("MCP.Admin.Backup", TestMcpAdminBackup).ConfigureAwait(false);
+            await RunTest("MCP.Admin.Backups", TestMcpAdminBackups).ConfigureAwait(false);
+            await RunTest("MCP.Admin.BackupRead", TestMcpAdminBackupRead).ConfigureAwait(false);
+            await RunTest("MCP.Admin.BackupExists", TestMcpAdminBackupExists).ConfigureAwait(false);
+            await RunTest("MCP.Admin.BackupDelete", TestMcpAdminBackupDelete).ConfigureAwait(false);
+            await RunTest("MCP.Admin.Flush", TestMcpAdminFlush).ConfigureAwait(false);
+
             await RunTest("MCP.Graph.Create", TestMcpGraphCreate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Get", TestMcpGraphGet).ConfigureAwait(false);
             await RunTest("MCP.Graph.All", TestMcpGraphAll).ConfigureAwait(false);
@@ -2606,7 +2613,7 @@ namespace Test.Automated
 
             string result = await _McpClient!.CallAsync<string>("tenant/exists", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
-            AssertTrue(result.Contains("exists"), "Result should contain exists field");
+            AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
         }
 
         private static async Task TestMcpTenantStatistics()
@@ -2719,7 +2726,7 @@ namespace Test.Automated
 
             string result = await _McpClient!.CallAsync<string>("graph/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
-            AssertTrue(result.Contains("exists"), "Result should contain exists field");
+            AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
         }
 
         private static async Task TestMcpGraphStatistics()
@@ -3004,7 +3011,7 @@ namespace Test.Automated
 
             string result = await _McpClient!.CallAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
-            AssertTrue(result.Contains("exists"), "Result should contain exists field");
+            AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
         }
 
         private static async Task TestMcpNodeSearch()
@@ -3073,6 +3080,87 @@ namespace Test.Automated
             EnumerationResult<Node>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
             AssertNotNull(enumResult, "Enumeration result should not be null");
             AssertTrue(enumResult!.Success, "Enumeration should succeed");
+        }
+
+        private static async Task TestMcpAdminBackup()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            string backupFilename = "test-backup-" + DateTime.UtcNow.Ticks + ".db";
+            string result = await _McpClient!.CallAsync<string>("admin/backup", new { outputFilename = backupFilename });
+            // Backup should return empty string on success
+            AssertTrue(string.IsNullOrEmpty(result), "Backup should return empty string on success");
+        }
+
+        private static async Task TestMcpAdminBackups()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            string result = await _McpClient!.CallAsync<string>("admin/backups", new { });
+            AssertNotNull(result, "Result should not be null");
+
+            List<BackupFile>? backups = _McpSerializer.DeserializeJson<List<BackupFile>>(result);
+            AssertNotNull(backups, "Backups list should not be null");
+        }
+
+        private static async Task TestMcpAdminBackupRead()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            // First create a backup
+            string backupFilename = "test-backup-read-" + DateTime.UtcNow.Ticks + ".db";
+            await _McpClient!.CallAsync<string>("admin/backup", new { outputFilename = backupFilename });
+
+            // Then read it
+            string result = await _McpClient!.CallAsync<string>("admin/backupread", new { backupFilename = backupFilename });
+            AssertNotNull(result, "Result should not be null");
+
+            BackupFile? backup = _McpSerializer.DeserializeJson<BackupFile>(result);
+            AssertNotNull(backup, "Backup file should not be null");
+        }
+
+        private static async Task TestMcpAdminBackupExists()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            // First create a backup
+            string backupFilename = "test-backup-exists-" + DateTime.UtcNow.Ticks + ".db";
+            await _McpClient!.CallAsync<string>("admin/backup", new { outputFilename = backupFilename });
+
+            // Then check if it exists
+            string result = await _McpClient!.CallAsync<string>("admin/backupexists", new { backupFilename = backupFilename });
+            AssertNotNull(result, "Result should not be null");
+            AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
+            AssertEqual("true", result, "Backup should exist");
+        }
+
+        private static async Task TestMcpAdminBackupDelete()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            // First create a backup
+            string backupFilename = "test-backup-delete-" + DateTime.UtcNow.Ticks + ".db";
+            await _McpClient!.CallAsync<string>("admin/backup", new { outputFilename = backupFilename });
+
+            // Then delete it
+            string result = await _McpClient!.CallAsync<string>("admin/backupdelete", new { backupFilename = backupFilename });
+            // Delete should return empty string
+            AssertTrue(string.IsNullOrEmpty(result), "Delete should return empty string");
+        }
+
+        private static async Task TestMcpAdminFlush()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            string result = await _McpClient!.CallAsync<string>("admin/flush", new { });
+            // Flush should return empty string on success
+            AssertTrue(string.IsNullOrEmpty(result), "Flush should return empty string on success");
         }
 
         // ========================================

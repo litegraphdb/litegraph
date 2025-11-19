@@ -165,7 +165,7 @@ namespace LiteGraph.McpServer.Registrations
                     
                     Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                     bool exists = sdk.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
-                    return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                    return exists.ToString().ToLower();
                 });
 
             server.RegisterTool(
@@ -191,7 +191,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterTool(
-                "tenant/statistics/all",
+                "tenant/statisticsall",
                 "Gets statistics for all tenants",
                 new
                 {
@@ -311,7 +311,7 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(stats, true);
             });
 
-            server.RegisterMethod("tenant/statistics/all", (args) =>
+            server.RegisterMethod("tenant/statisticsall", (args) =>
             {
                 Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
                 return Serializer.SerializeJson(allStats, true);
@@ -411,7 +411,7 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(stats, true);
             });
 
-            server.RegisterMethod("tenant/statistics/all", (args) =>
+            server.RegisterMethod("tenant/statisticsall", (args) =>
             {
                 Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
                 return Serializer.SerializeJson(allStats, true);
