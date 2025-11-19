@@ -76,21 +76,14 @@ namespace LiteGraph.McpServer.Classes
     public class LiteGraphSettings
     {
         /// <summary>
-        /// REST API endpoint URL. If provided, connects to remote LiteGraph server.
-        /// If null or empty, uses local repository.
+        /// REST API endpoint URL for remote LiteGraph server.
         /// </summary>
-        public string? Endpoint { get; set; }
+        public string? Endpoint { get; set; } = "http://localhost:8701";
 
         /// <summary>
-        /// SQLite database filename for local repository. Used when Endpoint is null or empty.
-        /// If null, uses in-memory database.
+        /// API key for authentication with LiteGraph server.
         /// </summary>
-        public string? RepositoryFilename { get; set; }
-
-        /// <summary>
-        /// Whether to use in-memory database. Only used when RepositoryFilename is null.
-        /// </summary>
-        public bool InMemory { get; set; } = false;
+        public string? ApiKey { get; set; } = "litegraphadmin";
     }
 
     /// <summary>

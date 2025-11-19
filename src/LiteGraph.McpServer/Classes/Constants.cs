@@ -49,9 +49,9 @@ namespace LiteGraph.McpServer.Classes
         public static string LiteGraphEndpointEnvironmentVariable = "LITEGRAPH_ENDPOINT";
 
         /// <summary>
-        /// Environment variable for LiteGraph repository filename.
+        /// Environment variable for LiteGraph API key.
         /// </summary>
-        public static string LiteGraphRepositoryEnvironmentVariable = "LITEGRAPH_REPOSITORY";
+        public static string LiteGraphApiKeyEnvironmentVariable = "LITEGRAPH_API_KEY";
 
         /// <summary>
         /// Environment variable for MCP HTTP hostname.

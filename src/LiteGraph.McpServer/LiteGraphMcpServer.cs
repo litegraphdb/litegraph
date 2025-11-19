@@ -6,10 +6,8 @@ namespace LiteGraph.McpServer
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using LiteGraph;
-    using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.McpServer.Classes;
-    using LiteGraph.Serialization;
+    using LiteGraph.Sdk;
     using Voltaic;
 
     /// <summary>
@@ -22,15 +20,14 @@ namespace LiteGraph.McpServer
 
         private bool _Disposed = false;
 
-        private string _HttpHostname;
-        private string _TcpAddress;
-        private string _TcpAddressDisplay;
-        private string _WebSocketHostname;
+        private string? _HttpHostname;
+        private string? _TcpAddress;
+        private string? _TcpAddressDisplay;
+        private string? _WebSocketHostname;
         private int _HttpPort;
         private int _TcpPort;
         private int _WebSocketPort;
 
-        private LiteGraphClient? _Client = null;
         private McpHttpServer? _HttpServer = null;
         private McpTcpServer? _TcpServer = null;
         private McpWebsocketsServer? _WebsocketServer = null;
@@ -40,9 +37,8 @@ namespace LiteGraph.McpServer
         private static int _ProcessId = Environment.ProcessId;
         private static bool _ShowConfiguration = false;
 
-        private static Serializer _Serializer = new Serializer();
         private static LiteGraphMcpServerSettings _Settings = new LiteGraphMcpServerSettings();
-        private static LiteGraphClient? _McpClient = null;
+        private static LiteGraphSdk? _McpSdk = null;
         private static McpHttpServer? _McpHttpServer = null;
         private static McpTcpServer? _McpTcpServer = null;
         private static McpWebsocketsServer? _McpWebsocketServer = null;
@@ -57,10 +53,6 @@ namespace LiteGraph.McpServer
 
         #region Public-Members
 
-        /// <summary>
-        /// Gets the LiteGraph client instance.
-        /// </summary>
-        public LiteGraphClient Client => _Client!;
 
         /// <summary>
         /// Occurs when a log message is generated.
@@ -71,124 +63,6 @@ namespace LiteGraph.McpServer
 
         #region Constructors
 
-        /// <summary>
-        /// Initializes a new instance of the LiteGraphMcpServer class with an in-memory database.
-        /// </summary>
-        /// <param name="httpHostname">HTTP server hostname. Default is "127.0.0.1".</param>
-        /// <param name="httpPort">HTTP server port. Default is 8200.</param>
-        /// <param name="tcpHostname">TCP server hostname. Default is "127.0.0.1".</param>
-        /// <param name="tcpPort">TCP server port. Default is 8201.</param>
-        /// <param name="websocketHostname">WebSocket server hostname. Default is "127.0.0.1".</param>
-        /// <param name="websocketPort">WebSocket server port. Default is 8202.</param>
-        public LiteGraphMcpServer(
-            string httpHostname = "127.0.0.1",
-            int httpPort = 8200,
-            string tcpHostname = "127.0.0.1",
-            int tcpPort = 8201,
-            string websocketHostname = "127.0.0.1",
-            int websocketPort = 8202)
-            : this(repositoryFilename: null, httpHostname, httpPort, tcpHostname, tcpPort, websocketHostname, websocketPort)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the LiteGraphMcpServer class with a repository.
-        /// </summary>
-        /// <param name="repositoryFilename">SQLite database filename. If null, uses in-memory database.</param>
-        /// <param name="httpHostname">HTTP server hostname. Default is "127.0.0.1".</param>
-        /// <param name="httpPort">HTTP server port. Default is 8200.</param>
-        /// <param name="tcpHostname">TCP server hostname. Default is "127.0.0.1".</param>
-        /// <param name="tcpPort">TCP server port. Default is 8201.</param>
-        /// <param name="websocketHostname">WebSocket server hostname. Default is "127.0.0.1".</param>
-        /// <param name="websocketPort">WebSocket server port. Default is 8202.</param>
-        public LiteGraphMcpServer(
-            string? repositoryFilename,
-            string httpHostname = "127.0.0.1",
-            int httpPort = 8200,
-            string tcpHostname = "127.0.0.1",
-            int tcpPort = 8201,
-            string websocketHostname = "127.0.0.1",
-            int websocketPort = 8202)
-        {
-            SqliteGraphRepository repo = repositoryFilename == null
-                ? new SqliteGraphRepository("litegraph.memory", inMemory: true)
-                : new SqliteGraphRepository(repositoryFilename, inMemory: false);
-            _Client = new LiteGraphClient(repo);
-            _Client.InitializeRepository();
-
-            _HttpHostname = httpHostname;
-            _HttpPort = httpPort;
-            _TcpAddressDisplay = tcpHostname;
-            _TcpAddress = tcpHostname.Equals("localhost", StringComparison.OrdinalIgnoreCase) ? "127.0.0.1" : tcpHostname;
-            _TcpPort = tcpPort;
-            _WebSocketHostname = websocketHostname;
-            _WebSocketPort = websocketPort;
-
-            _HttpServer = new McpHttpServer(_HttpHostname, _HttpPort, "/rpc", "/events", includeDefaultMethods: true);
-            _TcpServer = new McpTcpServer(IPAddress.Parse(_TcpAddress), _TcpPort, includeDefaultMethods: true);
-            _WebsocketServer = new McpWebsocketsServer(_WebSocketHostname, _WebSocketPort, "/mcp", includeDefaultMethods: true);
-
-            _HttpServer.ServerName = "LiteGraph.McpServer";
-            _HttpServer.ServerVersion = "1.0.0";
-            _TcpServer.ServerName = "LiteGraph.McpServer";
-            _TcpServer.ServerVersion = "1.0.0";
-            _WebsocketServer.ServerName = "LiteGraph.McpServer";
-            _WebsocketServer.ServerVersion = "1.0.0";
-
-            _HttpServer.Log += (sender, msg) => Log?.Invoke(this, $"[HTTP] {msg}");
-            _TcpServer.Log += (sender, msg) => Log?.Invoke(this, $"[TCP] {msg}");
-            _WebsocketServer.Log += (sender, msg) => Log?.Invoke(this, $"[WS] {msg}");
-
-            RegisterTools();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the LiteGraphMcpServer class with a REST API endpoint.
-        /// </summary>
-        /// <param name="endpoint">Base URL of the LiteGraph REST API server.</param>
-        /// <param name="httpHostname">HTTP server hostname. Default is "127.0.0.1".</param>
-        /// <param name="httpPort">HTTP server port. Default is 8200.</param>
-        /// <param name="tcpHostname">TCP server hostname. Default is "127.0.0.1".</param>
-        /// <param name="tcpPort">TCP server port. Default is 8201.</param>
-        /// <param name="websocketHostname">WebSocket server hostname. Default is "127.0.0.1".</param>
-        /// <param name="websocketPort">WebSocket server port. Default is 8202.</param>
-        public LiteGraphMcpServer(
-            string endpoint,
-            string? httpHostname = null,
-            int? httpPort = null,
-            string? tcpHostname = null,
-            int? tcpPort = null,
-            string? websocketHostname = null,
-            int? websocketPort = null)
-        {
-            _Client = new LiteGraphClient(endpoint);
-
-            _HttpHostname = httpHostname ?? "127.0.0.1";
-            _HttpPort = httpPort ?? 8200;
-            string tcpHost = tcpHostname ?? "127.0.0.1";
-            _TcpAddressDisplay = tcpHost;
-            _TcpAddress = tcpHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) ? "127.0.0.1" : tcpHost;
-            _TcpPort = tcpPort ?? 8201;
-            _WebSocketHostname = websocketHostname ?? "127.0.0.1";
-            _WebSocketPort = websocketPort ?? 8202;
-
-            _HttpServer = new McpHttpServer(_HttpHostname, _HttpPort, "/rpc", "/events", includeDefaultMethods: true);
-            _TcpServer = new McpTcpServer(IPAddress.Parse(_TcpAddress), _TcpPort, includeDefaultMethods: true);
-            _WebsocketServer = new McpWebsocketsServer(_WebSocketHostname, _WebSocketPort, "/mcp", includeDefaultMethods: true);
-
-            _HttpServer.ServerName = "LiteGraph.McpServer";
-            _HttpServer.ServerVersion = "1.0.0";
-            _TcpServer.ServerName = "LiteGraph.McpServer";
-            _TcpServer.ServerVersion = "1.0.0";
-            _WebsocketServer.ServerName = "LiteGraph.McpServer";
-            _WebsocketServer.ServerVersion = "1.0.0";
-
-            _HttpServer.Log += (sender, msg) => Log?.Invoke(this, $"[HTTP] {msg}");
-            _TcpServer.Log += (sender, msg) => Log?.Invoke(this, $"[TCP] {msg}");
-            _WebsocketServer.Log += (sender, msg) => Log?.Invoke(this, $"[WS] {msg}");
-
-            RegisterTools();
-        }
 
         #endregion
 
@@ -230,7 +104,7 @@ namespace LiteGraph.McpServer
             _McpHttpServer?.Dispose();
             _McpTcpServer?.Dispose();
             _McpWebsocketServer?.Dispose();
-            _McpClient?.Dispose();
+            _McpSdk?.Dispose();
         }
 
         #endregion
@@ -281,7 +155,6 @@ namespace LiteGraph.McpServer
             _HttpServer?.Dispose();
             _TcpServer?.Dispose();
             _WebsocketServer?.Dispose();
-            _Client?.Dispose();
 
             _Disposed = true;
         }
@@ -337,21 +210,21 @@ namespace LiteGraph.McpServer
 
                 _Settings.SoftwareVersion = _SoftwareVersion;
 
-                File.WriteAllBytes(Constants.SettingsFile, Encoding.UTF8.GetBytes(_Serializer.SerializeJson(_Settings, true)));
+                File.WriteAllBytes(Constants.SettingsFile, Encoding.UTF8.GetBytes(Serializer.SerializeJson(_Settings, true)));
                 Console.WriteLine("Created settings file '" + Constants.SettingsFile + "' with default configuration");
             }
             else
             {
-                _Settings = _Serializer.DeserializeJson<LiteGraphMcpServerSettings>(File.ReadAllText(Constants.SettingsFile));
+                _Settings = Serializer.DeserializeJson<LiteGraphMcpServerSettings>(File.ReadAllText(Constants.SettingsFile));
                 _Settings.Node.LastStartUtc = DateTime.UtcNow;
-                File.WriteAllBytes(Constants.SettingsFile, Encoding.UTF8.GetBytes(_Serializer.SerializeJson(_Settings, true)));
+                File.WriteAllBytes(Constants.SettingsFile, Encoding.UTF8.GetBytes(Serializer.SerializeJson(_Settings, true)));
             }
 
             if (_ShowConfiguration)
             {
                 Console.WriteLine();
                 Console.WriteLine("Configuration:");
-                Console.WriteLine(_Serializer.SerializeJson(_Settings, true));
+                Console.WriteLine(Serializer.SerializeJson(_Settings, true));
                 Console.WriteLine();
                 Environment.Exit(0);
             }
@@ -370,8 +243,8 @@ namespace LiteGraph.McpServer
             string? liteGraphEndpoint = Environment.GetEnvironmentVariable(Constants.LiteGraphEndpointEnvironmentVariable);
             if (!String.IsNullOrEmpty(liteGraphEndpoint)) _Settings.LiteGraph.Endpoint = liteGraphEndpoint;
 
-            string? liteGraphRepository = Environment.GetEnvironmentVariable(Constants.LiteGraphRepositoryEnvironmentVariable);
-            if (!String.IsNullOrEmpty(liteGraphRepository)) _Settings.LiteGraph.RepositoryFilename = liteGraphRepository;
+            string? liteGraphApiKey = Environment.GetEnvironmentVariable(Constants.LiteGraphApiKeyEnvironmentVariable);
+            if (!String.IsNullOrEmpty(liteGraphApiKey)) _Settings.LiteGraph.ApiKey = liteGraphApiKey;
 
             string? httpHostname = Environment.GetEnvironmentVariable(Constants.McpHttpHostnameEnvironmentVariable);
             if (!String.IsNullOrEmpty(httpHostname)) _Settings.Http.Hostname = httpHostname;
@@ -451,32 +324,17 @@ namespace LiteGraph.McpServer
 
             #endregion
 
-            #region LiteGraph-Client
+            #region LiteGraph-SDK
 
-            Console.WriteLine("Initializing LiteGraph client");
+            Console.WriteLine("Initializing LiteGraph SDK");
 
-            if (!string.IsNullOrEmpty(_Settings.LiteGraph.Endpoint))
+            if (string.IsNullOrEmpty(_Settings.LiteGraph.Endpoint))
             {
-                Console.WriteLine("Connecting to LiteGraph server at: " + _Settings.LiteGraph.Endpoint);
-                _McpClient = new LiteGraphClient(_Settings.LiteGraph.Endpoint);
+                throw new InvalidOperationException("LiteGraph endpoint is required. Please configure 'LiteGraph.Endpoint' in settings or set LITEGRAPH_ENDPOINT environment variable.");
             }
-            else
-            {
-                if (!string.IsNullOrEmpty(_Settings.LiteGraph.RepositoryFilename))
-                {
-                    Console.WriteLine("Using SQLite database: " + _Settings.LiteGraph.RepositoryFilename);
-                    SqliteGraphRepository repo = new SqliteGraphRepository(_Settings.LiteGraph.RepositoryFilename, inMemory: false);
-                    _McpClient = new LiteGraphClient(repo);
-                    _McpClient.InitializeRepository();
-                }
-                else
-                {
-                    Console.WriteLine("Using in-memory SQLite database");
-                    SqliteGraphRepository repo = new SqliteGraphRepository("litegraph.memory", inMemory: true);
-                    _McpClient = new LiteGraphClient(repo);
-                    _McpClient.InitializeRepository();
-                }
-            }
+
+            Console.WriteLine("Connecting to LiteGraph server at: " + _Settings.LiteGraph.Endpoint);
+            _McpSdk = new LiteGraphSdk(_Settings.LiteGraph.Endpoint, _Settings.LiteGraph.ApiKey);
 
             #endregion
 
@@ -549,20 +407,20 @@ namespace LiteGraph.McpServer
 
         private static void RegisterMcpTools()
         {
-            if (_McpHttpServer == null || _McpTcpServer == null || _McpWebsocketServer == null || _McpClient == null)
-                throw new InvalidOperationException("Servers and client have not been initialized");
+            if (_McpHttpServer == null || _McpTcpServer == null || _McpWebsocketServer == null || _McpSdk == null)
+                throw new InvalidOperationException("Servers and SDK have not been initialized");
 
-            Registrations.TenantRegistrations.RegisterHttpTools(_McpHttpServer, _McpClient, _Serializer);
-            Registrations.GraphRegistrations.RegisterHttpTools(_McpHttpServer, _McpClient, _Serializer);
-            Registrations.NodeRegistrations.RegisterHttpTools(_McpHttpServer, _McpClient, _Serializer);
+            Registrations.TenantRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.GraphRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.NodeRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
 
-            Registrations.TenantRegistrations.RegisterTcpMethods(_McpTcpServer, _McpClient, _Serializer);
-            Registrations.GraphRegistrations.RegisterTcpMethods(_McpTcpServer, _McpClient, _Serializer);
-            Registrations.NodeRegistrations.RegisterTcpMethods(_McpTcpServer, _McpClient, _Serializer);
+            Registrations.TenantRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.GraphRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.NodeRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
 
-            Registrations.TenantRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpClient, _Serializer);
-            Registrations.GraphRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpClient, _Serializer);
-            Registrations.NodeRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpClient, _Serializer);
+            Registrations.TenantRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.GraphRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.NodeRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
         }
 
         private static void ShowHelp()
@@ -587,37 +445,6 @@ namespace LiteGraph.McpServer
             Console.WriteLine();
         }
 
-        private void RegisterTools()
-        {
-            if (_HttpServer == null || _TcpServer == null || _WebsocketServer == null || _Client == null)
-                throw new InvalidOperationException("Servers and client have not been initialized");
-
-            RegisterHttpTools(_HttpServer);
-
-            RegisterTcpMethods(_TcpServer);
-            RegisterWebSocketMethods(_WebsocketServer);
-        }
-
-        private void RegisterHttpTools(McpHttpServer server)
-        {
-            Registrations.TenantRegistrations.RegisterHttpTools(server, _Client!, _Serializer);
-            Registrations.GraphRegistrations.RegisterHttpTools(server, _Client!, _Serializer);
-            Registrations.NodeRegistrations.RegisterHttpTools(server, _Client!, _Serializer);
-        }
-
-        private void RegisterTcpMethods(McpTcpServer server)
-        {
-            Registrations.TenantRegistrations.RegisterTcpMethods(server, _Client!, _Serializer);
-            Registrations.GraphRegistrations.RegisterTcpMethods(server, _Client!, _Serializer);
-            Registrations.NodeRegistrations.RegisterTcpMethods(server, _Client!, _Serializer);
-        }
-
-        private void RegisterWebSocketMethods(McpWebsocketsServer server)
-        {
-            Registrations.TenantRegistrations.RegisterWebSocketMethods(server, _Client!, _Serializer);
-            Registrations.GraphRegistrations.RegisterWebSocketMethods(server, _Client!, _Serializer);
-            Registrations.NodeRegistrations.RegisterWebSocketMethods(server, _Client!, _Serializer);
-        }
 
         #endregion
     }

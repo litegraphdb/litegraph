@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -8,11 +8,8 @@
 		<Description>MCP (Model Context Protocol) server for LiteGraph graph database. Enables integration of document processing, vector storage retrieval, and graph operations via MCP.</Description>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="LiteGraph.Sdk" Version="4.1.1" />
 		<PackageReference Include="Voltaic" Version="0.1.5" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\LiteGraph\LiteGraph.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

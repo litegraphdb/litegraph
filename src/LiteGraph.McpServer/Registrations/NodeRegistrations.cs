@@ -3,8 +3,7 @@ namespace LiteGraph.McpServer.Registrations
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
-    using LiteGraph;
-    using LiteGraph.Serialization;
+    using LiteGraph.Sdk;
     using Voltaic;
 
     /// <summary>
@@ -17,7 +16,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers node tools on HTTP server.
         /// </summary>
-        public static void RegisterHttpTools(McpHttpServer server, LiteGraphClient client, Serializer serializer)
+        public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterTool(
                 "node/create",
@@ -45,8 +44,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                     string name = nameProp.GetString()!;
                     Node node = new Node { TenantGUID = tenantGuid, GraphGUID = graphGuid, Name = name };
-                    Node created = client.Node.Create(node).GetAwaiter().GetResult();
-                    return serializer.SerializeJson(created, true);
+                    Node created = sdk.Node.Create(node).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(created, true);
                 });
 
             server.RegisterTool(
@@ -76,11 +75,9 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                     Guid nodeGuid = Guid.Parse(nodeGuidProp.GetString()!);
-                    bool includeData = args.Value.TryGetProperty("includeData", out JsonElement includeDataProp) && includeDataProp.GetBoolean();
-                    bool includeSubordinates = args.Value.TryGetProperty("includeSubordinates", out JsonElement includeSubProp) && includeSubProp.GetBoolean();
 
-                    Node node = client.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
-                    return node != null ? serializer.SerializeJson(node, true) : "null";
+                    Node node = sdk.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return node != null ? Serializer.SerializeJson(node, true) : "null";
                 });
 
             server.RegisterTool(
@@ -105,8 +102,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    List<Node> nodes = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadAllInGraph(tenantGuid, graphGuid, EnumerationOrderEnum.CreatedDescending, 0, includeData, includeSubordinates));
-                    return serializer.SerializeJson(nodes, true);
+                    List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(nodes, true);
                 });
 
             server.RegisterTool(
@@ -135,8 +132,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid fromNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "fromNodeGuid");
                     Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                     SearchTypeEnum searchType = Enum.Parse<SearchTypeEnum>(args.Value.GetProperty("searchType").GetString()!);
-                    List<RouteDetail> routes = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null));
-                    return serializer.SerializeJson(routes, true);
+                    RouteResponse routeResponse = sdk.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(routeResponse.Routes, true);
                 });
 
             server.RegisterTool(
@@ -159,8 +156,9 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                    List<Node> parents = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadParents(tenantGuid, graphGuid, nodeGuid));
-                    return serializer.SerializeJson(parents, true);
+                    List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(parents ?? new List<Node>(), true);
+
                 });
 
             server.RegisterTool(
@@ -183,8 +181,64 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                    List<Node> children = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid));
-                    return serializer.SerializeJson(children, true);
+                    List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(children ?? new List<Node>(), true);
+                });
+
+            server.RegisterTool(
+                "node/deleteall",
+                "Deletes all nodes in a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    if (!args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp) ||
+                        !args.Value.TryGetProperty("graphGuid", out JsonElement graphGuidProp))
+                        throw new ArgumentException("Tenant GUID and graph GUID are required");
+                    
+                    Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
+                    Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
+                    sdk.Node.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return string.Empty;
+                });
+
+            server.RegisterTool(
+                "node/deletemany",
+                "Deletes multiple nodes by their GUIDs",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuids = new { type = "array", items = new { type = "string" }, description = "Array of node GUIDs to delete" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuids" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    if (!args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp) ||
+                        !args.Value.TryGetProperty("graphGuid", out JsonElement graphGuidProp) ||
+                        !args.Value.TryGetProperty("nodeGuids", out JsonElement nodeGuidsProp))
+                        throw new ArgumentException("Tenant GUID, graph GUID, and nodeGuids array are required");
+                    
+                    Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
+                    Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
+                    List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
+                    
+                    sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
+                    return string.Empty;
                 });
 
             server.RegisterTool(
@@ -207,8 +261,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                    List<Node> neighbors = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid));
-                    return serializer.SerializeJson(neighbors, true);
+                    List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(neighbors ?? new List<Node>(), true);
                 });
         }
 
@@ -219,7 +273,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers node methods on TCP server.
         /// </summary>
-        public static void RegisterTcpMethods(McpTcpServer server, LiteGraphClient client, Serializer serializer)
+        public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("node/create", (args) =>
             {
@@ -233,8 +287,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 string name = nameProp.GetString()!;
                 Node node = new Node { TenantGUID = tenantGuid, GraphGUID = graphGuid, Name = name };
-                Node created = client.Node.Create(node).GetAwaiter().GetResult();
-                return serializer.SerializeJson(created, true);
+                Node created = sdk.Node.Create(node).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(created, true);
             });
 
             server.RegisterMethod("node/get", (args) =>
@@ -248,11 +302,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 Guid nodeGuid = Guid.Parse(nodeGuidProp.GetString()!);
-                bool includeData = args.Value.TryGetProperty("includeData", out JsonElement includeDataProp) && includeDataProp.GetBoolean();
-                bool includeSubordinates = args.Value.TryGetProperty("includeSubordinates", out JsonElement includeSubProp) && includeSubProp.GetBoolean();
-
-                Node node = client.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
-                return node != null ? serializer.SerializeJson(node, true) : "null";
+                Node node = sdk.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return node != null ? Serializer.SerializeJson(node, true) : "null";
             });
 
             server.RegisterMethod("node/all", (args) =>
@@ -262,8 +313,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                List<Node> nodes = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadAllInGraph(tenantGuid, graphGuid, EnumerationOrderEnum.CreatedDescending, 0, includeData, includeSubordinates));
-                return serializer.SerializeJson(nodes, true);
+                List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
             });
 
             server.RegisterMethod("node/traverse", (args) =>
@@ -274,8 +325,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid fromNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "fromNodeGuid");
                 Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                 SearchTypeEnum searchType = Enum.Parse<SearchTypeEnum>(args.Value.GetProperty("searchType").GetString()!);
-                List<RouteDetail> routes = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null));
-                return serializer.SerializeJson(routes, true);
+                RouteResponse routeResponse = sdk.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(routeResponse.Routes, true);
             });
 
             server.RegisterMethod("node/parents", (args) =>
@@ -284,8 +335,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> parents = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadParents(tenantGuid, graphGuid, nodeGuid));
-                return serializer.SerializeJson(parents, true);
+                List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(parents, true);
             });
 
             server.RegisterMethod("node/children", (args) =>
@@ -294,8 +345,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> children = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid));
-                return serializer.SerializeJson(children, true);
+                List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(children, true);
             });
 
             server.RegisterMethod("node/neighbors", (args) =>
@@ -304,8 +355,31 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> neighbors = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid));
-                return serializer.SerializeJson(neighbors, true);
+                List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(neighbors, true);
+            });
+
+            server.RegisterMethod("node/deleteall", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Node.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("node/deletemany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("nodeGuids", out JsonElement nodeGuidsProp))
+                    throw new ArgumentException("nodeGuids array is required");
+                
+                List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
+                
+                sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
+                return string.Empty;
             });
         }
 
@@ -316,7 +390,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers node methods on WebSocket server.
         /// </summary>
-        public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphClient client, Serializer serializer)
+        public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("node/create", (args) =>
             {
@@ -330,8 +404,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 string name = nameProp.GetString()!;
                 Node node = new Node { TenantGUID = tenantGuid, GraphGUID = graphGuid, Name = name };
-                Node created = client.Node.Create(node).GetAwaiter().GetResult();
-                return serializer.SerializeJson(created, true);
+                Node created = sdk.Node.Create(node).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(created, true);
             });
 
             server.RegisterMethod("node/get", (args) =>
@@ -345,11 +419,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 Guid nodeGuid = Guid.Parse(nodeGuidProp.GetString()!);
-                bool includeData = args.Value.TryGetProperty("includeData", out JsonElement includeDataProp) && includeDataProp.GetBoolean();
-                bool includeSubordinates = args.Value.TryGetProperty("includeSubordinates", out JsonElement includeSubProp) && includeSubProp.GetBoolean();
-
-                Node node = client.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
-                return node != null ? serializer.SerializeJson(node, true) : "null";
+                Node node = sdk.Node.ReadByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return node != null ? Serializer.SerializeJson(node, true) : "null";
             });
 
             server.RegisterMethod("node/all", (args) =>
@@ -359,8 +430,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                List<Node> nodes = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadAllInGraph(tenantGuid, graphGuid, EnumerationOrderEnum.CreatedDescending, 0, includeData, includeSubordinates));
-                return serializer.SerializeJson(nodes, true);
+                List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
             });
 
             server.RegisterMethod("node/traverse", (args) =>
@@ -371,8 +442,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid fromNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "fromNodeGuid");
                 Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                 SearchTypeEnum searchType = Enum.Parse<SearchTypeEnum>(args.Value.GetProperty("searchType").GetString()!);
-                List<RouteDetail> routes = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null));
-                return serializer.SerializeJson(routes, true);
+                RouteResponse routeResponse = sdk.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(routeResponse.Routes, true);
             });
 
             server.RegisterMethod("node/parents", (args) =>
@@ -381,8 +452,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> parents = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadParents(tenantGuid, graphGuid, nodeGuid));
-                return serializer.SerializeJson(parents, true);
+                List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult(); ;
+                return Serializer.SerializeJson(parents, true);
             });
 
             server.RegisterMethod("node/children", (args) =>
@@ -391,8 +462,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> children = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid));
-                return serializer.SerializeJson(children, true);
+                List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(children, true);
             });
 
             server.RegisterMethod("node/neighbors", (args) =>
@@ -401,8 +472,31 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> neighbors = LiteGraphMcpServerHelpers.ToListSync(client.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid));
-                return serializer.SerializeJson(neighbors, true);
+                List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(neighbors, true);
+            });
+
+            server.RegisterMethod("node/deleteall", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Node.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return string.Empty;
+            });
+
+            server.RegisterMethod("node/deletemany", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                if (!args.Value.TryGetProperty("nodeGuids", out JsonElement nodeGuidsProp))
+                    throw new ArgumentException("nodeGuids array is required");
+                
+                List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
+                
+                sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
+                return string.Empty;
             });
         }
 

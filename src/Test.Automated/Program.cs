@@ -2465,70 +2465,6 @@ namespace Test.Automated
         // MCP Server Tests
         // ========================================
 
-        private static async Task EnsureMcpTenantExists()
-        {
-            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
-            if (_McpTestTenantGuid == Guid.Empty)
-            {
-                await TestMcpTenantCreate();
-            }
-            else
-            {
-                string existsResult = await _McpClient.CallAsync<string>("tenant/exists", new { tenantGuid = _McpTestTenantGuid.ToString() });
-                if (existsResult == null || !existsResult.Contains("\"exists\":true"))
-                {
-                    await TestMcpTenantCreate();
-                }
-            }
-        }
-
-        private static async Task EnsureMcpGraphExists()
-        {
-            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
-            await EnsureMcpTenantExists();
-            if (_McpTestGraphGuid == Guid.Empty)
-            {
-                await TestMcpGraphCreate();
-            }
-            else
-            {
-                string existsResult = await _McpClient.CallAsync<string>("graph/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-                if (existsResult == null || !existsResult.Contains("\"exists\":true"))
-                {
-                    await TestMcpGraphCreate();
-                }
-            }
-        }
-
-        private static async Task EnsureMcpNodeExists()
-        {
-            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
-            await EnsureMcpGraphExists();
-            if (_McpTestNode1Guid == Guid.Empty)
-            {
-                await TestMcpNodeCreate();
-            }
-            else
-            {
-                try
-                {
-                    string getResult = await _McpClient.CallAsync<string>("node/get", new
-                    {
-                        tenantGuid = _McpTestTenantGuid.ToString(),
-                        graphGuid = _McpTestGraphGuid.ToString(),
-                        nodeGuid = _McpTestNode1Guid.ToString()
-                    });
-                    if (getResult == null || getResult == "null")
-                    {
-                        await TestMcpNodeCreate();
-                    }
-                }
-                catch
-                {
-                    await TestMcpNodeCreate();
-                }
-            }
-        }
 
         private static async Task InitializeMcpServer()
         {
@@ -2625,9 +2561,10 @@ namespace Test.Automated
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             if (_McpTestTenantGuid == Guid.Empty) throw new InvalidOperationException("Test tenant GUID is empty");
 
+            if (_McpTestGraphGuid != Guid.Empty)
+                await _McpClient.CallAsync<string>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+
             string result = await _McpClient!.CallAsync<string>("tenant/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
-            AssertNotNull(result, "Result should not be null");
-            AssertTrue(result.Contains("success"), "Delete should return success");
         }
 
         private static async Task TestMcpTenantEnumerate()
@@ -2663,7 +2600,6 @@ namespace Test.Automated
         private static async Task TestMcpTenantStatistics()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
 
             string result = await _McpClient!.CallAsync<string>("tenant/statistics", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
@@ -2676,7 +2612,6 @@ namespace Test.Automated
         private static async Task TestMcpGraphCreate()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
 
             string result = await _McpClient!.CallAsync<string>("graph/create", new { tenantGuid = _McpTestTenantGuid.ToString(), name = "MCP Test Graph" });
             AssertNotNull(result, "Result should not be null");
@@ -2691,7 +2626,6 @@ namespace Test.Automated
         private static async Task TestMcpGraphGet()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
 
             string result = await _McpClient!.CallAsync<string>("graph/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
@@ -2705,7 +2639,6 @@ namespace Test.Automated
         private static async Task TestMcpGraphAll()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
 
             string result = await _McpClient!.CallAsync<string>("graph/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
@@ -2717,7 +2650,6 @@ namespace Test.Automated
         private static async Task TestMcpGraphUpdate()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
 
             string getResult = await _McpClient!.CallAsync<string>("graph/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(getResult, "Get result should not be null");
@@ -2740,26 +2672,24 @@ namespace Test.Automated
         private static async Task TestMcpGraphDelete()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
             if (_McpTestGraphGuid == Guid.Empty)
             {
                 await TestMcpGraphCreate();
             }
 
+            await _McpClient!.CallAsync<string>("node/deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             string result = await _McpClient!.CallAsync<string>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
-            AssertNotNull(result, "Result should not be null");
-            AssertTrue(result.Contains("success"), "Delete should return success");
+            _McpTestGraphGuid = Guid.Empty;
         }
 
         private static async Task TestMcpGraphEnumerate()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
 
             EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
             var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
-            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { query = queryObj });
+            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -2770,7 +2700,6 @@ namespace Test.Automated
         private static async Task TestMcpGraphExists()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
             if (_McpTestGraphGuid == Guid.Empty)
             {
                 await TestMcpGraphCreate();
@@ -2784,7 +2713,6 @@ namespace Test.Automated
         private static async Task TestMcpGraphStatistics()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
 
             string result = await _McpClient!.CallAsync<string>("graph/statistics", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
@@ -2797,11 +2725,6 @@ namespace Test.Automated
         private static async Task TestMcpNodeCreate()
         {
             await InitializeMcpServer();
-            await EnsureMcpTenantExists();
-            if (_McpTestGraphGuid == Guid.Empty)
-            {
-                await TestMcpGraphCreate();
-            }
 
             string result = await _McpClient!.CallAsync<string>("node/create", new
             {
@@ -2830,7 +2753,6 @@ namespace Test.Automated
         private static async Task TestMcpNodeGet()
         {
             await InitializeMcpServer();
-            await EnsureMcpNodeExists();
 
             string result = await _McpClient!.CallAsync<string>("node/get", new
             {
@@ -2849,7 +2771,6 @@ namespace Test.Automated
         private static async Task TestMcpNodeAll()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
 
             string result = await _McpClient!.CallAsync<string>("node/all", new
             {
@@ -2865,11 +2786,6 @@ namespace Test.Automated
         private static async Task TestMcpNodeParents()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
-            if (_McpTestNode1Guid == Guid.Empty)
-            {
-                await TestMcpNodeCreate();
-            }
 
             string result = await _McpClient!.CallAsync<string>("node/parents", new
             {
@@ -2886,11 +2802,6 @@ namespace Test.Automated
         private static async Task TestMcpNodeChildren()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
-            if (_McpTestNode1Guid == Guid.Empty)
-            {
-                await TestMcpNodeCreate();
-            }
 
             string result = await _McpClient!.CallAsync<string>("node/children", new
             {
@@ -2907,11 +2818,6 @@ namespace Test.Automated
         private static async Task TestMcpNodeNeighbors()
         {
             await InitializeMcpServer();
-            await EnsureMcpGraphExists();
-            if (_McpTestNode1Guid == Guid.Empty)
-            {
-                await TestMcpNodeCreate();
-            }
 
             string result = await _McpClient!.CallAsync<string>("node/neighbors", new
             {

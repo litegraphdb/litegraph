@@ -3,8 +3,7 @@ namespace LiteGraph.McpServer.Registrations
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
-    using LiteGraph;
-    using LiteGraph.Serialization;
+    using LiteGraph.Sdk;
     using Voltaic;
 
     /// <summary>
@@ -17,7 +16,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers tenant tools on HTTP server.
         /// </summary>
-        public static void RegisterHttpTools(McpHttpServer server, LiteGraphClient client, Serializer serializer)
+        public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterTool(
                 "tenant/create",
@@ -36,10 +35,10 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("name", out JsonElement nameProp))
                         throw new ArgumentException("Tenant name is required");
 
-                    string name = nameProp.GetString();
+                    string? name = nameProp.GetString();
                     TenantMetadata tenant = new TenantMetadata { Name = name };
-                    TenantMetadata created = client.Tenant.Create(tenant).GetAwaiter().GetResult();
-                    return serializer.SerializeJson(created, true);
+                    TenantMetadata created = sdk.Tenant.Create(tenant).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(created, true);
                 });
 
             server.RegisterTool(
@@ -59,9 +58,9 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                         throw new ArgumentException("Tenant GUID is required");
 
-                    Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                    TenantMetadata tenant = client.Tenant.ReadByGuid(tenantGuid).GetAwaiter().GetResult();
-                    return tenant != null ? serializer.SerializeJson(tenant, true) : "null";
+                    Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                    TenantMetadata tenant = sdk.Tenant.ReadByGuid(tenantGuid).GetAwaiter().GetResult();
+                    return tenant != null ? Serializer.SerializeJson(tenant, true) : "null";
                 });
 
             server.RegisterTool(
@@ -75,8 +74,8 @@ namespace LiteGraph.McpServer.Registrations
                 },
                 (args) =>
                 {
-                    var tenants = LiteGraphMcpServerHelpers.ToListSync(client.Tenant.ReadMany());
-                    return serializer.SerializeJson(tenants, true);
+                    var tenants = sdk.Tenant.ReadMany().GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tenants, true);
                 });
 
             server.RegisterTool(
@@ -96,9 +95,9 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("tenant", out JsonElement tenantProp))
                         throw new ArgumentException("Tenant object is required");
                     
-                    TenantMetadata tenant = serializer.DeserializeJson<TenantMetadata>(tenantProp.GetRawText());
-                    TenantMetadata updated = client.Tenant.Update(tenant).GetAwaiter().GetResult();
-                    return serializer.SerializeJson(updated, true);
+                    TenantMetadata tenant = Serializer.DeserializeJson<TenantMetadata>(tenantProp.GetRawText());
+                    TenantMetadata updated = sdk.Tenant.Update(tenant).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(updated, true);
                 });
 
             server.RegisterTool(
@@ -119,10 +118,10 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                         throw new ArgumentException("Tenant GUID is required");
                     
-                    Guid tenantGuid = Guid.Parse(guidProp.GetString());
+                    Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                     bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
-                    client.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
-                    return "{\"success\": true}";
+                    sdk.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
+                    return string.Empty;
                 });
 
             server.RegisterTool(
@@ -139,12 +138,12 @@ namespace LiteGraph.McpServer.Registrations
                 },
                 (args) =>
                 {
-                    EnumerationRequest query = null;
+                    EnumerationRequest query = new EnumerationRequest();
                     if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
-                        query = serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                        query = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText()) ?? new EnumerationRequest();
                     
-                    EnumerationResult<TenantMetadata> result = client.Tenant.Enumerate(query).GetAwaiter().GetResult();
-                    return serializer.SerializeJson(result, true);
+                    EnumerationResult<TenantMetadata> result = sdk.Tenant.Enumerate(query).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(result, true);
                 });
 
             server.RegisterTool(
@@ -164,36 +163,46 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                         throw new ArgumentException("Tenant GUID is required");
                     
-                    Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                    bool exists = client.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
+                    Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                    bool exists = sdk.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
                     return $"{{\"exists\": {exists.ToString().ToLower()}}}";
                 });
 
             server.RegisterTool(
                 "tenant/statistics",
-                "Gets statistics for a tenant or all tenants",
+                "Gets statistics for a specific tenant",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID (optional, if not provided returns all tenant statistics)" }
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
                     },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
+                        throw new ArgumentException("Tenant GUID is required");
+                    
+                    Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                    TenantStatistics stats = sdk.Tenant.GetStatistics(tenantGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(stats, true);
+                });
+
+            server.RegisterTool(
+                "tenant/statistics/all",
+                "Gets statistics for all tenants",
+                new
+                {
+                    type = "object",
+                    properties = new { },
                     required = new string[] { }
                 },
                 (args) =>
                 {
-                    if (args.HasValue && args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
-                    {
-                        Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                        TenantStatistics stats = client.Tenant.GetStatistics(tenantGuid).GetAwaiter().GetResult();
-                        return serializer.SerializeJson(stats, true);
-                    }
-                    else
-                    {
-                        Dictionary<Guid, TenantStatistics> allStats = client.Tenant.GetStatistics().GetAwaiter().GetResult();
-                        return serializer.SerializeJson(allStats, true);
-                    }
+                    Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(allStats, true);
                 });
         }
 
@@ -204,17 +213,17 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers tenant methods on TCP server.
         /// </summary>
-        public static void RegisterTcpMethods(McpTcpServer server, LiteGraphClient client, Serializer serializer)
+        public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("tenant/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("name", out JsonElement nameProp))
                     throw new ArgumentException("Tenant name is required");
 
-                string name = nameProp.GetString();
+                string? name = nameProp.GetString();
                 TenantMetadata tenant = new TenantMetadata { Name = name };
-                TenantMetadata created = client.Tenant.Create(tenant).GetAwaiter().GetResult();
-                return serializer.SerializeJson(created, true);
+                TenantMetadata created = sdk.Tenant.Create(tenant).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(created, true);
             });
 
             server.RegisterMethod("tenant/get", (args) =>
@@ -222,67 +231,68 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                     throw new ArgumentException("Tenant GUID is required");
 
-                Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                TenantMetadata tenant = client.Tenant.ReadByGuid(tenantGuid).GetAwaiter().GetResult();
-                return tenant != null ? serializer.SerializeJson(tenant, true) : "null";
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                TenantMetadata tenant = sdk.Tenant.ReadByGuid(tenantGuid).GetAwaiter().GetResult();
+                return tenant != null ? Serializer.SerializeJson(tenant, true) : "null";
             });
 
             server.RegisterMethod("tenant/all", (args) =>
             {
-                var tenants = LiteGraphMcpServerHelpers.ToListSync(client.Tenant.ReadMany());
-                return serializer.SerializeJson(tenants, true);
+                var tenants = sdk.Tenant.ReadMany().GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tenants, true);
             });
 
             server.RegisterMethod("tenant/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenant", out JsonElement tenantProp))
                     throw new ArgumentException("Tenant object is required");
-                TenantMetadata tenant = serializer.DeserializeJson<TenantMetadata>(tenantProp.GetRawText());
-                TenantMetadata updated = client.Tenant.Update(tenant).GetAwaiter().GetResult();
-                return serializer.SerializeJson(updated, true);
+                TenantMetadata tenant = Serializer.DeserializeJson<TenantMetadata>(tenantProp.GetRawText());
+                TenantMetadata updated = sdk.Tenant.Update(tenant).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(updated, true);
             });
 
             server.RegisterMethod("tenant/delete", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                     throw new ArgumentException("Tenant GUID is required");
-                Guid tenantGuid = Guid.Parse(guidProp.GetString());
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
-                client.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
+                sdk.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
                 return "{\"success\": true}";
             });
 
             server.RegisterMethod("tenant/enumerate", (args) =>
             {
-                EnumerationRequest query = null;
+                EnumerationRequest? query = null;
                 if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
-                    query = serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
-                EnumerationResult<TenantMetadata> result = client.Tenant.Enumerate(query).GetAwaiter().GetResult();
-                return serializer.SerializeJson(result, true);
+                    query = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                EnumerationResult<TenantMetadata> result = sdk.Tenant.Enumerate(query).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
             });
 
             server.RegisterMethod("tenant/exists", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                     throw new ArgumentException("Tenant GUID is required");
-                Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                bool exists = client.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                bool exists = sdk.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
                 return $"{{\"exists\": {exists.ToString().ToLower()}}}";
             });
 
             server.RegisterMethod("tenant/statistics", (args) =>
             {
-                if (args.HasValue && args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
-                {
-                    Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                    TenantStatistics stats = client.Tenant.GetStatistics(tenantGuid).GetAwaiter().GetResult();
-                    return serializer.SerializeJson(stats, true);
-                }
-                else
-                {
-                    Dictionary<Guid, TenantStatistics> allStats = client.Tenant.GetStatistics().GetAwaiter().GetResult();
-                    return serializer.SerializeJson(allStats, true);
-                }
+                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
+                    throw new ArgumentException("Tenant GUID is required");
+                
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                TenantStatistics stats = sdk.Tenant.GetStatistics(tenantGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(stats, true);
+            });
+
+            server.RegisterMethod("tenant/statistics/all", (args) =>
+            {
+                Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
+                return Serializer.SerializeJson(allStats, true);
             });
         }
 
@@ -293,17 +303,17 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers tenant methods on WebSocket server.
         /// </summary>
-        public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphClient client, Serializer serializer)
+        public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("tenant/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("name", out JsonElement nameProp))
                     throw new ArgumentException("Tenant name is required");
 
-                string name = nameProp.GetString();
+                string? name = nameProp.GetString();
                 TenantMetadata tenant = new TenantMetadata { Name = name };
-                TenantMetadata created = client.Tenant.Create(tenant).GetAwaiter().GetResult();
-                return serializer.SerializeJson(created, true);
+                TenantMetadata created = sdk.Tenant.Create(tenant).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(created, true);
             });
 
             server.RegisterMethod("tenant/get", (args) =>
@@ -311,67 +321,68 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                     throw new ArgumentException("Tenant GUID is required");
 
-                Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                TenantMetadata tenant = client.Tenant.ReadByGuid(tenantGuid).GetAwaiter().GetResult();
-                return tenant != null ? serializer.SerializeJson(tenant, true) : "null";
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                TenantMetadata tenant = sdk.Tenant.ReadByGuid(tenantGuid).GetAwaiter().GetResult();
+                return tenant != null ? Serializer.SerializeJson(tenant, true) : "null";
             });
 
             server.RegisterMethod("tenant/all", (args) =>
             {
-                var tenants = LiteGraphMcpServerHelpers.ToListSync(client.Tenant.ReadMany());
-                return serializer.SerializeJson(tenants, true);
+                var tenants = sdk.Tenant.ReadMany().GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tenants, true);
             });
 
             server.RegisterMethod("tenant/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenant", out JsonElement tenantProp))
                     throw new ArgumentException("Tenant object is required");
-                TenantMetadata tenant = serializer.DeserializeJson<TenantMetadata>(tenantProp.GetRawText());
-                TenantMetadata updated = client.Tenant.Update(tenant).GetAwaiter().GetResult();
-                return serializer.SerializeJson(updated, true);
+                TenantMetadata tenant = Serializer.DeserializeJson<TenantMetadata>(tenantProp.GetRawText());
+                TenantMetadata updated = sdk.Tenant.Update(tenant).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(updated, true);
             });
 
             server.RegisterMethod("tenant/delete", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                     throw new ArgumentException("Tenant GUID is required");
-                Guid tenantGuid = Guid.Parse(guidProp.GetString());
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
-                client.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
+                sdk.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
                 return "{\"success\": true}";
             });
 
             server.RegisterMethod("tenant/enumerate", (args) =>
             {
-                EnumerationRequest query = null;
+                EnumerationRequest query = new EnumerationRequest();
                 if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
-                    query = serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
-                EnumerationResult<TenantMetadata> result = client.Tenant.Enumerate(query).GetAwaiter().GetResult();
-                return serializer.SerializeJson(result, true);
+                    query = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText()) ?? new EnumerationRequest();
+                EnumerationResult<TenantMetadata> result = sdk.Tenant.Enumerate(query).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(result, true);
             });
 
             server.RegisterMethod("tenant/exists", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
                     throw new ArgumentException("Tenant GUID is required");
-                Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                bool exists = client.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                bool exists = sdk.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
                 return $"{{\"exists\": {exists.ToString().ToLower()}}}";
             });
 
             server.RegisterMethod("tenant/statistics", (args) =>
             {
-                if (args.HasValue && args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
-                {
-                    Guid tenantGuid = Guid.Parse(guidProp.GetString());
-                    TenantStatistics stats = client.Tenant.GetStatistics(tenantGuid).GetAwaiter().GetResult();
-                    return serializer.SerializeJson(stats, true);
-                }
-                else
-                {
-                    Dictionary<Guid, TenantStatistics> allStats = client.Tenant.GetStatistics().GetAwaiter().GetResult();
-                    return serializer.SerializeJson(allStats, true);
-                }
+                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement guidProp))
+                    throw new ArgumentException("Tenant GUID is required");
+                
+                Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
+                TenantStatistics stats = sdk.Tenant.GetStatistics(tenantGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(stats, true);
+            });
+
+            server.RegisterMethod("tenant/statistics/all", (args) =>
+            {
+                Dictionary<Guid, TenantStatistics> allStats = sdk.Tenant.GetStatistics().GetAwaiter().GetResult();
+                return Serializer.SerializeJson(allStats, true);
             });
         }
 
