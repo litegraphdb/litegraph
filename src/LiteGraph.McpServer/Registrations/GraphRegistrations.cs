@@ -82,7 +82,9 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -92,7 +94,8 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Tenant GUID is required");
 
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                    var graphs = sdk.Graph.ReadMany(tenantGuid).GetAwaiter().GetResult();
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    List<Graph> graphs = sdk.Graph.ReadMany(tenantGuid, order, skip).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(graphs, true);
                 });
 
@@ -498,7 +501,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                var graphs = sdk.Graph.ReadMany(tenantGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Graph> graphs = sdk.Graph.ReadMany(tenantGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(graphs, true);
             });
 
@@ -716,7 +720,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                var graphs = sdk.Graph.ReadMany(tenantGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Graph> graphs = sdk.Graph.ReadMany(tenantGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(graphs, true);
             });
 

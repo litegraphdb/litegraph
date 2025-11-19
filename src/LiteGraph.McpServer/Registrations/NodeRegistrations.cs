@@ -90,6 +90,8 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
                         includeData = new { type = "boolean", description = "Include node data" },
                         includeSubordinates = new { type = "boolean", description = "Include labels, tags, vectors" }
                     },
@@ -100,9 +102,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue) throw new ArgumentException("Parameters required");
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
-                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid, order, skip).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(nodes, true);
                 });
 
@@ -146,7 +147,9 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" }
+                        nodeGuid = new { type = "string", description = "Node GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -156,7 +159,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                    List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(parents ?? new List<Node>(), true);
 
                 });
@@ -171,7 +175,9 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" }
+                        nodeGuid = new { type = "string", description = "Node GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -181,7 +187,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                    List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(children ?? new List<Node>(), true);
                 });
 
@@ -251,7 +258,9 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" }
+                        nodeGuid = new { type = "string", description = "Node GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -261,7 +270,8 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                    List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(neighbors ?? new List<Node>(), true);
                 });
 
@@ -501,9 +511,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
-                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(nodes, true);
             });
 
@@ -525,7 +534,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> parents = sdk.Node.ReadParents(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(parents, true);
             });
 
@@ -535,7 +545,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(children, true);
             });
 
@@ -545,7 +556,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(neighbors, true);
             });
 
@@ -704,9 +716,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
-                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> nodes = sdk.Node.ReadMany(tenantGuid, graphGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(nodes, true);
             });
 
@@ -738,7 +749,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> children = sdk.Node.ReadChildren(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(children, true);
             });
 
@@ -748,7 +760,8 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                List<Node> neighbors = sdk.Node.ReadNeighbors(tenantGuid, graphGuid, nodeGuid, order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(neighbors, true);
             });
 

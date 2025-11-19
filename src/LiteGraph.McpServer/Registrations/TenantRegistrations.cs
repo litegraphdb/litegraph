@@ -69,12 +69,20 @@ namespace LiteGraph.McpServer.Registrations
                 new
                 {
                     type = "object",
-                    properties = new { },
+                    properties = new
+                    {
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                    },
                     required = new string[] { }
                 },
                 (args) =>
                 {
-                    var tenants = sdk.Tenant.ReadMany().GetAwaiter().GetResult();
+                    (EnumerationOrderEnum order, int skip) = args.HasValue 
+                        ? LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value)
+                        : (EnumerationOrderEnum.CreatedDescending, 0);
+                    
+                    List<TenantMetadata> tenants = sdk.Tenant.ReadMany(order, skip).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(tenants, true);
                 });
 
@@ -260,7 +268,11 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("tenant/all", (args) =>
             {
-                var tenants = sdk.Tenant.ReadMany().GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = args.HasValue 
+                    ? LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value)
+                    : (EnumerationOrderEnum.CreatedDescending, 0);
+                
+                List<TenantMetadata> tenants = sdk.Tenant.ReadMany(order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(tenants, true);
             });
 
@@ -360,7 +372,11 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("tenant/all", (args) =>
             {
-                var tenants = sdk.Tenant.ReadMany().GetAwaiter().GetResult();
+                (EnumerationOrderEnum order, int skip) = args.HasValue 
+                    ? LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value)
+                    : (EnumerationOrderEnum.CreatedDescending, 0);
+                
+                List<TenantMetadata> tenants = sdk.Tenant.ReadMany(order, skip).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(tenants, true);
             });
 

@@ -1,49 +1,14 @@
 namespace LiteGraph.McpServer
 {
     using System;
-    using System.Collections.Generic;
     using System.Text.Json;
+    using LiteGraph.Sdk;
 
     /// <summary>
     /// Helper methods for LiteGraph MCP Server.
     /// </summary>
     internal static class LiteGraphMcpServerHelpers
     {
-        /// <summary>
-        /// Converts an async enumerable to a list synchronously.
-        /// </summary>
-        public static List<T> ToListSync<T>(IAsyncEnumerable<T> enumerable)
-        {
-            List<T> list = new List<T>();
-            var enumerator = enumerable.GetAsyncEnumerator();
-            try
-            {
-                while (enumerator.MoveNextAsync().AsTask().GetAwaiter().GetResult())
-                {
-                    list.Add(enumerator.Current);
-                }
-            }
-            finally
-            {
-                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
-            }
-            return list;
-        }
-
-        /// <summary>
-        /// Gets a GUID from JSON element, returning null if not present.
-        /// </summary>
-        public static Guid? GetGuidOrNull(JsonElement element, string propertyName)
-        {
-            if (element.TryGetProperty(propertyName, out JsonElement prop))
-            {
-                string? guidStr = prop.GetString();
-                if (!string.IsNullOrEmpty(guidStr) && Guid.TryParse(guidStr, out Guid guid))
-                    return guid;
-            }
-            return null;
-        }
-
         /// <summary>
         /// Gets a GUID from JSON element, throwing if not present.
         /// </summary>
@@ -57,16 +22,6 @@ namespace LiteGraph.McpServer
                 throw new ArgumentException($"Invalid GUID format for '{propertyName}'");
             
             return guid;
-        }
-
-        /// <summary>
-        /// Gets a string from JSON element, returning null if not present.
-        /// </summary>
-        public static string? GetStringOrNull(JsonElement element, string propertyName)
-        {
-            if (element.TryGetProperty(propertyName, out JsonElement prop))
-                return prop.GetString();
-            return null;
         }
 
         /// <summary>
@@ -90,37 +45,27 @@ namespace LiteGraph.McpServer
         }
 
         /// <summary>
-        /// Gets a list of strings from JSON element.
+        /// Gets an EnumerationOrderEnum from JSON element, returning default if not present or invalid.
         /// </summary>
-        public static List<string?>? GetStringListOrNull(JsonElement element, string propertyName)
+        public static EnumerationOrderEnum GetEnumerationOrderOrDefault(JsonElement element, string propertyName, EnumerationOrderEnum defaultValue = EnumerationOrderEnum.CreatedDescending)
         {
-            if (!element.TryGetProperty(propertyName, out JsonElement prop))
-                return null;
-            
-            List<string?> list = new List<string?>();
-            foreach (JsonElement item in prop.EnumerateArray())
+            if (element.TryGetProperty(propertyName, out JsonElement prop))
             {
-                list.Add(item.GetString());
+                string? orderStr = prop.GetString();
+                if (!string.IsNullOrEmpty(orderStr) && Enum.TryParse<EnumerationOrderEnum>(orderStr, out EnumerationOrderEnum parsedOrder))
+                    return parsedOrder;
             }
-            return list.Count > 0 ? list : null;
+            return defaultValue;
         }
 
         /// <summary>
-        /// Gets a list of GUIDs from JSON element.
+        /// Gets enumeration order and skip parameters from JSON element.
         /// </summary>
-        public static List<Guid>? GetGuidListOrNull(JsonElement element, string propertyName)
+        public static (EnumerationOrderEnum order, int skip) GetEnumerationParams(JsonElement element, EnumerationOrderEnum defaultOrder = EnumerationOrderEnum.CreatedDescending, int defaultSkip = 0)
         {
-            if (!element.TryGetProperty(propertyName, out JsonElement prop))
-                return null;
-            
-            List<Guid> list = new List<Guid>();
-            foreach (JsonElement item in prop.EnumerateArray())
-            {
-                string? guidStr = item.GetString();
-                if (guidStr != null && Guid.TryParse(guidStr, out Guid guid))
-                    list.Add(guid);
-            }
-            return list.Count > 0 ? list : null;
+            EnumerationOrderEnum order = GetEnumerationOrderOrDefault(element, "order", defaultOrder);
+            int skip = GetIntOrDefault(element, "skip", defaultSkip);
+            return (order, skip);
         }
     }
 }
