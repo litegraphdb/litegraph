@@ -1,0 +1,527 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LiteGraph.McpServer</name>
+    </assembly>
+    <members>
+        <member name="T:LiteGraph.McpServer.Classes.Constants">
+            <summary>
+            Constants.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.Version">
+            <summary>
+            Software version.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.Logo">
+            <summary>
+            Logo.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.ProductName">
+            <summary>
+            Product name.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.Copyright">
+            <summary>
+            Copyright.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.SettingsFile">
+            <summary>
+            Settings file path.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.LiteGraphEndpointEnvironmentVariable">
+            <summary>
+            Environment variable for LiteGraph endpoint.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.LiteGraphApiKeyEnvironmentVariable">
+            <summary>
+            Environment variable for LiteGraph API key.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpHttpHostnameEnvironmentVariable">
+            <summary>
+            Environment variable for MCP HTTP hostname.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpHttpPortEnvironmentVariable">
+            <summary>
+            Environment variable for MCP HTTP port.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpTcpAddressEnvironmentVariable">
+            <summary>
+            Environment variable for MCP TCP address.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpTcpPortEnvironmentVariable">
+            <summary>
+            Environment variable for MCP TCP port.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpWebSocketHostnameEnvironmentVariable">
+            <summary>
+            Environment variable for MCP WebSocket hostname.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpWebSocketPortEnvironmentVariable">
+            <summary>
+            Environment variable for MCP WebSocket port.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.ConsoleLoggingEnvironmentVariable">
+            <summary>
+            Environment variable for console logging.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings">
+            <summary>
+            LiteGraph MCP Server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.CreatedUtc">
+            <summary>
+            Creation timestamp.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.CreatedBy">
+            <summary>
+            Created by identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.DeploymentType">
+            <summary>
+            Deployment type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.SoftwareVersion">
+            <summary>
+            Software version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Node">
+            <summary>
+            Node information.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Logging">
+            <summary>
+            Logging settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.LiteGraph">
+            <summary>
+            LiteGraph connection settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Http">
+            <summary>
+            HTTP server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Tcp">
+            <summary>
+            TCP server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.WebSocket">
+            <summary>
+            WebSocket server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Storage">
+            <summary>
+            Storage settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Debug">
+            <summary>
+            Debug settings.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.LiteGraphSettings">
+            <summary>
+            LiteGraph connection settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphSettings.Endpoint">
+            <summary>
+            REST API endpoint URL for remote LiteGraph server.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphSettings.ApiKey">
+            <summary>
+            API key for authentication with LiteGraph server.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.HttpServerSettings">
+            <summary>
+            HTTP server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.HttpServerSettings.Hostname">
+            <summary>
+            HTTP server hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.HttpServerSettings.Port">
+            <summary>
+            HTTP server port.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.TcpServerSettings">
+            <summary>
+            TCP server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.TcpServerSettings.Address">
+            <summary>
+            Address on which to listen. Use 0.0.0.0 to indicate any IP address.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.TcpServerSettings.Port">
+            <summary>
+            TCP server port.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.WebSocketServerSettings">
+            <summary>
+            WebSocket server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.WebSocketServerSettings.Hostname">
+            <summary>
+            WebSocket server hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.WebSocketServerSettings.Port">
+            <summary>
+            WebSocket server port.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.NodeSettings">
+            <summary>
+            Node information settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.GUID">
+            <summary>
+            Node GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.Name">
+            <summary>
+            Node name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.Hostname">
+            <summary>
+            Node hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.InstanceType">
+            <summary>
+            Instance type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.LastStartUtc">
+            <summary>
+            Last start timestamp.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.CreatedUtc">
+            <summary>
+            Creation timestamp.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.LoggingServerSettings">
+            <summary>
+            Logging server configuration.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingServerSettings.Hostname">
+            <summary>
+            Logging server hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingServerSettings.Port">
+            <summary>
+            Logging server port.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingServerSettings.RandomizePorts">
+            <summary>
+            Whether to randomize ports.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingServerSettings.MinimumPort">
+            <summary>
+            Minimum port for randomization.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingServerSettings.MaximumPort">
+            <summary>
+            Maximum port for randomization.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.LoggingSettings">
+            <summary>
+            Logging settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingSettings.Servers">
+            <summary>
+            Logging servers.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingSettings.LogDirectory">
+            <summary>
+            Log directory.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingSettings.LogFilename">
+            <summary>
+            Log filename.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingSettings.ConsoleLogging">
+            <summary>
+            Enable console logging.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingSettings.EnableColors">
+            <summary>
+            Enable colors in console.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LoggingSettings.MinimumSeverity">
+            <summary>
+            Minimum severity level.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.StorageSettings">
+            <summary>
+            Storage settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.StorageSettings.BackupsDirectory">
+            <summary>
+            Backups directory.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.StorageSettings.TempDirectory">
+            <summary>
+            Temp directory.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.DebugSettings">
+            <summary>
+            Debug settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.Exceptions">
+            <summary>
+            Enable debug for exceptions.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.Requests">
+            <summary>
+            Enable debug for requests.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.DatabaseQueries">
+            <summary>
+            Enable debug for database queries.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.McpOperations">
+            <summary>
+            Enable debug for MCP operations.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.LiteGraphMcpServer">
+            <summary>
+            LiteGraph MCP Server - Exposes LiteGraph operations via Model Context Protocol.
+            Supports document processing, vector storage retrieval, graph storage retrieval, and more.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServer.Main(System.String[])">
+            <summary>
+            Main.
+            </summary>
+            <param name="args">Arguments.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServer.MapSdkSeverityToSyslog(LiteGraph.Sdk.SeverityEnum)">
+            <summary>
+            Maps LiteGraph.Sdk.SeverityEnum to SyslogLogging.Severity.
+            </summary>
+            <param name="sdkSeverity">SDK severity.</param>
+            <returns>Syslog severity.</returns>
+        </member>
+        <member name="T:LiteGraph.McpServer.LiteGraphMcpServerHelpers">
+            <summary>
+            Helper methods for LiteGraph MCP Server.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetGuidRequired(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Gets a GUID from JSON element, throwing if not present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetBoolOrDefault(System.Text.Json.JsonElement,System.String,System.Boolean)">
+            <summary>
+            Gets a boolean from JSON element, returning default if not present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetIntOrDefault(System.Text.Json.JsonElement,System.String,System.Int32)">
+            <summary>
+            Gets an integer from JSON element, returning default if not present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetEnumerationOrderOrDefault(System.Text.Json.JsonElement,System.String,LiteGraph.Sdk.EnumerationOrderEnum)">
+            <summary>
+            Gets an EnumerationOrderEnum from JSON element, returning default if not present or invalid.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetEnumerationParams(System.Text.Json.JsonElement,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Gets enumeration order and skip parameters from JSON element.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Registrations.AdminRegistrations">
+            <summary>
+            Registration methods for Admin operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.AdminRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers admin tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.AdminRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers admin methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.AdminRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers admin methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="T:LiteGraph.McpServer.Registrations.BatchRegistrations">
+            <summary>
+            Registration methods for Batch operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.BatchRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers batch tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.BatchRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers batch methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.BatchRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers batch methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="T:LiteGraph.McpServer.Registrations.GraphRegistrations">
+            <summary>
+            Registration methods for Graph operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.GraphRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers graph tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.GraphRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers graph methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.GraphRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers graph methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="T:LiteGraph.McpServer.Registrations.NodeRegistrations">
+            <summary>
+            Registration methods for Node operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.NodeRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers node tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.NodeRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers node methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.NodeRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers node methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="T:LiteGraph.McpServer.Registrations.TenantRegistrations">
+            <summary>
+            Registration methods for Tenant operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.TenantRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers tenant tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.TenantRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers tenant methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.TenantRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers tenant methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+    </members>
+</doc>

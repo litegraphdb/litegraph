@@ -16,6 +16,8 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers admin tools on HTTP server.
         /// </summary>
+        /// <param name="server">HTTP server instance.</param>
+        /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterTool(
@@ -156,6 +158,8 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers admin methods on TCP server.
         /// </summary>
+        /// <param name="server">TCP server instance.</param>
+        /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("admin/backup", (args) =>
@@ -230,6 +234,8 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers admin methods on WebSocket server.
         /// </summary>
+        /// <param name="server">WebSocket server instance.</param>
+        /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("admin/backup", (args) =>

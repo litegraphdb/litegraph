@@ -16,6 +16,8 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers node tools on HTTP server.
         /// </summary>
+        /// <param name="server">HTTP server instance.</param>
+        /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterTool(
@@ -473,6 +475,8 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers node methods on TCP server.
         /// </summary>
+        /// <param name="server">TCP server instance.</param>
+        /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("node/create", (args) =>
@@ -678,6 +682,8 @@ namespace LiteGraph.McpServer.Registrations
         /// <summary>
         /// Registers node methods on WebSocket server.
         /// </summary>
+        /// <param name="server">WebSocket server instance.</param>
+        /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
             server.RegisterMethod("node/create", (args) =>
