@@ -4,6 +4,7 @@ namespace LiteGraph.McpServer
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -16,15 +17,9 @@ namespace LiteGraph.McpServer
     /// LiteGraph MCP Server - Exposes LiteGraph operations via Model Context Protocol.
     /// Supports document processing, vector storage retrieval, graph storage retrieval, and more.
     /// </summary>
-    public class LiteGraphMcpServer : IDisposable
+    public static class LiteGraphMcpServer
     {
         #region Private-Members
-
-        private bool _Disposed = false;
-
-        private McpHttpServer? _HttpServer = null;
-        private McpTcpServer? _TcpServer = null;
-        private McpWebsocketsServer? _WebsocketServer = null;
 
         private static string _Header = "[LiteGraph.McpServer] ";
         private static string _SoftwareVersion = Constants.Version;
@@ -50,11 +45,6 @@ namespace LiteGraph.McpServer
 
         #endregion
 
-        #region Constructors
-
-
-        #endregion
-
         #region Entrypoint
 
         /// <summary>
@@ -68,12 +58,13 @@ namespace LiteGraph.McpServer
             InitializeSettings();
             InitializeGlobals();
 
-            _Logging.Debug(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId);
+            _Logging.Info(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId);
 
             EventWaitHandle waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+            AssemblyLoadContext.Default.Unloading += (ctx) => waitHandle.Set();
             Console.CancelKeyPress += (sender, eventArgs) =>
             {
-                _Logging.Debug(_Header + "termination signal received");
+                _Logging.Info(_Header + "termination signal received");
                 waitHandle.Set();
                 eventArgs.Cancel = true;
             };
@@ -85,68 +76,12 @@ namespace LiteGraph.McpServer
             }
             while (!waitHandleSignal);
 
-            _Logging.Debug(_Header + "stopping at " + DateTime.UtcNow);
-
-            _McpHttpServer?.Stop();
-            _McpTcpServer?.Stop();
-            _McpWebsocketServer?.Stop();
-            _McpHttpServer?.Dispose();
-            _McpTcpServer?.Dispose();
-            _McpWebsocketServer?.Dispose();
-            _McpSdk?.Dispose();
+            _Logging.Info(_Header + "stopping at " + DateTime.UtcNow);
         }
 
         #endregion
 
         #region Public-Methods
-
-        /// <summary>
-        /// Starts all MCP servers.
-        /// </summary>
-        /// <param name="token">Cancellation token.</param>
-        /// <returns>Task.</returns>
-        public async Task StartAsync(CancellationToken token = default)
-        {
-            _Logging.Debug(_Header + "Starting LiteGraph MCP servers...");
-
-            if (_HttpServer == null || _TcpServer == null || _WebsocketServer == null)
-                throw new InvalidOperationException("Servers have not been initialized");
-
-            Task httpTask = _HttpServer.StartAsync(token);
-            Task tcpTask = _TcpServer.StartAsync(token);
-            Task wsTask = _WebsocketServer.StartAsync(token);
-
-            _Logging.Debug(_Header + "HTTP Server:       http://" + _Settings.Http.Hostname + ":" + _Settings.Http.Port + "/rpc");
-            _Logging.Debug(_Header + "TCP Server:        tcp://" + _Settings.Tcp.Address + ":" + _Settings.Tcp.Port);
-            _Logging.Debug(_Header + "WebSocket Server:  ws://" + _Settings.WebSocket.Hostname + ":" + _Settings.WebSocket.Port + "/mcp");
-
-            await Task.WhenAll(httpTask, tcpTask, wsTask);
-        }
-
-        /// <summary>
-        /// Stops all MCP servers.
-        /// </summary>
-        public void Stop()
-        {
-            _HttpServer?.Stop();
-            _TcpServer?.Stop();
-            _WebsocketServer?.Stop();
-        }
-
-        /// <summary>
-        /// Releases all resources used by the LiteGraphMcpServer.
-        /// </summary>
-        public void Dispose()
-        {
-            if (_Disposed) return;
-
-            Stop();
-            _HttpServer?.Dispose();
-            _TcpServer?.Dispose();
-            _WebsocketServer?.Dispose();
-
-            _Disposed = true;
-        }
 
         #endregion
 
