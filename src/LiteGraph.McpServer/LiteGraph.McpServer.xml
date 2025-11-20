@@ -471,6 +471,32 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.EdgeRegistrations">
+            <summary>
+            Registration methods for Edge operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.EdgeRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers edge tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.EdgeRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers edge methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.EdgeRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers edge methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
         <member name="T:LiteGraph.McpServer.Registrations.GraphRegistrations">
             <summary>
             Registration methods for Graph operations.
