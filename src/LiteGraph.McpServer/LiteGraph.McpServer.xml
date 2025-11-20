@@ -523,6 +523,32 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.LabelRegistrations">
+            <summary>
+            Registration methods for Label operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.LabelRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers label tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.LabelRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers label methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.LabelRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers label methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
         <member name="T:LiteGraph.McpServer.Registrations.NodeRegistrations">
             <summary>
             Registration methods for Node operations.

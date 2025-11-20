@@ -39,6 +39,7 @@ namespace Test.Automated
         private static Guid _McpTestEdgeGuid = Guid.Empty;
         private static Guid _McpTestCredentialGuid = Guid.Empty;
         private static Guid _McpTestUserGuid = Guid.Empty;
+        private static Guid _McpTestLabelGuid = Guid.Empty;
         private static List<TestResult> _TestResults = new List<TestResult>();
         private static McpHttpClient? _McpClient = null;
         private static Serializer _McpSerializer = new Serializer();
@@ -324,6 +325,17 @@ namespace Test.Automated
             await RunTest("MCP.Edge.Search", TestMcpEdgeSearch).ConfigureAwait(false);
             await RunTest("MCP.Edge.ReadFirst", TestMcpEdgeReadFirst).ConfigureAwait(false);
 
+            await RunTest("MCP.Label.Create", TestMcpLabelCreate).ConfigureAwait(false);
+            await RunTest("MCP.Label.Get", TestMcpLabelGet).ConfigureAwait(false);
+            await RunTest("MCP.Label.All", TestMcpLabelAll).ConfigureAwait(false);
+            await RunTest("MCP.Label.Update", TestMcpLabelUpdate).ConfigureAwait(false);
+            await RunTest("MCP.Label.Enumerate", TestMcpLabelEnumerate).ConfigureAwait(false);
+            await RunTest("MCP.Label.Exists", TestMcpLabelExists).ConfigureAwait(false);
+            await RunTest("MCP.Label.GetMany", TestMcpLabelGetMany).ConfigureAwait(false);
+            await RunTest("MCP.Label.CreateMany", TestMcpLabelCreateMany).ConfigureAwait(false);
+            await RunTest("MCP.Label.DeleteMany", TestMcpLabelDeleteMany).ConfigureAwait(false);
+            await RunTest("MCP.Label.Delete", TestMcpLabelDelete).ConfigureAwait(false);
+
             await RunTest("MCP.Credential.Delete", TestMcpCredentialDelete).ConfigureAwait(false);
             await RunTest("MCP.User.Delete", TestMcpUserDelete).ConfigureAwait(false);
             await RunTest("MCP.Graph.Delete", TestMcpGraphDelete).ConfigureAwait(false);
@@ -519,6 +531,7 @@ namespace Test.Automated
             _McpTestEdgeGuid = Guid.Empty;
             _McpTestCredentialGuid = Guid.Empty;
             _McpTestUserGuid = Guid.Empty;
+            _McpTestLabelGuid = Guid.Empty;
         }
 
         private static async Task Cleanup()
@@ -3777,6 +3790,219 @@ namespace Test.Automated
 
             Edge? edge = _McpSerializer.DeserializeJson<Edge>(result);
             AssertNotNull(edge, "Edge should not be null");
+        }
+
+        private static async Task TestMcpLabelCreate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            LabelMetadata label = new LabelMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                Label = "MCP Test Label"
+            };
+            string labelJson = _McpSerializer.SerializeJson(label, false);
+            var labelObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelJson);
+            string result = await _McpClient!.CallAsync<string>("label/create", new { label = labelObj });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            LabelMetadata? created = _McpSerializer.DeserializeJson<LabelMetadata>(result);
+            AssertNotNull(created, "Deserialized label should not be null");
+            AssertNotEmpty(created!.GUID, "Label GUID");
+            AssertEqual("MCP Test Label", created.Label, "Label name");
+            _McpTestLabelGuid = created.GUID;
+        }
+
+        private static async Task TestMcpLabelGet()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/get", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            LabelMetadata? label = _McpSerializer.DeserializeJson<LabelMetadata>(result);
+            AssertNotNull(label, "Deserialized label should not be null");
+            AssertEqual(_McpTestLabelGuid, label!.GUID, "Label GUID");
+        }
+
+        private static async Task TestMcpLabelAll()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+        }
+
+        private static async Task TestMcpLabelUpdate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string getResult = await _McpClient!.CallAsync<string>("label/get", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            LabelMetadata? label = _McpSerializer.DeserializeJson<LabelMetadata>(getResult);
+            AssertNotNull(label, "Label should not be null");
+
+            label!.Label = "Updated MCP Label";
+            string labelJson = _McpSerializer.SerializeJson(label, false);
+            var labelObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelJson);
+            string result = await _McpClient!.CallAsync<string>("label/update", new { label = labelObj });
+            AssertNotNull(result, "Result should not be null");
+
+            LabelMetadata? updated = _McpSerializer.DeserializeJson<LabelMetadata>(result);
+            AssertNotNull(updated, "Deserialized label should not be null");
+            AssertEqual("Updated MCP Label", updated!.Label, "Updated label name");
+        }
+
+        private static async Task TestMcpLabelEnumerate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
+            string queryJson = _McpSerializer.SerializeJson(query, false);
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
+            AssertNotNull(result, "Result should not be null");
+
+            EnumerationResult<LabelMetadata>? enumerationResult = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertNotNull(enumerationResult, "Enumeration result should not be null");
+        }
+
+        private static async Task TestMcpLabelExists()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertTrue(result.ToLower() == "true", "Label should exist");
+        }
+
+        private static async Task TestMcpLabelGetMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = new[] { _McpTestLabelGuid.ToString() } });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+            AssertTrue(labels!.Count > 0, "Should have at least one label");
+            AssertEqual(_McpTestLabelGuid, labels[0].GUID, "Label GUID");
+        }
+
+        private static async Task TestMcpLabelCreateMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            List<LabelMetadata> labels = new List<LabelMetadata>
+            {
+                new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label 1" },
+                new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label 2" }
+            };
+            string labelsJson = _McpSerializer.SerializeJson(labels, false);
+            var labelsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelsJson);
+            string result = await _McpClient!.CallAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsObj });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? created = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(created, "Created labels list should not be null");
+            AssertTrue(created!.Count == 2, "Should have created 2 labels");
+        }
+
+        private static async Task TestMcpLabelDeleteMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            List<LabelMetadata> labels = new List<LabelMetadata>
+            {
+                new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label Delete 1" },
+                new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label Delete 2" }
+            };
+            string labelsJson = _McpSerializer.SerializeJson(labels, false);
+            var labelsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelsJson);
+            string createResult = await _McpClient!.CallAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsObj });
+            List<LabelMetadata>? created = _McpSerializer.DeserializeJson<List<LabelMetadata>>(createResult);
+            AssertNotNull(created, "Created labels should not be null");
+            AssertTrue(created!.Count == 2, "Should have created 2 labels");
+
+            List<Guid> guidsToDelete = created.Select(l => l.GUID).ToList();
+            await _McpClient!.CallAsync<string>("label/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+        }
+
+        private static async Task TestMcpLabelDelete()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            _McpTestLabelGuid = Guid.Empty;
         }
 
         private static async Task TestMcpAdminBackup()
