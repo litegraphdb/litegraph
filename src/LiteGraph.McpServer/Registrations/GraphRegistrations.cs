@@ -223,6 +223,36 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterTool(
+                "graph/getsubgraphstatistics",
+                "Gets statistics for a subgraph starting from a specific node, traversing up to a specified depth",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuid = new { type = "string", description = "Starting node GUID" },
+                        maxDepth = new { type = "integer", description = "Maximum depth to traverse (default: 2)" },
+                        maxNodes = new { type = "integer", description = "Maximum number of nodes (0 = unlimited)" },
+                        maxEdges = new { type = "integer", description = "Maximum number of edges (0 = unlimited)" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                    int maxDepth = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxDepth", 2);
+                    int maxNodes = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxNodes", 0);
+                    int maxEdges = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxEdges", 0);
+                    GraphStatistics stats = sdk.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(stats, true);
+                });
+
+            server.RegisterTool(
                 "graph/exists",
                 "Checks if a graph exists by GUID",
                 new
@@ -572,6 +602,19 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(result, true);
             });
 
+            server.RegisterMethod("graph/getsubgraphstatistics", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                int maxDepth = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxDepth", 2);
+                int maxNodes = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxNodes", 0);
+                int maxEdges = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxEdges", 0);
+                GraphStatistics stats = sdk.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(stats, true);
+            });
+
             server.RegisterMethod("graph/exists", (args) =>
             {
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -791,6 +834,19 @@ namespace LiteGraph.McpServer.Registrations
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
                 SearchResult result = sdk.Graph.GetSubgraph(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges, includeData, includeSubordinates).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
+            });
+
+            server.RegisterMethod("graph/getsubgraphstatistics", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                int maxDepth = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxDepth", 2);
+                int maxNodes = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxNodes", 0);
+                int maxEdges = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "maxEdges", 0);
+                GraphStatistics stats = sdk.Graph.GetSubgraphStatistics(tenantGuid, graphGuid, nodeGuid, maxDepth, maxNodes, maxEdges).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(stats, true);
             });
 
             server.RegisterMethod("graph/exists", (args) =>
