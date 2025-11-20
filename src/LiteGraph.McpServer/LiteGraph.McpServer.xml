@@ -549,5 +549,31 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.UserRegistrations">
+            <summary>
+            Registration methods for User operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.UserRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers user tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.UserRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers user methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.UserRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers user methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
     </members>
 </doc>

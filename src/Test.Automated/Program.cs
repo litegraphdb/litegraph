@@ -35,6 +35,8 @@ namespace Test.Automated
         private static Guid _McpTestTenantGuid = Guid.Empty;
         private static Guid _McpTestGraphGuid = Guid.Empty;
         private static Guid _McpTestNode1Guid = Guid.Empty;
+        private static Guid _McpTestCredentialGuid = Guid.Empty;
+        private static Guid _McpTestUserGuid = Guid.Empty;
         private static List<TestResult> _TestResults = new List<TestResult>();
         private static McpHttpClient? _McpClient = null;
         private static Serializer _McpSerializer = new Serializer();
@@ -263,6 +265,22 @@ namespace Test.Automated
             await RunTest("MCP.Admin.BackupDelete", TestMcpAdminBackupDelete).ConfigureAwait(false);
             await RunTest("MCP.Admin.Flush", TestMcpAdminFlush).ConfigureAwait(false);
 
+            await RunTest("MCP.User.Create", TestMcpUserCreate).ConfigureAwait(false);
+            await RunTest("MCP.User.Get", TestMcpUserGet).ConfigureAwait(false);
+            await RunTest("MCP.User.All", TestMcpUserAll).ConfigureAwait(false);
+            await RunTest("MCP.User.Update", TestMcpUserUpdate).ConfigureAwait(false);
+            await RunTest("MCP.User.Enumerate", TestMcpUserEnumerate).ConfigureAwait(false);
+            await RunTest("MCP.User.Exists", TestMcpUserExists).ConfigureAwait(false);
+            await RunTest("MCP.User.GetMany", TestMcpUserGetMany).ConfigureAwait(false);
+
+            await RunTest("MCP.Credential.Create", TestMcpCredentialCreate).ConfigureAwait(false);
+            await RunTest("MCP.Credential.Get", TestMcpCredentialGet).ConfigureAwait(false);
+            await RunTest("MCP.Credential.All", TestMcpCredentialAll).ConfigureAwait(false);
+            await RunTest("MCP.Credential.Update", TestMcpCredentialUpdate).ConfigureAwait(false);
+            await RunTest("MCP.Credential.Enumerate", TestMcpCredentialEnumerate).ConfigureAwait(false);
+            await RunTest("MCP.Credential.Exists", TestMcpCredentialExists).ConfigureAwait(false);
+            await RunTest("MCP.Credential.GetMany", TestMcpCredentialGetMany).ConfigureAwait(false);
+
             await RunTest("MCP.Graph.Create", TestMcpGraphCreate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Get", TestMcpGraphGet).ConfigureAwait(false);
             await RunTest("MCP.Graph.All", TestMcpGraphAll).ConfigureAwait(false);
@@ -289,6 +307,8 @@ namespace Test.Automated
             await RunTest("MCP.Node.ReadFirst", TestMcpNodeReadFirst).ConfigureAwait(false);
             await RunTest("MCP.Node.Enumerate", TestMcpNodeEnumerate).ConfigureAwait(false);
 
+            await RunTest("MCP.Credential.Delete", TestMcpCredentialDelete).ConfigureAwait(false);
+            await RunTest("MCP.User.Delete", TestMcpUserDelete).ConfigureAwait(false);
             await RunTest("MCP.Graph.Delete", TestMcpGraphDelete).ConfigureAwait(false);
             await RunTest("MCP.Tenant.Delete", TestMcpTenantDelete).ConfigureAwait(false);
         }
@@ -478,6 +498,8 @@ namespace Test.Automated
             _McpTestTenantGuid = Guid.Empty;
             _McpTestGraphGuid = Guid.Empty;
             _McpTestNode1Guid = Guid.Empty;
+            _McpTestCredentialGuid = Guid.Empty;
+            _McpTestUserGuid = Guid.Empty;
         }
 
         private static async Task Cleanup()
@@ -2626,6 +2648,351 @@ namespace Test.Automated
 
             TenantStatistics? stats = _McpSerializer.DeserializeJson<TenantStatistics>(result);
             AssertNotNull(stats, "Statistics should not be null");
+        }
+
+        private static async Task TestMcpUserCreate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            if (_McpTestUserGuid != Guid.Empty)
+            {
+                string existingResult = await _McpClient!.CallAsync<string>("user/get", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+                if (existingResult != null && existingResult != "null")
+                {
+                    UserMaster? existing = _McpSerializer.DeserializeJson<UserMaster>(existingResult);
+                    if (existing != null && existing.GUID == _McpTestUserGuid)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            string uniqueEmail = $"mcp-test-user-{Guid.NewGuid()}@example.com";
+            UserMaster user = new UserMaster
+            {
+                TenantGUID = _McpTestTenantGuid,
+                Email = uniqueEmail,
+                Password = "test123",
+                FirstName = "MCP",
+                LastName = "Test"
+            };
+            string userJson = _McpSerializer.SerializeJson(user, false);
+            var userObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(userJson);
+            string result = await _McpClient!.CallAsync<string>("user/create", new { user = userObj });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            UserMaster? created = _McpSerializer.DeserializeJson<UserMaster>(result);
+            AssertNotNull(created, "Deserialized user should not be null");
+            AssertNotEmpty(created!.GUID, "User GUID");
+            AssertEqual(uniqueEmail, created.Email, "User email");
+            _McpTestUserGuid = created.GUID;
+        }
+
+        private static async Task TestMcpUserGet()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestUserGuid == Guid.Empty)
+            {
+                await TestMcpUserCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("user/get", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            UserMaster? user = _McpSerializer.DeserializeJson<UserMaster>(result);
+            AssertNotNull(user, "Deserialized user should not be null");
+            AssertEqual(_McpTestUserGuid, user!.GUID, "User GUID");
+        }
+
+        private static async Task TestMcpUserAll()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("user/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<UserMaster>? users = _McpSerializer.DeserializeJson<List<UserMaster>>(result);
+            AssertNotNull(users, "Users list should not be null");
+            AssertTrue(users!.Count > 0, "Should have at least one user");
+        }
+
+        private static async Task TestMcpUserUpdate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestUserGuid == Guid.Empty)
+            {
+                await TestMcpUserCreate();
+            }
+
+            UserMaster updated = new UserMaster
+            {
+                GUID = _McpTestUserGuid,
+                TenantGUID = _McpTestTenantGuid,
+                Email = "updated-mcp-user@example.com",
+                FirstName = "Updated",
+                LastName = "MCP",
+                Active = false
+            };
+            string userJson = _McpSerializer.SerializeJson(updated, false);
+            var userObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(userJson);
+            string result = await _McpClient!.CallAsync<string>("user/update", new { user = userObj });
+            AssertNotNull(result, "Result should not be null");
+
+            UserMaster? user = _McpSerializer.DeserializeJson<UserMaster>(result);
+            AssertNotNull(user, "Deserialized user should not be null");
+            AssertEqual("Updated", user!.FirstName, "Updated first name");
+            AssertFalse(user.Active, "Updated Active status");
+        }
+
+        private static async Task TestMcpUserEnumerate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            EnumerationRequest query = new EnumerationRequest
+            {
+                TenantGUID = _McpTestTenantGuid,
+                MaxResults = 10
+            };
+            string queryJson = _McpSerializer.SerializeJson(query, false);
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
+            AssertNotNull(result, "Result should not be null");
+
+            EnumerationResult<UserMaster>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
+            AssertNotNull(enumResult, "Enumeration result should not be null");
+            AssertTrue(enumResult!.Success, "Enumeration should succeed");
+        }
+
+        private static async Task TestMcpUserExists()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestUserGuid == Guid.Empty)
+            {
+                await TestMcpUserCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("user/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
+            AssertTrue(result == "true", "User should exist");
+        }
+
+        private static async Task TestMcpUserGetMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestUserGuid == Guid.Empty)
+            {
+                await TestMcpUserCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("user/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuids = new[] { _McpTestUserGuid.ToString() } });
+            AssertNotNull(result, "Result should not be null");
+
+            List<UserMaster>? users = _McpSerializer.DeserializeJson<List<UserMaster>>(result);
+            AssertNotNull(users, "Users list should not be null");
+            AssertTrue(users!.Count > 0, "Should have at least one user");
+            AssertEqual(_McpTestUserGuid, users[0].GUID, "User GUID");
+        }
+
+        private static async Task TestMcpUserDelete()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestUserGuid == Guid.Empty)
+            {
+                await TestMcpUserCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("user/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            _McpTestUserGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpCredentialCreate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestUserGuid == Guid.Empty)
+            {
+                await TestMcpUserCreate();
+            }
+
+            Credential credential = new Credential
+            {
+                TenantGUID = _McpTestTenantGuid,
+                UserGUID = _McpTestUserGuid,
+                Name = "MCP Test Credential",
+                BearerToken = Guid.NewGuid().ToString(),
+                Active = true
+            };
+            string credentialJson = _McpSerializer.SerializeJson(credential, false);
+            var credentialObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(credentialJson);
+            string result = await _McpClient!.CallAsync<string>("credential/create", new { credential = credentialObj });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            Credential? created = _McpSerializer.DeserializeJson<Credential>(result);
+            AssertNotNull(created, "Deserialized credential should not be null");
+            AssertNotEmpty(created!.GUID, "Credential GUID");
+            AssertEqual("MCP Test Credential", created.Name, "Credential name");
+            _McpTestCredentialGuid = created.GUID;
+        }
+
+        private static async Task TestMcpCredentialGet()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+            {
+                await TestMcpCredentialCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("credential/get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            Credential? credential = _McpSerializer.DeserializeJson<Credential>(result);
+            AssertNotNull(credential, "Deserialized credential should not be null");
+            AssertEqual(_McpTestCredentialGuid, credential!.GUID, "Credential GUID");
+        }
+
+        private static async Task TestMcpCredentialAll()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("credential/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Credential>? credentials = _McpSerializer.DeserializeJson<List<Credential>>(result);
+            AssertNotNull(credentials, "Credentials list should not be null");
+            AssertTrue(credentials!.Count > 0, "Should have at least one credential");
+        }
+
+        private static async Task TestMcpCredentialUpdate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+            {
+                await TestMcpCredentialCreate();
+            }
+
+            Credential updated = new Credential
+            {
+                GUID = _McpTestCredentialGuid,
+                TenantGUID = _McpTestTenantGuid,
+                UserGUID = _McpTestUserGuid,
+                Name = "Updated MCP Credential",
+                Active = false
+            };
+            string credentialJson = _McpSerializer.SerializeJson(updated, false);
+            var credentialObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(credentialJson);
+            string result = await _McpClient!.CallAsync<string>("credential/update", new { credential = credentialObj });
+            AssertNotNull(result, "Result should not be null");
+
+            Credential? credential = _McpSerializer.DeserializeJson<Credential>(result);
+            AssertNotNull(credential, "Deserialized credential should not be null");
+            AssertEqual("Updated MCP Credential", credential!.Name, "Updated credential name");
+            AssertFalse(credential.Active, "Updated Active status");
+        }
+
+        private static async Task TestMcpCredentialEnumerate()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+
+            EnumerationRequest query = new EnumerationRequest
+            {
+                TenantGUID = _McpTestTenantGuid,
+                MaxResults = 10
+            };
+            string queryJson = _McpSerializer.SerializeJson(query, false);
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
+            AssertNotNull(result, "Result should not be null");
+
+            EnumerationResult<Credential>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
+            AssertNotNull(enumResult, "Enumeration result should not be null");
+            AssertTrue(enumResult!.Success, "Enumeration should succeed");
+        }
+
+        private static async Task TestMcpCredentialExists()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+            {
+                await TestMcpCredentialCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+            AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
+            AssertTrue(result == "true", "Credential should exist");
+        }
+
+        private static async Task TestMcpCredentialGetMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+            {
+                await TestMcpCredentialCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("credential/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuids = new[] { _McpTestCredentialGuid.ToString() } });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Credential>? credentials = _McpSerializer.DeserializeJson<List<Credential>>(result);
+            AssertNotNull(credentials, "Credentials list should not be null");
+            AssertTrue(credentials!.Count > 0, "Should have at least one credential");
+            AssertEqual(_McpTestCredentialGuid, credentials[0].GUID, "Credential GUID");
+        }
+
+        private static async Task TestMcpCredentialDelete()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+            {
+                await TestMcpCredentialCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("credential/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            _McpTestCredentialGuid = Guid.Empty;
         }
 
         private static async Task TestMcpGraphCreate()
