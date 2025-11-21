@@ -79,6 +79,41 @@
             Environment variable for console logging.
             </summary>
         </member>
+        <member name="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers">
+            <summary>
+            Helper methods for LiteGraph MCP Server.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetGuidRequired(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Gets a GUID from JSON element, throwing if not present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetGuidOptional(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Gets an optional GUID from JSON element, returning null if not present or invalid.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetBoolOrDefault(System.Text.Json.JsonElement,System.String,System.Boolean)">
+            <summary>
+            Gets a boolean from JSON element, returning default if not present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetIntOrDefault(System.Text.Json.JsonElement,System.String,System.Int32)">
+            <summary>
+            Gets an integer from JSON element, returning default if not present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetEnumerationOrderOrDefault(System.Text.Json.JsonElement,System.String,LiteGraph.Sdk.EnumerationOrderEnum)">
+            <summary>
+            Gets an EnumerationOrderEnum from JSON element, returning default if not present or invalid.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetEnumerationParams(System.Text.Json.JsonElement,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32)">
+            <summary>
+            Gets enumeration order and skip parameters from JSON element.
+            </summary>
+        </member>
         <member name="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings">
             <summary>
             LiteGraph MCP Server settings.
@@ -362,41 +397,6 @@
             </summary>
             <param name="sdkSeverity">SDK severity.</param>
             <returns>Syslog severity.</returns>
-        </member>
-        <member name="T:LiteGraph.McpServer.LiteGraphMcpServerHelpers">
-            <summary>
-            Helper methods for LiteGraph MCP Server.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetGuidRequired(System.Text.Json.JsonElement,System.String)">
-            <summary>
-            Gets a GUID from JSON element, throwing if not present.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetGuidOptional(System.Text.Json.JsonElement,System.String)">
-            <summary>
-            Gets an optional GUID from JSON element, returning null if not present or invalid.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetBoolOrDefault(System.Text.Json.JsonElement,System.String,System.Boolean)">
-            <summary>
-            Gets a boolean from JSON element, returning default if not present.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetIntOrDefault(System.Text.Json.JsonElement,System.String,System.Int32)">
-            <summary>
-            Gets an integer from JSON element, returning default if not present.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetEnumerationOrderOrDefault(System.Text.Json.JsonElement,System.String,LiteGraph.Sdk.EnumerationOrderEnum)">
-            <summary>
-            Gets an EnumerationOrderEnum from JSON element, returning default if not present or invalid.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetEnumerationParams(System.Text.Json.JsonElement,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32)">
-            <summary>
-            Gets enumeration order and skip parameters from JSON element.
-            </summary>
         </member>
         <member name="T:LiteGraph.McpServer.Registrations.AdminRegistrations">
             <summary>

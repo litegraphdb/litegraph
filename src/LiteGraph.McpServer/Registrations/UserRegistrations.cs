@@ -3,6 +3,7 @@ namespace LiteGraph.McpServer.Registrations
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
+    using LiteGraph.McpServer.Classes;
     using LiteGraph.Sdk;
     using Voltaic;
 

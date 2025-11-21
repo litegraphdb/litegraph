@@ -1,4 +1,4 @@
-namespace LiteGraph.McpServer
+namespace LiteGraph.McpServer.Classes
 {
     using System;
     using System.Text.Json;
