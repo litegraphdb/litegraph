@@ -373,6 +373,11 @@
             Gets a GUID from JSON element, throwing if not present.
             </summary>
         </member>
+        <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetGuidOptional(System.Text.Json.JsonElement,System.String)">
+            <summary>
+            Gets an optional GUID from JSON element, returning null if not present or invalid.
+            </summary>
+        </member>
         <member name="M:LiteGraph.McpServer.LiteGraphMcpServerHelpers.GetBoolOrDefault(System.Text.Json.JsonElement,System.String,System.Boolean)">
             <summary>
             Gets a boolean from JSON element, returning default if not present.
@@ -571,6 +576,32 @@
         <member name="M:LiteGraph.McpServer.Registrations.NodeRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
             <summary>
             Registers node methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="T:LiteGraph.McpServer.Registrations.TagRegistrations">
+            <summary>
+            Registration methods for Tag operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.TagRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers tag tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.TagRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers tag methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.TagRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers tag methods on WebSocket server.
             </summary>
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>

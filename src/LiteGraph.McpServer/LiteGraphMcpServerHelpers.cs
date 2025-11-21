@@ -25,6 +25,21 @@ namespace LiteGraph.McpServer
         }
 
         /// <summary>
+        /// Gets an optional GUID from JSON element, returning null if not present or invalid.
+        /// </summary>
+        public static Guid? GetGuidOptional(JsonElement element, string propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out JsonElement prop))
+                return null;
+            
+            string? guidStr = prop.GetString();
+            if (string.IsNullOrEmpty(guidStr) || !Guid.TryParse(guidStr, out Guid guid))
+                return null;
+            
+            return guid;
+        }
+
+        /// <summary>
         /// Gets a boolean from JSON element, returning default if not present.
         /// </summary>
         public static bool GetBoolOrDefault(JsonElement element, string propertyName, bool defaultValue = false)
