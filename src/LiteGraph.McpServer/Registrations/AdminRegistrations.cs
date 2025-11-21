@@ -204,7 +204,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Backup filename cannot be empty");
 
                 bool exists = sdk.Admin.BackupExists(backupFilename).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("admin/backupdelete", (args) =>
@@ -280,7 +280,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Backup filename cannot be empty");
 
                 bool exists = sdk.Admin.BackupExists(backupFilename).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("admin/backupdelete", (args) =>

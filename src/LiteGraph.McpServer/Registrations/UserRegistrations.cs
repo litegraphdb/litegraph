@@ -309,7 +309,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
                 bool exists = sdk.User.ExistsByGuid(tenantGuid, userGuid).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("user/getmany", (args) =>
@@ -415,7 +415,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
                 bool exists = sdk.User.ExistsByGuid(tenantGuid, userGuid).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("user/getmany", (args) =>

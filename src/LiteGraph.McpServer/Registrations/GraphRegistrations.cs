@@ -621,7 +621,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 bool exists = sdk.Graph.ExistsByGuid(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("graph/statistics", (args) =>
@@ -855,7 +855,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 bool exists = sdk.Graph.ExistsByGuid(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("graph/statistics", (args) =>

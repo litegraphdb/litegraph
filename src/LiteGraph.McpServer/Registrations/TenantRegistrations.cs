@@ -314,7 +314,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                 bool exists = sdk.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("tenant/statistics", (args) =>
@@ -420,7 +420,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                 bool exists = sdk.Tenant.ExistsByGuid(tenantGuid).GetAwaiter().GetResult();
-                return $"{{\"exists\": {exists.ToString().ToLower()}}}";
+                return exists.ToString().ToLower();
             });
 
             server.RegisterMethod("tenant/statistics", (args) =>
