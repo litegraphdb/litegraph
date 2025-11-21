@@ -390,6 +390,7 @@ namespace LiteGraph.McpServer
             Registrations.EdgeRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.LabelRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.TagRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.UserAuthenticationRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
@@ -401,6 +402,7 @@ namespace LiteGraph.McpServer
             Registrations.EdgeRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.LabelRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.TagRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.UserAuthenticationRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
@@ -412,6 +414,7 @@ namespace LiteGraph.McpServer
             Registrations.EdgeRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.LabelRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.TagRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.UserAuthenticationRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
         }
 
         private static void ShowHelp()

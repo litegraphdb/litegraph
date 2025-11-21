@@ -632,6 +632,32 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.UserAuthenticationRegistrations">
+            <summary>
+            Registration methods for User Authentication operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.UserAuthenticationRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers user authentication tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.UserAuthenticationRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers user authentication methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.UserAuthenticationRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers user authentication methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
         <member name="T:LiteGraph.McpServer.Registrations.UserRegistrations">
             <summary>
             Registration methods for User operations.
