@@ -29,7 +29,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        label = new { type = "string", description = "Label object serialized as JSON string using Serializer" }
+                        label = new { type = "object", description = "Label object" }
                     },
                     required = new[] { "label" }
                 },
@@ -37,7 +37,7 @@ namespace LiteGraph.McpServer.Registrations
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("label", out JsonElement labelProp))
                         throw new ArgumentException("Label JSON string is required");
-                    string labelJson = labelProp.GetString() ?? throw new ArgumentException("Label JSON string cannot be null");
+                    string labelJson = labelProp.GetRawText();
                     LabelMetadata label = Serializer.DeserializeJson<LabelMetadata>(labelJson);
                     LabelMetadata created = sdk.Label.Create(label).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
@@ -100,7 +100,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
+                        query = new { type = "object", description = "Enumeration query object" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -114,7 +114,7 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        string queryJson = queryProp.GetRawText();
                         EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
@@ -138,7 +138,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        label = new { type = "string", description = "Label object serialized as JSON string using Serializer" }
+                        label = new { type = "object", description = "Label object" }
                     },
                     required = new[] { "label" }
                 },
@@ -146,7 +146,7 @@ namespace LiteGraph.McpServer.Registrations
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("label", out JsonElement labelProp))
                         throw new ArgumentException("Label JSON string is required");
-                    string labelJson = labelProp.GetString() ?? throw new ArgumentException("Label JSON string cannot be null");
+                    string labelJson = labelProp.GetRawText();
                     LabelMetadata label = Serializer.DeserializeJson<LabelMetadata>(labelJson);
                     LabelMetadata updated = sdk.Label.Update(label).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
@@ -230,7 +230,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        labels = new { type = "string", description = "Array of label objects serialized as JSON string using Serializer" }
+                        labels = new { type = "array", items = new { type = "object" }, description = "Array of label objects" }
                     },
                     required = new[] { "tenantGuid", "labels" }
                 },
@@ -241,7 +241,7 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.Value.TryGetProperty("labels", out JsonElement labelsProp))
                         throw new ArgumentException("Labels array is required");
                     
-                    string labelsJson = labelsProp.GetString() ?? throw new ArgumentException("Labels JSON string cannot be null");
+                    string labelsJson = labelsProp.GetRawText();
                     List<LabelMetadata> labels = Serializer.DeserializeJson<List<LabelMetadata>>(labelsJson);
                     List<LabelMetadata> created = sdk.Label.CreateMany(tenantGuid, labels).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
@@ -387,7 +387,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("labels", out JsonElement labelsProp))
                     throw new ArgumentException("Labels array is required");
                 
-                string labelsJson = labelsProp.GetString() ?? throw new ArgumentException("Labels JSON string cannot be null");
+                string labelsJson = labelsProp.GetRawText();
                 List<LabelMetadata> labels = Serializer.DeserializeJson<List<LabelMetadata>>(labelsJson);
                 List<LabelMetadata> created = sdk.Label.CreateMany(tenantGuid, labels).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
@@ -520,7 +520,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("labels", out JsonElement labelsProp))
                     throw new ArgumentException("Labels array is required");
                 
-                string labelsJson = labelsProp.GetString() ?? throw new ArgumentException("Labels JSON string cannot be null");
+                string labelsJson = labelsProp.GetRawText();
                 List<LabelMetadata> labels = Serializer.DeserializeJson<List<LabelMetadata>>(labelsJson);
                 List<LabelMetadata> created = sdk.Label.CreateMany(tenantGuid, labels).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);

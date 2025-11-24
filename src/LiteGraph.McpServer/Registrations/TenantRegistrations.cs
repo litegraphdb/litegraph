@@ -97,7 +97,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tenant = new { type = "string", description = "Tenant object serialized as JSON string using Serializer" }
+                        tenant = new { type = "object", description = "Tenant object" }
                     },
                     required = new[] { "tenant" }
                 },
@@ -105,7 +105,7 @@ namespace LiteGraph.McpServer.Registrations
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("tenant", out JsonElement tenantProp))
                         throw new ArgumentException("Tenant JSON string is required");
-                    string tenantJson = tenantProp.GetString() ?? throw new ArgumentException("Tenant JSON string cannot be null");
+                    string tenantJson = tenantProp.GetRawText();
                     TenantMetadata tenant = Serializer.DeserializeJson<TenantMetadata>(tenantJson);
                     TenantMetadata updated = sdk.Tenant.Update(tenant).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
@@ -143,7 +143,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
+                        query = new { type = "object", description = "Enumeration query object" }
                     },
                     required = new string[] { }
                 },
@@ -152,7 +152,7 @@ namespace LiteGraph.McpServer.Registrations
                     EnumerationRequest query = new EnumerationRequest();
                     if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        string queryJson = queryProp.GetRawText();
                         query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
                     }
                     

@@ -2653,7 +2653,8 @@ namespace Test.Automated
 
             TenantMetadata updated = new TenantMetadata { GUID = _McpTestTenantGuid, Name = "Updated MCP Tenant" };
             string tenantJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await _McpClient!.CallAsync<string>("tenant/update", new { tenant = tenantJson });
+            var tenantObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tenantJson);
+            string result = await _McpClient!.CallAsync<string>("tenant/update", new { tenant = tenantObj });
             AssertNotNull(result, "Result should not be null");
 
             TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(result);
@@ -2680,7 +2681,8 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("tenant/enumerate", new { query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("tenant/enumerate", new { query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TenantMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<TenantMetadata>>(result);
@@ -2746,7 +2748,8 @@ namespace Test.Automated
                 LastName = "Test"
             };
             string userJson = _McpSerializer.SerializeJson(user, false);
-            string result = await _McpClient!.CallAsync<string>("user/create", new { user = userJson });
+            var userObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(userJson);
+            string result = await _McpClient!.CallAsync<string>("user/create", new { user = userObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -2811,7 +2814,8 @@ namespace Test.Automated
                 Active = false
             };
             string userJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await _McpClient!.CallAsync<string>("user/update", new { user = userJson });
+            var userObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(userJson);
+            string result = await _McpClient!.CallAsync<string>("user/update", new { user = userObj });
             AssertNotNull(result, "Result should not be null");
 
             UserMaster? user = _McpSerializer.DeserializeJson<UserMaster>(result);
@@ -2835,7 +2839,8 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<UserMaster>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
@@ -2911,7 +2916,8 @@ namespace Test.Automated
                 Active = true
             };
             string credentialJson = _McpSerializer.SerializeJson(credential, false);
-            string result = await _McpClient!.CallAsync<string>("credential/create", new { credential = credentialJson });
+            var credentialObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(credentialJson);
+            string result = await _McpClient!.CallAsync<string>("credential/create", new { credential = credentialObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -2975,7 +2981,8 @@ namespace Test.Automated
                 Active = false
             };
             string credentialJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await _McpClient!.CallAsync<string>("credential/update", new { credential = credentialJson });
+            var credentialObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(credentialJson);
+            string result = await _McpClient!.CallAsync<string>("credential/update", new { credential = credentialObj });
             AssertNotNull(result, "Result should not be null");
 
             Credential? credential = _McpSerializer.DeserializeJson<Credential>(result);
@@ -2999,7 +3006,8 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Credential>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
@@ -3104,7 +3112,8 @@ namespace Test.Automated
             existingGraph!.Name = "Updated MCP Graph";
 
             string graphJson = _McpSerializer.SerializeJson(existingGraph, false);
-            string result = await _McpClient!.CallAsync<string>("graph/update", new { graph = graphJson });
+            var graphObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(graphJson);
+            string result = await _McpClient!.CallAsync<string>("graph/update", new { graph = graphObj });
             AssertNotNull(result, "Result should not be null");
 
             Graph? graph = _McpSerializer.DeserializeJson<Graph>(result);
@@ -3131,7 +3140,8 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -3316,7 +3326,8 @@ namespace Test.Automated
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await _McpClient!.CallAsync<string>("graph/search", new { searchRequest = reqJson });
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("graph/search", new { searchRequest = reqObj });
             AssertNotNull(result, "Result should not be null");
 
             SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
@@ -3333,7 +3344,8 @@ namespace Test.Automated
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await _McpClient!.CallAsync<string>("graph/readfirst", new { searchRequest = reqJson });
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("graph/readfirst", new { searchRequest = reqObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3355,7 +3367,8 @@ namespace Test.Automated
                 new Node { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Name = "MCP Test Node Many 2" }
             };
             string nodesJson = _McpSerializer.SerializeJson(nodes, false);
-            string result = await _McpClient!.CallAsync<string>("node/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodes = nodesJson });
+            var nodesObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(nodesJson);
+            string result = await _McpClient!.CallAsync<string>("node/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodes = nodesObj });
             AssertNotNull(result, "Result should not be null");
 
             List<Node>? created = _McpSerializer.DeserializeJson<List<Node>>(result);
@@ -3394,7 +3407,8 @@ namespace Test.Automated
 
             node!.Name = "Updated MCP Node";
             string nodeJson = _McpSerializer.SerializeJson(node, false);
-            string result = await _McpClient!.CallAsync<string>("node/update", new { node = nodeJson });
+            var nodeObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(nodeJson);
+            string result = await _McpClient!.CallAsync<string>("node/update", new { node = nodeObj });
             AssertNotNull(result, "Result should not be null");
 
             Node? updated = _McpSerializer.DeserializeJson<Node>(result);
@@ -3447,7 +3461,8 @@ namespace Test.Automated
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await _McpClient!.CallAsync<string>("node/search", new { searchRequest = reqJson });
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("node/search", new { searchRequest = reqObj });
             AssertNotNull(result, "Result should not be null");
 
             SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
@@ -3468,7 +3483,8 @@ namespace Test.Automated
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await _McpClient!.CallAsync<string>("node/readfirst", new { searchRequest = reqJson });
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("node/readfirst", new { searchRequest = reqObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3490,7 +3506,8 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("node/enumerate", new { query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("node/enumerate", new { query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -3534,7 +3551,8 @@ namespace Test.Automated
                 Name = "MCP Test Edge"
             };
             string edgeJson = _McpSerializer.SerializeJson(edge, false);
-            string result2 = await _McpClient!.CallAsync<string>("edge/create", new { edge = edgeJson });
+            var edgeObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(edgeJson);
+            string result2 = await _McpClient!.CallAsync<string>("edge/create", new { edge = edgeObj });
             AssertNotNull(result2, "Result should not be null");
             AssertFalse(result2 == "null", "Result should not be null string");
 
@@ -3603,7 +3621,8 @@ namespace Test.Automated
                 Name = "Updated MCP Edge"
             };
             string edgeJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await _McpClient!.CallAsync<string>("edge/update", new { edge = edgeJson });
+            var edgeObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(edgeJson);
+            string result = await _McpClient!.CallAsync<string>("edge/update", new { edge = edgeObj });
             AssertNotNull(result, "Result should not be null");
 
             Edge? edge = _McpSerializer.DeserializeJson<Edge>(result);
@@ -3626,7 +3645,8 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("edge/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("edge/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -3686,7 +3706,8 @@ namespace Test.Automated
                 new Edge { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, From = _McpTestNode2Guid, To = _McpTestNode1Guid, Name = "MCP Test Edge Many 2" }
             };
             string edgesJson = _McpSerializer.SerializeJson(edges, false);
-            string result = await _McpClient!.CallAsync<string>("edge/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edges = edgesJson });
+            var edgesObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(edgesJson);
+            string result = await _McpClient!.CallAsync<string>("edge/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edges = edgesObj });
             AssertNotNull(result, "Result should not be null");
 
             List<Edge>? created = _McpSerializer.DeserializeJson<List<Edge>>(result);
@@ -3773,7 +3794,8 @@ namespace Test.Automated
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await _McpClient!.CallAsync<string>("edge/search", new { request = reqJson });
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("edge/search", new { request = reqObj });
             AssertNotNull(result, "Result should not be null");
 
             SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
@@ -3795,7 +3817,8 @@ namespace Test.Automated
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await _McpClient!.CallAsync<string>("edge/readfirst", new { request = reqJson });
+            var reqObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(reqJson);
+            string result = await _McpClient!.CallAsync<string>("edge/readfirst", new { request = reqObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3823,7 +3846,8 @@ namespace Test.Automated
                 Label = "MCP Test Label"
             };
             string labelJson = _McpSerializer.SerializeJson(label, false);
-            string result = await _McpClient!.CallAsync<string>("label/create", new { label = labelJson });
+            var labelObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelJson);
+            string result = await _McpClient!.CallAsync<string>("label/create", new { label = labelObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3883,7 +3907,8 @@ namespace Test.Automated
 
             label!.Label = "Updated MCP Label";
             string labelJson = _McpSerializer.SerializeJson(label, false);
-            string result = await _McpClient!.CallAsync<string>("label/update", new { label = labelJson });
+            var labelObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelJson);
+            string result = await _McpClient!.CallAsync<string>("label/update", new { label = labelObj });
             AssertNotNull(result, "Result should not be null");
 
             LabelMetadata? updated = _McpSerializer.DeserializeJson<LabelMetadata>(result);
@@ -3902,7 +3927,8 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? enumerationResult = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -3961,7 +3987,8 @@ namespace Test.Automated
                 new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label 2" }
             };
             string labelsJson = _McpSerializer.SerializeJson(labels, false);
-            string result = await _McpClient!.CallAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsJson });
+            var labelsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelsJson);
+            string result = await _McpClient!.CallAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsObj });
             AssertNotNull(result, "Result should not be null");
 
             List<LabelMetadata>? created = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
@@ -3989,7 +4016,8 @@ namespace Test.Automated
                 new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label Delete 2" }
             };
             string labelsJson = _McpSerializer.SerializeJson(labels, false);
-            string createResult = await _McpClient!.CallAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsJson });
+            var labelsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(labelsJson);
+            string createResult = await _McpClient!.CallAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsObj });
             List<LabelMetadata>? created = _McpSerializer.DeserializeJson<List<LabelMetadata>>(createResult);
             AssertNotNull(created, "Created labels should not be null");
             AssertTrue(created!.Count == 2, "Should have created 2 labels");
@@ -4033,7 +4061,8 @@ namespace Test.Automated
                 Value = "MCP Test Tag Value"
             };
             string tagJson = _McpSerializer.SerializeJson(tag, false);
-            string result = await _McpClient!.CallAsync<string>("tag/create", new { tag = tagJson });
+            var tagObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tagJson);
+            string result = await _McpClient!.CallAsync<string>("tag/create", new { tag = tagObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4101,7 +4130,8 @@ namespace Test.Automated
                 Value = "MCP Test Tag Value Updated"
             };
             string tagJson = _McpSerializer.SerializeJson(tag, false);
-            string result = await _McpClient!.CallAsync<string>("tag/update", new { tag = tagJson });
+            var tagObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tagJson);
+            string result = await _McpClient!.CallAsync<string>("tag/update", new { tag = tagObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4125,7 +4155,8 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("tag/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("tag/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -4198,7 +4229,8 @@ namespace Test.Automated
                 }
             };
             string tagsJson = _McpSerializer.SerializeJson(tags, false);
-            string result = await _McpClient!.CallAsync<string>("tag/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsJson });
+            var tagsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tagsJson);
+            string result = await _McpClient!.CallAsync<string>("tag/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsObj });
             AssertNotNull(result, "Result should not be null");
 
             List<TagMetadata>? created = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
@@ -4242,7 +4274,8 @@ namespace Test.Automated
                 }
             };
             string tagsJson = _McpSerializer.SerializeJson(tags, false);
-            string createResult = await _McpClient!.CallAsync<string>("tag/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsJson });
+            var tagsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(tagsJson);
+            string createResult = await _McpClient!.CallAsync<string>("tag/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsObj });
             List<TagMetadata>? created = _McpSerializer.DeserializeJson<List<TagMetadata>>(createResult);
             AssertNotNull(created, "Created tags should not be null");
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
@@ -4290,7 +4323,8 @@ namespace Test.Automated
                 Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
             };
             string vectorJson = _McpSerializer.SerializeJson(vector, false);
-            string result = await _McpClient!.CallAsync<string>("vector/create", new { vector = vectorJson });
+            var vectorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(vectorJson);
+            string result = await _McpClient!.CallAsync<string>("vector/create", new { vector = vectorObj });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4350,7 +4384,8 @@ namespace Test.Automated
 
             vector!.Content = "Updated MCP Vector Content";
             string vectorJson = _McpSerializer.SerializeJson(vector, false);
-            string result = await _McpClient!.CallAsync<string>("vector/update", new { vector = vectorJson });
+            var vectorObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(vectorJson);
+            string result = await _McpClient!.CallAsync<string>("vector/update", new { vector = vectorObj });
             AssertNotNull(result, "Result should not be null");
 
             VectorMetadata? updated = _McpSerializer.DeserializeJson<VectorMetadata>(result);
@@ -4373,7 +4408,8 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("vector/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            var queryObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(queryJson);
+            string result = await _McpClient!.CallAsync<string>("vector/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryObj });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -4460,7 +4496,8 @@ namespace Test.Automated
                 }
             };
             string vectorsJson = _McpSerializer.SerializeJson(vectors, false);
-            string result = await _McpClient!.CallAsync<string>("vector/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsJson });
+            var vectorsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(vectorsJson);
+            string result = await _McpClient!.CallAsync<string>("vector/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsObj });
             AssertNotNull(result, "Result should not be null");
 
             List<VectorMetadata>? created = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
@@ -4514,7 +4551,8 @@ namespace Test.Automated
                 }
             };
             string vectorsJson = _McpSerializer.SerializeJson(vectors, false);
-            string createResult = await _McpClient!.CallAsync<string>("vector/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsJson });
+            var vectorsObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(vectorsJson);
+            string createResult = await _McpClient!.CallAsync<string>("vector/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsObj });
             List<VectorMetadata>? created = _McpSerializer.DeserializeJson<List<VectorMetadata>>(createResult);
             AssertNotNull(created, "Created vectors should not be null");
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
@@ -4550,11 +4588,12 @@ namespace Test.Automated
                 Embeddings = new List<float> { 0.1f, 0.2f, 0.3f }
             };
             string searchRequestJson = _McpSerializer.SerializeJson(searchRequest, false);
+            var searchRequestObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(searchRequestJson);
             string result = await _McpClient!.CallAsync<string>("vector/search", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
-                searchRequest = searchRequestJson
+                searchRequest = searchRequestObj
             });
             AssertNotNull(result, "Result should not be null");
 
