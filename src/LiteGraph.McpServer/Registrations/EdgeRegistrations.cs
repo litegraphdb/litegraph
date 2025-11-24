@@ -29,16 +29,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        edge = new { type = "object", description = "Edge object with TenantGUID, GraphGUID, FromNodeGUID, ToNodeGUID, and optional properties" }
+                        edge = new { type = "string", description = "Edge object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "edge" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("edge", out JsonElement edgeProp))
-                        throw new ArgumentException("Edge object is required");
-
-                    Edge edge = Serializer.DeserializeJson<Edge>(edgeProp.GetRawText());
+                        throw new ArgumentException("Edge JSON string is required");
+                    string edgeJson = edgeProp.GetString() ?? throw new ArgumentException("Edge JSON string cannot be null");
+                    Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
                     Edge created = sdk.Edge.Create(edge).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -105,7 +105,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "object", description = "Enumeration query object" }
+                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -119,7 +119,8 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
                             query.MaxResults = deserializedQuery.MaxResults;
@@ -143,15 +144,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        edge = new { type = "object", description = "Edge object with GUID and properties to update" }
+                        edge = new { type = "string", description = "Edge object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "edge" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("edge", out JsonElement edgeProp))
-                        throw new ArgumentException("Edge object is required");
-                    Edge edge = Serializer.DeserializeJson<Edge>(edgeProp.GetRawText());
+                        throw new ArgumentException("Edge JSON string is required");
+                    string edgeJson = edgeProp.GetString() ?? throw new ArgumentException("Edge JSON string cannot be null");
+                    Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
                     Edge updated = sdk.Edge.Update(edge).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
                 });
@@ -243,7 +245,7 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        edges = new { type = "array", items = new { type = "object" }, description = "Array of edge objects to create" }
+                        edges = new { type = "string", description = "Array of edge objects serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "edges" }
                 },
@@ -255,7 +257,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.Value.TryGetProperty("edges", out JsonElement edgesProp))
                         throw new ArgumentException("Edges array is required");
                     
-                    List<Edge> edges = Serializer.DeserializeJson<List<Edge>>(edgesProp.GetRawText());
+                    string edgesJson = edgesProp.GetString() ?? throw new ArgumentException("Edges JSON string cannot be null");
+                    List<Edge> edges = Serializer.DeserializeJson<List<Edge>>(edgesJson);
                     List<Edge> created = sdk.Edge.CreateMany(tenantGuid, graphGuid, edges).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -378,7 +381,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        request = new { type = "object", description = "Search request object" }
+                        request = new { type = "string", description = "Search request object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "request" }
                 },
@@ -387,7 +390,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("request", out JsonElement requestProp))
                         throw new ArgumentException("Search request object is required");
                     
-                    SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestProp.GetRawText());
+                    string requestJson = requestProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
+                    SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestJson);
                     SearchResult result = sdk.Edge.Search(request).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(result, true);
                 });
@@ -400,7 +404,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        request = new { type = "object", description = "Search request object" }
+                        request = new { type = "string", description = "Search request object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "request" }
                 },
@@ -409,7 +413,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("request", out JsonElement requestProp))
                         throw new ArgumentException("Search request object is required");
                     
-                    SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestProp.GetRawText());
+                    string requestJson = requestProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
+                    SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestJson);
                     Edge edge = sdk.Edge.ReadFirst(request).GetAwaiter().GetResult();
                     return edge != null ? Serializer.SerializeJson(edge, true) : "null";
                 });
@@ -489,9 +494,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("edge/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("edge", out JsonElement edgeProp))
-                    throw new ArgumentException("Edge object is required");
-
-                Edge edge = Serializer.DeserializeJson<Edge>(edgeProp.GetRawText());
+                    throw new ArgumentException("Edge JSON string is required");
+                string edgeJson = edgeProp.GetString() ?? throw new ArgumentException("Edge JSON string cannot be null");
+                Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
                 Edge created = sdk.Edge.Create(edge).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -529,7 +534,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -548,8 +554,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("edge/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("edge", out JsonElement edgeProp))
-                    throw new ArgumentException("Edge object is required");
-                Edge edge = Serializer.DeserializeJson<Edge>(edgeProp.GetRawText());
+                    throw new ArgumentException("Edge JSON string is required");
+                string edgeJson = edgeProp.GetString() ?? throw new ArgumentException("Edge JSON string cannot be null");
+                Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
                 Edge updated = sdk.Edge.Update(edge).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -597,7 +604,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("edges", out JsonElement edgesProp))
                     throw new ArgumentException("Edges array is required");
                 
-                List<Edge> edges = Serializer.DeserializeJson<List<Edge>>(edgesProp.GetRawText());
+                string edgesJson = edgesProp.GetString() ?? throw new ArgumentException("Edges JSON string cannot be null");
+                List<Edge> edges = Serializer.DeserializeJson<List<Edge>>(edgesJson);
                 List<Edge> created = sdk.Edge.CreateMany(tenantGuid, graphGuid, edges).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -652,7 +660,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("request", out JsonElement requestProp))
                     throw new ArgumentException("Search request object is required");
                 
-                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestProp.GetRawText());
+                string requestJson = requestProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
+                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestJson);
                 SearchResult result = sdk.Edge.Search(request).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -662,7 +671,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("request", out JsonElement requestProp))
                     throw new ArgumentException("Search request object is required");
                 
-                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestProp.GetRawText());
+                string requestJson = requestProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
+                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestJson);
                 Edge edge = sdk.Edge.ReadFirst(request).GetAwaiter().GetResult();
                 return edge != null ? Serializer.SerializeJson(edge, true) : "null";
             });
@@ -706,9 +716,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("edge/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("edge", out JsonElement edgeProp))
-                    throw new ArgumentException("Edge object is required");
-
-                Edge edge = Serializer.DeserializeJson<Edge>(edgeProp.GetRawText());
+                    throw new ArgumentException("Edge JSON string is required");
+                string edgeJson = edgeProp.GetString() ?? throw new ArgumentException("Edge JSON string cannot be null");
+                Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
                 Edge created = sdk.Edge.Create(edge).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -746,7 +756,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -765,8 +776,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("edge/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("edge", out JsonElement edgeProp))
-                    throw new ArgumentException("Edge object is required");
-                Edge edge = Serializer.DeserializeJson<Edge>(edgeProp.GetRawText());
+                    throw new ArgumentException("Edge JSON string is required");
+                string edgeJson = edgeProp.GetString() ?? throw new ArgumentException("Edge JSON string cannot be null");
+                Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
                 Edge updated = sdk.Edge.Update(edge).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -814,7 +826,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("edges", out JsonElement edgesProp))
                     throw new ArgumentException("Edges array is required");
                 
-                List<Edge> edges = Serializer.DeserializeJson<List<Edge>>(edgesProp.GetRawText());
+                string edgesJson = edgesProp.GetString() ?? throw new ArgumentException("Edges JSON string cannot be null");
+                List<Edge> edges = Serializer.DeserializeJson<List<Edge>>(edgesJson);
                 List<Edge> created = sdk.Edge.CreateMany(tenantGuid, graphGuid, edges).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -869,7 +882,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("request", out JsonElement requestProp))
                     throw new ArgumentException("Search request object is required");
                 
-                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestProp.GetRawText());
+                string requestJson = requestProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
+                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestJson);
                 SearchResult result = sdk.Edge.Search(request).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -879,7 +893,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue || !args.Value.TryGetProperty("request", out JsonElement requestProp))
                     throw new ArgumentException("Search request object is required");
                 
-                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestProp.GetRawText());
+                string requestJson = requestProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
+                SearchRequest request = Serializer.DeserializeJson<SearchRequest>(requestJson);
                 Edge edge = sdk.Edge.ReadFirst(request).GetAwaiter().GetResult();
                 return edge != null ? Serializer.SerializeJson(edge, true) : "null";
             });

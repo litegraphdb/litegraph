@@ -29,16 +29,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        user = new { type = "object", description = "User object with TenantGUID, Email, Password, FirstName, LastName, and optional properties" }
+                        user = new { type = "string", description = "User object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "user" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("user", out JsonElement userProp))
-                        throw new ArgumentException("User object is required");
-
-                    UserMaster user = Serializer.DeserializeJson<UserMaster>(userProp.GetRawText());
+                        throw new ArgumentException("User JSON string is required");
+                    string userJson = userProp.GetString() ?? throw new ArgumentException("User JSON string cannot be null");
+                    UserMaster user = Serializer.DeserializeJson<UserMaster>(userJson);
                     UserMaster created = sdk.User.Create(user).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -100,7 +100,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "object", description = "Enumeration query with pagination options" }
+                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -114,7 +114,8 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
                             query.MaxResults = deserializedQuery.MaxResults;
@@ -137,15 +138,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        user = new { type = "object", description = "User object with GUID and updated properties" }
+                        user = new { type = "string", description = "User object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "user" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("user", out JsonElement userProp))
-                        throw new ArgumentException("User object is required");
-                    UserMaster user = Serializer.DeserializeJson<UserMaster>(userProp.GetRawText());
+                        throw new ArgumentException("User JSON string is required");
+                    string userJson = userProp.GetString() ?? throw new ArgumentException("User JSON string cannot be null");
+                    UserMaster user = Serializer.DeserializeJson<UserMaster>(userJson);
                     UserMaster updated = sdk.User.Update(user).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
                 });
@@ -234,9 +236,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("user/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("user", out JsonElement userProp))
-                    throw new ArgumentException("User object is required");
-
-                UserMaster user = Serializer.DeserializeJson<UserMaster>(userProp.GetRawText());
+                    throw new ArgumentException("User JSON string is required");
+                string userJson = userProp.GetString() ?? throw new ArgumentException("User JSON string cannot be null");
+                UserMaster user = Serializer.DeserializeJson<UserMaster>(userJson);
                 UserMaster created = sdk.User.Create(user).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -271,7 +273,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -289,8 +292,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("user/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("user", out JsonElement userProp))
-                    throw new ArgumentException("User object is required");
-                UserMaster user = Serializer.DeserializeJson<UserMaster>(userProp.GetRawText());
+                    throw new ArgumentException("User JSON string is required");
+                string userJson = userProp.GetString() ?? throw new ArgumentException("User JSON string cannot be null");
+                UserMaster user = Serializer.DeserializeJson<UserMaster>(userJson);
                 UserMaster updated = sdk.User.Update(user).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -340,9 +344,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("user/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("user", out JsonElement userProp))
-                    throw new ArgumentException("User object is required");
-
-                UserMaster user = Serializer.DeserializeJson<UserMaster>(userProp.GetRawText());
+                    throw new ArgumentException("User JSON string is required");
+                string userJson = userProp.GetString() ?? throw new ArgumentException("User JSON string cannot be null");
+                UserMaster user = Serializer.DeserializeJson<UserMaster>(userJson);
                 UserMaster created = sdk.User.Create(user).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -377,7 +381,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -395,8 +400,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("user/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("user", out JsonElement userProp))
-                    throw new ArgumentException("User object is required");
-                UserMaster user = Serializer.DeserializeJson<UserMaster>(userProp.GetRawText());
+                    throw new ArgumentException("User JSON string is required");
+                string userJson = userProp.GetString() ?? throw new ArgumentException("User JSON string cannot be null");
+                UserMaster user = Serializer.DeserializeJson<UserMaster>(userJson);
                 UserMaster updated = sdk.User.Update(user).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });

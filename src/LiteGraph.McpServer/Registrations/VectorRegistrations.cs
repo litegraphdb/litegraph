@@ -29,16 +29,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        vector = new { type = "object", description = "Vector object with TenantGUID, GraphGUID, and vector data" }
+                        vector = new { type = "string", description = "Vector object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "vector" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
-                        throw new ArgumentException("Vector object is required");
-
-                    VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorProp.GetRawText());
+                        throw new ArgumentException("Vector JSON string is required");
+                    string vectorJson = vectorProp.GetString() ?? throw new ArgumentException("Vector JSON string cannot be null");
+                    VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorJson);
                     VectorMetadata created = sdk.Vector.Create(vector).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -100,7 +100,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "object", description = "Enumeration query with pagination options" }
+                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -114,7 +114,8 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
                             query.MaxResults = deserializedQuery.MaxResults;
@@ -137,15 +138,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        vector = new { type = "object", description = "Vector object with GUID and updated properties" }
+                        vector = new { type = "string", description = "Vector object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "vector" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
-                        throw new ArgumentException("Vector object is required");
-                    VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorProp.GetRawText());
+                        throw new ArgumentException("Vector JSON string is required");
+                    string vectorJson = vectorProp.GetString() ?? throw new ArgumentException("Vector JSON string cannot be null");
+                    VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorJson);
                     VectorMetadata updated = sdk.Vector.Update(vector).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
                 });
@@ -228,7 +230,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        vectors = new { type = "array", items = new { type = "object" }, description = "Array of vector objects" }
+                        vectors = new { type = "string", description = "Array of vector objects serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid", "vectors" }
                 },
@@ -239,7 +241,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.Value.TryGetProperty("vectors", out JsonElement vectorsProp))
                         throw new ArgumentException("Vectors array is required");
                     
-                    List<VectorMetadata> vectors = Serializer.DeserializeJson<List<VectorMetadata>>(vectorsProp.GetRawText());
+                    string vectorsJson = vectorsProp.GetString() ?? throw new ArgumentException("Vectors JSON string cannot be null");
+                    List<VectorMetadata> vectors = Serializer.DeserializeJson<List<VectorMetadata>>(vectorsJson);
                     List<VectorMetadata> created = sdk.Vector.CreateMany(tenantGuid, vectors).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -279,7 +282,7 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID (optional)" },
-                        searchRequest = new { type = "object", description = "Vector search request with embeddings, domain, search type, etc." }
+                        searchRequest = new { type = "string", description = "Vector search request object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid", "searchRequest" }
                 },
@@ -291,7 +294,8 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Search request is required");
 
                     Guid? graphGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "graphGuid");
-                    VectorSearchRequest searchRequest = Serializer.DeserializeJson<VectorSearchRequest>(searchRequestProp.GetRawText());
+                    string searchRequestJson = searchRequestProp.GetString() ?? throw new ArgumentException("VectorSearchRequest JSON string cannot be null");
+                    VectorSearchRequest searchRequest = Serializer.DeserializeJson<VectorSearchRequest>(searchRequestJson);
                     List<VectorSearchResult> results = sdk.Vector.SearchVectors(tenantGuid, graphGuid, searchRequest).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(results, true);
                 });
@@ -311,9 +315,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("vector/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
-                    throw new ArgumentException("Vector object is required");
-
-                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorProp.GetRawText());
+                    throw new ArgumentException("Vector JSON string is required");
+                string vectorJson = vectorProp.GetString() ?? throw new ArgumentException("Vector JSON string cannot be null");
+                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorJson);
                 VectorMetadata created = sdk.Vector.Create(vector).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -348,7 +352,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -366,8 +371,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("vector/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
-                    throw new ArgumentException("Vector object is required");
-                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorProp.GetRawText());
+                    throw new ArgumentException("Vector JSON string is required");
+                string vectorJson = vectorProp.GetString() ?? throw new ArgumentException("Vector JSON string cannot be null");
+                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorJson);
                 VectorMetadata updated = sdk.Vector.Update(vector).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -409,7 +415,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("vectors", out JsonElement vectorsProp))
                     throw new ArgumentException("Vectors array is required");
                 
-                List<VectorMetadata> vectors = Serializer.DeserializeJson<List<VectorMetadata>>(vectorsProp.GetRawText());
+                string vectorsJson = vectorsProp.GetString() ?? throw new ArgumentException("Vectors JSON string cannot be null");
+                List<VectorMetadata> vectors = Serializer.DeserializeJson<List<VectorMetadata>>(vectorsJson);
                 List<VectorMetadata> created = sdk.Vector.CreateMany(tenantGuid, vectors).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -434,7 +441,8 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Search request is required");
 
                 Guid? graphGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "graphGuid");
-                VectorSearchRequest searchRequest = Serializer.DeserializeJson<VectorSearchRequest>(searchRequestProp.GetRawText());
+                string searchRequestJson = searchRequestProp.GetString() ?? throw new ArgumentException("VectorSearchRequest JSON string cannot be null");
+                VectorSearchRequest searchRequest = Serializer.DeserializeJson<VectorSearchRequest>(searchRequestJson);
                 List<VectorSearchResult> results = sdk.Vector.SearchVectors(tenantGuid, graphGuid, searchRequest).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(results, true);
             });
@@ -454,9 +462,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("vector/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
-                    throw new ArgumentException("Vector object is required");
-
-                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorProp.GetRawText());
+                    throw new ArgumentException("Vector JSON string is required");
+                string vectorJson = vectorProp.GetString() ?? throw new ArgumentException("Vector JSON string cannot be null");
+                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorJson);
                 VectorMetadata created = sdk.Vector.Create(vector).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -491,7 +499,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -509,8 +518,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("vector/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
-                    throw new ArgumentException("Vector object is required");
-                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorProp.GetRawText());
+                    throw new ArgumentException("Vector JSON string is required");
+                string vectorJson = vectorProp.GetString() ?? throw new ArgumentException("Vector JSON string cannot be null");
+                VectorMetadata vector = Serializer.DeserializeJson<VectorMetadata>(vectorJson);
                 VectorMetadata updated = sdk.Vector.Update(vector).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -552,7 +562,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("vectors", out JsonElement vectorsProp))
                     throw new ArgumentException("Vectors array is required");
                 
-                List<VectorMetadata> vectors = Serializer.DeserializeJson<List<VectorMetadata>>(vectorsProp.GetRawText());
+                string vectorsJson = vectorsProp.GetString() ?? throw new ArgumentException("Vectors JSON string cannot be null");
+                List<VectorMetadata> vectors = Serializer.DeserializeJson<List<VectorMetadata>>(vectorsJson);
                 List<VectorMetadata> created = sdk.Vector.CreateMany(tenantGuid, vectors).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -577,7 +588,8 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Search request is required");
 
                 Guid? graphGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "graphGuid");
-                VectorSearchRequest searchRequest = Serializer.DeserializeJson<VectorSearchRequest>(searchRequestProp.GetRawText());
+                string searchRequestJson = searchRequestProp.GetString() ?? throw new ArgumentException("VectorSearchRequest JSON string cannot be null");
+                VectorSearchRequest searchRequest = Serializer.DeserializeJson<VectorSearchRequest>(searchRequestJson);
                 List<VectorSearchResult> results = sdk.Vector.SearchVectors(tenantGuid, graphGuid, searchRequest).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(results, true);
             });

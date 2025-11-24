@@ -72,7 +72,8 @@ namespace LiteGraph.McpServer.Registrations
 
                     if (args.Value.TryGetProperty("edgesBetween", out JsonElement edgesBetweenProp) && edgesBetweenProp.ValueKind == JsonValueKind.Array)
                     {
-                        request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenProp.GetRawText());
+                        string edgesBetweenJson = edgesBetweenProp.GetString() ?? throw new ArgumentException("EdgesBetween JSON string cannot be null");
+                        request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenJson);
                     }
 
                     if (!request.ContainsExistenceRequest())
@@ -115,7 +116,8 @@ namespace LiteGraph.McpServer.Registrations
 
                 if (args.Value.TryGetProperty("edgesBetween", out JsonElement edgesBetweenProp) && edgesBetweenProp.ValueKind == JsonValueKind.Array)
                 {
-                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenProp.GetRawText());
+                    string edgesBetweenJson = edgesBetweenProp.GetString() ?? throw new ArgumentException("EdgesBetween JSON string cannot be null");
+                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenJson);
                 }
 
                 if (!request.ContainsExistenceRequest())
@@ -158,7 +160,8 @@ namespace LiteGraph.McpServer.Registrations
 
                 if (args.Value.TryGetProperty("edgesBetween", out JsonElement edgesBetweenProp) && edgesBetweenProp.ValueKind == JsonValueKind.Array)
                 {
-                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenProp.GetRawText());
+                    string edgesBetweenJson = edgesBetweenProp.GetString() ?? throw new ArgumentException("EdgesBetween JSON string cannot be null");
+                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenJson);
                 }
 
                 if (!request.ContainsExistenceRequest())

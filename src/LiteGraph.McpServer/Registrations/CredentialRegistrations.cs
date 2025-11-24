@@ -29,16 +29,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        credential = new { type = "object", description = "Credential object with TenantGUID, UserGUID, Name, and optional properties" }
+                        credential = new { type = "string", description = "Credential object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "credential" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
-                        throw new ArgumentException("Credential object is required");
-
-                    Credential credential = Serializer.DeserializeJson<Credential>(credentialProp.GetRawText());
+                        throw new ArgumentException("Credential JSON string is required");
+                    string credentialJson = credentialProp.GetString() ?? throw new ArgumentException("Credential JSON string cannot be null");
+                    Credential credential = Serializer.DeserializeJson<Credential>(credentialJson);
                     Credential created = sdk.Credential.Create(credential).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -100,7 +100,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "object", description = "Enumeration query with pagination options" }
+                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -114,7 +114,8 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
                             query.MaxResults = deserializedQuery.MaxResults;
@@ -137,15 +138,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        credential = new { type = "object", description = "Credential object with GUID and updated properties" }
+                        credential = new { type = "string", description = "Credential object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "credential" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
-                        throw new ArgumentException("Credential object is required");
-                    Credential credential = Serializer.DeserializeJson<Credential>(credentialProp.GetRawText());
+                        throw new ArgumentException("Credential JSON string is required");
+                    string credentialJson = credentialProp.GetString() ?? throw new ArgumentException("Credential JSON string cannot be null");
+                    Credential credential = Serializer.DeserializeJson<Credential>(credentialJson);
                     Credential updated = sdk.Credential.Update(credential).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
                 });
@@ -234,9 +236,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("credential/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
-                    throw new ArgumentException("Credential object is required");
-
-                Credential credential = Serializer.DeserializeJson<Credential>(credentialProp.GetRawText());
+                    throw new ArgumentException("Credential JSON string is required");
+                string credentialJson = credentialProp.GetString() ?? throw new ArgumentException("Credential JSON string cannot be null");
+                Credential credential = Serializer.DeserializeJson<Credential>(credentialJson);
                 Credential created = sdk.Credential.Create(credential).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -271,7 +273,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -289,8 +292,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("credential/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
-                    throw new ArgumentException("Credential object is required");
-                Credential credential = Serializer.DeserializeJson<Credential>(credentialProp.GetRawText());
+                    throw new ArgumentException("Credential JSON string is required");
+                string credentialJson = credentialProp.GetString() ?? throw new ArgumentException("Credential JSON string cannot be null");
+                Credential credential = Serializer.DeserializeJson<Credential>(credentialJson);
                 Credential updated = sdk.Credential.Update(credential).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -340,9 +344,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("credential/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
-                    throw new ArgumentException("Credential object is required");
-
-                Credential credential = Serializer.DeserializeJson<Credential>(credentialProp.GetRawText());
+                    throw new ArgumentException("Credential JSON string is required");
+                string credentialJson = credentialProp.GetString() ?? throw new ArgumentException("Credential JSON string cannot be null");
+                Credential credential = Serializer.DeserializeJson<Credential>(credentialJson);
                 Credential created = sdk.Credential.Create(credential).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -377,7 +381,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -395,8 +400,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("credential/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
-                    throw new ArgumentException("Credential object is required");
-                Credential credential = Serializer.DeserializeJson<Credential>(credentialProp.GetRawText());
+                    throw new ArgumentException("Credential JSON string is required");
+                string credentialJson = credentialProp.GetString() ?? throw new ArgumentException("Credential JSON string cannot be null");
+                Credential credential = Serializer.DeserializeJson<Credential>(credentialJson);
                 Credential updated = sdk.Credential.Update(credential).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });

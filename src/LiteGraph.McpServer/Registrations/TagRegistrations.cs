@@ -29,16 +29,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tag = new { type = "object", description = "Tag object with TenantGUID, Key, Value, and optional properties" }
+                        tag = new { type = "string", description = "Tag object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tag" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("tag", out JsonElement tagProp))
-                        throw new ArgumentException("Tag object is required");
-
-                    TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagProp.GetRawText());
+                        throw new ArgumentException("Tag JSON string is required");
+                    string tagJson = tagProp.GetString() ?? throw new ArgumentException("Tag JSON string cannot be null");
+                    TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
                     TagMetadata created = sdk.Tag.Create(tag).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -107,7 +107,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "object", description = "Enumeration query with pagination options" }
+                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -121,7 +121,8 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
                             query.MaxResults = deserializedQuery.MaxResults;
@@ -144,15 +145,16 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tag = new { type = "object", description = "Tag object with GUID and updated properties" }
+                        tag = new { type = "string", description = "Tag object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tag" }
                 },
                 (args) =>
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("tag", out JsonElement tagProp))
-                        throw new ArgumentException("Tag object is required");
-                    TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagProp.GetRawText());
+                        throw new ArgumentException("Tag JSON string is required");
+                    string tagJson = tagProp.GetString() ?? throw new ArgumentException("Tag JSON string cannot be null");
+                    TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
                     TagMetadata updated = sdk.Tag.Update(tag).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
                 });
@@ -235,7 +237,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        tags = new { type = "array", items = new { type = "object" }, description = "Array of tag objects" }
+                        tags = new { type = "string", description = "Array of tag objects serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid", "tags" }
                 },
@@ -246,7 +248,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.Value.TryGetProperty("tags", out JsonElement tagsProp))
                         throw new ArgumentException("Tags array is required");
                     
-                    List<TagMetadata> tags = Serializer.DeserializeJson<List<TagMetadata>>(tagsProp.GetRawText());
+                    string tagsJson = tagsProp.GetString() ?? throw new ArgumentException("Tags JSON string cannot be null");
+                    List<TagMetadata> tags = Serializer.DeserializeJson<List<TagMetadata>>(tagsJson);
                     List<TagMetadata> created = sdk.Tag.CreateMany(tenantGuid, tags).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(created, true);
                 });
@@ -291,9 +294,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("tag/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tag", out JsonElement tagProp))
-                    throw new ArgumentException("Tag object is required");
-
-                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagProp.GetRawText());
+                    throw new ArgumentException("Tag JSON string is required");
+                string tagJson = tagProp.GetString() ?? throw new ArgumentException("Tag JSON string cannot be null");
+                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
                 TagMetadata created = sdk.Tag.Create(tag).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -331,7 +334,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -349,8 +353,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("tag/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tag", out JsonElement tagProp))
-                    throw new ArgumentException("Tag object is required");
-                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagProp.GetRawText());
+                    throw new ArgumentException("Tag JSON string is required");
+                string tagJson = tagProp.GetString() ?? throw new ArgumentException("Tag JSON string cannot be null");
+                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
                 TagMetadata updated = sdk.Tag.Update(tag).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -392,7 +397,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("tags", out JsonElement tagsProp))
                     throw new ArgumentException("Tags array is required");
                 
-                List<TagMetadata> tags = Serializer.DeserializeJson<List<TagMetadata>>(tagsProp.GetRawText());
+                string tagsJson = tagsProp.GetString() ?? throw new ArgumentException("Tags JSON string cannot be null");
+                List<TagMetadata> tags = Serializer.DeserializeJson<List<TagMetadata>>(tagsJson);
                 List<TagMetadata> created = sdk.Tag.CreateMany(tenantGuid, tags).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -424,9 +430,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("tag/create", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tag", out JsonElement tagProp))
-                    throw new ArgumentException("Tag object is required");
-
-                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagProp.GetRawText());
+                    throw new ArgumentException("Tag JSON string is required");
+                string tagJson = tagProp.GetString() ?? throw new ArgumentException("Tag JSON string cannot be null");
+                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
                 TagMetadata created = sdk.Tag.Create(tag).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
@@ -464,7 +470,8 @@ namespace LiteGraph.McpServer.Registrations
                 
                 if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                 {
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryProp.GetRawText());
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                     if (deserializedQuery != null)
                     {
                         query.MaxResults = deserializedQuery.MaxResults;
@@ -482,8 +489,9 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterMethod("tag/update", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tag", out JsonElement tagProp))
-                    throw new ArgumentException("Tag object is required");
-                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagProp.GetRawText());
+                    throw new ArgumentException("Tag JSON string is required");
+                string tagJson = tagProp.GetString() ?? throw new ArgumentException("Tag JSON string cannot be null");
+                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
                 TagMetadata updated = sdk.Tag.Update(tag).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(updated, true);
             });
@@ -525,7 +533,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.Value.TryGetProperty("tags", out JsonElement tagsProp))
                     throw new ArgumentException("Tags array is required");
                 
-                List<TagMetadata> tags = Serializer.DeserializeJson<List<TagMetadata>>(tagsProp.GetRawText());
+                string tagsJson = tagsProp.GetString() ?? throw new ArgumentException("Tags JSON string cannot be null");
+                List<TagMetadata> tags = Serializer.DeserializeJson<List<TagMetadata>>(tagsJson);
                 List<TagMetadata> created = sdk.Tag.CreateMany(tenantGuid, tags).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(created, true);
             });
