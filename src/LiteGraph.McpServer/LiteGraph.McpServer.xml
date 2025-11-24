@@ -79,6 +79,56 @@
             Environment variable for console logging.
             </summary>
         </member>
+        <member name="T:LiteGraph.McpServer.Classes.DebugSettings">
+            <summary>
+            Debug settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.Exceptions">
+            <summary>
+            Enable debug for exceptions.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.Requests">
+            <summary>
+            Enable debug for requests.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.DatabaseQueries">
+            <summary>
+            Enable debug for database queries.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.McpOperations">
+            <summary>
+            Enable debug for MCP operations.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.DebugSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.DebugSettings"/> class.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.HttpServerSettings">
+            <summary>
+            HTTP server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.HttpServerSettings.Hostname">
+            <summary>
+            HTTP server hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.HttpServerSettings.Port">
+            <summary>
+            HTTP server port.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.HttpServerSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.HttpServerSettings"/> class.
+            </summary>
+        </member>
         <member name="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers">
             <summary>
             Helper methods for LiteGraph MCP Server.
@@ -179,6 +229,11 @@
             Debug settings.
             </summary>
         </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings"/> class.
+            </summary>
+        </member>
         <member name="T:LiteGraph.McpServer.Classes.LiteGraphSettings">
             <summary>
             LiteGraph connection settings.
@@ -194,84 +249,9 @@
             API key for authentication with LiteGraph server.
             </summary>
         </member>
-        <member name="T:LiteGraph.McpServer.Classes.HttpServerSettings">
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphSettings.#ctor">
             <summary>
-            HTTP server settings.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.HttpServerSettings.Hostname">
-            <summary>
-            HTTP server hostname.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.HttpServerSettings.Port">
-            <summary>
-            HTTP server port.
-            </summary>
-        </member>
-        <member name="T:LiteGraph.McpServer.Classes.TcpServerSettings">
-            <summary>
-            TCP server settings.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.TcpServerSettings.Address">
-            <summary>
-            Address on which to listen. Use 0.0.0.0 to indicate any IP address.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.TcpServerSettings.Port">
-            <summary>
-            TCP server port.
-            </summary>
-        </member>
-        <member name="T:LiteGraph.McpServer.Classes.WebSocketServerSettings">
-            <summary>
-            WebSocket server settings.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.WebSocketServerSettings.Hostname">
-            <summary>
-            WebSocket server hostname.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.WebSocketServerSettings.Port">
-            <summary>
-            WebSocket server port.
-            </summary>
-        </member>
-        <member name="T:LiteGraph.McpServer.Classes.NodeSettings">
-            <summary>
-            Node information settings.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.GUID">
-            <summary>
-            Node GUID.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.Name">
-            <summary>
-            Node name.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.Hostname">
-            <summary>
-            Node hostname.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.InstanceType">
-            <summary>
-            Instance type.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.LastStartUtc">
-            <summary>
-            Last start timestamp.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.CreatedUtc">
-            <summary>
-            Creation timestamp.
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.LiteGraphSettings"/> class.
             </summary>
         </member>
         <member name="T:LiteGraph.McpServer.Classes.LoggingServerSettings">
@@ -302,6 +282,11 @@
         <member name="P:LiteGraph.McpServer.Classes.LoggingServerSettings.MaximumPort">
             <summary>
             Maximum port for randomization.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LoggingServerSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.LoggingServerSettings"/> class.
             </summary>
         </member>
         <member name="T:LiteGraph.McpServer.Classes.LoggingSettings">
@@ -339,6 +324,51 @@
             Minimum severity level.
             </summary>
         </member>
+        <member name="M:LiteGraph.McpServer.Classes.LoggingSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.LoggingSettings"/> class.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.NodeSettings">
+            <summary>
+            Node information settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.GUID">
+            <summary>
+            Node GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.Name">
+            <summary>
+            Node name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.Hostname">
+            <summary>
+            Node hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.InstanceType">
+            <summary>
+            Instance type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.LastStartUtc">
+            <summary>
+            Last start timestamp.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.NodeSettings.CreatedUtc">
+            <summary>
+            Creation timestamp.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.NodeSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.NodeSettings"/> class.
+            </summary>
+        </member>
         <member name="T:LiteGraph.McpServer.Classes.StorageSettings">
             <summary>
             Storage settings.
@@ -354,29 +384,49 @@
             Temp directory.
             </summary>
         </member>
-        <member name="T:LiteGraph.McpServer.Classes.DebugSettings">
+        <member name="M:LiteGraph.McpServer.Classes.StorageSettings.#ctor">
             <summary>
-            Debug settings.
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.StorageSettings"/> class.
             </summary>
         </member>
-        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.Exceptions">
+        <member name="T:LiteGraph.McpServer.Classes.TcpServerSettings">
             <summary>
-            Enable debug for exceptions.
+            TCP server settings.
             </summary>
         </member>
-        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.Requests">
+        <member name="P:LiteGraph.McpServer.Classes.TcpServerSettings.Address">
             <summary>
-            Enable debug for requests.
+            Address on which to listen. Use 0.0.0.0 to indicate any IP address.
             </summary>
         </member>
-        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.DatabaseQueries">
+        <member name="P:LiteGraph.McpServer.Classes.TcpServerSettings.Port">
             <summary>
-            Enable debug for database queries.
+            TCP server port.
             </summary>
         </member>
-        <member name="P:LiteGraph.McpServer.Classes.DebugSettings.McpOperations">
+        <member name="M:LiteGraph.McpServer.Classes.TcpServerSettings.#ctor">
             <summary>
-            Enable debug for MCP operations.
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.TcpServerSettings"/> class.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.WebSocketServerSettings">
+            <summary>
+            WebSocket server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.WebSocketServerSettings.Hostname">
+            <summary>
+            WebSocket server hostname.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.WebSocketServerSettings.Port">
+            <summary>
+            WebSocket server port.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.WebSocketServerSettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.WebSocketServerSettings"/> class.
             </summary>
         </member>
         <member name="T:LiteGraph.McpServer.LiteGraphMcpServer">
