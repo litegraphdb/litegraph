@@ -111,7 +111,7 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "object", description = "Enumeration query object" }
+                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -125,7 +125,7 @@ namespace LiteGraph.McpServer.Registrations
                     
                     if (args.Value.TryGetProperty("query", out JsonElement queryProp))
                     {
-                        string queryJson = queryProp.GetRawText();
+                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
                         EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
                         if (deserializedQuery != null)
                         {
@@ -149,7 +149,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        graph = new { type = "object", description = "Graph object" }
+                        graph = new { type = "string", description = "Graph object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "graph" }
                 },
@@ -157,7 +157,7 @@ namespace LiteGraph.McpServer.Registrations
                 {
                     if (!args.HasValue || !args.Value.TryGetProperty("graph", out JsonElement graphProp))
                         throw new ArgumentException("Graph JSON string is required");
-                    string graphJson = graphProp.GetRawText();
+                    string graphJson = graphProp.GetString() ?? throw new ArgumentException("Graph JSON string cannot be null");
                     Graph graph = Serializer.DeserializeJson<Graph>(graphJson);
                     Graph updated = sdk.Graph.Update(graph).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(updated, true);
@@ -340,7 +340,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        searchRequest = new { type = "object", description = "Search request object" }
+                        searchRequest = new { type = "string", description = "Search request object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "searchRequest" }
                 },
@@ -349,7 +349,7 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
                         throw new ArgumentException("Search request is required");
                     
-                    string reqJson = reqProp.GetRawText();
+                    string reqJson = reqProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
                     SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqJson);
                     SearchResult result = sdk.Graph.Search(req).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(result, true);
@@ -363,7 +363,7 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        searchRequest = new { type = "object", description = "Search request object" }
+                        searchRequest = new { type = "string", description = "Search request object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "searchRequest" }
                 },
@@ -372,7 +372,7 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue || !args.Value.TryGetProperty("searchRequest", out JsonElement reqProp))
                         throw new ArgumentException("Search request is required");
                     
-                    string reqJson = reqProp.GetRawText();
+                    string reqJson = reqProp.GetString() ?? throw new ArgumentException("SearchRequest JSON string cannot be null");
                     SearchRequest req = Serializer.DeserializeJson<SearchRequest>(reqJson);
                     Graph graph = sdk.Graph.ReadFirst(req).GetAwaiter().GetResult();
                     return graph != null ? Serializer.SerializeJson(graph, true) : "null";
@@ -388,7 +388,7 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        config = new { type = "object", description = "Vector index configuration object" }
+                        config = new { type = "string", description = "Vector index configuration object serialized as JSON string using Serializer" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "config" }
                 },
@@ -400,7 +400,7 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.Value.TryGetProperty("config", out JsonElement configProp))
                         throw new ArgumentException("Vector index configuration is required");
                     
-                    string configJson = configProp.GetRawText();
+                    string configJson = configProp.GetString() ?? throw new ArgumentException("VectorIndexConfiguration JSON string cannot be null");
                     VectorIndexConfiguration config = Serializer.DeserializeJson<VectorIndexConfiguration>(configJson);
                     sdk.Graph.EnableVectorIndexing(tenantGuid, graphGuid, config).GetAwaiter().GetResult();
                     return string.Empty;
