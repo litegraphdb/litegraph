@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LiteGraph.Sdk" Version="4.1.2" />
+		<PackageReference Include="Inputty" Version="1.0.12" />
+		<PackageReference Include="Voltaic" Version="0.1.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="clean.sh">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="clean.bat">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>
+
