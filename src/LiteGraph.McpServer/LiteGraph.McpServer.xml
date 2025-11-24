@@ -164,12 +164,6 @@
             Gets enumeration order and skip parameters from JSON element.
             </summary>
         </member>
-        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.DeserializeWithSerializer``1(System.Text.Json.JsonElement)">
-            <summary>
-            Deserializes a JsonElement to the specified type using Serializer.
-            This ensures proper handling of NameValueCollection and other LiteGraph types.
-            </summary>
-        </member>
         <member name="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings">
             <summary>
             LiteGraph MCP Server settings.
