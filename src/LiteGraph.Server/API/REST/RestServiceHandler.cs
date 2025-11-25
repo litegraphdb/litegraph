@@ -156,6 +156,9 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialDeleteRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Static.Add(HttpMethod.GET, "/v1.0/credentials/bearer", CredentialReadByBearerTokenRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/credentials", CredentialDeleteAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/users/{userGuid}/credentials", CredentialDeleteByUserRoute, ExceptionRoute);
 
             #endregion
 
@@ -987,6 +990,39 @@
                 return;
             }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialDelete);
+        }
+
+        private async Task CredentialReadByBearerTokenRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialReadByBearerToken);
+        }
+
+        private async Task CredentialDeleteAllInTenantRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialDeleteAllInTenant);
+        }
+
+        private async Task CredentialDeleteByUserRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialDeleteByUser);
         }
 
         #endregion

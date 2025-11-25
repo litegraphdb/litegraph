@@ -398,6 +398,32 @@
             return new ResponseContext(req);
         }
 
+        internal async Task<ResponseContext> CredentialReadByBearerToken(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (String.IsNullOrEmpty(req.Authentication.BearerToken)) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest);
+            Credential obj = await _LiteGraph.Credential.ReadByBearerToken(req.Authentication.BearerToken, token).ConfigureAwait(false);
+            if (obj != null) return new ResponseContext(req, obj);
+            else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+        }
+
+        internal async Task<ResponseContext> CredentialDeleteAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            await _LiteGraph.Credential.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> CredentialDeleteByUser(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            await _LiteGraph.Credential.DeleteByUser(req.TenantGUID.Value, req.UserGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
         #endregion
 
         #region Label-Routes

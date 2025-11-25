@@ -555,15 +555,18 @@ User APIs require administrator bearer token authentication.
 
 Credential APIs require administrator bearer token authentication.
 
-| API                | Method | URL                                        |
-|--------------------|--------|--------------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/credentials           |
-| Update             | PUT    | /v1.0/tenants/[guid]/credentials/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/credentials           |
-| Read many          | GET    | /v1.0/tenants/[guid]/credentials?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/credentials/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/credentials/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/credentials/[guid]    |
+| API                  | Method | URL                                           |
+|----------------------|--------|-----------------------------------------------|
+| Create               | PUT    | /v1.0/tenants/[guid]/credentials              |
+| Update               | PUT    | /v1.0/tenants/[guid]/credentials/[guid]       |
+| Read many            | GET    | /v1.0/tenants/[guid]/credentials              |
+| Read many            | GET    | /v1.0/tenants/[guid]/credentials?guids=...    |
+| Read                 | GET    | /v1.0/tenants/[guid]/credentials/[guid]       |
+| Read by bearer token | GET    | /v1.0/credentials/bearer                      |
+| Delete               | DELETE | /v1.0/tenants/[guid]/credentials/[guid]       |
+| Delete all in tenant | DELETE | /v1.0/tenants/[guid]/credentials              |
+| Delete by user       | DELETE | /v1.0/tenants/[guid]/users/[guid]/credentials |
+| Exists               | HEAD   | /v1.0/tenants/[guid]/credentials/[guid]       |
 
 ## Label APIs
 
