@@ -7582,6 +7582,329 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Read all in tenant",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/labels/all",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"labels",
+										"all"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read all in graph",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels/all",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"labels",
+										"all"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read many graph",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read many node",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"nodes",
+										"00000000-0000-0000-0000-000000000000",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read many edge",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"edges",
+										"00000000-0000-0000-0000-000000000000",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete all in tenant",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/labels/all",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"labels",
+										"all"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete all in graph",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels/all",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"labels",
+										"all"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete graph labels",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete node labels",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"nodes",
+										"00000000-0000-0000-0000-000000000000",
+										"labels"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete edge labels",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"00000000-0000-0000-0000-000000000000",
+										"edges",
+										"00000000-0000-0000-0000-000000000000",
+										"labels"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -10990,329 +11313,6 @@
 										"00000000-0000-0000-0000-000000000000",
 										"nodes",
 										"edges"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read all in tenant",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/labels/all",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"labels",
-										"all"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read all in graph",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels/all",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"labels",
-										"all"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read many graph",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"labels"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read many node",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/labels",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"nodes",
-										"00000000-0000-0000-0000-000000000000",
-										"labels"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read many edge",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/labels",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"edges",
-										"00000000-0000-0000-0000-000000000000",
-										"labels"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete all in tenant",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/labels/all",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"labels",
-										"all"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete all in graph",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels/all",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"labels",
-										"all"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete graph labels",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"labels"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete node labels",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/labels",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"nodes",
-										"00000000-0000-0000-0000-000000000000",
-										"labels"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete edge labels",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/labels",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
-										"edges",
-										"00000000-0000-0000-0000-000000000000",
-										"labels"
 									]
 								}
 							},
