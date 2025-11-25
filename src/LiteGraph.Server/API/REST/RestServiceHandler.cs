@@ -174,6 +174,16 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/bulk", LabelDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelDeleteRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels/all", LabelReadAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels/all", LabelReadAllInGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels", LabelReadManyGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/labels", LabelReadManyNodeRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/labels", LabelReadManyEdgeRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/all", LabelDeleteAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels/all", LabelDeleteAllInGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels", LabelDeleteGraphLabelsRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/labels", LabelDeleteNodeLabelsRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/labels", LabelDeleteEdgeLabelsRoute, ExceptionRoute);
 
             #endregion
 
@@ -1119,6 +1129,66 @@
 
             req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteMany);
+        }
+
+        private async Task LabelReadAllInTenantRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelReadAllInTenant);
+        }
+
+        private async Task LabelReadAllInGraphRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelReadAllInGraph);
+        }
+
+        private async Task LabelReadManyGraphRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelReadManyGraph);
+        }
+
+        private async Task LabelReadManyNodeRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelReadManyNode);
+        }
+
+        private async Task LabelReadManyEdgeRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelReadManyEdge);
+        }
+
+        private async Task LabelDeleteAllInTenantRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteAllInTenant);
+        }
+
+        private async Task LabelDeleteAllInGraphRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteAllInGraph);
+        }
+
+        private async Task LabelDeleteGraphLabelsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteGraphLabels);
+        }
+
+        private async Task LabelDeleteNodeLabelsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteNodeLabels);
+        }
+
+        private async Task LabelDeleteEdgeLabelsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.LabelDeleteEdgeLabels);
         }
 
         #endregion

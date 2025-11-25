@@ -572,15 +572,27 @@ Credential APIs require administrator bearer token authentication.
 
 Label APIs require administrator bearer token authentication.
 
-| API                | Method | URL                                   |
-|--------------------|--------|---------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/labels           |
-| Update             | PUT    | /v1.0/tenants/[guid]/labels/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/labels           |
-| Read many          | GET    | /v1.0/tenants/[guid]/labels?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/labels/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/labels/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/labels/[guid]    |
+| API                      | Method | URL                                                       |
+|--------------------------|--------|-----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/labels                               |
+| Create many              | PUT    | /v1.0/tenants/[guid]/labels/bulk                          |
+| Update                   | PUT    | /v1.0/tenants/[guid]/labels/[guid]                        |
+| Read many                | GET    | /v1.0/tenants/[guid]/labels                               |
+| Read many                | GET    | /v1.0/tenants/[guid]/labels?guids=...                     |
+| Read                     | GET    | /v1.0/tenants/[guid]/labels/[guid]                        |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/labels/all                           |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/labels/all             |
+| Read graph labels        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/labels                 |
+| Read node labels         | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/labels    |
+| Read edge labels         | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/labels    |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/labels/[guid]                        |
+| Delete multiple          | DELETE | /v1.0/tenants/[guid]/labels/bulk                          |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/labels/all                           |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/labels/all             |
+| Delete graph labels      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/labels                 |
+| Delete node labels       | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/labels    |
+| Delete edge labels       | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/labels    |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/labels/[guid]                        |
 
 ## Tag APIs
 
