@@ -655,19 +655,25 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 
 ## Edge APIs
 
-| API             | Method | URL                                                      |
-|-----------------|--------|----------------------------------------------------------|
-| Create          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges                 |
-| Create many     | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk            |
-| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Read            | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                 |
-| Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges?guids=...       |
-| Delete all      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/all      |
-| Delete multiple | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/multiple |
-| Delete          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Exists          | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Search          | POST   | /v1.0/tenants/[guid]/graphs/[guid]/edges/search          |
+| API                      | Method | URL                                                       |
+|--------------------------|--------|-----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |
+| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk             |
+| Update                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |
+| Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges?guids=...        |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/edges                                |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/all              |
+| Read between nodes       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/between          |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/all              |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/edges                                |
+| Delete multiple          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk             |
+| Delete node edges        | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/edges     |
+| Delete node edges (bulk) | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/edges            |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Search                   | POST   | /v1.0/tenants/[guid]/graphs/[guid]/edges/search           |
 
 ## Traversal and Networking
 

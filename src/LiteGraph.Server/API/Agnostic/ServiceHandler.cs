@@ -1375,6 +1375,66 @@
             return new ResponseContext(req);
         }
 
+        internal async Task<ResponseContext> EdgeReadAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            List<Edge> objs = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadAllInTenant(
+                req.TenantGUID.Value,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(edge);
+            }
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> EdgeReadAllInGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            List<Edge> objs = new List<Edge>();
+            await foreach (Edge edge in _LiteGraph.Edge.ReadAllInGraph(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(edge);
+            }
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> EdgeDeleteAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Edge.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> EdgeDeleteNodeEdges(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            await _LiteGraph.Edge.DeleteNodeEdges(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> EdgeDeleteNodeEdgesMany(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.GUIDs == null) throw new ArgumentNullException(nameof(req.GUIDs));
+            if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            await _LiteGraph.Edge.DeleteNodeEdges(req.TenantGUID.Value, req.GraphGUID.Value, req.GUIDs, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
         #endregion
 
         #region Routes-and-Traversal

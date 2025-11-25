@@ -283,6 +283,11 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeDeleteAllRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", EdgeDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeDeleteRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/edges", EdgeReadAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeReadAllInGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/edges", EdgeDeleteAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges", EdgeDeleteNodeEdgesRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/edges", EdgeDeleteNodeEdgesManyRoute, ExceptionRoute);
 
             #endregion
 
@@ -1904,6 +1909,44 @@
 
             req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteMany);
+        }
+
+        private async Task EdgeReadAllInTenantRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeReadAllInTenant);
+        }
+
+        private async Task EdgeReadAllInGraphRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeReadAllInGraph);
+        }
+
+        private async Task EdgeDeleteAllInTenantRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteAllInTenant);
+        }
+
+        private async Task EdgeDeleteNodeEdgesRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteNodeEdges);
+        }
+
+        private async Task EdgeDeleteNodeEdgesManyRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteNodeEdgesMany);
         }
 
         #endregion
