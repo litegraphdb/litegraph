@@ -1381,6 +1381,7 @@ namespace Test.Mcp
             Console.WriteLine("| Created node: " + adNode.Name + " (" + adNode.GUID + ")");
 
             Console.WriteLine("| All nodes created");
+
             #endregion
 
             #region Edges
@@ -1517,6 +1518,7 @@ namespace Test.Mcp
             string je22 = await _McpClient.CallAsync<string>("edge/create", new { edge = je22Json }, 30000, token).ConfigureAwait(false);
 
             Console.WriteLine("| All edges created");
+
             #endregion
 
             _TenantGuid = tenant.GUID;
