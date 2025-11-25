@@ -747,6 +747,137 @@
             return new ResponseContext(req);
         }
 
+        internal async Task<ResponseContext> TagReadAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<TagMetadata> objs = new List<TagMetadata>();
+
+            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadAllInTenant(
+                req.TenantGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(tag);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> TagReadAllInGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<TagMetadata> objs = new List<TagMetadata>();
+
+            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadAllInGraph(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(tag);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> TagReadManyGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<TagMetadata> objs = new List<TagMetadata>();
+
+            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadManyGraph(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(tag);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> TagReadManyNode(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<TagMetadata> objs = new List<TagMetadata>();
+
+            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadManyNode(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.NodeGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(tag);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> TagReadManyEdge(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<TagMetadata> objs = new List<TagMetadata>();
+
+            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadManyEdge(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.EdgeGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(tag);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> TagDeleteAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Tag.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> TagDeleteAllInGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Tag.DeleteAllInGraph(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> TagDeleteGraphTags(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Tag.DeleteGraphTags(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> TagDeleteNodeTags(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Tag.DeleteNodeTags(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> TagDeleteEdgeTags(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Tag.DeleteEdgeTags(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
         #endregion
 
         #region Vector-Routes

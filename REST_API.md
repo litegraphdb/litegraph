@@ -598,15 +598,25 @@ Label APIs require administrator bearer token authentication.
 
 Tag APIs require administrator bearer token authentication.
 
-| API                | Method | URL                                 |
-|--------------------|--------|-------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/tags           |
-| Update             | PUT    | /v1.0/tenants/[guid]/tags/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/tags           |
-| Read many          | GET    | /v1.0/tenants/[guid]/tags?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/tags/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/tags/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/tags/[guid]    |
+| API                      | Method | URL                                                      |
+|--------------------------|--------|----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/tags                                |
+| Update                   | PUT    | /v1.0/tenants/[guid]/tags/[guid]                         |
+| Read many                | GET    | /v1.0/tenants/[guid]/tags                                |
+| Read many                | GET    | /v1.0/tenants/[guid]/tags?guids=...                      |
+| Read                     | GET    | /v1.0/tenants/[guid]/tags/[guid]                         |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/tags/all                            |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/tags/all              |
+| Read graph tags          | GET    | /v1.0/tenants/[guid]/graphs/[guid]/tags                  |
+| Read node tags           | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/tags     |
+| Read edge tags           | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/tags     |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/tags/[guid]                         |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/tags/all                            |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/tags/all              |
+| Delete graph tags        | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/tags                  |
+| Delete node tags         | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/tags     |
+| Delete edge tags         | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/tags     |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/tags/[guid]                         |
 
 ## Vector APIs
 
