@@ -137,7 +137,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                     SearchTypeEnum searchType = Enum.Parse<SearchTypeEnum>(args.Value.GetProperty("searchType").GetString()!);
                     RouteResponse routeResponse = sdk.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null).GetAwaiter().GetResult();
-                    return Serializer.SerializeJson(routeResponse.Routes, true);
+                    return Serializer.SerializeJson(routeResponse?.Routes ?? new List<RouteDetail>(), true);
                 });
 
             server.RegisterTool(
@@ -536,7 +536,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                 SearchTypeEnum searchType = Enum.Parse<SearchTypeEnum>(args.Value.GetProperty("searchType").GetString()!);
                 RouteResponse routeResponse = sdk.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(routeResponse.Routes, true);
+                return Serializer.SerializeJson(routeResponse?.Routes ?? new List<RouteDetail>(), true);
             });
 
             server.RegisterMethod("node/parents", (args) =>
@@ -749,7 +749,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                 SearchTypeEnum searchType = Enum.Parse<SearchTypeEnum>(args.Value.GetProperty("searchType").GetString()!);
                 RouteResponse routeResponse = sdk.Node.ReadRoutes(searchType, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, null, null).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(routeResponse.Routes, true);
+                return Serializer.SerializeJson(routeResponse?.Routes ?? new List<RouteDetail>(), true);
             });
 
             server.RegisterMethod("node/parents", (args) =>

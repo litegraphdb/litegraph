@@ -256,8 +256,10 @@ namespace Test.Mcp
         {
             #region Tenant
 
+            Console.WriteLine("| Creating tenant");
             string tenantResult = await _McpClient.CallAsync<string>("tenant/create", new { name = "Test tenant" }, 30000, token).ConfigureAwait(false);
             TenantMetadata tenant = Serializer.DeserializeJson<TenantMetadata>(tenantResult);
+            Console.WriteLine("| Tenant created: " + tenant.GUID);
 
             #endregion
 
@@ -298,9 +300,9 @@ namespace Test.Mcp
             #region Graph
 
             Console.WriteLine("| Creating graph");
-
             string graphResult = await _McpClient.CallAsync<string>("graph/create", new { tenantGuid = tenant.GUID.ToString(), name = "Sample Graph 1" }, 30000, token).ConfigureAwait(false);
             Graph graph = Serializer.DeserializeJson<Graph>(graphResult);
+            Console.WriteLine("| Graph created: " + graph.GUID);
 
             List<VectorMetadata> graphVectors = new List<VectorMetadata>
             {
@@ -334,7 +336,6 @@ namespace Test.Mcp
             #region Nodes
 
             Guid node1Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 1 " + node1Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n1Obj = new Node
             {
@@ -359,18 +360,16 @@ namespace Test.Mcp
                 }
             };
 
-            // First create the node with just tenantGuid, graphGuid, and name
             string node1Result = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = n1Obj.Name }, 30000, token).ConfigureAwait(false);
             Node n1 = Serializer.DeserializeJson<Node>(node1Result);
             
-            // Update the node with labels, tags, vectors, and the pre-generated GUID
-            n1Obj.GUID = n1.GUID; // Use the GUID from the created node
+            n1Obj.GUID = n1.GUID; 
             string node1Json = Serializer.SerializeJson(n1Obj);
             string node1UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node1Json }, 30000, token).ConfigureAwait(false);
             n1 = Serializer.DeserializeJson<Node>(node1UpdateResult);
+            Console.WriteLine("| Creating node 1 " + n1.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node2Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 2 " + node2Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n2Obj = new Node
             {
@@ -404,9 +403,9 @@ namespace Test.Mcp
             string node2Json = Serializer.SerializeJson(n2Obj);
             string node2UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node2Json }, 30000, token).ConfigureAwait(false);
             n2 = Serializer.DeserializeJson<Node>(node2UpdateResult);
+            Console.WriteLine("| Creating node 2 " + n2.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node3Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 3 " + node3Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n3Obj = new Node
             {
@@ -440,9 +439,9 @@ namespace Test.Mcp
             string node3Json = Serializer.SerializeJson(n3Obj);
             string node3UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node3Json }, 30000, token).ConfigureAwait(false);
             n3 = Serializer.DeserializeJson<Node>(node3UpdateResult);
+            Console.WriteLine("| Creating node 3 " + n3.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node4Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 4 " + node4Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n4Obj = new Node
             {
@@ -476,9 +475,9 @@ namespace Test.Mcp
             string node4Json = Serializer.SerializeJson(n4Obj);
             string node4UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node4Json }, 30000, token).ConfigureAwait(false);
             n4 = Serializer.DeserializeJson<Node>(node4UpdateResult);
+            Console.WriteLine("| Creating node 4 " + n4.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node5Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 5 " + node5Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n5Obj = new Node
             {
@@ -512,9 +511,9 @@ namespace Test.Mcp
             string node5Json = Serializer.SerializeJson(n5Obj);
             string node5UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node5Json }, 30000, token).ConfigureAwait(false);
             n5 = Serializer.DeserializeJson<Node>(node5UpdateResult);
+            Console.WriteLine("| Creating node 5 " + n5.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node6Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 6 " + node6Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n6Obj = new Node
             {
@@ -548,9 +547,9 @@ namespace Test.Mcp
             string node6Json = Serializer.SerializeJson(n6Obj);
             string node6UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node6Json }, 30000, token).ConfigureAwait(false);
             n6 = Serializer.DeserializeJson<Node>(node6UpdateResult);
+            Console.WriteLine("| Creating node 6 " + n6.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node7Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 7 " + node7Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n7Obj = new Node
             {
@@ -584,9 +583,9 @@ namespace Test.Mcp
             string node7Json = Serializer.SerializeJson(n7Obj);
             string node7UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node7Json }, 30000, token).ConfigureAwait(false);
             n7 = Serializer.DeserializeJson<Node>(node7UpdateResult);
+            Console.WriteLine("| Creating node 7 " + n7.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Guid node8Guid = Guid.NewGuid();
-            Console.WriteLine("| Creating node 8 " + node8Guid + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Node n8Obj = new Node
             {
@@ -620,6 +619,7 @@ namespace Test.Mcp
             string node8Json = Serializer.SerializeJson(n8Obj);
             string node8UpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = node8Json }, 30000, token).ConfigureAwait(false);
             n8 = Serializer.DeserializeJson<Node>(node8UpdateResult);
+            Console.WriteLine("| Creating node 8 " + n8.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             #endregion
 
@@ -639,6 +639,7 @@ namespace Test.Mcp
             string e1Json = Serializer.SerializeJson(e1Obj);
             string e1Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e1Json }, 30000, token).ConfigureAwait(false);
             Edge e1 = Serializer.DeserializeJson<Edge>(e1Result);
+            Console.WriteLine("| Creating edge " + e1.Name + " " + e1.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e2Obj = new Edge
             {
@@ -654,6 +655,7 @@ namespace Test.Mcp
             string e2Json = Serializer.SerializeJson(e2Obj);
             string e2Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e2Json }, 30000, token).ConfigureAwait(false);
             Edge e2 = Serializer.DeserializeJson<Edge>(e2Result);
+            Console.WriteLine("| Creating edge " + e2.Name + " " + e2.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e3Obj = new Edge
             {
@@ -669,6 +671,7 @@ namespace Test.Mcp
             string e3Json = Serializer.SerializeJson(e3Obj);
             string e3Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e3Json }, 30000, token).ConfigureAwait(false);
             Edge e3 = Serializer.DeserializeJson<Edge>(e3Result);
+            Console.WriteLine("| Creating edge " + e3.Name + " " + e3.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e4Obj = new Edge
             {
@@ -684,6 +687,7 @@ namespace Test.Mcp
             string e4Json = Serializer.SerializeJson(e4Obj);
             string e4Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e4Json }, 30000, token).ConfigureAwait(false);
             Edge e4 = Serializer.DeserializeJson<Edge>(e4Result);
+            Console.WriteLine("| Creating edge " + e4.Name + " " + e4.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e5Obj = new Edge
             {
@@ -699,6 +703,7 @@ namespace Test.Mcp
             string e5Json = Serializer.SerializeJson(e5Obj);
             string e5Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e5Json }, 30000, token).ConfigureAwait(false);
             Edge e5 = Serializer.DeserializeJson<Edge>(e5Result);
+            Console.WriteLine("| Creating edge " + e5.Name + " " + e5.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e6Obj = new Edge
             {
@@ -714,6 +719,7 @@ namespace Test.Mcp
             string e6Json = Serializer.SerializeJson(e6Obj);
             string e6Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e6Json }, 30000, token).ConfigureAwait(false);
             Edge e6 = Serializer.DeserializeJson<Edge>(e6Result);
+            Console.WriteLine("| Creating edge " + e6.Name + " " + e6.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e7Obj = new Edge
             {
@@ -729,6 +735,7 @@ namespace Test.Mcp
             string e7Json = Serializer.SerializeJson(e7Obj);
             string e7Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e7Json }, 30000, token).ConfigureAwait(false);
             Edge e7 = Serializer.DeserializeJson<Edge>(e7Result);
+            Console.WriteLine("| Creating edge " + e7.Name + " " + e7.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e8Obj = new Edge
             {
@@ -744,6 +751,7 @@ namespace Test.Mcp
             string e8Json = Serializer.SerializeJson(e8Obj);
             string e8Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e8Json }, 30000, token).ConfigureAwait(false);
             Edge e8 = Serializer.DeserializeJson<Edge>(e8Result);
+            Console.WriteLine("| Creating edge " + e8.Name + " " + e8.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e9Obj = new Edge
             {
@@ -759,6 +767,7 @@ namespace Test.Mcp
             string e9Json = Serializer.SerializeJson(e9Obj);
             string e9Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e9Json }, 30000, token).ConfigureAwait(false);
             Edge e9 = Serializer.DeserializeJson<Edge>(e9Result);
+            Console.WriteLine("| Creating edge " + e9.Name + " " + e9.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e10Obj = new Edge
             {
@@ -774,6 +783,7 @@ namespace Test.Mcp
             string e10Json = Serializer.SerializeJson(e10Obj);
             string e10Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e10Json }, 30000, token).ConfigureAwait(false);
             Edge e10 = Serializer.DeserializeJson<Edge>(e10Result);
+            Console.WriteLine("| Creating edge " + e10.Name + " " + e10.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e11Obj = new Edge
             {
@@ -789,6 +799,7 @@ namespace Test.Mcp
             string e11Json = Serializer.SerializeJson(e11Obj);
             string e11Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e11Json }, 30000, token).ConfigureAwait(false);
             Edge e11 = Serializer.DeserializeJson<Edge>(e11Result);
+            Console.WriteLine("| Creating edge " + e11.Name + " " + e11.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge e12Obj = new Edge
             {
@@ -804,6 +815,7 @@ namespace Test.Mcp
             string e12Json = Serializer.SerializeJson(e12Obj);
             string e12Result = await _McpClient.CallAsync<string>("edge/create", new { edge = e12Json }, 30000, token).ConfigureAwait(false);
             Edge e12 = Serializer.DeserializeJson<Edge>(e12Result);
+            Console.WriteLine("| Creating edge " + e12.Name + " " + e12.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             #endregion
 
@@ -1231,6 +1243,7 @@ namespace Test.Mcp
             string yipNodeJson = Serializer.SerializeJson(yipNode);
             string yipUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = yipNodeJson }, 30000, token).ConfigureAwait(false);
             yipNode = Serializer.DeserializeJson<Node>(yipUpdateResult);
+            Console.WriteLine("| Created node: " + yipNode.Name + " (" + yipNode.GUID + ")");
 
             Node keithNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Keith", Data = keith };
             string keithResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = keithNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1239,6 +1252,7 @@ namespace Test.Mcp
             string keithNodeJson = Serializer.SerializeJson(keithNode);
             string keithUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = keithNodeJson }, 30000, token).ConfigureAwait(false);
             keithNode = Serializer.DeserializeJson<Node>(keithUpdateResult);
+            Console.WriteLine("| Created node: " + keithNode.Name + " (" + keithNode.GUID + ")");
 
             Node alexNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Alex", Data = alex };
             string alexResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = alexNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1247,6 +1261,7 @@ namespace Test.Mcp
             string alexNodeJson = Serializer.SerializeJson(alexNode);
             string alexUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = alexNodeJson }, 30000, token).ConfigureAwait(false);
             alexNode = Serializer.DeserializeJson<Node>(alexUpdateResult);
+            Console.WriteLine("| Created node: " + alexNode.Name + " (" + alexNode.GUID + ")");
 
             Node blakeNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Blake", Data = blake };
             string blakeResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = blakeNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1255,6 +1270,7 @@ namespace Test.Mcp
             string blakeNodeJson = Serializer.SerializeJson(blakeNode);
             string blakeUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = blakeNodeJson }, 30000, token).ConfigureAwait(false);
             blakeNode = Serializer.DeserializeJson<Node>(blakeUpdateResult);
+            Console.WriteLine("| Created node: " + blakeNode.Name + " (" + blakeNode.GUID + ")");
 
             Node xfiNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Xfinity", Data = xfi };
             string xfiResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = xfiNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1263,6 +1279,7 @@ namespace Test.Mcp
             string xfiNodeJson = Serializer.SerializeJson(xfiNode);
             string xfiUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = xfiNodeJson }, 30000, token).ConfigureAwait(false);
             xfiNode = Serializer.DeserializeJson<Node>(xfiUpdateResult);
+            Console.WriteLine("| Created node: " + xfiNode.Name + " (" + xfiNode.GUID + ")");
 
             Node starlinkNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Starlink", Data = starlink };
             string starlinkResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = starlinkNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1271,6 +1288,7 @@ namespace Test.Mcp
             string starlinkNodeJson = Serializer.SerializeJson(starlinkNode);
             string starlinkUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = starlinkNodeJson }, 30000, token).ConfigureAwait(false);
             starlinkNode = Serializer.DeserializeJson<Node>(starlinkUpdateResult);
+            Console.WriteLine("| Created node: " + starlinkNode.Name + " (" + starlinkNode.GUID + ")");
 
             Node attNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AT&T", Data = att };
             string attResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = attNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1279,6 +1297,7 @@ namespace Test.Mcp
             string attNodeJson = Serializer.SerializeJson(attNode);
             string attUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = attNodeJson }, 30000, token).ConfigureAwait(false);
             attNode = Serializer.DeserializeJson<Node>(attUpdateResult);
+            Console.WriteLine("| Created node: " + attNode.Name + " (" + attNode.GUID + ")");
 
             Node internetNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Internet", Data = internet };
             string internetResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = internetNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1287,6 +1306,7 @@ namespace Test.Mcp
             string internetNodeJson = Serializer.SerializeJson(internetNode);
             string internetUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = internetNodeJson }, 30000, token).ConfigureAwait(false);
             internetNode = Serializer.DeserializeJson<Node>(internetUpdateResult);
+            Console.WriteLine("| Created node: " + internetNode.Name + " (" + internetNode.GUID + ")");
 
             Node equinixNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Equinix", Data = equinix };
             string equinixResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = equinixNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1295,6 +1315,7 @@ namespace Test.Mcp
             string equinixNodeJson = Serializer.SerializeJson(equinixNode);
             string equinixUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = equinixNodeJson }, 30000, token).ConfigureAwait(false);
             equinixNode = Serializer.DeserializeJson<Node>(equinixUpdateResult);
+            Console.WriteLine("| Created node: " + equinixNode.Name + " (" + equinixNode.GUID + ")");
 
             Node awsNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "AWS", Data = aws };
             string awsResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = awsNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1303,6 +1324,7 @@ namespace Test.Mcp
             string awsNodeJson = Serializer.SerializeJson(awsNode);
             string awsUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = awsNodeJson }, 30000, token).ConfigureAwait(false);
             awsNode = Serializer.DeserializeJson<Node>(awsUpdateResult);
+            Console.WriteLine("| Created node: " + awsNode.Name + " (" + awsNode.GUID + ")");
 
             Node azureNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Azure", Data = azure };
             string azureResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = azureNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1311,6 +1333,7 @@ namespace Test.Mcp
             string azureNodeJson = Serializer.SerializeJson(azureNode);
             string azureUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = azureNodeJson }, 30000, token).ConfigureAwait(false);
             azureNode = Serializer.DeserializeJson<Node>(azureUpdateResult);
+            Console.WriteLine("| Created node: " + azureNode.Name + " (" + azureNode.GUID + ")");
 
             Node digitalOceanNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "DigitalOcean", Data = digitalOcean };
             string doResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = digitalOceanNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1319,6 +1342,7 @@ namespace Test.Mcp
             string doNodeJson = Serializer.SerializeJson(digitalOceanNode);
             string doUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = doNodeJson }, 30000, token).ConfigureAwait(false);
             digitalOceanNode = Serializer.DeserializeJson<Node>(doUpdateResult);
+            Console.WriteLine("| Created node: " + digitalOceanNode.Name + " (" + digitalOceanNode.GUID + ")");
 
             Node rackspaceNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Rackspace", Data = rackspace };
             string rackspaceResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = rackspaceNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1327,6 +1351,7 @@ namespace Test.Mcp
             string rackspaceNodeJson = Serializer.SerializeJson(rackspaceNode);
             string rackspaceUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = rackspaceNodeJson }, 30000, token).ConfigureAwait(false);
             rackspaceNode = Serializer.DeserializeJson<Node>(rackspaceUpdateResult);
+            Console.WriteLine("| Created node: " + rackspaceNode.Name + " (" + rackspaceNode.GUID + ")");
 
             Node ccpNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Control Plane", Data = ccp };
             string ccpResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = ccpNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1335,6 +1360,7 @@ namespace Test.Mcp
             string ccpNodeJson = Serializer.SerializeJson(ccpNode);
             string ccpUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = ccpNodeJson }, 30000, token).ConfigureAwait(false);
             ccpNode = Serializer.DeserializeJson<Node>(ccpUpdateResult);
+            Console.WriteLine("| Created node: " + ccpNode.Name + " (" + ccpNode.GUID + ")");
 
             Node websiteNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Website", Data = website };
             string websiteResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = websiteNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1343,6 +1369,7 @@ namespace Test.Mcp
             string websiteNodeJson = Serializer.SerializeJson(websiteNode);
             string websiteUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = websiteNodeJson }, 30000, token).ConfigureAwait(false);
             websiteNode = Serializer.DeserializeJson<Node>(websiteUpdateResult);
+            Console.WriteLine("| Created node: " + websiteNode.Name + " (" + websiteNode.GUID + ")");
 
             Node adNode = new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Active Directory", Data = ad };
             string adResult = await _McpClient.CallAsync<string>("node/create", new { tenantGuid = tenant.GUID.ToString(), graphGuid = graph.GUID.ToString(), name = adNode.Name }, 30000, token).ConfigureAwait(false);
@@ -1351,6 +1378,7 @@ namespace Test.Mcp
             string adNodeJson = Serializer.SerializeJson(adNode);
             string adUpdateResult = await _McpClient.CallAsync<string>("node/update", new { node = adNodeJson }, 30000, token).ConfigureAwait(false);
             adNode = Serializer.DeserializeJson<Node>(adUpdateResult);
+            Console.WriteLine("| Created node: " + adNode.Name + " (" + adNode.GUID + ")");
 
             Console.WriteLine("| All nodes created");
             #endregion
@@ -1361,86 +1389,128 @@ namespace Test.Mcp
             Edge joelXfiEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = joelNode.GUID, To = xfiNode.GUID, Name = "Joel to Xfinity" };
             string je1Json = Serializer.SerializeJson(joelXfiEdge);
             string je1 = await _McpClient.CallAsync<string>("edge/create", new { edge = je1Json }, 30000, token).ConfigureAwait(false);
+            joelXfiEdge = Serializer.DeserializeJson<Edge>(je1);
+            Console.WriteLine("| Creating edge " + joelXfiEdge.Name + " " + joelXfiEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge joelStarlinkEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = joelNode.GUID, To = starlinkNode.GUID, Name = "Joel to Starlink" };
             string je2Json = Serializer.SerializeJson(joelStarlinkEdge);
             string je2 = await _McpClient.CallAsync<string>("edge/create", new { edge = je2Json }, 30000, token).ConfigureAwait(false);
+            joelStarlinkEdge = Serializer.DeserializeJson<Edge>(je2);
+            Console.WriteLine("| Creating edge " + joelStarlinkEdge.Name + " " + joelStarlinkEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge yipXfiEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = yipNode.GUID, To = xfiNode.GUID, Name = "Yip to Xfinity" };
             string je3Json = Serializer.SerializeJson(yipXfiEdge);
             string je3 = await _McpClient.CallAsync<string>("edge/create", new { edge = je3Json }, 30000, token).ConfigureAwait(false);
+            yipXfiEdge = Serializer.DeserializeJson<Edge>(je3);
+            Console.WriteLine("| Creating edge " + yipXfiEdge.Name + " " + yipXfiEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge keithStarlinkEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = keithNode.GUID, To = starlinkNode.GUID, Name = "Keith to Starlink" };
             string je4Json = Serializer.SerializeJson(keithStarlinkEdge);
             string je4 = await _McpClient.CallAsync<string>("edge/create", new { edge = je4Json }, 30000, token).ConfigureAwait(false);
+            keithStarlinkEdge = Serializer.DeserializeJson<Edge>(je4);
+            Console.WriteLine("| Creating edge " + keithStarlinkEdge.Name + " " + keithStarlinkEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge keithXfiEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = keithNode.GUID, To = xfiNode.GUID, Name = "Keith to Xfinity" };
             string je5Json = Serializer.SerializeJson(keithXfiEdge);
             string je5 = await _McpClient.CallAsync<string>("edge/create", new { edge = je5Json }, 30000, token).ConfigureAwait(false);
+            keithXfiEdge = Serializer.DeserializeJson<Edge>(je5);
+            Console.WriteLine("| Creating edge " + keithXfiEdge.Name + " " + keithXfiEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge keithAttEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = keithNode.GUID, To = attNode.GUID, Name = "Keith to AT&T" };
             string je6Json = Serializer.SerializeJson(keithAttEdge);
             string je6 = await _McpClient.CallAsync<string>("edge/create", new { edge = je6Json }, 30000, token).ConfigureAwait(false);
+            keithAttEdge = Serializer.DeserializeJson<Edge>(je6);
+            Console.WriteLine("| Creating edge " + keithAttEdge.Name + " " + keithAttEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge alexAttEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = alexNode.GUID, To = attNode.GUID, Name = "Alex to AT&T" };
             string je7Json = Serializer.SerializeJson(alexAttEdge);
             string je7 = await _McpClient.CallAsync<string>("edge/create", new { edge = je7Json }, 30000, token).ConfigureAwait(false);
+            alexAttEdge = Serializer.DeserializeJson<Edge>(je7);
+            Console.WriteLine("| Creating edge " + alexAttEdge.Name + " " + alexAttEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge blakeAttEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = blakeNode.GUID, To = attNode.GUID, Name = "Blake to AT&T" };
             string je8Json = Serializer.SerializeJson(blakeAttEdge);
             string je8 = await _McpClient.CallAsync<string>("edge/create", new { edge = je8Json }, 30000, token).ConfigureAwait(false);
+            blakeAttEdge = Serializer.DeserializeJson<Edge>(je8);
+            Console.WriteLine("| Creating edge " + blakeAttEdge.Name + " " + blakeAttEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge xfiInternetEdge1 = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = xfiNode.GUID, To = internetNode.GUID, Name = "Xfinity to Internet 1" };
             string je9Json = Serializer.SerializeJson(xfiInternetEdge1);
             string je9 = await _McpClient.CallAsync<string>("edge/create", new { edge = je9Json }, 30000, token).ConfigureAwait(false);
+            xfiInternetEdge1 = Serializer.DeserializeJson<Edge>(je9);
+            Console.WriteLine("| Creating edge " + xfiInternetEdge1.Name + " " + xfiInternetEdge1.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge xfiInternetEdge2 = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = xfiNode.GUID, To = internetNode.GUID, Name = "Xfinity to Internet 2" };
             string je10Json = Serializer.SerializeJson(xfiInternetEdge2);
             string je10 = await _McpClient.CallAsync<string>("edge/create", new { edge = je10Json }, 30000, token).ConfigureAwait(false);
+            xfiInternetEdge2 = Serializer.DeserializeJson<Edge>(je10);
+            Console.WriteLine("| Creating edge " + xfiInternetEdge2.Name + " " + xfiInternetEdge2.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge starlinkInternetEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = starlinkNode.GUID, To = internetNode.GUID, Name = "Starlink to Internet" };
             string je11Json = Serializer.SerializeJson(starlinkInternetEdge);
             string je11 = await _McpClient.CallAsync<string>("edge/create", new { edge = je11Json }, 30000, token).ConfigureAwait(false);
+            starlinkInternetEdge = Serializer.DeserializeJson<Edge>(je11);
+            Console.WriteLine("| Creating edge " + starlinkInternetEdge.Name + " " + starlinkInternetEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge attInternetEdge1 = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = attNode.GUID, To = internetNode.GUID, Name = "AT&T to Internet 1" };
             string je12Json = Serializer.SerializeJson(attInternetEdge1);
             string je12 = await _McpClient.CallAsync<string>("edge/create", new { edge = je12Json }, 30000, token).ConfigureAwait(false);
+            attInternetEdge1 = Serializer.DeserializeJson<Edge>(je12);
+            Console.WriteLine("| Creating edge " + attInternetEdge1.Name + " " + attInternetEdge1.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge attInternetEdge2 = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = attNode.GUID, To = internetNode.GUID, Name = "AT&T to Internet 2" };
             string je13Json = Serializer.SerializeJson(attInternetEdge2);
             string je13 = await _McpClient.CallAsync<string>("edge/create", new { edge = je13Json }, 30000, token).ConfigureAwait(false);
+            attInternetEdge2 = Serializer.DeserializeJson<Edge>(je13);
+            Console.WriteLine("| Creating edge " + attInternetEdge2.Name + " " + attInternetEdge2.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge internetEquinixEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = internetNode.GUID, To = equinixNode.GUID, Name = "Internet to Equinix" };
             string je14Json = Serializer.SerializeJson(internetEquinixEdge);
             string je14 = await _McpClient.CallAsync<string>("edge/create", new { edge = je14Json }, 30000, token).ConfigureAwait(false);
+            internetEquinixEdge = Serializer.DeserializeJson<Edge>(je14);
+            Console.WriteLine("| Creating edge " + internetEquinixEdge.Name + " " + internetEquinixEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge internetAwsEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = internetNode.GUID, To = awsNode.GUID, Name = "Internet to AWS" };
             string je15Json = Serializer.SerializeJson(internetAwsEdge);
             string je15 = await _McpClient.CallAsync<string>("edge/create", new { edge = je15Json }, 30000, token).ConfigureAwait(false);
+            internetAwsEdge = Serializer.DeserializeJson<Edge>(je15);
+            Console.WriteLine("| Creating edge " + internetAwsEdge.Name + " " + internetAwsEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge internetAzureEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = internetNode.GUID, To = azureNode.GUID, Name = "Internet to Azure" };
             string je16Json = Serializer.SerializeJson(internetAzureEdge);
             string je16 = await _McpClient.CallAsync<string>("edge/create", new { edge = je16Json }, 30000, token).ConfigureAwait(false);
+            internetAzureEdge = Serializer.DeserializeJson<Edge>(je16);
+            Console.WriteLine("| Creating edge " + internetAzureEdge.Name + " " + internetAzureEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge equinixDoEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = equinixNode.GUID, To = digitalOceanNode.GUID, Name = "Equinix to DigitalOcean" };
             string je17Json = Serializer.SerializeJson(equinixDoEdge);
             string je17 = await _McpClient.CallAsync<string>("edge/create", new { edge = je17Json }, 30000, token).ConfigureAwait(false);
+            equinixDoEdge = Serializer.DeserializeJson<Edge>(je17);
+            Console.WriteLine("| Creating edge " + equinixDoEdge.Name + " " + equinixDoEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge equinixAwsEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = equinixNode.GUID, To = awsNode.GUID, Name = "Equinix to AWS" };
             string je18Json = Serializer.SerializeJson(equinixAwsEdge);
             string je18 = await _McpClient.CallAsync<string>("edge/create", new { edge = je18Json }, 30000, token).ConfigureAwait(false);
+            equinixAwsEdge = Serializer.DeserializeJson<Edge>(je18);
+            Console.WriteLine("| Creating edge " + equinixAwsEdge.Name + " " + equinixAwsEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge equinixRackspaceEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = equinixNode.GUID, To = rackspaceNode.GUID, Name = "Equinix to Rackspace" };
             string je19Json = Serializer.SerializeJson(equinixRackspaceEdge);
             string je19 = await _McpClient.CallAsync<string>("edge/create", new { edge = je19Json }, 30000, token).ConfigureAwait(false);
+            equinixRackspaceEdge = Serializer.DeserializeJson<Edge>(je19);
+            Console.WriteLine("| Creating edge " + equinixRackspaceEdge.Name + " " + equinixRackspaceEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge awsWebsiteEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = awsNode.GUID, To = websiteNode.GUID, Name = "AWS to Website" };
             string je20Json = Serializer.SerializeJson(awsWebsiteEdge);
             string je20 = await _McpClient.CallAsync<string>("edge/create", new { edge = je20Json }, 30000, token).ConfigureAwait(false);
+            awsWebsiteEdge = Serializer.DeserializeJson<Edge>(je20);
+            Console.WriteLine("| Creating edge " + awsWebsiteEdge.Name + " " + awsWebsiteEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge azureAdEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = azureNode.GUID, To = adNode.GUID, Name = "Azure to Active Directory" };
             string je21Json = Serializer.SerializeJson(azureAdEdge);
             string je21 = await _McpClient.CallAsync<string>("edge/create", new { edge = je21Json }, 30000, token).ConfigureAwait(false);
+            azureAdEdge = Serializer.DeserializeJson<Edge>(je21);
+            Console.WriteLine("| Creating edge " + azureAdEdge.Name + " " + azureAdEdge.GUID + " in tenant " + tenant.GUID + " graph " + graph.GUID);
 
             Edge doCcpEdge = new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = digitalOceanNode.GUID, To = ccpNode.GUID, Name = "DigitalOcean to Control Plane" };
             string je22Json = Serializer.SerializeJson(doCcpEdge);
