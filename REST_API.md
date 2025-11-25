@@ -622,32 +622,44 @@ Tag APIs require administrator bearer token authentication.
 
 Vector APIs require administrator bearer token authentication, aside from the vector search API.
 
-| API                | Method | URL                                    |
-|--------------------|--------|----------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/vectors           |
-| Update             | PUT    | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/vectors           |
-| Read many          | GET    | /v1.0/tenants/[guid]/vectors?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Search             | POST   | /v1.0/tenants/[guid]/vectors           |
+| API                      | Method | URL                                                      |
+|--------------------------|--------|----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/vectors                             |
+| Update                   | PUT    | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Read many                | GET    | /v1.0/tenants/[guid]/vectors                             |
+| Read many                | GET    | /v1.0/tenants/[guid]/vectors?guids=...                   |
+| Read                     | GET    | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/vectors/all                         |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/vectors/all           |
+| Read graph vectors       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/vectors               |
+| Read node vectors        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/vectors  |
+| Read edge vectors        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/vectors  |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/vectors/all                         |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/vectors/all           |
+| Delete graph vectors     | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/vectors               |
+| Delete node vectors      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/vectors  |
+| Delete edge vectors      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/vectors  |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Search                   | POST   | /v1.0/tenants/[guid]/vectors                             |
 
 ## Graph APIs
 
-| API                | Method | URL                                                        |
-|--------------------|--------|------------------------------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/graphs                                |
-| Update             | PUT    | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Read               | GET    | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Read many          | GET    | /v1.0/tenants/[guid]/graphs                                |
-| Read many          | GET    | /v1.0/tenants/[guid]/graphs?guids=...                      |
-| Delete             | DELETE | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Delete w/ cascade  | DELETE | /v1.0/tenants/[guid]/graphs/[guid]?force                   |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Search             | POST   | /v1.0/tenants/[guid]/graphs/search                         |
-| Render as GEXF     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/gexf?incldata    |
-| Batch existence    | POST   | /v1.0/tenants/[guid]/graphs/[guid]/existence               |
+| API                  | Method | URL                                                        |
+|----------------------|--------|------------------------------------------------------------|
+| Create               | PUT    | /v1.0/tenants/[guid]/graphs                                |
+| Update               | PUT    | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Read                 | GET    | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Read many            | GET    | /v1.0/tenants/[guid]/graphs                                |
+| Read many            | GET    | /v1.0/tenants/[guid]/graphs?guids=...                      |
+| Read all in tenant   | GET    | /v1.0/tenants/[guid]/graphs/all                            |
+| Delete               | DELETE | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Delete w/ cascade    | DELETE | /v1.0/tenants/[guid]/graphs/[guid]?force                   |
+| Delete all in tenant | DELETE | /v1.0/tenants/[guid]/graphs/all                            |
+| Exists               | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Search               | POST   | /v1.0/tenants/[guid]/graphs/search                         |
+| Render as GEXF       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/gexf?incldata    |
+| Batch existence      | POST   | /v1.0/tenants/[guid]/graphs/[guid]/existence               |
 
 ## Graph Vector Index APIs
 

@@ -878,6 +878,33 @@
             return new ResponseContext(req);
         }
 
+        internal async Task<ResponseContext> GraphReadAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<Graph> objs = new List<Graph>();
+
+            await foreach (Graph graph in _LiteGraph.Graph.ReadAllInTenant(
+                req.TenantGUID.Value,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(graph);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> GraphDeleteAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Graph.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
         #endregion
 
         #region Vector-Routes
@@ -982,6 +1009,137 @@
                 results.Add(result);
             }
             return new ResponseContext(req, results);
+        }
+
+        internal async Task<ResponseContext> VectorReadAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<VectorMetadata> objs = new List<VectorMetadata>();
+
+            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadAllInTenant(
+                req.TenantGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(vector);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> VectorReadAllInGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<VectorMetadata> objs = new List<VectorMetadata>();
+
+            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadAllInGraph(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(vector);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> VectorReadManyGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<VectorMetadata> objs = new List<VectorMetadata>();
+
+            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadManyGraph(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(vector);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> VectorReadManyNode(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<VectorMetadata> objs = new List<VectorMetadata>();
+
+            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadManyNode(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.NodeGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(vector);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> VectorReadManyEdge(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<VectorMetadata> objs = new List<VectorMetadata>();
+
+            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadManyEdge(
+                req.TenantGUID.Value,
+                req.GraphGUID.Value,
+                req.EdgeGUID.Value,
+                req.Order,
+                req.Skip,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(vector);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> VectorDeleteAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Vector.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> VectorDeleteAllInGraph(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Vector.DeleteAllInGraph(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> VectorDeleteGraphVectors(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Vector.DeleteGraphVectors(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> VectorDeleteNodeVectors(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Vector.DeleteNodeVectors(req.TenantGUID.Value, req.GraphGUID.Value, req.NodeGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> VectorDeleteEdgeVectors(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Vector.DeleteEdgeVectors(req.TenantGUID.Value, req.GraphGUID.Value, req.EdgeGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
         }
 
         #endregion
