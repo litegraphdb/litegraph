@@ -7440,7 +7440,7 @@
 							"response": []
 						},
 						{
-							"name": "Read all in graph",
+							"name": "Read all labels in graph",
 							"request": {
 								"method": "GET",
 								"header": [],
@@ -7465,7 +7465,7 @@
 							"response": []
 						},
 						{
-							"name": "Read many graph",
+							"name": "Read graph-level labels",
 							"request": {
 								"method": "GET",
 								"header": [],
@@ -10356,7 +10356,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/most-connected",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/mostconnected",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -10368,7 +10368,7 @@
 										"{{tenant}}",
 										"graphs", "{{graph}}",
 										"nodes",
-										"most-connected"
+										"mostconnected"
 									]
 								}
 							},
@@ -10380,7 +10380,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/least-connected",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/leastconnected",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -10392,7 +10392,7 @@
 										"{{tenant}}",
 										"graphs", "{{graph}}",
 										"nodes",
-										"least-connected"
+										"leastconnected"
 									]
 								}
 							},
