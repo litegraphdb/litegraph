@@ -11186,9 +11186,18 @@
 							"name": "Delete node edges (bulk)",
 							"request": {
 								"method": "DELETE",
-								"header": [],
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n  \"00000000-0000-0000-0000-000000000000\",\n  \"11111111-1111-1111-1111-111111111111\"\n]"
+								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/edges/bulk?guids=00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/edges/bulk",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11203,13 +11212,6 @@
 										"nodes",
 										"edges",
 										"bulk"
-									],
-									"query": [
-										{
-											"key": "guids",
-											"value": "00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111",
-											"description": "Comma-separated list of node GUIDs"
-										}
 									]
 								}
 							},
