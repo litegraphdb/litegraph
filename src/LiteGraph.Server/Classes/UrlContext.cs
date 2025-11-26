@@ -289,6 +289,7 @@
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/users", out _UrlParameters)) return RequestTypeEnum.UserEnumerate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users/{userGuid}", out _UrlParameters)) return RequestTypeEnum.UserRead;
 
+                    if (matcher.Match("/v1.0/credentials/bearer/{bearerToken}", out _UrlParameters)) return RequestTypeEnum.CredentialReadAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/credentials", out _UrlParameters)) return RequestTypeEnum.CredentialReadAll;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/credentials", out _UrlParameters)) return RequestTypeEnum.CredentialEnumerate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", out _UrlParameters)) return RequestTypeEnum.CredentialRead;

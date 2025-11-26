@@ -402,8 +402,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
-            if (String.IsNullOrEmpty(req.Authentication.BearerToken)) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest);
-            Credential obj = await _LiteGraph.Credential.ReadByBearerToken(req.Authentication.BearerToken, token).ConfigureAwait(false);
+            if (String.IsNullOrEmpty(req.BearerToken)) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest);
+            Credential obj = await _LiteGraph.Credential.ReadByBearerToken(req.BearerToken, token).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }

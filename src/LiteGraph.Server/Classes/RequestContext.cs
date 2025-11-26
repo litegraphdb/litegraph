@@ -322,6 +322,11 @@
         /// </summary>
         public RouteRequest RouteRequest { get; set; } = null;
 
+        /// <summary>
+        /// BearerToken.
+        /// </summary>
+        public string BearerToken { get; set; } = null;
+
         #endregion
 
         #region Query
@@ -509,6 +514,7 @@
                     if (_Url.UrlParameters.AllKeys.Contains("graphGuid")) GraphGUID = Guid.Parse(_Url.GetParameter("graphGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("nodeGuid")) NodeGUID = Guid.Parse(_Url.GetParameter("nodeGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("edgeGuid")) EdgeGUID = Guid.Parse(_Url.GetParameter("edgeGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("bearerToken")) BearerToken = _Url.GetParameter("bearerToken");
                 }
 
                 if (_Url.QueryExists(Constants.SkipQuerystring))
