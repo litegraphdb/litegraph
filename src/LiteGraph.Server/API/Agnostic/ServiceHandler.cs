@@ -878,33 +878,6 @@
             return new ResponseContext(req);
         }
 
-        internal async Task<ResponseContext> GraphReadAllInTenant(RequestContext req, CancellationToken token = default)
-        {
-            if (req == null) throw new ArgumentNullException(nameof(req));
-
-            List<Graph> objs = new List<Graph>();
-
-            await foreach (Graph graph in _LiteGraph.Graph.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                req.IncludeData,
-                req.IncludeSubordinates,
-                token).ConfigureAwait(false))
-            {
-                objs.Add(graph);
-            }
-
-            return new ResponseContext(req, objs);
-        }
-
-        internal async Task<ResponseContext> GraphDeleteAllInTenant(RequestContext req, CancellationToken token = default)
-        {
-            if (req == null) throw new ArgumentNullException(nameof(req));
-            await _LiteGraph.Graph.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
-            return new ResponseContext(req);
-        }
-
         #endregion
 
         #region Vector-Routes
@@ -1380,6 +1353,33 @@
                 _Logging.Warn(_Header + "GEXF export exception:" + Environment.NewLine + e.ToString());
                 return ResponseContext.FromError(req, ApiErrorEnum.InternalError);
             }
+        }
+
+        internal async Task<ResponseContext> GraphReadAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+
+            List<Graph> objs = new List<Graph>();
+
+            await foreach (Graph graph in _LiteGraph.Graph.ReadAllInTenant(
+                req.TenantGUID.Value,
+                req.Order,
+                req.Skip,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).ConfigureAwait(false))
+            {
+                objs.Add(graph);
+            }
+
+            return new ResponseContext(req, objs);
+        }
+
+        internal async Task<ResponseContext> GraphDeleteAllInTenant(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            await _LiteGraph.Graph.DeleteAllInTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req);
         }
 
         #endregion

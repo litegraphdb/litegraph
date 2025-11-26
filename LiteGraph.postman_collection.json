@@ -8125,7 +8125,7 @@
 							"response": []
 						},
 						{
-							"name": "Read many graph",
+							"name": "Read graph tags only",
 							"request": {
 								"method": "GET",
 								"header": [],
