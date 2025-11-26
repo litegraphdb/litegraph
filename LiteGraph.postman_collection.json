@@ -63,7 +63,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/baadcb8b-4b20-4b62-85e7-60dfde7942fc",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -71,8 +71,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"baadcb8b-4b20-4b62-85e7-60dfde7942fc"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -84,7 +83,7 @@
 								"method": "HEAD",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/b4a19d9b-1951-4bea-acbd-fba11bc020db",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -92,8 +91,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"b4a19d9b-1951-4bea-acbd-fba11bc020db"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -155,7 +153,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/baadcb8b-4b20-4b62-85e7-60dfde7942fc",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -163,8 +161,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"baadcb8b-4b20-4b62-85e7-60dfde7942fc"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -227,7 +224,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/baadcb8b-4b20-4b62-85e7-60dfde7942fc",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -235,8 +232,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"baadcb8b-4b20-4b62-85e7-60dfde7942fc"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -263,7 +259,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/01010101-0101-0101-0101-010101010101?force",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}?force",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -271,8 +267,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"01010101-0101-0101-0101-010101010101"
+										"graphs", "{{graph}}"
 									],
 									"query": [
 										{
@@ -290,7 +285,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/54d82753-3d91-4d02-8eb1-c14ea8a87cea/export/gexf?incldata",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/export/gexf?incldata",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -298,8 +293,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"54d82753-3d91-4d02-8eb1-c14ea8a87cea",
+										"graphs", "{{graph}}",
 										"export",
 										"gexf"
 									],
@@ -339,7 +333,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/158bfe9b-8608-4120-8ca7-5d5ab022a89a/existence",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/existence",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -347,8 +341,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"158bfe9b-8608-4120-8ca7-5d5ab022a89a",
+										"graphs", "{{graph}}",
 										"existence"
 									]
 								}
@@ -366,7 +359,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/a1bb0532-56ad-4e35-80a4-ba269f4039fd/nodes",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -374,8 +367,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"a1bb0532-56ad-4e35-80a4-ba269f4039fd",
+										"graphs", "{{graph}}",
 										"nodes"
 									]
 								}
@@ -388,7 +380,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/nodes/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -396,8 +388,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -411,7 +402,7 @@
 								"method": "HEAD",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/b4a19d9b-1951-4bea-acbd-fba11bc020db/nodes/784cfa37-fb06-4f81-b10d-f1167dfe2b22",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/784cfa37-fb06-4f81-b10d-f1167dfe2b22",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -419,8 +410,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"b4a19d9b-1951-4bea-acbd-fba11bc020db",
+										"graphs", "{{graph}}",
 										"nodes",
 										"784cfa37-fb06-4f81-b10d-f1167dfe2b22"
 									]
@@ -449,7 +439,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/158bfe9b-8608-4120-8ca7-5d5ab022a89a/nodes",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -457,8 +447,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"158bfe9b-8608-4120-8ca7-5d5ab022a89a",
+										"graphs", "{{graph}}",
 										"nodes"
 									]
 								}
@@ -486,7 +475,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/158bfe9b-8608-4120-8ca7-5d5ab022a89a/nodes/multiple",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/multiple",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -494,8 +483,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"158bfe9b-8608-4120-8ca7-5d5ab022a89a",
+										"graphs", "{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -524,7 +512,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/nodes/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -532,8 +520,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -562,7 +549,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/a1bb0532-56ad-4e35-80a4-ba269f4039fd/nodes/search",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/search",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -570,8 +557,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"a1bb0532-56ad-4e35-80a4-ba269f4039fd",
+										"graphs", "{{graph}}",
 										"nodes",
 										"search"
 									]
@@ -600,7 +586,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/nodes/ffffffff-ffff-ffff-ffff-ffffffffffff",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/ffffffff-ffff-ffff-ffff-ffffffffffff",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -608,8 +594,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"nodes",
 										"ffffffff-ffff-ffff-ffff-ffffffffffff"
 									]
@@ -638,7 +623,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/nodes/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -646,8 +631,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"nodes",
 										"all"
 									]
@@ -676,7 +660,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/158bfe9b-8608-4120-8ca7-5d5ab022a89a/nodes/multiple",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/multiple",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -684,8 +668,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"158bfe9b-8608-4120-8ca7-5d5ab022a89a",
+										"graphs", "{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -704,7 +687,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/b4a19d9b-1951-4bea-acbd-fba11bc020db/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -712,8 +695,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"b4a19d9b-1951-4bea-acbd-fba11bc020db",
+										"graphs", "{{graph}}",
 										"edges"
 									]
 								}
@@ -726,7 +708,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/edges/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -734,8 +716,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -749,7 +730,7 @@
 								"method": "HEAD",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/b4a19d9b-1951-4bea-acbd-fba11bc020db/edges/3a35b214-150e-442e-bb4e-3515b3fa7cfe",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/3a35b214-150e-442e-bb4e-3515b3fa7cfe",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -757,8 +738,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"b4a19d9b-1951-4bea-acbd-fba11bc020db",
+										"graphs", "{{graph}}",
 										"edges",
 										"3a35b214-150e-442e-bb4e-3515b3fa7cfe"
 									]
@@ -787,7 +767,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/b4a19d9b-1951-4bea-acbd-fba11bc020db/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -795,8 +775,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"b4a19d9b-1951-4bea-acbd-fba11bc020db",
+										"graphs", "{{graph}}",
 										"edges"
 									]
 								}
@@ -824,7 +803,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/158bfe9b-8608-4120-8ca7-5d5ab022a89a/edges/multiple",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/multiple",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -832,8 +811,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"158bfe9b-8608-4120-8ca7-5d5ab022a89a",
+										"graphs", "{{graph}}",
 										"edges",
 										"multiple"
 									]
@@ -862,7 +840,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/edges/ffffffff-ffff-ffff-ffff-ffffffffffff",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/ffffffff-ffff-ffff-ffff-ffffffffffff",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -870,8 +848,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"edges",
 										"ffffffff-ffff-ffff-ffff-ffffffffffff"
 									]
@@ -900,7 +877,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/a1bb0532-56ad-4e35-80a4-ba269f4039fd/edges/search",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/search",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -908,8 +885,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"a1bb0532-56ad-4e35-80a4-ba269f4039fd",
+										"graphs", "{{graph}}",
 										"edges",
 										"search"
 									]
@@ -938,7 +914,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/edges/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -946,8 +922,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -976,7 +951,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/edges/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -984,8 +959,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"edges",
 										"all"
 									]
@@ -1014,7 +988,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/4fd09750-bfdf-448d-89d5-7f5ae6c300b8/edges/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1022,8 +996,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"4fd09750-bfdf-448d-89d5-7f5ae6c300b8",
+										"graphs", "{{graph}}",
 										"edges",
 										"all"
 									]
@@ -1057,7 +1030,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/54d82753-3d91-4d02-8eb1-c14ea8a87cea/routes",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/routes",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1065,8 +1038,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"54d82753-3d91-4d02-8eb1-c14ea8a87cea",
+										"graphs", "{{graph}}",
 										"routes"
 									]
 								}
@@ -1079,7 +1051,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/443f2e21-d93f-4348-9b18-a018b02fa050/nodes/11111111-1111-1111-1111-111111111111/edges/from",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/edges/from",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1087,8 +1059,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"443f2e21-d93f-4348-9b18-a018b02fa050",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"edges",
@@ -1104,7 +1075,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/443f2e21-d93f-4348-9b18-a018b02fa050/nodes/22222222-2222-2222-2222-222222222222/edges/to",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/22222222-2222-2222-2222-222222222222/edges/to",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1112,8 +1083,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"443f2e21-d93f-4348-9b18-a018b02fa050",
+										"graphs", "{{graph}}",
 										"nodes",
 										"22222222-2222-2222-2222-222222222222",
 										"edges",
@@ -1129,7 +1099,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/a1bb0532-56ad-4e35-80a4-ba269f4039fd/edges/between?from=7ca8aaca-6380-4a1c-8f0a-5322b025ff71&to=3db4fa43-984c-425c-ae12-786a40c7b4f0",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/edges/between?from=7ca8aaca-6380-4a1c-8f0a-5322b025ff71&to=3db4fa43-984c-425c-ae12-786a40c7b4f0",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1137,8 +1107,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"a1bb0532-56ad-4e35-80a4-ba269f4039fd",
+										"graphs", "{{graph}}",
 										"edges",
 										"between"
 									],
@@ -1162,7 +1131,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/443f2e21-d93f-4348-9b18-a018b02fa050/nodes/11111111-1111-1111-1111-111111111111/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1170,8 +1139,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"443f2e21-d93f-4348-9b18-a018b02fa050",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"edges"
@@ -1186,7 +1154,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/443f2e21-d93f-4348-9b18-a018b02fa050/nodes/11111111-1111-1111-1111-111111111111/neighbors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/neighbors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1194,8 +1162,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"443f2e21-d93f-4348-9b18-a018b02fa050",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"neighbors"
@@ -1210,7 +1177,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/443f2e21-d93f-4348-9b18-a018b02fa050/nodes/11111111-1111-1111-1111-111111111111/parents",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/parents",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1218,8 +1185,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"443f2e21-d93f-4348-9b18-a018b02fa050",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"parents"
@@ -1234,7 +1200,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/443f2e21-d93f-4348-9b18-a018b02fa050/nodes/11111111-1111-1111-1111-111111111111/children",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/children",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -1242,8 +1208,7 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs",
-										"443f2e21-d93f-4348-9b18-a018b02fa050",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"children"
@@ -2063,7 +2028,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2074,7 +2039,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"{{graph}}"
 									]
 								}
 							},
@@ -2086,7 +2051,7 @@
 								"method": "HEAD",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2097,7 +2062,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"{{graph}}"
 									]
 								}
 							},
@@ -2161,7 +2126,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/71199f05-2e8e-4064-b9ca-6400b86ebbd3",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2171,8 +2136,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"71199f05-2e8e-4064-b9ca-6400b86ebbd3"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -2237,7 +2201,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/71199f05-2e8e-4064-b9ca-6400b86ebbd3",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2247,8 +2211,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"71199f05-2e8e-4064-b9ca-6400b86ebbd3"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -2275,7 +2238,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/71199f05-2e8e-4064-b9ca-6400b86ebbd3?force",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}?force",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2285,8 +2248,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"71199f05-2e8e-4064-b9ca-6400b86ebbd3"
+										"graphs", "{{graph}}"
 									],
 									"query": [
 										{
@@ -2304,7 +2266,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/export/gexf?incldata",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/gexf?incldata",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2314,8 +2276,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"export",
 										"gexf"
 									],
@@ -2355,7 +2316,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/existence",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/existence",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2365,8 +2326,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"existence"
 									]
 								}
@@ -2384,7 +2344,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2394,8 +2354,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes"
 									]
 								}
@@ -2408,7 +2367,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2418,8 +2377,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -2433,7 +2391,7 @@
 								"method": "HEAD",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/784cfa37-fb06-4f81-b10d-f1167dfe2b22",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/784cfa37-fb06-4f81-b10d-f1167dfe2b22",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2443,8 +2401,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"784cfa37-fb06-4f81-b10d-f1167dfe2b22"
 									]
@@ -2473,7 +2430,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2483,8 +2440,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes"
 									]
 								}
@@ -2512,7 +2468,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/multiple",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/multiple",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2522,8 +2478,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -2552,7 +2507,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/d8b4c1b6-7913-4216-a326-2aedc57360f8",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/d8b4c1b6-7913-4216-a326-2aedc57360f8",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2562,8 +2517,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"d8b4c1b6-7913-4216-a326-2aedc57360f8"
 									]
@@ -2592,7 +2546,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/search",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/search",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2602,8 +2556,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"search"
 									]
@@ -2632,7 +2585,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/4e3ee872-26e1-4ca7-bcf7-cc439dbef954",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/4e3ee872-26e1-4ca7-bcf7-cc439dbef954",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2642,8 +2595,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"4e3ee872-26e1-4ca7-bcf7-cc439dbef954"
 									]
@@ -2672,7 +2624,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2682,8 +2634,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"all"
 									]
@@ -2712,7 +2663,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/multiple",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/multiple",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2722,8 +2673,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -2742,7 +2692,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2752,8 +2702,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges"
 									]
 								}
@@ -2766,7 +2715,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2776,8 +2725,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -2791,7 +2739,7 @@
 								"method": "HEAD",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/3a35b214-150e-442e-bb4e-3515b3fa7cfe",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/3a35b214-150e-442e-bb4e-3515b3fa7cfe",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2801,8 +2749,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"3a35b214-150e-442e-bb4e-3515b3fa7cfe"
 									]
@@ -2831,7 +2778,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2841,8 +2788,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges"
 									]
 								}
@@ -2870,7 +2816,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/multiple",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/multiple",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2880,8 +2826,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"multiple"
 									]
@@ -2910,7 +2855,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/ffffffff-ffff-ffff-ffff-ffffffffffff",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/ffffffff-ffff-ffff-ffff-ffffffffffff",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2920,8 +2865,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"ffffffff-ffff-ffff-ffff-ffffffffffff"
 									]
@@ -2950,7 +2894,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/search",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/search",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -2960,8 +2904,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"search"
 									]
@@ -2990,7 +2933,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/11111111-1111-1111-1111-111111111111",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3000,8 +2943,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -3030,7 +2972,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3040,8 +2982,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"all"
 									]
@@ -3070,7 +3011,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3080,8 +3021,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"all"
 									]
@@ -3115,7 +3055,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/routes",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/routes",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3125,8 +3065,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"routes"
 									]
 								}
@@ -3139,7 +3078,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/3c741e8d-56c7-420d-a0d6-baf69b931bab/edges/from",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/3c741e8d-56c7-420d-a0d6-baf69b931bab/edges/from",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3149,8 +3088,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"3c741e8d-56c7-420d-a0d6-baf69b931bab",
 										"edges",
@@ -3166,7 +3104,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/22222222-2222-2222-2222-222222222222/edges/to",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/22222222-2222-2222-2222-222222222222/edges/to",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3176,8 +3114,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"22222222-2222-2222-2222-222222222222",
 										"edges",
@@ -3193,7 +3130,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/between?from=7ca8aaca-6380-4a1c-8f0a-5322b025ff71&to=3db4fa43-984c-425c-ae12-786a40c7b4f0",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/between?from=7ca8aaca-6380-4a1c-8f0a-5322b025ff71&to=3db4fa43-984c-425c-ae12-786a40c7b4f0",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3203,8 +3140,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"between"
 									],
@@ -3228,7 +3164,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/11111111-1111-1111-1111-111111111111/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3238,8 +3174,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"edges"
@@ -3254,7 +3189,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/11111111-1111-1111-1111-111111111111/neighbors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/neighbors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3264,8 +3199,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"neighbors"
@@ -3280,7 +3214,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/11111111-1111-1111-1111-111111111111/parents",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/parents",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3290,8 +3224,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"parents"
@@ -3306,7 +3239,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/11111111-1111-1111-1111-111111111111/children",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/11111111-1111-1111-1111-111111111111/children",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -3316,8 +3249,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"children"
@@ -4768,7 +4700,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -4778,8 +4710,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -4881,7 +4812,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -4891,8 +4822,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -4919,7 +4849,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000?force",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}?force",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -4929,8 +4859,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"graphs", "{{graph}}"
 									],
 									"query": [
 										{
@@ -7516,7 +7445,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/labels/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7527,7 +7456,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"{{graph}}",
 										"labels",
 										"all"
 									]
@@ -7541,7 +7470,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/labels",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7552,7 +7481,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"{{graph}}",
 										"labels"
 									]
 								}
@@ -7565,7 +7494,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/labels",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/labels",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7575,8 +7504,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -7591,7 +7519,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/labels",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/00000000-0000-0000-0000-000000000000/labels",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7601,8 +7529,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -7670,7 +7597,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/labels/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7680,8 +7607,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"labels",
 										"all"
 									]
@@ -7710,7 +7636,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/labels",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/labels",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7720,8 +7646,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"labels"
 									]
 								}
@@ -7749,7 +7674,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/labels",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/labels",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7759,8 +7684,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -7790,7 +7714,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/labels",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/00000000-0000-0000-0000-000000000000/labels",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -7800,8 +7724,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -8182,7 +8105,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/tags/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/tags/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8193,7 +8116,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"{{graph}}",
 										"tags",
 										"all"
 									]
@@ -8207,7 +8130,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/tags",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/tags",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8218,7 +8141,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"{{graph}}",
 										"tags"
 									]
 								}
@@ -8231,7 +8154,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/tags",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/tags",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8241,8 +8164,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8257,7 +8179,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/tags",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/00000000-0000-0000-0000-000000000000/tags",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8267,8 +8189,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8336,7 +8257,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/tags/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/tags/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8346,8 +8267,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"tags",
 										"all"
 									]
@@ -8376,7 +8296,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/tags",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/tags",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8386,8 +8306,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"tags"
 									]
 								}
@@ -8415,7 +8334,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/tags",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/tags",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8425,8 +8344,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8456,7 +8374,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/tags",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/00000000-0000-0000-0000-000000000000/tags",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8466,8 +8384,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8885,7 +8802,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectors/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectors/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8895,8 +8812,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectors",
 										"all"
 									]
@@ -8910,7 +8826,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8920,8 +8836,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectors"
 									]
 								}
@@ -8934,7 +8849,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/vectors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/vectors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8944,8 +8859,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -8960,7 +8874,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/vectors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/00000000-0000-0000-0000-000000000000/vectors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8970,8 +8884,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9039,7 +8952,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectors/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectors/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9049,8 +8962,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectors",
 										"all"
 									]
@@ -9079,7 +8991,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9089,8 +9001,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectors"
 									]
 								}
@@ -9118,7 +9029,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/vectors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/vectors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9128,8 +9039,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9159,7 +9069,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/00000000-0000-0000-0000-000000000000/vectors",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/00000000-0000-0000-0000-000000000000/vectors",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9169,8 +9079,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9438,7 +9347,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9448,8 +9357,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -9589,7 +9497,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9599,8 +9507,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"graphs", "{{graph}}"
 									]
 								}
 							},
@@ -9627,7 +9534,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000?force",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}?force",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -9637,8 +9544,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000"
+										"graphs", "{{graph}}"
 									],
 									"query": [
 										{
@@ -10426,7 +10332,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -10436,8 +10342,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"all"
 									]
@@ -10451,7 +10356,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/most-connected",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/most-connected",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -10461,8 +10366,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"most-connected"
 									]
@@ -10476,7 +10380,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/least-connected",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/least-connected",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -10486,8 +10390,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"least-connected"
 									]
@@ -11084,7 +10987,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/edges/all",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/edges/all",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11095,7 +10998,7 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"{{graph}}",
 										"edges",
 										"all"
 									]
@@ -11162,7 +11065,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/00000000-0000-0000-0000-000000000000/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/edges",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11172,8 +11075,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"edges"
@@ -11692,7 +11594,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/config",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/config",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11702,8 +11604,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectorindex",
 										"config"
 									]
@@ -11717,7 +11618,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/stats",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/stats",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11727,8 +11628,7 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectorindex",
 										"stats"
 									]
@@ -11751,7 +11651,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/enable",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/enable",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11761,8 +11661,7 @@
 										"v2.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectorindex",
 										"enable"
 									]
@@ -11785,7 +11684,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex/rebuild",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/rebuild",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11795,8 +11694,7 @@
 										"v2.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectorindex",
 										"rebuild"
 									]
@@ -11819,7 +11717,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/vectorindex",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11829,8 +11727,7 @@
 										"v2.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"graphs", "{{graph}}",
 										"vectorindex"
 									]
 								}
