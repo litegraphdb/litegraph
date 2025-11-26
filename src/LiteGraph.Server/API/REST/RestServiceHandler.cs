@@ -151,14 +151,14 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/credentials", CredentialCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/credentials", CredentialReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/credentials", CredentialEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/credentials/bearer/{bearerToken}", CredentialReadByBearerTokenRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/credentials", CredentialEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialUpdateRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialDeleteRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/credentials/bearer/{bearerToken}", CredentialReadByBearerTokenRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/credentials", CredentialDeleteAllInTenantRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/users/{userGuid}/credentials", CredentialDeleteByUserRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/credentials", CredentialDeleteAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", CredentialDeleteRoute, ExceptionRoute);            
 
             #endregion
 
@@ -169,21 +169,21 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels", LabelReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/labels", LabelEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/labels", LabelEnumerateRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelReadRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelExistsRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelUpdateRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/bulk", LabelDeleteManyRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelDeleteRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels/all", LabelReadAllInTenantRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels/all", LabelReadAllInGraphRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels", LabelReadManyGraphRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/labels", LabelReadManyNodeRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/labels", LabelReadManyEdgeRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelReadRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelExistsRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/all", LabelDeleteAllInTenantRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels/all", LabelDeleteAllInGraphRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/labels", LabelDeleteGraphLabelsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/labels", LabelDeleteNodeLabelsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/labels", LabelDeleteEdgeLabelsRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/bulk", LabelDeleteManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", LabelDeleteRoute, ExceptionRoute);
 
             #endregion
 
@@ -191,26 +191,24 @@
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags", TagCreateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags/bulk", TagCreateManyRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags/all", TagReadAllInTenantRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags", TagReadManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants/{tenantGuid}/tags", TagEnumerateRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags/all", TagReadAllInGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags", TagReadManyGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/tags", TagReadManyNodeRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/tags", TagReadManyEdgeRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v2.0/tenants/{tenantGuid}/tags", TagEnumerateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagUpdateRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/tags/bulk", TagDeleteManyRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagDeleteRoute, ExceptionRoute);
-
-            // New Tag Methods
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/tags/all", TagReadAllInTenantRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags/all", TagReadAllInGraphRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags", TagReadManyGraphRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/tags", TagReadManyNodeRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/tags", TagReadManyEdgeRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/tags/all", TagDeleteAllInTenantRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags/all", TagDeleteAllInGraphRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags", TagDeleteGraphTagsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/tags", TagDeleteNodeTagsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}/tags", TagDeleteEdgeTagsRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", TagDeleteRoute, ExceptionRoute);
 
             #endregion
 
@@ -283,6 +281,9 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", NodeCreateManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/first", NodeReadFirstRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/search", NodeSearchRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", NodeReadAllInGraphRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/mostconnected", NodeReadMostConnectedRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/leastconnected", NodeReadLeastConnectedRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", NodeReadManyRoute, ExceptionRoute);
@@ -292,11 +293,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", NodeDeleteAllRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk", NodeDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}", NodeDeleteRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/nodes", NodeReadAllInTenantRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/all", NodeReadAllInGraphRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/mostconnected", NodeReadMostConnectedRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/leastconnected", NodeReadLeastConnectedRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/nodes", NodeDeleteAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/nodes/all", NodeReadAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/nodes/all", NodeDeleteAllInTenantRoute, ExceptionRoute);
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/from", EdgesFromNodeRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/to", EdgesToNodeRoute, ExceptionRoute);
@@ -314,6 +312,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/between", EdgesBetweenRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/first", EdgeReadFirstRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/search", EdgeSearchRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/edges/all", EdgeReadAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeReadAllInGraphRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeReadRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.HEAD, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeExistsRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", EdgeReadManyRoute, ExceptionRoute);
@@ -323,9 +323,7 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeDeleteAllRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", EdgeDeleteManyRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", EdgeDeleteRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/edges", EdgeReadAllInTenantRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", EdgeReadAllInGraphRoute, ExceptionRoute);
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/edges", EdgeDeleteAllInTenantRoute, ExceptionRoute);
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/edges/all", EdgeDeleteAllInTenantRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges", EdgeDeleteNodeEdgesRoute, ExceptionRoute);
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/edges/bulk", EdgeDeleteNodeEdgesManyRoute, ExceptionRoute);
 
