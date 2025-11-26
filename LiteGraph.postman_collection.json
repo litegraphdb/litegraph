@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "5932b566-2981-4c86-96a4-bfcd032cf0db",
+		"_postman_id": "e4cb10bc-8e35-49a3-aa3e-2603b875e158",
 		"name": "LiteGraph",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "29322786",
-		"_collection_link": "https://revstream-dev-team-5511.postman.co/workspace/RevStream-Dev-Team-Workspace~7777a008-b8e7-471d-89fa-2d6abd61007d/collection/29322786-5932b566-2981-4c86-96a4-bfcd032cf0db?action=share&source=collection_link&creator=29322786"
+		"_collection_link": "https://revstream-dev-team-5511.postman.co/workspace/RevStream-Dev-Team-Workspace~7777a008-b8e7-471d-89fa-2d6abd61007d/collection/29322786-e4cb10bc-8e35-49a3-aa3e-2603b875e158?action=share&source=collection_link&creator=29322786"
 	},
 	"item": [
 		{
@@ -1840,109 +1840,6 @@
 										"{{tenant}}",
 										"credentials",
 										"44da0a8a-5fad-488b-aeb5-affaa1b43a25"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read by Bearer Token",
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{bearerToken}}",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/credentials/bearer",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"credentials",
-										"bearer"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete All in Tenant",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"credentials"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete by User",
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/{{userGuid}}/credentials",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"tenants",
-										"{{tenant}}",
-										"users",
-										"{{userGuid}}",
-										"credentials"
 									]
 								}
 							},
@@ -7106,6 +7003,34 @@
 							"response": []
 						},
 						{
+							"name": "Read by Bearer Token",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/credentials/bearer/{{bearerToken}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"credentials",
+										"bearer",
+										"{{bearerToken}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Delete",
 							"request": {
 								"method": "DELETE",
@@ -7138,27 +7063,6 @@
 										"{{tenant}}",
 										"credentials",
 										"00000000-0000-0000-0000-000000000000"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Read by bearer token",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/credentials/bearer",
-									"protocol": "{{protocol}}",
-									"host": [
-										"{{hostname}}"
-									],
-									"port": "{{port}}",
-									"path": [
-										"v1.0",
-										"credentials",
-										"bearer"
 									]
 								}
 							},
@@ -11282,24 +11186,9 @@
 							"name": "Delete node edges (bulk)",
 							"request": {
 								"method": "DELETE",
-								"header": [
-									{
-										"key": "content-type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "[\r\n    \"00000000-0000-0000-0000-000000000000\",\r\n    \"11111111-1111-1111-1111-111111111111\"\r\n]",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
+								"header": [],
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/00000000-0000-0000-0000-000000000000/nodes/edges",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/edges/bulk?guids=00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -11310,9 +11199,17 @@
 										"tenants",
 										"{{tenant}}",
 										"graphs",
-										"00000000-0000-0000-0000-000000000000",
+										"{{graph}}",
 										"nodes",
-										"edges"
+										"edges",
+										"bulk"
+									],
+									"query": [
+										{
+											"key": "guids",
+											"value": "00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111",
+											"description": "Comma-separated list of node GUIDs"
+										}
 									]
 								}
 							},

@@ -477,7 +477,8 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/all", out _UrlParameters)) return RequestTypeEnum.EdgeDeleteAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk", out _UrlParameters)) return RequestTypeEnum.EdgeDeleteMany;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}", out _UrlParameters)) return RequestTypeEnum.EdgeDelete;
-
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/edges/bulk", out _UrlParameters)) return RequestTypeEnum.AllEdgesToNode;
+                  
                     #endregion
                 }
 
