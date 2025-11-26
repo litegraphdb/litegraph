@@ -278,6 +278,7 @@
                 ret += "AND edgeguid IN (" + edgeGuidsStr + ") ";
             }
 
+            ret += ";";
             return ret;
         }
 
