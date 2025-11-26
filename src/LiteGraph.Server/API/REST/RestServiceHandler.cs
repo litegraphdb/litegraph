@@ -2200,7 +2200,13 @@
         private async Task EdgeDeleteNodeEdgesManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
 
+            req.GUIDs = _Serializer.DeserializeJson<List<Guid>>(ctx.Request.DataAsString);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.EdgeDeleteNodeEdgesMany);
         }
 
