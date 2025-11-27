@@ -188,7 +188,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                     bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                     sdk.Graph.DeleteByGuid(tenantGuid, graphGuid, force).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -447,7 +447,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -712,7 +712,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("graph/getvectorindexconfig", (args) =>
@@ -951,7 +951,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("graph/getvectorindexconfig", (args) =>

@@ -2686,9 +2686,13 @@ namespace Test.Automated
             if (_McpTestTenantGuid == Guid.Empty) throw new InvalidOperationException("Test tenant GUID is empty");
 
             if (_McpTestGraphGuid != Guid.Empty)
-                await _McpClient.CallAsync<string>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            {
+                bool graphDeleted = await _McpClient!.CallAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+                AssertTrue(graphDeleted, "Graph delete should return true");
+            }
 
-            string result = await _McpClient!.CallAsync<string>("tenant/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
+            bool result = await _McpClient!.CallAsync<bool>("tenant/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
+            AssertTrue(result, "Tenant delete should return true");
         }
 
         private static async Task TestMcpTenantEnumerate()
@@ -2903,7 +2907,8 @@ namespace Test.Automated
                 await TestMcpUserCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("user/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("user/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            AssertTrue(result, "User delete should return true");
             _McpTestUserGuid = Guid.Empty;
         }
 
@@ -3101,7 +3106,8 @@ namespace Test.Automated
             string existsResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsResult == "true", "Credential should exist before deletion");
 
-            await _McpClient!.CallAsync<string>("credential/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool deleteResult = await _McpClient!.CallAsync<bool>("credential/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(deleteResult, "Credential deleteallintenant should return true");
             
             string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
@@ -3124,7 +3130,8 @@ namespace Test.Automated
             string existsResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsResult == "true", "Credential should exist before deletion");
 
-            await _McpClient!.CallAsync<string>("credential/deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            bool deleteByUserResult = await _McpClient!.CallAsync<bool>("credential/deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            AssertTrue(deleteByUserResult, "Credential deletebyuser should return true");
             
             string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
@@ -3141,7 +3148,8 @@ namespace Test.Automated
                 await TestMcpCredentialCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("credential/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("credential/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(result, "Credential delete should return true");
             _McpTestCredentialGuid = Guid.Empty;
         }
 
@@ -3212,8 +3220,10 @@ namespace Test.Automated
                 await TestMcpGraphCreate();
             }
 
-            await _McpClient!.CallAsync<string>("node/deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            string result = await _McpClient!.CallAsync<string>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            bool nodesDeleted = await _McpClient!.CallAsync<bool>("node/deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(nodesDeleted, "Node deleteall should return true");
+            bool result = await _McpClient!.CallAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            AssertTrue(result, "Graph delete should return true");
             _McpTestGraphGuid = Guid.Empty;
         }
 
@@ -3507,9 +3517,8 @@ namespace Test.Automated
             Node? tempNode = _McpSerializer.DeserializeJson<Node>(createResult);
             AssertNotNull(tempNode, "Temp node should not be null");
 
-            string result = await _McpClient!.CallAsync<string>("node/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
-            // Delete should return empty string
-            AssertTrue(string.IsNullOrEmpty(result), "Delete should return empty string");
+            bool result = await _McpClient!.CallAsync<bool>("node/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
+            AssertTrue(result, "Node delete should return true");
         }
 
         private static async Task TestMcpNodeExists()
@@ -3913,7 +3922,8 @@ namespace Test.Automated
             AssertTrue(existsResult == "true", "Edge should exist before deletion");
 
             // Delete all edges in graph
-            string result = await _McpClient!.CallAsync<string>("edge/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("edge/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "edge/deleteallingraph should return true");
             
             // Verify edge no longer exists
             string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
@@ -3990,7 +4000,8 @@ namespace Test.Automated
             AssertTrue(existsResult == "true", "Edge should exist before deletion");
 
             // Delete all edges in tenant
-            string result = await _McpClient!.CallAsync<string>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "edge/deleteallintenant should return true");
             
             // Verify edge no longer exists
             string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
@@ -4021,7 +4032,8 @@ namespace Test.Automated
             AssertTrue(existsResult == "true", "Edge should exist before deletion");
 
             // Delete edges for nodes
-            string result = await _McpClient!.CallAsync<string>("edge/deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
+            bool result = await _McpClient!.CallAsync<bool>("edge/deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
+            AssertTrue(result, "edge/deletenodeedgesmany should return true");
             
             // Verify edge no longer exists
             string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
@@ -4647,7 +4659,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
 
             List<Guid> guidsToDelete = created.Select(t => t.GUID).ToList();
-            await _McpClient!.CallAsync<string>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "tag/deletemany should return true");
         }
 
         private static async Task TestMcpTagDeleteMany()
@@ -4689,7 +4702,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
 
             List<Guid> guidsToDelete = created.Select(t => t.GUID).ToList();
-            await _McpClient!.CallAsync<string>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "tag/deletemany should return true");
         }
 
         private static async Task TestMcpTagDelete()
@@ -4699,7 +4713,8 @@ namespace Test.Automated
             if (_McpTestTagGuid == Guid.Empty)
                 await TestMcpTagCreate();
 
-            string result = await _McpClient!.CallAsync<string>("tag/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("tag/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            AssertTrue(result, "tag/delete should return true");
             _McpTestTagGuid = Guid.Empty;
         }
 
@@ -4909,7 +4924,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
 
             List<Guid> guidsToDelete = created.Select(v => v.GUID).ToList();
-            await _McpClient!.CallAsync<string>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "vector/deletemany should return true");
         }
 
         private static async Task TestMcpVectorDeleteMany()
@@ -4961,7 +4977,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
 
             List<Guid> guidsToDelete = created.Select(v => v.GUID).ToList();
-            await _McpClient!.CallAsync<string>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "vector/deletemany should return true");
         }
 
         private static async Task TestMcpVectorSearch()
@@ -5012,7 +5029,8 @@ namespace Test.Automated
                 await TestMcpVectorCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("vector/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("vector/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            AssertTrue(result, "vector/delete should return true");
             _McpTestVectorGuid = Guid.Empty;
         }
 
@@ -5081,9 +5099,8 @@ namespace Test.Automated
             await _McpClient!.CallAsync<string>("admin/backup", new { outputFilename = backupFilename });
 
             // Then delete it
-            string result = await _McpClient!.CallAsync<string>("admin/backupdelete", new { backupFilename = backupFilename });
-            // Delete should return empty string
-            AssertTrue(string.IsNullOrEmpty(result), "Delete should return empty string");
+            bool result = await _McpClient!.CallAsync<bool>("admin/backupdelete", new { backupFilename = backupFilename });
+            AssertTrue(result, "Backup delete should return true");
         }
 
         private static async Task TestMcpAdminFlush()

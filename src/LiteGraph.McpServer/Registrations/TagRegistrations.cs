@@ -178,7 +178,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid tagGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tagGuid");
                     sdk.Tag.DeleteByGuid(tenantGuid, tagGuid).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -276,7 +276,7 @@ namespace LiteGraph.McpServer.Registrations
                     
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                     sdk.Tag.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
         }
 

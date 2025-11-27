@@ -132,7 +132,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                     bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                     sdk.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(

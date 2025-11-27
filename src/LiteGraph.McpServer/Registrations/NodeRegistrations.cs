@@ -218,7 +218,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                     sdk.Node.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -248,7 +248,7 @@ namespace LiteGraph.McpServer.Registrations
                     List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
 
                     sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -376,7 +376,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                     sdk.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -578,7 +578,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 sdk.Node.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("node/deletemany", (args) =>
@@ -592,7 +592,7 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
 
                 sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("node/createmany", (args) =>
@@ -639,7 +639,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 sdk.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("node/exists", (args) =>
@@ -790,7 +790,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 sdk.Node.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("node/deletemany", (args) =>
@@ -804,7 +804,7 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
 
                 sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("node/createmany", (args) =>
@@ -851,7 +851,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 sdk.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("node/exists", (args) =>
