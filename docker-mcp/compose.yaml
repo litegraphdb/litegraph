@@ -1,0 +1,21 @@
+services:
+
+  #
+  # LiteGraph MCP Server
+  # Requires a LiteGraph backend
+  # See https://hub.docker.com/r/jchristn/litegraph
+  # and https://github.com/jchristn/LiteGraph
+  #
+
+  litegraph-mcp:
+    container_name: 'litegraph-mcp'
+    image: 'jchristn/litegraph-mcp:v5.0.0'
+    network_mode: 'host'
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/:/app/logs/
+      - ./backups/:/app/backups/
+    healthcheck:
+      test: curl --fail http://localhost:8200

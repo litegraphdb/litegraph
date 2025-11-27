@@ -8,9 +8,10 @@ LiteGraph is a property graph database with support for graph relationships, tag
 
 LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`). For comprehensive documentation, visit [litegraph.readme.io](https://litegraph.readme.io/). A web-based dashboard UI is available at [github.com/litegraphdb/ui](https://github.com/litegraphdb/ui).
 
-## New in v5.x
+## New in v5.0.x
 
 - Breaking changes: migrated all APIs to full async/await
+- New MCP (Model Context Protocol) server for AI/LLM integration
 
 ## Bugs, Feedback, or Enhancement Requests
 
@@ -339,6 +340,102 @@ Modify ./litegraph.json to change the REST listener hostname to make externally 
 ## Running in Docker
 
 A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn/litegraph) under `jchristn/litegraph`.  Use the Docker Compose start (`compose-up.sh` and `compose-up.bat`) and stop (`compose-down.sh` and `compose-down.bat`) scripts in the `Docker` directory if you wish to run within Docker Compose.  Ensure that you have a valid database file (e.g. `litegraph.db`) and configuration file (e.g. `litegraph.json`) exposed into your container.
+
+## MCP Server
+
+LiteGraph includes an MCP (Model Context Protocol) server that enables AI assistants and LLMs to interact with your graph database. The MCP server exposes LiteGraph operations as tools that can be called by AI models, making it ideal for building knowledge graphs, RAG applications, and AI-powered data exploration.
+
+### What is MCP?
+
+The Model Context Protocol is a standard for connecting AI assistants to external tools and data sources. By running the LiteGraph MCP server, you can enable AI assistants (like Claude) to create, query, and manage graph data directly.
+
+### Available Operations
+
+The MCP server exposes a comprehensive set of tools organized by domain:
+
+- **Tenant operations**: Create, read, update, delete tenants
+- **Graph operations**: Manage graphs within tenants
+- **Node operations**: CRUD operations, traversal (parent/child/neighbor), route finding
+- **Edge operations**: Create and manage relationships between nodes
+- **Label operations**: Attach and query labels on graphs, nodes, and edges
+- **Tag operations**: Key-value metadata management
+- **Vector operations**: Vector storage and similarity search
+- **Batch operations**: Bulk create/delete operations
+- **Admin operations**: Backup, health checks, and system management
+
+### Running the MCP Server
+
+The MCP server connects to a running LiteGraph REST API server and exposes its functionality via MCP protocols.
+
+**Prerequisites**: You need a running LiteGraph.Server instance.
+
+```bash
+# First, start the LiteGraph REST server
+dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
+
+# Then, start the MCP server (in a separate terminal)
+dotnet run --project src/LiteGraph.McpServer/LiteGraph.McpServer.csproj
+```
+
+On first run, a default `litegraph.json` configuration file will be created. Edit this file to configure the connection to your LiteGraph server:
+
+```json
+{
+  "LiteGraph": {
+    "Endpoint": "http://localhost:8701",
+    "ApiKey": "litegraphadmin"
+  },
+  "Http": {
+    "Hostname": "localhost",
+    "Port": 8200
+  },
+  "Tcp": {
+    "Address": "localhost",
+    "Port": 8201
+  },
+  "WebSocket": {
+    "Hostname": "localhost",
+    "Port": 8202
+  }
+}
+```
+
+### Transport Protocols
+
+The MCP server supports three transport protocols simultaneously:
+
+| Protocol | Default Endpoint | Use Case |
+|----------|------------------|----------|
+| HTTP | `http://localhost:8200/rpc` | RESTful MCP calls |
+| TCP | `tcp://localhost:8201` | Direct socket connections |
+| WebSocket | `ws://localhost:8202/mcp` | Real-time bidirectional communication |
+
+### Environment Variables
+
+Configuration can be overridden using environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `LITEGRAPH_ENDPOINT` | LiteGraph server URL |
+| `LITEGRAPH_API_KEY` | API key for authentication |
+| `MCP_HTTP_HOSTNAME` | HTTP server hostname |
+| `MCP_HTTP_PORT` | HTTP server port |
+| `MCP_TCP_ADDRESS` | TCP server bind address |
+| `MCP_TCP_PORT` | TCP server port |
+| `MCP_WS_HOSTNAME` | WebSocket server hostname |
+| `MCP_WS_PORT` | WebSocket server port |
+
+### Running MCP Server in Docker
+
+A Docker image for the MCP server is available at `jchristn/litegraph-mcp`. Use the Docker Compose files in the `docker-mcp` directory:
+
+```bash
+cd docker-mcp
+./compose-up.sh   # Linux/Mac
+compose-up.bat    # Windows
+```
+
+Ensure your `litegraph.json` in the `docker-mcp` directory is configured to point to your LiteGraph server.
 
 ## Version History
 

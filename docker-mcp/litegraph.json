@@ -1,0 +1,48 @@
+{
+  "CreatedUtc": "2025-11-24T10:13:33.307268Z",
+  "CreatedBy": "Setup",
+  "DeploymentType": "Private",
+  "SoftwareVersion": "v1.0.0",
+  "Node": {
+    "GUID": "d2ebf75d-ec51-4836-b831-6555bff66ef7",
+    "Name": "LiteGraph Model Context Protocol Server",
+    "Hostname": "localhost",
+    "InstanceType": "McpServer",
+    "LastStartUtc": "2025-11-27T07:02:15.780868Z",
+    "CreatedUtc": "2025-11-24T10:13:33.309647Z"
+  },
+  "Logging": {
+    "Servers": [],
+    "LogDirectory": "./logs/",
+    "LogFilename": "litegraph-mcp.log",
+    "ConsoleLogging": true,
+    "EnableColors": true,
+    "MinimumSeverity": 0
+  },
+  "LiteGraph": {
+    "Endpoint": "http://localhost:8701",
+    "ApiKey": "litegraphadmin"
+  },
+  "Http": {
+    "Hostname": "*",
+    "Port": 8200
+  },
+  "Tcp": {
+    "Address": "*",
+    "Port": 8201
+  },
+  "WebSocket": {
+    "Hostname": "*",
+    "Port": 8202
+  },
+  "Storage": {
+    "BackupsDirectory": "./backups/",
+    "TempDirectory": "./temp/"
+  },
+  "Debug": {
+    "Exceptions": true,
+    "Requests": false,
+    "DatabaseQueries": false,
+    "McpOperations": false
+  }
+}
