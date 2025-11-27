@@ -5,6 +5,17 @@
 v5.0.x
 
 - Breaking changes: full API migration to async/await
+  - All public methods that perform I/O operations are now async and return `Task` or `Task<T>`
+  - Methods returning collections now use `IAsyncEnumerable<T>` where appropriate
+  - Existing synchronous code must be updated to use `await` or `.GetAwaiter().GetResult()` for blocking calls
+  - `InitializeRepository()` and `Flush()` remain synchronous
+  
+- New MCP (Model Context Protocol) server (`LiteGraph.McpServer`)
+  - Enables AI assistants and LLMs to interact with LiteGraph
+  - Exposes graph operations as MCP tools for AI integration
+  - Supports HTTP, TCP, and WebSocket transport protocols
+  - Docker image available at `jchristn/litegraph-mcp`
+  - Ideal for knowledge graphs, RAG applications, and AI-powered data exploration
 
 ## Previous Versions
 
