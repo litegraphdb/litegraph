@@ -252,6 +252,140 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterTool(
+                "node/readallintenant",
+                "Reads all nodes in a tenant across all graphs",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
+                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                    List<Node> nodes = sdk.Node.ReadAllInTenant(tenantGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(nodes, true);
+                });
+
+            server.RegisterTool(
+                "node/readallingraph",
+                "Reads all nodes in a graph with optional data/subordinate inclusion",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
+                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                    List<Node> nodes = sdk.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(nodes, true);
+                });
+
+            server.RegisterTool(
+                "node/readmostconnected",
+                "Reads the most connected nodes in a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
+                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                    List<Node> nodes = sdk.Node.ReadMostConnected(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(nodes, true);
+                });
+
+            server.RegisterTool(
+                "node/readleastconnected",
+                "Reads the least connected nodes in a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
+                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                    List<Node> nodes = sdk.Node.ReadLeastConnected(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(nodes, true);
+                });
+
+            server.RegisterTool(
+                "node/deleteallintenant",
+                "Deletes all nodes across all graphs in a tenant",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    sdk.Node.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
                 "node/neighbors",
                 "Gets neighbor nodes (all connected nodes regardless of edge direction)",
                 new
@@ -592,6 +726,116 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
 
                 sdk.Node.DeleteMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("node/readallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadAllInTenant(tenantGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/readallingraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/readmostconnected", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadMostConnected(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/readleastconnected", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadLeastConnected(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Node.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("node/readallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadAllInTenant(tenantGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/readallingraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadAllInGraph(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/readmostconnected", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadMostConnected(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/readleastconnected", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
+                List<Node> nodes = sdk.Node.ReadLeastConnected(tenantGuid, graphGuid, order, skip, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(nodes, true);
+            });
+
+            server.RegisterMethod("node/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Node.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
                 return true;
             });
 

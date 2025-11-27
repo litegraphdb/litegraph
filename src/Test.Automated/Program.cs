@@ -321,6 +321,11 @@ namespace Test.Automated
             await RunTest("MCP.Node.Search", TestMcpNodeSearch).ConfigureAwait(false);
             await RunTest("MCP.Node.ReadFirst", TestMcpNodeReadFirst).ConfigureAwait(false);
             await RunTest("MCP.Node.Enumerate", TestMcpNodeEnumerate).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadAllInTenant", TestMcpNodeReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadAllInGraph", TestMcpNodeReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadMostConnected", TestMcpNodeReadMostConnected).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadLeastConnected", TestMcpNodeReadLeastConnected).ConfigureAwait(false);
+            await RunTest("MCP.Node.DeleteAllInTenant", TestMcpNodeDeleteAllInTenant).ConfigureAwait(false);
 
             await RunTest("MCP.Edge.Create", TestMcpEdgeCreate).ConfigureAwait(false);
             await RunTest("MCP.Edge.Get", TestMcpEdgeGet).ConfigureAwait(false);
@@ -3597,6 +3602,105 @@ namespace Test.Automated
             EnumerationResult<Node>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
             AssertNotNull(enumResult, "Enumeration result should not be null");
             AssertTrue(enumResult!.Success, "Enumeration should succeed");
+        }
+
+        private static async Task TestMcpNodeReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeReadMostConnected()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+            if (_McpTestEdgeGuid == Guid.Empty)
+                await TestMcpEdgeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readmostconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeReadLeastConnected()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readleastconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string existsResult = await _McpClient!.CallAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertTrue(existsResult == "true", "Node should exist before deletion");
+
+            bool result = await _McpClient!.CallAsync<bool>("node/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "node/deleteallintenant should return true");
+
+            string existsAfterResult = await _McpClient!.CallAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Node should not exist after deletion");
+
+            _McpTestNode1Guid = Guid.Empty;
+            _McpTestNode2Guid = Guid.Empty;
+            _McpTestEdgeGuid = Guid.Empty;
         }
 
         private static async Task TestMcpEdgeCreate()
