@@ -832,7 +832,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 sdk.Edge.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return "true";
+                return true;
             });
 
             server.RegisterMethod("edge/readallintenant", (args) =>
@@ -863,7 +863,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 sdk.Edge.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return "true";
+                return true;
             });
 
             server.RegisterMethod("edge/deletenodeedgesmany", (args) =>
@@ -876,7 +876,7 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
                 sdk.Edge.DeleteNodeEdgesMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
-                return "true";
+                return true;
             });
         }
 
@@ -1107,7 +1107,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 sdk.Edge.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return "true";
+                return true;
             });
 
             server.RegisterMethod("edge/readallintenant", (args) =>
@@ -1138,7 +1138,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 sdk.Edge.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return "true";
+                return true;
             });
 
             server.RegisterMethod("edge/deletenodeedgesmany", (args) =>
@@ -1151,7 +1151,7 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> nodeGuids = Serializer.DeserializeJson<List<Guid>>(nodeGuidsProp.GetRawText());
                 sdk.Edge.DeleteNodeEdgesMany(tenantGuid, graphGuid, nodeGuids).GetAwaiter().GetResult();
-                return "true";
+                return true;
             });
         }
 
