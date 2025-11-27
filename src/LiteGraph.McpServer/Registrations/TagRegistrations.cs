@@ -278,6 +278,230 @@ namespace LiteGraph.McpServer.Registrations
                     sdk.Tag.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
                     return true;
                 });
+
+            server.RegisterTool(
+                "tag/readallintenant",
+                "Reads all tags in a tenant",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    List<TagMetadata> tags = sdk.Tag.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tags, true);
+                });
+
+            server.RegisterTool(
+                "tag/readallingraph",
+                "Reads all tags in a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    List<TagMetadata> tags = sdk.Tag.ReadAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tags, true);
+                });
+
+            server.RegisterTool(
+                "tag/readmanygraph",
+                "Reads tags attached to a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    List<TagMetadata> tags = sdk.Tag.ReadManyGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tags, true);
+                });
+
+            server.RegisterTool(
+                "tag/readmanynode",
+                "Reads tags attached to a node",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuid = new { type = "string", description = "Node GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                    List<TagMetadata> tags = sdk.Tag.ReadManyNode(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tags, true);
+                });
+
+            server.RegisterTool(
+                "tag/readmanyedge",
+                "Reads tags attached to an edge",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        edgeGuid = new { type = "string", description = "Edge GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "edgeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
+                    List<TagMetadata> tags = sdk.Tag.ReadManyEdge(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(tags, true);
+                });
+
+            server.RegisterTool(
+                "tag/deleteallintenant",
+                "Deletes all tags in a tenant",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    sdk.Tag.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
+                "tag/deleteallingraph",
+                "Deletes all tags in a graph",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    sdk.Tag.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
+                "tag/deletegraphlabels",
+                "Deletes graph-level tags",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    sdk.Tag.DeleteGraphTags(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
+                "tag/deletenodelabels",
+                "Deletes tags attached to a node",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuid = new { type = "string", description = "Node GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                    sdk.Tag.DeleteNodeTags(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
+                "tag/deleteedgetags",
+                "Deletes tags attached to an edge",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        edgeGuid = new { type = "string", description = "Edge GUID" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid", "edgeGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
+                    sdk.Tag.DeleteEdgeTags(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
+                    return true;
+                });
         }
 
         #endregion
@@ -414,6 +638,98 @@ namespace LiteGraph.McpServer.Registrations
                 sdk.Tag.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
                 return true;
             });
+
+            server.RegisterMethod("tag/readallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readallingraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readmanygraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadManyGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readmanynode", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadManyNode(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readmanyedge", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadManyEdge(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Tag.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deleteallingraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Tag.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deletegraphlabels", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Tag.DeleteGraphTags(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deletenodelabels", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                sdk.Tag.DeleteNodeTags(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deleteedgetags", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
+                sdk.Tag.DeleteEdgeTags(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
+                return true;
+            });
         }
 
         #endregion
@@ -548,6 +864,98 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 sdk.Tag.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/readallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readallingraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readmanygraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadManyGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readmanynode", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadManyNode(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/readmanyedge", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
+                List<TagMetadata> tags = sdk.Tag.ReadManyEdge(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(tags, true);
+            });
+
+            server.RegisterMethod("tag/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Tag.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deleteallingraph", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Tag.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deletegraphlabels", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                sdk.Tag.DeleteGraphTags(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deletenodelabels", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
+                sdk.Tag.DeleteNodeTags(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("tag/deleteedgetags", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
+                sdk.Tag.DeleteEdgeTags(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
                 return true;
             });
         }
