@@ -103,6 +103,26 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterTool(
+                "graph/readallintenant",
+                "Reads all graphs in a tenant without pagination",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    List<Graph> graphs = sdk.Graph.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                    return Serializer.SerializeJson(graphs, true);
+                });
+
+            server.RegisterTool(
                 "graph/enumerate",
                 "Enumerates graphs with pagination and filtering",
                 new
@@ -188,6 +208,27 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                     bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                     sdk.Graph.DeleteByGuid(tenantGuid, graphGuid, force).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
+                "graph/deleteallintenant",
+                "Deletes all graphs in a tenant after clearing dependent objects",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+
+                    sdk.Graph.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
                     return true;
                 });
 
@@ -546,6 +587,14 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(graphs, true);
             });
 
+            server.RegisterMethod("graph/readallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                List<Graph> graphs = sdk.Graph.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(graphs, true);
+            });
+
             server.RegisterMethod("graph/enumerate", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -592,6 +641,15 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                 sdk.Graph.DeleteByGuid(tenantGuid, graphGuid, force).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("graph/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+
+                sdk.Graph.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
                 return true;
             });
 
@@ -785,6 +843,14 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(graphs, true);
             });
 
+            server.RegisterMethod("graph/readallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                List<Graph> graphs = sdk.Graph.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return Serializer.SerializeJson(graphs, true);
+            });
+
             server.RegisterMethod("graph/enumerate", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -831,6 +897,14 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                 sdk.Graph.DeleteByGuid(tenantGuid, graphGuid, force).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("graph/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Graph.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
                 return true;
             });
 

@@ -299,6 +299,7 @@ namespace Test.Automated
             await RunTest("MCP.Graph.Create", TestMcpGraphCreate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Get", TestMcpGraphGet).ConfigureAwait(false);
             await RunTest("MCP.Graph.All", TestMcpGraphAll).ConfigureAwait(false);
+            await RunTest("MCP.Graph.ReadAllInTenant", TestMcpGraphReadAllInTenant).ConfigureAwait(false);
             await RunTest("MCP.Graph.Update", TestMcpGraphUpdate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Enumerate", TestMcpGraphEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Exists", TestMcpGraphExists).ConfigureAwait(false);
@@ -403,6 +404,7 @@ namespace Test.Automated
 
             await RunTest("MCP.Credential.Delete", TestMcpCredentialDelete).ConfigureAwait(false);
             await RunTest("MCP.User.Delete", TestMcpUserDelete).ConfigureAwait(false);
+            await RunTest("MCP.Graph.DeleteAllInTenant", TestMcpGraphDeleteAllInTenant).ConfigureAwait(false);
             await RunTest("MCP.Graph.Delete", TestMcpGraphDelete).ConfigureAwait(false);
             await RunTest("MCP.Tenant.Delete", TestMcpTenantDelete).ConfigureAwait(false);
         }
@@ -3206,6 +3208,23 @@ namespace Test.Automated
             AssertNotNull(graphs, "Graphs list should not be null");
         }
 
+        private static async Task TestMcpGraphReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+
+            string result = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Graph>? graphs = _McpSerializer.DeserializeJson<List<Graph>>(result);
+            AssertNotNull(graphs, "Graphs list should not be null");
+            AssertTrue(graphs!.Count > 0, "Graphs list should contain entries");
+        }
+
         private static async Task TestMcpGraphUpdate()
         {
             await InitializeMcpServer();
@@ -3240,6 +3259,46 @@ namespace Test.Automated
             bool result = await _McpClient!.CallAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
             AssertTrue(result, "Graph delete should return true");
             _McpTestGraphGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpGraphDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+
+            string existingResult = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(existingResult, "Existing graphs result should not be null");
+            List<Graph>? existingGraphs = _McpSerializer.DeserializeJson<List<Graph>>(existingResult);
+            AssertNotNull(existingGraphs, "Existing graphs list should not be null");
+            AssertTrue(existingGraphs!.Count > 0, "Graphs should exist before delete all");
+
+            bool tagsDeleted = await _McpClient!.CallAsync<bool>("tag/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(tagsDeleted, "tag/deleteallintenant should return true");
+            bool labelsDeleted = await _McpClient!.CallAsync<bool>("label/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(labelsDeleted, "label/deleteallintenant should return true");
+            bool edgesDeleted = await _McpClient!.CallAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(edgesDeleted, "edge/deleteallintenant should return true");
+            bool nodesDeleted = await _McpClient!.CallAsync<bool>("node/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(nodesDeleted, "node/deleteallintenant should return true");
+
+            bool deleteResult = await _McpClient!.CallAsync<bool>("graph/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(deleteResult, "graph/deleteallintenant should return true");
+
+            string afterResult = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            List<Graph>? remainingGraphs = _McpSerializer.DeserializeJson<List<Graph>>(afterResult);
+            AssertTrue(remainingGraphs == null || remainingGraphs.Count == 0, "Graphs should not exist after delete all");
+
+            _McpTestGraphGuid = Guid.Empty;
+            _McpTestNode1Guid = Guid.Empty;
+            _McpTestNode2Guid = Guid.Empty;
+            _McpTestEdgeGuid = Guid.Empty;
+            _McpTestLabelGuid = Guid.Empty;
+            _McpTestTagGuid = Guid.Empty;
+            _McpTestVectorGuid = Guid.Empty;
         }
 
         private static async Task TestMcpGraphEnumerate()
