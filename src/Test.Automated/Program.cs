@@ -336,6 +336,11 @@ namespace Test.Automated
             await RunTest("MCP.Edge.BetweenNodes", TestMcpEdgeBetweenNodes).ConfigureAwait(false);
             await RunTest("MCP.Edge.Search", TestMcpEdgeSearch).ConfigureAwait(false);
             await RunTest("MCP.Edge.ReadFirst", TestMcpEdgeReadFirst).ConfigureAwait(false);
+            await RunTest("MCP.Edge.DeleteAllInGraph", TestMcpEdgeDeleteAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Edge.ReadAllInTenant", TestMcpEdgeReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Edge.ReadAllInGraph", TestMcpEdgeReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Edge.DeleteAllInTenant", TestMcpEdgeDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Edge.DeleteNodeEdgesMany", TestMcpEdgeDeleteNodeEdgesMany).ConfigureAwait(false);
 
             await RunTest("MCP.Label.Create", TestMcpLabelCreate).ConfigureAwait(false);
             await RunTest("MCP.Label.Get", TestMcpLabelGet).ConfigureAwait(false);
@@ -3878,6 +3883,141 @@ namespace Test.Automated
 
             Edge? edge = _McpSerializer.DeserializeJson<Edge>(result);
             AssertNotNull(edge, "Edge should not be null");
+        }
+
+        private static async Task TestMcpEdgeDeleteAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            // Verify edge exists before deletion
+            string existsResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsResult == "true", "Edge should exist before deletion");
+
+            // Delete all edges in graph
+            string result = await _McpClient!.CallAsync<string>("edge/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            
+            // Verify edge no longer exists
+            string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
+            
+            _McpTestEdgeGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpEdgeReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("edge/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            AssertNotNull(edges, "Edges list should not be null");
+            AssertTrue(edges!.Count >= 0, "Should return a list of edges");
+        }
+
+        private static async Task TestMcpEdgeReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("edge/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            AssertNotNull(edges, "Edges list should not be null");
+            AssertTrue(edges!.Count >= 0, "Should return a list of edges");
+        }
+
+        private static async Task TestMcpEdgeDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            // Verify edge exists before deletion
+            string existsResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsResult == "true", "Edge should exist before deletion");
+
+            // Delete all edges in tenant
+            string result = await _McpClient!.CallAsync<string>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            
+            // Verify edge no longer exists
+            string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
+            
+            _McpTestEdgeGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpEdgeDeleteNodeEdgesMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestNode1Guid == Guid.Empty || _McpTestNode2Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            // Verify edge exists before deletion
+            string existsResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsResult == "true", "Edge should exist before deletion");
+
+            // Delete edges for nodes
+            string result = await _McpClient!.CallAsync<string>("edge/deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
+            
+            // Verify edge no longer exists
+            string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
+            
+            _McpTestEdgeGuid = Guid.Empty;
         }
 
         private static async Task TestMcpLabelCreate()

@@ -369,7 +369,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid credentialGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "credentialGuid");
                 sdk.Credential.DeleteByGuid(tenantGuid, credentialGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return "true";
             });
 
             server.RegisterMethod("credential/exists", (args) =>
@@ -408,7 +408,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 sdk.Credential.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return "true";
             });
 
             server.RegisterMethod("credential/deletebyuser", (args) =>
@@ -417,7 +417,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
                 sdk.Credential.DeleteByUser(tenantGuid, userGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return "true";
             });
         }
 
@@ -504,7 +504,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid credentialGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "credentialGuid");
                 sdk.Credential.DeleteByGuid(tenantGuid, credentialGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return "true";
             });
 
             server.RegisterMethod("credential/exists", (args) =>
@@ -543,7 +543,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 sdk.Credential.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return "true";
             });
 
             server.RegisterMethod("credential/deletebyuser", (args) =>
@@ -552,7 +552,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
                 sdk.Credential.DeleteByUser(tenantGuid, userGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return "true";
             });
         }
 
