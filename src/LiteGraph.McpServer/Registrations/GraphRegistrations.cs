@@ -72,8 +72,10 @@ namespace LiteGraph.McpServer.Registrations
 
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
 
-                    Graph graph = sdk.Graph.ReadByGuid(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    Graph graph = sdk.Graph.ReadByGuid(tenantGuid, graphGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
                     return graph != null ? Serializer.SerializeJson(graph, true) : "null";
                 });
 
@@ -130,33 +132,19 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
+                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
                     },
-                    required = new[] { "tenantGuid" }
+                    required = new[] { "query" }
                 },
                 (args) =>
                 {
-                    if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                        throw new ArgumentException("Tenant GUID is required");
-                    
-                    Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                    EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                    
-                    if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                    {
-                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                        if (deserializedQuery != null)
-                        {
-                            query.MaxResults = deserializedQuery.MaxResults;
-                            query.Ordering = deserializedQuery.Ordering;
-                            query.ContinuationToken = deserializedQuery.ContinuationToken;
-                            query.IncludeData = deserializedQuery.IncludeData;
-                            query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                        }
-                    }
-                    
+                    if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                        throw new ArgumentException("Enumeration query is required");
+
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                    if (query.TenantGUID == null)
+                        throw new ArgumentException("query.TenantGUID is required.");
                     EnumerationResult<Graph> result = sdk.Graph.Enumerate(query).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(result, true);
                 });
@@ -297,6 +285,32 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterTool(
+                "graph/exportgexf",
+                "Exports a graph as GEXF",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        includeData = new { type = "boolean", description = "Include graph data (default: false)" },
+                        includeSubordinates = new { type = "boolean", description = "Include subordinate objects (default: false)" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
+                    string gexf = sdk.Graph.ExportGraphToGexf(tenantGuid, graphGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
+                    return gexf ?? string.Empty;
+                });
+
+            server.RegisterTool(
                 "graph/exists",
                 "Checks if a graph exists by GUID",
                 new
@@ -357,7 +371,9 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuids = new { type = "array", items = new { type = "string" }, description = "Array of graph GUIDs" }
+                        graphGuids = new { type = "array", items = new { type = "string" }, description = "Array of graph GUIDs" },
+                        includeData = new { type = "boolean", description = "Include graph data (default: false)" },
+                        includeSubordinates = new { type = "boolean", description = "Include subordinate objects (default: false)" }
                     },
                     required = new[] { "tenantGuid", "graphGuids" }
                 },
@@ -369,7 +385,9 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Graph GUIDs array is required");
                     
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                    List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
+                    bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                    bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
+                    List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids, includeData, includeSubordinates).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(graphs, true);
                 });
 
@@ -478,7 +496,8 @@ namespace LiteGraph.McpServer.Registrations
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" }
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        deleteFile = new { type = "boolean", description = "True to delete backing index file (default: false)" }
                     },
                     required = new[] { "tenantGuid", "graphGuid" }
                 },
@@ -487,7 +506,8 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue) throw new ArgumentException("Parameters required");
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                    sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                    bool deleteFile = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "deleteFile", false);
+                    sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid, deleteFile).GetAwaiter().GetResult();
                     return true;
                 });
 
@@ -570,10 +590,10 @@ namespace LiteGraph.McpServer.Registrations
 
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
-                bool includeData = args.Value.TryGetProperty("includeData", out JsonElement includeDataProp) && includeDataProp.GetBoolean();
-                bool includeSubordinates = args.Value.TryGetProperty("includeSubordinates", out JsonElement includeSubProp) && includeSubProp.GetBoolean();
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
 
-                Graph graph = sdk.Graph.ReadByGuid(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                Graph graph = sdk.Graph.ReadByGuid(tenantGuid, graphGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
                 return graph != null ? Serializer.SerializeJson(graph, true) : "null";
             });
 
@@ -597,26 +617,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("graph/enumerate", (args) =>
             {
-                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                    throw new ArgumentException("Tenant GUID is required");
-                
-                Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                
-                if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                    if (deserializedQuery != null)
-                    {
-                        query.MaxResults = deserializedQuery.MaxResults;
-                        query.Ordering = deserializedQuery.Ordering;
-                        query.ContinuationToken = deserializedQuery.ContinuationToken;
-                        query.IncludeData = deserializedQuery.IncludeData;
-                        query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                    }
-                }
-                
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                if (query.TenantGUID == null)
+                    throw new ArgumentException("query.TenantGUID is required.");
+
                 EnumerationResult<Graph> result = sdk.Graph.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -681,6 +689,28 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(stats, true);
             });
 
+            server.RegisterMethod("graph/exportgexf", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
+                string gexf = sdk.Graph.ExportGraphToGexf(tenantGuid, graphGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return gexf ?? string.Empty;
+            });
+
+            server.RegisterMethod("graph/exportgexf", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
+                string gexf = sdk.Graph.ExportGraphToGexf(tenantGuid, graphGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
+                return gexf ?? string.Empty;
+            });
+
             server.RegisterMethod("graph/exists", (args) =>
             {
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -715,7 +745,9 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Graph GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
+                List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids, includeData, includeSubordinates).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(graphs, true);
             });
 
@@ -769,7 +801,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                bool deleteFile = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "deleteFile", false);
+                sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid, deleteFile).GetAwaiter().GetResult();
                 return true;
             });
 
@@ -826,10 +859,10 @@ namespace LiteGraph.McpServer.Registrations
 
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
-                bool includeData = args.Value.TryGetProperty("includeData", out JsonElement includeDataProp) && includeDataProp.GetBoolean();
-                bool includeSubordinates = args.Value.TryGetProperty("includeSubordinates", out JsonElement includeSubProp) && includeSubProp.GetBoolean();
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
 
-                Graph graph = sdk.Graph.ReadByGuid(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                Graph graph = sdk.Graph.ReadByGuid(tenantGuid, graphGuid, includeData, includeSubordinates).GetAwaiter().GetResult();
                 return graph != null ? Serializer.SerializeJson(graph, true) : "null";
             });
 
@@ -853,26 +886,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("graph/enumerate", (args) =>
             {
-                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                    throw new ArgumentException("Tenant GUID is required");
-                
-                Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                
-                if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                    if (deserializedQuery != null)
-                    {
-                        query.MaxResults = deserializedQuery.MaxResults;
-                        query.Ordering = deserializedQuery.Ordering;
-                        query.ContinuationToken = deserializedQuery.ContinuationToken;
-                        query.IncludeData = deserializedQuery.IncludeData;
-                        query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                    }
-                }
-                
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                if (query.TenantGUID == null)
+                    throw new ArgumentException("query.TenantGUID is required.");
+
                 EnumerationResult<Graph> result = sdk.Graph.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -970,7 +991,9 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Graph GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
+                bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
+                bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
+                List<Graph> graphs = sdk.Graph.ReadByGuids(tenantGuid, guids, includeData, includeSubordinates).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(graphs, true);
             });
 
@@ -1024,7 +1047,8 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid).GetAwaiter().GetResult();
+                bool deleteFile = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "deleteFile", false);
+                sdk.Graph.DeleteVectorIndex(tenantGuid, graphGuid, deleteFile).GetAwaiter().GetResult();
                 return true;
             });
 

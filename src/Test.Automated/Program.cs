@@ -2884,7 +2884,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<UserMaster>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
@@ -3049,7 +3049,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Credential>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
@@ -3315,9 +3315,13 @@ namespace Test.Automated
         {
             await InitializeMcpServer();
 
-            EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
+            EnumerationRequest query = new EnumerationRequest
+            {
+                TenantGUID = _McpTestTenantGuid,
+                MaxResults = 10
+            };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -3910,7 +3914,7 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("edge/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("edge/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4322,9 +4326,13 @@ namespace Test.Automated
                 await TestMcpTenantCreate();
             }
 
-            EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
+            EnumerationRequest query = new EnumerationRequest
+            {
+                TenantGUID = _McpTestTenantGuid,
+                MaxResults = 10
+            };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? enumerationResult = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -4761,7 +4769,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("tag/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("tag/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5338,7 +5346,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("vector/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("vector/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);

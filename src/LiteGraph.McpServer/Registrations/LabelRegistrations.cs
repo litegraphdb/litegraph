@@ -99,33 +99,20 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
+                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
                     },
-                    required = new[] { "tenantGuid" }
+                    required = new[] { "query" }
                 },
                 (args) =>
                 {
-                    if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                        throw new ArgumentException("Tenant GUID is required");
-                    
-                    Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                    EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                    
-                    if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                    {
-                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                        if (deserializedQuery != null)
-                        {
-                            query.MaxResults = deserializedQuery.MaxResults;
-                            query.Ordering = deserializedQuery.Ordering;
-                            query.ContinuationToken = deserializedQuery.ContinuationToken;
-                            query.IncludeData = deserializedQuery.IncludeData;
-                            query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                        }
-                    }
-                    
+                    if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                        throw new ArgumentException("Enumeration query is required");
+
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                    if (query.TenantGUID == null)
+                        throw new ArgumentException("query.TenantGUID is required.");
+
                     EnumerationResult<LabelMetadata> result = sdk.Label.Enumerate(query).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(result, true);
                 });
@@ -555,26 +542,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("label/enumerate", (args) =>
             {
-                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                    throw new ArgumentException("Tenant GUID is required");
-                
-                Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                
-                if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                    if (deserializedQuery != null)
-                    {
-                        query.MaxResults = deserializedQuery.MaxResults;
-                        query.Ordering = deserializedQuery.Ordering;
-                        query.ContinuationToken = deserializedQuery.ContinuationToken;
-                        query.IncludeData = deserializedQuery.IncludeData;
-                        query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                    }
-                }
-                
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                if (query.TenantGUID == null)
+                    throw new ArgumentException("query.TenantGUID is required.");
+
                 EnumerationResult<LabelMetadata> result = sdk.Label.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -785,26 +760,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("label/enumerate", (args) =>
             {
-                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                    throw new ArgumentException("Tenant GUID is required");
-                
-                Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                
-                if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                    if (deserializedQuery != null)
-                    {
-                        query.MaxResults = deserializedQuery.MaxResults;
-                        query.Ordering = deserializedQuery.Ordering;
-                        query.ContinuationToken = deserializedQuery.ContinuationToken;
-                        query.IncludeData = deserializedQuery.IncludeData;
-                        query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                    }
-                }
-                
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                if (query.TenantGUID == null)
+                    throw new ArgumentException("query.TenantGUID is required.");
+
                 EnumerationResult<LabelMetadata> result = sdk.Label.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });

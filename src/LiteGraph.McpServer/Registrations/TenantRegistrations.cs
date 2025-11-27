@@ -143,19 +143,18 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
+                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
                     },
-                    required = new string[] { }
+                    required = new[] { "query" }
                 },
                 (args) =>
                 {
-                    EnumerationRequest query = new EnumerationRequest();
-                    if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
-                    {
-                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                        query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
-                    }
-                    
+                    if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                        throw new ArgumentException("Enumeration query is required");
+
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+
                     EnumerationResult<TenantMetadata> result = sdk.Tenant.Enumerate(query).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(result, true);
                 });
@@ -306,12 +305,12 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("tenant/enumerate", (args) =>
             {
-                EnumerationRequest? query = null;
-                if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    query = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                }
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+
                 EnumerationResult<TenantMetadata> result = sdk.Tenant.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -416,12 +415,12 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("tenant/enumerate", (args) =>
             {
-                EnumerationRequest query = new EnumerationRequest();
-                if (args.HasValue && args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
-                }
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+
                 EnumerationResult<TenantMetadata> result = sdk.Tenant.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
