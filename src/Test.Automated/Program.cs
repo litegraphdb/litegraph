@@ -292,6 +292,9 @@ namespace Test.Automated
             await RunTest("MCP.Credential.Enumerate", TestMcpCredentialEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Credential.Exists", TestMcpCredentialExists).ConfigureAwait(false);
             await RunTest("MCP.Credential.GetMany", TestMcpCredentialGetMany).ConfigureAwait(false);
+            await RunTest("MCP.Credential.GetByBearerToken", TestMcpCredentialGetByBearerToken).ConfigureAwait(false);
+            await RunTest("MCP.Credential.DeleteAllInTenant", TestMcpCredentialDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Credential.DeleteByUser", TestMcpCredentialDeleteByUser).ConfigureAwait(false);
 
             await RunTest("MCP.Graph.Create", TestMcpGraphCreate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Get", TestMcpGraphGet).ConfigureAwait(false);
@@ -3038,6 +3041,80 @@ namespace Test.Automated
             AssertNotNull(credentials, "Credentials list should not be null");
             AssertTrue(credentials!.Count > 0, "Should have at least one credential");
             AssertEqual(_McpTestCredentialGuid, credentials[0].GUID, "Credential GUID");
+        }
+
+        private static async Task TestMcpCredentialGetByBearerToken()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+                await TestMcpCredentialCreate();
+
+            // Get the credential to retrieve its bearer token
+            string getResult = await _McpClient!.CallAsync<string>("credential/get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertNotNull(getResult, "Get result should not be null");
+            AssertFalse(getResult == "null", "Get result should not be null string");
+
+            Credential? credential = _McpSerializer.DeserializeJson<Credential>(getResult);
+            AssertNotNull(credential, "Deserialized credential should not be null");
+            AssertNotNull(credential!.BearerToken, "Bearer token should not be null");
+
+            // Test ReadByBearerToken
+            string result = await _McpClient!.CallAsync<string>("credential/getbybearertoken", new { bearerToken = credential.BearerToken });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            Credential? foundCredential = _McpSerializer.DeserializeJson<Credential>(result);
+            AssertNotNull(foundCredential, "Deserialized credential should not be null");
+            AssertEqual(_McpTestCredentialGuid, foundCredential!.GUID, "Credential GUID");
+            AssertEqual(credential.BearerToken, foundCredential.BearerToken, "Bearer token");
+        }
+
+        private static async Task TestMcpCredentialDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            
+            if (_McpTestUserGuid == Guid.Empty)
+                await TestMcpUserCreate();
+
+            if (_McpTestCredentialGuid == Guid.Empty)
+                await TestMcpCredentialCreate();
+
+            string existsResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsResult == "true", "Credential should exist before deletion");
+
+            await _McpClient!.CallAsync<string>("credential/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            
+            string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
+            
+            _McpTestCredentialGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpCredentialDeleteByUser()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestUserGuid == Guid.Empty)
+                await TestMcpUserCreate();
+
+            if (_McpTestCredentialGuid == Guid.Empty)
+                await TestMcpCredentialCreate();
+
+            string existsResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsResult == "true", "Credential should exist before deletion");
+
+            await _McpClient!.CallAsync<string>("credential/deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            
+            string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
+            
+            _McpTestCredentialGuid = Guid.Empty;
         }
 
         private static async Task TestMcpCredentialDelete()
