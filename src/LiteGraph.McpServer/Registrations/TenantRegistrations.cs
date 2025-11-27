@@ -301,7 +301,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                 sdk.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("tenant/enumerate", (args) =>
@@ -411,7 +411,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = Guid.Parse(guidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                 sdk.Tenant.DeleteByGuid(tenantGuid, force).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("tenant/enumerate", (args) =>

@@ -305,7 +305,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
                 sdk.User.DeleteByGuid(tenantGuid, userGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("user/exists", (args) =>
@@ -413,7 +413,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
                 sdk.User.DeleteByGuid(tenantGuid, userGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("user/exists", (args) =>
