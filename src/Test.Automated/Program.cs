@@ -292,10 +292,14 @@ namespace Test.Automated
             await RunTest("MCP.Credential.Enumerate", TestMcpCredentialEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Credential.Exists", TestMcpCredentialExists).ConfigureAwait(false);
             await RunTest("MCP.Credential.GetMany", TestMcpCredentialGetMany).ConfigureAwait(false);
+            await RunTest("MCP.Credential.GetByBearerToken", TestMcpCredentialGetByBearerToken).ConfigureAwait(false);
+            await RunTest("MCP.Credential.DeleteAllInTenant", TestMcpCredentialDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Credential.DeleteByUser", TestMcpCredentialDeleteByUser).ConfigureAwait(false);
 
             await RunTest("MCP.Graph.Create", TestMcpGraphCreate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Get", TestMcpGraphGet).ConfigureAwait(false);
             await RunTest("MCP.Graph.All", TestMcpGraphAll).ConfigureAwait(false);
+            await RunTest("MCP.Graph.ReadAllInTenant", TestMcpGraphReadAllInTenant).ConfigureAwait(false);
             await RunTest("MCP.Graph.Update", TestMcpGraphUpdate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Enumerate", TestMcpGraphEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Graph.Exists", TestMcpGraphExists).ConfigureAwait(false);
@@ -318,6 +322,11 @@ namespace Test.Automated
             await RunTest("MCP.Node.Search", TestMcpNodeSearch).ConfigureAwait(false);
             await RunTest("MCP.Node.ReadFirst", TestMcpNodeReadFirst).ConfigureAwait(false);
             await RunTest("MCP.Node.Enumerate", TestMcpNodeEnumerate).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadAllInTenant", TestMcpNodeReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadAllInGraph", TestMcpNodeReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadMostConnected", TestMcpNodeReadMostConnected).ConfigureAwait(false);
+            await RunTest("MCP.Node.ReadLeastConnected", TestMcpNodeReadLeastConnected).ConfigureAwait(false);
+            await RunTest("MCP.Node.DeleteAllInTenant", TestMcpNodeDeleteAllInTenant).ConfigureAwait(false);
 
             await RunTest("MCP.Edge.Create", TestMcpEdgeCreate).ConfigureAwait(false);
             await RunTest("MCP.Edge.Get", TestMcpEdgeGet).ConfigureAwait(false);
@@ -333,6 +342,11 @@ namespace Test.Automated
             await RunTest("MCP.Edge.BetweenNodes", TestMcpEdgeBetweenNodes).ConfigureAwait(false);
             await RunTest("MCP.Edge.Search", TestMcpEdgeSearch).ConfigureAwait(false);
             await RunTest("MCP.Edge.ReadFirst", TestMcpEdgeReadFirst).ConfigureAwait(false);
+            await RunTest("MCP.Edge.DeleteAllInGraph", TestMcpEdgeDeleteAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Edge.ReadAllInTenant", TestMcpEdgeReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Edge.ReadAllInGraph", TestMcpEdgeReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Edge.DeleteAllInTenant", TestMcpEdgeDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Edge.DeleteNodeEdgesMany", TestMcpEdgeDeleteNodeEdgesMany).ConfigureAwait(false);
 
             await RunTest("MCP.Label.Create", TestMcpLabelCreate).ConfigureAwait(false);
             await RunTest("MCP.Label.Get", TestMcpLabelGet).ConfigureAwait(false);
@@ -344,6 +358,16 @@ namespace Test.Automated
             await RunTest("MCP.Label.CreateMany", TestMcpLabelCreateMany).ConfigureAwait(false);
             await RunTest("MCP.Label.DeleteMany", TestMcpLabelDeleteMany).ConfigureAwait(false);
             await RunTest("MCP.Label.Delete", TestMcpLabelDelete).ConfigureAwait(false);
+            await RunTest("MCP.Label.ReadAllInTenant", TestMcpLabelReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Label.ReadAllInGraph", TestMcpLabelReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Label.ReadManyGraph", TestMcpLabelReadManyGraph).ConfigureAwait(false);
+            await RunTest("MCP.Label.ReadManyNode", TestMcpLabelReadManyNode).ConfigureAwait(false);
+            await RunTest("MCP.Label.ReadManyEdge", TestMcpLabelReadManyEdge).ConfigureAwait(false);
+            await RunTest("MCP.Label.DeleteAllInTenant", TestMcpLabelDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Label.DeleteAllInGraph", TestMcpLabelDeleteAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Label.DeleteGraphLabels", TestMcpLabelDeleteGraphLabels).ConfigureAwait(false);
+            await RunTest("MCP.Label.DeleteNodeLabels", TestMcpLabelDeleteNodeLabels).ConfigureAwait(false);
+            await RunTest("MCP.Label.DeleteEdgeLabels", TestMcpLabelDeleteEdgeLabels).ConfigureAwait(false);
 
             await RunTest("MCP.Tag.Create", TestMcpTagCreate).ConfigureAwait(false);
             await RunTest("MCP.Tag.Get", TestMcpTagGet).ConfigureAwait(false);
@@ -355,10 +379,25 @@ namespace Test.Automated
             await RunTest("MCP.Tag.CreateMany", TestMcpTagCreateMany).ConfigureAwait(false);
             await RunTest("MCP.Tag.DeleteMany", TestMcpTagDeleteMany).ConfigureAwait(false);
             await RunTest("MCP.Tag.Delete", TestMcpTagDelete).ConfigureAwait(false);
+            await RunTest("MCP.Tag.ReadAllInTenant", TestMcpTagReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Tag.ReadAllInGraph", TestMcpTagReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Tag.ReadManyGraph", TestMcpTagReadManyGraph).ConfigureAwait(false);
+            await RunTest("MCP.Tag.ReadManyNode", TestMcpTagReadManyNode).ConfigureAwait(false);
+            await RunTest("MCP.Tag.ReadManyEdge", TestMcpTagReadManyEdge).ConfigureAwait(false);
+            await RunTest("MCP.Tag.DeleteAllInTenant", TestMcpTagDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Tag.DeleteAllInGraph", TestMcpTagDeleteAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Tag.DeleteGraphTags", TestMcpTagDeleteGraphTags).ConfigureAwait(false);
+            await RunTest("MCP.Tag.DeleteNodeTags", TestMcpTagDeleteNodeTags).ConfigureAwait(false);
+            await RunTest("MCP.Tag.DeleteEdgeTags", TestMcpTagDeleteEdgeTags).ConfigureAwait(false);
 
             await RunTest("MCP.Vector.Create", TestMcpVectorCreate).ConfigureAwait(false);
             await RunTest("MCP.Vector.Get", TestMcpVectorGet).ConfigureAwait(false);
             await RunTest("MCP.Vector.All", TestMcpVectorAll).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadAllInTenant", TestMcpVectorReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadAllInGraph", TestMcpVectorReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadManyGraph", TestMcpVectorReadManyGraph).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadManyNode", TestMcpVectorReadManyNode).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadManyEdge", TestMcpVectorReadManyEdge).ConfigureAwait(false);
             await RunTest("MCP.Vector.Update", TestMcpVectorUpdate).ConfigureAwait(false);
             await RunTest("MCP.Vector.Enumerate", TestMcpVectorEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Vector.Exists", TestMcpVectorExists).ConfigureAwait(false);
@@ -367,9 +406,15 @@ namespace Test.Automated
             await RunTest("MCP.Vector.DeleteMany", TestMcpVectorDeleteMany).ConfigureAwait(false);
             await RunTest("MCP.Vector.Search", TestMcpVectorSearch).ConfigureAwait(false);
             await RunTest("MCP.Vector.Delete", TestMcpVectorDelete).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteAllInTenant", TestMcpVectorDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteAllInGraph", TestMcpVectorDeleteAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteGraphVectors", TestMcpVectorDeleteGraphVectors).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteNodeVectors", TestMcpVectorDeleteNodeVectors).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteEdgeVectors", TestMcpVectorDeleteEdgeVectors).ConfigureAwait(false);
 
             await RunTest("MCP.Credential.Delete", TestMcpCredentialDelete).ConfigureAwait(false);
             await RunTest("MCP.User.Delete", TestMcpUserDelete).ConfigureAwait(false);
+            await RunTest("MCP.Graph.DeleteAllInTenant", TestMcpGraphDeleteAllInTenant).ConfigureAwait(false);
             await RunTest("MCP.Graph.Delete", TestMcpGraphDelete).ConfigureAwait(false);
             await RunTest("MCP.Tenant.Delete", TestMcpTenantDelete).ConfigureAwait(false);
         }
@@ -2668,9 +2713,13 @@ namespace Test.Automated
             if (_McpTestTenantGuid == Guid.Empty) throw new InvalidOperationException("Test tenant GUID is empty");
 
             if (_McpTestGraphGuid != Guid.Empty)
-                await _McpClient.CallAsync<string>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            {
+                bool graphDeleted = await _McpClient!.CallAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+                AssertTrue(graphDeleted, "Graph delete should return true");
+            }
 
-            string result = await _McpClient!.CallAsync<string>("tenant/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
+            bool result = await _McpClient!.CallAsync<bool>("tenant/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
+            AssertTrue(result, "Tenant delete should return true");
         }
 
         private static async Task TestMcpTenantEnumerate()
@@ -2835,7 +2884,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("user/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<UserMaster>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
@@ -2885,7 +2934,8 @@ namespace Test.Automated
                 await TestMcpUserCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("user/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("user/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            AssertTrue(result, "User delete should return true");
             _McpTestUserGuid = Guid.Empty;
         }
 
@@ -2999,7 +3049,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("credential/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Credential>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
@@ -3040,6 +3090,82 @@ namespace Test.Automated
             AssertEqual(_McpTestCredentialGuid, credentials[0].GUID, "Credential GUID");
         }
 
+        private static async Task TestMcpCredentialGetByBearerToken()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestCredentialGuid == Guid.Empty)
+                await TestMcpCredentialCreate();
+
+            // Get the credential to retrieve its bearer token
+            string getResult = await _McpClient!.CallAsync<string>("credential/get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertNotNull(getResult, "Get result should not be null");
+            AssertFalse(getResult == "null", "Get result should not be null string");
+
+            Credential? credential = _McpSerializer.DeserializeJson<Credential>(getResult);
+            AssertNotNull(credential, "Deserialized credential should not be null");
+            AssertNotNull(credential!.BearerToken, "Bearer token should not be null");
+
+            // Test ReadByBearerToken
+            string result = await _McpClient!.CallAsync<string>("credential/getbybearertoken", new { bearerToken = credential.BearerToken });
+            AssertNotNull(result, "Result should not be null");
+            AssertFalse(result == "null", "Result should not be null string");
+
+            Credential? foundCredential = _McpSerializer.DeserializeJson<Credential>(result);
+            AssertNotNull(foundCredential, "Deserialized credential should not be null");
+            AssertEqual(_McpTestCredentialGuid, foundCredential!.GUID, "Credential GUID");
+            AssertEqual(credential.BearerToken, foundCredential.BearerToken, "Bearer token");
+        }
+
+        private static async Task TestMcpCredentialDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            
+            if (_McpTestUserGuid == Guid.Empty)
+                await TestMcpUserCreate();
+
+            if (_McpTestCredentialGuid == Guid.Empty)
+                await TestMcpCredentialCreate();
+
+            string existsResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsResult == "true", "Credential should exist before deletion");
+
+            bool deleteResult = await _McpClient!.CallAsync<bool>("credential/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(deleteResult, "Credential deleteallintenant should return true");
+            
+            string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
+            
+            _McpTestCredentialGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpCredentialDeleteByUser()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestUserGuid == Guid.Empty)
+                await TestMcpUserCreate();
+
+            if (_McpTestCredentialGuid == Guid.Empty)
+                await TestMcpCredentialCreate();
+
+            string existsResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsResult == "true", "Credential should exist before deletion");
+
+            bool deleteByUserResult = await _McpClient!.CallAsync<bool>("credential/deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            AssertTrue(deleteByUserResult, "Credential deletebyuser should return true");
+            
+            string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
+            
+            _McpTestCredentialGuid = Guid.Empty;
+        }
+
         private static async Task TestMcpCredentialDelete()
         {
             await InitializeMcpServer();
@@ -3049,7 +3175,8 @@ namespace Test.Automated
                 await TestMcpCredentialCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("credential/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("credential/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            AssertTrue(result, "Credential delete should return true");
             _McpTestCredentialGuid = Guid.Empty;
         }
 
@@ -3091,6 +3218,23 @@ namespace Test.Automated
             AssertNotNull(graphs, "Graphs list should not be null");
         }
 
+        private static async Task TestMcpGraphReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+
+            string result = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Graph>? graphs = _McpSerializer.DeserializeJson<List<Graph>>(result);
+            AssertNotNull(graphs, "Graphs list should not be null");
+            AssertTrue(graphs!.Count > 0, "Graphs list should contain entries");
+        }
+
         private static async Task TestMcpGraphUpdate()
         {
             await InitializeMcpServer();
@@ -3120,18 +3264,64 @@ namespace Test.Automated
                 await TestMcpGraphCreate();
             }
 
-            await _McpClient!.CallAsync<string>("node/deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            string result = await _McpClient!.CallAsync<string>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            bool nodesDeleted = await _McpClient!.CallAsync<bool>("node/deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(nodesDeleted, "Node deleteall should return true");
+            bool result = await _McpClient!.CallAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            AssertTrue(result, "Graph delete should return true");
             _McpTestGraphGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpGraphDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+
+            string existingResult = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(existingResult, "Existing graphs result should not be null");
+            List<Graph>? existingGraphs = _McpSerializer.DeserializeJson<List<Graph>>(existingResult);
+            AssertNotNull(existingGraphs, "Existing graphs list should not be null");
+            AssertTrue(existingGraphs!.Count > 0, "Graphs should exist before delete all");
+
+            bool tagsDeleted = await _McpClient!.CallAsync<bool>("tag/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(tagsDeleted, "tag/deleteallintenant should return true");
+            bool labelsDeleted = await _McpClient!.CallAsync<bool>("label/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(labelsDeleted, "label/deleteallintenant should return true");
+            bool edgesDeleted = await _McpClient!.CallAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(edgesDeleted, "edge/deleteallintenant should return true");
+            bool nodesDeleted = await _McpClient!.CallAsync<bool>("node/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(nodesDeleted, "node/deleteallintenant should return true");
+
+            bool deleteResult = await _McpClient!.CallAsync<bool>("graph/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(deleteResult, "graph/deleteallintenant should return true");
+
+            string afterResult = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            List<Graph>? remainingGraphs = _McpSerializer.DeserializeJson<List<Graph>>(afterResult);
+            AssertTrue(remainingGraphs == null || remainingGraphs.Count == 0, "Graphs should not exist after delete all");
+
+            _McpTestGraphGuid = Guid.Empty;
+            _McpTestNode1Guid = Guid.Empty;
+            _McpTestNode2Guid = Guid.Empty;
+            _McpTestEdgeGuid = Guid.Empty;
+            _McpTestLabelGuid = Guid.Empty;
+            _McpTestTagGuid = Guid.Empty;
+            _McpTestVectorGuid = Guid.Empty;
         }
 
         private static async Task TestMcpGraphEnumerate()
         {
             await InitializeMcpServer();
 
-            EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
+            EnumerationRequest query = new EnumerationRequest
+            {
+                TenantGUID = _McpTestTenantGuid,
+                MaxResults = 10
+            };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("graph/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -3415,9 +3605,8 @@ namespace Test.Automated
             Node? tempNode = _McpSerializer.DeserializeJson<Node>(createResult);
             AssertNotNull(tempNode, "Temp node should not be null");
 
-            string result = await _McpClient!.CallAsync<string>("node/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
-            // Delete should return empty string
-            AssertTrue(string.IsNullOrEmpty(result), "Delete should return empty string");
+            bool result = await _McpClient!.CallAsync<bool>("node/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
+            AssertTrue(result, "Node delete should return true");
         }
 
         private static async Task TestMcpNodeExists()
@@ -3496,6 +3685,105 @@ namespace Test.Automated
             EnumerationResult<Node>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
             AssertNotNull(enumResult, "Enumeration result should not be null");
             AssertTrue(enumResult!.Success, "Enumeration should succeed");
+        }
+
+        private static async Task TestMcpNodeReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeReadMostConnected()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+            if (_McpTestEdgeGuid == Guid.Empty)
+                await TestMcpEdgeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readmostconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeReadLeastConnected()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string result = await _McpClient!.CallAsync<string>("node/readleastconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            AssertNotNull(nodes, "Nodes list should not be null");
+        }
+
+        private static async Task TestMcpNodeDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            string existsResult = await _McpClient!.CallAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertTrue(existsResult == "true", "Node should exist before deletion");
+
+            bool result = await _McpClient!.CallAsync<bool>("node/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "node/deleteallintenant should return true");
+
+            string existsAfterResult = await _McpClient!.CallAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Node should not exist after deletion");
+
+            _McpTestNode1Guid = Guid.Empty;
+            _McpTestNode2Guid = Guid.Empty;
+            _McpTestEdgeGuid = Guid.Empty;
         }
 
         private static async Task TestMcpEdgeCreate()
@@ -3626,7 +3914,7 @@ namespace Test.Automated
 
             EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("edge/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("edge/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -3803,6 +4091,144 @@ namespace Test.Automated
             AssertNotNull(edge, "Edge should not be null");
         }
 
+        private static async Task TestMcpEdgeDeleteAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            // Verify edge exists before deletion
+            string existsResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsResult == "true", "Edge should exist before deletion");
+
+            // Delete all edges in graph
+            bool result = await _McpClient!.CallAsync<bool>("edge/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "edge/deleteallingraph should return true");
+            
+            // Verify edge no longer exists
+            string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
+            
+            _McpTestEdgeGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpEdgeReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("edge/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            AssertNotNull(edges, "Edges list should not be null");
+            AssertTrue(edges!.Count >= 0, "Should return a list of edges");
+        }
+
+        private static async Task TestMcpEdgeReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("edge/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            AssertNotNull(edges, "Edges list should not be null");
+            AssertTrue(edges!.Count >= 0, "Should return a list of edges");
+        }
+
+        private static async Task TestMcpEdgeDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            // Verify edge exists before deletion
+            string existsResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsResult == "true", "Edge should exist before deletion");
+
+            // Delete all edges in tenant
+            bool result = await _McpClient!.CallAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "edge/deleteallintenant should return true");
+            
+            // Verify edge no longer exists
+            string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
+            
+            _McpTestEdgeGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpEdgeDeleteNodeEdgesMany()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestNode1Guid == Guid.Empty || _McpTestNode2Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            // Verify edge exists before deletion
+            string existsResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsResult == "true", "Edge should exist before deletion");
+
+            // Delete edges for nodes
+            bool result = await _McpClient!.CallAsync<bool>("edge/deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
+            AssertTrue(result, "edge/deletenodeedgesmany should return true");
+            
+            // Verify edge no longer exists
+            string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
+            
+            _McpTestEdgeGuid = Guid.Empty;
+        }
+
         private static async Task TestMcpLabelCreate()
         {
             await InitializeMcpServer();
@@ -3900,9 +4326,13 @@ namespace Test.Automated
                 await TestMcpTenantCreate();
             }
 
-            EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
+            EnumerationRequest query = new EnumerationRequest
+            {
+                TenantGUID = _McpTestTenantGuid,
+                MaxResults = 10
+            };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("label/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? enumerationResult = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -3995,7 +4425,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 labels");
 
             List<Guid> guidsToDelete = created.Select(l => l.GUID).ToList();
-            await _McpClient!.CallAsync<string>("label/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteResult = await _McpClient!.CallAsync<bool>("label/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteResult, "DeleteMany should return true");
         }
 
         private static async Task TestMcpLabelDelete()
@@ -4007,8 +4438,221 @@ namespace Test.Automated
                 await TestMcpLabelCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("label/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("label/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            AssertTrue(result, "Delete should return true");
             _McpTestLabelGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpLabelReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+            AssertTrue(labels!.Count >= 0, "Labels list should be returned");
+        }
+
+        private static async Task TestMcpLabelReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+            AssertTrue(labels!.Count >= 0, "Labels list should be returned");
+        }
+
+        private static async Task TestMcpLabelReadManyGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("label/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+        }
+
+        private static async Task TestMcpLabelReadManyNode()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            LabelMetadata nodeLabel = new LabelMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                NodeGUID = _McpTestNode1Guid,
+                Label = "Node Label"
+            };
+            string nodeLabelJson = _McpSerializer.SerializeJson(nodeLabel, false);
+            await _McpClient!.CallAsync<string>("label/create", new { label = nodeLabelJson });
+
+            string result = await _McpClient!.CallAsync<string>("label/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+            AssertTrue(labels!.Any(l => l.NodeGUID == _McpTestNode1Guid), "Node labels should be returned");
+        }
+
+        private static async Task TestMcpLabelReadManyEdge()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            LabelMetadata edgeLabel = new LabelMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Label = "Edge Label"
+            };
+            string edgeLabelJson = _McpSerializer.SerializeJson(edgeLabel, false);
+            await _McpClient!.CallAsync<string>("label/create", new { label = edgeLabelJson });
+
+            string result = await _McpClient!.CallAsync<string>("label/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            AssertNotNull(labels, "Labels list should not be null");
+            AssertTrue(labels!.Any(l => l.EdgeGUID == _McpTestEdgeGuid), "Edge labels should be returned");
+        }
+
+        private static async Task TestMcpLabelDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            bool result = await _McpClient!.CallAsync<bool>("label/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "Delete should return true");
+
+            string existsResult = await _McpClient!.CallAsync<string>("label/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            AssertEqual("false", existsResult, "Label should not exist after deletion");
+            _McpTestLabelGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpLabelDeleteAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestLabelGuid == Guid.Empty)
+            {
+                await TestMcpLabelCreate();
+            }
+
+            bool result = await _McpClient!.CallAsync<bool>("label/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "Delete should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("label/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            AssertTrue(labels == null || labels.Count == 0, "Graph labels should be removed");
+            _McpTestLabelGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpLabelDeleteGraphLabels()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            await TestMcpLabelCreate();
+
+            bool result = await _McpClient!.CallAsync<bool>("label/deletegraphlabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "Delete should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("label/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            AssertTrue(labels == null || labels.Count == 0, "Graph labels should be removed");
+            _McpTestLabelGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpLabelDeleteNodeLabels()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            LabelMetadata nodeLabel = new LabelMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                NodeGUID = _McpTestNode1Guid,
+                Label = "Node Label Delete"
+            };
+            string nodeLabelJson = _McpSerializer.SerializeJson(nodeLabel, false);
+            await _McpClient!.CallAsync<string>("label/create", new { label = nodeLabelJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("label/deletenodelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertTrue(result, "Delete should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("label/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            AssertTrue(labels == null || labels.Count == 0, "Node labels should be removed");
+        }
+
+        private static async Task TestMcpLabelDeleteEdgeLabels()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            LabelMetadata edgeLabel = new LabelMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Label = "Edge Label Delete"
+            };
+            string edgeLabelJson = _McpSerializer.SerializeJson(edgeLabel, false);
+            await _McpClient!.CallAsync<string>("label/create", new { label = edgeLabelJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("label/deleteedgelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(result, "Delete should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("label/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            AssertTrue(labels == null || labels.Count == 0, "Edge labels should be removed");
         }
 
         private static async Task TestMcpTagCreate()
@@ -4125,7 +4769,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("tag/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("tag/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -4206,7 +4850,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
 
             List<Guid> guidsToDelete = created.Select(t => t.GUID).ToList();
-            await _McpClient!.CallAsync<string>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "tag/deletemany should return true");
         }
 
         private static async Task TestMcpTagDeleteMany()
@@ -4248,7 +4893,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
 
             List<Guid> guidsToDelete = created.Select(t => t.GUID).ToList();
-            await _McpClient!.CallAsync<string>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "tag/deletemany should return true");
         }
 
         private static async Task TestMcpTagDelete()
@@ -4258,8 +4904,225 @@ namespace Test.Automated
             if (_McpTestTagGuid == Guid.Empty)
                 await TestMcpTagCreate();
 
-            string result = await _McpClient!.CallAsync<string>("tag/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("tag/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            AssertTrue(result, "tag/delete should return true");
             _McpTestTagGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpTagReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+            await TestMcpTagCreate();
+
+            string result = await _McpClient!.CallAsync<string>("tag/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            AssertNotNull(tags, "Tags list should not be null");
+        }
+
+        private static async Task TestMcpTagReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            await TestMcpTagCreate();
+
+            string result = await _McpClient!.CallAsync<string>("tag/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            AssertNotNull(tags, "Tags list should not be null");
+        }
+
+        private static async Task TestMcpTagReadManyGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            await TestMcpTagCreate();
+
+            string result = await _McpClient!.CallAsync<string>("tag/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            AssertNotNull(tags, "Tags list should not be null");
+        }
+
+        private static async Task TestMcpTagReadManyNode()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            TagMetadata nodeTag = new TagMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                NodeGUID = _McpTestNode1Guid,
+                Key = "NodeTagKey",
+                Value = "NodeTagValue"
+            };
+            string nodeTagJson = _McpSerializer.SerializeJson(nodeTag, false);
+            await _McpClient!.CallAsync<string>("tag/create", new { tag = nodeTagJson });
+
+            string result = await _McpClient!.CallAsync<string>("tag/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            AssertNotNull(tags, "Tags list should not be null");
+            AssertTrue(tags!.Any(t => t.NodeGUID == _McpTestNode1Guid), "Node tags should include created tag");
+        }
+
+        private static async Task TestMcpTagReadManyEdge()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+                await TestMcpEdgeCreate();
+
+            TagMetadata edgeTag = new TagMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Key = "EdgeTagKey",
+                Value = "EdgeTagValue"
+            };
+            string edgeTagJson = _McpSerializer.SerializeJson(edgeTag, false);
+            await _McpClient!.CallAsync<string>("tag/create", new { tag = edgeTagJson });
+
+            string result = await _McpClient!.CallAsync<string>("tag/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            AssertNotNull(tags, "Tags list should not be null");
+            AssertTrue(tags!.Any(t => t.EdgeGUID == _McpTestEdgeGuid), "Edge tags should include created tag");
+        }
+
+        private static async Task TestMcpTagDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+            await TestMcpTagCreate();
+
+            bool result = await _McpClient!.CallAsync<bool>("tag/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "tag/deleteallintenant should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("tag/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            AssertTrue(tags == null || tags.Count == 0, "Tags should be removed");
+            _McpTestTagGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpTagDeleteAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+                await TestMcpTenantCreate();
+            if (_McpTestGraphGuid == Guid.Empty)
+                await TestMcpGraphCreate();
+            await TestMcpTagCreate();
+
+            bool result = await _McpClient!.CallAsync<bool>("tag/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "tag/deleteallingraph should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("tag/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            AssertTrue(tags == null || tags.Count == 0, "Graph tags should be removed");
+            _McpTestTagGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpTagDeleteGraphTags()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            await TestMcpTagCreate();
+
+            bool result = await _McpClient!.CallAsync<bool>("tag/deletegraphlabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "tag/deletegraphlabels should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("tag/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            AssertTrue(tags == null || tags.Count == 0, "Graph tags should be removed");
+            _McpTestTagGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpTagDeleteNodeTags()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestNode1Guid == Guid.Empty)
+                await TestMcpNodeCreate();
+
+            TagMetadata nodeTag = new TagMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                NodeGUID = _McpTestNode1Guid,
+                Key = "NodeTagDeleteKey",
+                Value = "NodeTagDeleteValue"
+            };
+            string nodeTagJson = _McpSerializer.SerializeJson(nodeTag, false);
+            await _McpClient!.CallAsync<string>("tag/create", new { tag = nodeTagJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("tag/deletenodelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            AssertTrue(result, "tag/deletenodelabels should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("tag/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            AssertTrue(tags == null || tags.Count == 0, "Node tags should be removed");
+        }
+
+        private static async Task TestMcpTagDeleteEdgeTags()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+                await TestMcpEdgeCreate();
+
+            TagMetadata edgeTag = new TagMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Key = "EdgeTagDeleteKey",
+                Value = "EdgeTagDeleteValue"
+            };
+            string edgeTagJson = _McpSerializer.SerializeJson(edgeTag, false);
+            await _McpClient!.CallAsync<string>("tag/create", new { tag = edgeTagJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("tag/deleteedgetags", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            AssertTrue(result, "tag/deleteedgetags should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("tag/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            AssertTrue(tags == null || tags.Count == 0, "Edge tags should be removed");
         }
 
         private static async Task TestMcpVectorCreate()
@@ -4335,6 +5198,116 @@ namespace Test.Automated
             AssertNotNull(vectors, "Vectors list should not be null");
         }
 
+        private static async Task TestMcpVectorReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("vector/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+            AssertTrue(vectors!.Count >= 1, "Should return at least one vector");
+        }
+
+        private static async Task TestMcpVectorReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+        }
+
+        private static async Task TestMcpVectorReadManyGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+        }
+
+        private static async Task TestMcpVectorReadManyNode()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>(
+                "vector/readmanynode",
+                new
+                {
+                    tenantGuid = _McpTestTenantGuid.ToString(),
+                    graphGuid = _McpTestGraphGuid.ToString(),
+                    nodeGuid = _McpTestNode1Guid.ToString()
+                });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+            AssertTrue(vectors!.Any(v => v.NodeGUID == _McpTestNode1Guid), "Should include node vectors");
+        }
+
+        private static async Task TestMcpVectorReadManyEdge()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            VectorMetadata edgeVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Model = "edge-vector",
+                Dimensionality = 3,
+                Content = "Edge Vector Content",
+                Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
+            };
+            string edgeVectorJson = _McpSerializer.SerializeJson(edgeVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = edgeVectorJson });
+
+            string result = await _McpClient!.CallAsync<string>(
+                "vector/readmanyedge",
+                new
+                {
+                    tenantGuid = _McpTestTenantGuid.ToString(),
+                    graphGuid = _McpTestGraphGuid.ToString(),
+                    edgeGuid = _McpTestEdgeGuid.ToString()
+                });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+            AssertTrue(vectors!.Any(v => v.EdgeGUID == _McpTestEdgeGuid), "Should include edge vectors");
+        }
+
         private static async Task TestMcpVectorUpdate()
         {
             await InitializeMcpServer();
@@ -4373,7 +5346,7 @@ namespace Test.Automated
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await _McpClient!.CallAsync<string>("vector/enumerate", new { tenantGuid = _McpTestTenantGuid.ToString(), query = queryJson });
+            string result = await _McpClient!.CallAsync<string>("vector/enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -4468,7 +5441,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
 
             List<Guid> guidsToDelete = created.Select(v => v.GUID).ToList();
-            await _McpClient!.CallAsync<string>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "vector/deletemany should return true");
         }
 
         private static async Task TestMcpVectorDeleteMany()
@@ -4520,7 +5494,8 @@ namespace Test.Automated
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
 
             List<Guid> guidsToDelete = created.Select(v => v.GUID).ToList();
-            await _McpClient!.CallAsync<string>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await _McpClient!.CallAsync<bool>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            AssertTrue(deleteManyResult, "vector/deletemany should return true");
         }
 
         private static async Task TestMcpVectorSearch()
@@ -4571,8 +5546,158 @@ namespace Test.Automated
                 await TestMcpVectorCreate();
             }
 
-            string result = await _McpClient!.CallAsync<string>("vector/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            bool result = await _McpClient!.CallAsync<bool>("vector/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            AssertTrue(result, "vector/delete should return true");
             _McpTestVectorGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpVectorDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "vector/deleteallintenant should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Tenant vectors should be removed");
+            _McpTestVectorGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpVectorDeleteAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "vector/deleteallingraph should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Graph vectors should be removed");
+            _McpTestVectorGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpVectorDeleteGraphVectors()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            VectorMetadata graphVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                Model = "graph-vector",
+                Dimensionality = 3,
+                Content = "Graph level vector",
+                Vectors = new List<float> { 0.5f, 0.6f, 0.7f }
+            };
+            string graphVectorJson = _McpSerializer.SerializeJson(graphVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = graphVectorJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deletegraphvectors", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "vector/deletegraphvectors should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || !vectors.Any(v => v.NodeGUID == null && v.EdgeGUID == null), "Graph-level vectors should be removed");
+        }
+
+        private static async Task TestMcpVectorDeleteNodeVectors()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            VectorMetadata nodeVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                NodeGUID = _McpTestNode1Guid,
+                Model = "node-vector",
+                Dimensionality = 3,
+                Content = "Node vector",
+                Vectors = new List<float> { 0.9f, 0.8f, 0.7f }
+            };
+            string nodeVectorJson = _McpSerializer.SerializeJson(nodeVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = nodeVectorJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deletenodevectors", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                nodeGuid = _McpTestNode1Guid.ToString()
+            });
+            AssertTrue(result, "vector/deletenodevectors should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readmanynode", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                nodeGuid = _McpTestNode1Guid.ToString()
+            });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Node vectors should be removed");
+        }
+
+        private static async Task TestMcpVectorDeleteEdgeVectors()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            VectorMetadata edgeVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Model = "edge-vector-delete",
+                Dimensionality = 3,
+                Content = "Edge vector delete",
+                Vectors = new List<float> { 0.2f, 0.4f, 0.6f }
+            };
+            string edgeVectorJson = _McpSerializer.SerializeJson(edgeVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = edgeVectorJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deleteedgevectors", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                edgeGuid = _McpTestEdgeGuid.ToString()
+            });
+            AssertTrue(result, "vector/deleteedgevectors should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readmanyedge", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                edgeGuid = _McpTestEdgeGuid.ToString()
+            });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Edge vectors should be removed");
         }
 
         private static async Task TestMcpAdminBackup()
@@ -4640,9 +5765,8 @@ namespace Test.Automated
             await _McpClient!.CallAsync<string>("admin/backup", new { outputFilename = backupFilename });
 
             // Then delete it
-            string result = await _McpClient!.CallAsync<string>("admin/backupdelete", new { backupFilename = backupFilename });
-            // Delete should return empty string
-            AssertTrue(string.IsNullOrEmpty(result), "Delete should return empty string");
+            bool result = await _McpClient!.CallAsync<bool>("admin/backupdelete", new { backupFilename = backupFilename });
+            AssertTrue(result, "Backup delete should return true");
         }
 
         private static async Task TestMcpAdminFlush()

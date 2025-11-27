@@ -99,32 +99,19 @@ namespace LiteGraph.McpServer.Registrations
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        query = new { type = "string", description = "Enumeration query object serialized as JSON string using Serializer" }
+                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
                     },
-                    required = new[] { "tenantGuid" }
+                    required = new[] { "query" }
                 },
                 (args) =>
                 {
-                    if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                        throw new ArgumentException("Tenant GUID is required");
-                    
-                    Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                    EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                    
-                    if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                    {
-                        string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                        EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                        if (deserializedQuery != null)
-                        {
-                            query.MaxResults = deserializedQuery.MaxResults;
-                            query.Ordering = deserializedQuery.Ordering;
-                            query.ContinuationToken = deserializedQuery.ContinuationToken;
-                            query.IncludeData = deserializedQuery.IncludeData;
-                            query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                        }
-                    }
+                    if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                        throw new ArgumentException("Enumeration query is required");
+
+                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                    EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                    if (query.TenantGUID == null)
+                        throw new ArgumentException("query.TenantGUID is required.");
                     
                     EnumerationResult<Credential> result = sdk.Credential.Enumerate(query).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(result, true);
@@ -171,7 +158,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     Guid credentialGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "credentialGuid");
                     sdk.Credential.DeleteByGuid(tenantGuid, credentialGuid).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -220,6 +207,70 @@ namespace LiteGraph.McpServer.Registrations
                     List<Credential> credentials = sdk.Credential.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
                     return Serializer.SerializeJson(credentials, true);
                 });
+
+            server.RegisterTool(
+                "credential/getbybearertoken",
+                "Reads a credential by bearer token",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        bearerToken = new { type = "string", description = "Bearer token" }
+                    },
+                    required = new[] { "bearerToken" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue || !args.Value.TryGetProperty("bearerToken", out JsonElement bearerTokenProp))
+                        throw new ArgumentException("Bearer token is required");
+                    string bearerToken = bearerTokenProp.GetString() ?? throw new ArgumentException("Bearer token cannot be null");
+                    
+                    Credential credential = sdk.Credential.ReadByBearerToken(bearerToken).GetAwaiter().GetResult();
+                    return credential != null ? Serializer.SerializeJson(credential, true) : "null";
+                });
+
+            server.RegisterTool(
+                "credential/deleteallintenant",
+                "Deletes all credentials in a tenant",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                    },
+                    required = new[] { "tenantGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    sdk.Credential.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                    return true;
+                });
+
+            server.RegisterTool(
+                "credential/deletebyuser",
+                "Deletes all credentials for a user",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        userGuid = new { type = "string", description = "User GUID" }
+                    },
+                    required = new[] { "tenantGuid", "userGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
+                    sdk.Credential.DeleteByUser(tenantGuid, userGuid).GetAwaiter().GetResult();
+                    return true;
+                });
         }
 
         #endregion
@@ -265,26 +316,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("credential/enumerate", (args) =>
             {
-                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                    throw new ArgumentException("Tenant GUID is required");
-                
-                Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                
-                if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                    if (deserializedQuery != null)
-                    {
-                        query.MaxResults = deserializedQuery.MaxResults;
-                        query.Ordering = deserializedQuery.Ordering;
-                        query.ContinuationToken = deserializedQuery.ContinuationToken;
-                        query.IncludeData = deserializedQuery.IncludeData;
-                        query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                    }
-                }
-                
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                if (query.TenantGUID == null)
+                    throw new ArgumentException("query.TenantGUID is required.");
+
                 EnumerationResult<Credential> result = sdk.Credential.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -327,6 +366,33 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 List<Credential> credentials = sdk.Credential.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(credentials, true);
+            });
+
+            server.RegisterMethod("credential/getbybearertoken", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("bearerToken", out JsonElement bearerTokenProp))
+                    throw new ArgumentException("Bearer token is required");
+                string bearerToken = bearerTokenProp.GetString() ?? throw new ArgumentException("Bearer token cannot be null");
+                
+                Credential credential = sdk.Credential.ReadByBearerToken(bearerToken).GetAwaiter().GetResult();
+                return credential != null ? Serializer.SerializeJson(credential, true) : "null";
+            });
+
+            server.RegisterMethod("credential/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Credential.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("credential/deletebyuser", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
+                sdk.Credential.DeleteByUser(tenantGuid, userGuid).GetAwaiter().GetResult();
+                return true;
             });
         }
 
@@ -373,26 +439,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("credential/enumerate", (args) =>
             {
-                if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
-                    throw new ArgumentException("Tenant GUID is required");
-                
-                Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
-                EnumerationRequest query = new EnumerationRequest { TenantGUID = tenantGuid };
-                
-                if (args.Value.TryGetProperty("query", out JsonElement queryProp))
-                {
-                    string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
-                    EnumerationRequest? deserializedQuery = Serializer.DeserializeJson<EnumerationRequest>(queryJson);
-                    if (deserializedQuery != null)
-                    {
-                        query.MaxResults = deserializedQuery.MaxResults;
-                        query.Ordering = deserializedQuery.Ordering;
-                        query.ContinuationToken = deserializedQuery.ContinuationToken;
-                        query.IncludeData = deserializedQuery.IncludeData;
-                        query.IncludeSubordinates = deserializedQuery.IncludeSubordinates;
-                    }
-                }
-                
+                if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
+                    throw new ArgumentException("Enumeration query is required");
+
+                string queryJson = queryProp.GetString() ?? throw new ArgumentException("Query JSON string cannot be null");
+                EnumerationRequest query = Serializer.DeserializeJson<EnumerationRequest>(queryJson) ?? new EnumerationRequest();
+                if (query.TenantGUID == null)
+                    throw new ArgumentException("query.TenantGUID is required.");
+
                 EnumerationResult<Credential> result = sdk.Credential.Enumerate(query).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(result, true);
             });
@@ -413,7 +467,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid credentialGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "credentialGuid");
                 sdk.Credential.DeleteByGuid(tenantGuid, credentialGuid).GetAwaiter().GetResult();
-                return true;
+                return "{\"success\": true}";
             });
 
             server.RegisterMethod("credential/exists", (args) =>
@@ -435,6 +489,33 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 List<Credential> credentials = sdk.Credential.ReadByGuids(tenantGuid, guids).GetAwaiter().GetResult();
                 return Serializer.SerializeJson(credentials, true);
+            });
+
+            server.RegisterMethod("credential/getbybearertoken", (args) =>
+            {
+                if (!args.HasValue || !args.Value.TryGetProperty("bearerToken", out JsonElement bearerTokenProp))
+                    throw new ArgumentException("Bearer token is required");
+                string bearerToken = bearerTokenProp.GetString() ?? throw new ArgumentException("Bearer token cannot be null");
+                
+                Credential credential = sdk.Credential.ReadByBearerToken(bearerToken).GetAwaiter().GetResult();
+                return credential != null ? Serializer.SerializeJson(credential, true) : "null";
+            });
+
+            server.RegisterMethod("credential/deleteallintenant", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                sdk.Credential.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
+                return true;
+            });
+
+            server.RegisterMethod("credential/deletebyuser", (args) =>
+            {
+                if (!args.HasValue) throw new ArgumentException("Parameters required");
+                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                Guid userGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "userGuid");
+                sdk.Credential.DeleteByUser(tenantGuid, userGuid).GetAwaiter().GetResult();
+                return true;
             });
         }
 

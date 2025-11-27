@@ -2378,12 +2378,34 @@ namespace Test.Mcp
 
         static async Task NodeMostConnected(CancellationToken token = default)
         {
-  
+            Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
+            Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
+            string result = await _McpClient.CallAsync<string>(
+                "node/readmostconnected",
+                new { tenantGuid = tenantGuid.ToString(), graphGuid = graphGuid.ToString() },
+                30000,
+                token).ConfigureAwait(false);
+            List<Node> nodes = Serializer.DeserializeJson<List<Node>>(result);
+            object obj = nodes;
+
+            if (obj != null)
+                Console.WriteLine(Serializer.SerializeJson(obj, true));
         }
 
         static async Task NodeLeastConnected(CancellationToken token = default)
         {
+            Guid tenantGuid = Inputty.GetGuid("Tenant GUID :", _TenantGuid);
+            Guid graphGuid = Inputty.GetGuid("Graph GUID  :", _GraphGuid);
+            string result = await _McpClient.CallAsync<string>(
+                "node/readleastconnected",
+                new { tenantGuid = tenantGuid.ToString(), graphGuid = graphGuid.ToString() },
+                30000,
+                token).ConfigureAwait(false);
+            List<Node> nodes = Serializer.DeserializeJson<List<Node>>(result);
+            object obj = nodes;
 
+            if (obj != null)
+                Console.WriteLine(Serializer.SerializeJson(obj, true));
         }
 
         #endregion

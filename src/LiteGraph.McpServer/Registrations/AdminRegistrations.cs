@@ -132,7 +132,7 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Backup filename cannot be empty");
 
                     sdk.Admin.DeleteBackup(backupFilename).GetAwaiter().GetResult();
-                    return string.Empty;
+                    return true;
                 });
 
             server.RegisterTool(
@@ -217,7 +217,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Backup filename cannot be empty");
 
                 sdk.Admin.DeleteBackup(backupFilename).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("admin/flush", (args) =>
@@ -293,7 +293,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Backup filename cannot be empty");
 
                 sdk.Admin.DeleteBackup(backupFilename).GetAwaiter().GetResult();
-                return string.Empty;
+                return true;
             });
 
             server.RegisterMethod("admin/flush", (args) =>
