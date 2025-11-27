@@ -393,6 +393,11 @@ namespace Test.Automated
             await RunTest("MCP.Vector.Create", TestMcpVectorCreate).ConfigureAwait(false);
             await RunTest("MCP.Vector.Get", TestMcpVectorGet).ConfigureAwait(false);
             await RunTest("MCP.Vector.All", TestMcpVectorAll).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadAllInTenant", TestMcpVectorReadAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadAllInGraph", TestMcpVectorReadAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadManyGraph", TestMcpVectorReadManyGraph).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadManyNode", TestMcpVectorReadManyNode).ConfigureAwait(false);
+            await RunTest("MCP.Vector.ReadManyEdge", TestMcpVectorReadManyEdge).ConfigureAwait(false);
             await RunTest("MCP.Vector.Update", TestMcpVectorUpdate).ConfigureAwait(false);
             await RunTest("MCP.Vector.Enumerate", TestMcpVectorEnumerate).ConfigureAwait(false);
             await RunTest("MCP.Vector.Exists", TestMcpVectorExists).ConfigureAwait(false);
@@ -401,6 +406,11 @@ namespace Test.Automated
             await RunTest("MCP.Vector.DeleteMany", TestMcpVectorDeleteMany).ConfigureAwait(false);
             await RunTest("MCP.Vector.Search", TestMcpVectorSearch).ConfigureAwait(false);
             await RunTest("MCP.Vector.Delete", TestMcpVectorDelete).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteAllInTenant", TestMcpVectorDeleteAllInTenant).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteAllInGraph", TestMcpVectorDeleteAllInGraph).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteGraphVectors", TestMcpVectorDeleteGraphVectors).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteNodeVectors", TestMcpVectorDeleteNodeVectors).ConfigureAwait(false);
+            await RunTest("MCP.Vector.DeleteEdgeVectors", TestMcpVectorDeleteEdgeVectors).ConfigureAwait(false);
 
             await RunTest("MCP.Credential.Delete", TestMcpCredentialDelete).ConfigureAwait(false);
             await RunTest("MCP.User.Delete", TestMcpUserDelete).ConfigureAwait(false);
@@ -5180,6 +5190,116 @@ namespace Test.Automated
             AssertNotNull(vectors, "Vectors list should not be null");
         }
 
+        private static async Task TestMcpVectorReadAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("vector/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+            AssertTrue(vectors!.Count >= 1, "Should return at least one vector");
+        }
+
+        private static async Task TestMcpVectorReadAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+        }
+
+        private static async Task TestMcpVectorReadManyGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+        }
+
+        private static async Task TestMcpVectorReadManyNode()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            string result = await _McpClient!.CallAsync<string>(
+                "vector/readmanynode",
+                new
+                {
+                    tenantGuid = _McpTestTenantGuid.ToString(),
+                    graphGuid = _McpTestGraphGuid.ToString(),
+                    nodeGuid = _McpTestNode1Guid.ToString()
+                });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+            AssertTrue(vectors!.Any(v => v.NodeGUID == _McpTestNode1Guid), "Should include node vectors");
+        }
+
+        private static async Task TestMcpVectorReadManyEdge()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            VectorMetadata edgeVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Model = "edge-vector",
+                Dimensionality = 3,
+                Content = "Edge Vector Content",
+                Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
+            };
+            string edgeVectorJson = _McpSerializer.SerializeJson(edgeVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = edgeVectorJson });
+
+            string result = await _McpClient!.CallAsync<string>(
+                "vector/readmanyedge",
+                new
+                {
+                    tenantGuid = _McpTestTenantGuid.ToString(),
+                    graphGuid = _McpTestGraphGuid.ToString(),
+                    edgeGuid = _McpTestEdgeGuid.ToString()
+                });
+            AssertNotNull(result, "Result should not be null");
+
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            AssertNotNull(vectors, "Vectors list should not be null");
+            AssertTrue(vectors!.Any(v => v.EdgeGUID == _McpTestEdgeGuid), "Should include edge vectors");
+        }
+
         private static async Task TestMcpVectorUpdate()
         {
             await InitializeMcpServer();
@@ -5421,6 +5541,155 @@ namespace Test.Automated
             bool result = await _McpClient!.CallAsync<bool>("vector/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
             AssertTrue(result, "vector/delete should return true");
             _McpTestVectorGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpVectorDeleteAllInTenant()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            AssertTrue(result, "vector/deleteallintenant should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Tenant vectors should be removed");
+            _McpTestVectorGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpVectorDeleteAllInGraph()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestVectorGuid == Guid.Empty)
+            {
+                await TestMcpVectorCreate();
+            }
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "vector/deleteallingraph should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Graph vectors should be removed");
+            _McpTestVectorGuid = Guid.Empty;
+        }
+
+        private static async Task TestMcpVectorDeleteGraphVectors()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestTenantGuid == Guid.Empty)
+            {
+                await TestMcpTenantCreate();
+            }
+            if (_McpTestGraphGuid == Guid.Empty)
+            {
+                await TestMcpGraphCreate();
+            }
+
+            VectorMetadata graphVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                Model = "graph-vector",
+                Dimensionality = 3,
+                Content = "Graph level vector",
+                Vectors = new List<float> { 0.5f, 0.6f, 0.7f }
+            };
+            string graphVectorJson = _McpSerializer.SerializeJson(graphVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = graphVectorJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deletegraphvectors", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            AssertTrue(result, "vector/deletegraphvectors should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || !vectors.Any(v => v.NodeGUID == null && v.EdgeGUID == null), "Graph-level vectors should be removed");
+        }
+
+        private static async Task TestMcpVectorDeleteNodeVectors()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestNode1Guid == Guid.Empty)
+            {
+                await TestMcpNodeCreate();
+            }
+
+            VectorMetadata nodeVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                NodeGUID = _McpTestNode1Guid,
+                Model = "node-vector",
+                Dimensionality = 3,
+                Content = "Node vector",
+                Vectors = new List<float> { 0.9f, 0.8f, 0.7f }
+            };
+            string nodeVectorJson = _McpSerializer.SerializeJson(nodeVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = nodeVectorJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deletenodevectors", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                nodeGuid = _McpTestNode1Guid.ToString()
+            });
+            AssertTrue(result, "vector/deletenodevectors should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readmanynode", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                nodeGuid = _McpTestNode1Guid.ToString()
+            });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Node vectors should be removed");
+        }
+
+        private static async Task TestMcpVectorDeleteEdgeVectors()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+            if (_McpTestEdgeGuid == Guid.Empty)
+            {
+                await TestMcpEdgeCreate();
+            }
+
+            VectorMetadata edgeVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                EdgeGUID = _McpTestEdgeGuid,
+                Model = "edge-vector-delete",
+                Dimensionality = 3,
+                Content = "Edge vector delete",
+                Vectors = new List<float> { 0.2f, 0.4f, 0.6f }
+            };
+            string edgeVectorJson = _McpSerializer.SerializeJson(edgeVector, false);
+            await _McpClient!.CallAsync<string>("vector/create", new { vector = edgeVectorJson });
+
+            bool result = await _McpClient!.CallAsync<bool>("vector/deleteedgevectors", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                edgeGuid = _McpTestEdgeGuid.ToString()
+            });
+            AssertTrue(result, "vector/deleteedgevectors should return true");
+
+            string readResult = await _McpClient!.CallAsync<string>("vector/readmanyedge", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                edgeGuid = _McpTestEdgeGuid.ToString()
+            });
+            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            AssertTrue(vectors == null || vectors.Count == 0, "Edge vectors should be removed");
         }
 
         private static async Task TestMcpAdminBackup()
