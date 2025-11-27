@@ -555,74 +555,111 @@ User APIs require administrator bearer token authentication.
 
 Credential APIs require administrator bearer token authentication.
 
-| API                | Method | URL                                        |
-|--------------------|--------|--------------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/credentials           |
-| Update             | PUT    | /v1.0/tenants/[guid]/credentials/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/credentials           |
-| Read many          | GET    | /v1.0/tenants/[guid]/credentials?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/credentials/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/credentials/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/credentials/[guid]    |
+| API                  | Method | URL                                           |
+|----------------------|--------|-----------------------------------------------|
+| Create               | PUT    | /v1.0/tenants/[guid]/credentials              |
+| Update               | PUT    | /v1.0/tenants/[guid]/credentials/[guid]       |
+| Read many            | GET    | /v1.0/tenants/[guid]/credentials              |
+| Read many            | GET    | /v1.0/tenants/[guid]/credentials?guids=...    |
+| Read                 | GET    | /v1.0/tenants/[guid]/credentials/[guid]       |
+| Read by bearer token | GET    | /v1.0/credentials/bearer                      |
+| Delete               | DELETE | /v1.0/tenants/[guid]/credentials/[guid]       |
+| Delete all in tenant | DELETE | /v1.0/tenants/[guid]/credentials              |
+| Delete by user       | DELETE | /v1.0/tenants/[guid]/users/[guid]/credentials |
+| Exists               | HEAD   | /v1.0/tenants/[guid]/credentials/[guid]       |
 
 ## Label APIs
 
 Label APIs require administrator bearer token authentication.
 
-| API                | Method | URL                                   |
-|--------------------|--------|---------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/labels           |
-| Update             | PUT    | /v1.0/tenants/[guid]/labels/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/labels           |
-| Read many          | GET    | /v1.0/tenants/[guid]/labels?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/labels/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/labels/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/labels/[guid]    |
+| API                      | Method | URL                                                       |
+|--------------------------|--------|-----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/labels                               |
+| Create many              | PUT    | /v1.0/tenants/[guid]/labels/bulk                          |
+| Update                   | PUT    | /v1.0/tenants/[guid]/labels/[guid]                        |
+| Read many                | GET    | /v1.0/tenants/[guid]/labels                               |
+| Read many                | GET    | /v1.0/tenants/[guid]/labels?guids=...                     |
+| Read                     | GET    | /v1.0/tenants/[guid]/labels/[guid]                        |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/labels/all                           |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/labels/all             |
+| Read graph labels        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/labels                 |
+| Read node labels         | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/labels    |
+| Read edge labels         | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/labels    |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/labels/[guid]                        |
+| Delete multiple          | DELETE | /v1.0/tenants/[guid]/labels/bulk                          |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/labels/all                           |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/labels/all             |
+| Delete graph labels      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/labels                 |
+| Delete node labels       | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/labels    |
+| Delete edge labels       | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/labels    |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/labels/[guid]                        |
 
 ## Tag APIs
 
 Tag APIs require administrator bearer token authentication.
 
-| API                | Method | URL                                 |
-|--------------------|--------|-------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/tags           |
-| Update             | PUT    | /v1.0/tenants/[guid]/tags/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/tags           |
-| Read many          | GET    | /v1.0/tenants/[guid]/tags?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/tags/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/tags/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/tags/[guid]    |
+| API                      | Method | URL                                                      |
+|--------------------------|--------|----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/tags                                |
+| Update                   | PUT    | /v1.0/tenants/[guid]/tags/[guid]                         |
+| Read many                | GET    | /v1.0/tenants/[guid]/tags                                |
+| Read many                | GET    | /v1.0/tenants/[guid]/tags?guids=...                      |
+| Read                     | GET    | /v1.0/tenants/[guid]/tags/[guid]                         |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/tags/all                            |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/tags/all              |
+| Read graph tags          | GET    | /v1.0/tenants/[guid]/graphs/[guid]/tags                  |
+| Read node tags           | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/tags     |
+| Read edge tags           | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/tags     |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/tags/[guid]                         |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/tags/all                            |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/tags/all              |
+| Delete graph tags        | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/tags                  |
+| Delete node tags         | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/tags     |
+| Delete edge tags         | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/tags     |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/tags/[guid]                         |
 
 ## Vector APIs
 
 Vector APIs require administrator bearer token authentication, aside from the vector search API.
 
-| API                | Method | URL                                    |
-|--------------------|--------|----------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/vectors           |
-| Update             | PUT    | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Read many          | GET    | /v1.0/tenants/[guid]/vectors           |
-| Read many          | GET    | /v1.0/tenants/[guid]/vectors?guids=... |
-| Read               | GET    | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Delete             | DELETE | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/vectors/[guid]    |
-| Search             | POST   | /v1.0/tenants/[guid]/vectors           |
+| API                      | Method | URL                                                      |
+|--------------------------|--------|----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/vectors                             |
+| Update                   | PUT    | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Read many                | GET    | /v1.0/tenants/[guid]/vectors                             |
+| Read many                | GET    | /v1.0/tenants/[guid]/vectors?guids=...                   |
+| Read                     | GET    | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/vectors/all                         |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/vectors/all           |
+| Read graph vectors       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/vectors               |
+| Read node vectors        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/vectors  |
+| Read edge vectors        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/vectors  |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/vectors/all                         |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/vectors/all           |
+| Delete graph vectors     | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/vectors               |
+| Delete node vectors      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/vectors  |
+| Delete edge vectors      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/vectors  |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/vectors/[guid]                      |
+| Search                   | POST   | /v1.0/tenants/[guid]/vectors                             |
 
 ## Graph APIs
 
-| API                | Method | URL                                                        |
-|--------------------|--------|------------------------------------------------------------|
-| Create             | PUT    | /v1.0/tenants/[guid]/graphs                                |
-| Update             | PUT    | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Read               | GET    | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Read many          | GET    | /v1.0/tenants/[guid]/graphs                                |
-| Read many          | GET    | /v1.0/tenants/[guid]/graphs?guids=...                      |
-| Delete             | DELETE | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Delete w/ cascade  | DELETE | /v1.0/tenants/[guid]/graphs/[guid]?force                   |
-| Exists             | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]                         |
-| Search             | POST   | /v1.0/tenants/[guid]/graphs/search                         |
-| Render as GEXF     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/gexf?incldata    |
-| Batch existence    | POST   | /v1.0/tenants/[guid]/graphs/[guid]/existence               |
+| API                  | Method | URL                                                        |
+|----------------------|--------|------------------------------------------------------------|
+| Create               | PUT    | /v1.0/tenants/[guid]/graphs                                |
+| Update               | PUT    | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Read                 | GET    | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Read many            | GET    | /v1.0/tenants/[guid]/graphs                                |
+| Read many            | GET    | /v1.0/tenants/[guid]/graphs?guids=...                      |
+| Read all in tenant   | GET    | /v1.0/tenants/[guid]/graphs/all                            |
+| Delete               | DELETE | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Delete w/ cascade    | DELETE | /v1.0/tenants/[guid]/graphs/[guid]?force                   |
+| Delete all in tenant | DELETE | /v1.0/tenants/[guid]/graphs/all                            |
+| Exists               | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]                         |
+| Search               | POST   | /v1.0/tenants/[guid]/graphs/search                         |
+| Render as GEXF       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/gexf?incldata    |
+| Batch existence      | POST   | /v1.0/tenants/[guid]/graphs/[guid]/existence               |
 
 ## Graph Vector Index APIs
 
@@ -636,35 +673,46 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 
 ## Node APIs
 
-| API             | Method | URL                                                |
-|-----------------|--------|----------------------------------------------------|
-| Create          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes           |
-| Create many     | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk      |
-| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]    |
-| Read            | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]    |
-| Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes           |
-| Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes?guids=... |
-| Delete all      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/all       |
-| Delete multiple | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/multiple  |
-| Delete          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]    |
-| Exists          | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]    |
-| Search          | POST   | /v1.0/tenants/[guid]/graphs/[guid]/nodes/search    |
+| API                      | Method | URL                                                      |
+|--------------------------|--------|----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes                 |
+| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk            |
+| Update                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
+| Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
+| Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes                 |
+| Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes?guids=...       |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/nodes                               |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/all             |
+| Read most connected      | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/mostconnected   |
+| Read least connected     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/leastconnected  |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/all             |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/nodes                               |
+| Delete multiple          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk            |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
+| Search                   | POST   | /v1.0/tenants/[guid]/graphs/[guid]/nodes/search          |
 
 ## Edge APIs
 
-| API             | Method | URL                                                      |
-|-----------------|--------|----------------------------------------------------------|
-| Create          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges                 |
-| Create many     | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk            |
-| Update          | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Read            | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                 |
-| Read many       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges?guids=...       |
-| Delete all      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/all      |
-| Delete multiple | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]/multiple |
-| Delete          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Exists          | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]          |
-| Search          | POST   | /v1.0/tenants/[guid]/graphs/[guid]/edges/search          |
+| API                      | Method | URL                                                       |
+|--------------------------|--------|-----------------------------------------------------------|
+| Create                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |
+| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk             |
+| Update                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |
+| Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges?guids=...        |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/edges                                |
+| Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/all              |
+| Read between nodes       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/between          |
+| Delete                   | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/all              |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/edges                                |
+| Delete multiple          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk             |
+| Delete node edges        | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/edges     |
+| Delete node edges (bulk) | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/edges            |
+| Exists                   | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
+| Search                   | POST   | /v1.0/tenants/[guid]/graphs/[guid]/edges/search           |
 
 ## Traversal and Networking
 

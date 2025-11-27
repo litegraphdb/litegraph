@@ -356,7 +356,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid labelGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "labelGuid");
                 sdk.Label.DeleteByGuid(tenantGuid, labelGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("label/exists", (args) =>
@@ -402,7 +402,7 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 sdk.Label.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
         }
 
@@ -489,7 +489,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid labelGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "labelGuid");
                 sdk.Label.DeleteByGuid(tenantGuid, labelGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("label/exists", (args) =>
@@ -535,7 +535,7 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 sdk.Label.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
         }
 

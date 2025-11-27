@@ -592,7 +592,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                 sdk.Graph.DeleteByGuid(tenantGuid, graphGuid, force).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("graph/getsubgraph", (args) =>
@@ -831,7 +831,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 bool force = args.Value.TryGetProperty("force", out JsonElement forceProp) && forceProp.GetBoolean();
                 sdk.Graph.DeleteByGuid(tenantGuid, graphGuid, force).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("graph/getsubgraph", (args) =>

@@ -384,7 +384,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid vectorGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "vectorGuid");
                 sdk.Vector.DeleteByGuid(tenantGuid, vectorGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("vector/exists", (args) =>
@@ -430,7 +430,7 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 sdk.Vector.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("vector/search", (args) =>
@@ -531,7 +531,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid vectorGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "vectorGuid");
                 sdk.Vector.DeleteByGuid(tenantGuid, vectorGuid).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("vector/exists", (args) =>
@@ -577,7 +577,7 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 sdk.Vector.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
-                return "{\"success\": true}";
+                return true;
             });
 
             server.RegisterMethod("vector/search", (args) =>

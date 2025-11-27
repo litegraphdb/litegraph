@@ -196,6 +196,21 @@
         /// </summary>
         [EnumMember(Value = "CredentialUpdate")]
         CredentialUpdate,
+        /// <summary>
+        /// CredentialReadByBearerToken
+        /// </summary>
+        [EnumMember(Value = "CredentialReadByBearerToken")]
+        CredentialReadByBearerToken,
+        /// <summary>
+        /// CredentialDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "CredentialDeleteAllInTenant")]
+        CredentialDeleteAllInTenant,
+        /// <summary>
+        /// CredentialDeleteByUser
+        /// </summary>
+        [EnumMember(Value = "CredentialDeleteByUser")]
+        CredentialDeleteByUser,
 
         #endregion
 
@@ -246,6 +261,56 @@
         /// </summary>
         [EnumMember(Value = "LabelUpdate")]
         LabelUpdate,
+        /// <summary>
+        /// LabelReadAllInTenant
+        /// </summary>
+        [EnumMember(Value = "LabelReadAllInTenant")]
+        LabelReadAllInTenant,
+        /// <summary>
+        /// LabelReadAllInGraph
+        /// </summary>
+        [EnumMember(Value = "LabelReadAllInGraph")]
+        LabelReadAllInGraph,
+        /// <summary>
+        /// LabelReadManyGraph
+        /// </summary>
+        [EnumMember(Value = "LabelReadManyGraph")]
+        LabelReadManyGraph,
+        /// <summary>
+        /// LabelReadManyNode
+        /// </summary>
+        [EnumMember(Value = "LabelReadManyNode")]
+        LabelReadManyNode,
+        /// <summary>
+        /// LabelReadManyEdge
+        /// </summary>
+        [EnumMember(Value = "LabelReadManyEdge")]
+        LabelReadManyEdge,
+        /// <summary>
+        /// LabelDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "LabelDeleteAllInTenant")]
+        LabelDeleteAllInTenant,
+        /// <summary>
+        /// LabelDeleteAllInGraph
+        /// </summary>
+        [EnumMember(Value = "LabelDeleteAllInGraph")]
+        LabelDeleteAllInGraph,
+        /// <summary>
+        /// LabelDeleteGraphLabels
+        /// </summary>
+        [EnumMember(Value = "LabelDeleteGraphLabels")]
+        LabelDeleteGraphLabels,
+        /// <summary>
+        /// LabelDeleteNodeLabels
+        /// </summary>
+        [EnumMember(Value = "LabelDeleteNodeLabels")]
+        LabelDeleteNodeLabels,
+        /// <summary>
+        /// LabelDeleteEdgeLabels
+        /// </summary>
+        [EnumMember(Value = "LabelDeleteEdgeLabels")]
+        LabelDeleteEdgeLabels,
 
         #endregion
 
@@ -301,6 +366,56 @@
         /// </summary>
         [EnumMember(Value = "VectorUpdate")]
         VectorUpdate,
+        /// <summary>
+        /// VectorReadAllInTenant
+        /// </summary>
+        [EnumMember(Value = "VectorReadAllInTenant")]
+        VectorReadAllInTenant,
+        /// <summary>
+        /// VectorReadAllInGraph
+        /// </summary>
+        [EnumMember(Value = "VectorReadAllInGraph")]
+        VectorReadAllInGraph,
+        /// <summary>
+        /// VectorReadManyGraph
+        /// </summary>
+        [EnumMember(Value = "VectorReadManyGraph")]
+        VectorReadManyGraph,
+        /// <summary>
+        /// VectorReadManyNode
+        /// </summary>
+        [EnumMember(Value = "VectorReadManyNode")]
+        VectorReadManyNode,
+        /// <summary>
+        /// VectorReadManyEdge
+        /// </summary>
+        [EnumMember(Value = "VectorReadManyEdge")]
+        VectorReadManyEdge,
+        /// <summary>
+        /// VectorDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "VectorDeleteAllInTenant")]
+        VectorDeleteAllInTenant,
+        /// <summary>
+        /// VectorDeleteAllInGraph
+        /// </summary>
+        [EnumMember(Value = "VectorDeleteAllInGraph")]
+        VectorDeleteAllInGraph,
+        /// <summary>
+        /// VectorDeleteGraphVectors
+        /// </summary>
+        [EnumMember(Value = "VectorDeleteGraphVectors")]
+        VectorDeleteGraphVectors,
+        /// <summary>
+        /// VectorDeleteNodeVectors
+        /// </summary>
+        [EnumMember(Value = "VectorDeleteNodeVectors")]
+        VectorDeleteNodeVectors,
+        /// <summary>
+        /// VectorDeleteEdgeVectors
+        /// </summary>
+        [EnumMember(Value = "VectorDeleteEdgeVectors")]
+        VectorDeleteEdgeVectors,
 
         #endregion
 
@@ -351,6 +466,56 @@
         /// </summary>
         [EnumMember(Value = "TagUpdate")]
         TagUpdate,
+        /// <summary>
+        /// TagReadAllInTenant
+        /// </summary>
+        [EnumMember(Value = "TagReadAllInTenant")]
+        TagReadAllInTenant,
+        /// <summary>
+        /// TagReadAllInGraph
+        /// </summary>
+        [EnumMember(Value = "TagReadAllInGraph")]
+        TagReadAllInGraph,
+        /// <summary>
+        /// TagReadManyGraph
+        /// </summary>
+        [EnumMember(Value = "TagReadManyGraph")]
+        TagReadManyGraph,
+        /// <summary>
+        /// TagReadManyNode
+        /// </summary>
+        [EnumMember(Value = "TagReadManyNode")]
+        TagReadManyNode,
+        /// <summary>
+        /// TagReadManyEdge
+        /// </summary>
+        [EnumMember(Value = "TagReadManyEdge")]
+        TagReadManyEdge,
+        /// <summary>
+        /// TagDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "TagDeleteAllInTenant")]
+        TagDeleteAllInTenant,
+        /// <summary>
+        /// TagDeleteAllInGraph
+        /// </summary>
+        [EnumMember(Value = "TagDeleteAllInGraph")]
+        TagDeleteAllInGraph,
+        /// <summary>
+        /// TagDeleteGraphTags
+        /// </summary>
+        [EnumMember(Value = "TagDeleteGraphTags")]
+        TagDeleteGraphTags,
+        /// <summary>
+        /// TagDeleteNodeTags
+        /// </summary>
+        [EnumMember(Value = "TagDeleteNodeTags")]
+        TagDeleteNodeTags,
+        /// <summary>
+        /// TagDeleteEdgeTags
+        /// </summary>
+        [EnumMember(Value = "TagDeleteEdgeTags")]
+        TagDeleteEdgeTags,
 
         #endregion
 
@@ -451,6 +616,16 @@
         /// </summary>
         [EnumMember(Value = "GraphSubgraphStatistics")]
         GraphSubgraphStatistics,
+        /// <summary>
+        /// GraphReadAllInTenant
+        /// </summary>
+        [EnumMember(Value = "GraphReadAllInTenant")]
+        GraphReadAllInTenant,
+        /// <summary>
+        /// GraphDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "GraphDeleteAllInTenant")]
+        GraphDeleteAllInTenant,
 
         #endregion
 
@@ -516,6 +691,31 @@
         /// </summary>
         [EnumMember(Value = "NodeUpdate")]
         NodeUpdate,
+        /// <summary>
+        /// NodeReadAllInTenant
+        /// </summary>
+        [EnumMember(Value = "NodeReadAllInTenant")]
+        NodeReadAllInTenant,
+        /// <summary>
+        /// NodeReadAllInGraph
+        /// </summary>
+        [EnumMember(Value = "NodeReadAllInGraph")]
+        NodeReadAllInGraph,
+        /// <summary>
+        /// NodeReadMostConnected
+        /// </summary>
+        [EnumMember(Value = "NodeReadMostConnected")]
+        NodeReadMostConnected,
+        /// <summary>
+        /// NodeReadLeastConnected
+        /// </summary>
+        [EnumMember(Value = "NodeReadLeastConnected")]
+        NodeReadLeastConnected,
+        /// <summary>
+        /// NodeDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "NodeDeleteAllInTenant")]
+        NodeDeleteAllInTenant,
 
         #endregion
 
@@ -586,6 +786,31 @@
         /// </summary>
         [EnumMember(Value = "EdgeUpdate")]
         EdgeUpdate,
+        /// <summary>
+        /// EdgeReadAllInTenant
+        /// </summary>
+        [EnumMember(Value = "EdgeReadAllInTenant")]
+        EdgeReadAllInTenant,
+        /// <summary>
+        /// EdgeReadAllInGraph
+        /// </summary>
+        [EnumMember(Value = "EdgeReadAllInGraph")]
+        EdgeReadAllInGraph,
+        /// <summary>
+        /// EdgeDeleteAllInTenant
+        /// </summary>
+        [EnumMember(Value = "EdgeDeleteAllInTenant")]
+        EdgeDeleteAllInTenant,
+        /// <summary>
+        /// EdgeDeleteNodeEdges
+        /// </summary>
+        [EnumMember(Value = "EdgeDeleteNodeEdges")]
+        EdgeDeleteNodeEdges,
+        /// <summary>
+        /// EdgeDeleteNodeEdgesMany
+        /// </summary>
+        [EnumMember(Value = "EdgeDeleteNodeEdgesMany")]
+        EdgeDeleteNodeEdgesMany,
 
         #endregion
 
