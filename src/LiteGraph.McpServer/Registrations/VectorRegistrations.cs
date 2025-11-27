@@ -612,52 +612,6 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(vectors, true);
             });
 
-            server.RegisterMethod("vector/readallintenant", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readallingraph", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readmanygraph", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadManyGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readmanynode", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadManyNode(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readmanyedge", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadManyEdge(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
             server.RegisterMethod("vector/enumerate", (args) =>
             {
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -746,52 +700,6 @@ namespace LiteGraph.McpServer.Registrations
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 sdk.Vector.DeleteMany(tenantGuid, guids).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deleteallintenant", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                sdk.Vector.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deleteallingraph", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                sdk.Vector.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deletegraphvectors", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                sdk.Vector.DeleteGraphVectors(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deletenodevectors", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                sdk.Vector.DeleteNodeVectors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deleteedgevectors", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
-                sdk.Vector.DeleteEdgeVectors(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
                 return true;
             });
 
@@ -1048,51 +956,6 @@ namespace LiteGraph.McpServer.Registrations
                 return Serializer.SerializeJson(vectors, true);
             });
 
-            server.RegisterMethod("vector/readallintenant", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readallingraph", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readmanygraph", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadManyGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readmanynode", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadManyNode(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
-
-            server.RegisterMethod("vector/readmanyedge", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
-                List<VectorMetadata> vectors = sdk.Vector.ReadManyEdge(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
-                return Serializer.SerializeJson(vectors, true);
-            });
             server.RegisterMethod("vector/deleteallintenant", (args) =>
             {
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -1138,53 +1001,6 @@ namespace LiteGraph.McpServer.Registrations
                 sdk.Vector.DeleteEdgeVectors(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
                 return true;
             });
-
-            server.RegisterMethod("vector/deleteallintenant", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                sdk.Vector.DeleteAllInTenant(tenantGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deleteallingraph", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                sdk.Vector.DeleteAllInGraph(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deletegraphvectors", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                sdk.Vector.DeleteGraphVectors(tenantGuid, graphGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deletenodevectors", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
-                sdk.Vector.DeleteNodeVectors(tenantGuid, graphGuid, nodeGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
-            server.RegisterMethod("vector/deleteedgevectors", (args) =>
-            {
-                if (!args.HasValue) throw new ArgumentException("Parameters required");
-                Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
-                sdk.Vector.DeleteEdgeVectors(tenantGuid, graphGuid, edgeGuid).GetAwaiter().GetResult();
-                return true;
-            });
-
 
         }
 
