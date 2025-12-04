@@ -2059,7 +2059,6 @@ namespace Test.Automated
 
             _VectorGuid = created.GUID;
 
-            // Create a graph-level vector so graph-only queries have at least one result
             VectorMetadata graphVector = new VectorMetadata
             {
                 TenantGUID = _TenantGuid,
