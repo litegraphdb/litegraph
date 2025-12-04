@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>5.0.0</Version>
+		<Version>5.0.1</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
 		<PackageReleaseNotes>Breaking changes, move to full async-await pattern.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
