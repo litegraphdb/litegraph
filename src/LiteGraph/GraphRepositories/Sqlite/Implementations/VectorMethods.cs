@@ -314,7 +314,7 @@
             while (true)
             {
                 token.ThrowIfCancellationRequested();
-                string query = VectorQueries.SelectGraph(
+                string query = VectorQueries.SelectAllInGraph(
                     tenantGuid,
                     graphGuid,
                     _Repo.SelectBatchSize,
