@@ -2058,6 +2058,19 @@ namespace Test.Automated
             AssertEqual(3, created.Vectors!.Count, "Vector Vectors count");
 
             _VectorGuid = created.GUID;
+
+            VectorMetadata graphVector = new VectorMetadata
+            {
+                TenantGUID = _TenantGuid,
+                GraphGUID = _GraphGuid,
+                Model = "graph-model",
+                Dimensionality = 3,
+                Content = "graph vector",
+                Vectors = new List<float> { 9.0f, 9.1f, 9.2f }
+            };
+
+            VectorMetadata? createdGraph = await _Client.Vector.Create(graphVector).ConfigureAwait(false);
+            AssertNotNull(createdGraph, "Created graph-level vector");
         }
 
         private static async Task TestVectorCreateMany()
@@ -2163,7 +2176,8 @@ namespace Test.Automated
                 vectors.Add(vector);
             }
 
-            AssertTrue(vectors.Count >= 3, "Vectors count");
+            AssertTrue(vectors.Count >= 1, "Vectors count");
+            AssertTrue(vectors.All(v => v.NodeGUID == null && v.EdgeGUID == null), "Vectors are graph-only");
         }
 
         private static async Task TestVectorReadManyGraph()
@@ -2176,8 +2190,8 @@ namespace Test.Automated
                 vectors.Add(vector);
             }
 
-            // Should not throw
-            AssertTrue(true, "Read graph vectors");
+            AssertTrue(vectors.Count >= 1, "Graph vectors count");
+            AssertTrue(vectors.All(v => v.NodeGUID == null && v.EdgeGUID == null), "All graph vectors");
         }
 
         private static async Task TestVectorReadManyNode()
@@ -3123,7 +3137,7 @@ namespace Test.Automated
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             if (_McpTestTenantGuid == Guid.Empty)
                 await TestMcpTenantCreate();
-            
+
             if (_McpTestUserGuid == Guid.Empty)
                 await TestMcpUserCreate();
 
@@ -3135,10 +3149,10 @@ namespace Test.Automated
 
             bool deleteResult = await _McpClient!.CallAsync<bool>("credential/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(deleteResult, "Credential deleteallintenant should return true");
-            
+
             string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
-            
+
             _McpTestCredentialGuid = Guid.Empty;
         }
 
@@ -3159,10 +3173,10 @@ namespace Test.Automated
 
             bool deleteByUserResult = await _McpClient!.CallAsync<bool>("credential/deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
             AssertTrue(deleteByUserResult, "Credential deletebyuser should return true");
-            
+
             string existsAfterResult = await _McpClient!.CallAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
-            
+
             _McpTestCredentialGuid = Guid.Empty;
         }
 
@@ -4111,11 +4125,11 @@ namespace Test.Automated
             // Delete all edges in graph
             bool result = await _McpClient!.CallAsync<bool>("edge/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "edge/deleteallingraph should return true");
-            
+
             // Verify edge no longer exists
             string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
-            
+
             _McpTestEdgeGuid = Guid.Empty;
         }
 
@@ -4189,11 +4203,11 @@ namespace Test.Automated
             // Delete all edges in tenant
             bool result = await _McpClient!.CallAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(result, "edge/deleteallintenant should return true");
-            
+
             // Verify edge no longer exists
             string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
-            
+
             _McpTestEdgeGuid = Guid.Empty;
         }
 
@@ -4221,11 +4235,11 @@ namespace Test.Automated
             // Delete edges for nodes
             bool result = await _McpClient!.CallAsync<bool>("edge/deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
             AssertTrue(result, "edge/deletenodeedgesmany should return true");
-            
+
             // Verify edge no longer exists
             string existsAfterResult = await _McpClient!.CallAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
-            
+
             _McpTestEdgeGuid = Guid.Empty;
         }
 
@@ -5162,6 +5176,19 @@ namespace Test.Automated
             AssertNotEmpty(created!.GUID, "Vector GUID");
             AssertEqual("MCP Test Vector Content", created.Content, "Vector content");
             _McpTestVectorGuid = created.GUID;
+
+            VectorMetadata graphVector = new VectorMetadata
+            {
+                TenantGUID = _McpTestTenantGuid,
+                GraphGUID = _McpTestGraphGuid,
+                Model = "mcp-graph-model",
+                Dimensionality = 3,
+                Content = "MCP Graph Vector Content",
+                Vectors = new List<float> { 0.7f, 0.8f, 0.9f }
+            };
+            string graphVectorJson = _McpSerializer.SerializeJson(graphVector, false);
+            string graphResult = await _McpClient!.CallAsync<string>("vector/create", new { vector = graphVectorJson });
+            AssertNotNull(graphResult, "MCP graph vector create result should not be null");
         }
 
         private static async Task TestMcpVectorGet()
