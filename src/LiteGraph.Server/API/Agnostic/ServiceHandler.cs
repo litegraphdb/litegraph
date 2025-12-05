@@ -324,6 +324,14 @@
             if (req.Credential == null) throw new ArgumentNullException(nameof(req.Credential));
             if (!req.Authentication.IsAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.Credential.TenantGUID = req.TenantGUID.Value;
+
+            if (!String.IsNullOrEmpty(req.Credential.BearerToken))
+            {
+                Credential existing = await _LiteGraph.Credential.ReadByBearerToken(req.Credential.BearerToken, token).ConfigureAwait(false);
+                if (existing != null)
+                    return ResponseContext.FromError(req, ApiErrorEnum.Conflict);
+            }
+
             Credential obj = await _LiteGraph.Credential.Create(req.Credential, token).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }

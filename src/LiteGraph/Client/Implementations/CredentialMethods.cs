@@ -50,6 +50,12 @@
             token.ThrowIfCancellationRequested();
             await _Client.ValidateTenantExists(cred.TenantGUID, token).ConfigureAwait(false);
             await _Client.ValidateUserExists(cred.TenantGUID, cred.UserGUID, token).ConfigureAwait(false);
+            if (!String.IsNullOrEmpty(cred.BearerToken))
+            {
+                Credential existing = await _Repo.Credential.ReadByBearerToken(cred.BearerToken, token).ConfigureAwait(false);
+                if (existing != null)
+                    throw new InvalidOperationException("The supplied bearer token is already in use.");
+            }
             Credential created = await _Repo.Credential.Create(cred, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created credential " + created.GUID);
             return created;
