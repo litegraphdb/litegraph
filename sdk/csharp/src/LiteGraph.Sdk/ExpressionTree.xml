@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExpressionTree</name>
+    </assembly>
+    <members>
+        <member name="M:ExpressionTree.Common.IsArray(System.Object)">
+            <summary>
+            Determines if an object is of an array type (excluding String objects).
+            </summary>
+            <param name="o">Object.</param>
+            <returns>True if the object is of an Array type.</returns>
+        </member>
+        <member name="M:ExpressionTree.Common.IsList(System.Object)">
+            <summary>
+            Determines if an object is of a List type.
+            </summary>
+            <param name="o">Object.</param>
+            <returns>True if the object is of a List type.</returns>
+        </member>
+        <member name="T:ExpressionTree.Expr">
+            <summary>
+            Expression.
+            </summary>
+        </member>
+        <member name="P:ExpressionTree.Expr.Left">
+            <summary>
+            Left term.
+            </summary>
+        </member>
+        <member name="P:ExpressionTree.Expr.Operator">
+            <summary>
+            Operator.
+            </summary>
+        </member>
+        <member name="P:ExpressionTree.Expr.Right">
+            <summary>
+            Right term.
+            </summary>
+        </member>
+        <member name="M:ExpressionTree.Expr.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:ExpressionTree.Expr.#ctor(System.Object,ExpressionTree.OperatorEnum,System.Object)">
+            <summary>
+            A structure in the form of term-operator-term that defines a Boolean evaluation.
+            A term can be a literal value, an embedded Expr object, or a list.
+            List and Array objects can only be supplied on the right side of an expression.
+            </summary>
+            <param name="left">The left term of the expression.</param>
+            <param name="oper">The operator.</param>
+            <param name="right">The right term of the expression.</param>
+        </member>
+        <member name="M:ExpressionTree.Expr.Between(System.Object,System.Collections.Generic.List{System.Object})">
+            <summary>
+            An expression that allows you to determine if an object is between two values, i.e. GreaterThanOrEqualTo the first value, and LessThanOrEqualTo the second value.
+            </summary>
+            <param name="left">The left term of the expression; can either be a string term or a nested expression.</param> 
+            <param name="right">List of two values where the first value is the lower value and the second value is the higher value.</param>
+        </member>
+        <member name="M:ExpressionTree.Expr.ToString">
+            <summary>
+            String representation.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ExpressionTree.Expr.PrependAnd(System.Object,ExpressionTree.OperatorEnum,System.Object)">
+            <summary>
+            Prepends a new expression using the supplied left term, operator, and right term using an AND clause.
+            </summary>
+            <param name="left">The left term of the expression; can either be a string term or a nested expression.</param>
+            <param name="oper">The operator.</param>
+            <param name="right">The right term of the expression; can either be an object for comparison or a nested expression.</param>
+        </member>
+        <member name="M:ExpressionTree.Expr.PrependAnd(ExpressionTree.Expr)">
+            <summary>
+            Prepends the expression with the supplied expression using an AND clause.
+            </summary>
+            <param name="prepend">The expression to prepend.</param> 
+        </member>
+        <member name="M:ExpressionTree.Expr.PrependOr(System.Object,ExpressionTree.OperatorEnum,System.Object)">
+            <summary>
+            Prepends a new expression using the supplied left term, operator, and right term using an OR clause.
+            </summary>
+            <param name="left">The left term of the expression; can either be a string term or a nested expression.</param>
+            <param name="oper">The operator.</param>
+            <param name="right">The right term of the expression; can either be an object for comparison or a nested expression.</param>
+        </member>
+        <member name="M:ExpressionTree.Expr.PrependOr(ExpressionTree.Expr)">
+            <summary>
+            Prepends the expression with the supplied expression using an OR clause.
+            </summary>
+            <param name="prepend">The expression to prepend.</param> 
+        </member>
+        <member name="M:ExpressionTree.Expr.PrependAndClause(ExpressionTree.Expr,ExpressionTree.Expr)">
+            <summary>
+            Prepends the expression in prepend to the expression original using an AND clause.
+            </summary>
+            <param name="prepend">The expression to prepend.</param>
+            <param name="original">The original expression.</param>
+            <returns>A new expression.</returns>
+        </member>
+        <member name="M:ExpressionTree.Expr.PrependOrClause(ExpressionTree.Expr,ExpressionTree.Expr)">
+            <summary>
+            Prepends the expression in prepend to the expression original using an OR clause.
+            </summary>
+            <param name="prepend">The expression to prepend.</param>
+            <param name="original">The original expression.</param>
+            <returns>A new expression.</returns>
+        </member>
+        <member name="M:ExpressionTree.Expr.ListToNestedAndExpression(System.Collections.Generic.List{ExpressionTree.Expr})">
+            <summary>
+            Convert a list of expression objects to a nested expression containing AND between each expression in the list. 
+            </summary>
+            <param name="exprList">List of expression objects.</param>
+            <returns>A nested expression.</returns>
+        </member>
+        <member name="M:ExpressionTree.Expr.ListToNestedOrExpression(System.Collections.Generic.List{ExpressionTree.Expr})">
+            <summary>
+            Convert a list of expression objects to a nested expression containing OR between each expression in the list. 
+            </summary>
+            <param name="exprList">List of expression objects.</param>
+            <returns>A nested expression.</returns>
+        </member>
+        <member name="T:ExpressionTree.OperatorEnum">
+            <summary>
+            Available conditions for search filters.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.Equals">
+            <summary>
+            The left and right terms are equal to one another.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.NotEquals">
+            <summary>
+            The left and right terms are not equal to one another.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.GreaterThan">
+            <summary>
+            The left term is greater than the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.GreaterThanOrEqualTo">
+            <summary>
+            The left term is greater than or equal to the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.LessThan">
+            <summary>
+            The left term is less than the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.LessThanOrEqualTo">
+            <summary>
+            The left term is less than or equal to the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.IsNull">
+            <summary>
+            The left term is null.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.IsNotNull">
+            <summary>
+            The left term is not null.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.Contains">
+            <summary>
+            The left term is contained within the right term (list).
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.ContainsNot">
+            <summary>
+            The left term is not contained within the right term (list).
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.StartsWith">
+            <summary>
+            The left term starts with the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.StartsWithNot">
+            <summary>
+            The left term does not start with the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.EndsWith">
+            <summary>
+            The left term ends with the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.EndsWithNot">
+            <summary>
+            The left term does not end with the right term.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.And">
+            <summary>
+            The left and right both resolve to true.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.Or">
+            <summary>
+            Either the left, the right, or both resolve to true.
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.In">
+            <summary>
+            Value is contained within a list
+            </summary>
+        </member>
+        <member name="F:ExpressionTree.OperatorEnum.NotIn">
+            <summary>
+            Value is not contained within a list
+            </summary>
+        </member>
+    </members>
+</doc>

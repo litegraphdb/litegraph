@@ -1,0 +1,68 @@
+.tooltipContainer {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  :global {
+    .ant-card {
+      width: 400px !important;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--ant-color-border) !important;
+      backdrop-filter: blur(5px) !important;
+      background: transparent !important;
+      border-radius: var(--ant-border-radius-lg);
+      z-index: 10;
+      .ant-card-body {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        max-height: 320px;
+        overflow-y: hidden;
+        .jsoneditor {
+          max-height: 100px;
+          overflow-y: auto !important;
+        }
+        .jsoneditor-tree {
+          background-color: transparent;
+        }
+      }
+      box-shadow: 2px 2px 10px rgba($color: #000000, $alpha: 0.2);
+      .card-details {
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      }
+      .ant-btn-link {
+        padding-left: 0;
+        padding-right: 0;
+      }
+    }
+    .ant-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--ant-color-bg-base) !important;
+      opacity: 0.7 !important;
+      z-index: -1;
+    }
+  }
+}

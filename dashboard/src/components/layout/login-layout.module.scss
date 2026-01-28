@@ -1,0 +1,43 @@
+.loginBox {
+  margin: 0 auto;
+  margin-top: 50px;
+  width: 400px;
+  form {
+    width: 100%;
+  }
+}
+.loginTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loginDescription {
+  color: var(--ant-color-text-secondary) !important;
+}
+.loginContainer {
+  padding: var(--ant-margin);
+}
+
+.stepIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 0 4px;
+}
+
+.stepIndicatorContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.userLoginPage {
+  height: 100vh;
+  background-color: var(--ant-color-bg-base) !important;
+}
+
+.userLoginPageHeader {
+  border-bottom: 1px solid var(--ant-color-border);
+  background-color: var(--ant-color-bg-base);
+}

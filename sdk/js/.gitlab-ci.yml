@@ -1,0 +1,12 @@
+stages:
+  - sonar-scan
+  
+live:
+  stage: sonar-scan
+  script:
+      - sonar-scanner -Dsonar.sources=. -Dsonar.projectKey=JS_LiteGraph -Dsonar.host.url=http://sonar-ubuntu.webline.local:9000 -Dsonar.login=f90aa5596495df208ca708e6bc7dd20f6e57fb33 -Dsonar.gitlab.commit_sha=$CI_COMMIT_SHA -Dsonar.gitlab.ref_name=$CI_COMMIT_REF_NAME
+
+  tags:
+    - REACTJS_RPOJECT
+  only:
+    - develop

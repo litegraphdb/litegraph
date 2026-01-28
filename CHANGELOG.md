@@ -14,7 +14,7 @@ v5.0.x
   - Enables AI assistants and LLMs to interact with LiteGraph
   - Exposes graph operations as MCP tools for AI integration
   - Supports HTTP, TCP, and WebSocket transport protocols
-  - Docker image available at `jchristn/litegraph-mcp`
+  - Docker image available at `jchristn77/litegraph-mcp`
   - Ideal for knowledge graphs, RAG applications, and AI-powered data exploration
 
 ## Previous Versions

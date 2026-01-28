@@ -2,13 +2,13 @@ services:
 
   #
   # LiteGraph
-  # See https://hub.docker.com/r/jchristn/litegraph
+  # See https://hub.docker.com/r/jchristn77/litegraph
   # and https://github.com/jchristn/LiteGraph
   #
 
   litegraph:
     container_name: 'litegraph'
-    image: 'jchristn/litegraph:v5.0.0'
+    image: 'jchristn77/litegraph:v5.0.0'
     network_mode: 'host'
     stdin_open: true
     tty: true

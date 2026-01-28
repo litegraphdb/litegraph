@@ -2,11 +2,25 @@
 
 # LiteGraph
 
-[![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/) [![Dashboard](https://img.shields.io/badge/dashboard-github.com/litegraphdb/ui-green)](https://github.com/litegraphdb/ui) 
+[![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`). For comprehensive documentation, visit [litegraph.readme.io](https://litegraph.readme.io/). A web-based dashboard UI is available at [github.com/litegraphdb/ui](https://github.com/litegraphdb/ui).
+LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`). For comprehensive documentation, visit [litegraph.readme.io](https://litegraph.readme.io/).
+
+## Repository Structure
+
+This monorepo contains the LiteGraph database core, server, dashboard, and client SDKs:
+
+| Directory | Description |
+|-----------|-------------|
+| [`src/`](src/) | Core LiteGraph library and server projects (.NET) |
+| [`dashboard/`](dashboard/) | Web-based dashboard UI (Next.js/React) |
+| [`sdk/csharp/`](sdk/csharp/) | C# SDK for REST API ([NuGet](https://www.nuget.org/packages/LiteGraph.Sdk/)) |
+| [`sdk/python/`](sdk/python/) | Python SDK for REST API ([PyPI](https://pypi.org/project/litegraph-sdk/)) |
+| [`sdk/js/`](sdk/js/) | JavaScript/Node.js SDK for REST API ([npm](https://www.npmjs.com/package/litegraphdb)) |
+| [`docker-litegraph/`](docker-litegraph/) | Docker deployment for LiteGraph Server |
+| [`docker-mcp/`](docker-mcp/) | Docker deployment for MCP Server |
 
 ## New in v5.0.x
 
@@ -293,9 +307,25 @@ Dictionary<Guid, GraphStatistics> allGraphStatistics = await client.Graph.GetSta
 GraphStatistics graphStatistics = await client.Graph.GetStatistics(myTenantGuid, myGraphGuid);
 ```
 
-## REST API
+## REST API and Client SDKs
 
-LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph.  Refer to `REST_API.md` and also the Postman collection in the root of this repository for details. For comprehensive API documentation, visit [litegraph.readme.io](https://litegraph.readme.io/). A web-based dashboard UI for managing your LiteGraph instances is available at [github.com/litegraphdb/ui](https://github.com/litegraphdb/ui).
+LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph.  Refer to `REST_API.md` and also the Postman collection in the root of this repository for details. For comprehensive API documentation, visit [litegraph.readme.io](https://litegraph.readme.io/).
+
+### Web Dashboard
+
+A web-based dashboard UI for managing your LiteGraph instances is included in this repository at [`dashboard/`](dashboard/). See the [dashboard README](dashboard/README.md) for setup instructions.
+
+### Client SDKs
+
+Official client SDKs are available to interact with the LiteGraph REST API:
+
+| Language | Package | Directory |
+|----------|---------|-----------|
+| C# | [![NuGet](https://img.shields.io/nuget/v/LiteGraph.Sdk.svg)](https://www.nuget.org/packages/LiteGraph.Sdk/) | [`sdk/csharp/`](sdk/csharp/) |
+| Python | [![PyPI](https://img.shields.io/pypi/v/litegraph-sdk.svg)](https://pypi.org/project/litegraph-sdk/) | [`sdk/python/`](sdk/python/) |
+| JavaScript | [![npm](https://img.shields.io/npm/v/litegraphdb.svg)](https://www.npmjs.com/package/litegraphdb) | [`sdk/js/`](sdk/js/) |
+
+See the README in each SDK directory for installation and usage instructions.
 
 By default, LiteGraph.Server listens on `http://localhost:8701` and is only accessible to `localhost`.  Modify the `litegraph.json` file to change settings including hostname and port.
 
@@ -339,7 +369,7 @@ Modify ./litegraph.json to change the REST listener hostname to make externally 
 
 ## Running in Docker
 
-A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn/litegraph) under `jchristn/litegraph`.  Use the Docker Compose start (`compose-up.sh` and `compose-up.bat`) and stop (`compose-down.sh` and `compose-down.bat`) scripts in the `Docker` directory if you wish to run within Docker Compose.  Ensure that you have a valid database file (e.g. `litegraph.db`) and configuration file (e.g. `litegraph.json`) exposed into your container.
+A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph`.  Use the Docker Compose start (`compose-up.sh` and `compose-up.bat`) and stop (`compose-down.sh` and `compose-down.bat`) scripts in the `Docker` directory if you wish to run within Docker Compose.  Ensure that you have a valid database file (e.g. `litegraph.db`) and configuration file (e.g. `litegraph.json`) exposed into your container.
 
 ## MCP Server
 
@@ -427,7 +457,7 @@ Configuration can be overridden using environment variables:
 
 ### Running MCP Server in Docker
 
-A Docker image for the MCP server is available at `jchristn/litegraph-mcp`. Use the Docker Compose files in the `docker-mcp` directory:
+A Docker image for the MCP server is available at `jchristn77/litegraph-mcp`. Use the Docker Compose files in the `docker-mcp` directory:
 
 ```bash
 cd docker-mcp

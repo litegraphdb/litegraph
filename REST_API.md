@@ -1,5 +1,12 @@
 # REST API for LiteGraph
 
+This document describes the REST API endpoints for LiteGraph Server.
+
+For client SDK libraries that wrap this API, see the [`sdk/`](sdk/) directory:
+- [C# SDK](sdk/csharp/) - NuGet package `LiteGraph.Sdk`
+- [Python SDK](sdk/python/) - PyPI package `litegraph-sdk`
+- [JavaScript SDK](sdk/js/) - npm package `litegraphdb`
+
 ## Authentication
 
 Users can authenticate API requests in one of three ways.

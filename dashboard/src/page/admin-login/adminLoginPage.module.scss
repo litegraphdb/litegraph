@@ -1,0 +1,53 @@
+.loginBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  margin-top: 50px;
+  width: 400px;
+  form {
+    width: 100%;
+  }
+}
+.loginTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loginContainer {
+  padding: var(--ant-margin);
+}
+
+.loginButton,
+.backButton {
+  width: 100%;
+}
+.loginButtonContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  gap: 10px;
+}
+
+.stepIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 0 4px;
+}
+
+.stepIndicatorContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.adminLoginPage {
+  height: 100vh;
+  border: 1px solid var(--ant-border-color);
+}
+
+.adminLoginPageHeader {
+  border-bottom: 1px solid var(--ant-color-border);
+}

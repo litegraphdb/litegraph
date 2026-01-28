@@ -1,0 +1,16 @@
+.pageContainer {
+  background: var(--ant-color-bg-base);
+  border-radius: var(--ant-border-radius-sm);
+  min-height: calc(100vh - 70px);
+}
+
+.pageTitleContainer {
+  padding: var(--ant-padding) var(--ant-padding-lg);
+  border-bottom: 1px solid var(--ant-color-border);
+}
+
+.pageContent {
+  padding: var(--ant-padding-lg);
+  max-height: calc(100vh - 132px);
+  overflow: auto;
+}

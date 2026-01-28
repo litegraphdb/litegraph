@@ -2,7 +2,7 @@
 IF "%1" == "" GOTO :Usage
 ECHO.
 ECHO Building for linux/amd64 and linux/arm64/v8...
-docker buildx build -f LiteGraph.Server/Dockerfile --builder cloud-viewio-assistant-builder --platform linux/amd64,linux/arm64/v8 --tag jchristn/litegraph:%1 --push .
+docker buildx build -f LiteGraph.Server/Dockerfile --builder cloud-jchristn77-jchristn77 --platform linux/amd64,linux/arm64/v8 --tag jchristn77/litegraph:%1 --tag jchristn77/litegraph:latest --push .
 
 GOTO :Done
 

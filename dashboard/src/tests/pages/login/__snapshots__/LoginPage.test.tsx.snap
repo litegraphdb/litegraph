@@ -1,0 +1,234 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LoginPage should display server URL input field 1`] = `
+<input
+  aria-required="true"
+  class="ant-input ant-input-lg css-dev-only-do-not-override-98ntnt ant-input-outlined"
+  data-testid="litegraph-input"
+  id="url"
+  placeholder="https://your-litegraph-server.com"
+  type="text"
+  value="http://localhost:8701/"
+/>
+`;
+
+exports[`LoginPage should render the LoginPage: initial login step 1`] = `
+<div>
+  <div
+    class="userLoginPage ant-flex css-dev-only-do-not-override-98ntnt ant-flex-align-stretch ant-flex-vertical"
+    style="gap: 20px;"
+  >
+    <div
+      class="userLoginPageHeader mb pb pt pr pl ant-flex css-dev-only-do-not-override-98ntnt ant-flex-align-center ant-flex-justify-space-between"
+    >
+      <img
+        alt="Litegraph Logo"
+        height="40"
+        src="/favicon.png"
+      />
+      <div
+        class="ant-flex css-dev-only-do-not-override-98ntnt ant-flex-align-center"
+        style="gap: 10px;"
+      >
+        <svg
+          color="black"
+          fill="none"
+          height="20"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          style="cursor: pointer; transform: rotate(90deg);"
+          viewBox="0 0 24 24"
+          width="20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <mask
+            id="circle-mask-1"
+          >
+            <rect
+              fill="white"
+              height="100%"
+              width="100%"
+              x="0"
+              y="0"
+            />
+            <circle
+              fill="black"
+              r="9"
+            />
+          </mask>
+          <circle
+            cx="12"
+            cy="12"
+            fill="black"
+            mask="url(#circle-mask-1)"
+          />
+          <g
+            stroke="currentColor"
+            style="opacity: 1;"
+          >
+            <line
+              x1="12"
+              x2="12"
+              y1="1"
+              y2="3"
+            />
+            <line
+              x1="12"
+              x2="12"
+              y1="21"
+              y2="23"
+            />
+            <line
+              x1="4.22"
+              x2="5.64"
+              y1="4.22"
+              y2="5.64"
+            />
+            <line
+              x1="18.36"
+              x2="19.78"
+              y1="18.36"
+              y2="19.78"
+            />
+            <line
+              x1="1"
+              x2="3"
+              y1="12"
+              y2="12"
+            />
+            <line
+              x1="21"
+              x2="23"
+              y1="12"
+              y2="12"
+            />
+            <line
+              x1="4.22"
+              x2="5.64"
+              y1="19.78"
+              y2="18.36"
+            />
+            <line
+              x1="18.36"
+              x2="19.78"
+              y1="5.64"
+              y2="4.22"
+            />
+          </g>
+        </svg>
+        <a
+          href="/login/admin"
+        >
+          <span
+            class="ant-typography css-dev-only-do-not-override-98ntnt"
+          >
+            Login as Administrator
+          </span>
+        </a>
+      </div>
+    </div>
+    <div
+      class="loginTitle"
+    >
+      <h1
+        class="ant-typography headingCommonStyles css-dev-only-do-not-override-98ntnt"
+        style="font-weight: 600; font-size: 22px;"
+      >
+        Login
+      </h1>
+      <div
+        class="ant-typography loginDescription css-dev-only-do-not-override-98ntnt"
+      >
+        Please enter your email and password to login
+      </div>
+    </div>
+    <div
+      class="loginBox"
+    >
+      <div
+        class="ant-flex css-dev-only-do-not-override-98ntnt ant-flex-align-stretch ant-flex-vertical"
+        style="gap: 20px;"
+      >
+        <form
+          class="ant-form ant-form-vertical css-dev-only-do-not-override-98ntnt"
+        >
+          <div
+            class="ant-form-item css-dev-only-do-not-override-98ntnt"
+          >
+            <div
+              class="ant-row ant-form-item-row css-dev-only-do-not-override-98ntnt"
+            >
+              <div
+                class="ant-col ant-form-item-label css-dev-only-do-not-override-98ntnt"
+              >
+                <label
+                  class="ant-form-item-required"
+                  for="url"
+                  title="LiteGraph Server URL"
+                >
+                  LiteGraph Server URL
+                </label>
+              </div>
+              <div
+                class="ant-col ant-form-item-control css-dev-only-do-not-override-98ntnt"
+              >
+                <div
+                  class="ant-form-item-control-input"
+                >
+                  <div
+                    class="ant-form-item-control-input-content"
+                  >
+                    <input
+                      aria-required="true"
+                      class="ant-input ant-input-lg css-dev-only-do-not-override-98ntnt ant-input-outlined"
+                      data-testid="litegraph-input"
+                      id="url"
+                      placeholder="https://your-litegraph-server.com"
+                      type="text"
+                      value="http://localhost:8701/"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="loginButtonContainer"
+          >
+            <button
+              class="ant-btn css-dev-only-do-not-override-98ntnt ant-btn-primary loginButton"
+              type="submit"
+            >
+              <span>
+                Next
+              </span>
+            </button>
+          </div>
+        </form>
+        <div
+          class="stepIndicatorContainer"
+        >
+          <div
+            class="stepIndicator"
+            style="background-color: rgb(85, 143, 66);"
+          />
+          <div
+            class="stepIndicator"
+            style="background-color: rgb(217, 217, 217);"
+          />
+          <div
+            class="stepIndicator"
+            style="background-color: rgb(217, 217, 217);"
+          />
+          <div
+            class="stepIndicator"
+            style="background-color: rgb(217, 217, 217);"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

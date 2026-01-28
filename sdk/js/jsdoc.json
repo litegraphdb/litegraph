@@ -1,0 +1,11 @@
+{
+  "source": {
+    "include": ["src/base"],
+    "exclude": ["node_modules"]
+  },
+  "opts": {
+    "destination": "doc.json",
+    "recurse": true,
+    "template": "./node_modules/jsdoc-json"
+  }
+}

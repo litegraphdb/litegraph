@@ -1,0 +1,75 @@
+.avatar {
+  background-color: var(--ant-color-primary);
+  :global {
+    .ant-avatar-string {
+      font-size: 20px;
+    }
+  }
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logoutLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--ant-color-primary);
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .logoutIcon {
+    font-size: 16px;
+  }
+}
+
+.userName {
+  margin-right: var(--ant-margin-sm);
+}
+
+.userInfo {
+  height: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-label-text {
+  font-size: 12px;
+  font-weight: 400;
+  color: #333333;
+}
+
+.header {
+  border-bottom: 1px solid var(--ant-color-border);
+  background: var(--ant-color-bg-base) !important;
+  padding: 0 var(--ant-padding) !important;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  :global {
+    .label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #333333;
+      display: block;
+      height: fit-content;
+      line-height: normal;
+    }
+  }
+}
+
+.themeModeSwitch {
+  height: 20px;
+  width: 20px;
+}

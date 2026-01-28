@@ -25,5 +25,5 @@ docker run \
   -v ./litegraph.json:/app/litegraph.json \
   -v ./logs/:/app/logs/ \
   -v ./backups/:/app/backups/ \
-  jchristn/litegraph-mcp:$IMG_TAG
+  jchristn77/litegraph-mcp:$IMG_TAG
 

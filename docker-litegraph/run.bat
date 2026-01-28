@@ -24,7 +24,7 @@ docker run ^
   -v .\litegraph.db:/app/litegraph.db ^
   -v .\logs\:/app/logs/ ^
   -v .\backups\:/app/backups/ ^
-  jchristn/litegraph:%1
+  jchristn77/litegraph:%1
 
 GOTO :Done
 

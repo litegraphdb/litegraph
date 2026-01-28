@@ -1,0 +1,262 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Vectors Page renders the vectors page: initial table state 1`] = `
+<div>
+  <main
+    class="ant-layout-content pageContainer css-dev-only-do-not-override-98ntnt"
+    id="vectors"
+  >
+    <div
+      class="pageTitleContainer ant-flex css-dev-only-do-not-override-98ntnt ant-flex-wrap-wrap ant-flex-align-center ant-flex-justify-space-between ant-flex-gap-small"
+    >
+      <span
+        class="ant-typography css-dev-only-do-not-override-98ntnt"
+        data-testid="heading"
+        style="font-weight: 600; font-size: 16px;"
+      >
+        <div
+          class="ant-flex css-dev-only-do-not-override-98ntnt ant-flex-align-center"
+          style="gap: 10px;"
+        >
+          <span
+            class="ant-typography css-dev-only-do-not-override-98ntnt"
+          >
+            Vectors
+          </span>
+          <span
+            aria-label="loading"
+            class="anticon anticon-loading anticon-spin loading-icon"
+            role="img"
+          >
+            <svg
+              aria-hidden="true"
+              data-icon="loading"
+              fill="currentColor"
+              focusable="false"
+              height="1em"
+              viewBox="0 0 1024 1024"
+              width="1em"
+            >
+              <path
+                d="M988 548c-19.9 0-36-16.1-36-36 0-59.4-11.6-117-34.6-171.3a440.45 440.45 0 00-94.3-139.9 437.71 437.71 0 00-139.9-94.3C629 83.6 571.4 72 512 72c-19.9 0-36-16.1-36-36s16.1-36 36-36c69.1 0 136.2 13.5 199.3 40.3C772.3 66 827 103 874 150c47 47 83.9 101.8 109.7 162.7 26.7 63.1 40.2 130.2 40.2 199.3.1 19.9-16 36-35.9 36z"
+              />
+            </svg>
+          </span>
+        </div>
+      </span>
+      <button
+        class="ant-btn css-dev-only-do-not-override-98ntnt ant-btn-link"
+        style="font-weight: 500;"
+        type="button"
+      >
+        <span
+          class="ant-btn-icon"
+        >
+          <span
+            aria-label="plus-square"
+            class="anticon anticon-plus-square"
+            role="img"
+          >
+            <svg
+              aria-hidden="true"
+              data-icon="plus-square"
+              fill="currentColor"
+              focusable="false"
+              height="1em"
+              viewBox="64 64 896 896"
+              width="1em"
+            >
+              <path
+                d="M328 544h152v152c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V544h152c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H544V328c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v152H328c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8z"
+              />
+              <path
+                d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"
+              />
+            </svg>
+          </span>
+        </span>
+        <span>
+          Create Vector
+        </span>
+      </button>
+    </div>
+    <div
+      class="pageContent"
+    >
+      <div
+        class="ant-table-wrapper css-dev-only-do-not-override-98ntnt"
+      >
+        <div
+          class="ant-spin-nested-loading css-dev-only-do-not-override-98ntnt"
+        >
+          <div>
+            <div
+              aria-busy="true"
+              aria-live="polite"
+              class="ant-spin ant-spin-spinning css-dev-only-do-not-override-98ntnt"
+            >
+              <span
+                class="ant-spin-dot-holder"
+              >
+                <span
+                  class="ant-spin-dot ant-spin-dot-spin"
+                >
+                  <i
+                    class="ant-spin-dot-item"
+                  />
+                  <i
+                    class="ant-spin-dot-item"
+                  />
+                  <i
+                    class="ant-spin-dot-item"
+                  />
+                  <i
+                    class="ant-spin-dot-item"
+                  />
+                </span>
+              </span>
+            </div>
+          </div>
+          <div
+            class="ant-spin-container ant-spin-blur"
+          >
+            <div
+              class="ant-table ant-table-empty css-dev-only-do-not-override-98ntnt"
+            >
+              <div
+                class="ant-table-container"
+              >
+                <div
+                  class="ant-table-content"
+                >
+                  <table
+                    style="table-layout: auto;"
+                  >
+                    <colgroup />
+                    <thead
+                      class="ant-table-thead"
+                    >
+                      <tr>
+                        <th
+                          class="ant-table-cell"
+                          scope="col"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      class="ant-table-tbody"
+                    >
+                      <tr
+                        class="ant-table-placeholder"
+                      >
+                        <td
+                          class="ant-table-cell"
+                        >
+                          <div
+                            class="css-dev-only-do-not-override-98ntnt ant-empty ant-empty-normal"
+                          >
+                            <div
+                              class="ant-empty-image"
+                            >
+                              <svg
+                                height="41"
+                                viewBox="0 0 64 41"
+                                width="64"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <title>
+                                  Simple Empty
+                                </title>
+                                <g
+                                  fill="none"
+                                  fill-rule="evenodd"
+                                  transform="translate(0 1)"
+                                >
+                                  <ellipse
+                                    cx="32"
+                                    cy="33"
+                                    fill="#f5f5f5"
+                                    rx="32"
+                                    ry="7"
+                                  />
+                                  <g
+                                    fill-rule="nonzero"
+                                    stroke="#d9d9d9"
+                                  >
+                                    <path
+                                      d="M55 12.76L44.854 1.258C44.367.474 43.656 0 42.907 0H21.093c-.749 0-1.46.474-1.947 1.257L9 12.761V22h46v-9.24z"
+                                    />
+                                    <path
+                                      d="M41.613 15.931c0-1.605.994-2.93 2.227-2.931H55v18.137C55 33.26 53.68 35 52.05 35h-40.1C10.32 35 9 33.259 9 31.137V13h11.16c1.233 0 2.227 1.323 2.227 2.928v.022c0 1.605 1.005 2.901 2.237 2.901h14.752c1.232 0 2.237-1.308 2.237-2.913v-.007z"
+                                      fill="#fafafa"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
+                            </div>
+                            <div
+                              class="ant-empty-description"
+                            >
+                              No data
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+`;
+
+exports[`Vectors Page should create a vector and should be visible in the table 1`] = `
+<button
+  class="ant-btn css-dev-only-do-not-override-98ntnt ant-btn-link"
+  style="font-weight: 500;"
+  type="button"
+>
+  <span
+    class="ant-btn-icon"
+  >
+    <span
+      aria-label="plus-square"
+      class="anticon anticon-plus-square"
+      role="img"
+    >
+      <svg
+        aria-hidden="true"
+        data-icon="plus-square"
+        fill="currentColor"
+        focusable="false"
+        height="1em"
+        viewBox="64 64 896 896"
+        width="1em"
+      >
+        <path
+          d="M328 544h152v152c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V544h152c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H544V328c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v152H328c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8z"
+        />
+        <path
+          d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"
+        />
+      </svg>
+    </span>
+  </span>
+  <span>
+    Create Vector
+  </span>
+</button>
+`;
+
+exports[`Vectors Page should create a vector and should be visible in the table: final table state 1`] = `null`;
+
+exports[`Vectors Page should delete vector successfully: final table state 1`] = `null`;
+
+exports[`Vectors Page should update vector successfully: final table state 1`] = `null`;

@@ -1,0 +1,9 @@
+.container {
+  height: 40px !important;
+  padding: 0 var(--ant-padding) !important;
+  border-radius: var(--ant-border-radius);
+  cursor: pointer !important;
+  &:hover {
+    background-color: var(--ant-color-border-secondary);
+  }
+}

@@ -2,7 +2,7 @@
 IF "%1" == "" GOTO :Usage
 ECHO.
 ECHO Building for linux/amd64 and linux/arm64/v8...
-docker buildx build -f Dockerfile --platform linux/amd64,linux/arm64/v8 --tag jchristn/litegraph-mcp:%1 --push .
+docker buildx build -f Dockerfile --platform linux/amd64,linux/arm64/v8 --tag jchristn77/litegraph-mcp:%1 --tag jchristn77/litegraph-mcp:latest --push .
 
 GOTO :Done
 
