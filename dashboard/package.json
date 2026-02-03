@@ -35,9 +35,9 @@
     "humanize-number": "^0.0.2",
     "jsoneditor-react": "^3.1.2",
     "litegraphdb": "^1.0.12",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "moment": "^2.30.1",
-    "next": "^14.2.34",
+    "next": "^15.5.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-force-graph-3d": "^1.28.0",
@@ -88,6 +88,9 @@
     "jsoneditor-react": {
       "react": "$react",
       "react-dom": "$react-dom"
-    }
+    },
+    "lodash-es": "4.17.23",
+    "preact": "10.26.10",
+    "qs": "6.14.1"
   }
 }
