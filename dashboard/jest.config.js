@@ -17,7 +17,7 @@ const customJestConfig = {
     customExportConditions: [''],
   },
   transformIgnorePatterns: [
-    '<rootDir>/node_modules/(?!react-hot-toast|@react-sigma/core|graphology|sigma)/',
+    'node_modules/(?!react-hot-toast|@react-sigma/core|graphology|sigma|msw|@mswjs|until-async)',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -41,7 +41,6 @@ const customJestConfig = {
   },
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
   coverageDirectory: 'coverage',
-  transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-hot-toast)/'],
 };
 
 module.exports = createJestConfig(customJestConfig);

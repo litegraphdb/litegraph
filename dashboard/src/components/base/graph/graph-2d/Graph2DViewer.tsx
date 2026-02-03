@@ -1,5 +1,6 @@
 import { SigmaContainer } from '@react-sigma/core';
 import { MultiDirectedGraph } from 'graphology';
+import EdgeArrowProgram from 'sigma/rendering/webgl/programs/edge.arrow';
 import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import SigmaGraphLoader from './SigmaGraphLoader';
 import { GraphEdgeTooltip, GraphNodeTooltip } from '../types';
@@ -59,6 +60,9 @@ const Graph2DViewer = ({
         enableEdgeClickEvents: true, // Enable click events for edges
         defaultNodeColor: '#999',
         defaultEdgeColor: '#999',
+        edgeProgramClasses: {
+          arrow: EdgeArrowProgram,
+        },
         labelSize: 14,
         labelWeight: 'bold',
         renderEdgeLabels: showLabel,

@@ -2,6 +2,36 @@ import '@testing-library/jest-dom';
 import { Table } from 'antd';
 import { LiteGraphSdk } from 'litegraphdb';
 
+// Mock the antd React 19 patch since tests mock antd without unstableSetRender
+jest.mock('@ant-design/v5-patch-for-react-19', () => ({}));
+
+// Mock msw and msw/node to avoid ESM import issues
+jest.mock('msw', () => ({
+  http: {
+    get: jest.fn((url, handler) => ({ url, handler, method: 'GET' })),
+    post: jest.fn((url, handler) => ({ url, handler, method: 'POST' })),
+    put: jest.fn((url, handler) => ({ url, handler, method: 'PUT' })),
+    delete: jest.fn((url, handler) => ({ url, handler, method: 'DELETE' })),
+    patch: jest.fn((url, handler) => ({ url, handler, method: 'PATCH' })),
+  },
+  HttpResponse: {
+    json: jest.fn((data) => data),
+    text: jest.fn((data) => data),
+    error: jest.fn(() => new Error('Mock error')),
+  },
+  delay: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('msw/node', () => ({
+  setupServer: jest.fn((...handlers) => ({
+    listen: jest.fn(),
+    close: jest.fn(),
+    resetHandlers: jest.fn(),
+    use: jest.fn(),
+    restoreHandlers: jest.fn(),
+  })),
+}));
+
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter() {

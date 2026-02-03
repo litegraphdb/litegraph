@@ -6,6 +6,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Net;
+    using System.Reflection;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using ExpressionTree;
@@ -90,17 +91,11 @@
 
             public override void Write(Utf8JsonWriter writer, TExceptionType value, JsonSerializerOptions options)
             {
-                var serializableProperties = value.GetType()
+                IEnumerable<PropertyInfo> properties = value.GetType()
                     .GetProperties()
-                    .Select(uu => new { uu.Name, Value = uu.GetValue(value) })
-                    .Where(uu => uu.Name != nameof(Exception.TargetSite));
+                    .Where(p => p.Name != nameof(Exception.TargetSite));
 
-                if (options.DefaultIgnoreCondition == JsonIgnoreCondition.WhenWritingNull)
-                {
-                    serializableProperties = serializableProperties.Where(uu => uu.Value != null);
-                }
-
-                var propList = serializableProperties.ToList();
+                List<PropertyInfo> propList = properties.ToList();
 
                 if (propList.Count == 0)
                 {
@@ -110,10 +105,15 @@
 
                 writer.WriteStartObject();
 
-                foreach (var prop in propList)
+                foreach (PropertyInfo prop in propList)
                 {
+                    object propValue = prop.GetValue(value);
+                    if (options.DefaultIgnoreCondition == JsonIgnoreCondition.WhenWritingNull && propValue == null)
+                    {
+                        continue;
+                    }
                     writer.WritePropertyName(prop.Name);
-                    JsonSerializer.Serialize(writer, prop.Value, options);
+                    JsonSerializer.Serialize(writer, propValue, options);
                 }
 
                 writer.WriteEndObject();
@@ -364,7 +364,7 @@
                 else if (value is IEnumerable<object> list)
                 {
                     writer.WriteStartArray();
-                    foreach (var item in list)
+                    foreach (object item in list)
                     {
                         WriteValue(writer, item);
                     }

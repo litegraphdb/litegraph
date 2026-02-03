@@ -6,7 +6,7 @@ import PageLoading from '../base/loading/PageLoading';
 import { storeToken, storeTenant, storeAdminAccessKey } from '@/lib/store/litegraph/actions';
 import { setAccessKey, setAccessToken, setEndpoint, setTenant } from '@/lib/sdk/litegraph.service';
 
-export const initializeAuthFromLocalStorage = () => {
+const initializeAuthFromLocalStorage = (): LiteGraphStore | null => {
   const auth: LiteGraphStore = {
     selectedGraph: '',
     tenant: null,
@@ -14,16 +14,13 @@ export const initializeAuthFromLocalStorage = () => {
     user: null,
     adminAccessKey: null,
   };
-  try{
-    if (typeof window !== 'undefined') {
+  try {
     const token = localStorage.getItem(localStorageKeys.token);
-
     const tenant = localStorage.getItem(localStorageKeys.tenant);
     const adminAccessKey = localStorage.getItem(localStorageKeys.adminAccessKey);
     const url = localStorage.getItem(localStorageKeys.serverUrl);
+
     if (token) {
-      // const permissions = localStorage.getItem('permissions');
-      // auth.permissions = permissions && JSON.parse(permissions);
       auth.token = JSON.parse(token);
     }
     if (tenant) {
@@ -36,8 +33,7 @@ export const initializeAuthFromLocalStorage = () => {
       setEndpoint(url);
     }
     return auth;
-  }
-  }catch(error){
+  } catch (error) {
     console.error(error);
   }
   return null;
@@ -49,9 +45,10 @@ const AuthLayout = ({
 }: Readonly<{ children: React.ReactNode; className?: string }>) => {
   const [isReady, setIsReady] = useState(false);
   const dispatch = useAppDispatch();
-  const localStorageAuth = initializeAuthFromLocalStorage();
 
   useEffect(() => {
+    const localStorageAuth = initializeAuthFromLocalStorage();
+
     if (localStorageAuth?.token) {
       dispatch(storeToken(localStorageAuth.token));
       setAccessToken(localStorageAuth.token.Token);
@@ -65,8 +62,7 @@ const AuthLayout = ({
       setAccessKey(localStorageAuth.adminAccessKey);
     }
     setIsReady(true);
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dispatch]);
 
   if (!isReady) {
     return <PageLoading />;

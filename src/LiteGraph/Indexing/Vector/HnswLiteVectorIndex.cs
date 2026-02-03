@@ -149,7 +149,7 @@ namespace LiteGraph.Indexing.Vector
         }
 
         /// <inheritdoc />
-        public async Task<List<(Guid Id, float Distance)>> SearchAsync(
+        public async Task<List<VectorDistanceResult>> SearchAsync(
             List<float> queryVector,
             int k,
             int? ef = null,
@@ -164,12 +164,12 @@ namespace LiteGraph.Indexing.Vector
             if (_Storage?.EntryPoint == null)
             {
                 _LastSearchUtc = DateTime.UtcNow;
-                return new List<(Guid Id, float Distance)>();
+                return new List<VectorDistanceResult>();
             }
             IEnumerable<VectorResult> results = await _Index.GetTopKAsync(queryVector, k, Math.Max(searchEf, k), cancellationToken);
             _LastSearchUtc = DateTime.UtcNow;
 
-            return results.Select(r => (r.GUID, r.Distance)).ToList();
+            return results.Select(r => new VectorDistanceResult(r.GUID, r.Distance)).ToList();
         }
 
         /// <inheritdoc />

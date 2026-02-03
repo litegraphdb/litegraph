@@ -681,13 +681,13 @@
                 if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
                 {
                     // Use HNSW index for fast search
-                    IEnumerable<(Guid Id, float Score)> indexedResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
+                    List<VectorScoreResult> indexedResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
                         _Repo, searchType, vectors, graph, topK ?? 100).ConfigureAwait(false);
 
                     if (indexedResults != null)
                     {
                         // Convert indexed results to VectorSearchResult and get node info
-                        foreach ((Guid Id, float Score) indexResult in indexedResults)
+                        foreach (VectorScoreResult indexResult in indexedResults)
                         {
                             token.ThrowIfCancellationRequested();
                             Node node = await _Repo.Node.ReadByGuid(tenantGuid, indexResult.Id, token).ConfigureAwait(false);

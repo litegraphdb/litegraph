@@ -2831,8 +2831,8 @@
             string nodeGuidsInput = Inputty.GetString("Node GUIDs (comma-separated):", null, false);
             if (string.IsNullOrEmpty(nodeGuidsInput)) return;
 
-            var nodeGuidsStrings = nodeGuidsInput.Split(',');
-            var nodeGuids = new List<Guid>();
+            string[] nodeGuidsStrings = nodeGuidsInput.Split(',');
+            List<Guid> nodeGuids = new List<Guid>();
             
             foreach (string guidString in nodeGuidsStrings)
             {

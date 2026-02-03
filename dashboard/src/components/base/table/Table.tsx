@@ -30,11 +30,11 @@ const ResizableTitle = (props: any) => {
   );
 };
 
-interface LitegraphTableProps extends TableProps {
+interface LitegraphTableProps<T = any> extends TableProps<T> {
   showTotal?: boolean;
 }
 
-const LitegraphTable = (props: LitegraphTableProps) => {
+const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) => {
   const { columns, dataSource, showTotal = true, pagination, ...rest } = props;
   const [columnsState, setColumnsState] = useState(columns);
 

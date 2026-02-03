@@ -53,11 +53,10 @@ const SearchModal = ({
       open={isSearchModalVisible}
       onCancel={() => {
         setIsSearchModalVisible(false);
-        // form.resetFields();
+        onClose?.();
       }}
       onOk={handleSearch}
       okText="Search"
-      onClose={onClose}
     >
       <Form
         initialValues={initialSearchData}

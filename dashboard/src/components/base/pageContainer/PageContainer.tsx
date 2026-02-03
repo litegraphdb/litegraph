@@ -17,8 +17,8 @@ const PageContainer = ({
   className?: string;
   withoutWhiteBG?: boolean;
   id?: string;
-  pageTitle?: JSX.Element | string;
-  pageTitleRightContent?: JSX.Element;
+  pageTitle?: React.ReactNode;
+  pageTitleRightContent?: React.ReactNode;
   showGraphSelector?: boolean;
 }) => {
   return (

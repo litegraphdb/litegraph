@@ -437,7 +437,7 @@ namespace Test.VectorIndexSearch
                             SqliteGraphRepository repo = _Client.GetType().GetField("_Repo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(_Client) as SqliteGraphRepository;
                             if (repo != null)
                             {
-                                List<(Guid Id, float Score)> indexResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
+                                List<VectorScoreResult> indexResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
                                     repo,
                                     VectorSearchTypeEnum.CosineSimilarity,
                                     queryVector,
@@ -448,7 +448,7 @@ namespace Test.VectorIndexSearch
                                 if (indexResults != null && indexResults.Count > 0)
                                 {
                                     // Convert HNSW results to VectorSearchResult format
-                                    foreach ((Guid Id, float Score) indexResult in indexResults)
+                                    foreach (VectorScoreResult indexResult in indexResults)
                                     {
                                         // In HNSW indexing, the vector ID corresponds to the node GUID
                                         Node node = await _Client.Node.ReadByGuid(tenant.GUID, graph.GUID, indexResult.Id, includeData: true, includeSubordinates: true, token).ConfigureAwait(false);

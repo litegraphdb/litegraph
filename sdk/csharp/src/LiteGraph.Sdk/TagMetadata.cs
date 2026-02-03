@@ -147,14 +147,14 @@
 
             if (tags == null) return nvc;
 
-            var matchingTags = tags.Where(t =>
+            IEnumerable<TagMetadata> matchingTags = tags.Where(t =>
                 t != null &&
                 t.TenantGUID == tenantGuid &&
                 t.GraphGUID == graphGuid &&
                 (nodeGuid == null ? t.NodeGUID == null : t.NodeGUID == nodeGuid) &&
                 (edgeGuid == null ? t.EdgeGUID == null : t.EdgeGUID == edgeGuid));
 
-            foreach (var tag in matchingTags)
+            foreach (TagMetadata tag in matchingTags)
             {
                 nvc.Add(tag.Key, tag.Value);
             }

@@ -67,10 +67,10 @@ namespace LiteGraph.Indexing.Vector
         /// <param name="k">Number of neighbors to retrieve.</param>
         /// <param name="ef">Dynamic candidate list size for search. Higher values improve recall at the cost of speed.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>List of vector IDs and their distances.</returns>
-        Task<List<(Guid Id, float Distance)>> SearchAsync(
-            List<float> queryVector, 
-            int k, 
+        /// <returns>List of vector distance results.</returns>
+        Task<List<VectorDistanceResult>> SearchAsync(
+            List<float> queryVector,
+            int k,
             int? ef = null,
             CancellationToken cancellationToken = default);
 

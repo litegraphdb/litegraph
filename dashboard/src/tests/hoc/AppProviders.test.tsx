@@ -5,6 +5,7 @@ import AppProviders from '@/hoc/AppProviders';
 
 // Mock all the dependencies
 jest.mock('@ant-design/cssinjs', () => ({
+  createCache: () => ({}),
   StyleProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="style-provider">{children}</div>
   ),

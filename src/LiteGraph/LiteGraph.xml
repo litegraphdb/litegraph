@@ -6701,7 +6701,7 @@
             <param name="k">Number of neighbors to retrieve.</param>
             <param name="ef">Dynamic candidate list size for search. Higher values improve recall at the cost of speed.</param>
             <param name="cancellationToken">Cancellation token.</param>
-            <returns>List of vector IDs and their distances.</returns>
+            <returns>List of vector distance results.</returns>
         </member>
         <member name="M:LiteGraph.Indexing.Vector.IVectorIndex.SaveAsync(System.Threading.CancellationToken)">
             <summary>
@@ -6736,6 +6736,34 @@
             </summary>
             <param name="vectorId">Vector identifier.</param>
             <returns>True if the vector exists.</returns>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.VectorDistanceResult">
+            <summary>
+            Result from a vector search operation containing the vector identifier and its distance from the query.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorDistanceResult.Id">
+            <summary>
+            Vector identifier (typically a node GUID).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorDistanceResult.Distance">
+            <summary>
+            Distance from the query vector.
+            Lower values indicate closer/more similar vectors.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorDistanceResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorDistanceResult.#ctor(System.Guid,System.Single)">
+            <summary>
+            Instantiate with values.
+            </summary>
+            <param name="id">Vector identifier.</param>
+            <param name="distance">Distance from query vector.</param>
         </member>
         <member name="T:LiteGraph.Indexing.Vector.VectorIndexManager">
             <summary>
@@ -7913,6 +7941,34 @@
             </summary>
             <param name="vectors">Vectors.</param>
             <returns>Labels.</returns>
+        </member>
+        <member name="T:LiteGraph.VectorScoreResult">
+            <summary>
+            Result from a vector search operation containing the identifier and a similarity score.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorScoreResult.Id">
+            <summary>
+            Vector or node identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorScoreResult.Score">
+            <summary>
+            Similarity score.
+            The interpretation depends on the search type used.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.VectorScoreResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.VectorScoreResult.#ctor(System.Guid,System.Single)">
+            <summary>
+            Instantiate with values.
+            </summary>
+            <param name="id">Vector or node identifier.</param>
+            <param name="score">Similarity score.</param>
         </member>
         <member name="T:LiteGraph.VectorSearchDomainEnum">
             <summary>

@@ -147,7 +147,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         /// <param name="topK">Number of results.</param>
         /// <param name="ef">Search ef parameter.</param>
         /// <returns>Indexed search results or null if no index.</returns>
-        public static async Task<List<(Guid Id, float Score)>> SearchWithIndexAsync(
+        public static async Task<List<VectorScoreResult>> SearchWithIndexAsync(
             SqliteGraphRepository repo,
             VectorSearchTypeEnum searchType,
             List<float> queryVector,
@@ -163,11 +163,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
                 return null;
 
             // Perform indexed search
-            IEnumerable<(Guid Id, float Distance)> results = await index.SearchAsync(queryVector, topK, ef ?? graph.VectorIndexEf);
+            List<VectorDistanceResult> results = await index.SearchAsync(queryVector, topK, ef ?? graph.VectorIndexEf);
 
             // Convert distance to appropriate score based on search type
-            List<(Guid Id, float Score)> scoredResults = new List<(Guid Id, float Score)>();
-            foreach ((Guid Id, float Distance) result in results)
+            List<VectorScoreResult> scoredResults = new List<VectorScoreResult>();
+            foreach (VectorDistanceResult result in results)
             {
                 float score = result.Distance;
 
@@ -194,7 +194,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
                         break;
                 }
 
-                scoredResults.Add((result.Id, score));
+                scoredResults.Add(new VectorScoreResult(result.Id, score));
             }
 
             return scoredResults;

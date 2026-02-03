@@ -66,7 +66,7 @@ namespace Test.Automated
 		private static string? _BackupFilename = null;
 		private static bool _SubgraphPrepared = false;
 		private static readonly List<Guid> _SubgraphNodeGuids = new List<Guid>();
-		private static readonly List<(Guid EdgeGuid, Guid From, Guid To)> _SubgraphEdgeInfos = new List<(Guid EdgeGuid, Guid From, Guid To)>();
+		private static readonly List<SubgraphEdgeInfo> _SubgraphEdgeInfos = new List<SubgraphEdgeInfo>();
 		private static readonly HashSet<Guid> _CreatedTenantGuids = new HashSet<Guid>();
 		private static readonly List<TestResult> _TestResults = new List<TestResult>();
 
@@ -1748,7 +1748,7 @@ namespace Test.Automated
 			Guid existingNode = _SubgraphNodeGuids[0];
 			Guid missingNode = Guid.NewGuid();
 
-			var existingEdge = _SubgraphEdgeInfos[0];
+			SubgraphEdgeInfo existingEdge = _SubgraphEdgeInfos[0];
 			Guid missingEdge = Guid.NewGuid();
 
 			Guid missingEdgeBetweenFrom = _SubgraphNodeGuids[4];
@@ -2931,7 +2931,7 @@ namespace Test.Automated
 				Name = "A -> B",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeAB.GUID, nodeA.GUID, nodeB.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeAB.GUID, nodeA.GUID, nodeB.GUID));
 
 			Edge edgeAC = await sdk.Edge.Create(new Edge
 			{
@@ -2942,7 +2942,7 @@ namespace Test.Automated
 				Name = "A -> C",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeAC.GUID, nodeA.GUID, nodeC.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeAC.GUID, nodeA.GUID, nodeC.GUID));
 
 			Edge edgeBD = await sdk.Edge.Create(new Edge
 			{
@@ -2953,7 +2953,7 @@ namespace Test.Automated
 				Name = "B -> D",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeBD.GUID, nodeB.GUID, nodeD.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeBD.GUID, nodeB.GUID, nodeD.GUID));
 
 			Edge edgeBE = await sdk.Edge.Create(new Edge
 			{
@@ -2964,7 +2964,7 @@ namespace Test.Automated
 				Name = "B -> E",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeBE.GUID, nodeB.GUID, nodeE.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeBE.GUID, nodeB.GUID, nodeE.GUID));
 
 			Edge edgeCF = await sdk.Edge.Create(new Edge
 			{
@@ -2975,7 +2975,7 @@ namespace Test.Automated
 				Name = "C -> F",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeCF.GUID, nodeC.GUID, nodeF.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeCF.GUID, nodeC.GUID, nodeF.GUID));
 
 			Edge edgeDG = await sdk.Edge.Create(new Edge
 			{
@@ -2986,7 +2986,7 @@ namespace Test.Automated
 				Name = "D -> G",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeDG.GUID, nodeD.GUID, nodeG.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeDG.GUID, nodeD.GUID, nodeG.GUID));
 
 			Edge edgeCA = await sdk.Edge.Create(new Edge
 			{
@@ -2997,7 +2997,7 @@ namespace Test.Automated
 				Name = "C -> A (back edge)",
 				Cost = 1
 			}).ConfigureAwait(false);
-			_SubgraphEdgeInfos.Add((edgeCA.GUID, nodeC.GUID, nodeA.GUID));
+			_SubgraphEdgeInfos.Add(new SubgraphEdgeInfo(edgeCA.GUID, nodeC.GUID, nodeA.GUID));
 
 			// Labels for nodes and a primary edge
 			await sdk.Label.Create(new LabelMetadata
@@ -3615,6 +3615,20 @@ namespace Test.Automated
 		public bool Passed { get; set; }
 		public long RuntimeMs { get; set; }
 		public string? ErrorMessage { get; set; }
+	}
+
+	internal sealed class SubgraphEdgeInfo
+	{
+		public Guid EdgeGuid { get; set; }
+		public Guid From { get; set; }
+		public Guid To { get; set; }
+
+		public SubgraphEdgeInfo(Guid edgeGuid, Guid from, Guid to)
+		{
+			EdgeGuid = edgeGuid;
+			From = from;
+			To = to;
+		}
 	}
 }
 

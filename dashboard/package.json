@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ant-design/cssinjs": "^1.23.0",
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@ant-design/icons": "^5.3.1",
     "@ant-design/nextjs-registry": "^1.0.2",
     "@react-sigma/core": "^3.4.2",
@@ -39,8 +40,8 @@
     "lodash": "^4.17.23",
     "moment": "^2.30.1",
     "next": "^16.1.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-force-graph-3d": "^1.28.0",
     "react-hot-toast": "^2.4.1",
     "react-redux": "^9.1.2",
@@ -58,8 +59,8 @@
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.13",
     "@types/node": "^20.11.25",
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@types/three": "^0.178.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.0.0",
@@ -86,9 +87,12 @@
     ]
   },
   "overrides": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "jsoneditor-react": {
       "react": "$react",
-      "react-dom": "$react-dom"
+      "react-dom": "$react-dom",
+      "jsoneditor": "$jsoneditor"
     },
     "lodash-es": "4.17.23",
     "preact": "10.26.10",
