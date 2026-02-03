@@ -31,6 +31,7 @@ const PageContainer = ({
             gap="small"
             align="center"
             justify="space-between"
+            style={{ padding: '16px 24px' }}
           >
             <LitegraphText fontSize={16} weight={600} data-testid="heading">
               {pageTitle}
