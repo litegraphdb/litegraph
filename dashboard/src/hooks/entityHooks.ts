@@ -227,12 +227,15 @@ export const useLazyLoadEdges = (
     setEdges([]);
     setFirstResult(null);
     setContinuationToken(undefined);
-    try {
-      fetchEdgesList();
-    } catch (error) {
-      console.error(error);
+    // Only refetch if the query is not skipped (i.e., it has been started)
+    if (!doNotFetchOnRender && graphId) {
+      try {
+        fetchEdgesList();
+      } catch (error) {
+        console.error(error);
+      }
     }
-  }, [graphId]);
+  }, [graphId, doNotFetchOnRender]);
 
   return {
     edges,

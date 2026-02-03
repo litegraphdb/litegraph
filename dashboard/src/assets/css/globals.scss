@@ -16,7 +16,7 @@
 }
 
 .ant-layout-sider {
-  @apply bg-white;
+  background-color: white;
 }
 
 .ant-menu-inline {
@@ -25,7 +25,10 @@
 
 /* Graph visualization styles */
 .graph-container {
-  @apply rounded-lg border bg-white shadow-sm;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ant-color-border);
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   min-height: 600px;
 }
 
@@ -36,12 +39,15 @@
 
 /* Sigma.js styles */
 .sigma-container {
-  @apply rounded-lg;
+  border-radius: 0.5rem;
   background: #fff;
 }
 
 .sigma-hover {
-  @apply rounded-lg bg-white p-2 shadow-lg;
+  border-radius: 0.5rem;
+  background-color: white;
+  padding: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   position: absolute;
   z-index: 1;
   border: 1px solid var(--ant-color-border);
