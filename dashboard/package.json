@@ -33,6 +33,7 @@
     "graphology": "^0.25.4",
     "graphology-types": "^0.24.7",
     "humanize-number": "^0.0.2",
+    "jsoneditor": "^10.4.2",
     "jsoneditor-react": "^3.1.2",
     "litegraphdb": "^1.0.12",
     "lodash": "^4.17.23",
