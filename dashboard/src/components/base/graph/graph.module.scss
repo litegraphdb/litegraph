@@ -1,8 +1,6 @@
 .graphSelectorContainer {
-  :global {
-    .ant-form-item {
-      margin-bottom: var(--ant-margin-sm);
-    }
+  :global(.ant-form-item) {
+    margin-bottom: var(--ant-margin-sm);
   }
 }
 .graphContainer {
