@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableProps } from 'antd';
 import { Resizable } from 'react-resizable';
+import LitegraphText from '../typograpghy/Text';
 
 const ResizableTitle = (props: any) => {
   const { onResize, width, ...restProps } = props;
@@ -29,8 +30,12 @@ const ResizableTitle = (props: any) => {
   );
 };
 
-const LitegraphTable = (props: TableProps) => {
-  const { columns, ...rest } = props;
+interface LitegraphTableProps extends TableProps {
+  showTotal?: boolean;
+}
+
+const LitegraphTable = (props: LitegraphTableProps) => {
+  const { columns, dataSource, showTotal = true, pagination, ...rest } = props;
   const [columnsState, setColumnsState] = useState(columns);
 
   const handleResize =
@@ -58,10 +63,23 @@ const LitegraphTable = (props: TableProps) => {
     setColumnsState(columns);
   }, [columns]);
 
+  const totalRecords = Array.isArray(dataSource) ? dataSource.length : 0;
+
+  const paginationWithTotal = pagination !== false ? {
+    ...((typeof pagination === 'object' ? pagination : {}) as object),
+    showTotal: showTotal ? (total: number) => (
+      <LitegraphText style={{ marginRight: 8 }}>
+        Total: <strong>{total}</strong> records
+      </LitegraphText>
+    ) : undefined,
+  } : false;
+
   return (
     <Table
       {...rest}
+      dataSource={dataSource}
       columns={columnsWithResizable}
+      pagination={paginationWithTotal}
       components={{
         header: {
           cell: ResizableTitle,

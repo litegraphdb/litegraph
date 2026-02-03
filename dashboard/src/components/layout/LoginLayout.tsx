@@ -13,9 +13,10 @@ const LoginLayout = ({ children, isAdmin }: { children: React.ReactNode; isAdmin
   return (
     <LitegraphFlex className={styles.userLoginPage} vertical gap={20}>
       <LitegraphFlex
-        className={classNames(styles.userLoginPageHeader, 'mb pb pt pr pl')}
+        className={classNames(styles.userLoginPageHeader)}
         align="center"
         justify="space-between"
+        style={{ padding: '16px 24px' }}
       >
         <img src="/favicon.png" alt="Litegraph Logo" height={40} />
         <LitegraphFlex align="center" gap={10}>

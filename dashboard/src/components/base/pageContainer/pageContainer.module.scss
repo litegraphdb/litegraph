@@ -5,12 +5,12 @@
 }
 
 .pageTitleContainer {
-  padding: var(--ant-padding) var(--ant-padding-lg);
+  padding: 16px 24px;
   border-bottom: 1px solid var(--ant-color-border);
 }
 
 .pageContent {
-  padding: var(--ant-padding-lg);
+  padding: 24px;
   max-height: calc(100vh - 132px);
   overflow: auto;
 }
