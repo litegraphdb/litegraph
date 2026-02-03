@@ -37,7 +37,7 @@
     "litegraphdb": "^1.0.12",
     "lodash": "^4.17.23",
     "moment": "^2.30.1",
-    "next": "^15.5.10",
+    "next": "15.6.0-canary.61",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-force-graph-3d": "^1.28.0",
