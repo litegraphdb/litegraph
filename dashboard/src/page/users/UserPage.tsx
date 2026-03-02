@@ -16,11 +16,13 @@ import { UserMetadata } from 'litegraphdb/dist/types/types';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const UserPage = () => {
   const [selectedUser, setSelectedUser] = useState<UserMetadata | null>(null);
   const [isAddEditUserVisible, setIsAddEditUserVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
   const { page, pageSize, skip, handlePageChange } = usePagination();
   const selectedTenantRedux = useSelectedTenant();
   const {
@@ -72,14 +74,16 @@ const UserPage = () => {
         </LitegraphFlex>
       }
       pageTitleRightContent={
-        <LitegraphButton
-          type="link"
-          icon={<PlusSquareOutlined />}
-          onClick={handleCreateUser}
-          weight={500}
-        >
-          Create User
-        </LitegraphButton>
+        <LitegraphTooltip title="Create a new user">
+          <LitegraphButton
+            type="link"
+            icon={<PlusSquareOutlined />}
+            onClick={handleCreateUser}
+            weight={500}
+          >
+            Create User
+          </LitegraphButton>
+        </LitegraphTooltip>
       }
     >
       {error && !isUsersLoading ? (
@@ -87,7 +91,7 @@ const UserPage = () => {
       ) : (
         <LitegraphTable
           loading={isUsersLoading}
-          columns={tableColumns(handleEditUser, handleDeleteUser)}
+          columns={tableColumns(handleEditUser, handleDeleteUser, setJsonViewRecord)}
           dataSource={usersList}
           rowKey={'GUID'}
           pagination={{
@@ -118,6 +122,12 @@ const UserPage = () => {
           setSelectedUser={setSelectedUser}
         />
       )}
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="User JSON"
+      />
     </PageContainer>
   );
 };

@@ -29,6 +29,7 @@ import { tablePaginationConfig } from '@/constants/pagination';
 import { EnumerateAndSearchRequest } from 'litegraphdb/dist/types/types';
 import AppliedFilter from '@/components/table-filter/AppliedFilter';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const NodePage = () => {
   // Redux state for the list of graphs
@@ -60,6 +61,7 @@ const NodePage = () => {
   const [isAddEditNodeVisible, setIsAddEditNodeVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
 
   const handleCreateNode = () => {
     setSelectedNode(null);
@@ -102,7 +104,9 @@ const NodePage = () => {
         <LitegraphFlex align="center" gap={10}>
           <LitegraphText>Nodes</LitegraphText>
           {selectedGraphRedux && (
-            <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
+            <LitegraphTooltip title="Search and filter nodes">
+              <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
+            </LitegraphTooltip>
           )}
           {isNodesLoading ? (
             <LoadingOutlined className="loading-icon" />
@@ -115,14 +119,16 @@ const NodePage = () => {
       }
       pageTitleRightContent={
         selectedGraphRedux ? (
-          <LitegraphButton
-            type="link"
-            icon={<PlusSquareOutlined />}
-            onClick={handleCreateNode}
-            weight={500}
-          >
-            Create Node
-          </LitegraphButton>
+          <LitegraphTooltip title="Create a new node">
+            <LitegraphButton
+              type="link"
+              icon={<PlusSquareOutlined />}
+              onClick={handleCreateNode}
+              weight={500}
+            >
+              Create Node
+            </LitegraphButton>
+          </LitegraphTooltip>
         ) : undefined
       }
     >
@@ -149,8 +155,8 @@ const NodePage = () => {
           <LitegraphTable
             columns={
               hasScoreOrDistance
-                ? tableColumns(handleEditNode, handleDelete, true)
-                : tableColumns(handleEditNode, handleDelete, false)
+                ? tableColumns(handleEditNode, handleDelete, true, setJsonViewRecord)
+                : tableColumns(handleEditNode, handleDelete, false, setJsonViewRecord)
             }
             dataSource={dataSource}
             loading={isNodesLoading}
@@ -185,6 +191,12 @@ const NodePage = () => {
         setIsSearchModalVisible={setShowSearchModal}
         isSearchModalVisible={showSearchModal}
         onSearch={onSearch}
+      />
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Node JSON"
       />
     </PageContainer>
   );

@@ -2,9 +2,15 @@
   position: relative;
   margin-bottom: var(--ant-margin-md);
   border-radius: var(--ant-border-radius);
-  border: 1px solid var(--ant-color-primary);
+  border: 1px solid var(--ant-color-border);
   padding: var(--ant-padding-md);
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--ant-color-primary);
+  }
 }
+
 .closeIcon {
   position: absolute;
   right: var(--ant-padding-md);

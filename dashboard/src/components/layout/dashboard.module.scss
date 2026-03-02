@@ -18,10 +18,12 @@
   cursor: pointer;
   font-weight: 500;
   color: var(--ant-color-primary);
-  transition: opacity 0.2s;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 
   &:hover {
-    opacity: 0.8;
+    background-color: var(--ant-color-primary-bg);
   }
 
   .logoutIcon {
@@ -43,25 +45,28 @@
 
 .form-label-text {
   font-size: 12px;
-  font-weight: 400;
-  color: #333333;
+  font-weight: 500;
+  color: var(--ant-color-text-secondary);
 }
 
 .header {
   border-bottom: 1px solid var(--ant-color-border);
-  background: var(--ant-color-bg-base) !important;
-  padding: 0 var(--ant-padding) !important;
-  height: 65px;
+  background: var(--ant-color-bg-base);
+  padding: 0 var(--ant-padding-lg);
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box;
   :global(.label) {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
-    color: #333333;
+    color: var(--ant-color-text-secondary);
     display: block;
     height: fit-content;
     line-height: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 }
 

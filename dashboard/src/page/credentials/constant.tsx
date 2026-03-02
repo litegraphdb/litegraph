@@ -1,18 +1,22 @@
 import React from 'react';
 import { Button, Dropdown, TableProps } from 'antd';
-import { MoreOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
+import { MoreOutlined, CheckCircleFilled, CloseCircleFilled, CodeOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { CredentialType } from '@/types/types';
 import { formatDateTime } from '@/utils/dateUtils';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import TableSearch from '@/components/table-search/TableSearch';
 import { onGUIDFilter, onNameFilter } from '@/constants/table';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 export const tableColumns = (
   handleEdit: (user: CredentialType) => void,
-  handleDelete: (user: CredentialType) => void
+  handleDelete: (user: CredentialType) => void,
+  handleViewJson?: (record: CredentialType) => void
 ): TableProps<CredentialType>['columns'] => [
   {
-    title: 'GUID',
+    title: columnTooltip('GUID', 'Globally unique identifier'),
     dataIndex: 'GUID',
     key: 'GUID',
     filterDropdown: (props: FilterDropdownProps) => (
@@ -20,10 +24,10 @@ export const tableColumns = (
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
     width: 350,
-    render: (GUID: string) => <div>{GUID}</div>,
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
   },
   {
-    title: 'User',
+    title: columnTooltip('User', 'Associated user name'),
     dataIndex: 'userName',
     key: 'userName',
     width: 250,
@@ -34,7 +38,7 @@ export const tableColumns = (
     render: (userName: string) => <div>{userName}</div>,
   },
   {
-    title: 'Name',
+    title: columnTooltip('Name', 'Credential display name'),
     dataIndex: 'Name',
     key: 'name',
     width: 200,
@@ -46,14 +50,14 @@ export const tableColumns = (
     render: (name: string) => <div>{name}</div>,
   },
   {
-    title: 'Bearer Token',
+    title: columnTooltip('Bearer Token', 'Authentication bearer token'),
     dataIndex: 'BearerToken',
     key: 'BearerToken',
     width: 200,
     render: (BearerToken: string) => <div>{BearerToken}</div>,
   },
   {
-    title: 'Active',
+    title: columnTooltip('Active', 'Whether the credential is active'),
     dataIndex: 'Active',
     key: 'Active',
     width: 100,
@@ -66,7 +70,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'Created UTC',
+    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 200,
@@ -75,7 +79,7 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: 'Actions',
+    title: columnTooltip('Actions', 'Available operations'),
     key: 'actions',
     width: 100,
     render: (_: any, record: CredentialType) => {
@@ -90,15 +94,23 @@ export const tableColumns = (
           label: 'Delete',
           onClick: () => handleDelete(record),
         },
+        {
+          icon: <CodeOutlined />,
+          key: 'view-json',
+          label: 'View JSON',
+          onClick: () => handleViewJson?.(record),
+        },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <Button
-            type="text"
-            icon={<MoreOutlined style={{ fontSize: '20px' }} />}
-            role="credential-action-menu"
-            style={{ fontSize: '16px' }}
-          />
+          <LitegraphTooltip title="Actions">
+            <Button
+              type="text"
+              icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+              role="credential-action-menu"
+              style={{ fontSize: '16px' }}
+            />
+          </LitegraphTooltip>
         </Dropdown>
       );
     },

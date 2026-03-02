@@ -294,7 +294,7 @@ const AddEditNode = ({
           requiredMark={!readonly}
         >
           <LitegraphFlex gap={readonly ? 10 : 0} vertical={!readonly}>
-            <LitegraphFormItem className="flex-1" label="Graph" name="graphName">
+            <LitegraphFormItem className="flex-1" label="Graph" name="graphName" tooltip="The graph this node belongs to">
               <LitegraphInput readOnly variant="borderless" />
             </LitegraphFormItem>
 
@@ -302,6 +302,7 @@ const AddEditNode = ({
               className="flex-1"
               label="Name"
               name="name"
+              tooltip="Display name for the node"
               rules={validationRules.name}
             >
               <LitegraphInput
@@ -312,16 +313,17 @@ const AddEditNode = ({
               />
             </LitegraphFormItem>
           </LitegraphFlex>
-          <LabelInput name="labels" readonly={readonly} />
+          <LabelInput name="labels" readonly={readonly} tooltip="Labels associated with this node" />
 
-          <Form.Item label="Tags">
+          <Form.Item label="Tags" tooltip="Key-value tags for this node">
             <TagsInput name="tags" readonly={readonly} />
           </Form.Item>
-          <Form.Item label="Vectors">
+          <Form.Item label="Vectors" tooltip="Vector embeddings for this node">
             <VectorsInput name="vectors" readonly={readonly} />
           </Form.Item>
           <LitegraphFormItem
             name="data"
+            tooltip="Arbitrary JSON data attached to this node"
             label={
               <LitegraphFlex align="center" gap={8}>
                 <span>Data</span>

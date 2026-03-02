@@ -3,7 +3,7 @@ import { Button, Layout } from 'antd';
 import LitegraphFlex from './base/flex/Flex';
 import MenuItems from './menu-item/MenuItems';
 import { MenuItemProps } from './menu-item/types';
-import { DatabaseOutlined, DoubleLeftOutlined, DoubleRightOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 import LitegraphTitle from './base/typograpghy/Title';
 import styles from './layout/nav.module.scss';
@@ -56,16 +56,15 @@ const Navigation = ({
         )}
       </LitegraphFlex>
       <LitegraphFlex justify="flex-end" className="pl-sm pr-sm pt-sm">
-        <Button
-          type="link"
-          icon={collapsed ? <DoubleRightOutlined /> : <DoubleLeftOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            fontSize: '16px',
-            top: '150',
-            right: '8%',
-          }}
-        />
+        <LitegraphTooltip title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+          <Button
+            type="text"
+            size="small"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{ fontSize: '14px', color: 'var(--ant-color-text-tertiary)' }}
+          />
+        </LitegraphTooltip>
       </LitegraphFlex>
       {isAdmin && (
         <LitegraphFlex className="mt mb-sm" gap={10} justify="center" align="center">

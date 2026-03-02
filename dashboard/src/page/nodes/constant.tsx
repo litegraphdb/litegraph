@@ -1,5 +1,6 @@
 import React from 'react';
-import { MoreOutlined } from '@ant-design/icons';
+import { MoreOutlined, CodeOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { Button, Dropdown, TableProps } from 'antd';
 import { NodeType } from '@/types/types';
 import { formatDateTime } from '@/utils/dateUtils';
@@ -10,14 +11,17 @@ import TableSearch from '@/components/table-search/TableSearch';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { onGUIDFilter, onLabelFilter, onNameFilter, onTagFilter } from '@/constants/table';
 import LitegraphTag from '@/components/base/tag/Tag';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 export const tableColumns = (
   handleEdit: (record: NodeType) => void,
   handleDelete: (record: NodeType) => void,
-  hasScoreOrDistance: boolean
+  hasScoreOrDistance: boolean,
+  handleViewJson?: (record: NodeType) => void
 ): TableProps<NodeType>['columns'] => [
   {
-    title: 'Name',
+    title: columnTooltip('Name', 'Node display name'),
     dataIndex: 'Name' as keyof NodeType,
     key: 'Name',
     width: 250,
@@ -33,7 +37,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'GUID',
+    title: columnTooltip('GUID', 'Globally unique identifier'),
     dataIndex: 'GUID' as keyof NodeType,
     key: 'GUID',
     width: 350,
@@ -41,14 +45,10 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => (
-      <div>
-        <div>{GUID}</div>
-      </div>
-    ),
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
   },
   {
-    title: 'Labels',
+    title: columnTooltip('Labels', 'Classification labels assigned to this node'),
     dataIndex: 'Labels' as keyof NodeType,
     key: 'Labels',
     width: 150,
@@ -63,7 +63,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Tags',
+    title: columnTooltip('Tags', 'Key-value metadata tags'),
     dataIndex: 'Tags' as keyof NodeType,
     key: 'Tags',
     width: 250,
@@ -78,7 +78,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Vectors',
+    title: columnTooltip('Vectors', 'Vector embeddings associated with this node'),
     dataIndex: 'Vectors',
     key: 'Vectors',
     width: 250,
@@ -87,7 +87,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Created UTC',
+    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 250,
@@ -102,7 +102,7 @@ export const tableColumns = (
   ...(hasScoreOrDistance
     ? [
         {
-          title: 'Score',
+          title: columnTooltip('Score', 'Relevance score from search'),
           dataIndex: 'Score' as keyof NodeType,
           key: 'Score',
           width: 150,
@@ -113,7 +113,7 @@ export const tableColumns = (
           ),
         },
         {
-          title: 'Distance',
+          title: columnTooltip('Distance', 'Vector distance from search query'),
           dataIndex: 'Distance' as keyof NodeType,
           key: 'Distance',
           width: 150,
@@ -126,7 +126,7 @@ export const tableColumns = (
       ]
     : []),
   {
-    title: 'Actions',
+    title: columnTooltip('Actions', 'Available operations'),
     key: 'actions',
     render: (_: any, record: NodeType) => {
       const items = [
@@ -140,14 +140,22 @@ export const tableColumns = (
           label: 'Delete',
           onClick: () => handleDelete(record),
         },
+        {
+          icon: <CodeOutlined />,
+          key: 'view-json',
+          label: 'View JSON',
+          onClick: () => handleViewJson?.(record),
+        },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <Button
-            type="text"
-            icon={<MoreOutlined style={{ fontSize: '20px' }} />}
-            role="node-action-menu"
-          />
+          <LitegraphTooltip title="Actions">
+            <Button
+              type="text"
+              icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+              role="node-action-menu"
+            />
+          </LitegraphTooltip>
         </Dropdown>
       );
     },

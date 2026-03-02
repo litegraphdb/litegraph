@@ -121,6 +121,7 @@ const AddEditUser = ({
         <LitegraphFormItem
           label="First Name"
           name="FirstName"
+          tooltip="User's first name"
           rules={[{ required: true, message: 'Please input First Name!' }]}
         >
           <LitegraphInput placeholder="Enter First Name" />
@@ -129,6 +130,7 @@ const AddEditUser = ({
         <LitegraphFormItem
           label="Last Name"
           name="LastName"
+          tooltip="User's last name"
           rules={[{ required: true, message: 'Please input Last Name!' }]}
         >
           <LitegraphInput placeholder="Enter Last Name" />
@@ -137,6 +139,7 @@ const AddEditUser = ({
         <LitegraphFormItem
           label="Email"
           name="Email"
+          tooltip="User's email address"
           rules={[
             { required: true, message: 'Please input your email!' },
             { type: 'email', message: 'Please enter a valid email!' },
@@ -148,12 +151,13 @@ const AddEditUser = ({
         <LitegraphFormItem
           label="Password"
           name="Password"
+          tooltip="Account password"
           rules={[{ required: true, message: 'Please input Password!' }]}
         >
           <Input.Password placeholder="Enter password" autoComplete="new-password" />
         </LitegraphFormItem>
 
-        <LitegraphFormItem label="Active" name="Active" valuePropName="checked">
+        <LitegraphFormItem label="Active" name="Active" tooltip="Whether the user account is active" valuePropName="checked">
           <Switch data-testid="active-switch" />
         </LitegraphFormItem>
       </Form>

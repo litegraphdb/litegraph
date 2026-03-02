@@ -125,18 +125,19 @@ const AddEditLabel = ({
         <LitegraphFormItem
           label="Label"
           name="Label"
+          tooltip="Label text value"
           rules={[{ required: true, message: 'Please input Label label!' }]}
         >
           <LitegraphInput placeholder="Enter label label" />
         </LitegraphFormItem>
 
-        <NodeSelector name="NodeGUID" label="Node" />
+        <NodeSelector name="NodeGUID" label="Node" tooltip="Node to associate with this label" />
 
         {/* <LitegraphFormItem label="Node" name="NodeGUID">
           <LitegraphSelect placeholder="Select Node" options={nodeOptions} allowClear />
         </LitegraphFormItem> */}
 
-        <EdgeSelector name="EdgeGUID" label="Edge" />
+        <EdgeSelector name="EdgeGUID" label="Edge" tooltip="Edge to associate with this label" />
 
         {/* <LitegraphFormItem label="Edge" name="EdgeGUID">
           <LitegraphSelect placeholder="Select Edge" options={edgeOptions} allowClear />

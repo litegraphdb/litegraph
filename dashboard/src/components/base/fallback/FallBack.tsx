@@ -1,5 +1,5 @@
 import React from 'react';
-import { CloseCircleOutlined, WarningOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, WarningOutlined, InfoCircleOutlined, AppstoreOutlined } from '@ant-design/icons';
 import styles from './fallback.module.scss';
 import classNames from 'classnames';
 import { Flex, Typography } from 'antd';
@@ -11,6 +11,7 @@ export enum FallBackEnums {
   ERROR = 'error',
   WARNING = 'warn',
   INFO = 'info',
+  EMPTY = 'empty',
 }
 
 interface FallBackProps {
@@ -35,6 +36,8 @@ const FallBack = ({
       <CloseCircleOutlined className={classNames(styles.colorRed, styles.icon)} />
     ) : type === FallBackEnums.WARNING ? (
       <WarningOutlined className={classNames(styles.colorYellow, styles.icon)} />
+    ) : type === FallBackEnums.EMPTY ? (
+      <AppstoreOutlined className={classNames(styles.colorMuted, styles.icon)} />
     ) : (
       <InfoCircleOutlined className={classNames(styles.colorBlue, styles.icon)} />
     );

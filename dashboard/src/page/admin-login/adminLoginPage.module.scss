@@ -5,6 +5,10 @@
   margin: auto;
   margin-top: 50px;
   width: 400px;
+  padding: 32px;
+  background: var(--ant-color-bg-base);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
   form {
     width: 100%;
   }

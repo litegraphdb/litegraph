@@ -192,17 +192,17 @@ const AddEditGraph = ({
           onValuesChange={(_, allValues) => setFormValues(allValues)}
         >
           {/* Graph Name */}
-          <LitegraphFormItem label="Name" name="name" rules={validationRules.name}>
+          <LitegraphFormItem label="Name" name="name" tooltip="Display name for the graph" rules={validationRules.name}>
             <LitegraphInput placeholder="Enter graph name" data-testid="graph-name-input" />
           </LitegraphFormItem>
-          <LabelInput name="labels" />
-          <Form.Item label="Tags">
+          <LabelInput name="labels" tooltip="Labels associated with this graph" />
+          <Form.Item label="Tags" tooltip="Key-value tags for this graph">
             <TagsInput name="tags" />
           </Form.Item>
-          <Form.Item label="Vectors">
+          <Form.Item label="Vectors" tooltip="Vector embeddings for this graph">
             <VectorsInput name="vectors" />
           </Form.Item>
-          <LitegraphFormItem label="Data" name="data">
+          <LitegraphFormItem label="Data" name="data" tooltip="Arbitrary JSON data attached to this graph">
             <JsonEditor
               key={uniqueKey}
               value={form.getFieldValue('data') || {}}

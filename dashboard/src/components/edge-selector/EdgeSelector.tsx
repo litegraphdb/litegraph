@@ -17,6 +17,7 @@ type EdgeSelectorProps = {
   label?: string;
   required?: boolean;
   rules?: Rule[];
+  tooltip?: string;
 };
 
 const EdgeSelector: React.FC<EdgeSelectorProps> = ({
@@ -26,6 +27,7 @@ const EdgeSelector: React.FC<EdgeSelectorProps> = ({
   label,
   required,
   rules,
+  tooltip = 'Search and select an edge',
 }) => {
   const selectedGraph = useSelectedGraph();
   const [searchEdges] = useSearchEdgesMutation();
@@ -89,7 +91,7 @@ const EdgeSelector: React.FC<EdgeSelectorProps> = ({
   };
 
   return (
-    <Form.Item name={name} className={className} label={label} required={required} rules={rules}>
+    <Form.Item name={name} className={className} label={label} required={required} rules={rules} tooltip={tooltip}>
       <LitegraphSelect
         showSearch
         loading={isEdgeLoading || fetching}

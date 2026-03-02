@@ -109,12 +109,13 @@ const AddEditTenant = ({
         <LitegraphFormItem
           label="Name"
           name="Name"
+          tooltip="Display name for the tenant"
           rules={[{ required: true, message: 'Please input Name!' }]}
         >
           <LitegraphInput placeholder="Enter Name" />
         </LitegraphFormItem>
 
-        <LitegraphFormItem label="Active" name="Active" valuePropName="checked">
+        <LitegraphFormItem label="Active" name="Active" tooltip="Whether the tenant is active" valuePropName="checked">
           <Switch />
         </LitegraphFormItem>
       </Form>

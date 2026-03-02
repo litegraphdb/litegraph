@@ -6,7 +6,8 @@ import { AppContext } from '@/hooks/appHooks';
 import React, { useState, useEffect, useMemo } from 'react';
 import { ThemeEnum } from '@/types/types';
 import { darkTheme, primaryTheme } from '@/theme/theme';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, Flex } from 'antd';
+import { AppstoreOutlined } from '@ant-design/icons';
 import AuthLayout from '@/components/layout/AuthLayout';
 import StoreProvider from '@/lib/store/StoreProvider';
 import { Toaster } from 'react-hot-toast';
@@ -37,7 +38,15 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
       <AppContext.Provider value={{ theme, setTheme: handleThemeChange }}>
         <StyleProvider cache={cache} hashPriority="high">
           <AntdRegistry>
-            <ConfigProvider theme={theme === ThemeEnum.LIGHT ? primaryTheme : darkTheme}>
+            <ConfigProvider
+              theme={theme === ThemeEnum.LIGHT ? primaryTheme : darkTheme}
+              renderEmpty={() => (
+                <Flex vertical align="center" justify="center" gap={8} style={{ padding: '16px 0' }}>
+                  <AppstoreOutlined style={{ fontSize: 24, color: 'var(--ant-color-text-quaternary)' }} />
+                  <span style={{ color: 'var(--ant-color-text-quaternary)', fontSize: 13 }}>No data</span>
+                </Flex>
+              )}
+            >
               <AuthLayout className={theme === ThemeEnum.DARK ? 'theme-dark-mode' : ''}>
                 {children}
               </AuthLayout>

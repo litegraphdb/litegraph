@@ -1,5 +1,6 @@
 import React from 'react';
-import { LoadingOutlined, MoreOutlined } from '@ant-design/icons';
+import { LoadingOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { Button, Dropdown, Skeleton, TableProps } from 'antd';
 import { EdgeType } from '@/types/types';
 import { formatDateTime } from '@/utils/dateUtils';
@@ -10,15 +11,18 @@ import TableSearch from '@/components/table-search/TableSearch';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { onGUIDFilter, onLabelFilter, onNameFilter, onTagFilter } from '@/constants/table';
 import LitegraphTag from '@/components/base/tag/Tag';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 export const tableColumns = (
   handleEdit: (record: EdgeType) => void,
   handleDelete: (record: EdgeType) => void,
   hasScoreOrDistance: boolean,
-  isNodesLoading: boolean
+  isNodesLoading: boolean,
+  handleViewJson?: (record: EdgeType) => void
 ): TableProps<EdgeType>['columns'] => [
   {
-    title: 'Name',
+    title: columnTooltip('Name', 'Edge display name'),
     dataIndex: 'Name' as keyof EdgeType,
     key: 'Name',
     width: 250,
@@ -34,7 +38,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'GUID',
+    title: columnTooltip('GUID', 'Globally unique identifier'),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
@@ -43,14 +47,10 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => (
-      <div>
-        <div>{GUID}</div>
-      </div>
-    ),
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
   },
   {
-    title: 'From',
+    title: columnTooltip('From', 'Source node of this edge'),
     dataIndex: 'FromName' as keyof EdgeType,
     key: 'FromName',
     width: 250,
@@ -69,7 +69,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'To',
+    title: columnTooltip('To', 'Target node of this edge'),
     dataIndex: 'ToName' as keyof EdgeType,
     key: 'ToName',
     width: 250,
@@ -88,7 +88,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'Cost',
+    title: columnTooltip('Cost', 'Edge traversal cost'),
     dataIndex: 'Cost' as keyof EdgeType,
     key: 'Cost',
     width: 150,
@@ -100,7 +100,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Labels',
+    title: columnTooltip('Labels', 'Classification labels assigned to this edge'),
     dataIndex: 'Labels' as keyof EdgeType,
     key: 'Labels',
     width: 150,
@@ -115,7 +115,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Tags',
+    title: columnTooltip('Tags', 'Key-value metadata tags'),
     dataIndex: 'Tags' as keyof EdgeType,
     key: 'Tags',
     width: 150,
@@ -130,7 +130,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Vectors',
+    title: columnTooltip('Vectors', 'Vector embeddings associated with this edge'),
     dataIndex: 'Vectors' as keyof EdgeType,
     key: 'Vectors',
     width: 150,
@@ -142,7 +142,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Created UTC',
+    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
     dataIndex: 'CreatedUtc' as keyof EdgeType,
     key: 'CreatedUtc',
     width: 250,
@@ -154,7 +154,7 @@ export const tableColumns = (
   ...(hasScoreOrDistance
     ? [
         {
-          title: 'Score',
+          title: columnTooltip('Score', 'Relevance score from search'),
           dataIndex: 'Score' as keyof EdgeType,
           key: 'Score',
           width: 150,
@@ -165,7 +165,7 @@ export const tableColumns = (
           ),
         },
         {
-          title: 'Distance',
+          title: columnTooltip('Distance', 'Vector distance from search query'),
           dataIndex: 'Distance' as keyof EdgeType,
           key: 'Distance',
           width: 150,
@@ -178,7 +178,7 @@ export const tableColumns = (
       ]
     : []),
   {
-    title: 'Actions',
+    title: columnTooltip('Actions', 'Available operations'),
     key: 'actions',
     render: (_: any, record: EdgeType) => {
       const items = [
@@ -192,10 +192,16 @@ export const tableColumns = (
           label: 'Delete',
           onClick: () => handleDelete(record),
         },
+        {
+          icon: <CodeOutlined />,
+          key: 'view-json',
+          label: 'View JSON',
+          onClick: () => handleViewJson?.(record),
+        },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} />
+          <LitegraphTooltip title="Actions"><Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} /></LitegraphTooltip>
         </Dropdown>
       );
     },

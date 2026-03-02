@@ -6,12 +6,16 @@ import {
   CloseCircleFilled,
   EyeOutlined,
   EyeInvisibleOutlined,
+  CodeOutlined,
 } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { formatDateTime } from '@/utils/dateUtils';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import TableSearch from '@/components/table-search/TableSearch';
 import { onGUIDFilter, onNameFilter } from '@/constants/table';
 import { UserMetadata } from 'litegraphdb/dist/types/types';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 const PasswordCell = ({ password }: { password: string }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -23,24 +27,27 @@ const PasswordCell = ({ password }: { password: string }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span>{isVisible ? password : '*'.repeat(8)}</span>
-      <Button
-        type="text"
-        size="small"
-        icon={isVisible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-        onClick={toggleVisibility}
-        style={{ padding: '0 4px', minWidth: 'auto' }}
-      />
+      <LitegraphTooltip title={isVisible ? 'Hide password' : 'Show password'}>
+        <Button
+          type="text"
+          size="small"
+          icon={isVisible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+          onClick={toggleVisibility}
+          style={{ padding: '0 4px', minWidth: 'auto' }}
+        />
+      </LitegraphTooltip>
     </div>
   );
 };
 
 export const tableColumns = (
   handleEdit: (user: UserMetadata) => void,
-  handleDelete: (user: UserMetadata) => void
+  handleDelete: (user: UserMetadata) => void,
+  handleViewJson?: (record: UserMetadata) => void
 ): TableProps<UserMetadata>['columns'] => {
   return [
     {
-      title: 'GUID',
+      title: columnTooltip('GUID', 'Globally unique identifier'),
       dataIndex: 'GUID',
       key: 'GUID',
       width: 350,
@@ -48,10 +55,10 @@ export const tableColumns = (
         <TableSearch {...props} placeholder="Search GUID" />
       ),
       onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-      render: (GUID: string) => <div>{GUID}</div>,
+      render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
     },
     {
-      title: 'First Name',
+      title: columnTooltip('First Name', 'User first name'),
       dataIndex: 'FirstName',
       key: 'FirstName',
       width: 200,
@@ -63,7 +70,7 @@ export const tableColumns = (
       render: (FirstName: string) => <div>{FirstName}</div>,
     },
     {
-      title: 'Last Name',
+      title: columnTooltip('Last Name', 'User last name'),
       dataIndex: 'LastName',
       key: 'LastName',
       width: 200,
@@ -75,7 +82,7 @@ export const tableColumns = (
       render: (LastName: string) => <div>{LastName}</div>,
     },
     {
-      title: 'Email',
+      title: columnTooltip('Email', 'User email address'),
       dataIndex: 'Email',
       key: 'Email',
       width: 200,
@@ -86,14 +93,14 @@ export const tableColumns = (
       render: (Email: string) => <div>{Email}</div>,
     },
     {
-      title: 'Password',
+      title: columnTooltip('Password', 'User password (click eye to reveal)'),
       dataIndex: 'Password',
       key: 'Password',
       width: 200,
       render: (Password: string, record: UserMetadata) => <PasswordCell password={Password} />,
     },
     {
-      title: 'Active',
+      title: columnTooltip('Active', 'Whether the user account is active'),
       dataIndex: 'Active',
       key: 'Active',
       width: 100,
@@ -106,7 +113,7 @@ export const tableColumns = (
         ),
     },
     {
-      title: 'Created UTC',
+      title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
       dataIndex: 'CreatedUtc',
       key: 'CreatedUtc',
       width: 200,
@@ -115,7 +122,7 @@ export const tableColumns = (
       render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
     },
     {
-      title: 'Actions',
+      title: columnTooltip('Actions', 'Available operations'),
       key: 'actions',
       width: 100,
       render: (_: any, record: UserMetadata) => {
@@ -130,15 +137,23 @@ export const tableColumns = (
             label: 'Delete',
             onClick: () => handleDelete(record),
           },
+          {
+            icon: <CodeOutlined />,
+            key: 'view-json',
+            label: 'View JSON',
+            onClick: () => handleViewJson?.(record),
+          },
         ];
         return (
           <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-            <Button
-              role="user-action-menu"
-              type="text"
-              icon={<MoreOutlined style={{ fontSize: '20px' }} />}
-              style={{ fontSize: '16px' }}
-            />
+            <LitegraphTooltip title="Actions">
+              <Button
+                role="user-action-menu"
+                type="text"
+                icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+                style={{ fontSize: '16px' }}
+              />
+            </LitegraphTooltip>
           </Dropdown>
         );
       },

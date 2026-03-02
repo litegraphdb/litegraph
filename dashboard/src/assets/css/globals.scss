@@ -1,9 +1,13 @@
 @import 'antd/dist/reset.css';
 
 :root {
-  --color-gray: #757575;
-  --color-primary-light: #ddffd2;
-  --color-primary-dark: #354d2d;
+  --color-gray: #64748b;
+  --color-primary-light: #e8f5e3;
+  --color-primary-dark: #1a3a12;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --transition-default: 0.15s ease;
 }
 
 .h-100vh {
@@ -16,7 +20,7 @@
 }
 
 .ant-layout-sider {
-  background-color: white;
+  background-color: var(--ant-color-bg-base);
 }
 
 .ant-menu-inline {
@@ -25,11 +29,12 @@
 
 /* Graph visualization styles */
 .graph-container {
-  border-radius: 0.5rem;
+  border-radius: 12px;
   border: 1px solid var(--ant-color-border);
-  background-color: white;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-color: var(--ant-color-bg-base);
+  box-shadow: var(--shadow-sm);
   min-height: 600px;
+  transition: box-shadow var(--transition-default);
 }
 
 .graph-canvas {
@@ -39,21 +44,27 @@
 
 /* Sigma.js styles */
 .sigma-container {
-  border-radius: 0.5rem;
-  background: #fff;
+  border-radius: 12px;
+  background: var(--ant-color-bg-base);
 }
 
 .sigma-hover {
-  border-radius: 0.5rem;
-  background-color: white;
-  padding: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border-radius: 12px;
+  background-color: var(--ant-color-bg-base);
+  padding: 0.75rem;
+  box-shadow: var(--shadow-lg);
   position: absolute;
   z-index: 1;
   border: 1px solid var(--ant-color-border);
 }
 .ant-btn-default {
-  border-color: var(--ant-color-primary);
+  border-color: var(--ant-color-border);
+  border-width: 1px;
+  transition: all var(--transition-default);
+
+  &:hover {
+    border-color: var(--ant-color-primary);
+  }
 }
 
 .mb {
@@ -263,9 +274,6 @@
     height: 20px !important;
   }
 }
-.ant-btn-default {
-  border-width: 1.5px;
-}
 
 .ant-form-item-explain-error {
   font-size: 12px;
@@ -276,16 +284,24 @@
     border: 1px solid var(--ant-color-border);
     border-radius: var(--ant-border-radius-lg);
     overflow-x: auto;
+    box-shadow: var(--shadow-sm);
     table {
-      width: 99% !important;
+      width: 100% !important;
       margin: 0 auto;
     }
   }
   .ant-table-thead {
     tr {
+      th {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #475569;
+      }
       th:first-child,
       th:last-child {
-        padding-left: 60px;
+        padding-left: 24px;
         border: none;
         position: relative;
       }
@@ -295,9 +311,9 @@
         position: absolute;
         height: 1px;
         bottom: 0;
-        width: 90%;
+        width: 100%;
         right: 0;
-        border-bottom: 1px solid #d1d5db;
+        border-bottom: 1px solid var(--ant-color-border);
       }
       th:last-child::after {
         left: 0;
@@ -310,9 +326,10 @@
   }
   .ant-table-tbody {
     tr {
+      transition: background-color var(--transition-default);
       td:first-child,
       td:last-child {
-        padding-left: 60px;
+        padding-left: 24px;
         border: none;
         position: relative;
       }
@@ -322,7 +339,7 @@
         position: absolute;
         height: 1px;
         bottom: 0;
-        width: 90%;
+        width: 100%;
         right: 0;
         border-bottom: 1px solid var(--ant-color-border);
       }
@@ -380,6 +397,7 @@
 }
 .ant-btn-link {
   font-weight: 500;
+  transition: opacity var(--transition-default);
 }
 
 .ant-table-cell::after {

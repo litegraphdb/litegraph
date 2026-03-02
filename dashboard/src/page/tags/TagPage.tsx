@@ -24,6 +24,7 @@ import { getNodeAndEdgeGUIDsByEntityList } from '@/utils/dataUtils';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const TagPage = () => {
   // Redux state for the list of graphs
@@ -87,6 +88,7 @@ const TagPage = () => {
   const [selectedTag, setSelectedTag] = useState<TagType | null | undefined>(null);
   const [isAddEditTagVisible, setIsAddEditTagVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
 
   const handleCreateTag = () => {
     setSelectedTag(null);
@@ -121,14 +123,16 @@ const TagPage = () => {
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphButton
-              type="link"
-              icon={<PlusSquareOutlined />}
-              onClick={handleCreateTag}
-              weight={500}
-            >
-              Create Tag
-            </LitegraphButton>
+            <LitegraphTooltip title="Create a new tag">
+              <LitegraphButton
+                type="link"
+                icon={<PlusSquareOutlined />}
+                onClick={handleCreateTag}
+                weight={500}
+              >
+                Create Tag
+              </LitegraphButton>
+            </LitegraphTooltip>
           )}
         </>
       }
@@ -138,7 +142,7 @@ const TagPage = () => {
       ) : (
         <LitegraphTable
           loading={isGraphsLoading || isTagsLoading}
-          columns={tableColumns(handleEditTag, handleDelete, isNodesLoading, isEdgesLoading)}
+          columns={tableColumns(handleEditTag, handleDelete, isNodesLoading, isEdgesLoading, setJsonViewRecord)}
           dataSource={transformedTagsList}
           rowKey={'GUID'}
           pagination={{
@@ -175,6 +179,12 @@ const TagPage = () => {
           onTagDeleted={async () => await fetchNodesAndEdges()}
         />
       )}
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Tag JSON"
+      />
     </PageContainer>
   );
 };

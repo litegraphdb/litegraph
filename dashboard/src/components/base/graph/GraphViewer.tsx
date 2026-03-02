@@ -265,13 +265,13 @@ const GraphViewer = ({
         <div className={styles.graphContainer} ref={ref}>
           <>
             {isError ? (
-              <FallBack className="mt-lg" type={FallBackEnums.ERROR} retry={refetch}>
+              <FallBack className={styles.emptyState} type={FallBackEnums.ERROR} retry={refetch}>
                 Error loading graph
               </FallBack>
             ) : (isLoading && nodes.length === 0) || isSubGraphLoading ? (
               <PageLoading />
             ) : !nodes.length && !isLoading ? (
-              <FallBack className="mt-lg" type={FallBackEnums.WARNING}>
+              <FallBack className={styles.emptyState} type={FallBackEnums.EMPTY}>
                 This graph has no nodes.
               </FallBack>
             ) : (

@@ -14,6 +14,7 @@ interface LabelInputProps {
   name?: string;
   readonly?: boolean;
   className?: string;
+  tooltip?: string;
 }
 
 const LabelInput: React.FC<LabelInputProps> = ({
@@ -23,9 +24,10 @@ const LabelInput: React.FC<LabelInputProps> = ({
   name,
   readonly,
   className,
+  tooltip,
 }) => {
   return (
-    <LitegraphFormItem label="Labels" name={name} className={className}>
+    <LitegraphFormItem label="Labels" name={name} className={className} tooltip={tooltip}>
       <LitegraphSelect
         variant={readonly ? 'borderless' : 'outlined'}
         readonly={readonly}

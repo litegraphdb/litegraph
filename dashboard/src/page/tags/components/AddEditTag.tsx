@@ -129,6 +129,7 @@ const AddEditTag = ({
         <LitegraphFormItem
           label="Key"
           name="Key"
+          tooltip="Tag key identifier"
           rules={[{ required: true, message: 'Please input tag key!' }]}
         >
           <LitegraphInput placeholder="Enter tag key" />
@@ -137,17 +138,18 @@ const AddEditTag = ({
         <LitegraphFormItem
           label="Value"
           name="Value"
+          tooltip="Tag value"
           rules={[{ required: true, message: 'Please input tag value!' }]}
         >
           <LitegraphInput placeholder="Enter tag value" />
         </LitegraphFormItem>
-        <NodeSelector name="NodeGUID" label="Node" />
+        <NodeSelector name="NodeGUID" label="Node" tooltip="Node to associate with this tag" />
 
         {/* <LitegraphFormItem label="Node" name="NodeGUID">
           <LitegraphSelect placeholder="Select Node" options={nodeOptions} allowClear />
         </LitegraphFormItem> */}
 
-        <EdgeSelector name="EdgeGUID" label="Edge" />
+        <EdgeSelector name="EdgeGUID" label="Edge" tooltip="Edge to associate with this tag" />
 
         {/* <LitegraphFormItem label="Edge" name="EdgeGUID">
           <LitegraphSelect placeholder="Select Edge" options={edgeOptions} allowClear />

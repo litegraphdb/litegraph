@@ -129,6 +129,7 @@ const AddEditCredential = ({
         <LitegraphFormItem
           label="User GUID"
           name="UserGUID"
+          tooltip="User this credential belongs to"
           rules={[{ required: true, message: 'Please select user GUID!' }]}
         >
           <Select
@@ -143,6 +144,7 @@ const AddEditCredential = ({
         <LitegraphFormItem
           label="Name"
           name="Name"
+          tooltip="Display name for the credential"
           rules={[{ required: true, message: 'Please input name!' }]}
         >
           <LitegraphInput placeholder="Enter name" data-testid="name-input" />
@@ -151,12 +153,13 @@ const AddEditCredential = ({
         <LitegraphFormItem
           label="Bearer Token"
           name="BearerToken"
+          tooltip="Authentication bearer token"
           rules={[{ required: true, message: 'Please input bearer token!' }]}
         >
           <LitegraphInput placeholder="Enter bearer token" disabled={!!credential} />
         </LitegraphFormItem>
 
-        <LitegraphFormItem label="Active" name="Active" valuePropName="checked">
+        <LitegraphFormItem label="Active" name="Active" tooltip="Whether the credential is active" valuePropName="checked">
           <Switch data-testid="active-switch" />
         </LitegraphFormItem>
       </Form>

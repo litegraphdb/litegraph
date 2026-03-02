@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LogoutOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Layout } from 'antd';
+import { Layout, Tag } from 'antd';
 import Navigation from '../navigation';
 import LitegraphText from '../base/typograpghy/Text';
 import { useLogout } from '@/hooks/authHooks';
@@ -25,7 +25,7 @@ import { ThemeEnum } from '@/types/types';
 import LitegraphTooltip from '../base/tooltip/Tooltip';
 import ThemeModeSwitch from '../theme-mode-switch/ThemeModeSwitch';
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 
 interface LayoutWrapperProps {
   children: React.ReactNode;
@@ -45,6 +45,7 @@ const DashboardLayout = ({
   isAdmin,
 }: LayoutWrapperProps) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
   const { theme } = useAppContext();
   const dispatch = useAppDispatch();
   const selectedGraphRedux = useSelectedGraph();
@@ -63,6 +64,21 @@ const DashboardLayout = ({
     refetch: fetchTenantsList,
   } = useGetAllTenantsQuery(undefined, { skip: !useTenantSelector });
   const tenantOptions = transformToOptions(tenantsList);
+
+  useEffect(() => {
+    const url = localStorage.getItem(localStorageKeys.serverUrl);
+    setServerUrl(url);
+  }, []);
+
+  const serverHostDisplay = useMemo(() => {
+    if (!serverUrl) return null;
+    try {
+      const parsed = new URL(serverUrl);
+      return parsed.host;
+    } catch {
+      return serverUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    }
+  }, [serverUrl]);
 
   useEffect(() => {
     if (!selectedGraphRedux && graphOptions?.length > 0) {
@@ -106,11 +122,11 @@ const DashboardLayout = ({
           data-testid="navigation"
         />
         <Layout>
-          <Header className={styles.header}>
+          <div className={styles.header}>
             <LitegraphFlex vertical justify="center">
               {useGraphsSelector && (
                 <LitegraphFlex align="center" gap={8}>
-                  <span>Graph:</span>
+                  <LitegraphTooltip title="Select the active graph"><span>Graph:</span></LitegraphTooltip>
                   <LitegraphSelect
                     placeholder="Select a graph"
                     options={graphOptions}
@@ -125,7 +141,7 @@ const DashboardLayout = ({
               )}
               {useTenantSelector && (
                 <LitegraphFlex align="center" gap={8}>
-                  <span>Tenant:</span>
+                  <LitegraphTooltip title="Select the active tenant"><span>Tenant:</span></LitegraphTooltip>
                   {tenantsError ? (
                     <LitegraphText
                       fontSize={12}
@@ -160,6 +176,21 @@ const DashboardLayout = ({
               justify="flex-end"
               data-testid="user-section"
             >
+              {serverHostDisplay && (
+                <LitegraphTooltip title="Connected LiteGraph server">
+                  <Tag
+                    bordered={false}
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--ant-color-text-tertiary)',
+                      background: 'transparent',
+                      margin: 0,
+                    }}
+                  >
+                    {serverHostDisplay}
+                  </Tag>
+                </LitegraphTooltip>
+              )}
               <LitegraphTooltip
                 title={`Switch to ${theme === ThemeEnum.DARK ? 'Light' : 'Dark'} mode`}
               >
@@ -168,18 +199,20 @@ const DashboardLayout = ({
               {!noProfile ? (
                 <LoggedUserInfo />
               ) : (
-                <div
-                  className={styles.logoutLink}
-                  onClick={() => logOutFromSystem()}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <LogoutOutlined className={styles.logoutIcon} />
-                  <span>Logout</span>
-                </div>
+                <LitegraphTooltip title="Sign out of the dashboard">
+                  <div
+                    className={styles.logoutLink}
+                    onClick={() => logOutFromSystem()}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <LogoutOutlined className={styles.logoutIcon} />
+                    <span>Logout</span>
+                  </div>
+                </LitegraphTooltip>
               )}
             </LitegraphFlex>
-          </Header>
+          </div>
           <Content
             style={{
               minHeight: 280,

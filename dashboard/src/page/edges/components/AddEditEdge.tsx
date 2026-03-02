@@ -342,13 +342,14 @@ const AddEditEdge = ({
           requiredMark={!readonly}
         >
           <LitegraphFlex vertical={!readonly} gap={readonly ? 10 : 0}>
-            <LitegraphFormItem className="flex-1" label="Graph" name="graphName">
+            <LitegraphFormItem className="flex-1" label="Graph" name="graphName" tooltip="The graph this edge belongs to">
               <LitegraphInput readOnly variant="borderless" />
             </LitegraphFormItem>
             <LitegraphFormItem
               className="flex-1"
               label="Name"
               name="name"
+              tooltip="Display name for the edge"
               rules={validationRules.Name}
             >
               <LitegraphInput
@@ -364,6 +365,7 @@ const AddEditEdge = ({
               readonly={readonly}
               className="flex-1"
               label="From Node"
+              tooltip="Source node of the edge"
               rules={validationRules.From}
               localNodes={currentNodes}
             />
@@ -372,6 +374,7 @@ const AddEditEdge = ({
               readonly={readonly}
               className="flex-1"
               label="To Node"
+              tooltip="Target node of the edge"
               rules={validationRules.To}
               localNodes={currentNodes}
             />
@@ -409,6 +412,7 @@ const AddEditEdge = ({
               className="flex-1"
               label="Cost"
               name="cost"
+              tooltip="Traversal cost for this edge"
               rules={validationRules.Cost}
             >
               <LitegraphInput
@@ -422,16 +426,17 @@ const AddEditEdge = ({
                 }}
               />
             </LitegraphFormItem>
-            <LabelInput name="labels" className="flex-1" readonly={readonly} />
+            <LabelInput name="labels" className="flex-1" readonly={readonly} tooltip="Labels associated with this edge" />
           </LitegraphFlex>
-          <Form.Item label="Tags">
+          <Form.Item label="Tags" tooltip="Key-value tags for this edge">
             <TagsInput name="tags" readonly={readonly} />
           </Form.Item>
-          <Form.Item label="Vectors">
+          <Form.Item label="Vectors" tooltip="Vector embeddings for this edge">
             <VectorsInput name="vectors" readonly={readonly} />
           </Form.Item>
           <LitegraphFormItem
             name="data"
+            tooltip="Arbitrary JSON data attached to this edge"
             label={
               <LitegraphFlex align="center" gap={8}>
                 <span>Data</span>

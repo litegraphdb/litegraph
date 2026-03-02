@@ -6,6 +6,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import LitegraphFlex from '../base/flex/Flex';
 import LitegraphTag from '../base/tag/Tag';
 import LitegraphDivider from '../base/divider/Divider';
+import LitegraphTooltip from '../base/tooltip/Tooltip';
 import { humanizeNumber } from '@/utils/dataUtils';
 
 const AppliedFilter = ({
@@ -56,9 +57,11 @@ const AppliedFilter = ({
               <LitegraphDivider type="vertical" className="ant-divider-vertical" />
             </>
           )}
-          <LitegraphButton className="pl-0" icon={<CloseOutlined />} type="link" onClick={onClear}>
-            Clear
-          </LitegraphButton>{' '}
+          <LitegraphTooltip title="Clear all filters">
+            <LitegraphButton className="pl-0" icon={<CloseOutlined />} type="link" onClick={onClear}>
+              Clear
+            </LitegraphButton>
+          </LitegraphTooltip>{' '}
         </LitegraphFlex>
       )}
     </>

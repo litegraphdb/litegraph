@@ -10,6 +10,7 @@ import DeleteCredential from './components/DeleteCredential';
 
 import { tableColumns } from './constant';
 import FallBack from '@/components/base/fallback/FallBack';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 import { usePagination } from '@/hooks/appHooks';
 import { useEnumerateCredentialQuery, useGetAllUsersQuery } from '@/lib/store/slice/slice';
 import { tablePaginationConfig } from '@/constants/pagination';
@@ -21,6 +22,7 @@ const CredentialPage = () => {
   const [selectedCredential, setSelectedCredential] = useState<CredentialType | null>(null);
   const [isAddEditCredentialVisible, setIsAddEditCredentialVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
   const { data: usersList = [], isLoading: isUsersLoading } = useGetAllUsersQuery();
   const { skip, page, pageSize, handlePageChange } = usePagination();
 
@@ -75,14 +77,16 @@ const CredentialPage = () => {
         </LitegraphFlex>
       }
       pageTitleRightContent={
-        <LitegraphButton
-          type="link"
-          icon={<PlusSquareOutlined />}
-          onClick={handleCreateCredential}
-          weight={500}
-        >
-          Create Credential
-        </LitegraphButton>
+        <LitegraphTooltip title="Create a new credential">
+          <LitegraphButton
+            type="link"
+            icon={<PlusSquareOutlined />}
+            onClick={handleCreateCredential}
+            weight={500}
+          >
+            Create Credential
+          </LitegraphButton>
+        </LitegraphTooltip>
       }
     >
       {error && !isCredentialsLoading ? (
@@ -90,7 +94,7 @@ const CredentialPage = () => {
       ) : (
         <LitegraphTable
           loading={isCredentialsLoading || isUsersLoading}
-          columns={tableColumns(handleEditCredential, handleDeleteCredential)}
+          columns={tableColumns(handleEditCredential, handleDeleteCredential, setJsonViewRecord)}
           dataSource={credentialsListWithUsers}
           rowKey={'GUID'}
           pagination={{
@@ -121,6 +125,12 @@ const CredentialPage = () => {
           setSelectedCredential={setSelectedCredential}
         />
       )}
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Credential JSON"
+      />
     </PageContainer>
   );
 };

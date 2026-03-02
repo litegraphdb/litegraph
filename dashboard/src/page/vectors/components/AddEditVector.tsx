@@ -147,6 +147,7 @@ const AddEditVector = ({
         <LitegraphFormItem
           label="Model"
           name="Model"
+          tooltip="Name of the embedding model"
           rules={[{ required: true, message: 'Please input Model!' }]}
         >
           <LitegraphInput placeholder="Enter Model" />
@@ -154,6 +155,7 @@ const AddEditVector = ({
         <LitegraphFormItem
           label="Dimensionality"
           name="Dimensionality"
+          tooltip="Number of dimensions in the vector"
           rules={[{ required: true, message: 'Please input Dimensionality!' }]}
         >
           <LitegraphInput type="number" placeholder="Enter Dimensionality" />
@@ -161,6 +163,7 @@ const AddEditVector = ({
         <LitegraphFormItem
           label="Content"
           name="Content"
+          tooltip="Text content associated with the vector"
           rules={[{ required: true, message: 'Please input Content!' }]}
         >
           <LitegraphInput placeholder="Enter Content" />
@@ -168,6 +171,7 @@ const AddEditVector = ({
         <LitegraphFormItem
           label="Vectors"
           name="Vectors"
+          tooltip="Vector embedding values as JSON array"
           rules={[{ required: true, message: 'Please input Vectors!' }]}
         >
           <JsonEditor
@@ -182,11 +186,11 @@ const AddEditVector = ({
             data-testid="graph-data-input"
           />
         </LitegraphFormItem>
-        <NodeSelector name="NodeGUID" label="Node" />
+        <NodeSelector name="NodeGUID" label="Node" tooltip="Node to associate with this vector" />
         {/* <LitegraphFormItem label="Node" name="NodeGUID">
           <LitegraphSelect placeholder="Select Node" options={nodeOptions} allowClear />
         </LitegraphFormItem> */}
-        <EdgeSelector name="EdgeGUID" label="Edge" />
+        <EdgeSelector name="EdgeGUID" label="Edge" tooltip="Edge to associate with this vector" />
 
         {/* <LitegraphFormItem label="Edge" name="EdgeGUID">
           <LitegraphSelect placeholder="Select Edge" options={edgeOptions} allowClear />

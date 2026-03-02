@@ -1,8 +1,10 @@
 .sidebarContainer {
   border-right: 1px solid var(--ant-color-border);
+  box-shadow: 1px 0 4px rgba(0, 0, 0, 0.03);
 }
 .logoContainer {
   height: 64px;
   border-bottom: 1px solid var(--ant-color-border);
   padding: 0 var(--ant-padding);
+  box-sizing: border-box;
 }

@@ -131,6 +131,7 @@ const EnableVectorIndexModal = ({
             <LitegraphFormItem
               label="Vector Index Type"
               name="VectorIndexType"
+              tooltip="Type of vector index to use"
               rules={[{ required: true, message: 'Please select Vector Index Type!' }]}
             >
               <LitegraphSelect
@@ -147,6 +148,7 @@ const EnableVectorIndexModal = ({
             <LitegraphFormItem
               label="Vector Index File"
               name="VectorIndexFile"
+              tooltip="File path for the vector index"
               rules={[
                 { required: true, message: 'Please input Vector Index File!' },
                 { validator: validateVectorIndexFile },
@@ -159,13 +161,14 @@ const EnableVectorIndexModal = ({
               />
             </LitegraphFormItem>
 
-            <LitegraphFormItem label="Vector Index Threshold" name="VectorIndexThreshold">
+            <LitegraphFormItem label="Vector Index Threshold" name="VectorIndexThreshold" tooltip="Minimum number of vectors before indexing">
               <LitegraphInput type="number" placeholder="Enter threshold" variant="outlined" />
             </LitegraphFormItem>
 
             <LitegraphFormItem
               label="Vector Dimensionality"
               name="VectorDimensionality"
+              tooltip="Number of dimensions in the vectors"
               rules={[{ required: true, message: 'Please input Vector Dimensionality!' }]}
             >
               <LitegraphInput
@@ -179,6 +182,7 @@ const EnableVectorIndexModal = ({
             <LitegraphFormItem
               label="Vector Index M"
               name="VectorIndexM"
+              tooltip="Maximum number of connections per node in the HNSW graph"
               rules={[{ required: true, message: 'Please input Vector Index M!' }]}
               extra={<small>Number of connections per layer in HNSW index</small>}
             >
@@ -193,6 +197,7 @@ const EnableVectorIndexModal = ({
             <LitegraphFormItem
               label="Vector Index Ef"
               name="VectorIndexEf"
+              tooltip="Number of candidates to consider during search"
               rules={[{ required: true, message: 'Please input Vector Index Ef!' }]}
               extra={<small>Search parameter for HNSW index</small>}
             >
@@ -207,6 +212,7 @@ const EnableVectorIndexModal = ({
             <LitegraphFormItem
               label="Vector Index Ef Construction"
               name="VectorIndexEfConstruction"
+              tooltip="Number of candidates during index construction"
               rules={[{ required: true, message: 'Please input Vector Index Ef Construction!' }]}
               extra={<small>Construction parameter for HNSW index</small>}
             >
@@ -227,7 +233,7 @@ const EnableVectorIndexModal = ({
           requiredMark={false}
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <LitegraphFormItem label="Vector Index Type" name="VectorIndexType">
+            <LitegraphFormItem label="Vector Index Type" name="VectorIndexType" tooltip="Type of vector index to use">
               <LitegraphSelect
                 readonly
                 placeholder="Select Vector Index Type"
@@ -240,29 +246,30 @@ const EnableVectorIndexModal = ({
               />
             </LitegraphFormItem>
 
-            <LitegraphFormItem label="Vector Index File" name="VectorIndexFile">
+            <LitegraphFormItem label="Vector Index File" name="VectorIndexFile" tooltip="File path for the vector index">
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
-            <LitegraphFormItem label="Vector Index Threshold" name="VectorIndexThreshold">
+            <LitegraphFormItem label="Vector Index Threshold" name="VectorIndexThreshold" tooltip="Minimum number of vectors before indexing">
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
-            <LitegraphFormItem label="Vector Dimensionality" name="VectorDimensionality">
+            <LitegraphFormItem label="Vector Dimensionality" name="VectorDimensionality" tooltip="Number of dimensions in the vectors">
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
-            <LitegraphFormItem label="Vector Index M" name="VectorIndexM">
+            <LitegraphFormItem label="Vector Index M" name="VectorIndexM" tooltip="Maximum number of connections per node in the HNSW graph">
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
-            <LitegraphFormItem label="Vector Index Ef" name="VectorIndexEf">
+            <LitegraphFormItem label="Vector Index Ef" name="VectorIndexEf" tooltip="Number of candidates to consider during search">
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
             <LitegraphFormItem
               label="Vector Index Ef Construction"
               name="VectorIndexEfConstruction"
+              tooltip="Number of candidates during index construction"
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>

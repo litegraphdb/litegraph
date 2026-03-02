@@ -4,6 +4,7 @@ import { Form, Input, Button } from 'antd';
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons';
 import styles from './styles.module.scss';
 import LitegraphText from '@/components/base/typograpghy/Text';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 interface TagsInputProps {
   value?: Array<{ key: string; value: string }>;
   onChange?: (values: Record<string, string>) => void;
@@ -38,10 +39,12 @@ const TagsInput: React.FC<TagsInputProps> = ({ value = [], onChange, name, reado
                         placeholder="Enter value"
                         suffix={
                           !readonly && (
-                            <CloseCircleFilled
-                              onClick={() => remove(field.name)}
-                              className={styles.closeIcon}
-                            />
+                            <LitegraphTooltip title="Remove this tag">
+                              <CloseCircleFilled
+                                onClick={() => remove(field.name)}
+                                className={styles.closeIcon}
+                              />
+                            </LitegraphTooltip>
                           )
                         }
                       />
@@ -52,14 +55,16 @@ const TagsInput: React.FC<TagsInputProps> = ({ value = [], onChange, name, reado
             : readonly && <LitegraphText>N/A</LitegraphText>}
           {!readonly && (
             <Form.Item>
-              <Button
-                type="dashed"
-                onClick={() => add()}
-                icon={<PlusOutlined />}
-                style={{ width: '100%' }}
-              >
-                Add Tag
-              </Button>
+              <LitegraphTooltip title="Add a new key-value tag">
+                <Button
+                  type="dashed"
+                  onClick={() => add()}
+                  icon={<PlusOutlined />}
+                  style={{ width: '100%' }}
+                >
+                  Add Tag
+                </Button>
+              </LitegraphTooltip>
               <Form.ErrorList errors={errors} />
             </Form.Item>
           )}

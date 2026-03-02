@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { EditOutlined, MoreOutlined } from '@ant-design/icons';
+import { EditOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
 import { DeleteOutlined } from '@ant-design/icons';
 import { ExportOutlined } from '@ant-design/icons';
 import { SettingOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import { GraphData } from '@/types/types';
 import { TableProps, Dropdown, Button, Menu, Input } from 'antd';
 import { formatDateTime } from '@/utils/dateUtils';
@@ -22,10 +25,11 @@ export const tableColumns = (
   handleReadVectorIndexStats: (record: GraphData) => void,
   handleRebuildVectorIndex: (record: GraphData) => void,
   handleDeleteVectorIndex: (record: GraphData) => void,
-  hasScoreOrDistance: boolean
+  hasScoreOrDistance: boolean,
+  handleViewJson?: (record: GraphData) => void
 ): TableProps<GraphData>['columns'] => [
   {
-    title: 'Name',
+    title: columnTooltip('Name', 'Graph display name'),
     dataIndex: 'Name',
     key: 'name',
     filterDropdown: (props: FilterDropdownProps) => (
@@ -42,7 +46,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'GUID',
+    title: columnTooltip('GUID', 'Globally unique identifier'),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
@@ -52,14 +56,10 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => (
-      <div>
-        <div>{GUID}</div>
-      </div>
-    ),
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
   },
   {
-    title: 'Labels',
+    title: columnTooltip('Labels', 'Classification labels assigned to this graph'),
     dataIndex: 'Labels' as keyof GraphData,
     key: 'labels',
     width: 350,
@@ -75,7 +75,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Tags',
+    title: columnTooltip('Tags', 'Key-value metadata tags'),
     dataIndex: 'Tags',
     key: 'tags',
     width: 350,
@@ -93,7 +93,7 @@ export const tableColumns = (
     },
   },
   {
-    title: 'Vectors',
+    title: columnTooltip('Vectors', 'Vector embeddings associated with this graph'),
     dataIndex: 'Vectors',
     key: 'Vectors',
     width: 150,
@@ -103,7 +103,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Created UTC',
+    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 350,
@@ -115,7 +115,7 @@ export const tableColumns = (
   ...(hasScoreOrDistance
     ? [
         {
-          title: 'Score',
+          title: columnTooltip('Score', 'Relevance score from search'),
           dataIndex: 'Score',
           key: 'Score',
           width: 150,
@@ -126,7 +126,7 @@ export const tableColumns = (
           ),
         },
         {
-          title: 'Distance',
+          title: columnTooltip('Distance', 'Vector distance from search query'),
           dataIndex: 'Distance',
           key: 'Distance',
           width: 150,
@@ -139,7 +139,7 @@ export const tableColumns = (
       ]
     : []),
   {
-    title: 'Actions',
+    title: columnTooltip('Actions', 'Available operations'),
     key: 'actions',
     responsive: ['sm'],
     render: (_: any, record: GraphData) => {
@@ -192,11 +192,17 @@ export const tableColumns = (
           label: 'Delete Vector Index',
           onClick: () => handleDeleteVectorIndex(record),
         },
+        {
+          icon: <CodeOutlined />,
+          key: 'view-json',
+          label: 'View JSON',
+          onClick: () => handleViewJson?.(record),
+        },
       ];
 
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} />
+          <LitegraphTooltip title="Actions"><Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} /></LitegraphTooltip>
         </Dropdown>
       );
     },

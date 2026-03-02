@@ -24,6 +24,7 @@ import { getNodeAndEdgeGUIDsByEntityList } from '@/utils/dataUtils';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const LabelPage = () => {
   const selectedGraphRedux = useSelectedGraph();
@@ -86,6 +87,7 @@ const LabelPage = () => {
   const [selectedLabel, setSelectedLabel] = useState<LabelMetadata | null | undefined>(null);
   const [isAddEditLabelVisible, setIsAddEditLabelVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
 
   const transformedLabelsList = transformLabelsDataForTable(
     labelsList?.Objects || [],
@@ -131,14 +133,16 @@ const LabelPage = () => {
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphButton
-              type="link"
-              icon={<PlusSquareOutlined />}
-              onClick={handleCreateLabel}
-              weight={600}
-            >
-              Create Label
-            </LitegraphButton>
+            <LitegraphTooltip title="Create a new label">
+              <LitegraphButton
+                type="link"
+                icon={<PlusSquareOutlined />}
+                onClick={handleCreateLabel}
+                weight={600}
+              >
+                Create Label
+              </LitegraphButton>
+            </LitegraphTooltip>
           )}
         </>
       }
@@ -148,7 +152,7 @@ const LabelPage = () => {
       ) : (
         <LitegraphTable
           loading={isLabelsLoading || isGraphsLoading}
-          columns={tableColumns(handleEditLabel, handleDelete, isNodesLoading, isEdgesLoading)}
+          columns={tableColumns(handleEditLabel, handleDelete, isNodesLoading, isEdgesLoading, setJsonViewRecord)}
           dataSource={transformedLabelsList}
           rowKey={'GUID'}
           pagination={{
@@ -182,6 +186,12 @@ const LabelPage = () => {
           onLabelDeleted={async () => await fetchLabelsAndNodesAndEdges()}
         />
       )}
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Label JSON"
+      />
     </PageContainer>
   );
 };

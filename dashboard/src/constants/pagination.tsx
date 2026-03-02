@@ -6,6 +6,7 @@ export const tablePaginationConfig: TablePaginationConfig = {
   pageSizeOptions: [50, 100, 1000],
   pageSize: 50,
   showSizeChanger: true,
+  showQuickJumper: true,
   position: ['bottomCenter'],
   showTotal: (total: number, range: number[]) => `${range[0]}-${range[1]} of ${total}`,
 };

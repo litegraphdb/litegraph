@@ -35,6 +35,7 @@ import EnableVectorIndexModal from './components/EnableVectorIndexModal';
 import VectorIndexStatsModal from './components/VectorIndexStatsModal';
 import RebuildVectorIndexModal from './components/RebuildVectorIndexModal';
 import DeleteVectorIndexModal from './components/DeleteVectorIndexModal';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const GraphPage = () => {
   const { page, pageSize, skip, handlePageChange } = usePagination();
@@ -66,6 +67,7 @@ const GraphPage = () => {
   const [deleteVectorIndexModalVisible, setDeleteVectorIndexModalVisible] =
     useState<boolean>(false);
   const [selectedGraph, setSelectedGraph] = useState<GraphData | null>(null);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
   const [fetchGexfByGraphId, { isLoading: isFetchGexfByGraphIdLoading }] =
     useGetGraphGexfContentByIdMutation();
 
@@ -167,7 +169,9 @@ const GraphPage = () => {
       pageTitle={
         <LitegraphFlex align="center" gap={10}>
           <LitegraphText>Graphs</LitegraphText>
-          <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
+          <LitegraphTooltip title="Search and filter graphs">
+            <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
+          </LitegraphTooltip>
           {isGraphsLoading ? (
             <LoadingOutlined className="loading-icon" />
           ) : (
@@ -178,14 +182,16 @@ const GraphPage = () => {
         </LitegraphFlex>
       }
       pageTitleRightContent={
-        <LitegraphButton
-          type="link"
-          icon={<PlusSquareOutlined />}
-          onClick={handleCreateGraph}
-          weight={500}
-        >
-          Create Graph
-        </LitegraphButton>
+        <LitegraphTooltip title="Create a new graph">
+          <LitegraphButton
+            type="link"
+            icon={<PlusSquareOutlined />}
+            onClick={handleCreateGraph}
+            weight={500}
+          >
+            Create Graph
+          </LitegraphButton>
+        </LitegraphTooltip>
       }
     >
       <>
@@ -215,7 +221,8 @@ const GraphPage = () => {
             handleReadVectorIndexStats,
             handleRebuildVectorIndex,
             handleDeleteVectorIndex,
-            hasScoreOrDistance
+            hasScoreOrDistance,
+            setJsonViewRecord
           )}
           dataSource={graphDataSource}
           loading={isGraphsLoading || isFetchGexfByGraphIdLoading}
@@ -303,6 +310,12 @@ const GraphPage = () => {
           setDeleteVectorIndexModalVisible(false);
           setSelectedGraph(null);
         }}
+      />
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Graph JSON"
       />
     </PageContainer>
   );

@@ -23,6 +23,7 @@ import { getNodeAndEdgeGUIDsByEntityList } from '@/utils/dataUtils';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const VectorPage = () => {
   // Redux state for the list of graphs
@@ -92,6 +93,7 @@ const VectorPage = () => {
   const [selectedVector, setSelectedVector] = useState<VectorType | null | undefined>(null);
   const [isAddEditVectorVisible, setIsAddEditVectorVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
 
   const handleCreateVector = () => {
     setSelectedVector(null);
@@ -126,14 +128,16 @@ const VectorPage = () => {
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphButton
-              type="link"
-              icon={<PlusSquareOutlined />}
-              onClick={handleCreateVector}
-              weight={500}
-            >
-              Create Vector
-            </LitegraphButton>
+            <LitegraphTooltip title="Create a new vector">
+              <LitegraphButton
+                type="link"
+                icon={<PlusSquareOutlined />}
+                onClick={handleCreateVector}
+                weight={500}
+              >
+                Create Vector
+              </LitegraphButton>
+            </LitegraphTooltip>
           )}
         </>
       }
@@ -143,7 +147,7 @@ const VectorPage = () => {
       ) : (
         <LitegraphTable
           loading={isGraphsLoading || isVectorsLoading}
-          columns={tableColumns(handleEditVector, handleDelete, isNodesLoading, isEdgesLoading)}
+          columns={tableColumns(handleEditVector, handleDelete, isNodesLoading, isEdgesLoading, setJsonViewRecord)}
           dataSource={transformedVectorsList}
           rowKey={'GUID'}
           pagination={{
@@ -180,6 +184,12 @@ const VectorPage = () => {
           onVectorDeleted={async () => await fetchNodesAndEdges()}
         />
       )}
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Vector JSON"
+      />
     </PageContainer>
   );
 };

@@ -15,11 +15,13 @@ import { TenantMetaData } from 'litegraphdb/dist/types/types';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const TenantPage = () => {
   const [selectedTenant, setSelectedTenant] = useState<TenantMetaData | null>(null);
   const [isAddEditTenantVisible, setIsAddEditTenantVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
   const { page, pageSize, skip, handlePageChange } = usePagination();
   const {
     data,
@@ -64,14 +66,16 @@ const TenantPage = () => {
         </LitegraphFlex>
       }
       pageTitleRightContent={
-        <LitegraphButton
-          type="link"
-          icon={<PlusSquareOutlined />}
-          onClick={handleCreateTenant}
-          weight={500}
-        >
-          Create Tenant
-        </LitegraphButton>
+        <LitegraphTooltip title="Create a new tenant">
+          <LitegraphButton
+            type="link"
+            icon={<PlusSquareOutlined />}
+            onClick={handleCreateTenant}
+            weight={500}
+          >
+            Create Tenant
+          </LitegraphButton>
+        </LitegraphTooltip>
       }
     >
       {error && !isTenantsLoading ? (
@@ -79,7 +83,7 @@ const TenantPage = () => {
       ) : (
         <LitegraphTable
           loading={isTenantsLoading}
-          columns={tableColumns(handleEditTenant, handleDeleteTenant)}
+          columns={tableColumns(handleEditTenant, handleDeleteTenant, setJsonViewRecord)}
           dataSource={tenantsList}
           rowKey={'GUID'}
           pagination={{
@@ -110,6 +114,12 @@ const TenantPage = () => {
           setSelectedTenant={setSelectedTenant}
         />
       )}
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Tenant JSON"
+      />
     </PageContainer>
   );
 };

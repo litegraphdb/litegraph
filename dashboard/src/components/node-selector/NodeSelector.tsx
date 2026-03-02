@@ -17,6 +17,7 @@ type NodeSelectorProps = {
   label?: string;
   required?: boolean;
   rules?: Rule[];
+  tooltip?: string;
   // Add support for local nodes
   localNodes?: any[];
 };
@@ -28,6 +29,7 @@ const NodeSelector: React.FC<NodeSelectorProps> = ({
   label,
   required,
   rules,
+  tooltip = 'Search and select a node',
   localNodes = [],
 }) => {
   const selectedGraph = useSelectedGraph();
@@ -195,7 +197,7 @@ const NodeSelector: React.FC<NodeSelectorProps> = ({
   };
 
   return (
-    <Form.Item name={name} className={className} label={label} required={required} rules={rules}>
+    <Form.Item name={name} className={className} label={label} required={required} rules={rules} tooltip={tooltip}>
       <LitegraphSelect
         showSearch
         loading={isNodeLoading || fetching}

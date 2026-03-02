@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { Input, Empty, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
+import { columnTooltip } from '@/utils/tooltipUtils';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphTable from '@/components/base/table/Table';
 import { useSearchNodesMutation } from '@/lib/store/slice/slice';
@@ -66,22 +68,22 @@ const NodeSearchModal = ({
 
   const columns: ColumnType<Node>[] = [
     {
-      title: 'Name',
+      title: columnTooltip('Name', 'Node display name'),
       dataIndex: 'Name',
       key: 'Name',
       render: (text: string) => text || '-',
     },
     {
-      title: 'Labels',
+      title: columnTooltip('Labels', 'Classification labels'),
       dataIndex: 'Labels',
       key: 'Labels',
       render: (labels: string[]) => (labels && labels.length > 0 ? labels.join(', ') : '-'),
     },
     {
-      title: 'GUID',
+      title: columnTooltip('GUID', 'Globally unique identifier'),
       dataIndex: 'GUID',
       key: 'GUID',
-      render: (text: string) => <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{text}</span>,
+      render: (text: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{text}<CopyButton text={text} tooltipTitle="Copy GUID" /></span>,
     },
   ];
 

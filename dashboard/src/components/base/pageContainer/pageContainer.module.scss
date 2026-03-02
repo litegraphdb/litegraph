@@ -1,11 +1,11 @@
 .pageContainer {
   background: var(--ant-color-bg-base);
-  border-radius: var(--ant-border-radius-sm);
-  min-height: calc(100vh - 70px);
+  border-radius: 0;
+  min-height: calc(100vh - 64px);
 }
 
 .pageTitleContainer {
-  padding: 16px 24px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--ant-color-border);
 }
 
@@ -13,4 +13,21 @@
   padding: 24px;
   max-height: calc(100vh - 132px);
   overflow: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ant-color-border);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 }

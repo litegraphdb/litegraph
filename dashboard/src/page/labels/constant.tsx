@@ -1,20 +1,24 @@
 import React from 'react';
-import { LoadingOutlined, MoreOutlined } from '@ant-design/icons';
+import { LoadingOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { Button, Dropdown, TableProps } from 'antd';
 import { formatDateTime } from '@/utils/dateUtils';
 import { onGUIDFilter, onNameFilter } from '@/constants/table';
 import TableSearch from '@/components/table-search/TableSearch';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { LabelMetadataForTable } from './types';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 export const tableColumns = (
   handleEdit: (record: LabelMetadataForTable) => void,
   handleDelete: (record: LabelMetadataForTable) => void,
   isNodesLoading: boolean,
-  isEdgesLoading: boolean
+  isEdgesLoading: boolean,
+  handleViewJson?: (record: LabelMetadataForTable) => void
 ): TableProps<LabelMetadataForTable>['columns'] => [
   {
-    title: 'Label',
+    title: columnTooltip('Label', 'Label text value'),
     dataIndex: 'Label',
     key: 'Label',
     width: 250,
@@ -31,7 +35,7 @@ export const tableColumns = (
   },
 
   {
-    title: 'GUID',
+    title: columnTooltip('GUID', 'Globally unique identifier'),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
@@ -39,14 +43,10 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => (
-      <div>
-        <div>{GUID}</div>
-      </div>
-    ),
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
   },
   {
-    title: 'Node',
+    title: columnTooltip('Node', 'Associated node name'),
     dataIndex: 'NodeName',
     key: 'NodeName',
     width: 200,
@@ -66,7 +66,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'Edge',
+    title: columnTooltip('Edge', 'Associated edge name'),
     dataIndex: 'EdgeName',
     key: 'EdgeName',
     width: 200,
@@ -86,7 +86,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'Created UTC',
+    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 200,
@@ -95,7 +95,7 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: 'Actions',
+    title: columnTooltip('Actions', 'Available operations'),
     key: 'actions',
     render: (_: any, record: LabelMetadataForTable) => {
       const items = [
@@ -109,15 +109,23 @@ export const tableColumns = (
           label: 'Delete',
           onClick: () => handleDelete(record),
         },
+        {
+          icon: <CodeOutlined />,
+          key: 'view-json',
+          label: 'View JSON',
+          onClick: () => handleViewJson?.(record),
+        },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <Button
-            role="label-action-menu"
-            type="text"
-            icon={<MoreOutlined style={{ fontSize: '20px' }} />}
-            style={{ fontSize: '16px' }}
-          />
+          <LitegraphTooltip title="Actions">
+            <Button
+              role="label-action-menu"
+              type="text"
+              icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+              style={{ fontSize: '16px' }}
+            />
+          </LitegraphTooltip>
         </Dropdown>
       );
     },

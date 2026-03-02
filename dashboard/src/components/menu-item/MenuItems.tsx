@@ -4,6 +4,7 @@ import { MenuItemProps } from './types';
 import Link from 'next/link';
 import { useAppDynamicNavigation } from '@/hooks/hooks';
 import { ItemType } from 'antd/es/menu/interface';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 interface MenuItemsProps extends MenuProps {
   menuItems: MenuItemProps[];
@@ -27,9 +28,11 @@ const MenuItems = ({ menuItems, handleClickMenuItem, ...rest }: MenuItemsProps) 
         key: item.key,
         icon: item.icon,
         label: (
-          <Link href={serializePath(item.path) || '#'}>
-            <span>{item.label}</span>
-          </Link>
+          <LitegraphTooltip title={item.title || item.label} placement="right">
+            <Link href={serializePath(item.path) || '#'}>
+              <span>{item.label}</span>
+            </Link>
+          </LitegraphTooltip>
         ),
         onClick: () => handleClickMenuItem && handleClickMenuItem(item),
       };

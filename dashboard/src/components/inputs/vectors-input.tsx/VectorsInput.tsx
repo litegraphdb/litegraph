@@ -11,6 +11,7 @@ import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import { toast } from 'react-hot-toast';
 import { copyJsonToClipboard } from '@/utils/jsonCopyUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 interface VectorsInputProps {
   value?: any[];
@@ -36,10 +37,12 @@ const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], onChange, name,
             ? fields.map((field, index) => (
                 <div key={field.key} className={styles.vectorInput}>
                   {!readonly && (
-                    <CloseCircleFilled
-                      onClick={() => remove(field.name)}
-                      className={styles.closeIcon}
-                    />
+                    <LitegraphTooltip title="Remove this vector">
+                      <CloseCircleFilled
+                        onClick={() => remove(field.name)}
+                        className={styles.closeIcon}
+                      />
+                    </LitegraphTooltip>
                   )}
 
                   <LitegraphFlex gap={10}>
@@ -88,14 +91,16 @@ const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], onChange, name,
                       <LitegraphFlex align="center" gap={8}>
                         <span>Vectors</span>
                         {readonly && (
-                          <CopyOutlined
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => {
-                              const vectors =
-                                form.getFieldValue([name, field.name, 'Vectors']) || [];
-                              copyJsonToClipboard(vectors, 'Vectors');
-                            }}
-                          />
+                          <LitegraphTooltip title="Copy vectors to clipboard">
+                            <CopyOutlined
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => {
+                                const vectors =
+                                  form.getFieldValue([name, field.name, 'Vectors']) || [];
+                                copyJsonToClipboard(vectors, 'Vectors');
+                              }}
+                            />
+                          </LitegraphTooltip>
                         )}
                       </LitegraphFlex>
                     }
@@ -121,22 +126,24 @@ const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], onChange, name,
 
           {!readonly && (
             <Form.Item>
-              <Button
-                type="dashed"
-                onClick={() => {
-                  add({
-                    Model: '',
-                    Dimensionality: 0,
-                    Content: '',
-                    Vectors: [0.1, 0.2, 0.3],
-                  });
-                  setUniqueKeys([...uniqueKeys, v4()]);
-                }}
-                icon={<PlusOutlined />}
-                style={{ width: '100%' }}
-              >
-                Add Vector
-              </Button>
+              <LitegraphTooltip title="Add a new vector entry">
+                <Button
+                  type="dashed"
+                  onClick={() => {
+                    add({
+                      Model: '',
+                      Dimensionality: 0,
+                      Content: '',
+                      Vectors: [0.1, 0.2, 0.3],
+                    });
+                    setUniqueKeys([...uniqueKeys, v4()]);
+                  }}
+                  icon={<PlusOutlined />}
+                  style={{ width: '100%' }}
+                >
+                  Add Vector
+                </Button>
+              </LitegraphTooltip>
               <Form.ErrorList errors={errors} />
             </Form.Item>
           )}

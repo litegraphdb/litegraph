@@ -6,10 +6,11 @@
 .graphContainer {
   height: calc(100vh - 220px);
   overflow: hidden;
-  border-radius: var(--ant-border-radius-sm);
+  border-radius: 12px;
   background-color: var(--ant-color-bg-base);
   border: 1px solid var(--ant-color-border);
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
 .legendContainer {
@@ -19,20 +20,18 @@
   left: 10px;
   width: fit-content !important;
   margin: auto;
-  // transform: translateX(50%);
   z-index: 1000;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   font-size: var(--ant-font-size);
-  // background-color: var(--ant-color-bg-base);
-  border-radius: var(--ant-border-radius-lg);
+  border-radius: 8px;
   overflow: visible;
   border: 1px solid var(--ant-color-border-secondary);
   padding: var(--ant-padding-xs) var(--ant-padding-sm);
-  box-shadow: var(--ant-box-shadow-secondary);
+  box-shadow: var(--shadow-md);
   position: absolute;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(8px);
   .legendColor {
     width: 10px;
     height: 10px;
@@ -70,6 +69,13 @@
   width: 100%;
 }
 
+.emptyState {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .moreThanSupportedNodes {
   position: absolute !important;
   bottom: 10px;
@@ -78,6 +84,7 @@
   padding: var(--ant-padding-xs) var(--ant-padding) !important;
   background-color: var(--ant-color-warning);
   z-index: 1000;
-  border-radius: 30px;
+  border-radius: 24px;
   align-items: center !important;
+  box-shadow: var(--shadow-md);
 }

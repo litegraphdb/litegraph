@@ -30,6 +30,7 @@ import { useEnumerateAndSearchEdgeQuery, useGetManyNodesQuery } from '@/lib/stor
 import { EnumerateAndSearchRequest } from 'litegraphdb/dist/types/types';
 import AppliedFilter from '@/components/table-filter/AppliedFilter';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const EdgePage = () => {
   // Redux state for the list of graphs
@@ -76,6 +77,7 @@ const EdgePage = () => {
   const [isAddEditEdgeVisible, setIsAddEditEdgeVisible] = useState<boolean>(false);
   const [isDeleteModelVisisble, setIsDeleteModelVisisble] = useState<boolean>(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
 
   const transformedEdgesList = transformEdgeDataForTable(edgesList?.Objects || [], nodesList || []);
 
@@ -113,7 +115,9 @@ const EdgePage = () => {
         <LitegraphFlex align="center" gap={10}>
           <LitegraphText>Edges</LitegraphText>
           {selectedGraphRedux && (
-            <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
+            <LitegraphTooltip title="Search and filter edges">
+              <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
+            </LitegraphTooltip>
           )}
           {isEdgesLoading ? (
             <LoadingOutlined className="loading-icon" />
@@ -127,14 +131,16 @@ const EdgePage = () => {
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphButton
-              type="link"
-              icon={<PlusSquareOutlined />}
-              onClick={handleCreateEdge}
-              weight={500}
-            >
-              Create Edge
-            </LitegraphButton>
+            <LitegraphTooltip title="Create a new edge">
+              <LitegraphButton
+                type="link"
+                icon={<PlusSquareOutlined />}
+                onClick={handleCreateEdge}
+                weight={500}
+              >
+                Create Edge
+              </LitegraphButton>
+            </LitegraphTooltip>
           )}
         </>
       }
@@ -160,7 +166,7 @@ const EdgePage = () => {
             )}
           </LitegraphFlex>
           <LitegraphTable
-            columns={tableColumns(handleEditEdge, handleDelete, hasScoreOrDistance, isNodesLoading)}
+            columns={tableColumns(handleEditEdge, handleDelete, hasScoreOrDistance, isNodesLoading, setJsonViewRecord)}
             dataSource={transformedEdgesList}
             loading={isEdgesLoading}
             rowKey={'GUID'}
@@ -194,6 +200,12 @@ const EdgePage = () => {
         setIsSearchModalVisible={setShowSearchModal}
         isSearchModalVisible={showSearchModal}
         onSearch={onSearch}
+      />
+      <ViewJsonModal
+        open={!!jsonViewRecord}
+        onClose={() => setJsonViewRecord(null)}
+        data={jsonViewRecord}
+        title="Edge JSON"
       />
     </PageContainer>
   );

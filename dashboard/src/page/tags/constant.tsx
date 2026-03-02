@@ -1,20 +1,24 @@
 import React from 'react';
-import { LoadingOutlined, MoreOutlined } from '@ant-design/icons';
+import { LoadingOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { Button, Dropdown, TableProps } from 'antd';
 import { TagType } from '@/types/types';
 import { formatDateTime } from '@/utils/dateUtils';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import TableSearch from '@/components/table-search/TableSearch';
 import { onGUIDFilter, onNameFilter } from '@/constants/table';
+import { columnTooltip } from '@/utils/tooltipUtils';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 export const tableColumns = (
   handleEdit: (record: TagType) => void,
   handleDelete: (record: TagType) => void,
   isNodesLoading: boolean,
-  isEdgesLoading: boolean
+  isEdgesLoading: boolean,
+  handleViewJson?: (record: TagType) => void
 ): TableProps<TagType>['columns'] => [
   {
-    title: 'Key',
+    title: columnTooltip('Key', 'Tag key identifier'),
     dataIndex: 'Key',
     key: 'Key',
     width: 200,
@@ -31,7 +35,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'Value',
+    title: columnTooltip('Value', 'Tag value'),
     dataIndex: 'Value',
     filterDropdown: (props: FilterDropdownProps) => (
       <TableSearch {...props} placeholder="Search Value" />
@@ -48,7 +52,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: 'GUID',
+    title: columnTooltip('GUID', 'Globally unique identifier'),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
@@ -57,14 +61,10 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => (
-      <div>
-        <div>{GUID}</div>
-      </div>
-    ),
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
   },
   {
-    title: 'Node',
+    title: columnTooltip('Node', 'Associated node name'),
     dataIndex: 'NodeName',
     sorter: (a: TagType, b: TagType) => a.NodeName?.localeCompare(b.NodeName || '') || 0,
     key: 'NodeName',
@@ -84,7 +84,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'Edge',
+    title: columnTooltip('Edge', 'Associated edge name'),
     dataIndex: 'EdgeName',
     sorter: (a: TagType, b: TagType) => a.EdgeName?.localeCompare(b.EdgeName || '') || 0,
     key: 'EdgeName',
@@ -104,7 +104,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: 'Created UTC',
+    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
     dataIndex: 'CreatedUtc',
     sorter: (a: TagType, b: TagType) =>
       new Date(a.CreatedUtc).getTime() - new Date(b.CreatedUtc).getTime(),
@@ -114,7 +114,7 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: 'Actions',
+    title: columnTooltip('Actions', 'Available operations'),
     key: 'actions',
     render: (_: any, record: TagType) => {
       const items = [
@@ -128,14 +128,22 @@ export const tableColumns = (
           label: 'Delete',
           onClick: () => handleDelete(record),
         },
+        {
+          icon: <CodeOutlined />,
+          key: 'view-json',
+          label: 'View JSON',
+          onClick: () => handleViewJson?.(record),
+        },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <Button
-            type="text"
-            icon={<MoreOutlined style={{ fontSize: '20px' }} />}
-            role="tag-action-menu"
-          />
+          <LitegraphTooltip title="Actions">
+            <Button
+              type="text"
+              icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+              role="tag-action-menu"
+            />
+          </LitegraphTooltip>
         </Dropdown>
       );
     },

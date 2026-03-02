@@ -65,13 +65,14 @@ const SearchModal = ({
         layout="vertical"
         onFinish={handleSearch}
       >
-        <LabelInput name="labels" />
-        <Form.Item label="Tags" rules={[{ validator: validateAtLeastOne(form) }]}>
+        <LabelInput name="labels" tooltip="Filter by classification labels" />
+        <Form.Item label="Tags" tooltip="Filter by key-value tags" rules={[{ validator: validateAtLeastOne(form) }]}>
           <TagsInput name="tags" />
         </Form.Item>
         <LitegraphFormItem
           label="Expression"
           name="expr"
+          tooltip="Filter using expression syntax"
           rules={[{ validator: validateAtLeastOne(form) }]}
           extra={
             <>
