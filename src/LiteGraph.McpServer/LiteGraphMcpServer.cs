@@ -6,6 +6,8 @@ namespace LiteGraph.McpServer
     using System.Net;
     using System.Runtime.Loader;
     using System.Text;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.McpServer.Classes;
@@ -25,6 +27,8 @@ namespace LiteGraph.McpServer
         private static string _SoftwareVersion = Constants.Version;
         private static int _ProcessId = Environment.ProcessId;
         private static bool _ShowConfiguration = false;
+        private static bool _RunInstall = false;
+        private static bool _DryRun = false;
 
         private static LiteGraphMcpServerSettings _Settings = new LiteGraphMcpServerSettings();
         private static LoggingModule _Logging = null!;
@@ -56,6 +60,13 @@ namespace LiteGraph.McpServer
             Welcome();
             ParseArguments(args);
             InitializeSettings();
+
+            if (_RunInstall)
+            {
+                RunInstall(_DryRun);
+                Environment.Exit(0);
+            }
+
             InitializeGlobals();
 
             _Logging.Info(_Header + "starting at " + DateTime.UtcNow + " using process ID " + _ProcessId + Environment.NewLine);
@@ -113,6 +124,16 @@ namespace LiteGraph.McpServer
                     if (arg.Equals("--showconfig"))
                     {
                         _ShowConfiguration = true;
+                    }
+
+                    if (arg.Equals("install", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _RunInstall = true;
+                    }
+
+                    if (arg.Equals("--dry-run", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _DryRun = true;
                     }
 
                     if (arg.Equals("--help") || arg.Equals("-h"))
@@ -430,6 +451,8 @@ namespace LiteGraph.McpServer
             Console.WriteLine("Options:");
             Console.WriteLine("  --config=<file>        Settings file path (default: ./litegraph.json)");
             Console.WriteLine("  --showconfig           Display configuration and exit");
+            Console.WriteLine("  install                Auto-configure Claude Code (writes ~/.claude.json and agent definition)");
+            Console.WriteLine("  install --dry-run      Preview install changes without writing files");
             Console.WriteLine("  --help, -h             Show this help message");
             Console.WriteLine();
             Console.WriteLine("Configuration:");
@@ -444,6 +467,165 @@ namespace LiteGraph.McpServer
             Console.WriteLine("    LITEGRAPH_ENDPOINT    - Override LiteGraph.Endpoint");
             Console.WriteLine("    LITEGRAPH_API_KEY     - Override LiteGraph.ApiKey");
             Console.WriteLine();
+        }
+
+        private static void RunInstall(bool dryRun)
+        {
+            string httpHostname = _Settings.Http.Hostname;
+            int httpPort = _Settings.Http.Port;
+            string mcpUrl = "http://" + httpHostname + ":" + httpPort + "/rpc";
+
+            Console.WriteLine(dryRun ? "[DRY RUN] Previewing install changes..." : "Installing LiteGraph MCP configuration...");
+            Console.WriteLine();
+
+            // --- ~/.claude.json ---
+            string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string claudeJsonPath = Path.Combine(homeDirectory, ".claude.json");
+
+            JsonNode claudeJsonRoot;
+
+            if (File.Exists(claudeJsonPath))
+            {
+                string existingContent = File.ReadAllText(claudeJsonPath);
+                claudeJsonRoot = JsonNode.Parse(existingContent) ?? new JsonObject();
+            }
+            else
+            {
+                claudeJsonRoot = new JsonObject();
+            }
+
+            JsonObject mcpServersNode;
+            if (claudeJsonRoot["mcpServers"] is JsonObject existingMcpServers)
+            {
+                mcpServersNode = existingMcpServers;
+            }
+            else
+            {
+                mcpServersNode = new JsonObject();
+                claudeJsonRoot["mcpServers"] = mcpServersNode;
+            }
+
+            JsonObject litegraphEntry = new JsonObject
+            {
+                ["type"] = "http",
+                ["url"] = mcpUrl
+            };
+
+            mcpServersNode["litegraph"] = litegraphEntry;
+
+            JsonSerializerOptions jsonWriteOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+
+            string claudeJsonOutput = claudeJsonRoot.ToJsonString(jsonWriteOptions);
+
+            if (dryRun)
+            {
+                Console.WriteLine("[DRY RUN] Would write to: " + claudeJsonPath);
+                Console.WriteLine(claudeJsonOutput);
+                Console.WriteLine();
+            }
+            else
+            {
+                File.WriteAllText(claudeJsonPath, claudeJsonOutput);
+                Console.WriteLine("Updated: " + claudeJsonPath);
+                Console.WriteLine();
+            }
+
+            // --- ~/.claude/agents/litegraph.md ---
+            string claudeAgentsDirectory = Path.Combine(homeDirectory, ".claude", "agents");
+            string agentFilePath = Path.Combine(claudeAgentsDirectory, "litegraph.md");
+
+            string agentContent =
+                "---" + Environment.NewLine +
+                "name: litegraph" + Environment.NewLine +
+                "description: LiteGraph knowledge graph database agent — create, query, and manage graph data including nodes, edges, labels, tags, and vector embeddings." + Environment.NewLine +
+                "allowedTools:" + Environment.NewLine +
+                "  - mcp__litegraph__*" + Environment.NewLine +
+                "---" + Environment.NewLine +
+                Environment.NewLine +
+                "You are a LiteGraph graph database assistant. Use the LiteGraph MCP tools to help users manage their graph data." + Environment.NewLine +
+                Environment.NewLine +
+                "## Key Concepts" + Environment.NewLine +
+                Environment.NewLine +
+                "- **Tenant**: Top-level isolation boundary. All operations require a tenant GUID." + Environment.NewLine +
+                "- **Graph**: A container for nodes and edges within a tenant." + Environment.NewLine +
+                "- **Node**: An entity in the graph. Can have labels, tags, vectors, and arbitrary JSON data." + Environment.NewLine +
+                "- **Edge**: A directed relationship between two nodes with optional cost, labels, tags, and data." + Environment.NewLine +
+                "- **Vector**: A multi-dimensional embedding attached to a node for similarity search." + Environment.NewLine +
+                "- **Label**: A string annotation on a node or edge." + Environment.NewLine +
+                "- **Tag**: A key-value metadata pair on a node or edge." + Environment.NewLine +
+                Environment.NewLine +
+                "## Workflow" + Environment.NewLine +
+                Environment.NewLine +
+                "1. Ensure a tenant exists (use `tenant/all` to list, `tenant/create` to create)." + Environment.NewLine +
+                "2. Create or select a graph within the tenant." + Environment.NewLine +
+                "3. Create nodes and edges to model relationships." + Environment.NewLine +
+                "4. Attach labels, tags, and vectors as needed." + Environment.NewLine +
+                "5. Use search tools to query the graph." + Environment.NewLine +
+                "6. Use `node/routes` to find paths between nodes." + Environment.NewLine +
+                Environment.NewLine +
+                "## Guidelines" + Environment.NewLine +
+                Environment.NewLine +
+                "- Always confirm the tenant and graph GUIDs before performing operations." + Environment.NewLine +
+                "- Use `search` tools with expression filters for targeted queries." + Environment.NewLine +
+                "- Prefer batch operations (`node/createmany`, `edge/createmany`) for bulk data." + Environment.NewLine +
+                "- Use vector search (`vector/search`) for semantic similarity queries." + Environment.NewLine +
+                "- Check graph export (`graph/export`) for full graph snapshots." + Environment.NewLine;
+
+            if (dryRun)
+            {
+                Console.WriteLine("[DRY RUN] Would create directory: " + claudeAgentsDirectory);
+                Console.WriteLine("[DRY RUN] Would write to: " + agentFilePath);
+                Console.WriteLine(agentContent);
+                Console.WriteLine();
+            }
+            else
+            {
+                if (!Directory.Exists(claudeAgentsDirectory))
+                {
+                    Directory.CreateDirectory(claudeAgentsDirectory);
+                    Console.WriteLine("Created directory: " + claudeAgentsDirectory);
+                }
+
+                File.WriteAllText(agentFilePath, agentContent);
+                Console.WriteLine("Created: " + agentFilePath);
+                Console.WriteLine();
+            }
+
+            // --- Configuration snippets for other clients ---
+            Console.WriteLine("=== Configuration for other MCP clients ===");
+            Console.WriteLine();
+
+            Console.WriteLine("Claude Desktop (claude_desktop_config.json):");
+            Console.WriteLine("{");
+            Console.WriteLine("  \"mcpServers\": {");
+            Console.WriteLine("    \"litegraph\": {");
+            Console.WriteLine("      \"url\": \"" + mcpUrl + "\"");
+            Console.WriteLine("    }");
+            Console.WriteLine("  }");
+            Console.WriteLine("}");
+            Console.WriteLine();
+
+            Console.WriteLine("Cursor (.cursor/mcp.json):");
+            Console.WriteLine("{");
+            Console.WriteLine("  \"mcpServers\": {");
+            Console.WriteLine("    \"litegraph\": {");
+            Console.WriteLine("      \"url\": \"" + mcpUrl + "\"");
+            Console.WriteLine("    }");
+            Console.WriteLine("  }");
+            Console.WriteLine("}");
+            Console.WriteLine();
+
+            if (dryRun)
+            {
+                Console.WriteLine("[DRY RUN] No files were modified.");
+            }
+            else
+            {
+                Console.WriteLine("Installation complete. Restart Claude Code to pick up the new configuration.");
+            }
         }
 
         /// <summary>

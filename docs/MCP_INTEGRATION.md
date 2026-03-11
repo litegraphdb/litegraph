@@ -136,15 +136,15 @@ You are a LiteGraph graph database assistant. Use the LiteGraph MCP tools to hel
 
 The `install` command is implemented directly in the existing `LiteGraph.McpServer` executable — no separate CLI project is needed.
 
-- [ ] Add `install` argument detection in `ParseArguments()` alongside existing `--config`, `--showconfig`, and `--help`
-- [ ] Implement `RunInstall(bool dryRun)` method in `LiteGraphMcpServer.cs`
-- [ ] Read and parse `~/.claude.json` (create with default structure if missing)
-- [ ] Merge `mcpServers.litegraph` entry with `type: "http"` and `url` from current HTTP settings
-- [ ] Create `~/.claude/agents/` directory if missing
-- [ ] Write `litegraph.md` agent definition file
-- [ ] Support `--dry-run` flag: print what would be written without modifying files
-- [ ] Print configuration snippets for Claude Desktop, Cursor, and other clients
-- [ ] Exit after install completes (do not start the MCP server)
+- [x] Add `install` argument detection in `ParseArguments()` alongside existing `--config`, `--showconfig`, and `--help`
+- [x] Implement `RunInstall(bool dryRun)` method in `LiteGraphMcpServer.cs`
+- [x] Read and parse `~/.claude.json` (create with default structure if missing)
+- [x] Merge `mcpServers.litegraph` entry with `type: "http"` and `url` from current HTTP settings
+- [x] Create `~/.claude/agents/` directory if missing
+- [x] Write `litegraph.md` agent definition file
+- [x] Support `--dry-run` flag: print what would be written without modifying files
+- [x] Print configuration snippets for Claude Desktop, Cursor, and other clients
+- [x] Exit after install completes (do not start the MCP server)
 
 ### Configuration Snippets for Other Clients
 
