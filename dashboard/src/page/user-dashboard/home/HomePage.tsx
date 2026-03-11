@@ -6,10 +6,10 @@ import PageLoading from '@/components/base/loading/PageLoading';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import { useLayoutContext } from '@/components/layout/context';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import LitegraphButton from '@/components/base/button/Button';
 import LitegraphFlex from '@/components/base/flex/Flex';
-import { PlusSquareOutlined } from '@ant-design/icons';
+import { PlusSquareOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useAppSelector } from '@/lib/store/hooks';
 import { RootState } from '@/lib/store/store';
 
@@ -25,6 +25,11 @@ const HomePage = () => {
   // Modal state management
   const [isAddEditNodeVisible, setIsAddEditNodeVisible] = useState<boolean>(false);
   const [isAddEditEdgeVisible, setIsAddEditEdgeVisible] = useState<boolean>(false);
+  const [refetchFn, setRefetchFn] = useState<(() => void) | null>(null);
+
+  const handleRefetchReady = useCallback((refetch: () => void) => {
+    setRefetchFn(() => refetch);
+  }, []);
 
   const { isGraphsLoading, graphError, refetchGraphs } = useLayoutContext();
 
@@ -48,6 +53,16 @@ const HomePage = () => {
       pageTitleRightContent={
         Boolean(selectedGraphRedux) ? (
           <LitegraphFlex>
+            <LitegraphButton
+              type="link"
+              icon={<ReloadOutlined />}
+              onClick={() => refetchFn?.()}
+              weight={600}
+              disabled={!refetchFn}
+            >
+              Refresh
+            </LitegraphButton>
+
             <LitegraphButton
               type="link"
               icon={<PlusSquareOutlined />}
@@ -79,6 +94,7 @@ const HomePage = () => {
           setEdgeTooltip={setEdgeTooltip}
           isAddEditEdgeVisible={isAddEditEdgeVisible}
           setIsAddEditEdgeVisible={setIsAddEditEdgeVisible}
+          onRefetchReady={handleRefetchReady}
         />
       </div>
     </PageContainer>

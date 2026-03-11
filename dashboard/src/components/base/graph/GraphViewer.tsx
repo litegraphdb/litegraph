@@ -23,7 +23,7 @@ import ErrorBoundary from '@/hoc/ErrorBoundary';
 import LitegraphDivider from '../divider/Divider';
 import { getLegendsForNodes } from './utils';
 import { MAX_NODES_TO_FETCH } from '@/constants/constant';
-import { CloseCircleOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, RedoOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import LitegraphButton from '../button/Button';
 import NodeSearchModal from './NodeSearchModal';
 import { Node } from 'litegraphdb/dist/types/types';
@@ -39,6 +39,7 @@ const GraphViewer = ({
   setIsAddEditNodeVisible,
   isAddEditEdgeVisible,
   setIsAddEditEdgeVisible,
+  onRefetchReady,
 }: {
   nodeTooltip: GraphNodeTooltip;
   edgeTooltip: GraphEdgeTooltip;
@@ -48,6 +49,7 @@ const GraphViewer = ({
   setIsAddEditNodeVisible: Dispatch<SetStateAction<boolean>>;
   isAddEditEdgeVisible: boolean;
   setIsAddEditEdgeVisible: Dispatch<SetStateAction<boolean>>;
+  onRefetchReady?: (refetch: () => void) => void;
 }) => {
   // Redux state for the list of graphs
   const [containerDivHeightAndWidth, setContainerDivHeightAndWidth] = useState<{
@@ -123,6 +125,12 @@ const GraphViewer = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (refetch && onRefetchReady) {
+      onRefetchReady(refetch);
+    }
+  }, [refetch, onRefetchReady]);
+
   const handleNodeSelect = async (node: Node) => {
     // Handle node selection - you can add custom logic here
     // For example, focus on the node in the graph, show tooltip, etc.
@@ -155,6 +163,16 @@ const GraphViewer = ({
             <LitegraphFlex gap={10} align="center">
               {selectedGraphRedux && (
                 <>
+                  <LitegraphTooltip title="Refresh graph data">
+                    <LitegraphButton
+                      type="text"
+                      icon={<ReloadOutlined spin={isNodesLoading || isEdgesLoading} />}
+                      size="small"
+                      onClick={() => refetch()}
+                      disabled={isNodesLoading || isEdgesLoading}
+                    />
+                  </LitegraphTooltip>
+                  <LitegraphDivider type="vertical" />
                   {selectedNodeGuid ? (
                     <>
                       <LitegraphTooltip title="Clear sub graph">
