@@ -27,6 +27,20 @@ This monorepo contains the LiteGraph database core, server, dashboard, and clien
 - Breaking changes: migrated all APIs to full async/await
 - New MCP (Model Context Protocol) server for AI/LLM integration
 
+## AI Agent Integration
+
+LiteGraph can be controlled by Claude and other AI agents using natural language through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Instead of writing code, you can simply tell an AI assistant what you need — create graphs, add nodes and edges, run traversals, perform vector similarity searches, manage backups — and it executes the operations for you.
+
+**Why use AI agents with LiteGraph?**
+
+- **Natural language control** — describe your graph operations in plain English
+- **145+ MCP tools** — full database control without learning the API
+- **Multi-client support** — works with Claude Code, Claude Desktop, Cursor, and other MCP-compatible clients
+- **Conversational exploration** — interactively query and visualize your graph data
+- **Zero SDK knowledge required** — the agent handles the API calls
+
+Get started in minutes: **[Using Claude with LiteGraph](CLAUDE_MCP.md)**
+
 ## Bugs, Feedback, or Enhancement Requests
 
 Please feel free to start an issue or a discussion! For detailed documentation and guides, visit [litegraph.readme.io](https://litegraph.readme.io/).
