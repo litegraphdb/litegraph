@@ -125,11 +125,14 @@ const GraphViewer = ({
     };
   }, []);
 
+  const onRefetchReadyRef = useRef(onRefetchReady);
+  onRefetchReadyRef.current = onRefetchReady;
+
   useEffect(() => {
-    if (refetch && onRefetchReady) {
-      onRefetchReady(refetch);
+    if (refetch && onRefetchReadyRef.current) {
+      onRefetchReadyRef.current(refetch);
     }
-  }, [refetch, onRefetchReady]);
+  }, [refetch]);
 
   const handleNodeSelect = async (node: Node) => {
     // Handle node selection - you can add custom logic here

@@ -6,7 +6,7 @@ import PageLoading from '@/components/base/loading/PageLoading';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import { useLayoutContext } from '@/components/layout/context';
 import dynamic from 'next/dynamic';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import LitegraphButton from '@/components/base/button/Button';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import { PlusSquareOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -25,10 +25,12 @@ const HomePage = () => {
   // Modal state management
   const [isAddEditNodeVisible, setIsAddEditNodeVisible] = useState<boolean>(false);
   const [isAddEditEdgeVisible, setIsAddEditEdgeVisible] = useState<boolean>(false);
-  const [refetchFn, setRefetchFn] = useState<(() => void) | null>(null);
+  const refetchFnRef = useRef<(() => void) | null>(null);
+  const [, setRefetchReady] = useState(0);
 
   const handleRefetchReady = useCallback((refetch: () => void) => {
-    setRefetchFn(() => refetch);
+    refetchFnRef.current = refetch;
+    setRefetchReady((prev) => prev + 1);
   }, []);
 
   const { isGraphsLoading, graphError, refetchGraphs } = useLayoutContext();
@@ -56,9 +58,9 @@ const HomePage = () => {
             <LitegraphButton
               type="link"
               icon={<ReloadOutlined />}
-              onClick={() => refetchFn?.()}
+              onClick={() => refetchFnRef.current?.()}
               weight={600}
-              disabled={!refetchFn}
+              disabled={!refetchFnRef.current}
             >
               Refresh
             </LitegraphButton>
