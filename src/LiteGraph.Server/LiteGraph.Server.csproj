@@ -12,8 +12,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="OpenTelemetry" Version="1.15.2" />
-		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.2" />
+		<PackageReference Include="OpenTelemetry" Version="1.15.3" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
 		<PackageReference Include="Watson" Version="7.0.10" />
 	</ItemGroup>
 
