@@ -2,13 +2,13 @@
   "CreatedUtc": "2025-11-24T10:13:33.307268Z",
   "CreatedBy": "Setup",
   "DeploymentType": "Private",
-  "SoftwareVersion": "v6.0.0",
+  "SoftwareVersion": "v6.0.1",
   "Node": {
     "GUID": "d2ebf75d-ec51-4836-b831-6555bff66ef7",
     "Name": "LiteGraph Model Context Protocol Server",
     "Hostname": "localhost",
     "InstanceType": "McpServer",
-    "LastStartUtc": "2025-11-27T07:02:15.780868Z",
+    "LastStartUtc": "2026-05-20T00:05:17.845620Z",
     "CreatedUtc": "2025-11-24T10:13:33.309647Z"
   },
   "Logging": {
@@ -20,20 +20,20 @@
     "MinimumSeverity": 0
   },
   "LiteGraph": {
-    "Endpoint": "http://localhost:8701",
+    "Endpoint": "http://litegraph:8701",
     "ApiKey": "litegraphadmin"
   },
   "Http": {
     "Hostname": "*",
-    "Port": 8200
+    "Port": 8702
   },
   "Tcp": {
-    "Address": "*",
-    "Port": 8201
+    "Address": "0.0.0.0",
+    "Port": 8703
   },
   "WebSocket": {
     "Hostname": "*",
-    "Port": 8202
+    "Port": 8704
   },
   "Storage": {
     "BackupsDirectory": "./backups/",

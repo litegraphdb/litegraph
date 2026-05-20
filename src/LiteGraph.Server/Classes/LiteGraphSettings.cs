@@ -60,10 +60,9 @@
         }
 
         /// <summary>
-        /// Maximum number of concurrent operations.
-        /// For higher concurrency, use a lower number (e.g. 1).
-        /// For lower concurrency, use a higher number (e.g. 10).
-        /// This value dictates the maximum number of operations that may be operating in parallel at any one given time.
+        /// Reserved concurrency limit setting.
+        /// This value is preserved for compatibility with existing configuration files.
+        /// The current server request pipeline does not actively enforce it.
         /// </summary>
         public int MaxConcurrentOperations
         {

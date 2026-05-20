@@ -15,7 +15,7 @@ namespace LiteGraph.McpServer.Classes
         /// <summary>
         /// HTTP server port.
         /// </summary>
-        public int Port { get; set; } = 8200;
+        public int Port { get; set; } = 8702;
 
         #endregion
 

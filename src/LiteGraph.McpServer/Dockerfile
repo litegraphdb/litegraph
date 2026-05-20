@@ -44,6 +44,6 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS final
 RUN apt-get update && apt-get install -y iputils-ping traceroute net-tools curl wget dnsutils iproute2 vim file && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=publish /app/publish .
-EXPOSE 8200 8201 8202
+EXPOSE 8702 8703 8704
 ENTRYPOINT ["dotnet", "LiteGraph.McpServer.dll"]
 

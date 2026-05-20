@@ -236,7 +236,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
 
             _Filename = filename;
 
-            if (!_InMemory) _ConnectionString = "Data Source=" + filename + ";Pooling=false";
+            if (!_InMemory) _ConnectionString = "Data Source=" + filename + ";Pooling=true";
             else _ConnectionString = "Data Source=LiteGraphMemory;Mode=Memory;Cache=Shared";
 
             _SqliteConnection = new SqliteConnection(_ConnectionString);
@@ -533,10 +533,12 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     if (Logging.LogResults) Logging.Log(SeverityEnum.Debug, "result: " + query + ": " + (result != null ? result.Rows.Count + " rows" : "(null)"));
                     return result;
                 }
+            }
 
-                if (_InMemory)
+            if (_InMemory)
+            {
+                lock (_QueryLock)
                 {
-                    // Use the instance connection for in-memory operations
                     try
                     {
                         using (SqliteCommand cmd = new SqliteCommand(query, _SqliteConnection))
@@ -560,37 +562,36 @@ namespace LiteGraph.GraphRepositories.Sqlite
                         throw;
                     }
                 }
-                else
+            }
+            else
+            {
+                using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
                 {
-                    // Original code for disk-based operations
-                    using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
+                    try
                     {
-                        try
+                        conn.Open();
+
+                        using (SqliteCommand cmd = new SqliteCommand(query, conn))
                         {
-                            conn.Open();
-
-                            using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                            using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
-                                using (SqliteDataReader rdr = cmd.ExecuteReader())
-                                {
-                                    result.Load(rdr);
-                                }
+                                result.Load(rdr);
                             }
-
-                            conn.Close();
                         }
-                        catch (Exception e)
+
+                        conn.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        if (isTransaction)
                         {
-                            if (isTransaction)
-                            {
-                                using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
-                                    cmd.ExecuteNonQuery();
-                            }
-
-                            e.Data.Add("IsTransaction", isTransaction);
-                            e.Data.Add("Query", query);
-                            throw;
+                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
+                                cmd.ExecuteNonQuery();
                         }
+
+                        e.Data.Add("IsTransaction", isTransaction);
+                        e.Data.Add("Query", query);
+                        throw;
                     }
                 }
             }
@@ -783,10 +784,12 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     if (Logging.LogResults) Logging.Log(SeverityEnum.Debug, "result: " + (result != null ? result.Rows.Count + " rows" : "(null)"));
                     return result;
                 }
+            }
 
-                if (_InMemory)
+            if (_InMemory)
+            {
+                lock (_QueryLock)
                 {
-                    // Use the instance connection for in-memory operations
                     SqliteTransaction transaction = null;
 
                     try
@@ -818,7 +821,6 @@ namespace LiteGraph.GraphRepositories.Sqlite
                                     lastResult.Load(rdr);
                                 }
 
-                                // We'll return the result of the last query that returns data
                                 if (lastResult != null && lastResult.Rows.Count > 0)
                                 {
                                     result = lastResult;
@@ -826,12 +828,10 @@ namespace LiteGraph.GraphRepositories.Sqlite
                             }
                         }
 
-                        // Commit the transaction if we're using one
                         transaction?.Commit();
                     }
                     catch (Exception e)
                     {
-                        // Roll back the transaction if an error occurs
                         transaction?.Rollback();
 
                         e.Data.Add("IsTransaction", isTransaction);
@@ -843,68 +843,64 @@ namespace LiteGraph.GraphRepositories.Sqlite
                         transaction?.Dispose();
                     }
                 }
-                else
+            }
+            else
+            {
+                using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
                 {
-                    // Original code for disk-based operations
-                    using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
+                    conn.Open();
+                    SqliteTransaction transaction = null;
+
+                    try
                     {
-                        conn.Open();
-                        SqliteTransaction transaction = null;
-
-                        try
+                        if (isTransaction)
                         {
-                            if (isTransaction)
+                            transaction = conn.BeginTransaction();
+                        }
+
+                        DataTable lastResult = null;
+
+                        foreach (string query in queries.Where(q => !string.IsNullOrEmpty(q)))
+                        {
+                            if (query.Length > MaxStatementLength)
+                                throw new ArgumentException($"Query exceeds maximum statement length of {MaxStatementLength} characters.");
+
+                            if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
+
+                            using (SqliteCommand cmd = new SqliteCommand(query, conn))
                             {
-                                transaction = conn.BeginTransaction();
-                            }
-
-                            DataTable lastResult = null;
-
-                            foreach (string query in queries.Where(q => !string.IsNullOrEmpty(q)))
-                            {
-                                if (query.Length > MaxStatementLength)
-                                    throw new ArgumentException($"Query exceeds maximum statement length of {MaxStatementLength} characters.");
-
-                                if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
-
-                                using (SqliteCommand cmd = new SqliteCommand(query, conn))
+                                if (transaction != null)
                                 {
-                                    if (transaction != null)
-                                    {
-                                        cmd.Transaction = transaction;
-                                    }
+                                    cmd.Transaction = transaction;
+                                }
 
-                                    using (SqliteDataReader rdr = cmd.ExecuteReader())
-                                    {
-                                        lastResult = new DataTable();
-                                        lastResult.Load(rdr);
-                                    }
+                                using (SqliteDataReader rdr = cmd.ExecuteReader())
+                                {
+                                    lastResult = new DataTable();
+                                    lastResult.Load(rdr);
+                                }
 
-                                    // We'll return the result of the last query that returns data
-                                    if (lastResult != null && lastResult.Rows.Count > 0)
-                                    {
-                                        result = lastResult;
-                                    }
+                                if (lastResult != null && lastResult.Rows.Count > 0)
+                                {
+                                    result = lastResult;
                                 }
                             }
+                        }
 
-                            // Commit the transaction if we're using one
-                            transaction?.Commit();
-                        }
-                        catch (Exception e)
-                        {
-                            // Roll back the transaction if an error occurs
-                            transaction?.Rollback();
+                        transaction?.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        transaction?.Rollback();
 
-                            e.Data.Add("IsTransaction", isTransaction);
-                            e.Data.Add("Queries", string.Join("; ", queries));
-                            throw;
-                        }
-                        finally
-                        {
-                            transaction?.Dispose();
-                            conn.Close();
-                        }
+                        e.Data.Add("IsTransaction", isTransaction);
+                        e.Data.Add("Queries", string.Join("; ", queries));
+                        throw;
+                    }
+                    finally
+                    {
+                        transaction?.Dispose();
+                        conn.Close();
                     }
                 }
             }

@@ -346,6 +346,9 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_data' ON 'edges' (data ASC);");
 
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid' ON 'edges' (tenantguid ASC, graphguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid_fromguid' ON 'edges' (tenantguid ASC, graphguid ASC, fromguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid_toguid' ON 'edges' (tenantguid ASC, graphguid ASC, toguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid_fromguid_toguid' ON 'edges' (tenantguid ASC, graphguid ASC, fromguid ASC, toguid ASC);");
 
             #endregion
 

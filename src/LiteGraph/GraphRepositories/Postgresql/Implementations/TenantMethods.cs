@@ -236,7 +236,7 @@
         {
             token.ThrowIfCancellationRequested();
             Dictionary<Guid, TenantStatistics> ret = new Dictionary<Guid, TenantStatistics>();
-            DataTable table = await _Repo.ExecuteQueryAsync(TenantQueries.GetStatistics(null), true, token).ConfigureAwait(false);
+            DataTable table = await _Repo.ExecuteQueryAsync(TenantQueries.GetStatistics(null), false, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0)
             {
                 foreach (DataRow row in table.Rows)
@@ -252,7 +252,7 @@
         public async Task<TenantStatistics> GetStatistics(Guid tenantGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            DataTable table = await _Repo.ExecuteQueryAsync(TenantQueries.GetStatistics(tenantGuid), true, token).ConfigureAwait(false);
+            DataTable table = await _Repo.ExecuteQueryAsync(TenantQueries.GetStatistics(tenantGuid), false, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0) return Converters.TenantStatisticsFromDataRow(table.Rows[0]);
             return null;
         }

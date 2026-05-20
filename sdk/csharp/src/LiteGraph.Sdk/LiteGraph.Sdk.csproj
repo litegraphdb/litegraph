@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>6.0.0</Version>
+		<Version>6.0.1</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>Native graph query language, graph transactions, RBAC, observability, and v6.0.0 API coverage.</PackageReleaseNotes>
+		<PackageReleaseNotes>Patch release with backend performance, Docker SQLite persistence, and Watson dependency updates for LiteGraph v6.0.1.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>LiteGraph.Sdk</Title>
@@ -53,3 +53,4 @@
 	</ItemGroup>
 
 </Project>
+

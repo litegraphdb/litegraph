@@ -51,7 +51,7 @@ namespace LiteGraph.McpServer.Classes
         #region Private-Members
 
         private string _Address = "127.0.0.1";
-        private int _Port = 8201;
+        private int _Port = 8703;
 
         #endregion
 

@@ -34,7 +34,7 @@ namespace LiteGraph.Server.API.REST
 
             AuthorizationRole created = await _LiteGraph.AuthorizationRoles.CreateRole(role, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 201;
-            await ctx.Response.Send(_Serializer.SerializeJson(created, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(created));
         }
 
         private async Task AuthorizationRoleReadManyRoute(HttpContextBase ctx)
@@ -43,7 +43,7 @@ namespace LiteGraph.Server.API.REST
             using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
             AuthorizationRoleSearchResult result = await SearchTenantVisibleRoles(req, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(result));
         }
 
         private async Task AuthorizationRoleReadRoute(HttpContextBase ctx)
@@ -59,7 +59,7 @@ namespace LiteGraph.Server.API.REST
             }
 
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(role, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(role));
         }
 
         private async Task AuthorizationRoleUpdateRoute(HttpContextBase ctx)
@@ -98,7 +98,7 @@ namespace LiteGraph.Server.API.REST
 
             AuthorizationRole updated = await _LiteGraph.AuthorizationRoles.UpdateRole(role, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(updated, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(updated));
         }
 
         private async Task AuthorizationRoleDeleteRoute(HttpContextBase ctx)
@@ -144,7 +144,7 @@ namespace LiteGraph.Server.API.REST
 
             UserRoleAssignment created = await _LiteGraph.AuthorizationRoles.CreateUserRole(assignment, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 201;
-            await ctx.Response.Send(_Serializer.SerializeJson(created, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(created));
         }
 
         private async Task UserRoleAssignmentReadManyRoute(HttpContextBase ctx)
@@ -154,7 +154,7 @@ namespace LiteGraph.Server.API.REST
             UserRoleAssignmentSearchRequest search = BuildUserRoleAssignmentSearch(req);
             UserRoleAssignmentSearchResult result = await _LiteGraph.AuthorizationRoles.SearchUserRoles(search, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(result));
         }
 
         private async Task UserRoleAssignmentReadRoute(HttpContextBase ctx)
@@ -170,7 +170,7 @@ namespace LiteGraph.Server.API.REST
             }
 
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(assignment, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(assignment));
         }
 
         private async Task UserRoleAssignmentUpdateRoute(HttpContextBase ctx)
@@ -204,7 +204,7 @@ namespace LiteGraph.Server.API.REST
 
             UserRoleAssignment updated = await _LiteGraph.AuthorizationRoles.UpdateUserRole(assignment, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(updated, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(updated));
         }
 
         private async Task UserRoleAssignmentDeleteRoute(HttpContextBase ctx)
@@ -245,7 +245,7 @@ namespace LiteGraph.Server.API.REST
 
             CredentialScopeAssignment created = await _LiteGraph.AuthorizationRoles.CreateCredentialScope(assignment, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 201;
-            await ctx.Response.Send(_Serializer.SerializeJson(created, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(created));
         }
 
         private async Task CredentialScopeAssignmentReadManyRoute(HttpContextBase ctx)
@@ -255,7 +255,7 @@ namespace LiteGraph.Server.API.REST
             CredentialScopeAssignmentSearchRequest search = BuildCredentialScopeAssignmentSearch(req);
             CredentialScopeAssignmentSearchResult result = await _LiteGraph.AuthorizationRoles.SearchCredentialScopes(search, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(result));
         }
 
         private async Task CredentialScopeAssignmentReadRoute(HttpContextBase ctx)
@@ -271,7 +271,7 @@ namespace LiteGraph.Server.API.REST
             }
 
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(assignment, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(assignment));
         }
 
         private async Task CredentialScopeAssignmentUpdateRoute(HttpContextBase ctx)
@@ -305,7 +305,7 @@ namespace LiteGraph.Server.API.REST
 
             CredentialScopeAssignment updated = await _LiteGraph.AuthorizationRoles.UpdateCredentialScope(assignment, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(updated, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(updated));
         }
 
         private async Task CredentialScopeAssignmentDeleteRoute(HttpContextBase ctx)
@@ -353,7 +353,7 @@ namespace LiteGraph.Server.API.REST
             }
 
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(result));
         }
 
         private async Task CredentialEffectivePermissionsRoute(HttpContextBase ctx)
@@ -384,7 +384,7 @@ namespace LiteGraph.Server.API.REST
             }
 
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(result));
         }
 
         private AuthorizationRoleSearchRequest BuildAuthorizationRoleSearch(RequestContext req)
@@ -765,7 +765,7 @@ namespace LiteGraph.Server.API.REST
         private async Task SendApiError(HttpContextBase ctx, int statusCode, ApiErrorEnum error, string description = null)
         {
             ctx.Response.StatusCode = statusCode;
-            await ctx.Response.Send(_Serializer.SerializeJson(new LiteGraph.Server.Classes.ApiErrorResponse(error, null, description), true));
+            await ctx.Response.Send(_Serializer.SerializeJson(new LiteGraph.Server.Classes.ApiErrorResponse(error, null, description)));
         }
 
         #endregion

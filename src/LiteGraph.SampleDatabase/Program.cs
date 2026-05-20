@@ -337,7 +337,7 @@ static IReadOnlyList<NodeSeed> NodeSeeds() =>
     new(1, "LiteGraph Server",
         ["Service", "Database"],
         [("domain", "graph"), ("tier", "core"), ("status", "active")],
-        new { kind = "service", version = "6.0.0", surfaces = new[] { "REST", "SDK", "MCP" } }),
+        new { kind = "service", version = "6.0.1", surfaces = new[] { "REST", "SDK", "MCP" } }),
 
     new(2, "AI Assistant",
         ["Application", "AI"],

@@ -214,35 +214,7 @@
                 && er.Objects != null
                 && er.Objects.Count > 0)
             {
-                foreach (Graph obj in er.Objects)
-                {
-                    token.ThrowIfCancellationRequested();
-                    if (query.IncludeSubordinates)
-                    {
-                        List<LabelMetadata> allLabels = new List<LabelMetadata>();
-                        await foreach (LabelMetadata label in _Repo.Label.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            allLabels.Add(label);
-                        }
-                        if (allLabels.Count > 0) obj.Labels = LabelMetadata.ToListString(allLabels);
-
-                        List<TagMetadata> allTags = new List<TagMetadata>();
-                        await foreach (TagMetadata tag in _Repo.Tag.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            allTags.Add(tag);
-                        }
-                        if (allTags != null) obj.Tags = TagMetadata.ToNameValueCollection(allTags);
-
-                        List<VectorMetadata> allVectors = new List<VectorMetadata>();
-                        await foreach (VectorMetadata vector in _Repo.Vector.ReadManyGraph(obj.TenantGUID, obj.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            allVectors.Add(vector);
-                        }
-                        obj.Vectors = allVectors;
-                    }
-
-                    if (!query.IncludeData) obj.Data = null;
-                }
+                await PopulateGraphs(er.Objects, query.IncludeSubordinates, query.IncludeData, token).ConfigureAwait(false);
             }
 
             return er;
@@ -431,31 +403,19 @@
             // Populate graphs
             if (result.Graphs != null && result.Graphs.Count > 0)
             {
-                for (int i = 0; i < result.Graphs.Count; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    result.Graphs[i] = await PopulateGraph(result.Graphs[i], includeSubordinates, includeData, token).ConfigureAwait(false);
-                }
+                await PopulateGraphs(result.Graphs, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
 
             // Populate nodes
             if (result.Nodes != null && result.Nodes.Count > 0)
             {
-                for (int i = 0; i < result.Nodes.Count; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    result.Nodes[i] = await PopulateNode(result.Nodes[i], includeSubordinates, includeData, token).ConfigureAwait(false);
-                }
+                await PopulateNodes(result.Nodes, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
 
             // Populate edges
             if (result.Edges != null && result.Edges.Count > 0)
             {
-                for (int i = 0; i < result.Edges.Count; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    result.Edges[i] = await PopulateEdge(result.Edges[i], includeSubordinates, includeData, token).ConfigureAwait(false);
-                }
+                await PopulateEdges(result.Edges, includeSubordinates, includeData, token).ConfigureAwait(false);
             }
 
             return result;
@@ -587,6 +547,134 @@
         #endregion
 
         #region Private-Methods
+
+        private async Task PopulateGraphs(List<Graph> graphs, bool includeSubordinates, bool includeData, CancellationToken token)
+        {
+            if (graphs == null || graphs.Count < 1) return;
+
+            foreach (Graph graph in graphs)
+            {
+                token.ThrowIfCancellationRequested();
+                if (graph == null) continue;
+                await PopulateGraph(graph, includeSubordinates, includeData, token).ConfigureAwait(false);
+            }
+        }
+
+        private async Task PopulateNodes(List<Node> nodes, bool includeSubordinates, bool includeData, CancellationToken token)
+        {
+            if (nodes == null || nodes.Count < 1) return;
+
+            foreach (Node node in nodes)
+            {
+                token.ThrowIfCancellationRequested();
+                if (node == null) continue;
+                if (!includeData) node.Data = null;
+            }
+
+            if (!includeSubordinates) return;
+
+            List<Node> materialized = nodes.Where(n => n != null).ToList();
+            if (materialized.Count < 1) return;
+
+            if (materialized.Count == 1)
+            {
+                await PopulateNode(materialized[0], true, true, token).ConfigureAwait(false);
+                if (!includeData) materialized[0].Data = null;
+                return;
+            }
+
+            foreach (IGrouping<(Guid TenantGuid, Guid GraphGuid), Node> group in materialized.GroupBy(n => (n.TenantGUID, n.GraphGUID)))
+            {
+                token.ThrowIfCancellationRequested();
+
+                Dictionary<Guid, List<LabelMetadata>> labelsByNode = group.ToDictionary(node => node.GUID, _ => new List<LabelMetadata>());
+                Dictionary<Guid, List<TagMetadata>> tagsByNode = group.ToDictionary(node => node.GUID, _ => new List<TagMetadata>());
+                Dictionary<Guid, List<VectorMetadata>> vectorsByNode = group.ToDictionary(node => node.GUID, _ => new List<VectorMetadata>());
+
+                await foreach (LabelMetadata label in _Repo.Label.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    if (label?.NodeGUID == null) continue;
+                    if (labelsByNode.TryGetValue(label.NodeGUID.Value, out List<LabelMetadata> labels)) labels.Add(label);
+                }
+
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    if (tag?.NodeGUID == null) continue;
+                    if (tagsByNode.TryGetValue(tag.NodeGUID.Value, out List<TagMetadata> tags)) tags.Add(tag);
+                }
+
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    if (vector?.NodeGUID == null) continue;
+                    if (vectorsByNode.TryGetValue(vector.NodeGUID.Value, out List<VectorMetadata> vectors)) vectors.Add(vector);
+                }
+
+                foreach (Node node in group)
+                {
+                    node.Labels = LabelMetadata.ToListString(labelsByNode[node.GUID]);
+                    node.Tags = TagMetadata.ToNameValueCollection(tagsByNode[node.GUID]);
+                    node.Vectors = vectorsByNode[node.GUID];
+                }
+            }
+        }
+
+        private async Task PopulateEdges(List<Edge> edges, bool includeSubordinates, bool includeData, CancellationToken token)
+        {
+            if (edges == null || edges.Count < 1) return;
+
+            foreach (Edge edge in edges)
+            {
+                token.ThrowIfCancellationRequested();
+                if (edge == null) continue;
+                if (!includeData) edge.Data = null;
+            }
+
+            if (!includeSubordinates) return;
+
+            List<Edge> materialized = edges.Where(e => e != null).ToList();
+            if (materialized.Count < 1) return;
+
+            if (materialized.Count == 1)
+            {
+                await PopulateEdge(materialized[0], true, true, token).ConfigureAwait(false);
+                if (!includeData) materialized[0].Data = null;
+                return;
+            }
+
+            foreach (IGrouping<(Guid TenantGuid, Guid GraphGuid), Edge> group in materialized.GroupBy(edge => (edge.TenantGUID, edge.GraphGUID)))
+            {
+                token.ThrowIfCancellationRequested();
+
+                Dictionary<Guid, List<LabelMetadata>> labelsByEdge = group.ToDictionary(edge => edge.GUID, _ => new List<LabelMetadata>());
+                Dictionary<Guid, List<TagMetadata>> tagsByEdge = group.ToDictionary(edge => edge.GUID, _ => new List<TagMetadata>());
+                Dictionary<Guid, List<VectorMetadata>> vectorsByEdge = group.ToDictionary(edge => edge.GUID, _ => new List<VectorMetadata>());
+
+                await foreach (LabelMetadata label in _Repo.Label.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    if (label?.EdgeGUID == null) continue;
+                    if (labelsByEdge.TryGetValue(label.EdgeGUID.Value, out List<LabelMetadata> labels)) labels.Add(label);
+                }
+
+                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    if (tag?.EdgeGUID == null) continue;
+                    if (tagsByEdge.TryGetValue(tag.EdgeGUID.Value, out List<TagMetadata> tags)) tags.Add(tag);
+                }
+
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    if (vector?.EdgeGUID == null) continue;
+                    if (vectorsByEdge.TryGetValue(vector.EdgeGUID.Value, out List<VectorMetadata> vectors)) vectors.Add(vector);
+                }
+
+                foreach (Edge edge in group)
+                {
+                    edge.Labels = LabelMetadata.ToListString(labelsByEdge[edge.GUID]);
+                    edge.Tags = TagMetadata.ToNameValueCollection(tagsByEdge[edge.GUID]);
+                    edge.Vectors = vectorsByEdge[edge.GUID];
+                }
+            }
+        }
 
         #endregion
     }

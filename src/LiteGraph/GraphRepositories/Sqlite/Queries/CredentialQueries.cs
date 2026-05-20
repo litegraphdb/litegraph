@@ -1,4 +1,4 @@
-﻿namespace LiteGraph.GraphRepositories.Sqlite.Queries
+namespace LiteGraph.GraphRepositories.Sqlite.Queries
 {
     using System;
     using System.Collections.Generic;
@@ -119,7 +119,9 @@
             }
 
             ret += OrderByClause(order);
-            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += "LIMIT " + batchSize;
+            if (marker == null && skip > 0) ret += " OFFSET " + skip;
+            ret += ";";
             return ret;
         }
 
@@ -237,3 +239,5 @@
         }
     }
 }
+
+

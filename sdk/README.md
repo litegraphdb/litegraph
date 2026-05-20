@@ -2,7 +2,7 @@
 
 This directory contains official client SDKs for interacting with the LiteGraph REST API.
 
-Current release: v6.0.0.
+Current release: v6.0.1.
 
 ## Available SDKs
 

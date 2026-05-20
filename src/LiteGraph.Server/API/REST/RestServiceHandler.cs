@@ -88,7 +88,7 @@ namespace LiteGraph.Server.API.REST
             _Webserver.UseOpenApi(openApi =>
             {
                 openApi.Info.Title = "LiteGraph API";
-                openApi.Info.Version = "v6.0.0";
+                openApi.Info.Version = "v6.0.1";
                 openApi.Info.Description = "LiteGraph is a lightweight graph database with vector search, multi-tenancy, and AI agent integration. This API provides full CRUD operations for graphs, nodes, edges, labels, tags, and vectors with built-in HNSW vector indexing.";
                 openApi.Info.Contact = new OpenApiContact
                 {
@@ -542,35 +542,35 @@ namespace LiteGraph.Server.API.REST
             {
                 _Logging.Warn(_Header + "format exception building request context" + Environment.NewLine + fe.ToString());
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, fe.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, fe.Message)));
                 return;
             }
             catch (ArgumentOutOfRangeException aore)
             {
                 _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " argument out of range exception building request context" + Environment.NewLine + aore.ToString());
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, aore.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, aore.Message)));
                 return;
             }
             catch (ArgumentNullException ane)
             {
                 _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " argument null exception building request context" + Environment.NewLine + ane.ToString());
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ane.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ane.Message)));
                 return;
             }
             catch (ArgumentException ae)
             {
                 _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " argument exception building request context" + Environment.NewLine + ae.ToString());
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message)));
                 return;
             }
             catch (Exception e)
             {
                 _Logging.Warn(_Header + ctx.Request.Source.IpAddress + " exception building request context" + Environment.NewLine + e.ToString());
                 ctx.Response.StatusCode = 500;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
                 return;
             }
 
@@ -597,7 +597,7 @@ namespace LiteGraph.Server.API.REST
                 {
                     ctx.Response.StatusCode = 408;
                     RecordActivityException(activity, new TimeoutException("Authentication timed out."), ctx.Response.StatusCode);
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
                     return;
                 }
 
@@ -612,17 +612,17 @@ namespace LiteGraph.Server.API.REST
 
                 case AuthenticationResultEnum.NotFound:
                     ctx.Response.StatusCode = 401;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.AuthenticationFailed), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.AuthenticationFailed)));
                     return;
 
                 case AuthenticationResultEnum.Inactive:
                     ctx.Response.StatusCode = 401;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Inactive), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Inactive)));
                     return;
 
                 case AuthenticationResultEnum.Invalid:
                     ctx.Response.StatusCode = 400;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest)));
                     return;
             }
 
@@ -630,7 +630,7 @@ namespace LiteGraph.Server.API.REST
             {
                 case AuthorizationResultEnum.Conflict:
                     ctx.Response.StatusCode = 409;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict)));
                     return;
 
                 case AuthorizationResultEnum.Denied:
@@ -640,7 +640,7 @@ namespace LiteGraph.Server.API.REST
 
                 case AuthorizationResultEnum.NotFound:
                     ctx.Response.StatusCode = 404;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound)));
                     return;
 
                 case AuthorizationResultEnum.Permitted:
@@ -652,7 +652,7 @@ namespace LiteGraph.Server.API.REST
         {
             _Logging.Warn(_Header + "unknown verb or endpoint: " + ctx.Request.Method + " " + OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithQuery));
             ctx.Response.StatusCode = 400;
-            await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest), true));
+            await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest)));
         }
 
         internal async Task PostRoutingHandler(HttpContextBase ctx)
@@ -724,9 +724,7 @@ namespace LiteGraph.Server.API.REST
                 string reqBody = _RequestHistory.CaptureBody(reqBytes, _Settings.RequestHistory.MaxRequestBodyBytes, out bool reqTrunc);
 
                 string responseText = ctx.Response.DataAsString;
-                byte[] respBytes = string.IsNullOrEmpty(responseText) ? null : System.Text.Encoding.UTF8.GetBytes(responseText);
-                long respLen = respBytes != null ? respBytes.LongLength : 0L;
-                string respBody = _RequestHistory.CaptureBody(respBytes, _Settings.RequestHistory.MaxResponseBodyBytes, out bool respTrunc);
+                string respBody = _RequestHistory.CaptureBody(responseText, _Settings.RequestHistory.MaxResponseBodyBytes, out bool respTrunc, out long respLen);
 
                 Guid? tenantGuid = null;
                 Guid? userGuid = null;
@@ -794,7 +792,7 @@ namespace LiteGraph.Server.API.REST
 
             AuthenticationToken token = _Authentication.GenerateToken(req.Authentication.TenantGUID.Value, req.Authentication.UserGUID.Value);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(token, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(token));
             return;
         }
 
@@ -806,7 +804,7 @@ namespace LiteGraph.Server.API.REST
             {
                 _Logging.Warn(_Header + "no authentication token supplied from which to read details");
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "No authentication token supplied."), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "No authentication token supplied.")));
                 return;
             }
 
@@ -815,7 +813,7 @@ namespace LiteGraph.Server.API.REST
             {
                 AuthenticationToken token = await _Authentication.ReadToken(req.Authentication.SecurityToken, timeoutCts.Token).ConfigureAwait(false);
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(token, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(token));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {
@@ -831,7 +829,7 @@ namespace LiteGraph.Server.API.REST
             {
                 _Logging.Warn(_Header + "no email supplied in headers for tenant retrieval");
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "No email supplied in the request headers."), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "No email supplied in the request headers.")));
                 return;
             }
 
@@ -839,13 +837,13 @@ namespace LiteGraph.Server.API.REST
             if (resp.Success)
             {
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(resp.Data, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(resp.Data));
                 return;
             }
             else
             {
                 ctx.Response.StatusCode = 404;
-                await ctx.Response.Send(_Serializer.SerializeJson(resp.Error, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(resp.Error));
             }
         }
 
@@ -943,7 +941,7 @@ namespace LiteGraph.Server.API.REST
             if (e is InvalidOperationException)
             {
                 ctx.Response.StatusCode = 409;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict, null, e.Message)));
             }
             else if (
                 e is ArgumentNullException
@@ -953,12 +951,12 @@ namespace LiteGraph.Server.API.REST
                 || e is JsonException)
             {
                 ctx.Response.StatusCode = 400;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message)));
             }
             else
             {
                 ctx.Response.StatusCode = 500;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
                 _Logging.Warn(_Header + "exception encountered for " + ctx.Request.Method.ToString() + " " + OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithQuery) + Environment.NewLine + e.ToString());
             }
         }
@@ -993,7 +991,7 @@ namespace LiteGraph.Server.API.REST
         private async Task NoRequestBody(HttpContextBase ctx)
         {
             ctx.Response.StatusCode = 400;
-            await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest), true));
+            await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest)));
         }
 
         private async Task NotAdmin(HttpContextBase ctx)
@@ -1012,7 +1010,7 @@ namespace LiteGraph.Server.API.REST
             ApiErrorResponse response = AuthorizationFailedResponse(req, reason, requiredScope, description);
             using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
             await AuditAuthorizationDenied(req, response, ctx.Response.StatusCode, timeoutCts.Token).ConfigureAwait(false);
-            await ctx.Response.Send(_Serializer.SerializeJson(response, true)).ConfigureAwait(false);
+            await ctx.Response.Send(_Serializer.SerializeJson(response)).ConfigureAwait(false);
         }
 
         private static ApiErrorResponse AuthorizationFailedResponse(
@@ -1995,7 +1993,7 @@ namespace LiteGraph.Server.API.REST
                     _Observability.RecordGraphQuery(String.Equals(requiredScope, "write", StringComparison.OrdinalIgnoreCase), false, (DateTime.UtcNow - start).TotalMilliseconds);
                     ctx.Response.StatusCode = 408;
                     RecordActivityException(activity, new TimeoutException("Graph query authorization timed out."), ctx.Response.StatusCode);
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
                     return;
                 }
 
@@ -2027,7 +2025,7 @@ namespace LiteGraph.Server.API.REST
                     _Observability.RecordGraphQuery(String.Equals(requiredScope, "write", StringComparison.OrdinalIgnoreCase), false, (DateTime.UtcNow - start).TotalMilliseconds);
                     ctx.Response.StatusCode = 408;
                     RecordActivityException(activity, new TimeoutException("Graph query timed out."), ctx.Response.StatusCode);
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
                     return;
                 }
 
@@ -2057,14 +2055,14 @@ namespace LiteGraph.Server.API.REST
                 if (result.ExecutionProfile != null)
                 {
                     Stopwatch serializationStopwatch = Stopwatch.StartNew();
-                    responseBody = _Serializer.SerializeJson(result, true);
+                    responseBody = _Serializer.SerializeJson(result);
                     serializationStopwatch.Stop();
                     result.ExecutionProfile.SerializationTimeMs = serializationStopwatch.Elapsed.TotalMilliseconds;
-                    responseBody = _Serializer.SerializeJson(result, true);
+                    responseBody = _Serializer.SerializeJson(result);
                 }
                 else
                 {
-                    responseBody = _Serializer.SerializeJson(result, true);
+                    responseBody = _Serializer.SerializeJson(result);
                 }
 
                 await ctx.Response.Send(responseBody);
@@ -2099,7 +2097,7 @@ namespace LiteGraph.Server.API.REST
                     _Observability.RecordGraphTransaction(false, true, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
                     ctx.Response.StatusCode = 408;
                     RecordActivityException(activity, new TimeoutException("Graph transaction timed out."), ctx.Response.StatusCode);
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
                     return;
                 }
 
@@ -2109,7 +2107,7 @@ namespace LiteGraph.Server.API.REST
                 if (result.FailedOperationIndex != null) activity?.SetTag("litegraph.transaction.failed_operation_index", result.FailedOperationIndex.Value);
 
                 ctx.Response.StatusCode = result.Success ? 200 : 409;
-                await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(result));
             }
         }
 
@@ -2248,7 +2246,7 @@ namespace LiteGraph.Server.API.REST
                 if (!resp.Success)
                 {
                     ctx.Response.StatusCode = 500;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError)));
                 }
                 else
                 {
@@ -2266,7 +2264,7 @@ namespace LiteGraph.Server.API.REST
                 _Logging.Warn(_Header + "GEXF export error:" + Environment.NewLine + e.ToString());
                 ctx.Response.StatusCode = 500;
                 ctx.Response.ContentType = Constants.JsonContentType;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
             }
         }
 
@@ -2293,7 +2291,7 @@ namespace LiteGraph.Server.API.REST
                     {
                         ctx.Response.StatusCode = 400;
                         ctx.Response.ContentType = Constants.JsonContentType;
-                        await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "Invalid configuration format"), true));
+                        await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "Invalid configuration format")));
                         return;
                     }
                 }
@@ -2303,7 +2301,7 @@ namespace LiteGraph.Server.API.REST
                 {
                     ctx.Response.StatusCode = 400;
                     ctx.Response.ContentType = Constants.JsonContentType;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, errorMessage), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, errorMessage)));
                     return;
                 }
 
@@ -2315,7 +2313,7 @@ namespace LiteGraph.Server.API.REST
 
                 ctx.Response.StatusCode = 200;
                 ctx.Response.ContentType = Constants.JsonContentType;
-                await ctx.Response.Send(_Serializer.SerializeJson(config, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(config));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {
@@ -2325,7 +2323,7 @@ namespace LiteGraph.Server.API.REST
             {
                 ctx.Response.StatusCode = 500;
                 ctx.Response.ContentType = Constants.JsonContentType;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
             }
         }
 
@@ -2402,12 +2400,12 @@ namespace LiteGraph.Server.API.REST
             if (stats == null)
             {
                 ctx.Response.StatusCode = 404;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "The specified graph has no configured vector index."), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "The specified graph has no configured vector index.")));
                 return;
             }
 
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(stats, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(stats));
         }
 
         private async Task GraphGetVectorIndexConfigRoute(HttpContextBase ctx)
@@ -2422,7 +2420,7 @@ namespace LiteGraph.Server.API.REST
                 {
                     ctx.Response.StatusCode = 404;
                     ctx.Response.ContentType = Constants.JsonContentType;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "Graph not found"), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "Graph not found")));
                     return;
                 }
 
@@ -2431,7 +2429,7 @@ namespace LiteGraph.Server.API.REST
                 {
                     ctx.Response.StatusCode = 404;
                     ctx.Response.ContentType = Constants.JsonContentType;
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "The specified graph has no configured vector index."), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, "The specified graph has no configured vector index.")));
                     return;
                 }
 
@@ -2439,7 +2437,7 @@ namespace LiteGraph.Server.API.REST
 
                 ctx.Response.StatusCode = 200;
                 ctx.Response.ContentType = Constants.JsonContentType;
-                await ctx.Response.Send(_Serializer.SerializeJson(config, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(config));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {
@@ -2449,7 +2447,7 @@ namespace LiteGraph.Server.API.REST
             {
                 ctx.Response.StatusCode = 500;
                 ctx.Response.ContentType = Constants.JsonContentType;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
             }
         }
 
@@ -2887,7 +2885,7 @@ namespace LiteGraph.Server.API.REST
                     ctx.Response.StatusCode = 500;
                     activity?.SetTag("litegraph.handler.success", false);
                     activity?.SetTag("http.response.status_code", ctx.Response.StatusCode);
-                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError), true));
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError)));
                     return;
                 }
                 else if (resp.Success)
@@ -2896,7 +2894,7 @@ namespace LiteGraph.Server.API.REST
                     activity?.SetTag("litegraph.handler.success", true);
                     activity?.SetTag("http.response.status_code", ctx.Response.StatusCode);
                     RecordEntityCountsFromResponse(resp.Data);
-                    if (resp.Data != null) await ctx.Response.Send(_Serializer.SerializeJson(resp.Data, true));
+                    if (resp.Data != null) await ctx.Response.Send(_Serializer.SerializeJson(resp.Data));
                     else await ctx.Response.Send();
                     return;
                 }
@@ -2906,7 +2904,7 @@ namespace LiteGraph.Server.API.REST
                     else ctx.Response.StatusCode = 418;
                     activity?.SetTag("litegraph.handler.success", false);
                     activity?.SetTag("http.response.status_code", ctx.Response.StatusCode);
-                    if (resp.Error != null && ctx.Request.Method != HttpMethod.HEAD) await ctx.Response.Send(_Serializer.SerializeJson(resp.Error, true));
+                    if (resp.Error != null && ctx.Request.Method != HttpMethod.HEAD) await ctx.Response.Send(_Serializer.SerializeJson(resp.Error));
                     else await ctx.Response.Send();
                     return;
                 }
@@ -2916,7 +2914,7 @@ namespace LiteGraph.Server.API.REST
                 _Logging.Warn(_Header + "request timed out after " + _Settings.RequestTimeoutSeconds + " seconds");
                 ctx.Response.StatusCode = 408;
                 RecordActivityException(activity, oce, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
                 return;
             }
             catch (JsonException je)
@@ -2924,28 +2922,28 @@ namespace LiteGraph.Server.API.REST
                 _Logging.Warn(_Header + "JSON exception: " + Environment.NewLine + je.ToString());
                 ctx.Response.StatusCode = 400;
                 RecordActivityException(activity, je, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, je.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, je.Message)));
             }
             catch (FormatException fe)
             {
                 _Logging.Warn(_Header + "format exception: " + Environment.NewLine + fe.ToString());
                 ctx.Response.StatusCode = 400;
                 RecordActivityException(activity, fe, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, fe.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, fe.Message)));
             }
             catch (InvalidOperationException ioe)
             {
                 _Logging.Warn(_Header + "invalid operation exception: " + Environment.NewLine + ioe.ToString());
                 ctx.Response.StatusCode = 409;
                 RecordActivityException(activity, ioe, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict, null, ioe.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict, null, ioe.Message)));
             }
             catch (FileNotFoundException fnfe)
             {
                 _Logging.Warn(_Header + "file not found exception: " + Environment.NewLine + fnfe.ToString());
                 ctx.Response.StatusCode = 404;
                 RecordActivityException(activity, fnfe, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, fnfe.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, fnfe.Message)));
                 return;
             }
             catch (KeyNotFoundException knfe)
@@ -2953,7 +2951,7 @@ namespace LiteGraph.Server.API.REST
                 _Logging.Warn(_Header + "invalid operation exception: " + Environment.NewLine + knfe.ToString());
                 ctx.Response.StatusCode = 404;
                 RecordActivityException(activity, knfe, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, knfe.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, knfe.Message)));
                 return;
             }
             catch (ArgumentException ae)
@@ -2961,7 +2959,7 @@ namespace LiteGraph.Server.API.REST
                 _Logging.Warn(_Header + "argument exception: " + Environment.NewLine + ae.ToString());
                 ctx.Response.StatusCode = 400;
                 RecordActivityException(activity, ae, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message)));
                 return;
             }
             catch (Exception e)
@@ -2969,7 +2967,7 @@ namespace LiteGraph.Server.API.REST
                 _Logging.Warn(_Header + "exception: " + Environment.NewLine + e.ToString());
                 ctx.Response.StatusCode = 400;
                 RecordActivityException(activity, e, ctx.Response.StatusCode);
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, e.Message)));
                 return;
             }
         }
@@ -2986,7 +2984,7 @@ namespace LiteGraph.Server.API.REST
             _Logging.Warn(_Header + operation + " timed out after " + _Settings.RequestTimeoutSeconds + " seconds");
             ctx.Response.StatusCode = 408;
             RecordActivityException(activity, exception, ctx.Response.StatusCode);
-            await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout), true));
+            await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
         }
 
         private void RecordEntityCountsFromResponse(object data)
@@ -3294,7 +3292,7 @@ namespace LiteGraph.Server.API.REST
             {
                 RequestHistorySearchResult result = await _LiteGraph.RequestHistory.Search(search, timeoutCts.Token).ConfigureAwait(false);
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(result));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {
@@ -3322,7 +3320,7 @@ namespace LiteGraph.Server.API.REST
             {
                 RequestHistorySummary summary = await _LiteGraph.RequestHistory.GetSummary(tenantGuid, interval, start, end, timeoutCts.Token).ConfigureAwait(false);
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(summary, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(summary));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {
@@ -3349,7 +3347,7 @@ namespace LiteGraph.Server.API.REST
             if (entry == null)
             {
                 ctx.Response.StatusCode = 404;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound)));
                 return;
             }
             if (!CanViewRequestHistoryRow(req, entry.TenantGUID))
@@ -3359,7 +3357,7 @@ namespace LiteGraph.Server.API.REST
                 return;
             }
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(entry, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(entry));
         }
 
         private async Task RequestHistoryDetailRoute(HttpContextBase ctx)
@@ -3381,7 +3379,7 @@ namespace LiteGraph.Server.API.REST
             if (detail == null)
             {
                 ctx.Response.StatusCode = 404;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound)));
                 return;
             }
             if (!CanViewRequestHistoryRow(req, detail.TenantGUID))
@@ -3391,7 +3389,7 @@ namespace LiteGraph.Server.API.REST
                 return;
             }
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(detail, true));
+            await ctx.Response.Send(_Serializer.SerializeJson(detail));
         }
 
         private async Task RequestHistoryDeleteRoute(HttpContextBase ctx)
@@ -3413,7 +3411,7 @@ namespace LiteGraph.Server.API.REST
             if (entry == null)
             {
                 ctx.Response.StatusCode = 404;
-                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound), true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound)));
                 return;
             }
             if (!CanViewRequestHistoryRow(req, entry.TenantGUID))
@@ -3453,7 +3451,7 @@ namespace LiteGraph.Server.API.REST
             {
                 int deleted = await _LiteGraph.RequestHistory.DeleteMany(search, timeoutCts.Token).ConfigureAwait(false);
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(new { Deleted = deleted }, true));
+                await ctx.Response.Send(_Serializer.SerializeJson(new { Deleted = deleted }));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {

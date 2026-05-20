@@ -340,7 +340,9 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             }
 
             ret += OrderByClause(order);
-            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += "LIMIT " + batchSize;
+            if (marker == null && skip > 0) ret += " OFFSET " + skip;
+            ret += ";";
 
             return ret;
         }
@@ -865,3 +867,5 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         }
     }
 }
+
+

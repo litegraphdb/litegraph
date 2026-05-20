@@ -8,7 +8,7 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a lightweight graph database with relational and vector support built using SQLite, designed to power knowledge and artificial intelligence persistence and retrieval.
 
-Current release: v6.0.0.
+Current release: v6.0.1.
 
 ## Features
 

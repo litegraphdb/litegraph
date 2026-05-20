@@ -5,6 +5,7 @@ namespace LiteGraph.Server.Services
     using System.Collections.Specialized;
     using System.Text;
     using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
     using LiteGraph;
     using LiteGraph.GraphRepositories;
@@ -29,6 +30,7 @@ namespace LiteGraph.Server.Services
         #region Private-Members
 
         private readonly string _Header = "[RequestHistoryService] ";
+        private const int CaptureQueueCapacity = 2048;
         private readonly Settings _Settings;
         private readonly LoggingModule _Logging;
         private readonly GraphRepositoryBase _Repo;
@@ -48,8 +50,12 @@ namespace LiteGraph.Server.Services
             "/favicon.ico"
         };
 
-        private readonly CancellationTokenSource _Cts = new CancellationTokenSource();
+        private readonly Channel<RequestHistoryDetail> _CaptureChannel;
+        private readonly CancellationTokenSource _CaptureCts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _PurgeCts = new CancellationTokenSource();
+        private Task _CaptureTask;
         private Task _PurgeTask;
+        private long _DroppedCaptures = 0;
         private bool _Disposed = false;
 
         #endregion
@@ -68,7 +74,16 @@ namespace LiteGraph.Server.Services
             _Logging = logging ?? throw new ArgumentNullException(nameof(logging));
             _Repo = repo ?? throw new ArgumentNullException(nameof(repo));
 
-            _PurgeTask = Task.Run(() => PurgeLoopAsync(_Cts.Token));
+            _CaptureChannel = Channel.CreateBounded<RequestHistoryDetail>(new BoundedChannelOptions(CaptureQueueCapacity)
+            {
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.DropWrite,
+                SingleReader = true,
+                SingleWriter = false
+            });
+
+            _CaptureTask = Task.Run(() => ProcessCaptureQueueAsync(_CaptureCts.Token));
+            _PurgeTask = Task.Run(() => PurgeLoopAsync(_PurgeCts.Token));
         }
 
         #endregion
@@ -85,17 +100,14 @@ namespace LiteGraph.Server.Services
             if (!_Settings.RequestHistory.Enable) return;
             if (detail == null) return;
 
-            _ = Task.Run(async () =>
+            if (!_CaptureChannel.Writer.TryWrite(detail))
             {
-                try
+                long dropped = Interlocked.Increment(ref _DroppedCaptures);
+                if (dropped == 1 || dropped % 100 == 0)
                 {
-                    await _Repo.RequestHistory.Insert(detail, _Cts.Token).ConfigureAwait(false);
+                    _Logging.Warn(_Header + "capture queue full, dropped " + dropped + " request history item(s)");
                 }
-                catch (Exception e)
-                {
-                    _Logging.Warn(_Header + "capture failed for request " + detail.GUID + ": " + e.Message);
-                }
-            });
+            }
         }
 
         /// <summary>
@@ -171,12 +183,38 @@ namespace LiteGraph.Server.Services
             if (bytes.Length > limit)
             {
                 truncated = true;
-                byte[] slice = new byte[limit];
-                Array.Copy(bytes, slice, limit);
-                return SafeDecode(slice);
+                return SafeDecode(bytes, limit);
             }
 
             return SafeDecode(bytes);
+        }
+
+        /// <summary>
+        /// Capture string content as a body string with truncation enforcement based on UTF-8 byte length.
+        /// </summary>
+        /// <param name="body">Body string.</param>
+        /// <param name="limit">Maximum bytes to keep.</param>
+        /// <param name="truncated">Output: whether truncation occurred.</param>
+        /// <param name="byteLength">Output: UTF-8 byte length.</param>
+        /// <returns>Body string.</returns>
+        public string CaptureBody(string body, int limit, out bool truncated, out long byteLength)
+        {
+            truncated = false;
+            byteLength = 0;
+            if (string.IsNullOrEmpty(body)) return null;
+
+            byteLength = Encoding.UTF8.GetByteCount(body);
+            if (limit <= 0)
+            {
+                truncated = true;
+                return null;
+            }
+
+            if (byteLength <= limit) return body;
+
+            truncated = true;
+            byte[] bytes = Encoding.UTF8.GetBytes(body);
+            return SafeDecode(bytes, limit);
         }
 
         /// <summary>
@@ -187,9 +225,21 @@ namespace LiteGraph.Server.Services
             if (_Disposed) return;
             _Disposed = true;
 
-            try { _Cts.Cancel(); } catch { }
+            try { _CaptureChannel.Writer.TryComplete(); } catch { }
+            try
+            {
+                if (_CaptureTask != null && !_CaptureTask.Wait(TimeSpan.FromSeconds(5)))
+                {
+                    _CaptureCts.Cancel();
+                    _CaptureTask.Wait(TimeSpan.FromSeconds(1));
+                }
+            }
+            catch { }
+
+            try { _PurgeCts.Cancel(); } catch { }
             try { _PurgeTask?.Wait(TimeSpan.FromSeconds(5)); } catch { }
-            try { _Cts.Dispose(); } catch { }
+            try { _CaptureCts.Dispose(); } catch { }
+            try { _PurgeCts.Dispose(); } catch { }
         }
 
         #endregion
@@ -205,6 +255,46 @@ namespace LiteGraph.Server.Services
             catch
             {
                 return Convert.ToBase64String(bytes);
+            }
+        }
+
+        private static string SafeDecode(byte[] bytes, int count)
+        {
+            try
+            {
+                return Encoding.UTF8.GetString(bytes, 0, count);
+            }
+            catch
+            {
+                byte[] slice = new byte[count];
+                Array.Copy(bytes, slice, count);
+                return Convert.ToBase64String(slice);
+            }
+        }
+
+        private async Task ProcessCaptureQueueAsync(CancellationToken token)
+        {
+            try
+            {
+                await foreach (RequestHistoryDetail detail in _CaptureChannel.Reader.ReadAllAsync(token).ConfigureAwait(false))
+                {
+                    try
+                    {
+                        await _Repo.RequestHistory.Insert(detail, token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        _Logging.Warn(_Header + "capture failed for request " + detail.GUID + ": " + e.Message);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
         }
 

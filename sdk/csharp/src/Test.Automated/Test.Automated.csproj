@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Version>6.0.0</Version>
+		<Version>6.0.1</Version>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>disable</ImplicitUsings>
@@ -13,4 +13,5 @@
 	</ItemGroup>
 
 </Project>
+
 

@@ -21,9 +21,9 @@ fi
 # Argument order matters!
 
 docker run \
-  -p 8200:8200 \
-  -p 8201:8201 \
-  -p 8202:8202 \
+  -p 8702:8702 \
+  -p 8703:8703 \
+  -p 8704:8704 \
   -t \
   -i \
   -e "TERM=xterm-256color" \
@@ -32,4 +32,3 @@ docker run \
   -v ./temp/:/app/temp/ \
   -v ./backups/:/app/backups/ \
   jchristn77/litegraph-mcp:$IMG_TAG
-

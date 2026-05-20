@@ -331,7 +331,7 @@
         {
             token.ThrowIfCancellationRequested();
             Dictionary<Guid, GraphStatistics> ret = new Dictionary<Guid, GraphStatistics>();
-            DataTable table = await _Repo.ExecuteQueryAsync(GraphQueries.GetStatistics(tenantGuid, null), true, token).ConfigureAwait(false);
+            DataTable table = await _Repo.ExecuteQueryAsync(GraphQueries.GetStatistics(tenantGuid, null), false, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0)
             {
                 foreach (DataRow row in table.Rows)
@@ -358,7 +358,7 @@
         public async Task<GraphStatistics> GetStatistics(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            DataTable table = await _Repo.ExecuteQueryAsync(GraphQueries.GetStatistics(tenantGuid, guid), true, token).ConfigureAwait(false);
+            DataTable table = await _Repo.ExecuteQueryAsync(GraphQueries.GetStatistics(tenantGuid, guid), false, token).ConfigureAwait(false);
             if (table != null && table.Rows.Count > 0) return Converters.GraphStatisticsFromDataRow(table.Rows[0]);
             return null;
         }
@@ -822,17 +822,17 @@
                 List<Guid> edgeGuidList = visitedEdges.ToList();
 
                 // Count labels
-                DataTable labelsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountLabelsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true, token).ConfigureAwait(false);
+                DataTable labelsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountLabelsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), false, token).ConfigureAwait(false);
                 if (labelsTable != null && labelsTable.Rows.Count > 0)
                     labelsCount = Convert.ToInt32(labelsTable.Rows[0][0]);
 
                 // Count tags
-                DataTable tagsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountTagsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true, token).ConfigureAwait(false);
+                DataTable tagsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountTagsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), false, token).ConfigureAwait(false);
                 if (tagsTable != null && tagsTable.Rows.Count > 0)
                     tagsCount = Convert.ToInt32(tagsTable.Rows[0][0]);
 
                 // Count vectors
-                DataTable vectorsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountVectorsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), true, token).ConfigureAwait(false);
+                DataTable vectorsTable = await _Repo.ExecuteQueryAsync(GraphQueries.CountVectorsForSubgraph(tenantGuid, graphGuid, nodeGuidList, edgeGuidList), false, token).ConfigureAwait(false);
                 if (vectorsTable != null && vectorsTable.Rows.Count > 0)
                     vectorsCount = Convert.ToInt32(vectorsTable.Rows[0][0]);
             }

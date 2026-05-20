@@ -16,6 +16,10 @@
     /// </summary>
     public class Serializer : ISerializer
     {
+        private static readonly JsonSerializerOptions DeserializeJsonOptions = CreateDeserializeJsonOptions();
+        private static readonly JsonSerializerOptions SerializeJsonOptions = CreateSerializeJsonOptions(false);
+        private static readonly JsonSerializerOptions PrettySerializeJsonOptions = CreateSerializeJsonOptions(true);
+
         /// <inheritdoc/>
         public T CopyObject<T>(T obj)
         {
@@ -36,45 +40,43 @@
         public T DeserializeJson<T>(string json)
         {
             if (String.IsNullOrEmpty(json)) throw new ArgumentNullException(nameof(json));
-
-            JsonSerializerOptions options = new JsonSerializerOptions();
-            options.Converters.Add(new ExceptionConverter<Exception>());
-            options.Converters.Add(new NameValueCollectionConverter());
-            options.Converters.Add(new JsonStringEnumConverter());
-            options.Converters.Add(new DateTimeConverter());
-            options.Converters.Add(new IPAddressConverter());
-            options.Converters.Add(new ExpressionConverter());
-
-            return JsonSerializer.Deserialize<T>(json, options);
+            return JsonSerializer.Deserialize<T>(json, DeserializeJsonOptions);
         }
 
         /// <inheritdoc/>
         public string SerializeJson(object obj, bool pretty = false)
         {
             if (obj == null) return null;
-            string json;
+            return JsonSerializer.Serialize(obj, pretty ? PrettySerializeJsonOptions : SerializeJsonOptions);
+        }
 
+        private static JsonSerializerOptions CreateDeserializeJsonOptions()
+        {
             JsonSerializerOptions options = new JsonSerializerOptions();
-            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            AddCommonConverters(options);
+            return options;
+        }
+
+        private static JsonSerializerOptions CreateSerializeJsonOptions(bool pretty)
+        {
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                WriteIndented = pretty
+            };
+
+            AddCommonConverters(options);
+            return options;
+        }
+
+        private static void AddCommonConverters(JsonSerializerOptions options)
+        {
             options.Converters.Add(new ExceptionConverter<Exception>());
             options.Converters.Add(new NameValueCollectionConverter());
             options.Converters.Add(new JsonStringEnumConverter());
             options.Converters.Add(new DateTimeConverter());
             options.Converters.Add(new IPAddressConverter());
             options.Converters.Add(new ExpressionConverter());
-
-            if (pretty)
-            {
-                options.WriteIndented = true;
-                json = JsonSerializer.Serialize(obj, options);
-            }
-            else
-            {
-                options.WriteIndented = false;
-                json = JsonSerializer.Serialize(obj, options);
-            }
-
-            return json;
         }
 
         private class ExceptionConverter<TExceptionType> : JsonConverter<TExceptionType>
@@ -302,7 +304,7 @@
                     case JsonTokenType.Null:
                         return null;
                     case JsonTokenType.StartObject:
-                        return JsonSerializer.Deserialize<Expr>(ref reader, new JsonSerializerOptions { Converters = { new ExpressionConverter() } });
+                        return JsonSerializer.Deserialize<Expr>(ref reader, DeserializeJsonOptions);
                     case JsonTokenType.StartArray:
                         List<object> list = new List<object>();
                         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)

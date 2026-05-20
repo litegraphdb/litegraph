@@ -15,7 +15,7 @@ namespace LiteGraph.McpServer.Classes
         /// <summary>
         /// WebSocket server port.
         /// </summary>
-        public int Port { get; set; } = 8202;
+        public int Port { get; set; } = 8704;
 
         #endregion
 

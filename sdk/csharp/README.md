@@ -8,7 +8,7 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v6.0.0.
+Current release: v6.0.1.
 
 ## New in v6.0.0
 
@@ -39,4 +39,3 @@ Edge edgeFrom1To2 = sdk.Edge.Create(new Edge { TenantGUID = tenantGuid, GraphGUI
 ## Version History
 
 Please refer to ```CHANGELOG.md``` for version history.
-
