@@ -6,17 +6,14 @@ import { renderWithRedux } from '../../../store/utils';
 // Mock the RTK Query hooks
 const mockCreateEdge = jest.fn();
 const mockUpdateEdge = jest.fn();
+const mockGetEdgeByIdQuery = jest.fn();
+const mockGetGraphByIdQuery = jest.fn();
 
 jest.mock('@/lib/store/slice/slice', () => ({
   useCreateEdgeMutation: () => [mockCreateEdge, { isLoading: false }],
   useUpdateEdgeMutation: () => [mockUpdateEdge, { isLoading: false }],
-  useGetEdgeByIdQuery: () => ({
-    data: null,
-    isLoading: false,
-    isFetching: false,
-    refetch: jest.fn(),
-  }),
-  useGetGraphByIdQuery: () => ({ data: { Name: 'Test Graph' } }),
+  useGetEdgeByIdQuery: (...args: any[]) => mockGetEdgeByIdQuery(...args),
+  useGetGraphByIdQuery: (...args: any[]) => mockGetGraphByIdQuery(...args),
 }));
 
 // Mock the toast
@@ -149,6 +146,13 @@ const defaultProps = {
 describe('AddEditEdge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetEdgeByIdQuery.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+    mockGetGraphByIdQuery.mockReturnValue({ data: { Name: 'Test Graph' } });
   });
 
   it('handles form validation correctly', () => {
@@ -442,6 +446,42 @@ describe('AddEditEdge', () => {
       renderWithRedux(<AddEditEdge {...defaultProps} edge={readonlyEdge} readonly={true} />);
 
       expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
+    });
+
+    it('renders readonly layout with guid and maximize toggle', () => {
+      const readonlyEdge = {
+        GUID: 'readonly-edge-id',
+        Name: 'Readonly Edge',
+        From: 'node1',
+        To: 'node2',
+        Cost: 10,
+        Data: {},
+        Labels: ['link'],
+        Tags: {},
+        Vectors: [],
+      };
+      mockGetEdgeByIdQuery.mockReturnValue({
+        data: readonlyEdge,
+        isLoading: false,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      renderWithRedux(<AddEditEdge {...defaultProps} edge={readonlyEdge} readonly={true} />);
+
+      expect(screen.getByDisplayValue('readonly-edge-id')).toBeInTheDocument();
+      expect(screen.getByText('Close')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Update' })).not.toBeInTheDocument();
+      expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('1200px');
+
+      const summaryGrid = screen.getByTestId('edge-view-summary-grid');
+      expect(summaryGrid).toHaveAttribute('data-expanded', 'false');
+
+      fireEvent.click(screen.getByTestId('toggle-edge-modal-size-button'));
+
+      expect(summaryGrid).toHaveAttribute('data-expanded', 'true');
+      expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('95vw');
+      expect(screen.getByRole('button', { name: 'Restore' })).toBeInTheDocument();
     });
 
     it('does not render form fields when modal is not visible', () => {

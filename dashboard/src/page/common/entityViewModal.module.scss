@@ -1,0 +1,36 @@
+.modalTitle {
+  width: 100%;
+  padding-right: 32px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--ant-padding);
+  row-gap: 0;
+
+  :global(.ant-form-item) {
+    margin-bottom: var(--ant-margin-sm);
+  }
+}
+
+.summaryGridExpanded {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fullSpan {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1280px) {
+  .summaryGridExpanded {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .summaryGrid,
+  .summaryGridExpanded {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
