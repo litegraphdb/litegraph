@@ -13,6 +13,30 @@
   box-shadow: var(--shadow-sm);
 }
 
+.controlsDropdown {
+  min-width: 280px;
+  padding: var(--ant-padding-sm);
+  border-radius: 12px;
+  background-color: var(--ant-color-bg-elevated);
+  border: 1px solid var(--ant-color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.controlsDivider {
+  height: 1px;
+  background-color: var(--ant-color-border-secondary);
+}
+
+.controlRow {
+  width: 100%;
+  gap: var(--ant-padding-sm);
+}
+
+.controlsActionButton {
+  width: 100%;
+  justify-content: flex-start;
+}
+
 .legendContainer {
   position: absolute;
   top: 10px;

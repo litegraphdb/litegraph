@@ -6,7 +6,6 @@ import { useLoadGraph, useRegisterEvents, useSigma } from '@react-sigma/core';
 import { GraphEdgeTooltip, GraphNodeTooltip } from '../types';
 import { calculateTooltipPosition } from '@/utils/appUtils';
 import { EdgeData, NodeData } from '@/lib/graph/types';
-import { LightGraphTheme } from '@/theme/theme';
 import { useAppContext } from '@/hooks/appHooks';
 import { ThemeEnum } from '@/types/types';
 import { defaultNodeColor } from '../constant';
@@ -19,8 +18,10 @@ interface GraphLoaderProps {
   edgeTooltip: GraphEdgeTooltip;
   nodes: NodeData[];
   edges: EdgeData[];
-  groupDragging: boolean;
-  legends: Record<string, { legend: string; color: string }>;
+  groupDragging?: boolean;
+  legends?: Record<string, { legend: string; color: string }>;
+  onNodeClick?: (node: NodeData, position: { x: number; y: number }) => void;
+  onEdgeClick?: (edge: EdgeData, position: { x: number; y: number }) => void;
 }
 
 const GraphLoader = ({
@@ -31,8 +32,10 @@ const GraphLoader = ({
   edgeTooltip,
   nodes,
   edges,
-  groupDragging,
+  groupDragging = false,
   legends = {},
+  onNodeClick,
+  onEdgeClick,
 }: GraphLoaderProps) => {
   const { theme } = useAppContext();
   const loadGraph = useLoadGraph();
@@ -74,7 +77,7 @@ const GraphLoader = ({
       graph.addNode(node.id, {
         x: node.x,
         y: node.y,
-        size: 15,
+        size: node.size || 15,
         label: node.label,
         color:
           theme === ThemeEnum.LIGHT
@@ -84,6 +87,7 @@ const GraphLoader = ({
         vx: 0,
         vy: 0,
         isDragging: false,
+        alwaysShowLabel: node.alwaysShowLabel,
       });
     });
 
@@ -97,7 +101,7 @@ const GraphLoader = ({
           edge.target,
           {
             size: 3,
-            label: `${edge.id}${edge.cost}`,
+            label: edge.label || edge.relationType || edge.id,
             color: theme === ThemeEnum.LIGHT ? '#aaa' : '#555',
             type: 'arrow',
           }
@@ -238,6 +242,13 @@ const GraphLoader = ({
         const { clientX: x, clientY: y } = event.event?.original || { clientX: 0, clientY: 0 };
         const node = event.node;
         const { x: tooltipX, y: tooltipY } = calculateTooltipPosition(x, y);
+        const clickedNode = nodes.find((currentNode) => currentNode.id === node);
+
+        if (clickedNode && onNodeClick) {
+          onNodeClick(clickedNode, { x: tooltipX, y: tooltipY });
+          return;
+        }
+
         setTooltip({ visible: true, nodeId: node, x: tooltipX, y: tooltipY });
         setEdgeTooltip({ visible: false, edgeId: '', x: 0, y: 0 });
       },
@@ -256,6 +267,13 @@ const GraphLoader = ({
         const { clientX: x, clientY: y } = event.event?.original || { clientX: 0, clientY: 0 };
         const edgeId = event.edge;
         const { x: tooltipX, y: tooltipY } = calculateTooltipPosition(x, y);
+        const clickedEdge = edges.find((currentEdge) => currentEdge.id === edgeId);
+
+        if (clickedEdge && onEdgeClick) {
+          onEdgeClick(clickedEdge, { x: tooltipX, y: tooltipY });
+          return;
+        }
+
         setEdgeTooltip({ visible: true, edgeId, x: tooltipX, y: tooltipY });
         setTooltip({ visible: false, nodeId: '', x: 0, y: 0 });
       },
@@ -278,6 +296,10 @@ const GraphLoader = ({
     draggedEdge,
     theme,
     groupDragging,
+    nodes,
+    edges,
+    onNodeClick,
+    onEdgeClick,
   ]);
   return null;
 };

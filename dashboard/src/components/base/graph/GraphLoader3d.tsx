@@ -72,7 +72,7 @@ export default function GraphLoader3d({
   ref,
   containerDivHeightAndWidth,
   showLabels = true,
-  legends,
+  legends = {},
 }: {
   nodes: NodeData[];
   edges: EdgeData[];
@@ -82,7 +82,7 @@ export default function GraphLoader3d({
   ref: React.RefObject<HTMLDivElement | null>;
   containerDivHeightAndWidth: { height?: number; width?: number };
   showLabels?: boolean;
-  legends: Record<string, { legend: string; color: string }>;
+  legends?: Record<string, { legend: string; color: string }>;
 }) {
   const { theme } = useAppContext();
   const [_, token] = useToken();

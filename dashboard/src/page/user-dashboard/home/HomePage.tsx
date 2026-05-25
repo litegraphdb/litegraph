@@ -21,6 +21,7 @@ const HomePage = () => {
   const selectedGraphRedux = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
   const [nodeTooltip, setNodeTooltip] = useState<GraphNodeTooltip>(defaultNodeTooltip);
   const [edgeTooltip, setEdgeTooltip] = useState<GraphEdgeTooltip>(defaultEdgeTooltip);
+  const [controlsPortalTarget, setControlsPortalTarget] = useState<HTMLDivElement | null>(null);
 
   // Modal state management
   const [isAddEditNodeVisible, setIsAddEditNodeVisible] = useState<boolean>(false);
@@ -54,7 +55,7 @@ const HomePage = () => {
       pageTitle={'Home'}
       pageTitleRightContent={
         Boolean(selectedGraphRedux) ? (
-          <LitegraphFlex>
+          <LitegraphFlex gap={4}>
             <LitegraphButton
               type="link"
               icon={<ReloadOutlined />}
@@ -64,6 +65,8 @@ const HomePage = () => {
             >
               Refresh
             </LitegraphButton>
+
+            <div ref={setControlsPortalTarget} style={{ display: 'flex' }} />
 
             <LitegraphButton
               type="link"
@@ -97,6 +100,7 @@ const HomePage = () => {
           isAddEditEdgeVisible={isAddEditEdgeVisible}
           setIsAddEditEdgeVisible={setIsAddEditEdgeVisible}
           onRefetchReady={handleRefetchReady}
+          controlsPortalTarget={controlsPortalTarget}
         />
       </div>
     </PageContainer>

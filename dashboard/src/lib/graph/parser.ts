@@ -78,6 +78,28 @@ import { Edge, Node } from 'litegraphdb/dist/types/types';
 //   return { nodes: parsedNodes, edges: parsedEdges };
 // }
 
+function buildNodeData(node: Node, position: { x: number; y: number; z: number }): NodeData {
+  const labels = [...(node.Labels || [])];
+  const tags = { ...(node.Tags || {}) };
+
+  return {
+    id: node.GUID,
+    label: node.Name,
+    type: labels[0] || 'Unknown',
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    vx: 0,
+    vy: 0,
+    isDragging: false,
+    size: 15,
+    labels,
+    tags,
+    tagKeys: Object.keys(tags).sort(),
+    nodeKind: 'node',
+  };
+}
+
 // Function to build the adjacency list based on dependencies
 export const buildAdjacencyList = (nodes: Node[], dependencies: { from: string; to: string }[]) => {
   const adjList: Record<string, string[]> = {};
@@ -228,17 +250,11 @@ export function parseNode(
     // Calculate z-position based on depth and a new spacing
     const z = centerZ - depth * depthSpacing;
 
-    return {
-      id: node.GUID,
-      label: node.Name,
-      type: node.Labels[0],
+    return buildNodeData(node, {
       x: showGraphHorizontal ? y : x,
       y: showGraphHorizontal ? x : y,
-      z, // Add the z-axis position for 3D visualization
-      vx: 0,
-      vy: 0,
-      isDragging: false,
-    };
+      z,
+    });
   });
 }
 
@@ -254,6 +270,11 @@ export function parseEdge(edges: Edge[]): EdgeData[] {
     sourceY: 0,
     targetX: 0,
     targetY: 0,
+    labels: [...(edge.Labels || [])],
+    tags: { ...(edge.Tags || {}) },
+    relationType: edge.Labels?.[0] || edge.Name || 'related',
+    rawEdgeIds: [edge.GUID],
+    edgeCount: 1,
   }));
 }
 
@@ -287,17 +308,11 @@ export function parseCircularNodeDeterministic(
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
 
-    return {
-      id: node.GUID,
-      label: node.Name,
-      type: node.Labels[0],
+    return buildNodeData(node, {
       x,
       y,
       z: 0,
-      vx: 0,
-      vy: 0,
-      isDragging: false,
-    };
+    });
   });
 }
 
@@ -357,17 +372,13 @@ export function parseNodeGroupedByLabel(
         ? (i - offset) * verticalSpacing // Stack vertically
         : -level * verticalSpacing; // Root on top, children below
 
-      result.push({
-        id: node.GUID,
-        label: node.Name,
-        type: node.Labels[0],
-        x,
-        y,
-        z: level * depthSpacing,
-        vx: 0,
-        vy: 0,
-        isDragging: false,
-      });
+      result.push(
+        buildNodeData(node, {
+          x,
+          y,
+          z: level * depthSpacing,
+        })
+      );
     });
   });
 

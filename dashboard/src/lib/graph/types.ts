@@ -1,3 +1,5 @@
+export type GraphNodeKind = 'node' | 'group' | 'group-anchor';
+
 export interface NodeData {
   id: string;
   label: string;
@@ -8,6 +10,18 @@ export interface NodeData {
   vx: number;
   vy: number;
   isDragging?: boolean;
+  size?: number;
+  labels?: string[];
+  tags?: Record<string, any>;
+  tagKeys?: string[];
+  depth?: number;
+  componentId?: string;
+  clusterId?: string;
+  clusterLabel?: string;
+  nodeKind?: GraphNodeKind;
+  groupTargetId?: string;
+  memberNodeIds?: string[];
+  alwaysShowLabel?: boolean;
 }
 
 export interface EdgeData {
@@ -21,6 +35,12 @@ export interface EdgeData {
   targetX: number;
   targetY: number;
   label?: string;
+  labels?: string[];
+  tags?: Record<string, any>;
+  relationType?: string;
+  isSynthetic?: boolean;
+  rawEdgeIds?: string[];
+  edgeCount?: number;
 }
 
 export type HoveredElement =

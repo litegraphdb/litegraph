@@ -68,6 +68,7 @@ describe('Graph2DViewer', () => {
         type: 'circle',
         x: 0,
         y: 0,
+        z: 0,
         vx: 0,
         vy: 0,
       },
@@ -77,6 +78,7 @@ describe('Graph2DViewer', () => {
         type: 'square',
         x: 100,
         y: 100,
+        z: 0,
         vx: 0,
         vy: 0,
       },
@@ -103,6 +105,8 @@ describe('Graph2DViewer', () => {
     showGraphHorizontal: false,
     topologicalSortNodes: false,
     showLabel: true,
+    groupDragging: false,
+    legends: {},
   };
 
   beforeEach(() => {
@@ -198,7 +202,7 @@ describe('Graph2DViewer', () => {
     const settingsElement = screen.getByTestId('sigma-settings');
     const settings = JSON.parse(settingsElement.textContent || '{}');
 
-    expect(settings.renderLabels).toBe(false);
+    expect(settings.renderLabels).toBe(true);
     expect(settings.renderEdgeLabels).toBe(false);
   });
 

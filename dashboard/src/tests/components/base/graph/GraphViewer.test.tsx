@@ -119,6 +119,10 @@ describe('GraphViewer Component', () => {
 
   const mockEdges = [{ id: 'edge1', source: 'node1', target: 'node2', label: 'Edge 1', cost: 5 }];
 
+  const openControls = () => {
+    fireEvent.click(screen.getByRole('button', { name: /controls/i }));
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -367,7 +371,7 @@ describe('GraphViewer Component', () => {
     expect(screen.getByText('This graph has no nodes.')).toBeInTheDocument();
   });
 
-  it('toggles 3D view when switch is clicked', () => {
+  it('toggles 3D view when switch is clicked', async () => {
     renderWithRedux(
       <GraphViewer
         isAddEditNodeVisible={false}
@@ -382,6 +386,10 @@ describe('GraphViewer Component', () => {
       createMockInitialState()
     );
 
+    openControls();
+    await waitFor(() => {
+      expect(screen.getByTestId('3d-switch')).toBeInTheDocument();
+    });
     const switchElement = screen.getByTestId('3d-switch');
     fireEvent.click(switchElement);
 
@@ -400,7 +408,7 @@ describe('GraphViewer Component', () => {
     });
   });
 
-  it('disables 3D switch when loading', () => {
+  it('disables 3D switch when loading', async () => {
     const { useLazyLoadEdgesAndNodes } = require('@/hooks/entityHooks');
     useLazyLoadEdgesAndNodes.mockReturnValue({
       nodes: [],
@@ -428,6 +436,10 @@ describe('GraphViewer Component', () => {
       createMockInitialState()
     );
 
+    openControls();
+    await waitFor(() => {
+      expect(screen.getByTestId('3d-switch')).toBeInTheDocument();
+    });
     const switchElement = screen.getByTestId('3d-switch');
     expect(switchElement).toBeDisabled();
   });
@@ -484,7 +496,7 @@ describe('GraphViewer Component', () => {
     expect(screen.getByTestId('edge-tooltip')).toBeInTheDocument();
   });
 
-  it('resets 3D view when selectedGraph changes', () => {
+  it('resets 3D view when selectedGraph changes', async () => {
     const { rerender, store } = renderWithRedux(
       <GraphViewer
         isAddEditNodeVisible={false}
@@ -500,6 +512,10 @@ describe('GraphViewer Component', () => {
     );
 
     // Enable 3D view
+    openControls();
+    await waitFor(() => {
+      expect(screen.getByTestId('3d-switch')).toBeInTheDocument();
+    });
     const switchElement = screen.getByTestId('3d-switch');
     fireEvent.click(switchElement);
     expect(screen.getByTestId('graph-loader-3d')).toBeInTheDocument();
@@ -576,7 +592,7 @@ describe('GraphViewer Component', () => {
     expect(graphLoader).toHaveAttribute('data-edges', JSON.stringify(mockEdges));
   });
 
-  it('passes correct props to GraphLoader3d', () => {
+  it('passes correct props to GraphLoader3d', async () => {
     renderWithRedux(
       <GraphViewer
         isAddEditNodeVisible={false}
@@ -592,6 +608,10 @@ describe('GraphViewer Component', () => {
     );
 
     // Enable 3D view
+    openControls();
+    await waitFor(() => {
+      expect(screen.getByTestId('3d-switch')).toBeInTheDocument();
+    });
     const switchElement = screen.getByTestId('3d-switch');
     fireEvent.click(switchElement);
 

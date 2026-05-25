@@ -13,14 +13,12 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { Edge, EnumerateResponse, Node, ReadSubGraphResponse } from 'litegraphdb/dist/types/types';
 import {
-  buildAdjacencyList,
-  topologicalSortKahn,
   parseEdge,
-  parseNode,
   parseCircularNodeDeterministic,
   parseNodeGroupedByLabel,
 } from '@/lib/graph/parser';
 import { EdgeData, NodeData } from '@/lib/graph/types';
+import { buildSmartDepthLayout } from '@/lib/graph/smartLayout';
 import {
   MAX_NODES_AND_EDGES_TO_FETCH_IN_SINGLE_REQUEST,
   MAX_NODES_TO_FETCH,
@@ -361,23 +359,12 @@ export const useLazyLoadEdgesAndNodes = (
       setNodesForGraph(processedNodes);
       setEdgesForGraph([]); // No edges while loading
     } else {
-      // Use topological layout once edges are fetched (or even if edges are not yet available)
-      const adjList = buildAdjacencyList(
-        nodes,
-        edges.map((edge) => ({ from: edge.From, to: edge.To }))
-      );
-      const { topologicalOrder, isCyclic: isCyclicResult } = topologicalSortKahn(adjList);
-      setIsCyclic(isCyclicResult);
+      const smartLayout = buildSmartDepthLayout(nodes, edges, showGraphHorizontal);
+      setIsCyclic(smartLayout.isCyclic);
       let uniqueNodes: NodeData[] = [];
 
       if (topologicalSortNodes) {
-        uniqueNodes = parseNode(
-          nodes,
-          nodes.length,
-          adjList,
-          topologicalOrder,
-          showGraphHorizontal
-        );
+        uniqueNodes = smartLayout.nodes;
       } else {
         uniqueNodes = parseNodeGroupedByLabel(nodes, showGraphHorizontal);
       }
@@ -486,22 +473,11 @@ export const useGetSubGraphs = (
   useEffect(() => {
     const data = subGraphResponse;
     if (data) {
-      const adjList = buildAdjacencyList(
-        data.Nodes,
-        data.Edges.map((edge: Edge) => ({ from: edge.From, to: edge.To }))
-      );
-      const { topologicalOrder, isCyclic: isCyclicResult } = topologicalSortKahn(adjList);
-      //  setIsCyclic(isCyclicResult);
+      const smartLayout = buildSmartDepthLayout(data.Nodes, data.Edges, showGraphHorizontal);
       let uniqueNodes: NodeData[] = [];
 
       if (topologicalSortNodes) {
-        uniqueNodes = parseNode(
-          data.Nodes,
-          data.Nodes.length,
-          adjList,
-          topologicalOrder,
-          showGraphHorizontal
-        );
+        uniqueNodes = smartLayout.nodes;
       } else {
         uniqueNodes = parseNodeGroupedByLabel(data.Nodes, showGraphHorizontal);
       }

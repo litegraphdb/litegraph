@@ -20,11 +20,10 @@ import { transformToOptions } from '@/lib/graph/utils';
 import {
   parseNode,
   parseEdge,
-  buildAdjacencyList,
-  topologicalSortKahn,
   parseCircularNodeDeterministic,
   parseNodeGroupedByLabel,
 } from '@/lib/graph/parser';
+import { buildSmartDepthLayout } from '@/lib/graph/smartLayout';
 
 // Mock the store hooks
 jest.mock('@/lib/store/hooks', () => ({
@@ -48,11 +47,13 @@ jest.mock('@/lib/graph/utils', () => ({
 jest.mock('@/lib/graph/parser', () => ({
   parseNode: jest.fn(),
   parseEdge: jest.fn(),
-  buildAdjacencyList: jest.fn(() => ({})),
-  topologicalSortKahn: jest.fn(() => []),
   parseCircularNodeDeterministic: jest.fn(),
   parseNodeGroupedByLabel: jest.fn(),
   renderTree: jest.fn(() => ({ nodes: [], edges: [] })),
+}));
+
+jest.mock('@/lib/graph/smartLayout', () => ({
+  buildSmartDepthLayout: jest.fn(() => ({ nodes: [], edges: [], isCyclic: false })),
 }));
 
 // Mock console methods
@@ -520,8 +521,11 @@ describe('Entity Hooks', () => {
       (parseEdge as jest.Mock).mockReturnValue([]);
       (parseCircularNodeDeterministic as jest.Mock).mockReturnValue([]);
       (parseNodeGroupedByLabel as jest.Mock).mockReturnValue([]);
-      (buildAdjacencyList as jest.Mock).mockReturnValue({});
-      (topologicalSortKahn as jest.Mock).mockReturnValue([]);
+      (buildSmartDepthLayout as jest.Mock).mockReturnValue({
+        nodes: [],
+        edges: [],
+        isCyclic: false,
+      });
     });
 
     it('should return correct structure', () => {

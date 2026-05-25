@@ -23,8 +23,10 @@ interface Graph2DViewerProps {
   showGraphHorizontal: boolean;
   topologicalSortNodes: boolean;
   showLabel: boolean;
-  groupDragging: boolean;
-  legends: Record<string, { legend: string; color: string }>;
+  groupDragging?: boolean;
+  legends?: Record<string, { legend: string; color: string }>;
+  onNodeClick?: (node: NodeData, position: { x: number; y: number }) => void;
+  onEdgeClick?: (edge: EdgeData, position: { x: number; y: number }) => void;
 }
 const Graph2DViewer = ({
   show3d,
@@ -39,8 +41,10 @@ const Graph2DViewer = ({
   showGraphHorizontal,
   topologicalSortNodes,
   showLabel,
-  groupDragging,
-  legends,
+  groupDragging = false,
+  legends = {},
+  onNodeClick,
+  onEdgeClick,
 }: Graph2DViewerProps) => {
   const [refId, setRefId] = useState<string>(uuid());
   const { theme } = useAppContext();
@@ -67,6 +71,8 @@ const Graph2DViewer = ({
         labelWeight: 'bold',
         renderEdgeLabels: showLabel,
         labelRenderer: (context: CanvasRenderingContext2D, data: any, settings: any) => {
+          if (!data.label || (!showLabel && !data.alwaysShowLabel)) return;
+
           const size = settings.labelSize || 14;
           const font = `bold ${size}px ${settings.labelFont || '"Inter", "serif"'}`;
 
@@ -77,6 +83,8 @@ const Graph2DViewer = ({
           context.fillText(data.label, data.x, data.y - (data.size || 10) - 4); // shift above node
         },
         hoverRenderer: (context: CanvasRenderingContext2D, data: any, settings: any) => {
+          if (!data.label || (!showLabel && !data.alwaysShowLabel)) return;
+
           const size = settings.labelSize || 14;
           const font = `bold ${size}px ${settings.labelFont || '"Inter", "serif"'}`;
 
@@ -86,7 +94,7 @@ const Graph2DViewer = ({
           context.textBaseline = 'bottom'; // Positions label above the node
           context.fillText(data.label, data.x, data.y - (data.size || 10) - 4); // shift above node
         },
-        renderLabels: showLabel,
+        renderLabels: true,
         edgeLabelSize: 12,
         minCameraRatio: 0.1,
         maxCameraRatio: 10,
@@ -115,6 +123,8 @@ const Graph2DViewer = ({
         edges={edges}
         groupDragging={groupDragging}
         legends={legends}
+        onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
       />
     </SigmaContainer>
   );
