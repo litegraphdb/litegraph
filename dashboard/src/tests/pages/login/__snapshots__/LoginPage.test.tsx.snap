@@ -338,6 +338,15 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
         </div>
       </div>
     </div>
+    <div
+      class="loginFooter"
+    >
+      <div
+        class="loginHelperText"
+      >
+        Default credentials are default@user.com and password.
+      </div>
+    </div>
   </div>
 </div>
 `;

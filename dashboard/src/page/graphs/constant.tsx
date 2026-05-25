@@ -11,10 +11,11 @@ import { TableProps, Dropdown, Button, Menu, Input } from 'antd';
 import { formatDateTime } from '@/utils/dateUtils';
 import { pluralize } from '@/utils/stringUtils';
 import { isNumber } from 'lodash';
-import { NONE, NOT_AVAILABLE } from '@/constants/uiLabels';
+import { NONE } from '@/constants/uiLabels';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import TableSearch from '@/components/table-search/TableSearch';
 import { onGUIDFilter, onLabelFilter, onNameFilter, onTagFilter } from '@/constants/table';
+import CountBadge from '@/components/base/count-badge/CountBadge';
 
 export const tableColumns = (
   handleEdit: (record: GraphData) => void,
@@ -56,7 +57,21 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
+    render: (GUID: string) => (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'monospace',
+          fontSize: 12,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {GUID}
+        <CopyButton text={GUID} tooltipTitle="Copy GUID" />
+      </span>
+    ),
   },
   {
     title: columnTooltip('Labels', 'Classification labels assigned to this graph'),
@@ -69,9 +84,7 @@ export const tableColumns = (
     ),
     onFilter: (value, record) => onLabelFilter(value, record.Labels),
     render: (labels: any) => (
-      <div>
-        <div>{Array.isArray(labels) && labels.length > 0 ? labels.join(', ') : NOT_AVAILABLE}</div>
-      </div>
+      <CountBadge count={Array.isArray(labels) ? labels.length : 0} noun="label" />
     ),
   },
   {
@@ -84,13 +97,7 @@ export const tableColumns = (
     ),
     onFilter: (val, record) => onTagFilter(val, record.Tags),
     responsive: ['sm'],
-    render: (tags: any) => {
-      return (
-        <div>
-          <div>{tags && Object.keys(tags).length > 0 ? JSON.stringify(tags) : NONE}</div>
-        </div>
-      );
-    },
+    render: (tags: any) => <CountBadge count={tags ? Object.keys(tags).length : 0} noun="tag" />,
   },
   {
     title: columnTooltip('Vectors', 'Vector embeddings associated with this graph'),
@@ -202,7 +209,9 @@ export const tableColumns = (
 
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions"><Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} /></LitegraphTooltip>
+          <LitegraphTooltip title="Actions">
+            <Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} />
+          </LitegraphTooltip>
         </Dropdown>
       );
     },

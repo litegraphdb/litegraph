@@ -1,18 +1,18 @@
 import React from 'react';
 import { LoadingOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
 import CopyButton from '@/components/base/copy-button/CopyButton';
-import { Button, Dropdown, Skeleton, TableProps } from 'antd';
+import { Button, Dropdown, TableProps } from 'antd';
 import { EdgeType } from '@/types/types';
 import { formatDateTime } from '@/utils/dateUtils';
 import { pluralize } from '@/utils/stringUtils';
 import { isNumber } from 'lodash';
-import { NONE, NOT_AVAILABLE } from '@/constants/uiLabels';
+import { NONE } from '@/constants/uiLabels';
 import TableSearch from '@/components/table-search/TableSearch';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { onGUIDFilter, onLabelFilter, onNameFilter, onTagFilter } from '@/constants/table';
-import LitegraphTag from '@/components/base/tag/Tag';
 import { columnTooltip } from '@/utils/tooltipUtils';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import CountBadge from '@/components/base/count-badge/CountBadge';
 
 export const tableColumns = (
   handleEdit: (record: EdgeType) => void,
@@ -47,7 +47,21 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search GUID" />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
+    render: (GUID: string) => (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'monospace',
+          fontSize: 12,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {GUID}
+        <CopyButton text={GUID} tooltipTitle="Copy GUID" />
+      </span>
+    ),
   },
   {
     title: columnTooltip('From', 'Source node of this edge'),
@@ -108,11 +122,7 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search Labels" />
     ),
     onFilter: (value, record) => onLabelFilter(value, record.Labels),
-    render: (Labels: string[]) => (
-      <div>
-        {Labels?.length ? Labels?.map((label) => <LitegraphTag key={label} label={label} />) : NONE}
-      </div>
-    ),
+    render: (Labels: string[]) => <CountBadge count={Labels?.length ?? 0} noun="label" />,
   },
   {
     title: columnTooltip('Tags', 'Key-value metadata tags'),
@@ -123,11 +133,7 @@ export const tableColumns = (
       <TableSearch {...props} placeholder="Search Tags" />
     ),
     onFilter: (val, record) => onTagFilter(val, record.Tags),
-    render: (Tags: any) => (
-      <div>
-        <div>{Object.keys(Tags || {}).length > 0 ? JSON.stringify(Tags) : NONE}</div>
-      </div>
-    ),
+    render: (Tags: any) => <CountBadge count={Object.keys(Tags || {}).length} noun="tag" />,
   },
   {
     title: columnTooltip('Vectors', 'Vector embeddings associated with this edge'),
@@ -201,7 +207,9 @@ export const tableColumns = (
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions"><Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} /></LitegraphTooltip>
+          <LitegraphTooltip title="Actions">
+            <Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} />
+          </LitegraphTooltip>
         </Dropdown>
       );
     },

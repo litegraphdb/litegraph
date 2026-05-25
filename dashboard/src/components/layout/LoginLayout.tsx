@@ -9,7 +9,15 @@ import { paths } from '@/constants/constant';
 import styles from './login-layout.module.scss';
 import LitegraphText from '../base/typograpghy/Text';
 
-const LoginLayout = ({ children, isAdmin }: { children: React.ReactNode; isAdmin?: boolean }) => {
+const LoginLayout = ({
+  children,
+  isAdmin,
+  footer,
+}: {
+  children: React.ReactNode;
+  isAdmin?: boolean;
+  footer?: React.ReactNode;
+}) => {
   return (
     <LitegraphFlex className={styles.userLoginPage} vertical gap={20}>
       <LitegraphFlex
@@ -43,6 +51,7 @@ const LoginLayout = ({ children, isAdmin }: { children: React.ReactNode; isAdmin
         </LitegraphParagraph>
       </div>
       <div className={styles.loginBox}>{children}</div>
+      {footer ? <div className={styles.loginFooter}>{footer}</div> : null}
     </LitegraphFlex>
   );
 };

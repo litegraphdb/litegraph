@@ -30,6 +30,12 @@ jest.mock('@/components/table-search/TableSearch', () => {
   };
 });
 
+jest.mock('@/components/base/tag/Tag', () => {
+  return function MockTag({ label }: { label: string }) {
+    return <span data-testid="tag">{label}</span>;
+  };
+});
+
 describe('Graphs Constants', () => {
   const mockHandleEdit = jest.fn();
   const mockHandleDelete = jest.fn();
@@ -44,6 +50,7 @@ describe('Graphs Constants', () => {
     GUID: 'graph-123',
     Name: 'Test Graph',
     Description: 'Test Description',
+    Labels: ['label1', 'label2'],
     Tags: { tag1: 'value1', tag2: 'value2' },
     Vectors: ['vector1', 'vector2'],
     CreatedUtc: '2024-01-01T00:00:00Z',
@@ -155,6 +162,25 @@ describe('Graphs Constants', () => {
       expect(labelsColumn?.onFilter).toBeDefined();
     });
 
+    it('renders labels column as a count badge', () => {
+      const columns = tableColumns(
+        mockHandleEdit,
+        mockHandleDelete,
+        mockHandleExportGexf,
+        mockHandleEnableVectorIndex,
+        mockHandleReadVectorIndexConfig,
+        mockHandleReadVectorIndexStats,
+        mockHandleRebuildVectorIndex,
+        mockHandleDeleteVectorIndex,
+        false
+      );
+
+      const labelsColumn = columns.find((col) => col.key === 'labels');
+      render(labelsColumn?.render?.(mockGraphData.Labels, mockGraphData) as React.ReactElement);
+
+      expect(screen.getByTestId('tag')).toHaveTextContent('2 labels');
+    });
+
     it('renders tags column with filter', () => {
       const columns = tableColumns(
         mockHandleEdit,
@@ -174,6 +200,25 @@ describe('Graphs Constants', () => {
       expect(tagsColumn?.dataIndex).toBe('Tags');
       expect(tagsColumn?.filterDropdown).toBeDefined();
       expect(tagsColumn?.onFilter).toBeDefined();
+    });
+
+    it('renders tags column as a count badge', () => {
+      const columns = tableColumns(
+        mockHandleEdit,
+        mockHandleDelete,
+        mockHandleExportGexf,
+        mockHandleEnableVectorIndex,
+        mockHandleReadVectorIndexConfig,
+        mockHandleReadVectorIndexStats,
+        mockHandleRebuildVectorIndex,
+        mockHandleDeleteVectorIndex,
+        false
+      );
+
+      const tagsColumn = columns.find((col) => col.key === 'tags');
+      render(tagsColumn?.render?.(mockGraphData.Tags, mockGraphData) as React.ReactElement);
+
+      expect(screen.getByTestId('tag')).toHaveTextContent('2 tags');
     });
 
     it('renders vectors column correctly', () => {

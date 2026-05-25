@@ -10,6 +10,14 @@
     width: 100%;
   }
 }
+
+.loginFooter {
+  margin: 12px auto 0;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+
 .loginTitle {
   display: flex;
   flex-direction: column;

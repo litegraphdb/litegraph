@@ -184,8 +184,7 @@ describe('Edge Constants', () => {
       const labelsColumn = columns.find((col) => col.key === 'Labels')!;
       const { container } = render(labelsColumn.render(mockEdge.Labels, mockEdge));
 
-      expect(screen.getAllByTestId('tag')).toHaveLength(2);
-      expect(screen.getAllByTestId('tag')[0]).toHaveTextContent('label1');
+      expect(screen.getByTestId('tag')).toHaveTextContent('2 labels');
     });
 
     it('handles empty labels array', () => {
@@ -196,7 +195,7 @@ describe('Edge Constants', () => {
         labelsColumn.render(edgeWithEmptyLabels.Labels, edgeWithEmptyLabels)
       );
 
-      expect(container).toHaveTextContent('None');
+      expect(container).toHaveTextContent('0 labels');
     });
 
     it('handles undefined labels', () => {
@@ -207,7 +206,7 @@ describe('Edge Constants', () => {
         labelsColumn.render(edgeWithUndefinedLabels.Labels, edgeWithUndefinedLabels)
       );
 
-      expect(container).toHaveTextContent('None');
+      expect(container).toHaveTextContent('0 labels');
     });
 
     it('has filter dropdown for labels', () => {
@@ -228,7 +227,7 @@ describe('Edge Constants', () => {
       const tagsColumn = columns.find((col) => col.key === 'Tags')!;
       const { container } = render(tagsColumn.render(mockEdge.Tags, mockEdge));
 
-      expect(container).toHaveTextContent('{"category":"test","priority":"high"}');
+      expect(container).toHaveTextContent('2 tags');
     });
 
     it('handles empty tags object', () => {
@@ -237,7 +236,7 @@ describe('Edge Constants', () => {
       const edgeWithEmptyTags = { ...mockEdge, Tags: {} };
       const { container } = render(tagsColumn.render(edgeWithEmptyTags.Tags, edgeWithEmptyTags));
 
-      expect(container).toHaveTextContent('None');
+      expect(container).toHaveTextContent('0 tags');
     });
 
     it('handles undefined tags', () => {
@@ -248,7 +247,7 @@ describe('Edge Constants', () => {
         tagsColumn.render(edgeWithUndefinedTags.Tags, edgeWithUndefinedTags)
       );
 
-      expect(container).toHaveTextContent('None');
+      expect(container).toHaveTextContent('0 tags');
     });
 
     it('has filter dropdown for tags', () => {

@@ -151,7 +151,13 @@ const LoginPage = () => {
   }, [currentStep]);
 
   return (
-    <LoginLayout>
+    <LoginLayout
+      footer={
+        <div className={styles.loginHelperText}>
+          Default credentials are default@user.com and password.
+        </div>
+      }
+    >
       <LitegraphFlex vertical gap={20}>
         <Form form={form} layout="vertical" initialValues={formData}>
           {/* Step 0: Server URL - always visible */}

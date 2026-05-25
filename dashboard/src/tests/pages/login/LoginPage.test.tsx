@@ -126,6 +126,9 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(screen.getByText('LiteGraph Server URL')).toBeVisible();
       expect(screen.getByPlaceholderText('https://your-litegraph-server.com')).toBeVisible();
+      expect(
+        screen.getByText('Default credentials are default@user.com and password.')
+      ).toBeVisible();
     });
     expect(container).toMatchSnapshot('initial login step');
 
