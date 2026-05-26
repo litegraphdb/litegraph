@@ -341,7 +341,20 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 if (_Transaction != null) throw new InvalidOperationException("A graph transaction is already active.");
 
                 SqliteConnection conn = _InMemory ? _SqliteConnection : new SqliteConnection(_ConnectionString);
-                if (!_InMemory) conn.Open();
+                if (!_InMemory)
+                {
+                    try
+                    {
+                        conn.Open();
+                    }
+                    catch (Exception e) when (IsTransientOpenFailure(e))
+                    {
+                        LogPersistentConnectionFallback("begin graph transaction", e);
+                        try { conn.Dispose(); } catch { }
+                        EnsurePersistentConnectionOpen();
+                        conn = _SqliteConnection;
+                    }
+                }
 
                 _TransactionConnection = conn;
                 _Transaction = conn.BeginTransaction();
@@ -583,10 +596,20 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     }
                     catch (Exception e)
                     {
+                        if (IsTransientOpenFailure(e))
+                        {
+                            LogPersistentConnectionFallback("execute query", e);
+                            return ExecuteQueryWithPersistentConnection(query, isTransaction);
+                        }
+
                         if (isTransaction)
                         {
-                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
-                                cmd.ExecuteNonQuery();
+                            try
+                            {
+                                using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
+                                    cmd.ExecuteNonQuery();
+                            }
+                            catch { }
                         }
 
                         e.Data.Add("IsTransaction", isTransaction);
@@ -686,7 +709,6 @@ namespace LiteGraph.GraphRepositories.Sqlite
             }
             else
             {
-                // Original code for disk-based operations
                 using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
                 {
                     try
@@ -706,10 +728,21 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     }
                     catch (Exception e)
                     {
+                        if (IsTransientOpenFailure(e))
+                        {
+                            LogPersistentConnectionFallback("execute query async", e);
+                            token.ThrowIfCancellationRequested();
+                            return ExecuteQueryWithPersistentConnection(query, isTransaction);
+                        }
+
                         if (isTransaction)
                         {
-                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
-                                await cmd.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+                            try
+                            {
+                                using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", conn))
+                                    await cmd.ExecuteNonQueryAsync(token).ConfigureAwait(false);
+                            }
+                            catch { }
                         }
 
                         e.Data.Add("IsTransaction", isTransaction);
@@ -848,11 +881,12 @@ namespace LiteGraph.GraphRepositories.Sqlite
             {
                 using (SqliteConnection conn = new SqliteConnection(_ConnectionString))
                 {
-                    conn.Open();
                     SqliteTransaction transaction = null;
 
                     try
                     {
+                        conn.Open();
+
                         if (isTransaction)
                         {
                             transaction = conn.BeginTransaction();
@@ -891,7 +925,13 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     }
                     catch (Exception e)
                     {
-                        transaction?.Rollback();
+                        if (IsTransientOpenFailure(e))
+                        {
+                            LogPersistentConnectionFallback("execute query batch", e);
+                            return ExecuteQueriesWithPersistentConnection(queries, isTransaction);
+                        }
+
+                        try { transaction?.Rollback(); } catch { }
 
                         e.Data.Add("IsTransaction", isTransaction);
                         e.Data.Add("Queries", string.Join("; ", queries));
@@ -1106,6 +1146,131 @@ namespace LiteGraph.GraphRepositories.Sqlite
             }
         }
 
+        private bool IsTransientOpenFailure(Exception e)
+        {
+            return e is SqliteException sqliteException && sqliteException.SqliteErrorCode == 14;
+        }
+
+        private void LogPersistentConnectionFallback(string operation, Exception e)
+        {
+            Logging.Log(SeverityEnum.Warn, "sqlite " + operation + " falling back to the persistent WAL connection after a transient open failure: " + e.Message);
+        }
+
+        private void EnsurePersistentConnectionOpen()
+        {
+            if (_SqliteConnection != null && _SqliteConnection.State == ConnectionState.Open) return;
+
+            try { _SqliteConnection?.Close(); } catch { }
+            try { _SqliteConnection?.Dispose(); } catch { }
+
+            _SqliteConnection = new SqliteConnection(_ConnectionString);
+            _SqliteConnection.Open();
+            ApplyPerformanceSettings(_SqliteConnection);
+        }
+
+        private DataTable ExecuteQueryWithPersistentConnection(string query, bool isTransaction)
+        {
+            DataTable result = new DataTable();
+
+            lock (_QueryLock)
+            {
+                EnsurePersistentConnectionOpen();
+
+                try
+                {
+                    using (SqliteCommand cmd = new SqliteCommand(query, _SqliteConnection))
+                    {
+                        using (SqliteDataReader rdr = cmd.ExecuteReader())
+                        {
+                            result.Load(rdr);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (isTransaction)
+                    {
+                        try
+                        {
+                            using (SqliteCommand cmd = new SqliteCommand("ROLLBACK;", _SqliteConnection))
+                                cmd.ExecuteNonQuery();
+                        }
+                        catch { }
+                    }
+
+                    e.Data.Add("IsTransaction", isTransaction);
+                    e.Data.Add("Query", query);
+                    throw;
+                }
+            }
+
+            return result;
+        }
+
+        private DataTable ExecuteQueriesWithPersistentConnection(IEnumerable<string> queries, bool isTransaction)
+        {
+            DataTable result = new DataTable();
+
+            lock (_QueryLock)
+            {
+                EnsurePersistentConnectionOpen();
+                SqliteTransaction transaction = null;
+
+                try
+                {
+                    if (isTransaction)
+                    {
+                        transaction = _SqliteConnection.BeginTransaction();
+                    }
+
+                    DataTable lastResult = null;
+
+                    foreach (string query in queries.Where(q => !string.IsNullOrEmpty(q)))
+                    {
+                        if (query.Length > MaxStatementLength)
+                            throw new ArgumentException($"Query exceeds maximum statement length of {MaxStatementLength} characters.");
+
+                        if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + query);
+
+                        using (SqliteCommand cmd = new SqliteCommand(query, _SqliteConnection))
+                        {
+                            if (transaction != null)
+                            {
+                                cmd.Transaction = transaction;
+                            }
+
+                            using (SqliteDataReader rdr = cmd.ExecuteReader())
+                            {
+                                lastResult = new DataTable();
+                                lastResult.Load(rdr);
+                            }
+
+                            if (lastResult != null && lastResult.Rows.Count > 0)
+                            {
+                                result = lastResult;
+                            }
+                        }
+                    }
+
+                    transaction?.Commit();
+                }
+                catch (Exception e)
+                {
+                    try { transaction?.Rollback(); } catch { }
+
+                    e.Data.Add("IsTransaction", isTransaction);
+                    e.Data.Add("Queries", string.Join("; ", queries));
+                    throw;
+                }
+                finally
+                {
+                    transaction?.Dispose();
+                }
+            }
+
+            return result;
+        }
+
         private void ClearGraphTransaction()
         {
             SqliteTransaction transaction = _Transaction;
@@ -1121,7 +1286,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
 
             try { transaction?.Dispose(); } catch { }
 
-            if (!_InMemory && conn != null)
+            if (!_InMemory && conn != null && !ReferenceEquals(conn, _SqliteConnection))
             {
                 try { conn.Close(); } catch { }
                 try { conn.Dispose(); } catch { }

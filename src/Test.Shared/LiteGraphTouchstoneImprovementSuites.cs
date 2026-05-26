@@ -96,6 +96,16 @@
                         executeAsync: TestSqliteGraphTransactionCommitRollback),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Storage.Sqlite.PersistentConnectionFallback",
+                        displayName: "SQLite repository falls back to the persistent WAL connection after transient open failures",
+                        executeAsync: TestSqlitePersistentConnectionFallback),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Sqlite.PersistentConnectionFallback",
+                        displayName: "SQLite graph transactions can fall back to the persistent WAL connection after transient open failures",
+                        executeAsync: TestSqliteGraphTransactionPersistentConnectionFallback),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Client.Execute",
                         displayName: "Graph transaction client commits and rolls back operation lists",
                         executeAsync: TestGraphTransactionClientExecute),
@@ -1447,6 +1457,66 @@
 
                 bool existsAfterCommit = await repo.Node.ExistsByGuid(tenant.GUID, committedNodeGuid, cancellationToken).ConfigureAwait(false);
                 AssertTrue(existsAfterCommit, "Committed node exists");
+            }
+
+            DeleteFileIfExists(filename);
+        }
+
+        private static async Task TestSqlitePersistentConnectionFallback(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-sqlite-fallback.db";
+            DeleteFileIfExists(filename);
+
+            using (GraphRepositoryBase repoBase = GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename }))
+            using (LiteGraphClient client = new LiteGraphClient(repoBase, null, null, null, false))
+            {
+                client.InitializeRepository();
+                SqliteGraphRepository repo = repoBase as SqliteGraphRepository
+                    ?? throw new InvalidOperationException("Expected SQLite graph repository.");
+
+                TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Fallback Tenant" }, cancellationToken).ConfigureAwait(false);
+                Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Fallback Graph" }, cancellationToken).ConfigureAwait(false);
+
+                ForceSqliteTransientConnectionFailure(repo);
+
+                Graph reloaded = await repo.Graph.ReadByGuid(tenant.GUID, graph.GUID, cancellationToken).ConfigureAwait(false);
+                AssertNotNull(reloaded, "Graph read succeeds through persistent connection fallback");
+                AssertEqual(graph.GUID, reloaded.GUID, "Fallback graph GUID matches");
+            }
+
+            DeleteFileIfExists(filename);
+        }
+
+        private static async Task TestSqliteGraphTransactionPersistentConnectionFallback(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-sqlite-transaction-fallback.db";
+            DeleteFileIfExists(filename);
+
+            using (GraphRepositoryBase repoBase = GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename }))
+            using (LiteGraphClient client = new LiteGraphClient(repoBase, null, null, null, false))
+            {
+                client.InitializeRepository();
+                SqliteGraphRepository repo = repoBase as SqliteGraphRepository
+                    ?? throw new InvalidOperationException("Expected SQLite graph repository.");
+
+                TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Fallback Transaction Tenant" }, cancellationToken).ConfigureAwait(false);
+                Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Fallback Transaction Graph" }, cancellationToken).ConfigureAwait(false);
+
+                ForceSqliteTransientConnectionFailure(repo);
+
+                Guid nodeGuid = Guid.NewGuid();
+                await repo.BeginGraphTransaction(tenant.GUID, graph.GUID, cancellationToken).ConfigureAwait(false);
+                await repo.Node.Create(new Node
+                {
+                    GUID = nodeGuid,
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = "Fallback Transaction Node"
+                }, cancellationToken).ConfigureAwait(false);
+                await repo.CommitGraphTransaction(cancellationToken).ConfigureAwait(false);
+
+                bool exists = await repo.Node.ExistsByGuid(tenant.GUID, nodeGuid, cancellationToken).ConfigureAwait(false);
+                AssertTrue(exists, "Graph transaction succeeds through persistent connection fallback");
             }
 
             DeleteFileIfExists(filename);
@@ -10453,6 +10523,8 @@
 
             DeleteFileWithRetry(filename);
             DeleteFileWithRetry(filename + ".backup");
+            DeleteFileWithRetry(filename + "-shm");
+            DeleteFileWithRetry(filename + "-wal");
 
             string indexDirectory = Path.Combine(Path.GetDirectoryName(filename) ?? ".", "indexes");
             if (!Directory.Exists(indexDirectory)) return;
@@ -10487,6 +10559,18 @@
                     Thread.Sleep(50);
                 }
             }
+        }
+
+        private static void ForceSqliteTransientConnectionFailure(SqliteGraphRepository repo)
+        {
+            AssertNotNull(repo, "SQLite repository exists");
+
+            FieldInfo? connectionStringField = typeof(SqliteGraphRepository).GetField("_ConnectionString", BindingFlags.Instance | BindingFlags.NonPublic);
+            AssertNotNull(connectionStringField, "SQLite connection string field exists");
+
+            string missingDirectory = Path.Combine(Path.GetTempPath(), "litegraph-missing-" + Guid.NewGuid().ToString("N"), "nested");
+            string brokenConnectionString = "Data Source=" + Path.Combine(missingDirectory, "litegraph.db") + ";Pooling=true";
+            connectionStringField!.SetValue(repo, brokenConnectionString);
         }
     }
 }
