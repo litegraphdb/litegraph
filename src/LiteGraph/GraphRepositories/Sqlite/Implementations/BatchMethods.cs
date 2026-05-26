@@ -55,21 +55,24 @@
                 resp.ExistingNodes = new List<Guid>();
                 resp.MissingNodes = new List<Guid>();
 
-                string nodesQuery = NodeQueries.BatchExists(tenantGuid, graphGuid, req.Nodes);
-                token.ThrowIfCancellationRequested();
-                DataTable nodesResult = await _Repo.ExecuteQueryAsync(nodesQuery, false, token).ConfigureAwait(false);
-                if (nodesResult != null && nodesResult.Rows != null && nodesResult.Rows.Count > 0)
+                if (req.Nodes.Count > 0)
                 {
-                    foreach (DataRow row in nodesResult.Rows)
+                    string nodesQuery = NodeQueries.BatchExists(tenantGuid, graphGuid, req.Nodes);
+                    token.ThrowIfCancellationRequested();
+                    DataTable nodesResult = await _Repo.ExecuteQueryAsync(nodesQuery, false, token).ConfigureAwait(false);
+                    if (nodesResult != null && nodesResult.Rows != null && nodesResult.Rows.Count > 0)
                     {
-                        token.ThrowIfCancellationRequested();
-                        if (row["exists"] != null && row["exists"] != DBNull.Value)
+                        foreach (DataRow row in nodesResult.Rows)
                         {
-                            int exists = Convert.ToInt32(row["exists"]);
-                            if (exists == 1)
-                                resp.ExistingNodes.Add(Guid.Parse(row["guid"].ToString()));
-                            else
-                                resp.MissingNodes.Add(Guid.Parse(row["guid"].ToString()));
+                            token.ThrowIfCancellationRequested();
+                            if (row["exists"] != null && row["exists"] != DBNull.Value)
+                            {
+                                int exists = Convert.ToInt32(row["exists"]);
+                                if (exists == 1)
+                                    resp.ExistingNodes.Add(Guid.Parse(row["guid"].ToString()));
+                                else
+                                    resp.MissingNodes.Add(Guid.Parse(row["guid"].ToString()));
+                            }
                         }
                     }
                 }
@@ -84,21 +87,24 @@
                 resp.ExistingEdges = new List<Guid>();
                 resp.MissingEdges = new List<Guid>();
 
-                string edgesQuery = EdgeQueries.BatchExists(tenantGuid, graphGuid, req.Edges);
-                token.ThrowIfCancellationRequested();
-                DataTable edgesResult = await _Repo.ExecuteQueryAsync(edgesQuery, false, token).ConfigureAwait(false);
-                if (edgesResult != null && edgesResult.Rows != null && edgesResult.Rows.Count > 0)
+                if (req.Edges.Count > 0)
                 {
-                    foreach (DataRow row in edgesResult.Rows)
+                    string edgesQuery = EdgeQueries.BatchExists(tenantGuid, graphGuid, req.Edges);
+                    token.ThrowIfCancellationRequested();
+                    DataTable edgesResult = await _Repo.ExecuteQueryAsync(edgesQuery, false, token).ConfigureAwait(false);
+                    if (edgesResult != null && edgesResult.Rows != null && edgesResult.Rows.Count > 0)
                     {
-                        token.ThrowIfCancellationRequested();
-                        if (row["exists"] != null && row["exists"] != DBNull.Value)
+                        foreach (DataRow row in edgesResult.Rows)
                         {
-                            int exists = Convert.ToInt32(row["exists"]);
-                            if (exists == 1)
-                                resp.ExistingEdges.Add(Guid.Parse(row["guid"].ToString()));
-                            else
-                                resp.MissingEdges.Add(Guid.Parse(row["guid"].ToString()));
+                            token.ThrowIfCancellationRequested();
+                            if (row["exists"] != null && row["exists"] != DBNull.Value)
+                            {
+                                int exists = Convert.ToInt32(row["exists"]);
+                                if (exists == 1)
+                                    resp.ExistingEdges.Add(Guid.Parse(row["guid"].ToString()));
+                                else
+                                    resp.MissingEdges.Add(Guid.Parse(row["guid"].ToString()));
+                            }
                         }
                     }
                 }
@@ -113,21 +119,24 @@
                 resp.ExistingVectors = new List<Guid>();
                 resp.MissingVectors = new List<Guid>();
 
-                string vectorsQuery = VectorQueries.BatchExists(tenantGuid, graphGuid, req.Vectors);
-                token.ThrowIfCancellationRequested();
-                DataTable vectorsResult = await _Repo.ExecuteQueryAsync(vectorsQuery, false, token).ConfigureAwait(false);
-                if (vectorsResult != null && vectorsResult.Rows != null && vectorsResult.Rows.Count > 0)
+                if (req.Vectors.Count > 0)
                 {
-                    foreach (DataRow row in vectorsResult.Rows)
+                    string vectorsQuery = VectorQueries.BatchExists(tenantGuid, graphGuid, req.Vectors);
+                    token.ThrowIfCancellationRequested();
+                    DataTable vectorsResult = await _Repo.ExecuteQueryAsync(vectorsQuery, false, token).ConfigureAwait(false);
+                    if (vectorsResult != null && vectorsResult.Rows != null && vectorsResult.Rows.Count > 0)
                     {
-                        token.ThrowIfCancellationRequested();
-                        if (row["exists"] != null && row["exists"] != DBNull.Value)
+                        foreach (DataRow row in vectorsResult.Rows)
                         {
-                            int exists = Convert.ToInt32(row["exists"]);
-                            if (exists == 1)
-                                resp.ExistingVectors.Add(Guid.Parse(row["guid"].ToString()));
-                            else
-                                resp.MissingVectors.Add(Guid.Parse(row["guid"].ToString()));
+                            token.ThrowIfCancellationRequested();
+                            if (row["exists"] != null && row["exists"] != DBNull.Value)
+                            {
+                                int exists = Convert.ToInt32(row["exists"]);
+                                if (exists == 1)
+                                    resp.ExistingVectors.Add(Guid.Parse(row["guid"].ToString()));
+                                else
+                                    resp.MissingVectors.Add(Guid.Parse(row["guid"].ToString()));
+                            }
                         }
                     }
                 }
@@ -142,29 +151,32 @@
                 resp.ExistingEdgesBetween = new List<EdgeBetween>();
                 resp.MissingEdgesBetween = new List<EdgeBetween>();
 
-                string betweenQuery = EdgeQueries.BatchExistsBetween(tenantGuid, graphGuid, req.EdgesBetween);
-                token.ThrowIfCancellationRequested();
-                DataTable betweenResult = await _Repo.ExecuteQueryAsync(betweenQuery, false, token).ConfigureAwait(false);
-                if (betweenResult != null && betweenResult.Rows != null && betweenResult.Rows.Count > 0)
+                if (req.EdgesBetween.Count > 0)
                 {
-                    foreach (DataRow row in betweenResult.Rows)
+                    string betweenQuery = EdgeQueries.BatchExistsBetween(tenantGuid, graphGuid, req.EdgesBetween);
+                    token.ThrowIfCancellationRequested();
+                    DataTable betweenResult = await _Repo.ExecuteQueryAsync(betweenQuery, false, token).ConfigureAwait(false);
+                    if (betweenResult != null && betweenResult.Rows != null && betweenResult.Rows.Count > 0)
                     {
-                        token.ThrowIfCancellationRequested();
-                        if (row["exists"] != null && row["exists"] != DBNull.Value)
+                        foreach (DataRow row in betweenResult.Rows)
                         {
-                            int exists = Convert.ToInt32(row["exists"]);
-                            if (exists == 1)
-                                resp.ExistingEdgesBetween.Add(new EdgeBetween
-                                {
-                                    From = Guid.Parse(row["fromguid"].ToString()),
-                                    To = Guid.Parse(row["toguid"].ToString())
-                                });
-                            else
-                                resp.MissingEdgesBetween.Add(new EdgeBetween
-                                {
-                                    From = Guid.Parse(row["fromguid"].ToString()),
-                                    To = Guid.Parse(row["toguid"].ToString())
-                                });
+                            token.ThrowIfCancellationRequested();
+                            if (row["exists"] != null && row["exists"] != DBNull.Value)
+                            {
+                                int exists = Convert.ToInt32(row["exists"]);
+                                if (exists == 1)
+                                    resp.ExistingEdgesBetween.Add(new EdgeBetween
+                                    {
+                                        From = Guid.Parse(row["fromguid"].ToString()),
+                                        To = Guid.Parse(row["toguid"].ToString())
+                                    });
+                                else
+                                    resp.MissingEdgesBetween.Add(new EdgeBetween
+                                    {
+                                        From = Guid.Parse(row["fromguid"].ToString()),
+                                        To = Guid.Parse(row["toguid"].ToString())
+                                    });
+                            }
                         }
                     }
                 }

@@ -1082,6 +1082,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
 
         internal static string BatchExists(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids)
         {
+            if (edgeGuids == null || edgeGuids.Count < 1)
+            {
+                return "SELECT CAST(NULL AS TEXT) AS guid, CAST(0 AS INT) AS \"exists\" WHERE 1 = 0;";
+            }
+
             string query = "WITH temp(guid) AS (VALUES ";
 
             for (int i = 0; i < edgeGuids.Count; i++)
@@ -1103,6 +1108,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
 
         internal static string BatchExistsBetween(Guid tenantGuid, Guid graphGuid, List<EdgeBetween> edgesBetween)
         {
+            if (edgesBetween == null || edgesBetween.Count < 1)
+            {
+                return "SELECT CAST(NULL AS TEXT) AS fromguid, CAST(NULL AS TEXT) AS toguid, CAST(0 AS INT) AS \"exists\" WHERE 1 = 0;";
+            }
+
             string query = "WITH temp(fromguid, toguid) AS (VALUES ";
 
             for (int i = 0; i < edgesBetween.Count; i++)

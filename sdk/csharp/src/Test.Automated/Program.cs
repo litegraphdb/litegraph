@@ -1791,6 +1791,24 @@ namespace Test.Automated
 			bool hasMissingBetween = result.MissingEdgesBetween != null &&
 				result.MissingEdgesBetween.Any(e => e.From == missingEdgeBetweenFrom && e.To == missingEdgeBetweenTo);
 			AssertTrue(hasMissingBetween, "Missing edge-between reported");
+
+			ExistenceRequest emptySiblingRequest = new ExistenceRequest
+			{
+				Nodes = new List<Guid> { existingNode },
+				Edges = new List<Guid>(),
+				Vectors = new List<Guid>(),
+				EdgesBetween = new List<EdgeBetween>()
+			};
+
+			ExistenceResult? emptySiblingResult = await sdk.Batch.Existence(_TenantGuid, _GraphGuid, emptySiblingRequest).ConfigureAwait(false);
+			AssertNotNull(emptySiblingResult, "Batch existence result with empty sibling filters");
+			AssertTrue(emptySiblingResult!.ExistingNodes != null && emptySiblingResult.ExistingNodes.Contains(existingNode), "Existing node reported when sibling filters are empty");
+			AssertTrue(emptySiblingResult.ExistingEdges != null && emptySiblingResult.ExistingEdges.Count == 0, "Existing edges empty when not requested");
+			AssertTrue(emptySiblingResult.MissingEdges != null && emptySiblingResult.MissingEdges.Count == 0, "Missing edges empty when not requested");
+			AssertTrue(emptySiblingResult.ExistingVectors != null && emptySiblingResult.ExistingVectors.Count == 0, "Existing vectors empty when not requested");
+			AssertTrue(emptySiblingResult.MissingVectors != null && emptySiblingResult.MissingVectors.Count == 0, "Missing vectors empty when not requested");
+			AssertTrue(emptySiblingResult.ExistingEdgesBetween != null && emptySiblingResult.ExistingEdgesBetween.Count == 0, "Existing edge-between empty when not requested");
+			AssertTrue(emptySiblingResult.MissingEdgesBetween != null && emptySiblingResult.MissingEdgesBetween.Count == 0, "Missing edge-between empty when not requested");
 		}
 
         #endregion

@@ -158,6 +158,7 @@ namespace Test.Shared
             ("Vector.ReadByGuids", "Vector.ReadByGuids", TestVectorReadByGuids),
             ("Vector.Enumerate", "Vector.Enumerate", TestVectorEnumerate),
             ("Vector.Search", "Vector.Search", TestVectorSearch),
+            ("Batch.Existence.EmptySiblingFilters", "Batch.Existence.EmptySiblingFilters", TestBatchExistenceEmptySiblingFilters),
             ("Enumeration.Tenants.Skip", "Enumeration.Tenants.Skip", TestEnumerationTenantsSkip),
             ("Enumeration.Tenants.ContinuationToken", "Enumeration.Tenants.ContinuationToken", TestEnumerationTenantsContinuationToken),
             ("Enumeration.Graphs.Paginated", "Enumeration.Graphs.Paginated", TestEnumerationGraphsPaginated),
@@ -2257,6 +2258,40 @@ namespace Test.Shared
 
             // Should not throw
             AssertTrue(true, "Vector search");
+        }
+
+        private static async Task TestBatchExistenceEmptySiblingFilters()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            ExistenceRequest request = new ExistenceRequest
+            {
+                Nodes = new List<Guid> { _Node1Guid },
+                Edges = new List<Guid>(),
+                Vectors = new List<Guid>(),
+                EdgesBetween = new List<EdgeBetween>()
+            };
+
+            ExistenceResult? result = await _Client.Batch.Existence(_TenantGuid, _GraphGuid, request).ConfigureAwait(false);
+
+            AssertNotNull(result, "Batch existence result");
+            AssertNotNull(result!.ExistingNodes, "Existing nodes collection");
+            AssertTrue(result.ExistingNodes.Contains(_Node1Guid), "Existing node reported");
+
+            AssertNotNull(result.ExistingEdges, "Existing edges collection");
+            AssertEqual(0, result.ExistingEdges.Count, "Existing edges count");
+            AssertNotNull(result.MissingEdges, "Missing edges collection");
+            AssertEqual(0, result.MissingEdges.Count, "Missing edges count");
+
+            AssertNotNull(result.ExistingVectors, "Existing vectors collection");
+            AssertEqual(0, result.ExistingVectors.Count, "Existing vectors count");
+            AssertNotNull(result.MissingVectors, "Missing vectors collection");
+            AssertEqual(0, result.MissingVectors.Count, "Missing vectors count");
+
+            AssertNotNull(result.ExistingEdgesBetween, "Existing edge-between collection");
+            AssertEqual(0, result.ExistingEdgesBetween.Count, "Existing edge-between count");
+            AssertNotNull(result.MissingEdgesBetween, "Missing edge-between collection");
+            AssertEqual(0, result.MissingEdgesBetween.Count, "Missing edge-between count");
         }
 
         // ========================================

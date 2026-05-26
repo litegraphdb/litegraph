@@ -132,6 +132,11 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
 
         internal static string BatchExists(Guid tenantGuid, Guid graphGuid, List<Guid> vectorGuids)
         {
+            if (vectorGuids == null || vectorGuids.Count < 1)
+            {
+                return "SELECT CAST(NULL AS TEXT) AS guid, CAST(0 AS INT) AS \"exists\" WHERE 1 = 0;";
+            }
+
             string query = "WITH temp(guid) AS (VALUES ";
 
             for (int i = 0; i < vectorGuids.Count; i++)
