@@ -323,7 +323,7 @@ const GraphViewer = ({
                   <LitegraphTooltip
                     title={
                       isCyclic
-                        ? 'Cycles are condensed automatically so the depth layout stays readable.'
+                        ? 'Cycles and dense back-links are handled automatically so the depth layout stays readable.'
                         : ''
                     }
                   >
@@ -341,7 +341,7 @@ const GraphViewer = ({
                     justify="space-between"
                     className={styles.controlRow}
                   >
-                    <LitegraphTooltip title="Click grouped nodes to expand. Groups are inferred from labels, tag keys, and connection similarity.">
+                    <LitegraphTooltip title="Click grouped nodes to expand. Groups are inferred from labels, informative tag keys, and connection patterns.">
                       <span>Collapse related nodes</span>
                     </LitegraphTooltip>
                     <Switch

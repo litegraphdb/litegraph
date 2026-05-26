@@ -68,6 +68,80 @@ describe('smartLayout', () => {
     expect(result.nodes.every((node) => node.clusterId)).toBe(true);
   });
 
+  it('infers a deeper hierarchy when inverse edges would otherwise flatten the graph', () => {
+    const nodes = [
+      createNode('workspace', 'Workspace', ['Workspace'], { workspaceId: '1' }),
+      createNode('topic-1', 'Topic 1', ['Topic'], { topicId: '1' }),
+      createNode('topic-2', 'Topic 2', ['Topic'], { topicId: '2' }),
+      createNode('topic-3', 'Topic 3', ['Topic'], { topicId: '3' }),
+      createNode('assertion-1', 'Assertion 1', ['Assertion'], { assertionId: '1' }),
+      createNode('assertion-2', 'Assertion 2', ['Assertion'], { assertionId: '2' }),
+      createNode('assertion-3', 'Assertion 3', ['Assertion'], { assertionId: '3' }),
+      createNode('assertion-4', 'Assertion 4', ['Assertion'], { assertionId: '4' }),
+      createNode('chunk-1', 'Chunk 1', ['Chunk', 'Text'], { chunkId: '1' }),
+      createNode('chunk-2', 'Chunk 2', ['Chunk', 'Text'], { chunkId: '2' }),
+      createNode('chunk-3', 'Chunk 3', ['Chunk', 'Text'], { chunkId: '3' }),
+      createNode('chunk-4', 'Chunk 4', ['Chunk', 'Text'], { chunkId: '4' }),
+    ];
+    const edges = [
+      createEdge('edge-wt1', 'workspace', 'topic-1', ['HasTopic']),
+      createEdge('edge-wt2', 'workspace', 'topic-2', ['HasTopic']),
+      createEdge('edge-wt3', 'workspace', 'topic-3', ['HasTopic']),
+      createEdge('edge-t1a1', 'topic-1', 'assertion-1', ['Contains']),
+      createEdge('edge-a1t1', 'assertion-1', 'topic-1', ['BelongsTo']),
+      createEdge('edge-t1a2', 'topic-1', 'assertion-2', ['Contains']),
+      createEdge('edge-a2t1', 'assertion-2', 'topic-1', ['BelongsTo']),
+      createEdge('edge-t2a3', 'topic-2', 'assertion-3', ['Contains']),
+      createEdge('edge-a3t2', 'assertion-3', 'topic-2', ['BelongsTo']),
+      createEdge('edge-t3a4', 'topic-3', 'assertion-4', ['Contains']),
+      createEdge('edge-a4t3', 'assertion-4', 'topic-3', ['BelongsTo']),
+      createEdge('edge-c1a1', 'chunk-1', 'assertion-1', ['Supports']),
+      createEdge('edge-a1c1', 'assertion-1', 'chunk-1', ['ExtractedFrom']),
+      createEdge('edge-c2a2', 'chunk-2', 'assertion-2', ['Supports']),
+      createEdge('edge-a2c2', 'assertion-2', 'chunk-2', ['ExtractedFrom']),
+      createEdge('edge-c3a3', 'chunk-3', 'assertion-3', ['Supports']),
+      createEdge('edge-a3c3', 'assertion-3', 'chunk-3', ['ExtractedFrom']),
+      createEdge('edge-c4a4', 'chunk-4', 'assertion-4', ['Supports']),
+      createEdge('edge-a4c4', 'assertion-4', 'chunk-4', ['ExtractedFrom']),
+    ];
+
+    const result = buildSmartDepthLayout(nodes, edges, true);
+    const workspaceNode = result.nodes.find((node) => node.id === 'workspace');
+    const topicNode = result.nodes.find((node) => node.id === 'topic-1');
+    const assertionNode = result.nodes.find((node) => node.id === 'assertion-1');
+    const chunkNode = result.nodes.find((node) => node.id === 'chunk-1');
+    const uniqueDepths = new Set(result.nodes.map((node) => node.depth));
+
+    expect(result.isCyclic).toBe(true);
+    expect(uniqueDepths.size).toBeGreaterThanOrEqual(4);
+    expect(workspaceNode?.depth || 0).toBeLessThan(topicNode?.depth || 0);
+    expect(topicNode?.depth || 0).toBeLessThan(assertionNode?.depth || 0);
+    expect(assertionNode?.depth || 0).toBeLessThan(chunkNode?.depth || 0);
+  });
+
+  it('ignores one-off tag keys when grouping otherwise similar nodes', () => {
+    const nodes = [
+      createNode('node-1', 'Node 1', ['Chunk'], { alphaKey: '1' }),
+      createNode('node-2', 'Node 2', ['Chunk'], { betaKey: '1' }),
+      createNode('node-3', 'Node 3', ['Chunk'], { gammaKey: '1' }),
+      createNode('node-4', 'Node 4', ['Chunk'], { deltaKey: '1' }),
+      createNode('node-5', 'Node 5', ['Document'], { docId: '1' }),
+    ];
+    const edges = [
+      createEdge('edge-15', 'node-1', 'node-5'),
+      createEdge('edge-25', 'node-2', 'node-5'),
+      createEdge('edge-35', 'node-3', 'node-5'),
+      createEdge('edge-45', 'node-4', 'node-5'),
+    ];
+
+    const result = buildSmartDepthLayout(nodes, edges, true);
+    const chunkClusterIds = result.nodes
+      .filter((node) => node.id !== 'node-5')
+      .map((node) => node.clusterId);
+
+    expect(new Set(chunkClusterIds).size).toBe(1);
+  });
+
   it('collapses related clusters into a visible group node and aggregates edges', () => {
     const nodes = [
       createNode('node-1', 'Node 1', ['Chunk'], { docId: '1', page: 1 }),

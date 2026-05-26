@@ -10,6 +10,11 @@ const NODE_GAP_Y = 90;
 const CLUSTER_GAP_Y = 82;
 const CLUSTER_HEADER_SPACE = 58;
 const MAX_CLUSTER_COLUMNS = 4;
+const MIN_ADAPTIVE_LAYERING_NODES = 12;
+const MAX_SIGNATURE_TAG_KEYS = 2;
+const MAX_SIGNATURE_TYPES = 1;
+const MAX_SIGNATURE_RELATIONS = 2;
+const COMMON_TAG_KEY_RATIO = 0.55;
 
 type ComponentInfo = {
   id: string;
@@ -31,10 +36,47 @@ type Position = {
   y: number;
 };
 
+type LayoutSummary = {
+  largestComponentSize: number;
+  largestDepthBandSize: number;
+  maxDepth: number;
+};
+
 function toSortedUnique(values: string[] | undefined, limit = 4): string[] {
   return Array.from(new Set((values || []).filter(Boolean)))
     .sort()
     .slice(0, limit);
+}
+
+function countValues(values: string[] | undefined): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  (values || []).filter(Boolean).forEach((value) => {
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+
+  return counts;
+}
+
+function getDominantValues(values: string[] | undefined, limit = 2): string[] {
+  return Array.from(countValues(values).entries())
+    .sort((leftEntry, rightEntry) => {
+      if (leftEntry[1] !== rightEntry[1]) {
+        return rightEntry[1] - leftEntry[1];
+      }
+
+      return leftEntry[0].localeCompare(rightEntry[0]);
+    })
+    .slice(0, limit)
+    .map(([value]) => value);
+}
+
+function bucketCount(count: number) {
+  if (count <= 0) return '0';
+  if (count === 1) return '1';
+  if (count <= 3) return '2-3';
+  if (count <= 6) return '4-6';
+  return '7+';
 }
 
 function getPrimaryType(labels?: string[]): string {
@@ -100,6 +142,45 @@ function rotatePoint(point: Position): Position {
     x: point.y,
     y: -point.x,
   };
+}
+
+function buildTagKeyFrequency(nodes: NodeData[]) {
+  const counts = new Map<string, number>();
+
+  nodes.forEach((node) => {
+    Array.from(new Set(node.tagKeys || [])).forEach((tagKey) => {
+      counts.set(tagKey, (counts.get(tagKey) || 0) + 1);
+    });
+  });
+
+  return counts;
+}
+
+function getInformativeTagKeys(
+  node: NodeData | undefined,
+  tagKeyFrequency: Map<string, number>,
+  totalNodeCount: number,
+  limit = MAX_SIGNATURE_TAG_KEYS
+) {
+  if (!node?.tagKeys?.length) return [];
+
+  const maxCommonCount = Math.max(3, Math.ceil(totalNodeCount * COMMON_TAG_KEY_RATIO));
+
+  return Array.from(new Set(node.tagKeys))
+    .map((tagKey) => ({
+      tagKey,
+      count: tagKeyFrequency.get(tagKey) || 0,
+    }))
+    .filter(({ count }) => count > 1 && count < maxCommonCount)
+    .sort((leftTagKey, rightTagKey) => {
+      if (leftTagKey.count !== rightTagKey.count) {
+        return leftTagKey.count - rightTagKey.count;
+      }
+
+      return leftTagKey.tagKey.localeCompare(rightTagKey.tagKey);
+    })
+    .slice(0, limit)
+    .map(({ tagKey }) => tagKey);
 }
 
 function buildAdjacency(nodeIds: string[], edges: EdgeData[]) {
@@ -196,6 +277,26 @@ function computeStronglyConnectedComponents(nodeIds: string[], edges: EdgeData[]
   };
 }
 
+function summarizeLayout(
+  components: ComponentInfo[],
+  depthByComponentId: Map<string, number>
+): LayoutSummary {
+  const nodeCountByDepth = new Map<number, number>();
+  let largestComponentSize = 0;
+
+  components.forEach((component) => {
+    const depth = depthByComponentId.get(component.id) || 0;
+    largestComponentSize = Math.max(largestComponentSize, component.nodeIds.length);
+    nodeCountByDepth.set(depth, (nodeCountByDepth.get(depth) || 0) + component.nodeIds.length);
+  });
+
+  return {
+    largestComponentSize,
+    largestDepthBandSize: Math.max(0, ...Array.from(nodeCountByDepth.values())),
+    maxDepth: Math.max(0, ...Array.from(nodeCountByDepth.keys())),
+  };
+}
+
 function computeComponentDepths(
   components: ComponentInfo[],
   componentByNodeId: Map<string, string>,
@@ -250,29 +351,235 @@ function computeComponentDepths(
   return depthByComponentId;
 }
 
+function shouldUseAdaptiveLayering(nodeCount: number, hasCycles: boolean, summary: LayoutSummary) {
+  if (nodeCount < MIN_ADAPTIVE_LAYERING_NODES) return false;
+
+  const largestComponentRatio = summary.largestComponentSize / Math.max(1, nodeCount);
+  const largestDepthBandRatio = summary.largestDepthBandSize / Math.max(1, nodeCount);
+
+  if (hasCycles && largestComponentRatio >= 0.35) return true;
+  if (hasCycles && summary.maxDepth <= 2 && largestDepthBandRatio >= 0.5) return true;
+  if (summary.maxDepth <= 1 && largestDepthBandRatio >= 0.7) return true;
+
+  return false;
+}
+
+function buildDegreeByNodeId(nodeIds: string[], edges: EdgeData[]) {
+  const degreeByNodeId = new Map(nodeIds.map((nodeId) => [nodeId, 0]));
+
+  edges.forEach((edge) => {
+    degreeByNodeId.set(edge.source, (degreeByNodeId.get(edge.source) || 0) + 1);
+    degreeByNodeId.set(edge.target, (degreeByNodeId.get(edge.target) || 0) + 1);
+  });
+
+  return degreeByNodeId;
+}
+
+function getNodeSize(nodeId: string, degreeByNodeId: Map<string, number>, maxDegree: number) {
+  if (maxDegree <= 1) return 15;
+
+  const degree = degreeByNodeId.get(nodeId) || 0;
+  const normalizedDegree = Math.sqrt(degree / maxDegree);
+
+  return 13 + normalizedDegree * 10;
+}
+
+function computeLocalComponentDepths(
+  componentNodeIds: string[],
+  componentEdges: EdgeData[],
+  seedNodeIds: string[],
+  nodeById: Map<string, NodeData>
+) {
+  const nodeIdSet = new Set(componentNodeIds);
+  const outgoingNodeIds = new Map(componentNodeIds.map((nodeId) => [nodeId, [] as string[]]));
+  const incomingNodeIds = new Map(componentNodeIds.map((nodeId) => [nodeId, [] as string[]]));
+
+  componentEdges.forEach((edge) => {
+    if (!nodeIdSet.has(edge.source) || !nodeIdSet.has(edge.target)) return;
+    outgoingNodeIds.get(edge.source)?.push(edge.target);
+    incomingNodeIds.get(edge.target)?.push(edge.source);
+  });
+
+  const localDepthByNodeId = new Map<string, number>();
+  const traversalQueue: string[] = [];
+
+  const compareNodeIds = (leftNodeId: string, rightNodeId: string) => {
+    const leftLabel = nodeById.get(leftNodeId)?.label || leftNodeId;
+    const rightLabel = nodeById.get(rightNodeId)?.label || rightNodeId;
+    const labelComparison = leftLabel.localeCompare(rightLabel);
+    if (labelComparison !== 0) return labelComparison;
+    return leftNodeId.localeCompare(rightNodeId);
+  };
+
+  const chooseSeedNodeId = (availableNodeIds: string[]) =>
+    [...availableNodeIds].sort((leftNodeId, rightNodeId) => {
+      const leftOutgoingCount = outgoingNodeIds.get(leftNodeId)?.length || 0;
+      const leftIncomingCount = incomingNodeIds.get(leftNodeId)?.length || 0;
+      const rightOutgoingCount = outgoingNodeIds.get(rightNodeId)?.length || 0;
+      const rightIncomingCount = incomingNodeIds.get(rightNodeId)?.length || 0;
+      const leftScore = leftOutgoingCount - leftIncomingCount;
+      const rightScore = rightOutgoingCount - rightIncomingCount;
+
+      if (leftScore !== rightScore) {
+        return rightScore - leftScore;
+      }
+
+      const leftTotalDegree = leftOutgoingCount + leftIncomingCount;
+      const rightTotalDegree = rightOutgoingCount + rightIncomingCount;
+      if (leftTotalDegree !== rightTotalDegree) {
+        return rightTotalDegree - leftTotalDegree;
+      }
+
+      return compareNodeIds(leftNodeId, rightNodeId);
+    })[0];
+
+  const enqueueSeeds = (candidateNodeIds: string[], depth: number) => {
+    candidateNodeIds
+      .filter((nodeId) => nodeIdSet.has(nodeId))
+      .sort(compareNodeIds)
+      .forEach((nodeId) => {
+        if (localDepthByNodeId.has(nodeId)) return;
+        localDepthByNodeId.set(nodeId, depth);
+        traversalQueue.push(nodeId);
+      });
+  };
+
+  enqueueSeeds(seedNodeIds, 0);
+
+  if (traversalQueue.length < 1 && componentNodeIds.length > 0) {
+    const seedNodeId = chooseSeedNodeId(componentNodeIds);
+    if (seedNodeId) {
+      enqueueSeeds([seedNodeId], 0);
+    }
+  }
+
+  let currentMaxDepth = Math.max(0, ...Array.from(localDepthByNodeId.values()));
+
+  while (traversalQueue.length > 0 || localDepthByNodeId.size < componentNodeIds.length) {
+    while (traversalQueue.length > 0) {
+      const nodeId = traversalQueue.shift();
+      if (!nodeId) continue;
+
+      const currentDepth = localDepthByNodeId.get(nodeId) || 0;
+      currentMaxDepth = Math.max(currentMaxDepth, currentDepth);
+
+      Array.from(new Set(outgoingNodeIds.get(nodeId) || []))
+        .sort(compareNodeIds)
+        .forEach((targetNodeId) => {
+          if (localDepthByNodeId.has(targetNodeId)) return;
+          localDepthByNodeId.set(targetNodeId, currentDepth + 1);
+          traversalQueue.push(targetNodeId);
+        });
+    }
+
+    const remainingNodeIds = componentNodeIds.filter((nodeId) => !localDepthByNodeId.has(nodeId));
+    if (remainingNodeIds.length < 1) break;
+
+    const seedNodeId = chooseSeedNodeId(remainingNodeIds);
+    if (!seedNodeId) break;
+
+    currentMaxDepth += 1;
+    localDepthByNodeId.set(seedNodeId, currentMaxDepth);
+    traversalQueue.push(seedNodeId);
+  }
+
+  return localDepthByNodeId;
+}
+
+function computeAdaptiveDepthByNodeId(
+  components: ComponentInfo[],
+  componentByNodeId: Map<string, string>,
+  depthByComponentId: Map<string, number>,
+  edges: EdgeData[],
+  nodeById: Map<string, NodeData>
+) {
+  const componentEdges = new Map<string, EdgeData[]>();
+  const entryNodeIdsByComponentId = new Map<string, Set<string>>();
+
+  components.forEach((component) => {
+    componentEdges.set(component.id, []);
+    entryNodeIdsByComponentId.set(component.id, new Set<string>());
+  });
+
+  edges.forEach((edge) => {
+    const sourceComponentId = componentByNodeId.get(edge.source);
+    const targetComponentId = componentByNodeId.get(edge.target);
+    if (!sourceComponentId || !targetComponentId) return;
+
+    if (sourceComponentId === targetComponentId) {
+      componentEdges.get(sourceComponentId)?.push(edge);
+      return;
+    }
+
+    entryNodeIdsByComponentId.get(targetComponentId)?.add(edge.target);
+  });
+
+  const localDepthByNodeId = new Map<string, number>();
+  let maxLocalDepth = 0;
+
+  components.forEach((component) => {
+    const componentLocalDepths =
+      component.nodeIds.length > 1
+        ? computeLocalComponentDepths(
+            component.nodeIds,
+            componentEdges.get(component.id) || [],
+            Array.from(entryNodeIdsByComponentId.get(component.id) || []),
+            nodeById
+          )
+        : new Map([[component.nodeIds[0], 0]]);
+
+    componentLocalDepths.forEach((localDepth, nodeId) => {
+      localDepthByNodeId.set(nodeId, localDepth);
+      maxLocalDepth = Math.max(maxLocalDepth, localDepth);
+    });
+  });
+
+  const depthStride = Math.max(2, maxLocalDepth + 1);
+  const adaptiveDepthByNodeId = new Map<string, number>();
+
+  components.forEach((component) => {
+    const componentDepth = depthByComponentId.get(component.id) || 0;
+    component.nodeIds.forEach((nodeId) => {
+      adaptiveDepthByNodeId.set(
+        nodeId,
+        componentDepth * depthStride + (localDepthByNodeId.get(nodeId) || 0)
+      );
+    });
+  });
+
+  return adaptiveDepthByNodeId;
+}
+
 function buildNodeSignature(
   node: NodeData,
   nodeById: Map<string, NodeData>,
   incomingEdgesByNodeId: Map<string, EdgeData[]>,
-  outgoingEdgesByNodeId: Map<string, EdgeData[]>
+  outgoingEdgesByNodeId: Map<string, EdgeData[]>,
+  tagKeyFrequency: Map<string, number>,
+  totalNodeCount: number
 ) {
   const incomingEdges = incomingEdgesByNodeId.get(node.id) || [];
   const outgoingEdges = outgoingEdgesByNodeId.get(node.id) || [];
 
-  const incomingTypes = toSortedUnique(
-    incomingEdges.map((edge) => nodeById.get(edge.source)?.type || 'Unknown')
+  const incomingTypes = getDominantValues(
+    incomingEdges.map((edge) => nodeById.get(edge.source)?.type || 'Unknown'),
+    MAX_SIGNATURE_TYPES
   );
-  const outgoingTypes = toSortedUnique(
-    outgoingEdges.map((edge) => nodeById.get(edge.target)?.type || 'Unknown')
+  const outgoingTypes = getDominantValues(
+    outgoingEdges.map((edge) => nodeById.get(edge.target)?.type || 'Unknown'),
+    MAX_SIGNATURE_TYPES
   );
-  const incomingRelations = toSortedUnique(
-    incomingEdges.map((edge) => edge.relationType || edge.label || 'related')
+  const incomingRelations = getDominantValues(
+    incomingEdges.map((edge) => edge.relationType || edge.label || 'related'),
+    MAX_SIGNATURE_RELATIONS
   );
-  const outgoingRelations = toSortedUnique(
-    outgoingEdges.map((edge) => edge.relationType || edge.label || 'related')
+  const outgoingRelations = getDominantValues(
+    outgoingEdges.map((edge) => edge.relationType || edge.label || 'related'),
+    MAX_SIGNATURE_RELATIONS
   );
-  const labelsKey = toSortedUnique(node.labels).join('|') || 'Unknown';
-  const tagKeysKey = toSortedUnique(node.tagKeys).join('|') || '-';
+  const labelsKey = toSortedUnique(node.labels, 2).join('|') || 'Unknown';
+  const tagKeysKey = getInformativeTagKeys(node, tagKeyFrequency, totalNodeCount).join('|') || '-';
+  const degreeProfile = `${bucketCount(incomingEdges.length)}>${bucketCount(outgoingEdges.length)}`;
 
   return [
     labelsKey,
@@ -281,20 +588,27 @@ function buildNodeSignature(
     outgoingTypes.join('|') || '-',
     incomingRelations.join('|') || '-',
     outgoingRelations.join('|') || '-',
+    degreeProfile,
   ].join('::');
 }
 
-function buildClusterLabel(nodes: NodeData[]) {
+function buildClusterLabel(
+  nodes: NodeData[],
+  tagKeyFrequency: Map<string, number>,
+  totalNodeCount: number
+) {
   const firstNode = nodes[0];
   const baseLabel = firstNode?.type || 'Unknown';
-  const tagKeys = toSortedUnique(firstNode?.tagKeys, 2);
-  return tagKeys.length > 0 ? `${baseLabel} · ${tagKeys.join(', ')}` : baseLabel;
+  const tagKeys = getInformativeTagKeys(firstNode, tagKeyFrequency, totalNodeCount);
+  return tagKeys.length > 0 ? `${baseLabel} - ${tagKeys.join(', ')}` : baseLabel;
 }
 
 function buildClusterInfos(nodes: NodeData[], edges: EdgeData[]) {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const incomingEdgesByNodeId = new Map<string, EdgeData[]>();
   const outgoingEdgesByNodeId = new Map<string, EdgeData[]>();
+  const tagKeyFrequency = buildTagKeyFrequency(nodes);
+  const totalNodeCount = nodes.length;
 
   nodes.forEach((node) => {
     incomingEdgesByNodeId.set(node.id, []);
@@ -314,7 +628,9 @@ function buildClusterInfos(nodes: NodeData[], edges: EdgeData[]) {
       node,
       nodeById,
       incomingEdgesByNodeId,
-      outgoingEdgesByNodeId
+      outgoingEdgesByNodeId,
+      tagKeyFrequency,
+      totalNodeCount
     );
     const clusterKey = `depth:${depth}|${signature}`;
     const existingCluster = clustersByKey.get(clusterKey);
@@ -329,7 +645,7 @@ function buildClusterInfos(nodes: NodeData[], edges: EdgeData[]) {
       depth,
       nodeIds: [node.id],
       signature,
-      label: buildClusterLabel([node]),
+      label: buildClusterLabel([node], tagKeyFrequency, totalNodeCount),
       dominantType: node.type || 'Unknown',
       predecessorClusterIds: new Set<string>(),
     });
@@ -341,7 +657,7 @@ function buildClusterInfos(nodes: NodeData[], edges: EdgeData[]) {
     const clusterNodes = cluster.nodeIds
       .map((nodeId) => nodeById.get(nodeId))
       .filter(Boolean) as NodeData[];
-    cluster.label = buildClusterLabel(clusterNodes);
+    cluster.label = buildClusterLabel(clusterNodes, tagKeyFrequency, totalNodeCount);
     cluster.dominantType = clusterNodes[0]?.type || 'Unknown';
     cluster.nodeIds.sort((leftNodeId, rightNodeId) => {
       const leftNode = nodeById.get(leftNodeId);
@@ -454,20 +770,53 @@ export function buildSmartDepthLayout(
     .map((edge) => buildBaseEdge(edge))
     .filter((edge) => nodeIdSet.has(edge.source) && nodeIdSet.has(edge.target));
   const nodeById = new Map(baseNodes.map((node) => [node.id, node]));
+  const degreeByNodeId = buildDegreeByNodeId(nodeIds, baseEdges);
+  const maxDegree = Math.max(0, ...Array.from(degreeByNodeId.values()));
 
-  const { components, componentByNodeId, hasCycles } = computeStronglyConnectedComponents(
-    nodeIds,
+  const {
+    components: baseComponents,
+    componentByNodeId: baseComponentByNodeId,
+    hasCycles,
+  } = computeStronglyConnectedComponents(nodeIds, baseEdges);
+  const baseDepthByComponentId = computeComponentDepths(
+    baseComponents,
+    baseComponentByNodeId,
     baseEdges
   );
-  const depthByComponentId = computeComponentDepths(components, componentByNodeId, baseEdges);
+  const baseLayoutSummary = summarizeLayout(baseComponents, baseDepthByComponentId);
+
+  let layoutEdges = baseEdges;
+  let depthByNodeId = new Map<string, number>();
+
+  if (shouldUseAdaptiveLayering(nodeIds.length, hasCycles, baseLayoutSummary)) {
+    depthByNodeId = computeAdaptiveDepthByNodeId(
+      baseComponents,
+      baseComponentByNodeId,
+      baseDepthByComponentId,
+      baseEdges,
+      nodeById
+    );
+    layoutEdges = baseEdges.filter((edge) => {
+      const sourceDepth = depthByNodeId.get(edge.source) || 0;
+      const targetDepth = depthByNodeId.get(edge.target) || 0;
+      return sourceDepth <= targetDepth;
+    });
+    if (layoutEdges.length < 1) {
+      layoutEdges = baseEdges;
+    }
+  } else {
+    baseNodes.forEach((node) => {
+      const componentId = baseComponentByNodeId.get(node.id);
+      depthByNodeId.set(node.id, componentId ? baseDepthByComponentId.get(componentId) || 0 : 0);
+    });
+  }
 
   baseNodes.forEach((node) => {
-    const componentId = componentByNodeId.get(node.id);
-    node.componentId = componentId;
-    node.depth = componentId ? depthByComponentId.get(componentId) || 0 : 0;
+    node.componentId = baseComponentByNodeId.get(node.id);
+    node.depth = depthByNodeId.get(node.id) || 0;
   });
 
-  const { clusters, clusterByNodeId } = buildClusterInfos(baseNodes, baseEdges);
+  const { clusters, clusterByNodeId } = buildClusterInfos(baseNodes, layoutEdges);
   const clustersByDepth = sortClustersByDepth(clusters);
   const positionedNodes: NodeData[] = [];
 
@@ -490,7 +839,7 @@ export function buildSmartDepthLayout(
             clusterId: cluster.id,
             clusterLabel: cluster.label,
             depth: cluster.depth,
-            size: 15,
+            size: getNodeSize(node.id, degreeByNodeId, maxDegree),
           });
         });
 
