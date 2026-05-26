@@ -168,19 +168,21 @@
 
         private static string BucketExpression(string interval)
         {
+            const string timestampExpr = "CAST(createdutc AS timestamp)";
+
             switch ((interval ?? "hour").ToLowerInvariant())
             {
                 case "minute":
-                    return "strftime('%Y-%m-%d %H:%M:00', createdutc)";
+                    return "to_char(date_trunc('minute', " + timestampExpr + "), 'YYYY-MM-DD HH24:MI:00')";
                 case "15minute":
-                    return "strftime('%Y-%m-%d %H:', createdutc) || printf('%02d:00', (CAST(strftime('%M', createdutc) AS INTEGER) / 15) * 15)";
+                    return "to_char(date_trunc('hour', " + timestampExpr + ") + (floor(extract(minute from " + timestampExpr + ") / 15)::int * interval '15 minute'), 'YYYY-MM-DD HH24:MI:00')";
                 case "6hour":
-                    return "strftime('%Y-%m-%d ', createdutc) || printf('%02d:00:00', (CAST(strftime('%H', createdutc) AS INTEGER) / 6) * 6)";
+                    return "to_char(date_trunc('day', " + timestampExpr + ") + (floor(extract(hour from " + timestampExpr + ") / 6)::int * interval '6 hour'), 'YYYY-MM-DD HH24:00:00')";
                 case "day":
-                    return "strftime('%Y-%m-%d 00:00:00', createdutc)";
+                    return "to_char(date_trunc('day', " + timestampExpr + "), 'YYYY-MM-DD 00:00:00')";
                 case "hour":
                 default:
-                    return "strftime('%Y-%m-%d %H:00:00', createdutc)";
+                    return "to_char(date_trunc('hour', " + timestampExpr + "), 'YYYY-MM-DD HH24:00:00')";
             }
         }
 
