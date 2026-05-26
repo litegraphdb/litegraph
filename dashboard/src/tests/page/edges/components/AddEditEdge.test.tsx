@@ -448,7 +448,7 @@ describe('AddEditEdge', () => {
       expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
     });
 
-    it('renders readonly layout with guid and maximize toggle', () => {
+    it('renders readonly layout as always maximized with guid', () => {
       const readonlyEdge = {
         GUID: 'readonly-edge-id',
         Name: 'Readonly Edge',
@@ -472,16 +472,15 @@ describe('AddEditEdge', () => {
       expect(screen.getByDisplayValue('readonly-edge-id')).toBeInTheDocument();
       expect(screen.getByText('Close')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Update' })).not.toBeInTheDocument();
-      expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('1200px');
+      expect(screen.queryByText('Maximize')).not.toBeInTheDocument();
+      expect(screen.queryByText('Restore')).not.toBeInTheDocument();
+      expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('95vw');
+      expect(screen.queryByTestId('label-input')).not.toBeInTheDocument();
+      expect(screen.getByTestId('edge-label-badges')).toBeInTheDocument();
+      expect(screen.getByText('link')).toBeInTheDocument();
 
       const summaryGrid = screen.getByTestId('edge-view-summary-grid');
-      expect(summaryGrid).toHaveAttribute('data-expanded', 'false');
-
-      fireEvent.click(screen.getByTestId('toggle-edge-modal-size-button'));
-
-      expect(summaryGrid).toHaveAttribute('data-expanded', 'true');
-      expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('95vw');
-      expect(screen.getByRole('button', { name: 'Restore' })).toBeInTheDocument();
+      expect(summaryGrid.className).toContain('summaryGridExpanded');
     });
 
     it('does not render form fields when modal is not visible', () => {

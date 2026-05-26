@@ -689,6 +689,14 @@
                 TagMetadata tag = await client.Tag.Create(new TagMetadata { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, EdgeGUID = edge.GUID, Key = "provider", Value = "postgresql" }, cancellationToken).ConfigureAwait(false);
                 VectorMetadata vector = await client.Vector.Create(new VectorMetadata { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, NodeGUID = from.GUID, Model = "test", Dimensionality = 3, Content = "postgresql", Vectors = new List<float> { 0.1f, 0.2f, 0.3f } }, cancellationToken).ConfigureAwait(false);
 
+                await VerifyBatchExistenceEmptySiblingFiltersAsync(
+                    from.GUID,
+                    edge.GUID,
+                    vector.GUID,
+                    from.GUID,
+                    to.GUID,
+                    request => client.Batch.Existence(tenant.GUID, graph.GUID, request, cancellationToken)).ConfigureAwait(false);
+
                 AssertNotNull(await client.Tenant.ReadByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), "PostgreSQL reads tenant by GUID");
                 AssertNotNull(await client.Graph.ReadByGuid(tenant.GUID, graph.GUID, token: cancellationToken).ConfigureAwait(false), "PostgreSQL reads graph by GUID");
                 AssertNotNull(await client.Node.ReadByGuid(tenant.GUID, graph.GUID, from.GUID, token: cancellationToken).ConfigureAwait(false), "PostgreSQL reads node by GUID");

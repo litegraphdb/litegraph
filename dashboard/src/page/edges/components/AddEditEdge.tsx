@@ -1,5 +1,5 @@
 'use client';
-import { Form } from 'antd';
+import { Form, Tag } from 'antd';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
@@ -14,7 +14,6 @@ import VectorsInput from '@/components/inputs/vectors-input.tsx/VectorsInput';
 import TagsInput from '@/components/inputs/tags-input/TagsInput';
 import { convertVectorsToAPIRecord } from '@/components/inputs/vectors-input.tsx/utils';
 import { convertTagsToRecord } from '@/components/inputs/tags-input/utils';
-import LitegraphButton from '@/components/base/button/Button';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import { copyJsonToClipboard, copyTextToClipboard } from '@/utils/jsonCopyUtils';
 import { CopyOutlined } from '@ant-design/icons';
@@ -83,7 +82,6 @@ const AddEditEdge = ({
 
   const [uniqueKey, setUniqueKey] = useState(v4());
   const [formValid, setFormValid] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
   const isReadonlyView = Boolean(readonly && edgeWithOldData?.GUID);
   const {
     data: edge,
@@ -111,12 +109,6 @@ const AddEditEdge = ({
       .then(() => setFormValid(true))
       .catch(() => setFormValid(false));
   }, [formValues, form]);
-
-  useEffect(() => {
-    if (!isAddEditEdgeVisible || !isReadonlyView) {
-      setIsMaximized(false);
-    }
-  }, [isAddEditEdgeVisible, isReadonlyView]);
 
   useEffect(() => {
     // Check if this is an existing edge (either API edge with GUID or local edge with id)
@@ -181,7 +173,7 @@ const AddEditEdge = ({
   const readonlyModalBodyStyles = isReadonlyView
     ? {
         content: {
-          height: isMaximized ? '95vh' : '72vh',
+          height: '95vh',
           maxHeight: '95vh',
           display: 'flex',
           flexDirection: 'column' as const,
@@ -195,6 +187,7 @@ const AddEditEdge = ({
         },
       }
     : undefined;
+  const readonlyLabels = edge?.Labels || edgeWithOldData?.Labels || [];
 
   const handleSubmit = async () => {
     try {
@@ -340,42 +333,13 @@ const AddEditEdge = ({
 
   return (
     <LitegraphModal
-      title={
-        isReadonlyView ? (
-          <LitegraphFlex
-            align="center"
-            justify="space-between"
-            gap={12}
-            className={modalStyles.modalTitle}
-          >
-            <span>
-              {getCreateEditViewModelTitle(
-                'Edge',
-                isEdgeLoading,
-                !edgeWithOldData?.GUID,
-                !!edgeWithOldData?.GUID,
-                Boolean(readonly && !!edgeWithOldData?.GUID)
-              )}
-            </span>
-            <LitegraphButton
-              type="text"
-              size="small"
-              onClick={() => setIsMaximized((current) => !current)}
-              data-testid="toggle-edge-modal-size-button"
-            >
-              {isMaximized ? 'Restore' : 'Maximize'}
-            </LitegraphButton>
-          </LitegraphFlex>
-        ) : (
-          getCreateEditViewModelTitle(
-            'Edge',
-            isEdgeLoading,
-            !edgeWithOldData?.GUID,
-            !!edgeWithOldData?.GUID,
-            Boolean(readonly && !!edgeWithOldData?.GUID)
-          )
-        )
-      }
+      title={getCreateEditViewModelTitle(
+        'Edge',
+        isEdgeLoading,
+        !edgeWithOldData?.GUID,
+        !!edgeWithOldData?.GUID,
+        Boolean(readonly && !!edgeWithOldData?.GUID)
+      )}
       okText={edgeWithOldData?.GUID ? 'Update' : 'Create'}
       open={isAddEditEdgeVisible}
       onOk={handleSubmit}
@@ -385,7 +349,7 @@ const AddEditEdge = ({
         setIsAddEditEdgeVisible(false);
         onClose && onClose();
       }}
-      width={isReadonlyView ? (isMaximized ? '95vw' : 'min(1200px, calc(100vw - 48px))') : 800}
+      width={isReadonlyView ? '95vw' : 800}
       centered={isReadonlyView}
       cancelText={readonly ? 'Close' : 'Cancel'}
       okButtonProps={{ disabled: isEdgeLoading || !formValid, hidden: readonly }}
@@ -415,11 +379,8 @@ const AddEditEdge = ({
         >
           {isReadonlyView ? (
             <div
-              className={`${modalStyles.summaryGrid} ${
-                isMaximized ? modalStyles.summaryGridExpanded : ''
-              }`.trim()}
+              className={`${modalStyles.summaryGrid} ${modalStyles.summaryGridExpanded}`}
               data-testid="edge-view-summary-grid"
-              data-expanded={isMaximized}
             >
               <LitegraphFormItem
                 label="Graph"
@@ -495,11 +456,6 @@ const AddEditEdge = ({
                 rules={validationRules.To}
                 localNodes={currentNodes}
               />
-              <LabelInput
-                name="labels"
-                readonly={readonly}
-                tooltip="Labels associated with this edge"
-              />
             </div>
           ) : (
             <>
@@ -574,6 +530,26 @@ const AddEditEdge = ({
                 />
               </LitegraphFlex>
             </>
+          )}
+
+          {isReadonlyView && (
+            <Form.Item
+              label="Labels"
+              tooltip="Labels associated with this edge"
+              className={modalStyles.fullSpan}
+            >
+              {readonlyLabels.length > 0 ? (
+                <div className={modalStyles.badgeList} data-testid="edge-label-badges">
+                  {readonlyLabels.map((label, index) => (
+                    <Tag key={`${label}-${index}`} bordered={false} className={modalStyles.badge}>
+                      {label}
+                    </Tag>
+                  ))}
+                </div>
+              ) : (
+                <span className={modalStyles.emptyValue}>N/A</span>
+              )}
+            </Form.Item>
           )}
 
           <Form.Item

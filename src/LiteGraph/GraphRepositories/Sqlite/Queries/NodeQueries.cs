@@ -1149,23 +1149,31 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 return "SELECT CAST(NULL AS TEXT) AS guid, CAST(0 AS INT) AS \"exists\" WHERE 1 = 0;";
             }
 
-            string query = "WITH temp(guid) AS (VALUES ";
-
-            for (int i = 0; i < nodeGuids.Count; i++)
-            {
-                if (i > 0) query += ",";
-                query += "('" + nodeGuids[i].ToString() + "')";
-            }
-
-            query +=
-                ") "
-                + "SELECT temp.guid, CASE WHEN nodes.guid IS NOT NULL THEN 1 ELSE 0 END as \"exists\" "
-                + "FROM temp "
+            string query =
+                "SELECT temp.guid, CASE WHEN nodes.guid IS NOT NULL THEN 1 ELSE 0 END as \"exists\" "
+                + "FROM (" + BuildGuidBatchInput(nodeGuids) + ") AS temp "
                 + "LEFT JOIN nodes ON temp.guid = nodes.guid "
                 + "AND nodes.graphguid = '" + graphGuid + "' "
                 + "AND nodes.tenantguid = '" + tenantGuid + "';";
 
             return query;
+        }
+
+        private static string BuildGuidBatchInput(List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
+
+            StringBuilder query = new StringBuilder();
+
+            for (int i = 0; i < guids.Count; i++)
+            {
+                if (i > 0) query.Append(" UNION ALL ");
+                query.Append("SELECT '");
+                query.Append(guids[i].ToString());
+                query.Append("' AS guid");
+            }
+
+            return query.ToString();
         }
 
         private static string OrderByClause(EnumerationOrderEnum order)

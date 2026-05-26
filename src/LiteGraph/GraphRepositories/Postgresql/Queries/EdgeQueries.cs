@@ -1087,18 +1087,9 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 return "SELECT CAST(NULL AS TEXT) AS guid, CAST(0 AS INT) AS \"exists\" WHERE 1 = 0;";
             }
 
-            string query = "WITH temp(guid) AS (VALUES ";
-
-            for (int i = 0; i < edgeGuids.Count; i++)
-            {
-                if (i > 0) query += ",";
-                query += "('" + edgeGuids[i].ToString() + "')";
-            }
-
-            query +=
-                ") "
-                + "SELECT temp.guid, CASE WHEN edges.guid IS NOT NULL THEN 1 ELSE 0 END as \"exists\" "
-                + "FROM temp "
+            string query =
+                "SELECT temp.guid, CASE WHEN edges.guid IS NOT NULL THEN 1 ELSE 0 END as \"exists\" "
+                + "FROM (" + BuildGuidBatchInput(edgeGuids) + ") AS temp "
                 + "LEFT JOIN edges ON temp.guid = edges.guid "
                 + "AND edges.graphguid = '" + graphGuid + "' "
                 + "AND edges.tenantguid = '" + tenantGuid + "';";
@@ -1113,25 +1104,52 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 return "SELECT CAST(NULL AS TEXT) AS fromguid, CAST(NULL AS TEXT) AS toguid, CAST(0 AS INT) AS \"exists\" WHERE 1 = 0;";
             }
 
-            string query = "WITH temp(fromguid, toguid) AS (VALUES ";
-
-            for (int i = 0; i < edgesBetween.Count; i++)
-            {
-                EdgeBetween curr = edgesBetween[i];
-                if (i > 0) query += ",";
-                query += "('" + curr.From.ToString() + "','" + curr.To.ToString() + "')";
-            }
-
-            query +=
-                ") "
-                + "SELECT temp.fromguid, temp.toguid, CASE WHEN edges.fromguid IS NOT NULL THEN 1 ELSE 0 END AS \"exists\" "
-                + "FROM temp "
+            string query =
+                "SELECT temp.fromguid, temp.toguid, CASE WHEN edges.fromguid IS NOT NULL THEN 1 ELSE 0 END AS \"exists\" "
+                + "FROM (" + BuildEdgeBetweenBatchInput(edgesBetween) + ") AS temp "
                 + "LEFT JOIN edges ON temp.fromguid = edges.fromguid "
                 + "AND temp.toguid = edges.toguid "
                 + "AND edges.graphguid = '" + graphGuid + "' "
                 + "AND edges.tenantguid = '" + tenantGuid + "';";
 
             return query;
+        }
+
+        private static string BuildGuidBatchInput(List<Guid> guids)
+        {
+            if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
+
+            StringBuilder query = new StringBuilder();
+
+            for (int i = 0; i < guids.Count; i++)
+            {
+                if (i > 0) query.Append(" UNION ALL ");
+                query.Append("SELECT '");
+                query.Append(guids[i].ToString());
+                query.Append("' AS guid");
+            }
+
+            return query.ToString();
+        }
+
+        private static string BuildEdgeBetweenBatchInput(List<EdgeBetween> edgesBetween)
+        {
+            if (edgesBetween == null || edgesBetween.Count < 1) throw new ArgumentNullException(nameof(edgesBetween));
+
+            StringBuilder query = new StringBuilder();
+
+            for (int i = 0; i < edgesBetween.Count; i++)
+            {
+                EdgeBetween curr = edgesBetween[i];
+                if (i > 0) query.Append(" UNION ALL ");
+                query.Append("SELECT '");
+                query.Append(curr.From.ToString());
+                query.Append("' AS fromguid, '");
+                query.Append(curr.To.ToString());
+                query.Append("' AS toguid");
+            }
+
+            return query.ToString();
         }
 
         private static string OrderByClause(EnumerationOrderEnum order)

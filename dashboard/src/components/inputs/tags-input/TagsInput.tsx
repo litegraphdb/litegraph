@@ -35,7 +35,7 @@ const TagsInput: React.FC<TagsInputProps> = ({ value = [], onChange, name, reado
                       noStyle
                       rules={[{ required: true, message: 'Key is required' }]}
                     >
-                      <Input readOnly={readonly} style={{ width: '50%' }} placeholder="Enter key" />
+                      <Input readOnly={readonly} style={{ flex: 1 }} placeholder="Enter key" />
                     </Form.Item>
                     <Form.Item
                       name={[field.name, 'value']}
@@ -44,7 +44,7 @@ const TagsInput: React.FC<TagsInputProps> = ({ value = [], onChange, name, reado
                     >
                       <Input
                         readOnly={readonly}
-                        style={{ width: '50%' }}
+                        style={{ flex: 1 }}
                         placeholder="Enter value"
                         suffix={
                           !readonly && (

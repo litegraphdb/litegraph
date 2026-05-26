@@ -6,15 +6,6 @@
 .compactInputGroup {
   display: flex;
   width: 100%;
-
-  :global(.ant-input:first-child) {
-    border-start-end-radius: 0;
-    border-end-end-radius: 0;
-  }
-
-  :global(.ant-input-affix-wrapper) {
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
-    margin-inline-start: -1px;
-  }
+  gap: 8px;
+  align-items: center;
 }

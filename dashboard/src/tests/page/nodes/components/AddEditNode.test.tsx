@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import AddEditNode from '@/page/nodes/components/AddEditNode';
 import { renderWithRedux } from '../../../store/utils';
 
@@ -99,7 +99,7 @@ describe('AddEditNode', () => {
     mockGetGraphByIdQuery.mockReturnValue({ data: { Name: 'Test Graph' } });
   });
 
-  it('renders readonly layout with guid and maximize toggle', () => {
+  it('renders readonly layout as always maximized with guid', () => {
     const readonlyNode = {
       GUID: 'readonly-node-id',
       Name: 'Readonly Node',
@@ -121,15 +121,14 @@ describe('AddEditNode', () => {
     expect(screen.getByDisplayValue('readonly-node-id')).toBeInTheDocument();
     expect(screen.getByText('Close')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Update' })).not.toBeInTheDocument();
-    expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('1200px');
+    expect(screen.queryByText('Maximize')).not.toBeInTheDocument();
+    expect(screen.queryByText('Restore')).not.toBeInTheDocument();
+    expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('95vw');
+    expect(screen.queryByTestId('label-input')).not.toBeInTheDocument();
+    expect(screen.getByTestId('node-label-badges')).toBeInTheDocument();
+    expect(screen.getByText('entity')).toBeInTheDocument();
 
     const summaryGrid = screen.getByTestId('node-view-summary-grid');
-    expect(summaryGrid).toHaveAttribute('data-expanded', 'false');
-
-    fireEvent.click(screen.getByTestId('toggle-node-modal-size-button'));
-
-    expect(summaryGrid).toHaveAttribute('data-expanded', 'true');
-    expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('95vw');
-    expect(screen.getByRole('button', { name: 'Restore' })).toBeInTheDocument();
+    expect(summaryGrid.className).toContain('summaryGridExpanded');
   });
 });

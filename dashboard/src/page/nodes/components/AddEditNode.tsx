@@ -1,5 +1,5 @@
 'use client';
-import { Form } from 'antd';
+import { Form, Tag } from 'antd';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
@@ -14,7 +14,6 @@ import LabelInput from '@/components/inputs/label-input/LabelInput';
 import TagsInput from '@/components/inputs/tags-input/TagsInput';
 import { convertTagsToRecord } from '@/components/inputs/tags-input/utils';
 import { convertVectorsToAPIRecord } from '@/components/inputs/vectors-input.tsx/utils';
-import LitegraphButton from '@/components/base/button/Button';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import { CopyOutlined } from '@ant-design/icons';
 import { copyJsonToClipboard, copyTextToClipboard } from '@/utils/jsonCopyUtils';
@@ -74,7 +73,6 @@ const AddEditNode = ({
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
   const [uniqueKey, setUniqueKey] = useState(v4());
-  const [isMaximized, setIsMaximized] = useState(false);
   const isReadonlyView = Boolean(readonly && nodeWithOldData?.GUID);
 
   const {
@@ -115,12 +113,6 @@ const AddEditNode = ({
   useEffect(() => {
     setUniqueKey(v4());
   }, [readonly]);
-
-  useEffect(() => {
-    if (!isAddEditNodeVisible || !isReadonlyView) {
-      setIsMaximized(false);
-    }
-  }, [isAddEditNodeVisible, isReadonlyView]);
 
   useEffect(() => {
     form
@@ -270,7 +262,7 @@ const AddEditNode = ({
   const readonlyModalBodyStyles = isReadonlyView
     ? {
         content: {
-          height: isMaximized ? '95vh' : '72vh',
+          height: '95vh',
           maxHeight: '95vh',
           display: 'flex',
           flexDirection: 'column' as const,
@@ -284,45 +276,17 @@ const AddEditNode = ({
         },
       }
     : undefined;
+  const readonlyLabels = node?.Labels || nodeWithOldData?.Labels || [];
 
   return (
     <LitegraphModal
-      title={
-        isReadonlyView ? (
-          <LitegraphFlex
-            align="center"
-            justify="space-between"
-            gap={12}
-            className={modalStyles.modalTitle}
-          >
-            <span>
-              {getCreateEditViewModelTitle(
-                'Node',
-                isGraphLoading || isNodeLoading,
-                !nodeWithOldData,
-                !!nodeWithOldData,
-                Boolean(readonly && !!nodeWithOldData)
-              )}
-            </span>
-            <LitegraphButton
-              type="text"
-              size="small"
-              onClick={() => setIsMaximized((current) => !current)}
-              data-testid="toggle-node-modal-size-button"
-            >
-              {isMaximized ? 'Restore' : 'Maximize'}
-            </LitegraphButton>
-          </LitegraphFlex>
-        ) : (
-          getCreateEditViewModelTitle(
-            'Node',
-            isGraphLoading || isNodeLoading,
-            !nodeWithOldData,
-            !!nodeWithOldData,
-            Boolean(readonly && !!nodeWithOldData)
-          )
-        )
-      }
+      title={getCreateEditViewModelTitle(
+        'Node',
+        isGraphLoading || isNodeLoading,
+        !nodeWithOldData,
+        !!nodeWithOldData,
+        Boolean(readonly && !!nodeWithOldData)
+      )}
       okText={nodeWithOldData?.GUID ? 'Update' : 'Create'}
       open={isAddEditNodeVisible}
       onOk={handleSubmit}
@@ -331,7 +295,7 @@ const AddEditNode = ({
         setIsAddEditNodeVisible(false);
         onClose && onClose();
       }}
-      width={isReadonlyView ? (isMaximized ? '95vw' : 'min(1200px, calc(100vw - 48px))') : 800}
+      width={isReadonlyView ? '95vw' : 800}
       centered={isReadonlyView}
       cancelText={readonly ? 'Close' : 'Cancel'}
       okButtonProps={{
@@ -362,11 +326,8 @@ const AddEditNode = ({
         >
           {isReadonlyView ? (
             <div
-              className={`${modalStyles.summaryGrid} ${
-                isMaximized ? modalStyles.summaryGridExpanded : ''
-              }`.trim()}
+              className={`${modalStyles.summaryGrid} ${modalStyles.summaryGridExpanded}`}
               data-testid="node-view-summary-grid"
-              data-expanded={isMaximized}
             >
               <LitegraphFormItem
                 label="Graph"
@@ -407,12 +368,6 @@ const AddEditNode = ({
                   variant={readonly ? 'borderless' : 'outlined'}
                 />
               </LitegraphFormItem>
-
-              <LabelInput
-                name="labels"
-                readonly={readonly}
-                tooltip="Labels associated with this node"
-              />
             </div>
           ) : (
             <>
@@ -447,6 +402,26 @@ const AddEditNode = ({
                 tooltip="Labels associated with this node"
               />
             </>
+          )}
+
+          {isReadonlyView && (
+            <Form.Item
+              label="Labels"
+              tooltip="Labels associated with this node"
+              className={modalStyles.fullSpan}
+            >
+              {readonlyLabels.length > 0 ? (
+                <div className={modalStyles.badgeList} data-testid="node-label-badges">
+                  {readonlyLabels.map((label, index) => (
+                    <Tag key={`${label}-${index}`} bordered={false} className={modalStyles.badge}>
+                      {label}
+                    </Tag>
+                  ))}
+                </div>
+              ) : (
+                <span className={modalStyles.emptyValue}>N/A</span>
+              )}
+            </Form.Item>
           )}
 
           <Form.Item

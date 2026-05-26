@@ -2264,34 +2264,120 @@ namespace Test.Shared
         {
             if (_Client == null) throw new InvalidOperationException("Client is null");
 
-            ExistenceRequest request = new ExistenceRequest
+            await VerifyBatchExistenceEmptySiblingFiltersAsync(
+                _Node1Guid,
+                _EdgeGuid,
+                _VectorGuid,
+                _Node1Guid,
+                _Node2Guid,
+                request => _Client.Batch.Existence(_TenantGuid, _GraphGuid, request)).ConfigureAwait(false);
+        }
+
+        private static async Task VerifyBatchExistenceEmptySiblingFiltersAsync(
+            Guid nodeGuid,
+            Guid edgeGuid,
+            Guid vectorGuid,
+            Guid fromNodeGuid,
+            Guid toNodeGuid,
+            Func<ExistenceRequest, Task<ExistenceResult>> executeAsync)
+        {
+            if (executeAsync == null) throw new ArgumentNullException(nameof(executeAsync));
+
+            Guid missingNodeGuid = Guid.NewGuid();
+            Guid missingEdgeGuid = Guid.NewGuid();
+            Guid missingVectorGuid = Guid.NewGuid();
+            EdgeBetween existingEdgeBetween = new EdgeBetween { From = fromNodeGuid, To = toNodeGuid };
+            EdgeBetween missingEdgeBetween = new EdgeBetween { From = toNodeGuid, To = fromNodeGuid };
+
+            ExistenceResult nodeResult = await executeAsync(new ExistenceRequest
             {
-                Nodes = new List<Guid> { _Node1Guid },
+                Nodes = new List<Guid> { nodeGuid, missingNodeGuid },
                 Edges = new List<Guid>(),
                 Vectors = new List<Guid>(),
                 EdgesBetween = new List<EdgeBetween>()
-            };
+            }).ConfigureAwait(false);
 
-            ExistenceResult? result = await _Client.Batch.Existence(_TenantGuid, _GraphGuid, request).ConfigureAwait(false);
+            AssertNotNull(nodeResult, "Batch existence node result");
+            AssertNotNull(nodeResult.ExistingNodes, "Existing nodes collection");
+            AssertTrue(nodeResult.ExistingNodes.Contains(nodeGuid), "Existing node reported");
+            AssertNotNull(nodeResult.MissingNodes, "Missing nodes collection");
+            AssertTrue(nodeResult.MissingNodes.Contains(missingNodeGuid), "Missing node reported");
+            AssertEmptyGuidExistence(nodeResult.ExistingEdges, nodeResult.MissingEdges, "edge");
+            AssertEmptyGuidExistence(nodeResult.ExistingVectors, nodeResult.MissingVectors, "vector");
+            AssertEmptyEdgeBetweenExistence(nodeResult.ExistingEdgesBetween, nodeResult.MissingEdgesBetween, "edge-between");
 
-            AssertNotNull(result, "Batch existence result");
-            AssertNotNull(result!.ExistingNodes, "Existing nodes collection");
-            AssertTrue(result.ExistingNodes.Contains(_Node1Guid), "Existing node reported");
+            ExistenceResult edgeResult = await executeAsync(new ExistenceRequest
+            {
+                Nodes = new List<Guid>(),
+                Edges = new List<Guid> { edgeGuid, missingEdgeGuid },
+                Vectors = new List<Guid>(),
+                EdgesBetween = new List<EdgeBetween>()
+            }).ConfigureAwait(false);
 
-            AssertNotNull(result.ExistingEdges, "Existing edges collection");
-            AssertEqual(0, result.ExistingEdges.Count, "Existing edges count");
-            AssertNotNull(result.MissingEdges, "Missing edges collection");
-            AssertEqual(0, result.MissingEdges.Count, "Missing edges count");
+            AssertNotNull(edgeResult, "Batch existence edge result");
+            AssertNotNull(edgeResult.ExistingEdges, "Existing edges collection");
+            AssertTrue(edgeResult.ExistingEdges.Contains(edgeGuid), "Existing edge reported");
+            AssertNotNull(edgeResult.MissingEdges, "Missing edges collection");
+            AssertTrue(edgeResult.MissingEdges.Contains(missingEdgeGuid), "Missing edge reported");
+            AssertEmptyGuidExistence(edgeResult.ExistingNodes, edgeResult.MissingNodes, "node");
+            AssertEmptyGuidExistence(edgeResult.ExistingVectors, edgeResult.MissingVectors, "vector");
+            AssertEmptyEdgeBetweenExistence(edgeResult.ExistingEdgesBetween, edgeResult.MissingEdgesBetween, "edge-between");
 
-            AssertNotNull(result.ExistingVectors, "Existing vectors collection");
-            AssertEqual(0, result.ExistingVectors.Count, "Existing vectors count");
-            AssertNotNull(result.MissingVectors, "Missing vectors collection");
-            AssertEqual(0, result.MissingVectors.Count, "Missing vectors count");
+            ExistenceResult vectorResult = await executeAsync(new ExistenceRequest
+            {
+                Nodes = new List<Guid>(),
+                Edges = new List<Guid>(),
+                Vectors = new List<Guid> { vectorGuid, missingVectorGuid },
+                EdgesBetween = new List<EdgeBetween>()
+            }).ConfigureAwait(false);
 
-            AssertNotNull(result.ExistingEdgesBetween, "Existing edge-between collection");
-            AssertEqual(0, result.ExistingEdgesBetween.Count, "Existing edge-between count");
-            AssertNotNull(result.MissingEdgesBetween, "Missing edge-between collection");
-            AssertEqual(0, result.MissingEdgesBetween.Count, "Missing edge-between count");
+            AssertNotNull(vectorResult, "Batch existence vector result");
+            AssertNotNull(vectorResult.ExistingVectors, "Existing vectors collection");
+            AssertTrue(vectorResult.ExistingVectors.Contains(vectorGuid), "Existing vector reported");
+            AssertNotNull(vectorResult.MissingVectors, "Missing vectors collection");
+            AssertTrue(vectorResult.MissingVectors.Contains(missingVectorGuid), "Missing vector reported");
+            AssertEmptyGuidExistence(vectorResult.ExistingNodes, vectorResult.MissingNodes, "node");
+            AssertEmptyGuidExistence(vectorResult.ExistingEdges, vectorResult.MissingEdges, "edge");
+            AssertEmptyEdgeBetweenExistence(vectorResult.ExistingEdgesBetween, vectorResult.MissingEdgesBetween, "edge-between");
+
+            ExistenceResult edgeBetweenResult = await executeAsync(new ExistenceRequest
+            {
+                Nodes = new List<Guid>(),
+                Edges = new List<Guid>(),
+                Vectors = new List<Guid>(),
+                EdgesBetween = new List<EdgeBetween> { existingEdgeBetween, missingEdgeBetween }
+            }).ConfigureAwait(false);
+
+            AssertNotNull(edgeBetweenResult, "Batch existence edge-between result");
+            AssertNotNull(edgeBetweenResult.ExistingEdgesBetween, "Existing edge-between collection");
+            AssertTrue(ContainsEdgeBetween(edgeBetweenResult.ExistingEdgesBetween, existingEdgeBetween.From, existingEdgeBetween.To), "Existing edge-between reported");
+            AssertNotNull(edgeBetweenResult.MissingEdgesBetween, "Missing edge-between collection");
+            AssertTrue(ContainsEdgeBetween(edgeBetweenResult.MissingEdgesBetween, missingEdgeBetween.From, missingEdgeBetween.To), "Missing edge-between reported");
+            AssertEmptyGuidExistence(edgeBetweenResult.ExistingNodes, edgeBetweenResult.MissingNodes, "node");
+            AssertEmptyGuidExistence(edgeBetweenResult.ExistingEdges, edgeBetweenResult.MissingEdges, "edge");
+            AssertEmptyGuidExistence(edgeBetweenResult.ExistingVectors, edgeBetweenResult.MissingVectors, "vector");
+        }
+
+        private static void AssertEmptyGuidExistence(List<Guid>? existing, List<Guid>? missing, string label)
+        {
+            AssertNotNull(existing, $"Existing {label}s collection");
+            AssertEqual(0, existing!.Count, $"Existing {label}s count");
+            AssertNotNull(missing, $"Missing {label}s collection");
+            AssertEqual(0, missing!.Count, $"Missing {label}s count");
+        }
+
+        private static void AssertEmptyEdgeBetweenExistence(List<EdgeBetween>? existing, List<EdgeBetween>? missing, string label)
+        {
+            AssertNotNull(existing, $"Existing {label} collection");
+            AssertEqual(0, existing!.Count, $"Existing {label} count");
+            AssertNotNull(missing, $"Missing {label} collection");
+            AssertEqual(0, missing!.Count, $"Missing {label} count");
+        }
+
+        private static bool ContainsEdgeBetween(List<EdgeBetween> edgesBetween, Guid fromGuid, Guid toGuid)
+        {
+            if (edgesBetween == null) return false;
+            return edgesBetween.Any(edge => edge != null && edge.From == fromGuid && edge.To == toGuid);
         }
 
         // ========================================
