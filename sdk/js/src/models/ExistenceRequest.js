@@ -9,13 +9,15 @@ export default class ExistenceRequest {
    * @param {Object} existenceRequest - Optional initial data for the existence request.
    * @param {string[]} existenceRequest.Nodes - Array of node GUIDs.
    * @param {string[]} existenceRequest.Edges - Array of edge GUIDs.
+   * @param {string[]} existenceRequest.Vectors - Array of vector GUIDs.
    * @param {EdgeBetween[]} existenceRequest.EdgesBetween - Array of EdgeBetween instances.
    */
   constructor(existenceRequest = {}) {
-    const { Nodes = [], Edges = [], EdgesBetween = [] } = existenceRequest;
+    const { Nodes = [], Edges = [], Vectors = [], EdgesBetween = [] } = existenceRequest;
 
     this.nodes = Nodes; // Array of node GUIDs
     this.edges = Edges; // Array of edge GUIDs
+    this.vectors = Vectors; // Array of vector GUIDs
     this.edgesBetween = EdgesBetween.map((edge) => new EdgeBetween(edge)); // Array of EdgeBetween objects
   }
 
@@ -27,6 +29,7 @@ export default class ExistenceRequest {
     return (
       (this.nodes && this.nodes.length > 0) ||
       (this.edges && this.edges.length > 0) ||
+      (this.vectors && this.vectors.length > 0) ||
       (this.edgesBetween && this.edgesBetween.length > 0)
     );
   }

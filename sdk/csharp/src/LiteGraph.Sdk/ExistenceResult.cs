@@ -32,6 +32,16 @@
         public List<Guid> MissingEdges { get; set; } = null;
 
         /// <summary>
+        /// List of existing vector GUIDs.
+        /// </summary>
+        public List<Guid> ExistingVectors { get; set; } = null;
+
+        /// <summary>
+        /// List of missing vector GUIDs.
+        /// </summary>
+        public List<Guid> MissingVectors { get; set; } = null;
+
+        /// <summary>
         /// List of existing edges between two nodes.
         /// </summary>
         public List<EdgeBetween> ExistingEdgesBetween { get; set; } = null;

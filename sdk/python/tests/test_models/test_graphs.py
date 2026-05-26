@@ -244,3 +244,17 @@ def test_batch_existence(mock_client):
         ValueError, match="Request must contain at least one existence check"
     ):
         Graph.batch_existence(graph_guid=graph_guid, request=valid_request)
+
+
+def test_existence_request_vectors_count_as_valid():
+    request = ExistenceRequestModel(Vectors=["550e8400-e29b-41d4-a716-446655440000"])
+    assert request.contains_existence_request() is True
+
+
+def test_existence_result_accepts_vector_fields():
+    result = ExistenceResultModel(
+        ExistingVectors=["550e8400-e29b-41d4-a716-446655440000"],
+        MissingVectors=["550e8400-e29b-41d4-a716-446655440001"],
+    )
+    assert result.existing_vectors == ["550e8400-e29b-41d4-a716-446655440000"]
+    assert result.missing_vectors == ["550e8400-e29b-41d4-a716-446655440001"]

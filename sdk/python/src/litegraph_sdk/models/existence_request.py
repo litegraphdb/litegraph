@@ -12,6 +12,7 @@ class ExistenceRequestModel(BaseModel):
 
     nodes: Optional[List[str]] = Field(default=None, alias="Nodes")
     edges: Optional[List[str]] = Field(default=None, alias="Edges")
+    vectors: Optional[List[str]] = Field(default=None, alias="Vectors")
     edges_between: Optional[List[EdgeBetweenModel]] = Field(
         default=None, alias="EdgesBetween"
     )
@@ -21,4 +22,4 @@ class ExistenceRequestModel(BaseModel):
         """
         Verify that the object contains at least one existence request.
         """
-        return bool(self.nodes or self.edges or self.edges_between)
+        return bool(self.nodes or self.edges or self.vectors or self.edges_between)

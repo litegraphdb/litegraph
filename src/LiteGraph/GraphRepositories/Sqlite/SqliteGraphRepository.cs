@@ -1097,7 +1097,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
             using (SqliteCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandText =
-                    // "PRAGMA journal_mode = WAL; " +
+                    "PRAGMA journal_mode = WAL; " +
                     "PRAGMA synchronous = NORMAL; " +
                     "PRAGMA cache_size = -128000; " +
                     "PRAGMA temp_store = MEMORY; " +

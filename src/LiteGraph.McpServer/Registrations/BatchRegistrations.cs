@@ -24,7 +24,7 @@ namespace LiteGraph.McpServer.Registrations
         {
             server.RegisterTool(
                 "batch/existence",
-                "Checks existence of multiple nodes, edges, or edges between nodes",
+                "Checks existence of multiple nodes, edges, vectors, or edges between nodes",
                 new
                 {
                     type = "object",
@@ -34,6 +34,7 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         nodes = new { type = "array", items = new { type = "string" }, description = "List of node GUIDs to check" },
                         edges = new { type = "array", items = new { type = "string" }, description = "List of edge GUIDs to check" },
+                        vectors = new { type = "array", items = new { type = "string" }, description = "List of vector GUIDs to check" },
                         edgesBetween = new
                         {
                             type = "array",
@@ -71,14 +72,18 @@ namespace LiteGraph.McpServer.Registrations
                         request.Edges = Serializer.DeserializeJson<List<Guid>>(edgesProp.GetRawText());
                     }
 
+                    if (args.Value.TryGetProperty("vectors", out JsonElement vectorsProp) && vectorsProp.ValueKind == JsonValueKind.Array)
+                    {
+                        request.Vectors = Serializer.DeserializeJson<List<Guid>>(vectorsProp.GetRawText());
+                    }
+
                     if (args.Value.TryGetProperty("edgesBetween", out JsonElement edgesBetweenProp) && edgesBetweenProp.ValueKind == JsonValueKind.Array)
                     {
-                        string edgesBetweenJson = edgesBetweenProp.GetString() ?? throw new ArgumentException("EdgesBetween JSON string cannot be null");
-                        request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenJson);
+                        request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenProp.GetRawText());
                     }
 
                     if (!request.ContainsExistenceRequest())
-                        throw new ArgumentException("At least one of nodes, edges, or edgesBetween must be provided");
+                        throw new ArgumentException("At least one of nodes, edges, vectors, or edgesBetween must be provided");
 
                     return ReadExistence(sdk, tenantGuid, graphGuid, request);
                 });
@@ -114,14 +119,18 @@ namespace LiteGraph.McpServer.Registrations
                     request.Edges = Serializer.DeserializeJson<List<Guid>>(edgesProp.GetRawText());
                 }
 
+                if (args.Value.TryGetProperty("vectors", out JsonElement vectorsProp) && vectorsProp.ValueKind == JsonValueKind.Array)
+                {
+                    request.Vectors = Serializer.DeserializeJson<List<Guid>>(vectorsProp.GetRawText());
+                }
+
                 if (args.Value.TryGetProperty("edgesBetween", out JsonElement edgesBetweenProp) && edgesBetweenProp.ValueKind == JsonValueKind.Array)
                 {
-                    string edgesBetweenJson = edgesBetweenProp.GetString() ?? throw new ArgumentException("EdgesBetween JSON string cannot be null");
-                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenJson);
+                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenProp.GetRawText());
                 }
 
                 if (!request.ContainsExistenceRequest())
-                    throw new ArgumentException("At least one of nodes, edges, or edgesBetween must be provided");
+                    throw new ArgumentException("At least one of nodes, edges, vectors, or edgesBetween must be provided");
 
                 return ReadExistence(sdk, tenantGuid, graphGuid, request);
             });
@@ -157,14 +166,18 @@ namespace LiteGraph.McpServer.Registrations
                     request.Edges = Serializer.DeserializeJson<List<Guid>>(edgesProp.GetRawText());
                 }
 
+                if (args.Value.TryGetProperty("vectors", out JsonElement vectorsProp) && vectorsProp.ValueKind == JsonValueKind.Array)
+                {
+                    request.Vectors = Serializer.DeserializeJson<List<Guid>>(vectorsProp.GetRawText());
+                }
+
                 if (args.Value.TryGetProperty("edgesBetween", out JsonElement edgesBetweenProp) && edgesBetweenProp.ValueKind == JsonValueKind.Array)
                 {
-                    string edgesBetweenJson = edgesBetweenProp.GetString() ?? throw new ArgumentException("EdgesBetween JSON string cannot be null");
-                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenJson);
+                    request.EdgesBetween = Serializer.DeserializeJson<List<EdgeBetween>>(edgesBetweenProp.GetRawText());
                 }
 
                 if (!request.ContainsExistenceRequest())
-                    throw new ArgumentException("At least one of nodes, edges, or edgesBetween must be provided");
+                    throw new ArgumentException("At least one of nodes, edges, vectors, or edgesBetween must be provided");
 
                 return ReadExistence(sdk, tenantGuid, graphGuid, request);
             });
@@ -191,4 +204,3 @@ namespace LiteGraph.McpServer.Registrations
         #endregion
     }
 }
-

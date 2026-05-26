@@ -1751,6 +1751,10 @@ namespace Test.Automated
 			SubgraphEdgeInfo existingEdge = _SubgraphEdgeInfos[0];
 			Guid missingEdge = Guid.NewGuid();
 
+			await EnsureVectorNodePrimaryAsync().ConfigureAwait(false);
+			Guid existingVector = _VectorNodePrimaryGuid;
+			Guid missingVector = Guid.NewGuid();
+
 			Guid missingEdgeBetweenFrom = _SubgraphNodeGuids[4];
 			Guid missingEdgeBetweenTo = _SubgraphNodeGuids[5];
 
@@ -1758,6 +1762,7 @@ namespace Test.Automated
 			{
 				Nodes = new List<Guid> { existingNode, missingNode },
 				Edges = new List<Guid> { existingEdge.EdgeGuid, missingEdge },
+				Vectors = new List<Guid> { existingVector, missingVector },
 				EdgesBetween = new List<EdgeBetween>
 				{
 					new EdgeBetween { From = existingEdge.From, To = existingEdge.To },
@@ -1775,6 +1780,9 @@ namespace Test.Automated
 
 			AssertTrue(result.ExistingEdges != null && result.ExistingEdges.Contains(existingEdge.EdgeGuid), "Existing edge reported");
 			AssertTrue(result.MissingEdges != null && result.MissingEdges.Contains(missingEdge), "Missing edge reported");
+
+			AssertTrue(result.ExistingVectors != null && result.ExistingVectors.Contains(existingVector), "Existing vector reported");
+			AssertTrue(result.MissingVectors != null && result.MissingVectors.Contains(missingVector), "Missing vector reported");
 
 			bool hasExistingBetween = result.ExistingEdgesBetween != null &&
 				result.ExistingEdgesBetween.Any(e => e.From == existingEdge.From && e.To == existingEdge.To);

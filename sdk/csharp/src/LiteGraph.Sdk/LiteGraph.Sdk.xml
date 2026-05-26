@@ -454,6 +454,11 @@
             List of edge GUIDs.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.ExistenceRequest.Vectors">
+            <summary>
+            List of vector GUIDs.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.ExistenceRequest.EdgesBetween">
             <summary>
             List of edges between two nodes.
@@ -493,6 +498,16 @@
         <member name="P:LiteGraph.Sdk.ExistenceResult.MissingEdges">
             <summary>
             List of missing edge GUIDs.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ExistenceResult.ExistingVectors">
+            <summary>
+            List of existing vector GUIDs.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ExistenceResult.MissingVectors">
+            <summary>
+            List of missing vector GUIDs.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.ExistenceResult.ExistingEdgesBetween">

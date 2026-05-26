@@ -106,6 +106,35 @@
 
             #endregion
 
+            #region Vectors
+
+            if (req.Vectors != null)
+            {
+                resp.ExistingVectors = new List<Guid>();
+                resp.MissingVectors = new List<Guid>();
+
+                string vectorsQuery = VectorQueries.BatchExists(tenantGuid, graphGuid, req.Vectors);
+                token.ThrowIfCancellationRequested();
+                DataTable vectorsResult = await _Repo.ExecuteQueryAsync(vectorsQuery, false, token).ConfigureAwait(false);
+                if (vectorsResult != null && vectorsResult.Rows != null && vectorsResult.Rows.Count > 0)
+                {
+                    foreach (DataRow row in vectorsResult.Rows)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        if (row["exists"] != null && row["exists"] != DBNull.Value)
+                        {
+                            int exists = Convert.ToInt32(row["exists"]);
+                            if (exists == 1)
+                                resp.ExistingVectors.Add(Guid.Parse(row["guid"].ToString()));
+                            else
+                                resp.MissingVectors.Add(Guid.Parse(row["guid"].ToString()));
+                        }
+                    }
+                }
+            }
+
+            #endregion
+
             #region Edges-Between
 
             if (req.EdgesBetween != null)

@@ -22,6 +22,11 @@
         public List<Guid> Edges { get; set; } = null;
 
         /// <summary>
+        /// List of vector GUIDs.
+        /// </summary>
+        public List<Guid> Vectors { get; set; } = null;
+
+        /// <summary>
         /// List of edges between two nodes.
         /// </summary>
         public List<EdgeBetween> EdgesBetween { get; set; } = null;
@@ -54,6 +59,7 @@
         {
             if (Nodes != null && Nodes.Count > 0) return true;
             if (Edges != null && Edges.Count > 0) return true;
+            if (Vectors != null && Vectors.Count > 0) return true;
             if (EdgesBetween != null && EdgesBetween.Count > 0) return true;
             return false;
         }

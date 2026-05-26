@@ -4023,13 +4023,16 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
                     nodes = new[] { nodeA.GUID.ToString() },
-                    edges = new[] { edgeA.GUID.ToString() }
+                    edges = new[] { edgeA.GUID.ToString() },
+                    vectors = new[] { vectorA.GUID.ToString() }
                 }).ConfigureAwait(false);
                 ExistenceResult batchExistence = _McpSerializer.DeserializeJson<ExistenceResult>(batchExistenceBody);
                 AssertNotNull(batchExistence.ExistingNodes, "MCP batch existence node result");
                 AssertNotNull(batchExistence.ExistingEdges, "MCP batch existence edge result");
+                AssertNotNull(batchExistence.ExistingVectors, "MCP batch existence vector result");
                 AssertTrue(batchExistence.ExistingNodes.Contains(nodeA.GUID), "MCP read-scoped credential can run allowed batch node existence");
                 AssertTrue(batchExistence.ExistingEdges.Contains(edgeA.GUID), "MCP read-scoped credential can run allowed batch edge existence");
+                AssertTrue(batchExistence.ExistingVectors.Contains(vectorA.GUID), "MCP read-scoped credential can run allowed batch vector existence");
 
                 string nodeAllBody = await _McpClient.CallAsync<string>("node/all", new
                 {

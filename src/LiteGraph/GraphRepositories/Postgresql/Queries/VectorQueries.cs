@@ -130,6 +130,27 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 ");";
         }
 
+        internal static string BatchExists(Guid tenantGuid, Guid graphGuid, List<Guid> vectorGuids)
+        {
+            string query = "WITH temp(guid) AS (VALUES ";
+
+            for (int i = 0; i < vectorGuids.Count; i++)
+            {
+                if (i > 0) query += ",";
+                query += "('" + vectorGuids[i].ToString() + "')";
+            }
+
+            query +=
+                ") "
+                + "SELECT temp.guid, CASE WHEN vectors.guid IS NOT NULL THEN 1 ELSE 0 END as \"exists\" "
+                + "FROM temp "
+                + "LEFT JOIN vectors ON temp.guid = vectors.guid "
+                + "AND vectors.graphguid = '" + graphGuid + "' "
+                + "AND vectors.tenantguid = '" + tenantGuid + "';";
+
+            return query;
+        }
+
         internal static string SelectTenant(
             Guid tenantGuid,
             int batchSize = 100,

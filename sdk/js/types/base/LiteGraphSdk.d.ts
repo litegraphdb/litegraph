@@ -102,6 +102,7 @@ export default class LiteGraphSdk extends SdkBase {
      * @param {Object} existenceRequest - Optional initial data for the existence request.
      * @param {string[]} existenceRequest.Nodes - Array of node GUIDs.
      * @param {string[]} existenceRequest.Edges - Array of edge GUIDs.
+     * @param {string[]} existenceRequest.Vectors - Array of vector GUIDs.
      * @param {EdgeBetween[]} existenceRequest.EdgesBetween - Array of EdgeBetween instances.
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
      * @returns {Promise<Object>} - The existence result.
@@ -109,6 +110,7 @@ export default class LiteGraphSdk extends SdkBase {
     batchExistence(graphGuid: string, existenceRequest: {
         Nodes: string[];
         Edges: string[];
+        Vectors: string[];
         EdgesBetween: EdgeBetween[];
     }, cancellationToken?: AbortController): Promise<any>;
     /**
