@@ -706,6 +706,13 @@
                     from.GUID,
                     to.GUID,
                     request => client.Batch.Existence(tenant.GUID, graph.GUID, request, cancellationToken)).ConfigureAwait(false);
+                await VerifyBatchExistenceLargePayloadAsync(
+                    from.GUID,
+                    edge.GUID,
+                    vector.GUID,
+                    from.GUID,
+                    to.GUID,
+                    request => client.Batch.Existence(tenant.GUID, graph.GUID, request, cancellationToken)).ConfigureAwait(false);
 
                 AssertNotNull(await client.Tenant.ReadByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), "PostgreSQL reads tenant by GUID");
                 AssertNotNull(await client.Graph.ReadByGuid(tenant.GUID, graph.GUID, token: cancellationToken).ConfigureAwait(false), "PostgreSQL reads graph by GUID");

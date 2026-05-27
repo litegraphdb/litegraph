@@ -159,6 +159,7 @@ namespace Test.Shared
             ("Vector.Enumerate", "Vector.Enumerate", TestVectorEnumerate),
             ("Vector.Search", "Vector.Search", TestVectorSearch),
             ("Batch.Existence.EmptySiblingFilters", "Batch.Existence.EmptySiblingFilters", TestBatchExistenceEmptySiblingFilters),
+            ("Batch.Existence.LargePayload", "Batch.Existence.LargePayload", TestBatchExistenceLargePayload),
             ("Enumeration.Tenants.Skip", "Enumeration.Tenants.Skip", TestEnumerationTenantsSkip),
             ("Enumeration.Tenants.ContinuationToken", "Enumeration.Tenants.ContinuationToken", TestEnumerationTenantsContinuationToken),
             ("Enumeration.Graphs.Paginated", "Enumeration.Graphs.Paginated", TestEnumerationGraphsPaginated),
@@ -2273,6 +2274,19 @@ namespace Test.Shared
                 request => _Client.Batch.Existence(_TenantGuid, _GraphGuid, request)).ConfigureAwait(false);
         }
 
+        private static async Task TestBatchExistenceLargePayload()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            await VerifyBatchExistenceLargePayloadAsync(
+                _Node1Guid,
+                _EdgeGuid,
+                _VectorGuid,
+                _Node1Guid,
+                _Node2Guid,
+                request => _Client.Batch.Existence(_TenantGuid, _GraphGuid, request)).ConfigureAwait(false);
+        }
+
         private static async Task VerifyBatchExistenceEmptySiblingFiltersAsync(
             Guid nodeGuid,
             Guid edgeGuid,
@@ -2356,6 +2370,69 @@ namespace Test.Shared
             AssertEmptyGuidExistence(edgeBetweenResult.ExistingNodes, edgeBetweenResult.MissingNodes, "node");
             AssertEmptyGuidExistence(edgeBetweenResult.ExistingEdges, edgeBetweenResult.MissingEdges, "edge");
             AssertEmptyGuidExistence(edgeBetweenResult.ExistingVectors, edgeBetweenResult.MissingVectors, "vector");
+        }
+
+        private static async Task VerifyBatchExistenceLargePayloadAsync(
+            Guid nodeGuid,
+            Guid edgeGuid,
+            Guid vectorGuid,
+            Guid fromNodeGuid,
+            Guid toNodeGuid,
+            Func<ExistenceRequest, Task<ExistenceResult>> executeAsync)
+        {
+            if (executeAsync == null) throw new ArgumentNullException(nameof(executeAsync));
+
+            const int PayloadSize = 600;
+
+            List<Guid> nodeGuids = new List<Guid> { nodeGuid };
+            List<Guid> edgeGuids = new List<Guid> { edgeGuid };
+            List<Guid> vectorGuids = new List<Guid> { vectorGuid };
+            List<EdgeBetween> edgesBetween = new List<EdgeBetween>
+            {
+                new EdgeBetween { From = fromNodeGuid, To = toNodeGuid }
+            };
+
+            for (int i = 1; i < PayloadSize; i++)
+            {
+                nodeGuids.Add(Guid.NewGuid());
+                edgeGuids.Add(Guid.NewGuid());
+                vectorGuids.Add(Guid.NewGuid());
+                edgesBetween.Add(new EdgeBetween { From = Guid.NewGuid(), To = Guid.NewGuid() });
+            }
+
+            ExistenceResult result = await executeAsync(new ExistenceRequest
+            {
+                Nodes = nodeGuids,
+                Edges = edgeGuids,
+                Vectors = vectorGuids,
+                EdgesBetween = edgesBetween
+            }).ConfigureAwait(false);
+
+            AssertNotNull(result, "Large batch existence result");
+
+            AssertNotNull(result.ExistingNodes, "Large batch existing nodes collection");
+            AssertEqual(1, result.ExistingNodes!.Count, "Large batch existing nodes count");
+            AssertTrue(result.ExistingNodes.Contains(nodeGuid), "Large batch existing node reported");
+            AssertNotNull(result.MissingNodes, "Large batch missing nodes collection");
+            AssertEqual(PayloadSize - 1, result.MissingNodes!.Count, "Large batch missing nodes count");
+
+            AssertNotNull(result.ExistingEdges, "Large batch existing edges collection");
+            AssertEqual(1, result.ExistingEdges!.Count, "Large batch existing edges count");
+            AssertTrue(result.ExistingEdges.Contains(edgeGuid), "Large batch existing edge reported");
+            AssertNotNull(result.MissingEdges, "Large batch missing edges collection");
+            AssertEqual(PayloadSize - 1, result.MissingEdges!.Count, "Large batch missing edges count");
+
+            AssertNotNull(result.ExistingVectors, "Large batch existing vectors collection");
+            AssertEqual(1, result.ExistingVectors!.Count, "Large batch existing vectors count");
+            AssertTrue(result.ExistingVectors.Contains(vectorGuid), "Large batch existing vector reported");
+            AssertNotNull(result.MissingVectors, "Large batch missing vectors collection");
+            AssertEqual(PayloadSize - 1, result.MissingVectors!.Count, "Large batch missing vectors count");
+
+            AssertNotNull(result.ExistingEdgesBetween, "Large batch existing edges-between collection");
+            AssertEqual(1, result.ExistingEdgesBetween!.Count, "Large batch existing edges-between count");
+            AssertTrue(ContainsEdgeBetween(result.ExistingEdgesBetween, fromNodeGuid, toNodeGuid), "Large batch existing edge-between reported");
+            AssertNotNull(result.MissingEdgesBetween, "Large batch missing edges-between collection");
+            AssertEqual(PayloadSize - 1, result.MissingEdgesBetween!.Count, "Large batch missing edges-between count");
         }
 
         private static void AssertEmptyGuidExistence(List<Guid>? existing, List<Guid>? missing, string label)
