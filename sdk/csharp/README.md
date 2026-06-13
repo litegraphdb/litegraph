@@ -8,7 +8,13 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v6.0.1.
+Current release: v6.0.2.
+
+## New in v6.0.2
+
+- Added `BulkCreateReturnModeEnum` overloads for label, tag, vector, node, and edge `CreateMany` methods
+- Added minimal bulk create responses while preserving existing full-response defaults
+- Updated bulk create documentation and route coverage
 
 ## New in v6.0.0
 

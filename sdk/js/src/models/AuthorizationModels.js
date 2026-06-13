@@ -144,13 +144,7 @@ export class AuthorizationEffectivePermissionsResult {
 
 class AuthorizationSearchResultBase {
   constructor(result = {}, model) {
-    const {
-      Objects = [],
-      Page = 0,
-      PageSize = 100,
-      TotalCount = Objects.length,
-      TotalPages = 0,
-    } = result || {};
+    const { Objects = [], Page = 0, PageSize = 100, TotalCount = Objects.length, TotalPages = 0 } = result || {};
 
     this.Objects = Objects.map((object) => new model(object));
     this.Page = Page;

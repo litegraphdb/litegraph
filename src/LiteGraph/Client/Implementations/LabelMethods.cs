@@ -73,6 +73,12 @@
         /// <inheritdoc />
         public async Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, labels, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (labels == null || labels.Count < 1) return new List<LabelMetadata>();
             token.ThrowIfCancellationRequested();
 

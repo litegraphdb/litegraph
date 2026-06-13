@@ -11,6 +11,6 @@ export default class EdgeBetween {
         From: string;
         To: string;
     });
-    from: any;
-    to: any;
+    from: string;
+    to: string;
 }

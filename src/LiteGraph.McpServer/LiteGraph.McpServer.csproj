@@ -4,7 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
-		<Version>6.0.1</Version>
+		<Version>6.0.2</Version>
 		<Description>MCP (Model Context Protocol) server for LiteGraph graph database. Enables integration of document processing, vector storage retrieval, and graph operations via MCP.</Description>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<DocumentationFile>LiteGraph.McpServer.xml</DocumentationFile>

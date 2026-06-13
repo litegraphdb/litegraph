@@ -37,6 +37,20 @@
             CancellationToken token = default);
 
         /// <summary>
+        /// Create multiple vectors.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="vectors">Vectors.</param>
+        /// <param name="returnMode">Bulk create response shape.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Vectors.</returns>
+        Task<List<VectorMetadata>> CreateMany(
+            Guid tenantGuid,
+            List<VectorMetadata> vectors,
+            BulkCreateReturnModeEnum returnMode,
+            CancellationToken token = default);
+
+        /// <summary>
         /// Read vectors.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

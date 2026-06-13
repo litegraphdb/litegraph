@@ -31,6 +31,16 @@
         Task<List<TagMetadata>> CreateMany(Guid tenantGuid, List<TagMetadata> tags, CancellationToken token = default);
 
         /// <summary>
+        /// Create multiple tags.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="tags">Tags.</param>
+        /// <param name="returnMode">Bulk create response shape.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Tags.</returns>
+        Task<List<TagMetadata>> CreateMany(Guid tenantGuid, List<TagMetadata> tags, BulkCreateReturnModeEnum returnMode, CancellationToken token = default);
+
+        /// <summary>
         /// Read all tags in a given tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

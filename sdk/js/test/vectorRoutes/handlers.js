@@ -14,6 +14,11 @@ export const handlers = [
         return HttpResponse.json(vectorData);
     }),
 
+    // Create multiple vectors
+    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/vectors/bulk`, ({ request, params, cookies }) => {
+        return HttpResponse.json(vectorMockApiResponse);
+    }),
+
     // Read all vectors
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/vectors`, ({ request, params, cookies }) => {
         // Return an array of vectors

@@ -234,6 +234,32 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             return ret;
         }
 
+        internal static string SelectManyNodes(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
+        {
+            if (nodeGuids == null || nodeGuids.Count < 1)
+                return "SELECT * FROM 'tags' WHERE 1 = 0;";
+
+            return
+                "SELECT * FROM 'tags' WHERE guid IS NOT NULL " +
+                "AND tenantguid = '" + tenantGuid.ToString() + "' " +
+                "AND graphguid = '" + graphGuid.ToString() + "' " +
+                "AND edgeguid IS NULL " +
+                "AND nodeguid IN (" + string.Join(",", nodeGuids.Select(g => "'" + Sanitizer.Sanitize(g.ToString()) + "'")) + ");";
+        }
+
+        internal static string SelectManyEdges(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids)
+        {
+            if (edgeGuids == null || edgeGuids.Count < 1)
+                return "SELECT * FROM 'tags' WHERE 1 = 0;";
+
+            return
+                "SELECT * FROM 'tags' WHERE guid IS NOT NULL " +
+                "AND tenantguid = '" + tenantGuid.ToString() + "' " +
+                "AND graphguid = '" + graphGuid.ToString() + "' " +
+                "AND nodeguid IS NULL " +
+                "AND edgeguid IN (" + string.Join(",", edgeGuids.Select(g => "'" + Sanitizer.Sanitize(g.ToString()) + "'")) + ");";
+        }
+
         internal static string GetRecordPage(
             Guid? tenantGuid,
             Guid? graphGuid,

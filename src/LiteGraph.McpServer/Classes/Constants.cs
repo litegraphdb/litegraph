@@ -12,7 +12,7 @@ namespace LiteGraph.McpServer.Classes
         /// <summary>
         /// Software version.
         /// </summary>
-        public static string Version = "v6.0.1";
+        public static string Version = "v6.0.2";
 
         /// <summary>
         /// Logo.

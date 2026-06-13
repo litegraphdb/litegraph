@@ -740,10 +740,12 @@ See [RBAC.md](RBAC.md) for role definitions, permission/resource mappings, compa
 
 Label APIs require administrator bearer token authentication.
 
+Bulk create endpoints accept an optional `return` query parameter. Omit it or use `return=full` to keep the existing response shape. Use `return=minimal` to return only top-level created objects and skip optional node/edge subordinate hydration. Invalid values return `400 BadRequest`.
+
 | API                      | Method | URL                                                       |
 |--------------------------|--------|-----------------------------------------------------------|
 | Create                   | PUT    | /v1.0/tenants/[guid]/labels                               |
-| Create many              | PUT    | /v1.0/tenants/[guid]/labels/bulk                          |
+| Create many              | PUT    | /v1.0/tenants/[guid]/labels/bulk?return=minimal           |
 | Update                   | PUT    | /v1.0/tenants/[guid]/labels/[guid]                        |
 | Read many                | GET    | /v1.0/tenants/[guid]/labels                               |
 | Read many                | GET    | /v1.0/tenants/[guid]/labels?guids=...                     |
@@ -769,6 +771,7 @@ Tag APIs require administrator bearer token authentication.
 | API                      | Method | URL                                                      |
 |--------------------------|--------|----------------------------------------------------------|
 | Create                   | PUT    | /v1.0/tenants/[guid]/tags                                |
+| Create many              | PUT    | /v1.0/tenants/[guid]/tags/bulk?return=minimal            |
 | Update                   | PUT    | /v1.0/tenants/[guid]/tags/[guid]                         |
 | Read many                | GET    | /v1.0/tenants/[guid]/tags                                |
 | Read many                | GET    | /v1.0/tenants/[guid]/tags?guids=...                      |
@@ -793,6 +796,7 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | API                      | Method | URL                                                      |
 |--------------------------|--------|----------------------------------------------------------|
 | Create                   | PUT    | /v1.0/tenants/[guid]/vectors                             |
+| Create many              | PUT    | /v1.0/tenants/[guid]/vectors/bulk?return=minimal         |
 | Update                   | PUT    | /v1.0/tenants/[guid]/vectors/[guid]                      |
 | Read many                | GET    | /v1.0/tenants/[guid]/vectors                             |
 | Read many                | GET    | /v1.0/tenants/[guid]/vectors?guids=...                   |
@@ -854,7 +858,7 @@ Native graph query and graph transaction endpoints are graph scoped. They cannot
 | API                      | Method | URL                                                      |
 |--------------------------|--------|----------------------------------------------------------|
 | Create                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes                 |
-| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk            |
+| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk?return=minimal |
 | Update                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
 | Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
 | Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes                 |
@@ -875,7 +879,7 @@ Native graph query and graph transaction endpoints are graph scoped. They cannot
 | API                      | Method | URL                                                       |
 |--------------------------|--------|-----------------------------------------------------------|
 | Create                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |
-| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk             |
+| Create many              | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk?return=minimal |
 | Update                   | PUT    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
 | Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
 | Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |

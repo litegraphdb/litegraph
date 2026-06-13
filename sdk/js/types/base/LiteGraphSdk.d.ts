@@ -102,7 +102,6 @@ export default class LiteGraphSdk extends SdkBase {
      * @param {Object} existenceRequest - Optional initial data for the existence request.
      * @param {string[]} existenceRequest.Nodes - Array of node GUIDs.
      * @param {string[]} existenceRequest.Edges - Array of edge GUIDs.
-     * @param {string[]} existenceRequest.Vectors - Array of vector GUIDs.
      * @param {EdgeBetween[]} existenceRequest.EdgesBetween - Array of EdgeBetween instances.
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
      * @returns {Promise<Object>} - The existence result.
@@ -110,7 +109,6 @@ export default class LiteGraphSdk extends SdkBase {
     batchExistence(graphGuid: string, existenceRequest: {
         Nodes: string[];
         Edges: string[];
-        Vectors: string[];
         EdgesBetween: EdgeBetween[];
     }, cancellationToken?: AbortController): Promise<any>;
     /**
@@ -141,15 +139,15 @@ export default class LiteGraphSdk extends SdkBase {
      * @param {string} query - Query text.
      * @param {Object} [parameters] - Query parameters.
      * @param {Object} [options] - Query execution options.
+     * @param {number} [options.MaxResults=1000] - Maximum returned rows.
+     * @param {number} [options.TimeoutSeconds=30] - Query timeout in seconds.
+     * @param {boolean} [options.IncludeProfile=false] - Include execution profile timings.
      * @returns {Object} - Query request.
      */
     queryRequest(query: string, parameters?: any, options?: {
         MaxResults?: number;
-        maxResults?: number;
         TimeoutSeconds?: number;
-        timeoutSeconds?: number;
         IncludeProfile?: boolean;
-        includeProfile?: boolean;
     }): any;
     /**
      * Execute a native graph query.
@@ -163,70 +161,142 @@ export default class LiteGraphSdk extends SdkBase {
     executeQuery(graphGuid: string, request: any | string, parameters?: any, options?: any, cancellationToken?: AbortController): Promise<GraphQueryResult>;
     /**
      * List authorization roles for the configured tenant.
+     * @param {Object} [options] - Role list options.
+     * @param {number} [options.page=0] - Page index.
+     * @param {number} [options.pageSize=1000] - Page size.
+     * @param {boolean} [options.includeBuiltIns=true] - Include built-in roles.
+     * @param {boolean} [options.builtIn] - Filter by built-in status.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<AuthorizationRoleSearchResult>} - Role search result.
      */
-    listAuthorizationRoles(options?: any, cancellationToken?: AbortController): Promise<AuthorizationRoleSearchResult>;
+    listAuthorizationRoles(options?: {
+        page?: number;
+        pageSize?: number;
+        includeBuiltIns?: boolean;
+        builtIn?: boolean;
+    }, cancellationToken?: AbortController): Promise<AuthorizationRoleSearchResult>;
     /**
      * Create an authorization role.
+     * @param {Object} role - Role payload.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<AuthorizationRole>} - Created role.
      */
     createAuthorizationRole(role: any, cancellationToken?: AbortController): Promise<AuthorizationRole>;
     /**
      * Read an authorization role.
+     * @param {string} roleGuid - Role GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<AuthorizationRole>} - Role.
      */
     readAuthorizationRole(roleGuid: string, cancellationToken?: AbortController): Promise<AuthorizationRole>;
     /**
      * Update an authorization role.
+     * @param {Object} role - Role payload containing GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<AuthorizationRole>} - Updated role.
      */
     updateAuthorizationRole(role: any, cancellationToken?: AbortController): Promise<AuthorizationRole>;
     /**
      * Delete an authorization role.
+     * @param {string} roleGuid - Role GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>}
      */
     deleteAuthorizationRole(roleGuid: string, cancellationToken?: AbortController): Promise<void>;
     /**
      * List user role assignments.
+     * @param {string} userGuid - User GUID.
+     * @param {Object} [options] - List filters.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<UserRoleAssignmentSearchResult>} - Assignment search result.
      */
     listUserRoleAssignments(userGuid: string, options?: any, cancellationToken?: AbortController): Promise<UserRoleAssignmentSearchResult>;
     /**
      * Create a user role assignment.
+     * @param {string} userGuid - User GUID.
+     * @param {Object} assignment - Assignment payload.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<UserRoleAssignment>} - Created assignment.
      */
     createUserRoleAssignment(userGuid: string, assignment: any, cancellationToken?: AbortController): Promise<UserRoleAssignment>;
     /**
      * Read a user role assignment.
+     * @param {string} userGuid - User GUID.
+     * @param {string} assignmentGuid - Assignment GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<UserRoleAssignment>} - Assignment.
      */
     readUserRoleAssignment(userGuid: string, assignmentGuid: string, cancellationToken?: AbortController): Promise<UserRoleAssignment>;
     /**
      * Update a user role assignment.
+     * @param {string} userGuid - User GUID.
+     * @param {Object} assignment - Assignment payload containing GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<UserRoleAssignment>} - Updated assignment.
      */
     updateUserRoleAssignment(userGuid: string, assignment: any, cancellationToken?: AbortController): Promise<UserRoleAssignment>;
     /**
      * Delete a user role assignment.
+     * @param {string} userGuid - User GUID.
+     * @param {string} assignmentGuid - Assignment GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>}
      */
     deleteUserRoleAssignment(userGuid: string, assignmentGuid: string, cancellationToken?: AbortController): Promise<void>;
     /**
      * Read effective permissions for a user.
+     * @param {string} userGuid - User GUID.
+     * @param {string} [graphGuid] - Optional graph GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<AuthorizationEffectivePermissionsResult>} - Effective permissions.
      */
     getUserEffectivePermissions(userGuid: string, graphGuid?: string, cancellationToken?: AbortController): Promise<AuthorizationEffectivePermissionsResult>;
     /**
      * List credential scope assignments.
+     * @param {string} credentialGuid - Credential GUID.
+     * @param {Object} [options] - List filters.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<CredentialScopeAssignmentSearchResult>} - Scope search result.
      */
     listCredentialScopeAssignments(credentialGuid: string, options?: any, cancellationToken?: AbortController): Promise<CredentialScopeAssignmentSearchResult>;
     /**
      * Create a credential scope assignment.
+     * @param {string} credentialGuid - Credential GUID.
+     * @param {Object} assignment - Assignment payload.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<CredentialScopeAssignment>} - Created scope.
      */
     createCredentialScopeAssignment(credentialGuid: string, assignment: any, cancellationToken?: AbortController): Promise<CredentialScopeAssignment>;
     /**
      * Read a credential scope assignment.
+     * @param {string} credentialGuid - Credential GUID.
+     * @param {string} assignmentGuid - Assignment GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<CredentialScopeAssignment>} - Scope assignment.
      */
     readCredentialScopeAssignment(credentialGuid: string, assignmentGuid: string, cancellationToken?: AbortController): Promise<CredentialScopeAssignment>;
     /**
      * Update a credential scope assignment.
+     * @param {string} credentialGuid - Credential GUID.
+     * @param {Object} assignment - Assignment payload containing GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<CredentialScopeAssignment>} - Updated scope.
      */
     updateCredentialScopeAssignment(credentialGuid: string, assignment: any, cancellationToken?: AbortController): Promise<CredentialScopeAssignment>;
     /**
      * Delete a credential scope assignment.
+     * @param {string} credentialGuid - Credential GUID.
+     * @param {string} assignmentGuid - Assignment GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>}
      */
     deleteCredentialScopeAssignment(credentialGuid: string, assignmentGuid: string, cancellationToken?: AbortController): Promise<void>;
     /**
      * Read effective permissions for a credential.
+     * @param {string} credentialGuid - Credential GUID.
+     * @param {string} [graphGuid] - Optional graph GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<AuthorizationEffectivePermissionsResult>} - Effective permissions.
      */
     getCredentialEffectivePermissions(credentialGuid: string, graphGuid?: string, cancellationToken?: AbortController): Promise<AuthorizationEffectivePermissionsResult>;
     /**
@@ -241,10 +311,12 @@ export default class LiteGraphSdk extends SdkBase {
      * Create multiple nodes.
      * @param {string} graphGuid - The GUID of the graph.
      * @param {Array<Object>} nodes - List of node objects.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+     * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
      * @returns {Promise<Array<Node>>} - The list of created nodes.
      */
-    createNodes(graphGuid: string, nodes: Array<any>, cancellationToken?: AbortController): Promise<Array<Node>>;
+    createNodes(graphGuid: string, nodes: Array<any>, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<Array<Node>>;
     /**
      * Create a node.
      * @param {Object} node - Information about the node.
@@ -343,10 +415,12 @@ export default class LiteGraphSdk extends SdkBase {
      * Create multiple edges.
      * @param {string} graphGuid - The GUID of the graph.
      * @param {Array<Object>} edges - List of edge objects.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+     * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
      * @returns {Promise<Array<Object>>} - The list of created edges.
      */
-    createEdges(graphGuid: string, edges: Array<any>, cancellationToken?: AbortController): Promise<Array<any>>;
+    createEdges(graphGuid: string, edges: Array<any>, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<Array<any>>;
     /**
      * Create an edge.
      * @param {Object} edge - Information about the edge.
@@ -693,6 +767,15 @@ export default class LiteGraphSdk extends SdkBase {
      */
     createTag(tag: TagMetaData, cancellationToken?: AbortController): Promise<TagMetaData>;
     /**
+     * Create multiple tags.
+     * @param {Array<TagMetaData>} tags - The tags to create.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+     * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<TagMetaData[]>}
+     */
+    createTags(tags: Array<TagMetaData>, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<TagMetaData[]>;
+    /**
      * Update a tag.
      * @param {TagMetaData} tag - The tag to update.
      * @param {string} guid - The GUID of the tag.
@@ -735,6 +818,15 @@ export default class LiteGraphSdk extends SdkBase {
      */
     createLabel(label: LabelMetadata, cancellationToken?: AbortController): Promise<LabelMetadata>;
     /**
+     * Create multiple labels.
+     * @param {Array<LabelMetadata>} labels - The labels to create.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+     * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<LabelMetadata[]>}
+     */
+    createLabels(labels: Array<LabelMetadata>, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<LabelMetadata[]>;
+    /**
      * Update a label.
      * @param {LabelMetadata} label - The label to update.
      * @param {string} guid - The GUID of the label.
@@ -776,6 +868,15 @@ export default class LiteGraphSdk extends SdkBase {
      * @returns {Promise<VectorMetadata>}
      */
     createVector(vector: VectorMetadata, cancellationToken?: AbortController): Promise<VectorMetadata>;
+    /**
+     * Create multiple vectors.
+     * @param {Array<VectorMetadata>} vectors - The vectors to create.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+     * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<VectorMetadata[]>}
+     */
+    createVectors(vectors: Array<VectorMetadata>, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<VectorMetadata[]>;
     /**
      * Update a vector.
      * @param {VectorMetadata} vector - The vector to update.
@@ -1122,9 +1223,15 @@ import Graph from '../models/Graph';
 import SearchResult from '../models/SearchResult';
 import EdgeBetween from '../models/EdgeBetween';
 import GraphTransactionBuilder from '../models/GraphTransactionBuilder';
-import GraphQueryResult from '../models/GraphQueryResult';
 import TransactionResult from '../models/TransactionResult';
-import { AuthorizationEffectivePermissionsResult, AuthorizationRole, AuthorizationRoleSearchResult, CredentialScopeAssignment, CredentialScopeAssignmentSearchResult, UserRoleAssignment, UserRoleAssignmentSearchResult } from '../models/AuthorizationModels';
+import GraphQueryResult from '../models/GraphQueryResult';
+import { AuthorizationRoleSearchResult } from '../models/AuthorizationModels';
+import { AuthorizationRole } from '../models/AuthorizationModels';
+import { UserRoleAssignmentSearchResult } from '../models/AuthorizationModels';
+import { UserRoleAssignment } from '../models/AuthorizationModels';
+import { AuthorizationEffectivePermissionsResult } from '../models/AuthorizationModels';
+import { CredentialScopeAssignmentSearchResult } from '../models/AuthorizationModels';
+import { CredentialScopeAssignment } from '../models/AuthorizationModels';
 import Node from '../models/Node';
 import Edge from '../models/Edge';
 import RouteResult from '../models/RouteResult';

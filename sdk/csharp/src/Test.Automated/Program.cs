@@ -2,6 +2,7 @@ namespace Test.Automated
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Collections.Specialized;
 	using System.Diagnostics;
 	using System.Linq;
 	using System.Threading.Tasks;
@@ -1192,6 +1193,46 @@ namespace Test.Automated
 
 			_EdgeGuidSecondary = created[0].GUID;
 			_EdgeNameSecondary = created[0].Name ?? string.Empty;
+
+			List<Edge> minimalEdges = new List<Edge>
+			{
+				new Edge
+				{
+					TenantGUID = _TenantGuid,
+					GraphGUID = _GraphGuid,
+					From = _EdgeNode2Guid,
+					To = _EdgeNode3Guid,
+					Name = UniqueName("sdk-edge-minimal"),
+					Cost = 4,
+					Labels = new List<string> { "SdkMinimalEdgeLabel" },
+					Tags = new NameValueCollection { { "SdkMinimalEdgeKey", "SdkMinimalEdgeValue" } },
+					Vectors = new List<VectorMetadata>
+					{
+						new VectorMetadata
+						{
+							TenantGUID = _TenantGuid,
+							GraphGUID = _GraphGuid,
+							Model = "sdk-test-model",
+							Dimensionality = 3,
+							Content = UniqueName("sdk-edge-minimal-vector"),
+							Vectors = new List<float> { 0.4f, 0.5f, 0.6f }
+						}
+					}
+				}
+			};
+
+			List<Edge>? minimalCreated = await sdk.Edge.CreateMany(_TenantGuid, _GraphGuid, minimalEdges, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+			AssertNotNull(minimalCreated, "Edge create many minimal result");
+			AssertEqual(1, minimalCreated!.Count, "Edge create many minimal count");
+			AssertTrue(minimalCreated[0].Labels == null || minimalCreated[0].Labels.Count == 0, "Minimal edge labels omitted");
+			AssertTrue(minimalCreated[0].Tags == null || minimalCreated[0].Tags.Count == 0, "Minimal edge tags omitted");
+			AssertTrue(minimalCreated[0].Vectors == null || minimalCreated[0].Vectors.Count == 0, "Minimal edge vectors omitted");
+
+			Edge? hydratedMinimal = await sdk.Edge.ReadByGuid(_TenantGuid, _GraphGuid, minimalCreated[0].GUID, includeData: true, includeSubordinates: true).ConfigureAwait(false);
+			AssertNotNull(hydratedMinimal, "Hydrated minimal edge");
+			AssertTrue(hydratedMinimal!.Labels != null && hydratedMinimal.Labels.Contains("SdkMinimalEdgeLabel"), "Minimal edge labels persisted");
+			AssertTrue(hydratedMinimal.Tags != null && hydratedMinimal.Tags["SdkMinimalEdgeKey"] == "SdkMinimalEdgeValue", "Minimal edge tags persisted");
+			AssertTrue(hydratedMinimal.Vectors != null && hydratedMinimal.Vectors.Count == 1, "Minimal edge vectors persisted");
 		}
 
 		private static async Task TestEdgeReadByGuid()
@@ -1872,6 +1913,22 @@ namespace Test.Automated
             AssertNotNull(created, "Tag create many result");
             AssertEqual(2, created!.Count, "Tag create many count");
 
+            List<TagMetadata>? minimalCreated = await sdk.Tag.CreateMany(_TenantGuid, new List<TagMetadata>
+            {
+                new TagMetadata
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    NodeGUID = _EdgeNode1Guid,
+                    Key = "sdk-tag-minimal",
+                    Value = UniqueName("tag-minimal-value")
+                }
+            }, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+
+            AssertNotNull(minimalCreated, "Tag create many minimal result");
+            AssertEqual(1, minimalCreated!.Count, "Tag create many minimal count");
+            AssertEqual("sdk-tag-minimal", minimalCreated[0].Key, "Tag create many minimal key");
+
             foreach (TagMetadata createdTag in created)
             {
                 if (createdTag.EdgeGUID.HasValue && _TagEdgePrimaryGuid == Guid.Empty)
@@ -2110,19 +2167,40 @@ namespace Test.Automated
                     null,
                     _EdgeGuidPrimary,
                     "primary edge vector",
-                    new List<float> { 0.4f, 0.3f, 0.2f })
+                    new List<float> { 0.4f, 0.3f, 0.2f }),
+                BuildVectorMetadata(
+                    null,
+                    null,
+                    "primary graph vector",
+                    new List<float> { 0.3f, 0.4f, 0.5f })
             };
 
             List<VectorMetadata>? created = await sdk.Vector.CreateMany(_TenantGuid, vectors).ConfigureAwait(false);
 
             AssertNotNull(created, "Vector create many result");
-            AssertEqual(2, created!.Count, "Vector create many count");
+            AssertEqual(3, created!.Count, "Vector create many count");
 
-            _VectorNodeSecondaryGuid = created[0].GUID;
-            _VectorNodeSecondaryContent = created[0].Content ?? string.Empty;
+            List<VectorMetadata>? minimalCreated = await sdk.Vector.CreateMany(_TenantGuid, new List<VectorMetadata>
+            {
+                BuildVectorMetadata(
+                    _NodeSecondaryGuid,
+                    null,
+                    "minimal node vector",
+                    new List<float> { 0.5f, 0.6f, 0.7f })
+            }, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
 
-            _VectorEdgePrimaryGuid = created[1].GUID;
-            _VectorEdgePrimaryContent = created[1].Content ?? string.Empty;
+            AssertNotNull(minimalCreated, "Vector create many minimal result");
+            AssertEqual(1, minimalCreated!.Count, "Vector create many minimal count");
+            AssertEqual("minimal node vector", minimalCreated[0].Content, "Vector create many minimal content");
+
+            VectorMetadata nodeVector = created.First(v => v.NodeGUID == _NodeSecondaryGuid);
+            VectorMetadata edgeVector = created.First(v => v.EdgeGUID == _EdgeGuidPrimary);
+
+            _VectorNodeSecondaryGuid = nodeVector.GUID;
+            _VectorNodeSecondaryContent = nodeVector.Content ?? string.Empty;
+
+            _VectorEdgePrimaryGuid = edgeVector.GUID;
+            _VectorEdgePrimaryContent = edgeVector.Content ?? string.Empty;
         }
 
         private static async Task TestVectorReadByGuid()
@@ -2341,6 +2419,43 @@ namespace Test.Automated
 
             AssertNotNull(created, "Node create many result");
             AssertEqual(2, created!.Count, "Node create many count");
+
+            List<Node> minimalNodes = new List<Node>
+            {
+                new Node
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    Name = UniqueName("sdk-node-minimal"),
+                    Labels = new List<string> { "SdkMinimalNodeLabel" },
+                    Tags = new NameValueCollection { { "SdkMinimalNodeKey", "SdkMinimalNodeValue" } },
+                    Vectors = new List<VectorMetadata>
+                    {
+                        new VectorMetadata
+                        {
+                            TenantGUID = _TenantGuid,
+                            GraphGUID = _GraphGuid,
+                            Model = "sdk-test-model",
+                            Dimensionality = 3,
+                            Content = UniqueName("sdk-node-minimal-vector"),
+                            Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
+                        }
+                    }
+                }
+            };
+
+            List<Node>? minimalCreated = await sdk.Node.CreateMany(_TenantGuid, _GraphGuid, minimalNodes, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+            AssertNotNull(minimalCreated, "Node create many minimal result");
+            AssertEqual(1, minimalCreated!.Count, "Node create many minimal count");
+            AssertTrue(minimalCreated[0].Labels == null || minimalCreated[0].Labels.Count == 0, "Minimal node labels omitted");
+            AssertTrue(minimalCreated[0].Tags == null || minimalCreated[0].Tags.Count == 0, "Minimal node tags omitted");
+            AssertTrue(minimalCreated[0].Vectors == null || minimalCreated[0].Vectors.Count == 0, "Minimal node vectors omitted");
+
+            Node? hydratedMinimal = await sdk.Node.ReadByGuid(_TenantGuid, _GraphGuid, minimalCreated[0].GUID, includeData: true, includeSubordinates: true).ConfigureAwait(false);
+            AssertNotNull(hydratedMinimal, "Hydrated minimal node");
+            AssertTrue(hydratedMinimal!.Labels != null && hydratedMinimal.Labels.Contains("SdkMinimalNodeLabel"), "Minimal node labels persisted");
+            AssertTrue(hydratedMinimal.Tags != null && hydratedMinimal.Tags["SdkMinimalNodeKey"] == "SdkMinimalNodeValue", "Minimal node tags persisted");
+            AssertTrue(hydratedMinimal.Vectors != null && hydratedMinimal.Vectors.Count == 1, "Minimal node vectors persisted");
 
             _NodeSecondaryGuid = created[0].GUID;
             _NodeSecondaryName = created[0].Name ?? string.Empty;
@@ -2618,6 +2733,21 @@ namespace Test.Automated
 
             AssertNotNull(created, "Label create many result");
             AssertEqual(2, created!.Count, "Label create many count");
+
+            List<LabelMetadata>? minimalCreated = await sdk.Label.CreateMany(_TenantGuid, new List<LabelMetadata>
+            {
+                new LabelMetadata
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    NodeGUID = _EdgeNode1Guid,
+                    Label = UniqueName("sdk-label-minimal")
+                }
+            }, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+
+            AssertNotNull(minimalCreated, "Label create many minimal result");
+            AssertEqual(1, minimalCreated!.Count, "Label create many minimal count");
+            AssertTrue(!String.IsNullOrEmpty(minimalCreated[0].Label), "Label create many minimal value");
 
             _LabelEdgePrimaryGuid = created[0].GUID;
             _LabelEdgePrimaryName = created[0].Label ?? string.Empty;

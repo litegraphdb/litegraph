@@ -314,7 +314,17 @@ def test_create_multiple_resources(mock_client):
     mock_client.request.assert_called()
     called_args = mock_client.request.call_args
     assert called_args[0][0] == "PUT"
-    assert "multiple" in called_args[0][1]
+    assert "bulk" in called_args[0][1]
+
+    mock_client.request.reset_mock()
+    result = ResourceModel.create_multiple(test_data, return_mode="minimal")
+    assert isinstance(result, list)
+    called_args = mock_client.request.call_args
+    assert called_args[0][0] == "PUT"
+    assert "bulk?return=minimal" in called_args[0][1]
+
+    with pytest.raises(ValueError, match="return_mode must be 'full' or 'minimal'"):
+        ResourceModel.create_multiple(test_data, return_mode="invalid")
 
 
 def test_delete_all_resources(mock_client):

@@ -405,6 +405,58 @@
         }
 
         /// <inheritdoc />
+        public async IAsyncEnumerable<LabelMetadata> ReadManyForNodes(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<Guid> nodeGuids,
+            [EnumeratorCancellation] CancellationToken token = default)
+        {
+            if (nodeGuids == null || nodeGuids.Count < 1) yield break;
+
+            List<Guid> materialized = nodeGuids.Where(g => g != Guid.Empty).Distinct().ToList();
+            for (int offset = 0; offset < materialized.Count; offset += _Repo.SelectBatchSize)
+            {
+                token.ThrowIfCancellationRequested();
+                List<Guid> batch = materialized.Skip(offset).Take(_Repo.SelectBatchSize).ToList();
+                string query = LabelQueries.SelectManyNodes(tenantGuid, graphGuid, batch);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
+                if (result == null || result.Rows.Count < 1) continue;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    yield return Converters.LabelFromDataRow(result.Rows[i]);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<LabelMetadata> ReadManyForEdges(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<Guid> edgeGuids,
+            [EnumeratorCancellation] CancellationToken token = default)
+        {
+            if (edgeGuids == null || edgeGuids.Count < 1) yield break;
+
+            List<Guid> materialized = edgeGuids.Where(g => g != Guid.Empty).Distinct().ToList();
+            for (int offset = 0; offset < materialized.Count; offset += _Repo.SelectBatchSize)
+            {
+                token.ThrowIfCancellationRequested();
+                List<Guid> batch = materialized.Skip(offset).Take(_Repo.SelectBatchSize).ToList();
+                string query = LabelQueries.SelectManyEdges(tenantGuid, graphGuid, batch);
+                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
+                if (result == null || result.Rows.Count < 1) continue;
+
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    yield return Converters.LabelFromDataRow(result.Rows[i]);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<EnumerationResult<LabelMetadata>> Enumerate(EnumerationRequest query, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));

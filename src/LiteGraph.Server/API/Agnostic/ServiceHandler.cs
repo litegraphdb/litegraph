@@ -449,8 +449,10 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Labels == null || req.Labels.Count < 1) throw new ArgumentNullException(nameof(req.Labels));
+            ResponseContext invalidReturnMode = InvalidBulkCreateReturnModeResponse(req);
+            if (invalidReturnMode != null) return invalidReturnMode;
             foreach (LabelMetadata label in req.Labels) label.TenantGUID = req.TenantGUID.Value;
-            List<LabelMetadata> obj = await _LiteGraph.Label.CreateMany(req.TenantGUID.Value, req.Labels, token).ConfigureAwait(false);
+            List<LabelMetadata> obj = await _LiteGraph.Label.CreateMany(req.TenantGUID.Value, req.Labels, req.BulkCreateReturnMode, token).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -678,8 +680,10 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Tags == null || req.Tags.Count < 1) throw new ArgumentNullException(nameof(req.Tags));
+            ResponseContext invalidReturnMode = InvalidBulkCreateReturnModeResponse(req);
+            if (invalidReturnMode != null) return invalidReturnMode;
             foreach (TagMetadata tag in req.Tags) tag.TenantGUID = req.TenantGUID.Value;
-            List<TagMetadata> obj = await _LiteGraph.Tag.CreateMany(req.TenantGUID.Value, req.Tags, token).ConfigureAwait(false);
+            List<TagMetadata> obj = await _LiteGraph.Tag.CreateMany(req.TenantGUID.Value, req.Tags, req.BulkCreateReturnMode, token).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -903,7 +907,9 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Vectors == null || req.Vectors.Count < 1) throw new ArgumentNullException(nameof(req.Vectors));
-            List<VectorMetadata> obj = await _LiteGraph.Vector.CreateMany(req.TenantGUID.Value, req.Vectors, token).ConfigureAwait(false);
+            ResponseContext invalidReturnMode = InvalidBulkCreateReturnModeResponse(req);
+            if (invalidReturnMode != null) return invalidReturnMode;
+            List<VectorMetadata> obj = await _LiteGraph.Vector.CreateMany(req.TenantGUID.Value, req.Vectors, req.BulkCreateReturnMode, token).ConfigureAwait(false);
             return new ResponseContext(req, obj);
         }
 
@@ -1409,11 +1415,13 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Nodes == null) throw new ArgumentNullException(nameof(req.Nodes));
+            ResponseContext invalidReturnMode = InvalidBulkCreateReturnModeResponse(req);
+            if (invalidReturnMode != null) return invalidReturnMode;
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             try
             {
-                req.Nodes = await _LiteGraph.Node.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Nodes, token).ConfigureAwait(false);
+                req.Nodes = await _LiteGraph.Node.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Nodes, req.BulkCreateReturnMode, token).ConfigureAwait(false);
                 return new ResponseContext(req, req.Nodes);
             }
             catch (InvalidOperationException ioe)
@@ -1685,11 +1693,13 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Edges == null) throw new ArgumentNullException(nameof(req.Edges));
+            ResponseContext invalidReturnMode = InvalidBulkCreateReturnModeResponse(req);
+            if (invalidReturnMode != null) return invalidReturnMode;
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             try
             {
-                req.Edges = await _LiteGraph.Edge.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Edges, token).ConfigureAwait(false);
+                req.Edges = await _LiteGraph.Edge.CreateMany(req.TenantGUID.Value, req.GraphGUID.Value, req.Edges, req.BulkCreateReturnMode, token).ConfigureAwait(false);
                 return new ResponseContext(req, req.Edges);
             }
             catch (KeyNotFoundException knfe)
@@ -2093,6 +2103,16 @@
         #endregion
 
         #region Private-Methods
+
+        private static ResponseContext InvalidBulkCreateReturnModeResponse(RequestContext req)
+        {
+            if (req == null || String.IsNullOrEmpty(req.InvalidBulkCreateReturnMode)) return null;
+            return ResponseContext.FromError(
+                req,
+                ApiErrorEnum.BadRequest,
+                null,
+                "Invalid bulk create return mode '" + req.InvalidBulkCreateReturnMode + "'. Valid values are 'full' and 'minimal'.");
+        }
 
         #endregion
 

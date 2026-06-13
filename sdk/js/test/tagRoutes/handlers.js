@@ -14,6 +14,11 @@ export const handlers = [
         return HttpResponse.json(tagData);
     }),
 
+    // Create multiple tags
+    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/tags/bulk`, ({ request, params, cookies }) => {
+        return HttpResponse.json(tagMockApiResponse);
+    }),
+
     // Read all tags
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/tags`, ({ request, params, cookies }) => {
         // Return an array of tags

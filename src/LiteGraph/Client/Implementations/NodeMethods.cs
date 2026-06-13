@@ -89,13 +89,22 @@
         /// <inheritdoc />
         public async Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, graphGuid, nodes, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (nodes == null) throw new ArgumentNullException(nameof(nodes));
             token.ThrowIfCancellationRequested();
             await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             List<Node> created = await _Repo.Node.CreateMany(tenantGuid, graphGuid, nodes, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created " + created.Count + " node(s) in graph " + graphGuid);
 
-            await PopulateNodes(created, true, true, token).ConfigureAwait(false);
+            if (returnMode == BulkCreateReturnModeEnum.Full)
+            {
+                await PopulateNodes(created, true, true, token).ConfigureAwait(false);
+            }
 
             foreach (Node node in created)
             {
@@ -565,20 +574,21 @@
                 Dictionary<Guid, List<LabelMetadata>> labelsByNode = group.ToDictionary(node => node.GUID, _ => new List<LabelMetadata>());
                 Dictionary<Guid, List<TagMetadata>> tagsByNode = group.ToDictionary(node => node.GUID, _ => new List<TagMetadata>());
                 Dictionary<Guid, List<VectorMetadata>> vectorsByNode = group.ToDictionary(node => node.GUID, _ => new List<VectorMetadata>());
+                List<Guid> nodeGuids = group.Select(node => node.GUID).ToList();
 
-                await foreach (LabelMetadata label in _Repo.Label.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                await foreach (LabelMetadata label in _Repo.Label.ReadManyForNodes(group.Key.TenantGuid, group.Key.GraphGuid, nodeGuids, token).WithCancellation(token).ConfigureAwait(false))
                 {
                     if (label?.NodeGUID == null) continue;
                     if (labelsByNode.TryGetValue(label.NodeGUID.Value, out List<LabelMetadata> labels)) labels.Add(label);
                 }
 
-                await foreach (TagMetadata tag in _Repo.Tag.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                await foreach (TagMetadata tag in _Repo.Tag.ReadManyForNodes(group.Key.TenantGuid, group.Key.GraphGuid, nodeGuids, token).WithCancellation(token).ConfigureAwait(false))
                 {
                     if (tag?.NodeGUID == null) continue;
                     if (tagsByNode.TryGetValue(tag.NodeGUID.Value, out List<TagMetadata> tags)) tags.Add(tag);
                 }
 
-                await foreach (VectorMetadata vector in _Repo.Vector.ReadMany(group.Key.TenantGuid, group.Key.GraphGuid, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
+                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyForNodes(group.Key.TenantGuid, group.Key.GraphGuid, nodeGuids, token).WithCancellation(token).ConfigureAwait(false))
                 {
                     if (vector?.NodeGUID == null) continue;
                     if (vectorsByNode.TryGetValue(vector.NodeGUID.Value, out List<VectorMetadata> vectors)) vectors.Add(vector);

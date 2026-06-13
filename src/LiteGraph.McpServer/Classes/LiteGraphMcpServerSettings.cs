@@ -27,7 +27,7 @@ namespace LiteGraph.McpServer.Classes
         /// <summary>
         /// Software version.
         /// </summary>
-        public string SoftwareVersion { get; set; } = "v6.0.1";
+        public string SoftwareVersion { get; set; } = "v6.0.2";
 
         /// <summary>
         /// Node information.

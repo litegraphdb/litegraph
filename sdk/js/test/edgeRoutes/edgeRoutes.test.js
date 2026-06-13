@@ -178,6 +178,28 @@ describe('EdgeRoute Tests', () => {
       expect(JSON.stringify(response)).toBe(JSON.stringify(new Edge(edgeData[mockEdgeGuid])));
     });
 
+    test('should create multiple edges with minimal return mode', async () => {
+      const graphGuid = '01010101-0101-0101-0101-010101010101';
+      const edges = [
+        {
+          GUID: '01010101-0101-0101-0101-010101010101',
+          GraphGUID: graphGuid,
+          Name: 'Sample Edge',
+          From: '2b1520be-d285-4f22-8c74-f296047162b9',
+          To: '784cfa37-fb06-4f81-b10d-f1167dfe2b22',
+        },
+      ];
+
+      const response = await api.createEdges(graphGuid, edges, { returnMode: 'minimal' });
+      expect(JSON.stringify(response)).toBe(JSON.stringify(new Edge(edgeData[mockEdgeGuid])));
+    });
+
+    test('throws error when edge bulk return mode is invalid', async () => {
+      await expect(api.createEdges(mockGraphGuid, [{ GraphGUID: mockGraphGuid }], { returnMode: 'invalid' }))
+        .rejects
+        .toThrow("returnMode must be 'full' or 'minimal'");
+    });
+
     test('should create multiple edges with abort', async () => {
       const graphGuid = '01010101-0101-0101-0101-010101010101';
       const edges = [

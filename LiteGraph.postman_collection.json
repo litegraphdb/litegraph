@@ -7297,6 +7297,14 @@
 										"{{tenant}}",
 										"labels",
 										"bulk"
+									],
+									"query": [
+										{
+											"key": "return",
+											"value": "minimal",
+											"description": "Optional bulk create response shape: full or minimal.",
+											"disabled": true
+										}
 									]
 								}
 							},
@@ -7957,6 +7965,14 @@
 										"{{tenant}}",
 										"tags",
 										"bulk"
+									],
+									"query": [
+										{
+											"key": "return",
+											"value": "minimal",
+											"description": "Optional bulk create response shape: full or minimal.",
+											"disabled": true
+										}
 									]
 								}
 							},
@@ -8617,6 +8633,14 @@
 										"{{tenant}}",
 										"vectors",
 										"bulk"
+									],
+									"query": [
+										{
+											"key": "return",
+											"value": "minimal",
+											"description": "Optional bulk create response shape: full or minimal.",
+											"disabled": true
+										}
 									]
 								}
 							},
@@ -10021,6 +10045,14 @@
 										"{{graph}}",
 										"nodes",
 										"bulk"
+									],
+									"query": [
+										{
+											"key": "return",
+											"value": "minimal",
+											"description": "Optional bulk create response shape: full or minimal.",
+											"disabled": true
+										}
 									]
 								}
 							},
@@ -10676,6 +10708,14 @@
 										"{{graph}}",
 										"edges",
 										"bulk"
+									],
+									"query": [
+										{
+											"key": "return",
+											"value": "minimal",
+											"description": "Optional bulk create response shape: full or minimal.",
+											"disabled": true
+										}
 									]
 								}
 							},

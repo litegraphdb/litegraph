@@ -344,11 +344,11 @@ namespace LiteGraph.McpServer
             _McpWebsocketServer = new McpWebsocketsServer(_Settings.WebSocket.Hostname, _Settings.WebSocket.Port, "/mcp", includeDefaultMethods: true);
 
             _McpHttpServer.ServerName = "LiteGraph.McpServer";
-            _McpHttpServer.ServerVersion = "6.0.1";
+            _McpHttpServer.ServerVersion = "6.0.2";
             _McpTcpServer.ServerName = "LiteGraph.McpServer";
-            _McpTcpServer.ServerVersion = "6.0.1";
+            _McpTcpServer.ServerVersion = "6.0.2";
             _McpWebsocketServer.ServerName = "LiteGraph.McpServer";
-            _McpWebsocketServer.ServerVersion = "6.0.1";
+            _McpWebsocketServer.ServerVersion = "6.0.2";
 
             _McpHttpServer.ClientConnected += ClientConnected;
             _McpHttpServer.ClientDisconnected += ClientDisconnected;

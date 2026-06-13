@@ -20,6 +20,17 @@ type OpenApiOperationDef = {
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
 
+const isBulkCreatePath = (path: string, method: string): boolean => (
+  method === 'put' &&
+  (
+    /\/labels\/bulk$/i.test(path) ||
+    /\/tags\/bulk$/i.test(path) ||
+    /\/vectors\/bulk$/i.test(path) ||
+    /\/nodes\/bulk$/i.test(path) ||
+    /\/edges\/bulk$/i.test(path)
+  )
+);
+
 const exampleFromSchema = (
   schema: OpenApiSchema | undefined,
   components: Record<string, OpenApiSchema> | undefined,
@@ -71,6 +82,16 @@ export const flattenOpenApi = (spec: OpenApiSpec | null | undefined): ApiOperati
         description: p.description,
         schema: p.schema,
       }));
+
+      if (isBulkCreatePath(path, method) && !parameters.some((p) => p.in === 'query' && p.name === 'return')) {
+        parameters.push({
+          name: 'return',
+          in: 'query',
+          required: false,
+          description: 'Bulk create response shape. Use full for the existing response or minimal to skip optional node/edge response hydration.',
+          schema: { type: 'string', enum: ['full', 'minimal'] },
+        });
+      }
 
       let requestBodyExample: string | undefined;
       let hasBody = false;

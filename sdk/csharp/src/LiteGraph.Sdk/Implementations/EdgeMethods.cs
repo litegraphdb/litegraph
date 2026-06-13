@@ -10,6 +10,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ExpressionTree;
+    using LiteGraph.Sdk;
     using LiteGraph.Sdk.Interfaces;
 
     /// <summary>
@@ -53,9 +54,16 @@
         /// <inheritdoc />
         public async Task<List<Edge>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, graphGuid, edges, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<Edge>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (edges == null) throw new ArgumentNullException(nameof(edges));
             if (edges.Count < 1) return new List<Edge>();
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/bulk";
+            url = BulkCreateUrlHelper.AppendReturnMode(url, returnMode);
             return await _Sdk.PutCreate<List<Edge>>(url, edges, token).ConfigureAwait(false);
         }
 

@@ -2,6 +2,7 @@ from ..configuration import get_client
 from ..mixins import (
     AllRetrievableAPIResource,
     CreateableAPIResource,
+    CreateableMultipleAPIResource,
     DeletableAPIResource,
     ExistsAPIResource,
     RetrievableAPIResource,
@@ -15,6 +16,7 @@ class Label(
     RetrievableAPIResource,
     AllRetrievableAPIResource,
     CreateableAPIResource,
+    CreateableMultipleAPIResource,
     UpdatableAPIResource,
     DeletableAPIResource,
 ):

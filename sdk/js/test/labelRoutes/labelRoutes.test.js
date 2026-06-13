@@ -38,6 +38,21 @@ describe('labelRoute Tests', () => {
       expect(true).toBe(response instanceof LabelMetaData);
     });
 
+    test('should create multiple labels with minimal return mode', async () => {
+      const labels = [
+        {
+          "TenantGUID": "00000000-0000-0000-0000-000000000000",
+          "GraphGUID": "00000000-0000-0000-0000-000000000000",
+          "NodeGUID": "00000000-0000-0000-0000-000000000000",
+          "Label": "test"
+        }
+      ];
+      const response = await api.createLabels(labels, { returnMode: 'minimal' });
+      response.forEach((label) => {
+        expect(label instanceof LabelMetaData).toBe(true);
+      });
+    });
+
     it('throws error when creating a label', async () => {
       try {
         await api.createLabel();

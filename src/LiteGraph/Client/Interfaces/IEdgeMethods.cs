@@ -34,6 +34,17 @@
         Task<List<Edge>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges, CancellationToken token = default);
 
         /// <summary>
+        /// Create multiple edges.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="edges">Edges.</param>
+        /// <param name="returnMode">Bulk create response shape.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Edges.</returns>
+        Task<List<Edge>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Edge> edges, BulkCreateReturnModeEnum returnMode, CancellationToken token = default);
+
+        /// <summary>
         /// Read all edges in a given tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

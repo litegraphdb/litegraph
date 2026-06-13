@@ -122,6 +122,20 @@
             CancellationToken token = default);
 
         /// <summary>
+        /// Read labels for multiple nodes in a graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodeGuids">Node GUIDs.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Labels.</returns>
+        IAsyncEnumerable<LabelMetadata> ReadManyForNodes(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<Guid> nodeGuids,
+            CancellationToken token = default);
+
+        /// <summary>
         /// Read edge labels.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
@@ -137,6 +151,20 @@
             Guid edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            CancellationToken token = default);
+
+        /// <summary>
+        /// Read labels for multiple edges in a graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="edgeGuids">Edge GUIDs.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Labels.</returns>
+        IAsyncEnumerable<LabelMetadata> ReadManyForEdges(
+            Guid tenantGuid,
+            Guid graphGuid,
+            List<Guid> edgeGuids,
             CancellationToken token = default);
 
         /// <summary>

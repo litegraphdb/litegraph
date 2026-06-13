@@ -43,6 +43,24 @@ describe('vectorRoute Tests', () => {
       expect(true).toBe(response instanceof VectorMetadata);
     });
 
+    test('should create multiple vectors with minimal return mode', async () => {
+      const vectors = [
+        {
+          "GUID": mockVectorGuid,
+          "TenantGUID": "987e6543-a21b-45c3-b678-789012345678",
+          "GraphGUID": "321e6543-a21b-45c3-b678-789012345679",
+          "Model": "SampleModel",
+          "Dimensionality": 5,
+          "Content": "Sample vector content",
+          "Vectors": [0.1, 0.2, 0.3, 0.4, 0.5]
+        }
+      ];
+      const response = await api.createVectors(vectors, { returnMode: 'minimal' });
+      response.forEach((vector) => {
+        expect(vector instanceof VectorMetadata).toBe(true);
+      });
+    });
+
     it('throws error when creating a vector', async () => {
       try {
         await api.createVector();

@@ -15,7 +15,7 @@ export const handlers = [
     }),
 
     // Create multiple edges
-    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/edges/multiple`, ({ request, params, cookies }) => {
+    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/edges/bulk`, ({ request, params, cookies }) => {
         // // Return the created edge, using `mockEdgeGuid` and edgeData for consistency
         return HttpResponse.json(edgeData[mockEdgeGuid]);
     }),

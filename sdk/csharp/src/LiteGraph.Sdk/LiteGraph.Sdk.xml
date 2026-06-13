@@ -124,6 +124,21 @@
             Backup requets.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.BulkCreateReturnModeEnum">
+            <summary>
+            Bulk create response shape.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.BulkCreateReturnModeEnum.Full">
+            <summary>
+            Return created objects with the existing full response shape.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.BulkCreateReturnModeEnum.Minimal">
+            <summary>
+            Return only top-level created objects and skip optional response hydration.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Credential">
             <summary>
             Credentials.
@@ -719,6 +734,9 @@
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Edge},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Edge},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -873,6 +891,9 @@
         <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.LabelMetadata},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.LabelMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -942,6 +963,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Node},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Node},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
@@ -1019,6 +1043,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.TagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.TagMetadata},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.TagMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
@@ -1186,6 +1213,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.VectorMetadata},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.VectorMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
@@ -1425,6 +1455,17 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="edges">Edges.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Edges.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Edge},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple edges.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edges">Edges.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Edges.</returns>
         </member>
@@ -1877,6 +1918,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Labels.</returns>
         </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.LabelMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="returnMode">Bulk create response shape.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Labels.</returns>
+        </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read labels.
@@ -2063,6 +2114,17 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodes">Nodes.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Nodes.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Node},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodes">Nodes.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Nodes.</returns>
         </member>
@@ -2304,6 +2366,16 @@
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="tags">Tags.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.TagMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="tags">Tags.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Tags.</returns>
         </member>
@@ -2671,6 +2743,16 @@
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="vectors">Vectors.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Vectors.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.VectorMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple vectors.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="vectors">Vectors.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Vectors.</returns>
         </member>

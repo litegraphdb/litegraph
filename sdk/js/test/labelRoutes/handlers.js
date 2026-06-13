@@ -14,6 +14,11 @@ export const handlers = [
         return HttpResponse.json(labelData);
     }),
 
+    // Create multiple labels
+    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/labels/bulk`, ({ request, params, cookies }) => {
+        return HttpResponse.json(labelMockApiResponse);
+    }),
+
     // Read all tenants
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/labels`, ({ request, params, cookies }) => {
         // Return an array of tenants

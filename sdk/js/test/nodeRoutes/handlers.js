@@ -15,7 +15,7 @@ export const handlers = [
     }),
 
     // Create multiple node
-    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/nodes/multiple`, ({ request, params, cookies }) => {
+    http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/nodes/bulk`, ({ request, params, cookies }) => {
         // // Return the created node, using `mockNodeGuid` and nodeData for consistency
         return HttpResponse.json(nodeData[mockNodeGuid]);
     }),

@@ -35,6 +35,17 @@
         Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, CancellationToken token = default);
 
         /// <summary>
+        /// Create multiple nodes.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="nodes">Nodes.</param>
+        /// <param name="returnMode">Bulk create response shape.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Nodes.</returns>
+        Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, BulkCreateReturnModeEnum returnMode, CancellationToken token = default);
+
+        /// <summary>
         /// Read nodes.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

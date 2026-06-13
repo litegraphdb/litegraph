@@ -29,8 +29,8 @@ export class VectorMetadata {
         CreatedUtc?: Date | string;
         LastUpdateUtc?: Date | string;
     });
-    GUID: any;
-    TenantGUID: any;
+    GUID: string;
+    TenantGUID: string;
     GraphGUID: string;
     NodeGUID: string;
     EdgeGUID: string;

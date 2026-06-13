@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v6.0.2
+
+- Added `return_mode` support for bulk create helpers
+- Updated bulk create helpers to use `/bulk` create routes
+- Updated documentation for bulk create response modes
+
 v6.0.0
 
 - Added v6 REST coverage for native graph queries, graph transactions, authorization, and request history

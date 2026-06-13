@@ -113,9 +113,9 @@ class CreateableMultipleAPIResource:
     REQUIRE_TENANT: bool = True
 
     @classmethod
-    def create_multiple(cls, resource_guid: List[dict]) -> List[BaseModel]:
+    def create_multiple(cls, resource_guid: List[dict], return_mode: Optional[str] = None) -> List[BaseModel]:
         """
-        Creates multiple nodes or edges in a single request.
+        Creates multiple resources in a single request.
         """
         if resource_guid is None:
             raise TypeError("Nodes parameter cannot be None")
@@ -137,12 +137,19 @@ class CreateableMultipleAPIResource:
         else:
             validated_nodes = resource_guid
 
+        query_params = {}
+        if return_mode is not None:
+            normalized_return_mode = str(return_mode).lower()
+            if normalized_return_mode not in ("full", "minimal"):
+                raise ValueError("return_mode must be 'full' or 'minimal'")
+            query_params["return"] = normalized_return_mode
+
         # Construct URL for multiple creation
         tenant = client.tenant_guid if cls.REQUIRE_TENANT else None
         url = (
-            _get_url(cls, tenant, graph_id, "multiple")
+            _get_url(cls, tenant, graph_id, "bulk", **query_params)
             if graph_id and cls.REQUIRE_GRAPH_GUID
-            else _get_url(cls, tenant, "multiple")
+            else _get_url(cls, tenant, "bulk", **query_params)
         )
 
         # Make the request

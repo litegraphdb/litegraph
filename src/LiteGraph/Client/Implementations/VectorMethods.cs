@@ -73,6 +73,12 @@ namespace LiteGraph.Client.Implementations
         /// <inheritdoc />
         public async Task<List<VectorMetadata>> CreateMany(Guid tenantGuid, List<VectorMetadata> vectors, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, vectors, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<VectorMetadata>> CreateMany(Guid tenantGuid, List<VectorMetadata> vectors, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (vectors == null || vectors.Count < 1) return null;
             token.ThrowIfCancellationRequested();
 

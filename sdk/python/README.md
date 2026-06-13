@@ -8,7 +8,7 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a lightweight graph database with relational and vector support built using SQLite, designed to power knowledge and artificial intelligence persistence and retrieval.
 
-Current release: v6.0.1.
+Current release: v6.0.2.
 
 ## Features
 
@@ -72,7 +72,7 @@ new_multiple_node = [
         }
     }
 ]
-multiple_nodes = Node.create_multiple(new_multiple_node)
+multiple_nodes = Node.create_multiple(new_multiple_node, return_mode="minimal")
 
 # Add nodes
 node1 = Node.create(
@@ -99,6 +99,8 @@ edge = Edge.create(
 ```
 
 ## API Endpoints Reference
+
+Bulk create helpers accept `return_mode="full"` or `return_mode="minimal"`. Omitting `return_mode` preserves the default full response. Minimal mode returns the created top-level objects and skips optional response hydration where applicable.
 
 ### Tenant Operations
 
@@ -175,7 +177,7 @@ edge = Edge.create(
 | Operation            | Method | Endpoint                                                       | Description                   |
 | -------------------- | ------ | -------------------------------------------------------------- | ----------------------------- |
 | Create Node          | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes`           | Create a new node             |
-| Create Multiple Node | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/multiple`  | Create new nodes              |
+| Create Multiple Node | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/bulk?return=minimal`  | Create new nodes              |
 | Get Node             | GET    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/{node_id}` | Retrieve a specific node      |
 | Update Node          | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/{node_id}` | Update an existing node       |
 | Delete Node          | DELETE | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/{node_id}` | Delete a node                 |
@@ -190,7 +192,7 @@ edge = Edge.create(
 | Operation            | Method | Endpoint                                                       | Description                   |
 | -------------------- | ------ | -------------------------------------------------------------- | ----------------------------- |
 | Create Edge          | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/edges`           | Create a new edge             |
-| Create Multiple Edge | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/edges/multiple`  | Create new edges              |
+| Create Multiple Edge | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/edges/bulk?return=minimal`  | Create new edges              |
 | Get Edge             | GET    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/edges/{edge_id}` | Retrieve a specific edge      |
 | Update Edge          | PUT    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/edges/{edge_id}` | Update an existing edge       |
 | Delete Edge          | DELETE | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/edges/{edge_id}` | Delete an edge                |
@@ -365,7 +367,7 @@ new_multiple_nodes = [
         }
     }
 ]
-nodes = Node.create_multiple(graph_guid="graph-guid", nodes=new_multiple_nodes)
+nodes = Node.create_multiple(new_multiple_nodes, return_mode="minimal")
 
 # Create a single node
 node = Node.create(
@@ -439,7 +441,7 @@ new_multiple_edges = [
         "Cost": 1
     }
 ]
-edges = Edge.create_multiple(graph_guid="graph-guid", edges=new_multiple_edges)
+edges = Edge.create_multiple(new_multiple_edges, return_mode="minimal")
 
 # Create a single edge
 edge = Edge.create(

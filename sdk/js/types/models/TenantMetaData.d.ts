@@ -17,7 +17,7 @@ export default class TenantMetaData {
         CreatedUtc?: Date | string;
         LastUpdateUtc?: Date | string;
     });
-    GUID: any;
+    GUID: string;
     Name: string;
     Active: boolean;
     CreatedUtc: Date;

@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v6.0.2
+
+- Added minimal/full bulk create return modes for label, tag, vector, node, and edge APIs
+- Added C# SDK overloads for bulk create return mode selection
+- Updated documentation for bulk create response modes
+
 v6.0.0
 
 - Added v6 REST coverage for native graph queries, graph transactions, authorization, and request history

@@ -12,6 +12,7 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using ExpressionTree;
+    using LiteGraph.Sdk;
     using LiteGraph.Sdk.Interfaces;
 
     /// <summary>
@@ -55,8 +56,15 @@
         /// <inheritdoc />
         public async Task<List<VectorMetadata>> CreateMany(Guid tenantGuid, List<VectorMetadata> vectors, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, vectors, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<VectorMetadata>> CreateMany(Guid tenantGuid, List<VectorMetadata> vectors, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (vectors == null || vectors.Count < 1) throw new ArgumentNullException(nameof(vectors));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/vectors/bulk";
+            url = BulkCreateUrlHelper.AppendReturnMode(url, returnMode);
             return await _Sdk.PutCreate<List<VectorMetadata>>(url, vectors, token).ConfigureAwait(false);
         }
 

@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v6.0.2
+
+- Added minimal/full bulk create return modes for labels, tags, vectors, nodes, and edges
+- Added `returnMode` options for bulk create helpers while preserving cancellation-token compatibility
+- Updated documentation for bulk create response modes
+
 v6.0.0
 
 - Added v6 REST coverage for native graph queries, graph transactions, authorization, and request history

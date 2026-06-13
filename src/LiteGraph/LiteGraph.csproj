@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-		<Version>6.0.1</Version>
+		<Version>6.0.3</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>Native graph query language, graph transactions, RBAC, provider-neutral storage, observability, dashboard improvements, and LiteGraphConsole.</PackageReleaseNotes>
+		<PackageReleaseNotes>Patch release with bulk create return modes and targeted node/edge subordinate hydration.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>

@@ -34,6 +34,35 @@ const buildQueryString = (params = {}) => {
   return `?${entries.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`).join('&')}`;
 };
 
+const normalizeBulkCreateArgs = (optionsOrCancellationToken, cancellationToken) => {
+  if (
+    optionsOrCancellationToken &&
+    typeof optionsOrCancellationToken === 'object' &&
+    (Object.prototype.hasOwnProperty.call(optionsOrCancellationToken, 'returnMode') ||
+      Object.prototype.hasOwnProperty.call(optionsOrCancellationToken, 'return') ||
+      Object.prototype.hasOwnProperty.call(optionsOrCancellationToken, 'cancellationToken'))
+  ) {
+    return {
+      returnMode: optionsOrCancellationToken.returnMode || optionsOrCancellationToken.return,
+      cancellationToken: cancellationToken || optionsOrCancellationToken.cancellationToken,
+    };
+  }
+
+  return {
+    returnMode: undefined,
+    cancellationToken: optionsOrCancellationToken,
+  };
+};
+
+const normalizeBulkReturnMode = (returnMode) => {
+  if (returnMode === undefined || returnMode === null || returnMode === '') return undefined;
+  const normalized = String(returnMode).toLowerCase();
+  if (normalized !== 'full' && normalized !== 'minimal') {
+    throw new Error("returnMode must be 'full' or 'minimal'");
+  }
+  return normalized;
+};
+
 /**
  * LiteGraph SDK class.
  * Extends the SdkBase class.
@@ -488,15 +517,17 @@ export default class LiteGraphSdk extends SdkBase {
     if (!credentialGuid) {
       GenericExceptionHandlers.ArgumentNullException('CredentialGuid');
     }
-    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/credentials/${credentialGuid}/scopes${buildQueryString({
-      page: options.page ?? 0,
-      pageSize: options.pageSize ?? 1000,
-      roleName: options.roleName,
-      resourceScope: options.resourceScope,
-      graphGuid: options.graphGuid,
-      permission: options.permission,
-      resourceType: options.resourceType,
-    })}`;
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/credentials/${credentialGuid}/scopes${buildQueryString(
+      {
+        page: options.page ?? 0,
+        pageSize: options.pageSize ?? 1000,
+        roleName: options.roleName,
+        resourceScope: options.resourceScope,
+        graphGuid: options.graphGuid,
+        permission: options.permission,
+        resourceType: options.resourceType,
+      }
+    )}`;
     return await this.get(url, CredentialScopeAssignmentSearchResult, cancellationToken);
   }
 
@@ -586,9 +617,11 @@ export default class LiteGraphSdk extends SdkBase {
     if (!credentialGuid) {
       GenericExceptionHandlers.ArgumentNullException('CredentialGuid');
     }
-    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/credentials/${credentialGuid}/permissions${buildQueryString({
-      graphGuid,
-    })}`;
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/credentials/${credentialGuid}/permissions${buildQueryString(
+      {
+        graphGuid,
+      }
+    )}`;
     return await this.get(url, AuthorizationEffectivePermissionsResult, cancellationToken);
   }
 
@@ -612,17 +645,21 @@ export default class LiteGraphSdk extends SdkBase {
    * Create multiple nodes.
    * @param {string} graphGuid - The GUID of the graph.
    * @param {Array<Object>} nodes - List of node objects.
-   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+   * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
    * @returns {Promise<Array<Node>>} - The list of created nodes.
    */
-  async createNodes(graphGuid, nodes, cancellationToken) {
+  async createNodes(graphGuid, nodes, optionsOrCancellationToken, cancellationToken) {
     if (!nodes) {
       GenericExceptionHandlers.ArgumentNullException('Nodes');
     }
     if (nodes.length < 1) return [];
 
-    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/nodes/multiple`;
-    return await this.putCreate(url, nodes, Node, cancellationToken);
+    const args = normalizeBulkCreateArgs(optionsOrCancellationToken, cancellationToken);
+    const query = buildQueryString({ return: normalizeBulkReturnMode(args.returnMode) });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/nodes/bulk${query}`;
+    return await this.putCreate(url, nodes, Node, args.cancellationToken);
   }
 
   /**
@@ -762,17 +799,21 @@ export default class LiteGraphSdk extends SdkBase {
    * Create multiple edges.
    * @param {string} graphGuid - The GUID of the graph.
    * @param {Array<Object>} edges - List of edge objects.
-   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+   * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
    * @returns {Promise<Array<Object>>} - The list of created edges.
    */
-  async createEdges(graphGuid, edges, cancellationToken) {
+  async createEdges(graphGuid, edges, optionsOrCancellationToken, cancellationToken) {
     if (!edges) {
       GenericExceptionHandlers.ArgumentNullException('Edges');
     }
     if (edges.length < 1) return [];
 
-    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/edges/multiple`;
-    return await this.putCreate(url, edges, Edge, cancellationToken);
+    const args = normalizeBulkCreateArgs(optionsOrCancellationToken, cancellationToken);
+    const query = buildQueryString({ return: normalizeBulkReturnMode(args.returnMode) });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/edges/bulk${query}`;
+    return await this.putCreate(url, edges, Edge, args.cancellationToken);
   }
 
   /**
@@ -1352,6 +1393,26 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
+   * Create multiple tags.
+   * @param {Array<TagMetaData>} tags - The tags to create.
+   * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+   * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+   * @returns {Promise<TagMetaData[]>}
+   */
+  async createTags(tags, optionsOrCancellationToken, cancellationToken) {
+    if (!tags) {
+      GenericExceptionHandlers.ArgumentNullException('tags');
+    }
+    if (tags.length < 1) return [];
+
+    const args = normalizeBulkCreateArgs(optionsOrCancellationToken, cancellationToken);
+    const query = buildQueryString({ return: normalizeBulkReturnMode(args.returnMode) });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/tags/bulk${query}`;
+    return await this.putCreate(url, tags, TagMetaData, args.cancellationToken);
+  }
+
+  /**
    * Update a tag.
    * @param {TagMetaData} tag - The tag to update.
    * @param {string} guid - The GUID of the tag.
@@ -1440,6 +1501,26 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
+   * Create multiple labels.
+   * @param {Array<LabelMetadata>} labels - The labels to create.
+   * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+   * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+   * @returns {Promise<LabelMetadata[]>}
+   */
+  async createLabels(labels, optionsOrCancellationToken, cancellationToken) {
+    if (!labels) {
+      GenericExceptionHandlers.ArgumentNullException('labels');
+    }
+    if (labels.length < 1) return [];
+
+    const args = normalizeBulkCreateArgs(optionsOrCancellationToken, cancellationToken);
+    const query = buildQueryString({ return: normalizeBulkReturnMode(args.returnMode) });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/labels/bulk${query}`;
+    return await this.putCreate(url, labels, LabelMetadata, args.cancellationToken);
+  }
+
+  /**
    * Update a label.
    * @param {LabelMetadata} label - The label to update.
    * @param {string} guid - The GUID of the label.
@@ -1522,6 +1603,26 @@ export default class LiteGraphSdk extends SdkBase {
     }
     const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/vectors`;
     return await this.putCreate(url, vector, VectorMetadata, cancellationToken);
+  }
+
+  /**
+   * Create multiple vectors.
+   * @param {Array<VectorMetadata>} vectors - The vectors to create.
+   * @param {Object|AbortController} [optionsOrCancellationToken] - Optional return mode options or cancellation token.
+   * @param {string} [optionsOrCancellationToken.returnMode] - Optional bulk create return mode: full or minimal.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+   * @returns {Promise<VectorMetadata[]>}
+   */
+  async createVectors(vectors, optionsOrCancellationToken, cancellationToken) {
+    if (!vectors) {
+      GenericExceptionHandlers.ArgumentNullException('vectors');
+    }
+    if (vectors.length < 1) return [];
+
+    const args = normalizeBulkCreateArgs(optionsOrCancellationToken, cancellationToken);
+    const query = buildQueryString({ return: normalizeBulkReturnMode(args.returnMode) });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/vectors/bulk${query}`;
+    return await this.putCreate(url, vectors, VectorMetadata, args.cancellationToken);
   }
 
   /**

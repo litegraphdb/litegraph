@@ -30,6 +30,16 @@
         Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, CancellationToken token = default);
 
         /// <summary>
+        /// Create multiple labels.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="labels">Labels.</param>
+        /// <param name="returnMode">Bulk create response shape.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Labels.</returns>
+        Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, BulkCreateReturnModeEnum returnMode, CancellationToken token = default);
+
+        /// <summary>
         /// Read all labels in a given tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

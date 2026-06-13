@@ -23,7 +23,7 @@ export default class CredentialMetadata {
         CreatedUtc?: Date | string;
         LastUpdateUtc?: Date | string;
     });
-    GUID: any;
+    GUID: string;
     TenantGUID: string;
     UserGUID: string;
     Name: string;

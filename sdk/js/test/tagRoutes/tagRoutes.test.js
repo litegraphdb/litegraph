@@ -38,6 +38,21 @@ describe('tagRoute Tests', () => {
       expect(true).toBe(response instanceof TagMetaData);
     });
 
+    test('should create multiple tags with minimal return mode', async () => {
+      const tags = [
+        {
+          "GUID": mockTagGuid,
+          "GraphGUID": "00000000-0000-0000-0000-000000000000",
+          "Key": "mykey",
+          "Value": "myvalue"
+        }
+      ];
+      const response = await api.createTags(tags, { returnMode: 'minimal' });
+      response.forEach((tag) => {
+        expect(tag instanceof TagMetaData).toBe(true);
+      });
+    });
+
     it('throws error when creating a tag', async () => {
       try {
         await api.createTag();

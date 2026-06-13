@@ -873,6 +873,21 @@
             Custom role.
             </summary>
         </member>
+        <member name="T:LiteGraph.BulkCreateReturnModeEnum">
+            <summary>
+            Bulk create response shape.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.BulkCreateReturnModeEnum.Full">
+            <summary>
+            Return created objects with the existing full response shape.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.BulkCreateReturnModeEnum.Minimal">
+            <summary>
+            Return only top-level created objects and skip optional response hydration.
+            </summary>
+        </member>
         <member name="T:LiteGraph.CachingSettings">
             <summary>
             Caching settings.
@@ -1014,6 +1029,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Edge},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.EdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Edge},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.EdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
@@ -1163,6 +1181,9 @@
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.LabelMetadata},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.LabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.LabelMetadata},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Client.Implementations.LabelMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -1238,6 +1259,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Node},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.NodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Node},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.NodeMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
@@ -1344,6 +1368,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.TagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.TagMetadata},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.TagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.TagMetadata},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.TagMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
@@ -1567,6 +1594,9 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.VectorMetadata},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.VectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.VectorMetadata},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.VectorMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
@@ -1852,6 +1882,17 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="edges">Edges.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Edges.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IEdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Edge},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple edges.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edges">Edges.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Edges.</returns>
         </member>
@@ -2332,6 +2373,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Labels.</returns>
         </member>
+        <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.LabelMetadata},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple labels.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="labels">Labels.</param>
+            <param name="returnMode">Bulk create response shape.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Labels.</returns>
+        </member>
         <member name="M:LiteGraph.Client.Interfaces.ILabelMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read all labels in a given tenant.
@@ -2533,6 +2584,17 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodes">Nodes.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Nodes.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.INodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Node},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodes">Nodes.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Nodes.</returns>
         </member>
@@ -2808,6 +2870,16 @@
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="tags">Tags.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.ITagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.TagMetadata},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple tags.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="tags">Tags.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Tags.</returns>
         </member>
@@ -3309,6 +3381,16 @@
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="vectors">Vectors.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Vectors.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IVectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.VectorMetadata},LiteGraph.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Create multiple vectors.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="vectors">Vectors.</param>
+            <param name="returnMode">Bulk create response shape.</param>
             <param name="token">Cancellation token.</param>
             <returns>Vectors.</returns>
         </member>
@@ -6065,6 +6147,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Labels.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read labels for multiple nodes in a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuids">Node GUIDs.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Labels.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read edge labels.
@@ -6074,6 +6166,16 @@
             <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Labels.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ILabelMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read labels for multiple edges in a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuids">Edge GUIDs.</param>
             <param name="token">Cancellation token.</param>
             <returns>Labels.</returns>
         </member>
@@ -6614,6 +6716,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Tags.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read tags for multiple nodes in a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuids">Node GUIDs.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Tags.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read edge tags.
@@ -6623,6 +6735,16 @@
             <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Tags.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.ITagMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read tags for multiple edges in a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuids">Edge GUIDs.</param>
             <param name="token">Cancellation token.</param>
             <returns>Tags.</returns>
         </member>
@@ -7104,6 +7226,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Vectors.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read vectors for multiple nodes in a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="nodeGuids">Node GUIDs.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Vectors.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Read edge vectors.
@@ -7113,6 +7245,16 @@
             <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
             <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Vectors.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IVectorMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read vectors for multiple edges in a graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="edgeGuids">Edge GUIDs.</param>
             <param name="token">Cancellation token.</param>
             <returns>Vectors.</returns>
         </member>
@@ -7703,6 +7845,12 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.LabelMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.LabelMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.LabelMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -7893,6 +8041,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.TagMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.TagMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.TagMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
@@ -8097,6 +8251,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
@@ -8725,6 +8885,12 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.LabelMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -8915,6 +9081,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.TagMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
@@ -9119,6 +9291,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadManyForNodes(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.ReadManyForEdges(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.VectorMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">

@@ -1,5 +1,6 @@
 ﻿namespace LiteGraph.Server.Classes
 {
+    using LiteGraph;
     using LiteGraph.Helpers;
     using LiteGraph.Serialization;
     using System;
@@ -405,6 +406,16 @@
         public bool IncludeSubordinates { get; set; } = false;
 
         /// <summary>
+        /// Bulk create return mode.
+        /// </summary>
+        public BulkCreateReturnModeEnum BulkCreateReturnMode { get; set; } = BulkCreateReturnModeEnum.Full;
+
+        /// <summary>
+        /// Invalid bulk create return mode from the querystring.
+        /// </summary>
+        public string InvalidBulkCreateReturnMode { get; set; } = null;
+
+        /// <summary>
         /// Max depth for subgraph traversal.
         /// </summary>
         public int MaxDepth { get; set; } = 2;
@@ -593,6 +604,24 @@
                 if (_Url.QueryExists(Constants.ForceQuerystring)) Force = true;
                 if (_Url.QueryExists(Constants.IncludeDataQuerystring)) IncludeData = true;
                 if (_Url.QueryExists(Constants.IncludeSubordinatesQuerystring)) IncludeSubordinates = true;
+
+                if (_Url.QueryExists(Constants.ReturnQuerystring))
+                {
+                    string returnMode = _Url.GetQueryValue(Constants.ReturnQuerystring);
+                    if (String.IsNullOrWhiteSpace(returnMode)
+                        || returnMode.Equals(Constants.FullReturnValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                        BulkCreateReturnMode = BulkCreateReturnModeEnum.Full;
+                    }
+                    else if (returnMode.Equals(Constants.MinimalReturnValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                        BulkCreateReturnMode = BulkCreateReturnModeEnum.Minimal;
+                    }
+                    else
+                    {
+                        InvalidBulkCreateReturnMode = returnMode;
+                    }
+                }
 
                 if (_Url.QueryExists(Constants.MaxDepth))
                     if (int.TryParse(_Url.GetQueryValue(Constants.MaxDepth), out int maxDepth)) MaxDepth = maxDepth;

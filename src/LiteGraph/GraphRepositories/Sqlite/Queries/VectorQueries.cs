@@ -238,6 +238,32 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             return ret;
         }
 
+        internal static string SelectManyNodes(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
+        {
+            if (nodeGuids == null || nodeGuids.Count < 1)
+                return "SELECT * FROM 'vectors' WHERE 1 = 0;";
+
+            return
+                "SELECT * FROM 'vectors' WHERE guid IS NOT NULL " +
+                "AND tenantguid = '" + tenantGuid.ToString() + "' " +
+                "AND graphguid = '" + graphGuid.ToString() + "' " +
+                "AND edgeguid IS NULL " +
+                "AND nodeguid IN (" + string.Join(",", nodeGuids.Select(g => "'" + Sanitizer.Sanitize(g.ToString()) + "'")) + ");";
+        }
+
+        internal static string SelectManyEdges(Guid tenantGuid, Guid graphGuid, List<Guid> edgeGuids)
+        {
+            if (edgeGuids == null || edgeGuids.Count < 1)
+                return "SELECT * FROM 'vectors' WHERE 1 = 0;";
+
+            return
+                "SELECT * FROM 'vectors' WHERE guid IS NOT NULL " +
+                "AND tenantguid = '" + tenantGuid.ToString() + "' " +
+                "AND graphguid = '" + graphGuid.ToString() + "' " +
+                "AND nodeguid IS NULL " +
+                "AND edgeguid IN (" + string.Join(",", edgeGuids.Select(g => "'" + Sanitizer.Sanitize(g.ToString()) + "'")) + ");";
+        }
+
         // New method for searching graph vectors with filters
         internal static string SelectGraphVectorsWithFilters(
             Guid tenantGuid,

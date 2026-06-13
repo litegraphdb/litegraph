@@ -242,6 +242,27 @@ describe('NodeRoute Tests', () => {
       expect(JSON.stringify(response)).toBe(JSON.stringify(new Node(nodeData[mockNodeGuid])));
     });
 
+    test('should create multiple nodes with minimal return mode', async () => {
+      const graphGuid = '01010101-0101-0101-0101-010101010101';
+      const nodes = [
+        {
+          GUID: '01010101-0101-0101-0101-010101010101',
+          GraphGUID: graphGuid,
+          Name: 'Sample Node',
+          Data: { key1: 'value1' },
+        },
+      ];
+
+      const response = await api.createNodes(graphGuid, nodes, { returnMode: 'minimal' });
+      expect(JSON.stringify(response)).toBe(JSON.stringify(new Node(nodeData[mockNodeGuid])));
+    });
+
+    test('throws error when node bulk return mode is invalid', async () => {
+      await expect(api.createNodes(mockGraphGuid, [{ GraphGUID: mockGraphGuid }], { returnMode: 'invalid' }))
+        .rejects
+        .toThrow("returnMode must be 'full' or 'minimal'");
+    });
+
     test('should create multiple nodes with abort', async () => {
       const graphGuid = '01010101-0101-0101-0101-010101010101';
       const nodes = [

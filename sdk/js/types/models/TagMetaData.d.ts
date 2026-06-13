@@ -25,7 +25,7 @@ export default class TagMetaData {
         CreatedUtc?: Date | string;
         LastUpdateUtc?: Date | string;
     });
-    GUID: any;
+    GUID: string;
     TenantGUID: string;
     GraphGUID: string;
     NodeGUID: string;

@@ -25,8 +25,8 @@ export default class Node {
         Tags: any;
         Vectors: [];
     });
-    GUID: any;
-    GraphGUID: any;
+    GUID: string;
+    GraphGUID: string;
     name: string;
     data: any;
     createdUtc: Date;

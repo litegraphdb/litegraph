@@ -21,7 +21,7 @@ export default class Graph {
         Vectors: [];
         Data: any;
     });
-    GUID: any;
+    GUID: string;
     name: string;
     createdUtc: Date;
     data: any;

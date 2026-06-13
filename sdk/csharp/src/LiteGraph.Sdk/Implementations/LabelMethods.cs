@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Sdk;
     using LiteGraph.Sdk.Interfaces;
 
     /// <summary>
@@ -47,8 +48,15 @@
         /// <inheritdoc />
         public async Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, labels, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<LabelMetadata>> CreateMany(Guid tenantGuid, List<LabelMetadata> labels, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (labels == null || labels.Count < 1) throw new ArgumentNullException(nameof(labels));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/labels/bulk";
+            url = BulkCreateUrlHelper.AppendReturnMode(url, returnMode);
             return await _Sdk.PutCreate<List<LabelMetadata>>(url, labels, token).ConfigureAwait(false);
         }
 

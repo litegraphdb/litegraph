@@ -22,7 +22,7 @@ export class VectorSearchResult {
     Score: number;
     Distance: number;
     InnerProduct: number;
-    GraphGUID: any;
-    NodeGUID: any;
-    EdgeGUID: any;
+    GraphGUID: string;
+    NodeGUID: string;
+    EdgeGUID: string;
 }

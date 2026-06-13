@@ -2,6 +2,7 @@ namespace Test.Shared
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -1180,7 +1181,19 @@ namespace Test.Shared
                     TenantGUID = _TenantGuid,
                     GraphGUID = _GraphGuid,
                     Name = "Node 2",
-                    Data = "{ \"type\": \"test2\" }"
+                    Data = "{ \"type\": \"test2\" }",
+                    Labels = new List<string> { "BulkNodeLabel" },
+                    Tags = new NameValueCollection { { "BulkNodeKey", "BulkNodeValue" } },
+                    Vectors = new List<VectorMetadata>
+                    {
+                        new VectorMetadata
+                        {
+                            Model = "test-model",
+                            Dimensionality = 3,
+                            Content = "bulk node vector",
+                            Vectors = new List<float> { 1.1f, 1.2f, 1.3f }
+                        }
+                    }
                 },
                 new Node
                 {
@@ -1195,11 +1208,55 @@ namespace Test.Shared
 
             AssertNotNull(created, "Created nodes");
             AssertEqual(2, created.Count, "Nodes count");
-            AssertNotEmpty(created[0].GUID, "Node1 GUID");
-            AssertNotEmpty(created[1].GUID, "Node2 GUID");
+            Node bulkNode = created.FirstOrDefault(n => n.Name == "Node 2") ?? throw new InvalidOperationException("Bulk node not found.");
+            Node siblingNode = created.FirstOrDefault(n => n.Name == "Node 3") ?? throw new InvalidOperationException("Sibling node not found.");
+            AssertNotNull(bulkNode, "Bulk node");
+            AssertNotNull(siblingNode, "Sibling node");
+            AssertNotEmpty(bulkNode.GUID, "Node1 GUID");
+            AssertNotEmpty(siblingNode.GUID, "Node2 GUID");
+            AssertTrue(bulkNode.Labels != null && bulkNode.Labels.Contains("BulkNodeLabel"), "Bulk node full labels");
+            AssertTrue(bulkNode.Tags != null && bulkNode.Tags["BulkNodeKey"] == "BulkNodeValue", "Bulk node full tags");
+            AssertTrue(bulkNode.Vectors != null && bulkNode.Vectors.Count == 1, "Bulk node full vectors");
 
-            _Node2Guid = created[0].GUID;
-            _Node3Guid = created[1].GUID;
+            _Node2Guid = bulkNode.GUID;
+            _Node3Guid = siblingNode.GUID;
+
+            List<Node> minimalNodes = new List<Node>
+            {
+                new Node
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    Name = "Node Minimal",
+                    Data = "{ \"type\": \"minimal\" }",
+                    Labels = new List<string> { "MinimalNodeLabel" },
+                    Tags = new NameValueCollection { { "MinimalNodeKey", "MinimalNodeValue" } },
+                    Vectors = new List<VectorMetadata>
+                    {
+                        new VectorMetadata
+                        {
+                            Model = "test-model",
+                            Dimensionality = 3,
+                            Content = "minimal node vector",
+                            Vectors = new List<float> { 2.1f, 2.2f, 2.3f }
+                        }
+                    }
+                }
+            };
+
+            List<Node>? minimalCreated = await _Client.Node.CreateMany(_TenantGuid, _GraphGuid, minimalNodes, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+            AssertNotNull(minimalCreated, "Minimal created nodes");
+            AssertEqual(1, minimalCreated.Count, "Minimal nodes count");
+            AssertNotEmpty(minimalCreated[0].GUID, "Minimal node GUID");
+            AssertTrue(minimalCreated[0].Labels == null || minimalCreated[0].Labels.Count == 0, "Minimal node labels omitted");
+            AssertTrue(minimalCreated[0].Tags == null || minimalCreated[0].Tags.Count == 0, "Minimal node tags omitted");
+            AssertTrue(minimalCreated[0].Vectors == null || minimalCreated[0].Vectors.Count == 0, "Minimal node vectors omitted");
+
+            Node? hydratedMinimal = await _Client.Node.ReadByGuid(_TenantGuid, _GraphGuid, minimalCreated[0].GUID, true, true).ConfigureAwait(false);
+            AssertNotNull(hydratedMinimal, "Hydrated minimal node");
+            AssertTrue(hydratedMinimal.Labels != null && hydratedMinimal.Labels.Contains("MinimalNodeLabel"), "Minimal node persisted labels");
+            AssertTrue(hydratedMinimal.Tags != null && hydratedMinimal.Tags["MinimalNodeKey"] == "MinimalNodeValue", "Minimal node persisted tags");
+            AssertTrue(hydratedMinimal.Vectors != null && hydratedMinimal.Vectors.Count == 1, "Minimal node persisted vectors");
         }
 
         private static async Task TestNodeReadByGuid()
@@ -1388,7 +1445,19 @@ namespace Test.Shared
                     From = _Node2Guid,
                     To = _Node3Guid,
                     Name = "Edge 2-3",
-                    Cost = 2
+                    Cost = 2,
+                    Labels = new List<string> { "BulkEdgeLabel" },
+                    Tags = new NameValueCollection { { "BulkEdgeKey", "BulkEdgeValue" } },
+                    Vectors = new List<VectorMetadata>
+                    {
+                        new VectorMetadata
+                        {
+                            Model = "test-model",
+                            Dimensionality = 3,
+                            Content = "bulk edge vector",
+                            Vectors = new List<float> { 3.1f, 3.2f, 3.3f }
+                        }
+                    }
                 },
                 new Edge
                 {
@@ -1405,6 +1474,50 @@ namespace Test.Shared
 
             AssertNotNull(created, "Created edges");
             AssertEqual(2, created.Count, "Edges count");
+            Edge bulkEdge = created.FirstOrDefault(e => e.Name == "Edge 2-3") ?? throw new InvalidOperationException("Bulk edge not found.");
+            AssertNotNull(bulkEdge, "Bulk edge");
+            AssertTrue(bulkEdge.Labels != null && bulkEdge.Labels.Contains("BulkEdgeLabel"), "Bulk edge full labels");
+            AssertTrue(bulkEdge.Tags != null && bulkEdge.Tags["BulkEdgeKey"] == "BulkEdgeValue", "Bulk edge full tags");
+            AssertTrue(bulkEdge.Vectors != null && bulkEdge.Vectors.Count == 1, "Bulk edge full vectors");
+
+            List<Edge> minimalEdges = new List<Edge>
+            {
+                new Edge
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    From = _Node2Guid,
+                    To = _Node3Guid,
+                    Name = "Edge Minimal",
+                    Cost = 4,
+                    Labels = new List<string> { "MinimalEdgeLabel" },
+                    Tags = new NameValueCollection { { "MinimalEdgeKey", "MinimalEdgeValue" } },
+                    Vectors = new List<VectorMetadata>
+                    {
+                        new VectorMetadata
+                        {
+                            Model = "test-model",
+                            Dimensionality = 3,
+                            Content = "minimal edge vector",
+                            Vectors = new List<float> { 4.1f, 4.2f, 4.3f }
+                        }
+                    }
+                }
+            };
+
+            List<Edge>? minimalCreated = await _Client.Edge.CreateMany(_TenantGuid, _GraphGuid, minimalEdges, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+            AssertNotNull(minimalCreated, "Minimal created edges");
+            AssertEqual(1, minimalCreated.Count, "Minimal edges count");
+            AssertNotEmpty(minimalCreated[0].GUID, "Minimal edge GUID");
+            AssertTrue(minimalCreated[0].Labels == null || minimalCreated[0].Labels.Count == 0, "Minimal edge labels omitted");
+            AssertTrue(minimalCreated[0].Tags == null || minimalCreated[0].Tags.Count == 0, "Minimal edge tags omitted");
+            AssertTrue(minimalCreated[0].Vectors == null || minimalCreated[0].Vectors.Count == 0, "Minimal edge vectors omitted");
+
+            Edge? hydratedMinimal = await _Client.Edge.ReadByGuid(_TenantGuid, _GraphGuid, minimalCreated[0].GUID, true, true).ConfigureAwait(false);
+            AssertNotNull(hydratedMinimal, "Hydrated minimal edge");
+            AssertTrue(hydratedMinimal.Labels != null && hydratedMinimal.Labels.Contains("MinimalEdgeLabel"), "Minimal edge persisted labels");
+            AssertTrue(hydratedMinimal.Tags != null && hydratedMinimal.Tags["MinimalEdgeKey"] == "MinimalEdgeValue", "Minimal edge persisted tags");
+            AssertTrue(hydratedMinimal.Vectors != null && hydratedMinimal.Vectors.Count == 1, "Minimal edge persisted vectors");
         }
 
         private static async Task TestEdgeReadByGuid()
@@ -1671,6 +1784,21 @@ namespace Test.Shared
 
             AssertNotNull(created, "Created labels");
             AssertEqual(2, created.Count, "Labels count");
+
+            List<LabelMetadata>? minimalCreated = await _Client.Label.CreateMany(_TenantGuid, new List<LabelMetadata>
+            {
+                new LabelMetadata
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    NodeGUID = _Node2Guid,
+                    Label = "MinimalLabel"
+                }
+            }, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+
+            AssertNotNull(minimalCreated, "Minimal created labels");
+            AssertEqual(1, minimalCreated.Count, "Minimal labels count");
+            AssertEqual("MinimalLabel", minimalCreated[0].Label, "Minimal label value");
         }
 
         private static async Task TestLabelReadByGuid()
@@ -1871,6 +1999,22 @@ namespace Test.Shared
 
             AssertNotNull(created, "Created tags");
             AssertEqual(2, created.Count, "Tags count");
+
+            List<TagMetadata>? minimalCreated = await _Client.Tag.CreateMany(_TenantGuid, new List<TagMetadata>
+            {
+                new TagMetadata
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    NodeGUID = _Node2Guid,
+                    Key = "MinimalTagKey",
+                    Value = "MinimalTagValue"
+                }
+            }, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+
+            AssertNotNull(minimalCreated, "Minimal created tags");
+            AssertEqual(1, minimalCreated.Count, "Minimal tags count");
+            AssertEqual("MinimalTagKey", minimalCreated[0].Key, "Minimal tag key");
         }
 
         private static async Task TestTagReadByGuid()
@@ -2092,6 +2236,24 @@ namespace Test.Shared
 
             AssertNotNull(created, "Created vectors");
             AssertEqual(2, created.Count, "Vectors count");
+
+            List<VectorMetadata>? minimalCreated = await _Client.Vector.CreateMany(_TenantGuid, new List<VectorMetadata>
+            {
+                new VectorMetadata
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    NodeGUID = _Node2Guid,
+                    Model = "test-model",
+                    Dimensionality = 3,
+                    Content = "minimal vector content",
+                    Vectors = new List<float> { 10.0f, 11.0f, 12.0f }
+                }
+            }, BulkCreateReturnModeEnum.Minimal).ConfigureAwait(false);
+
+            AssertNotNull(minimalCreated, "Minimal created vectors");
+            AssertEqual(1, minimalCreated.Count, "Minimal vectors count");
+            AssertEqual("minimal vector content", minimalCreated[0].Content, "Minimal vector content");
         }
 
         private static async Task TestVectorReadByGuid()

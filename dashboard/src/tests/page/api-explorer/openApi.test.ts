@@ -70,4 +70,32 @@ describe('API Explorer OpenAPI helpers', () => {
     });
     expect(body.IncludeProfile).toBe(true);
   });
+
+  it('adds return mode query parameter for bulk create endpoints', () => {
+    const operations = flattenOpenApi({
+      paths: {
+        '/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk': {
+          put: {
+            tags: ['Nodes'],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { type: 'object' } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(operations).toHaveLength(1);
+    expect(operations[0].parameters).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: 'return',
+        in: 'query',
+        required: false,
+      }),
+    ]));
+  });
 });

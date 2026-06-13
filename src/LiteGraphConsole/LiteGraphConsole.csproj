@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>lg</ToolCommandName>
     <PackageId>LiteGraphConsole</PackageId>
-    <Version>6.0.1</Version>
+    <Version>6.0.2</Version>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>

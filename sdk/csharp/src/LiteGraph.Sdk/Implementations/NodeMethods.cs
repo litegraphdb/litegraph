@@ -50,9 +50,16 @@
         /// <inheritdoc />
         public async Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, CancellationToken token = default)
         {
+            return await CreateMany(tenantGuid, graphGuid, nodes, BulkCreateReturnModeEnum.Full, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<Node>> CreateMany(Guid tenantGuid, Guid graphGuid, List<Node> nodes, BulkCreateReturnModeEnum returnMode, CancellationToken token = default)
+        {
             if (nodes == null) throw new ArgumentNullException(nameof(nodes));
             if (nodes.Count < 1) return new List<Node>();
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/bulk";
+            url = BulkCreateUrlHelper.AppendReturnMode(url, returnMode);
             return await _Sdk.PutCreate<List<Node>>(url, nodes, token).ConfigureAwait(false);
         }
 

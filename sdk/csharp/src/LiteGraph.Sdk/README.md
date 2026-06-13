@@ -75,6 +75,24 @@ The `Data` property can also be attached to any `Graph`, `Node`, or `Edge` objec
 
 All of these properties can be used in conjunction with one another.
 
+## Bulk Create Return Modes
+
+Bulk create methods default to full responses for compatibility. Use `BulkCreateReturnModeEnum.Minimal` when a caller only needs the top-level created objects and wants to avoid optional response hydration.
+
+```csharp
+List<Node> nodes = await sdk.Node.CreateMany(
+  tenantGuid,
+  graphGuid,
+  nodesToCreate,
+  BulkCreateReturnModeEnum.Minimal);
+
+List<Edge> edges = await sdk.Edge.CreateMany(
+  tenantGuid,
+  graphGuid,
+  edgesToCreate,
+  BulkCreateReturnModeEnum.Minimal);
+```
+
 ### Storing and Searching Labels
 
 ```csharp
@@ -221,7 +239,7 @@ Modify ./litegraph.json to change the REST listener hostname to make externally 
 
 ## Running in Docker
 
-A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v6.0.1`. Use `docker/compose.yaml` if you wish to run LiteGraph, the MCP server, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.db`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are configured for your deployment.
+A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v6.0.2`. Use `docker/compose.yaml` if you wish to run LiteGraph, the MCP server, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.db`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are configured for your deployment.
 
 ## Version History
 

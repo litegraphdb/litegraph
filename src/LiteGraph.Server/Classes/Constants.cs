@@ -303,6 +303,21 @@ namespace LiteGraph.Server.Classes
         public static string IncludeSubordinatesQuerystring = "inclsub";
 
         /// <summary>
+        /// Bulk create return mode querystring key.
+        /// </summary>
+        public static string ReturnQuerystring = "return";
+
+        /// <summary>
+        /// Full bulk create return mode querystring value.
+        /// </summary>
+        public static string FullReturnValue = "full";
+
+        /// <summary>
+        /// Minimal bulk create return mode querystring value.
+        /// </summary>
+        public static string MinimalReturnValue = "minimal";
+
+        /// <summary>
         /// From GUID querystring key.
         /// </summary>
         public static string FromGuidQuerystring = "from";

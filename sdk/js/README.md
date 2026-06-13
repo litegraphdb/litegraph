@@ -8,7 +8,7 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a lightweight graph database with both relational and vector support, built using SQLite, with support for exporting to GEXF. LiteGraph is intended to be a multi-modal database primarily for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v6.0.1.
+Current release: v6.0.2.
 
 ## Features
 
@@ -89,8 +89,8 @@ const newMultipleNodes = [
         }
     }
 ]
-//Create multiple Nodes
-sdk.createNodes(graphGuid,newMultipleNodes).then((nodes) => {
+// Create multiple nodes with minimal response hydration
+sdk.createNodes(graphGuid, newMultipleNodes, { returnMode: 'minimal' }).then((nodes) => {
   console.log('Created Multiple Nodes:', nodes);
 });
 
@@ -171,6 +171,7 @@ sdk.searchNodes(searchRequest).then((response) => {
 | `readLabel` | Retrieves a specific label by GUID. | `guid` (string) - Label GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<LabelMetadata>` | `GET /v1.0/tenants/{tenantGuid}/labels/{guid}` |
 | `existsLabel` | Checks if a label exists by GUID. | `guid` (string) - Label GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/labels/{guid}` |
 | `createLabel` | Creates a new label. | `label` (Object) - Label object <br> `cancellationToken` (optional) - `AbortController` | `Promise<LabelMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/labels` |
+| `createLabels` | Creates multiple labels. | `labels` (Array<Object>) - List of label objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/labels/bulk?return=minimal` |
 | `updateLabel` | Updates an existing label. | `label` (Object) - Label object <br> `guid` (string) - Label GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<LabelMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/labels/{guid}` |
 | `deleteLabel` | Deletes a label by GUID. | `guid` (string) - Label GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/labels/{guid}` |
 
@@ -185,6 +186,7 @@ sdk.searchNodes(searchRequest).then((response) => {
 | `readTag` | Retrieves a specific tag by GUID. | `guid` (string) - Tag GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<TagMetaData>` | `GET /v1.0/tenants/{tenantGuid}/tags/{guid}` |
 | `existsTag` | Checks if a tag exists by GUID. | `guid` (string) - Tag GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/tags/{guid}` |
 | `createTag` | Creates a new tag. | `tag` (Object) - Tag object <br> `cancellationToken` (optional) - `AbortController` | `Promise<TagMetaData>` | `PUT /v1.0/tenants/{tenantGuid}/tags` |
+| `createTags` | Creates multiple tags. | `tags` (Array<Object>) - List of tag objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/tags/bulk?return=minimal` |
 | `updateTag` | Updates an existing tag. | `tag` (Object) - Tag object <br> `guid` (string) - Tag GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<TagMetaData>` | `PUT /v1.0/tenants/{tenantGuid}/tags/{guid}` |
 | `deleteTag` | Deletes a tag by GUID. | `guid` (string) - Tag GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/tags/{guid}` |
 
@@ -197,6 +199,7 @@ sdk.searchNodes(searchRequest).then((response) => {
 | `readVector` | Retrieves a specific vector by GUID. | `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata>` | `GET /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `existsVector` | Checks if a vector exists by GUID. | `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `createVector` | Creates a new vector. | `vector` (Object) - Vector object <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/vectors` |
+| `createVectors` | Creates multiple vectors. | `vectors` (Array<Object>) - List of vector objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/vectors/bulk?return=minimal` |
 | `updateVector` | Updates an existing vector. | `vector` (Object) - Vector object <br> `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `deleteVector` | Deletes a vector by GUID. | `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `searchVectors` | Searches vectors based on criteria. | `searchReq` (Object) - Search request with GraphGUID, Domain, SearchType, Labels <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorSearchResult>` | `POST /v1.0/tenants/{tenantGuid}/vectors` |
@@ -223,7 +226,7 @@ sdk.searchNodes(searchRequest).then((response) => {
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
 | `nodeExists` | Checks if a node exists by GUID. | `graphGuid` (string) - Graph GUID <br> `guid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{guid}` |
-| `createNodes` | Creates multiple nodes. | `graphGuid` (string) - Graph GUID <br> `nodes` (Array<Object>) - List of node objects <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/multiple` |
+| `createNodes` | Creates multiple nodes. | `graphGuid` (string) - Graph GUID <br> `nodes` (Array<Object>) - List of node objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk?return=minimal` |
 | `createNode` | Creates a single node. | `node` (Object) - Node object with GUID, GraphGUID, name, data, CreatedUtc <br> `cancellationToken` (optional) - `AbortController` | `Promise<Node>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{node.GraphGUID}/nodes` |
 | `readNodes` | Retrieves all nodes in a graph. | `graphGuid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Node[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes` |
 | `searchNodes` | Searches for nodes based on criteria. | `searchReq` (Object) - Search request object with GraphGUID, Ordering, Expr <br> `cancellationToken` (optional) - `AbortController` | `Promise<SearchResult>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{searchReq.GraphGUID}/nodes/search` |
@@ -239,7 +242,7 @@ sdk.searchNodes(searchRequest).then((response) => {
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
 | `edgeExists` | Checks if an edge exists by GUID. | `graphGuid` (string) - Graph GUID <br> `guid` (string) - Edge GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{guid}` |
-| `createEdges` | Creates multiple edges. | `graphGuid` (string) - The GUID of the graph <br> `edges` (Array<Object>) - List of edge objects <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/multiple` |
+| `createEdges` | Creates multiple edges. | `graphGuid` (string) - The GUID of the graph <br> `edges` (Array<Object>) - List of edge objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk?return=minimal` |
 | `createEdge` | Creates an edge. | `edge` (Object) - Edge object with GUID, GraphGUID, Name, From, To, Cost, CreatedUtc, Data <br> `cancellationToken` (optional) - `AbortController` | `Promise<Edge>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{edge.GraphGUID}/edges` |
 | `readEdges` | Retrieves all edges in a graph. | `graphGuid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Edge[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges` |
 | `searchEdges` | Searches for edges based on criteria. | `searchReq` (Object) - Search request object containing GraphGUID, Ordering, Expr <br> `cancellationToken` (optional) - `AbortController` | `Promise<SearchResult>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{searchReq.GraphGUID}/edges/search` |
