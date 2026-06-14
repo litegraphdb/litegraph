@@ -289,8 +289,8 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_graphs_name' ON 'graphs' (name ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_graphs_createdutc' ON 'graphs' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_graphs_lastupdateutc' ON 'graphs' ('lastupdateutc' ASC);");
-            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_graphs_data' ON 'graphs' ('data' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_graphs_vectorindexdirty' ON 'graphs' (vectorindexdirty ASC);");
+            sql.AppendLine("DROP INDEX IF EXISTS 'idx_graphs_data';");
 
             #endregion
 
@@ -313,9 +313,9 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_name' ON 'nodes' (name ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_createdutc' ON 'nodes' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_lastupdateutc' ON 'nodes' ('lastupdateutc' ASC);");
-            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_data' ON 'nodes' (data ASC);");
 
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_nodes_tenantguid_graphguid' ON 'nodes' (tenantguid ASC, graphguid ASC);");
+            sql.AppendLine("DROP INDEX IF EXISTS 'idx_nodes_data';");
 
             #endregion
 
@@ -343,12 +343,12 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_toguid' ON 'edges' (toguid ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_createdutc' ON 'edges' ('createdutc' ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_lastupdateutc' ON 'edges' ('lastupdateutc' ASC);");
-            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_data' ON 'edges' (data ASC);");
 
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid' ON 'edges' (tenantguid ASC, graphguid ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid_fromguid' ON 'edges' (tenantguid ASC, graphguid ASC, fromguid ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid_toguid' ON 'edges' (tenantguid ASC, graphguid ASC, toguid ASC);");
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_edges_tenantguid_graphguid_fromguid_toguid' ON 'edges' (tenantguid ASC, graphguid ASC, fromguid ASC, toguid ASC);");
+            sql.AppendLine("DROP INDEX IF EXISTS 'idx_edges_data';");
 
             #endregion
 

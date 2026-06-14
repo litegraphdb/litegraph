@@ -56,6 +56,7 @@
             ret = Regex.Replace(ret, @"guid\s+VARCHAR\(64\)\s+NOT\s+NULL\s+UNIQUE", "guid VARCHAR(64) PRIMARY KEY", RegexOptions.IgnoreCase);
 
             ret = TranslateCreateIndexNames(ret, quotedSchema);
+            ret = TranslateDropIndexNames(ret, quotedSchema);
             ret = PrefixKnownTables(ret, quotedSchema);
             ret = TranslateQuotedColumns(ret);
             ret = TranslateJsonExtract(ret);
@@ -95,6 +96,14 @@
                 sql,
                 @"(?i)\b(INDEX\s+IF\s+NOT\s+EXISTS)\s+'([^']+)'",
                 match => match.Groups[1].Value + " " + PostgresqlGraphRepository.QuoteIdentifier(match.Groups[2].Value));
+        }
+
+        private static string TranslateDropIndexNames(string sql, string quotedSchema)
+        {
+            return Regex.Replace(
+                sql,
+                @"(?i)\b(DROP\s+INDEX\s+IF\s+EXISTS)\s+'([^']+)'",
+                match => match.Groups[1].Value + " " + quotedSchema + "." + PostgresqlGraphRepository.QuoteIdentifier(match.Groups[2].Value));
         }
 
         private static string TranslateQuotedColumns(string sql)
