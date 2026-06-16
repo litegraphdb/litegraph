@@ -95,6 +95,7 @@
       "react-dom": "$react-dom",
       "jsoneditor": "$jsoneditor"
     },
+    "js-yaml": "4.2.0",
     "lodash-es": "4.18.1",
     "preact": "10.26.10",
     "postcss": "$postcss",
