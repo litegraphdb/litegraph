@@ -36,6 +36,7 @@ namespace Test.PerformanceAndScalability
         public List<Edge> Edges { get; } = new List<Edge>();
         public List<VectorMetadata> Vectors { get; } = new List<VectorMetadata>();
         public List<Guid> HotNodeGuids { get; } = new List<Guid>();
+        public List<RouteFixture> RouteFixtures { get; } = new List<RouteFixture>();
 
         public Node PickNode(Random random)
         {
@@ -58,6 +59,28 @@ namespace Test.PerformanceAndScalability
         {
             if (HotNodeGuids.Count > 0 && random.NextDouble() < 0.8) return HotNodeGuids[random.Next(HotNodeGuids.Count)];
             return PickNode(random).GUID;
+        }
+
+        public RouteFixture? PickRouteFixture(Random random)
+        {
+            if (RouteFixtures.Count < 1) return null;
+            return RouteFixtures[random.Next(RouteFixtures.Count)];
+        }
+    }
+
+    internal sealed class RouteFixture
+    {
+        public List<Guid> NodeGuids { get; } = new List<Guid>();
+        public List<Guid> EdgeGuids { get; } = new List<Guid>();
+
+        public Guid FromNodeGuid
+        {
+            get { return NodeGuids.Count == 0 ? Guid.Empty : NodeGuids[0]; }
+        }
+
+        public Guid ToNodeGuid
+        {
+            get { return NodeGuids.Count == 0 ? Guid.Empty : NodeGuids[NodeGuids.Count - 1]; }
         }
     }
 

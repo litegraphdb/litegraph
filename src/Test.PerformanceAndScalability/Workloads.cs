@@ -324,14 +324,36 @@ namespace Test.PerformanceAndScalability
         private static async Task<OperationOutcome> ReadRoutesAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
         {
             GraphDataset graph = context.Dataset.PickGraph(worker.Random);
-            if (graph.Nodes.Count < 2) return OperationOutcome.Success(resultCount: 0);
-            Node from = graph.Nodes[worker.Random.Next(graph.Nodes.Count)];
-            Node to = graph.Nodes[worker.Random.Next(graph.Nodes.Count)];
-            int count = await AsyncEnumerableHelpers.CountUpToAsync(
-                context.Client.Node.ReadRoutes(SearchTypeEnum.DepthFirstSearch, graph.Tenant.GUID, graph.Graph.GUID, from.GUID, to.GUID, token: token),
-                25,
-                token).ConfigureAwait(false);
-            return OperationOutcome.Success(resultCount: count);
+            RouteFixture? fixture = graph.PickRouteFixture(worker.Random);
+            if (fixture == null || fixture.FromNodeGuid == Guid.Empty || fixture.ToNodeGuid == Guid.Empty)
+            {
+                return OperationOutcome.Incorrect(resultCount: 0, error: "No route fixture is available.");
+            }
+
+            int count = 0;
+            bool foundExpectedRoute = false;
+
+            await foreach (RouteDetail route in context.Client.Node.ReadRoutes(
+                SearchTypeEnum.DepthFirstSearch,
+                graph.Tenant.GUID,
+                graph.Graph.GUID,
+                fixture.FromNodeGuid,
+                fixture.ToNodeGuid,
+                token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                count++;
+                if (RouteMatchesFixture(route, fixture))
+                {
+                    foundExpectedRoute = true;
+                    break;
+                }
+
+                if (count >= 25) break;
+            }
+
+            return foundExpectedRoute
+                ? OperationOutcome.Success(items: fixture.EdgeGuids.Count, resultCount: count)
+                : OperationOutcome.Incorrect(items: fixture.EdgeGuids.Count, resultCount: count, error: "Expected route fixture was not returned.");
         }
 
         private static async Task<OperationOutcome> ReadSubgraphAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
@@ -412,10 +434,9 @@ namespace Test.PerformanceAndScalability
         private static async Task<OperationOutcome> UpdateVectorAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
         {
             GraphDataset graph = context.Dataset.PickGraph(worker.Random);
-            VectorMetadata? vector = graph.PickVector(worker.Random);
-            if (vector == null) return OperationOutcome.Success(resultCount: 0);
+            VectorMetadata? read = await ReadSampleVectorAsync(context, graph, worker.Random, token).ConfigureAwait(false);
+            if (read == null) return OperationOutcome.Incorrect(resultCount: 0, error: "No sampled vector could be read for update.");
 
-            VectorMetadata read = await context.Client.Vector.ReadByGuid(graph.Tenant.GUID, vector.GUID, token).ConfigureAwait(false);
             read.Content = "updated " + worker.OperationIndex;
             read.Vectors = DatasetGenerator.BuildEmbedding(context.Options.VectorDimensions, (int)(worker.OperationIndex % int.MaxValue));
             VectorMetadata updated = await context.Client.Vector.Update(read, token).ConfigureAwait(false);
@@ -494,8 +515,9 @@ namespace Test.PerformanceAndScalability
         private static async Task<OperationOutcome> UpdateNodeAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
         {
             GraphDataset graph = context.Dataset.PickGraph(worker.Random);
-            Node node = graph.PickNode(worker.Random);
-            Node read = await context.Client.Node.ReadByGuid(graph.Tenant.GUID, graph.Graph.GUID, node.GUID, true, false, token).ConfigureAwait(false);
+            Node? read = await ReadSampleNodeAsync(context, graph, worker.Random, includeData: true, includeSubordinates: true, token).ConfigureAwait(false);
+            if (read == null) return OperationOutcome.Incorrect(resultCount: 0, error: "No sampled node could be read for update.");
+
             read.Name = "updated-node-" + worker.OperationIndex;
             read.Data = new Dictionary<string, object> { ["updated"] = worker.OperationIndex, ["kind"] = "node-update" };
             Node updated = await context.Client.Node.Update(read, token).ConfigureAwait(false);
@@ -505,9 +527,9 @@ namespace Test.PerformanceAndScalability
         private static async Task<OperationOutcome> UpdateEdgeAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
         {
             GraphDataset graph = context.Dataset.PickGraph(worker.Random);
-            Edge? edge = graph.PickEdge(worker.Random);
-            if (edge == null) return OperationOutcome.Success(resultCount: 0);
-            Edge read = await context.Client.Edge.ReadByGuid(graph.Tenant.GUID, graph.Graph.GUID, edge.GUID, true, false, token).ConfigureAwait(false);
+            Edge? read = await ReadSampleEdgeAsync(context, graph, worker.Random, includeData: true, includeSubordinates: true, token).ConfigureAwait(false);
+            if (read == null) return OperationOutcome.Incorrect(resultCount: 0, error: "No sampled edge could be read for update.");
+
             read.Name = "updated-edge-" + worker.OperationIndex;
             read.Cost = (int)(worker.OperationIndex % 100);
             read.Data = new Dictionary<string, object> { ["updated"] = worker.OperationIndex, ["kind"] = "edge-update" };
@@ -599,6 +621,66 @@ namespace Test.PerformanceAndScalability
             List<Guid> ret = new List<Guid>(count);
             for (int i = 0; i < count; i++) ret.Add(graph.PickNode(random).GUID);
             return ret;
+        }
+
+        private static bool RouteMatchesFixture(RouteDetail route, RouteFixture fixture)
+        {
+            if (route == null || route.Edges == null) return false;
+            if (route.Edges.Count != fixture.EdgeGuids.Count) return false;
+
+            for (int i = 0; i < fixture.EdgeGuids.Count; i++)
+            {
+                if (route.Edges[i].GUID != fixture.EdgeGuids[i]) return false;
+            }
+
+            return true;
+        }
+
+        private static async Task<Node?> ReadSampleNodeAsync(BenchmarkContext context, GraphDataset graph, Random random, bool includeData, bool includeSubordinates, CancellationToken token)
+        {
+            int attempts = Math.Max(1, Math.Min(8, graph.Nodes.Count));
+            for (int i = 0; i < attempts; i++)
+            {
+                Node node = graph.PickNode(random);
+                Node read = await context.Client.Node.ReadByGuid(graph.Tenant.GUID, graph.Graph.GUID, node.GUID, includeData, includeSubordinates, token).ConfigureAwait(false);
+                if (read != null) return read;
+            }
+
+            return null;
+        }
+
+        private static async Task<Edge?> ReadSampleEdgeAsync(BenchmarkContext context, GraphDataset graph, Random random, bool includeData, bool includeSubordinates, CancellationToken token)
+        {
+            if (graph.Edges.Count < 1) return null;
+
+            int attempts = Math.Max(1, Math.Min(8, graph.Edges.Count));
+            for (int i = 0; i < attempts; i++)
+            {
+                Edge? edge = graph.PickEdge(random);
+                if (edge == null) return null;
+
+                Edge read = await context.Client.Edge.ReadByGuid(graph.Tenant.GUID, graph.Graph.GUID, edge.GUID, includeData, includeSubordinates, token).ConfigureAwait(false);
+                if (read != null) return read;
+            }
+
+            return null;
+        }
+
+        private static async Task<VectorMetadata?> ReadSampleVectorAsync(BenchmarkContext context, GraphDataset graph, Random random, CancellationToken token)
+        {
+            if (graph.Vectors.Count < 1) return null;
+
+            int attempts = Math.Max(1, Math.Min(8, graph.Vectors.Count));
+            for (int i = 0; i < attempts; i++)
+            {
+                VectorMetadata? vector = graph.PickVector(random);
+                if (vector == null) return null;
+
+                VectorMetadata read = await context.Client.Vector.ReadByGuid(graph.Tenant.GUID, vector.GUID, token).ConfigureAwait(false);
+                if (read != null) return read;
+            }
+
+            return null;
         }
 
         private static void RecordQueryProfile(BenchmarkContext context, GraphQueryResult result)

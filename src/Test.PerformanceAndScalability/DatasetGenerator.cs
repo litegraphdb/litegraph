@@ -82,6 +82,8 @@ namespace Test.PerformanceAndScalability
                         graphDataset.Vectors.AddRange(created.Count == 0 ? chunk : created);
                     }
 
+                    graphDataset.RouteFixtures.Add(await CreateRouteFixtureAsync(context, options, tenant, graph, tenantIndex, graphIndex, token).ConfigureAwait(false));
+
                     foreach (Node hot in graphDataset.Nodes.Take(Math.Max(1, graphDataset.Nodes.Count / 20)))
                     {
                         graphDataset.HotNodeGuids.Add(hot.GUID);
@@ -95,6 +97,8 @@ namespace Test.PerformanceAndScalability
 
             int totalNodes = state.Graphs.Sum(g => g.Nodes.Count);
             int totalEdges = state.Graphs.Sum(g => g.Edges.Count);
+            int totalRouteNodes = state.Graphs.Sum(g => g.RouteFixtures.Sum(f => f.NodeGuids.Count));
+            int totalRouteEdges = state.Graphs.Sum(g => g.RouteFixtures.Sum(f => f.EdgeGuids.Count));
             Dictionary<Guid, int> degree = new Dictionary<Guid, int>();
             foreach (GraphDataset graph in state.Graphs)
             {
@@ -104,14 +108,30 @@ namespace Test.PerformanceAndScalability
                     degree[edge.From] = degree.TryGetValue(edge.From, out int from) ? from + 1 : 1;
                     degree[edge.To] = degree.TryGetValue(edge.To, out int to) ? to + 1 : 1;
                 }
+
+                foreach (RouteFixture fixture in graph.RouteFixtures)
+                {
+                    foreach (Guid nodeGuid in fixture.NodeGuids)
+                    {
+                        if (!degree.ContainsKey(nodeGuid)) degree[nodeGuid] = 0;
+                    }
+
+                    for (int i = 0; i < fixture.NodeGuids.Count - 1; i++)
+                    {
+                        Guid from = fixture.NodeGuids[i];
+                        Guid to = fixture.NodeGuids[i + 1];
+                        degree[from] = degree.TryGetValue(from, out int fromDegree) ? fromDegree + 1 : 1;
+                        degree[to] = degree.TryGetValue(to, out int toDegree) ? toDegree + 1 : 1;
+                    }
+                }
             }
 
             state.Metadata = new DatasetMetadata
             {
                 Tenants = options.Tenants,
                 Graphs = state.Graphs.Count,
-                Nodes = totalNodes,
-                Edges = totalEdges,
+                Nodes = totalNodes + totalRouteNodes,
+                Edges = totalEdges + totalRouteEdges,
                 Vectors = state.Graphs.Sum(g => g.Vectors.Count),
                 LabelsPerNode = options.LabelsPerNode,
                 TagsPerNode = options.TagsPerNode,
@@ -304,6 +324,66 @@ namespace Test.PerformanceAndScalability
             }
 
             return ret;
+        }
+
+        private static async Task<RouteFixture> CreateRouteFixtureAsync(
+            BenchmarkContext context,
+            BenchmarkOptions options,
+            TenantMetadata tenant,
+            Graph graph,
+            int tenantIndex,
+            int graphIndex,
+            CancellationToken token)
+        {
+            const int routeNodeCount = 5;
+            RouteFixture fixture = new RouteFixture();
+            List<Node> routeNodes = new List<Node>(routeNodeCount);
+
+            for (int routeIndex = 0; routeIndex < routeNodeCount; routeIndex++)
+            {
+                routeNodes.Add(new Node
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    GUID = DeterministicGuid(options.Seed, "route-node", tenantIndex, graphIndex, routeIndex),
+                    Name = "route-node-" + tenantIndex + "-" + graphIndex + "-" + routeIndex,
+                    Labels = Labels("PerfRouteNode"),
+                    Tags = Tags(("kind", "route-fixture"), ("route", "primary"), ("sequence", routeIndex.ToString())),
+                    Data = BuildPayload(options.PayloadSize, tenantIndex, graphIndex, routeIndex, "route-node")
+                });
+            }
+
+            await context.Client.Node.CreateMany(tenant.GUID, graph.GUID, routeNodes, BulkCreateReturnModeEnum.Minimal, token).ConfigureAwait(false);
+            foreach (Node node in routeNodes)
+            {
+                fixture.NodeGuids.Add(node.GUID);
+            }
+
+            List<Edge> routeEdges = new List<Edge>(routeNodeCount - 1);
+            for (int edgeIndex = 0; edgeIndex < routeNodeCount - 1; edgeIndex++)
+            {
+                routeEdges.Add(new Edge
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    GUID = DeterministicGuid(options.Seed, "route-edge", tenantIndex, graphIndex, edgeIndex),
+                    Name = "route-edge-" + tenantIndex + "-" + graphIndex + "-" + edgeIndex,
+                    From = routeNodes[edgeIndex].GUID,
+                    To = routeNodes[edgeIndex + 1].GUID,
+                    Cost = 1,
+                    Labels = Labels("PerfRouteEdge"),
+                    Tags = Tags(("kind", "route-fixture"), ("route", "primary"), ("sequence", edgeIndex.ToString())),
+                    Data = BuildPayload(options.PayloadSize, tenantIndex, graphIndex, edgeIndex, "route-edge")
+                });
+            }
+
+            await context.Client.Edge.CreateMany(tenant.GUID, graph.GUID, routeEdges, BulkCreateReturnModeEnum.Minimal, token).ConfigureAwait(false);
+            foreach (Edge edge in routeEdges)
+            {
+                fixture.EdgeGuids.Add(edge.GUID);
+            }
+
+            return fixture;
         }
 
         private static int PickPowerLawIndex(Random random, int count)

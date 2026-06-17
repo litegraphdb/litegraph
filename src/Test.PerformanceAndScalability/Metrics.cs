@@ -319,7 +319,7 @@ namespace Test.PerformanceAndScalability
             public void RecordError(Exception e)
             {
                 if (_ErrorSample == null)
-                    Interlocked.CompareExchange(ref _ErrorSample, e.GetType().Name + ": " + e.Message, null);
+                    Interlocked.CompareExchange(ref _ErrorSample, FormatExceptionSample(e), null);
             }
 
             public void RecordIncorrect(string? error)
@@ -352,6 +352,22 @@ namespace Test.PerformanceAndScalability
                     Latency = LatencyStats.From(latencies),
                     ErrorSample = _ErrorSample
                 };
+            }
+
+            private static string FormatExceptionSample(Exception e)
+            {
+                if (e == null) return string.Empty;
+
+                string sample = e.GetType().Name + ": " + e.Message;
+                if (string.IsNullOrWhiteSpace(e.StackTrace)) return sample;
+
+                string[] stackLines = e.StackTrace
+                    .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                    .Take(6)
+                    .ToArray();
+
+                if (stackLines.Length == 0) return sample;
+                return sample + Environment.NewLine + string.Join(Environment.NewLine, stackLines);
             }
         }
     }
