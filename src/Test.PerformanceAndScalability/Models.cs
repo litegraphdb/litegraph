@@ -100,6 +100,7 @@ namespace Test.PerformanceAndScalability
         public int Items { get; init; } = 1;
         public int ResultCount { get; init; }
         public bool Correct { get; init; } = true;
+        public string? Error { get; init; }
 
         public static OperationOutcome Success(int items = 1, int resultCount = 0)
         {
@@ -111,13 +112,14 @@ namespace Test.PerformanceAndScalability
             };
         }
 
-        public static OperationOutcome Incorrect(int items = 1, int resultCount = 0)
+        public static OperationOutcome Incorrect(int items = 1, int resultCount = 0, string? error = null)
         {
             return new OperationOutcome
             {
                 Items = items,
                 ResultCount = resultCount,
-                Correct = false
+                Correct = false,
+                Error = error
             };
         }
     }

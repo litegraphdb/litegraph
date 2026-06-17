@@ -10213,6 +10213,24 @@
             <param name="cancellationToken">Cancellation token.</param>
             <returns>Vector index or null if indexing is not enabled.</returns>
         </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.ExecuteWithIndexAsync``1(LiteGraph.Graph,System.Func{LiteGraph.Indexing.Vector.IVectorIndex,System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Execute an operation against a graph index while holding the graph's index lock.
+            </summary>
+            <param name="graph">Graph containing index configuration.</param>
+            <param name="operation">Operation to execute.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Operation result.</returns>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.ExecuteWithIndexAsync(LiteGraph.Graph,System.Func{LiteGraph.Indexing.Vector.IVectorIndex,System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Execute an operation against a graph index while holding the graph's index lock.
+            </summary>
+            <param name="graph">Graph containing index configuration.</param>
+            <param name="operation">Operation to execute.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
         <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.EnableIndexingAsync(LiteGraph.Graph,LiteGraph.Indexing.Vector.VectorIndexTypeEnum,System.String,System.Threading.CancellationToken)">
             <summary>
             Enable indexing for a graph.

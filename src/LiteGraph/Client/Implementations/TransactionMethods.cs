@@ -2,6 +2,7 @@ namespace LiteGraph.Client.Implementations
 {
     using System;
     using System.Diagnostics;
+    using System.Runtime.CompilerServices;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -16,6 +17,8 @@ namespace LiteGraph.Client.Implementations
         #region Private-Members
 
         private readonly GraphRepositoryBase _Repo;
+        private readonly SemaphoreSlim _TransactionGate;
+        private static readonly ConditionalWeakTable<GraphRepositoryBase, SemaphoreSlim> TransactionGates = new ConditionalWeakTable<GraphRepositoryBase, SemaphoreSlim>();
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -32,6 +35,7 @@ namespace LiteGraph.Client.Implementations
         public TransactionMethods(GraphRepositoryBase repo)
         {
             _Repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _TransactionGate = TransactionGates.GetValue(_Repo, _ => new SemaphoreSlim(1, 1));
         }
 
         #endregion
@@ -59,10 +63,14 @@ namespace LiteGraph.Client.Implementations
                 TransactionResult result = new TransactionResult();
 
                 bool startedTransaction = false;
+                bool gateAcquired = false;
                 int currentOperationIndex = -1;
                 try
                 {
                     ValidateOperations(request, ref currentOperationIndex);
+
+                    await _TransactionGate.WaitAsync(linkedToken).ConfigureAwait(false);
+                    gateAcquired = true;
 
                     if (_Repo.GraphTransactionActive)
                         throw new InvalidOperationException("A graph transaction is already active on this repository.");
@@ -115,6 +123,7 @@ namespace LiteGraph.Client.Implementations
                 }
                 finally
                 {
+                    if (gateAcquired) _TransactionGate.Release();
                     sw.Stop();
                     result.DurationMs = sw.Elapsed.TotalMilliseconds;
                 }

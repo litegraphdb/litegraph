@@ -159,9 +159,8 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret = "SELECT * FROM 'graphs' WHERE tenantguid = '" + tenantGuid + "' ";
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
             return ret;
         }
 
@@ -190,7 +189,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
-            string ret = "SELECT * FROM 'graphs' ";
+            string ret = "SELECT graphs.* FROM 'graphs' ";
 
             if (labels != null && labels.Count > 0)
                 ret += "INNER JOIN 'labels' "
@@ -269,9 +268,8 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 }
             }
 
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
         }
@@ -819,24 +817,25 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
                 case EnumerationOrderEnum.LeastConnected:
                 case EnumerationOrderEnum.MostConnected:
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY graphs.createdutc DESC ";
+                case EnumerationOrderEnum.CostAscending:
+                case EnumerationOrderEnum.CostDescending:
+                    return "ORDER BY graphs.createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return "ORDER BY graphs.createdutc ASC ";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return "ORDER BY graphs.guid ASC ";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return "ORDER BY graphs.guid DESC ";
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY name ASC ";
+                    return "ORDER BY graphs.name ASC ";
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY name DESC ";
+                    return "ORDER BY graphs.name DESC ";
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return "ORDER BY graphs.createdutc DESC ";
             }
         }
 

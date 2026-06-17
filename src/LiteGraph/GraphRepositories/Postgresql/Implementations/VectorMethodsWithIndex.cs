@@ -188,48 +188,54 @@
                     return null;
                 }
 
-                IVectorIndex index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph).ConfigureAwait(false);
-                if (index == null)
+                List<VectorScoreResult> scoredResults = await repo.VectorIndexManager.ExecuteWithIndexAsync(
+                    graph,
+                    async index =>
+                    {
+                        // Perform indexed search
+                        List<VectorDistanceResult> results = await index.SearchAsync(queryVector, topK, ef ?? graph.VectorIndexEf).ConfigureAwait(false);
+
+                        // Convert distance to appropriate score based on search type
+                        List<VectorScoreResult> scored = new List<VectorScoreResult>();
+                        foreach (VectorDistanceResult result in results)
+                        {
+                            float score = result.Distance;
+
+                            // Convert based on search type
+                            switch (searchType)
+                            {
+                                case VectorSearchTypeEnum.CosineSimilarity:
+                                    // HnswLite returns cosine distance, convert to similarity
+                                    score = 1.0f - result.Distance;
+                                    break;
+                                case VectorSearchTypeEnum.CosineDistance:
+                                    // Already in distance form
+                                    break;
+                                case VectorSearchTypeEnum.EuclidianSimilarity:
+                                    // Convert distance to similarity
+                                    score = 1.0f / (1.0f + result.Distance);
+                                    break;
+                                case VectorSearchTypeEnum.EuclidianDistance:
+                                    // Already in distance form
+                                    break;
+                                case VectorSearchTypeEnum.DotProduct:
+                                    // For dot product, higher is better, so negate if it's a distance
+                                    score = -result.Distance;
+                                    break;
+                            }
+
+                            scored.Add(new VectorScoreResult(result.Id, score));
+                        }
+
+                        return scored;
+                    }).ConfigureAwait(false);
+
+                if (scoredResults == null)
                 {
                     activity?.SetTag("litegraph.vector.index.used", false);
                     activity?.SetTag("litegraph.vector.index.skip_reason", "unavailable");
                     LiteGraphTelemetry.SetActivityOk(activity);
                     return null;
-                }
-
-                // Perform indexed search
-                List<VectorDistanceResult> results = await index.SearchAsync(queryVector, topK, ef ?? graph.VectorIndexEf).ConfigureAwait(false);
-
-                // Convert distance to appropriate score based on search type
-                List<VectorScoreResult> scoredResults = new List<VectorScoreResult>();
-                foreach (VectorDistanceResult result in results)
-                {
-                    float score = result.Distance;
-
-                    // Convert based on search type
-                    switch (searchType)
-                    {
-                        case VectorSearchTypeEnum.CosineSimilarity:
-                            // HnswLite returns cosine distance, convert to similarity
-                            score = 1.0f - result.Distance;
-                            break;
-                        case VectorSearchTypeEnum.CosineDistance:
-                            // Already in distance form
-                            break;
-                        case VectorSearchTypeEnum.EuclidianSimilarity:
-                            // Convert distance to similarity
-                            score = 1.0f / (1.0f + result.Distance);
-                            break;
-                        case VectorSearchTypeEnum.EuclidianDistance:
-                            // Already in distance form
-                            break;
-                        case VectorSearchTypeEnum.DotProduct:
-                            // For dot product, higher is better, so negate if it's a distance
-                            score = -result.Distance;
-                            break;
-                    }
-
-                    scoredResults.Add(new VectorScoreResult(result.Id, score));
                 }
 
                 activity?.SetTag("litegraph.vector.index.used", true);
@@ -275,10 +281,7 @@
         {
             try
             {
-                IVectorIndex index = await repo.VectorIndexManager.GetOrCreateIndexAsync(graph).ConfigureAwait(false);
-                if (index == null) return;
-
-                await mutation(index).ConfigureAwait(false);
+                await repo.VectorIndexManager.ExecuteWithIndexAsync(graph, mutation).ConfigureAwait(false);
                 repo.NoteVectorIndexMutation(graph.TenantGUID, graph.GUID, dirtyReason);
             }
             catch (Exception e)

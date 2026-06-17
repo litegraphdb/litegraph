@@ -16,8 +16,8 @@ namespace LiteGraph.Indexing.Vector
         #region Private-Members
 
         private readonly ConcurrentDictionary<Guid, IVectorIndex> _Indexes;
+        private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _IndexLocks;
         private readonly string _StorageDirectory;
-        private readonly object _Lock = new object();
         private bool _Disposed = false;
 
         #endregion
@@ -32,6 +32,7 @@ namespace LiteGraph.Indexing.Vector
         {
             _StorageDirectory = storageDirectory ?? Path.Combine(Directory.GetCurrentDirectory(), "indexes");
             _Indexes = new ConcurrentDictionary<Guid, IVectorIndex>();
+            _IndexLocks = new ConcurrentDictionary<Guid, SemaphoreSlim>();
 
             if (!Directory.Exists(_StorageDirectory))
             {
@@ -54,26 +55,69 @@ namespace LiteGraph.Indexing.Vector
             ThrowIfDisposed();
 
             if (graph == null) throw new ArgumentNullException(nameof(graph));
-            if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
-                return null;
-
-            return await _Indexes.GetOrAddAsync<Guid, IVectorIndex>(graph.GUID, async (guid) =>
+            SemaphoreSlim indexLock = GetIndexLock(graph.GUID);
+            await indexLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                HnswLiteVectorIndex index = new HnswLiteVectorIndex();
-                
-                // Ensure index file path is set
-                if (string.IsNullOrEmpty(graph.VectorIndexFile))
-                {
-                    graph.VectorIndexFile = Path.Combine(_StorageDirectory, $"{graph.GUID}.hnsw");
-                }
-                else if (!Path.IsPathRooted(graph.VectorIndexFile))
-                {
-                    graph.VectorIndexFile = Path.Combine(_StorageDirectory, graph.VectorIndexFile);
-                }
+                return await GetOrCreateIndexUnlockedAsync(graph, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                indexLock.Release();
+            }
+        }
 
-                await index.InitializeAsync(graph, cancellationToken);
-                return index;
-            });
+        /// <summary>
+        /// Execute an operation against a graph index while holding the graph's index lock.
+        /// </summary>
+        /// <param name="graph">Graph containing index configuration.</param>
+        /// <param name="operation">Operation to execute.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Operation result.</returns>
+        public async Task<TResult> ExecuteWithIndexAsync<TResult>(
+            Graph graph,
+            Func<IVectorIndex, Task<TResult>> operation,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
+            if (operation == null) throw new ArgumentNullException(nameof(operation));
+
+            SemaphoreSlim indexLock = GetIndexLock(graph.GUID);
+            await indexLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                IVectorIndex index = await GetOrCreateIndexUnlockedAsync(graph, cancellationToken).ConfigureAwait(false);
+                if (index == null) return default;
+                return await operation(index).ConfigureAwait(false);
+            }
+            finally
+            {
+                indexLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Execute an operation against a graph index while holding the graph's index lock.
+        /// </summary>
+        /// <param name="graph">Graph containing index configuration.</param>
+        /// <param name="operation">Operation to execute.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        public async Task ExecuteWithIndexAsync(
+            Graph graph,
+            Func<IVectorIndex, Task> operation,
+            CancellationToken cancellationToken = default)
+        {
+            await ExecuteWithIndexAsync<object>(
+                graph,
+                async index =>
+                {
+                    await operation(index).ConfigureAwait(false);
+                    return null;
+                },
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -98,33 +142,42 @@ namespace LiteGraph.Indexing.Vector
             if (!graph.VectorDimensionality.HasValue)
                 throw new ArgumentException("Graph must have VectorDimensionality set before enabling indexing.");
 
-            // Remove existing index if any
-            if (_Indexes.TryRemove(graph.GUID, out IVectorIndex existingIndex))
+            SemaphoreSlim indexLock = GetIndexLock(graph.GUID);
+            await indexLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                existingIndex.Dispose();
-            }
+                // Remove existing index if any
+                if (_Indexes.TryRemove(graph.GUID, out IVectorIndex existingIndex))
+                {
+                    existingIndex.Dispose();
+                }
 
-            // Update graph properties
-            graph.VectorIndexType = indexType;
-            
-            if (!string.IsNullOrEmpty(indexFile))
-            {
-                graph.VectorIndexFile = Path.IsPathRooted(indexFile) 
-                    ? indexFile 
-                    : Path.Combine(_StorageDirectory, indexFile);
-            }
-            else
-            {
-                string extension = indexType == VectorIndexTypeEnum.HnswRam ? ".hnsw" : ".sqlite";
-                graph.VectorIndexFile = Path.Combine(_StorageDirectory, $"{graph.GUID}{extension}");
-            }
+                // Update graph properties
+                graph.VectorIndexType = indexType;
 
-            // Create and initialize new index
-            HnswLiteVectorIndex index = new HnswLiteVectorIndex();
-            await index.InitializeAsync(graph, cancellationToken);
-            
-            _Indexes[graph.GUID] = index;
-            return index;
+                if (!string.IsNullOrEmpty(indexFile))
+                {
+                    graph.VectorIndexFile = Path.IsPathRooted(indexFile)
+                        ? indexFile
+                        : Path.Combine(_StorageDirectory, indexFile);
+                }
+                else
+                {
+                    string extension = indexType == VectorIndexTypeEnum.HnswRam ? ".hnsw" : ".sqlite";
+                    graph.VectorIndexFile = Path.Combine(_StorageDirectory, $"{graph.GUID}{extension}");
+                }
+
+                // Create and initialize new index
+                HnswLiteVectorIndex index = new HnswLiteVectorIndex();
+                await index.InitializeAsync(graph, cancellationToken).ConfigureAwait(false);
+
+                _Indexes[graph.GUID] = index;
+                return index;
+            }
+            finally
+            {
+                indexLock.Release();
+            }
         }
 
         /// <summary>
@@ -137,31 +190,40 @@ namespace LiteGraph.Indexing.Vector
         {
             ThrowIfDisposed();
 
-            if (_Indexes.TryRemove(graphGuid, out IVectorIndex index))
+            SemaphoreSlim indexLock = GetIndexLock(graphGuid);
+            await indexLock.WaitAsync().ConfigureAwait(false);
+            try
             {
-                VectorIndexStatistics stats = index.GetStatistics();
-                index.Dispose();
-
-                if (deleteIndexFile && !string.IsNullOrEmpty(stats.IndexFile))
+                if (_Indexes.TryRemove(graphGuid, out IVectorIndex index))
                 {
-                    try
+                    VectorIndexStatistics stats = index.GetStatistics();
+                    index.Dispose();
+
+                    if (deleteIndexFile && !string.IsNullOrEmpty(stats.IndexFile))
                     {
-                        if (File.Exists(stats.IndexFile))
-                            File.Delete(stats.IndexFile);
-                        
-                        // Also delete mapping file for RAM indexes
-                        string mappingFile = stats.IndexFile + ".mapping";
-                        if (File.Exists(mappingFile))
-                            File.Delete(mappingFile);
-                    }
-                    catch
-                    {
-                        // Best effort deletion
+                        try
+                        {
+                            if (File.Exists(stats.IndexFile))
+                                File.Delete(stats.IndexFile);
+
+                            // Also delete mapping file for RAM indexes
+                            string mappingFile = stats.IndexFile + ".mapping";
+                            if (File.Exists(mappingFile))
+                                File.Delete(mappingFile);
+                        }
+                        catch
+                        {
+                            // Best effort deletion
+                        }
                     }
                 }
             }
-            
-            await Task.CompletedTask;
+            finally
+            {
+                indexLock.Release();
+            }
+
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -202,64 +264,73 @@ namespace LiteGraph.Indexing.Vector
             if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 throw new ArgumentException("Graph must have indexing enabled.");
 
-            // Remove existing index
-            if (_Indexes.TryRemove(graph.GUID, out IVectorIndex existingIndex))
+            SemaphoreSlim indexLock = GetIndexLock(graph.GUID);
+            await indexLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                existingIndex.Dispose();
-            }
-
-            // Delete existing index files
-            if (!string.IsNullOrEmpty(graph.VectorIndexFile))
-            {
-                try
+                // Remove existing index
+                if (_Indexes.TryRemove(graph.GUID, out IVectorIndex existingIndex))
                 {
-                    if (File.Exists(graph.VectorIndexFile))
-                        File.Delete(graph.VectorIndexFile);
-                    
-                    string mappingFile = graph.VectorIndexFile + ".mapping";
-                    if (File.Exists(mappingFile))
-                        File.Delete(mappingFile);
+                    existingIndex.Dispose();
                 }
-                catch
+
+                // Delete existing index files
+                if (!string.IsNullOrEmpty(graph.VectorIndexFile))
                 {
-                    // Best effort deletion
-                }
-            }
-
-            // Create new index
-            HnswLiteVectorIndex index = new HnswLiteVectorIndex();
-            await index.InitializeAsync(graph, cancellationToken);
-
-            // Add all vectors in batches
-            if (entries != null)
-            {
-                List<VectorIndexEntry> batch = new List<VectorIndexEntry>();
-                const int batchSize = 1000;
-
-                foreach (VectorIndexEntry entry in entries)
-                {
-                    if (entry == null || entry.Vector == null || entry.Vector.Count < 1) continue;
-
-                    batch.Add(entry);
-                    if (batch.Count >= batchSize)
+                    try
                     {
-                        await index.AddBatchAsync(batch, cancellationToken).ConfigureAwait(false);
-                        batch.Clear();
+                        if (File.Exists(graph.VectorIndexFile))
+                            File.Delete(graph.VectorIndexFile);
+
+                        string mappingFile = graph.VectorIndexFile + ".mapping";
+                        if (File.Exists(mappingFile))
+                            File.Delete(mappingFile);
+                    }
+                    catch
+                    {
+                        // Best effort deletion
                     }
                 }
 
-                // Add remaining vectors
-                if (batch.Count > 0)
+                // Create new index
+                HnswLiteVectorIndex index = new HnswLiteVectorIndex();
+                await index.InitializeAsync(graph, cancellationToken).ConfigureAwait(false);
+
+                // Add all vectors in batches
+                if (entries != null)
                 {
-                    await index.AddBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+                    List<VectorIndexEntry> batch = new List<VectorIndexEntry>();
+                    const int batchSize = 1000;
+
+                    foreach (VectorIndexEntry entry in entries)
+                    {
+                        if (entry == null || entry.Vector == null || entry.Vector.Count < 1) continue;
+
+                        batch.Add(entry);
+                        if (batch.Count >= batchSize)
+                        {
+                            await index.AddBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+                            batch.Clear();
+                        }
+                    }
+
+                    // Add remaining vectors
+                    if (batch.Count > 0)
+                    {
+                        await index.AddBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    // Save the index
+                    await index.SaveAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                // Save the index
-                await index.SaveAsync(cancellationToken).ConfigureAwait(false);
+                _Indexes[graph.GUID] = index;
+                return index;
             }
-
-            _Indexes[graph.GUID] = index;
-            return index;
+            finally
+            {
+                indexLock.Release();
+            }
         }
 
         /// <summary>
@@ -326,8 +397,13 @@ namespace LiteGraph.Indexing.Vector
         {
             ThrowIfDisposed();
 
-            IEnumerable<Task> tasks = _Indexes.Values.Select(index => index.SaveAsync(cancellationToken));
-            await Task.WhenAll(tasks);
+            List<Task> tasks = new List<Task>();
+            foreach (Guid graphGuid in _Indexes.Keys.ToList())
+            {
+                tasks.Add(SaveIndexAsync(graphGuid, cancellationToken));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -356,8 +432,60 @@ namespace LiteGraph.Indexing.Vector
                         index?.Dispose();
                     }
                     _Indexes.Clear();
+
+                    foreach (SemaphoreSlim indexLock in _IndexLocks.Values)
+                    {
+                        indexLock.Dispose();
+                    }
+                    _IndexLocks.Clear();
                 }
                 _Disposed = true;
+            }
+        }
+
+        private async Task<IVectorIndex> GetOrCreateIndexUnlockedAsync(Graph graph, CancellationToken cancellationToken)
+        {
+            if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
+                return null;
+
+            return await _Indexes.GetOrAddAsync<Guid, IVectorIndex>(graph.GUID, async (guid) =>
+            {
+                HnswLiteVectorIndex index = new HnswLiteVectorIndex();
+
+                // Ensure index file path is set
+                if (string.IsNullOrEmpty(graph.VectorIndexFile))
+                {
+                    graph.VectorIndexFile = Path.Combine(_StorageDirectory, $"{graph.GUID}.hnsw");
+                }
+                else if (!Path.IsPathRooted(graph.VectorIndexFile))
+                {
+                    graph.VectorIndexFile = Path.Combine(_StorageDirectory, graph.VectorIndexFile);
+                }
+
+                await index.InitializeAsync(graph, cancellationToken).ConfigureAwait(false);
+                return index;
+            }).ConfigureAwait(false);
+        }
+
+        private SemaphoreSlim GetIndexLock(Guid graphGuid)
+        {
+            return _IndexLocks.GetOrAdd(graphGuid, _ => new SemaphoreSlim(1, 1));
+        }
+
+        private async Task SaveIndexAsync(Guid graphGuid, CancellationToken cancellationToken)
+        {
+            SemaphoreSlim indexLock = GetIndexLock(graphGuid);
+            await indexLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (_Indexes.TryGetValue(graphGuid, out IVectorIndex index))
+                {
+                    await index.SaveAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                indexLock.Release();
             }
         }
 

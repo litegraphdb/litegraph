@@ -130,9 +130,9 @@
                 case EnumerationOrderEnum.CreatedDescending:
                     return "createdutc DESC";
                 case EnumerationOrderEnum.GuidAscending:
-                    return "id ASC";
+                    return "guid ASC";
                 case EnumerationOrderEnum.GuidDescending:
-                    return "id DESC";
+                    return "guid DESC";
                 case EnumerationOrderEnum.NameAscending:
                     return "name ASC";
                 case EnumerationOrderEnum.NameDescending:

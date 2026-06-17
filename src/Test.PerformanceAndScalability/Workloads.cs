@@ -456,7 +456,9 @@ namespace Test.PerformanceAndScalability
 
             TransactionResult result = await context.Client.Transaction.Execute(graph.Tenant.GUID, graph.Graph.GUID, builder.Build(), token).ConfigureAwait(false);
             if (!result.Success && token.IsCancellationRequested) token.ThrowIfCancellationRequested();
-            return result.Success ? OperationOutcome.Success(context.Options.TransactionSize, result.Operations.Count) : OperationOutcome.Incorrect(context.Options.TransactionSize);
+            return result.Success
+                ? OperationOutcome.Success(context.Options.TransactionSize, result.Operations.Count)
+                : OperationOutcome.Incorrect(context.Options.TransactionSize, result.Operations.Count, result.Error);
         }
 
         private static async Task<OperationOutcome> TransactionRollbackAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)

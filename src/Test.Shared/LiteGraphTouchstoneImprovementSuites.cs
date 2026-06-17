@@ -141,6 +141,11 @@
                         executeAsync: TestGraphTransactionClientActiveGuard),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Client.ConcurrentQueue",
+                        displayName: "Graph transaction client serializes concurrent operation lists",
+                        executeAsync: TestGraphTransactionClientConcurrentQueue),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Credentials.Scoped.Persistence",
                         displayName: "Credential scopes and graph allow-lists persist",
                         executeAsync: TestScopedCredentialPersistence),
@@ -9514,6 +9519,62 @@
             }
 
             DeleteFileIfExists(filename);
+        }
+
+        private static async Task TestGraphTransactionClientConcurrentQueue(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-client-concurrent-queue.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Queue Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Queue Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    Guid[] nodeGuids = Enumerable.Range(0, 4)
+                        .Select(_ => Guid.NewGuid())
+                        .ToArray();
+
+                    Task<TransactionResult>[] transactions = nodeGuids
+                        .Select((nodeGuid, index) => client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            new TransactionRequest
+                            {
+                                Operations = new List<TransactionOperation>
+                                {
+                                    new TransactionOperation
+                                    {
+                                        OperationType = TransactionOperationTypeEnum.Create,
+                                        ObjectType = TransactionObjectTypeEnum.Node,
+                                        Payload = new Node { GUID = nodeGuid, Name = "Queued Transaction Node " + index }
+                                    }
+                                }
+                            },
+                            cancellationToken))
+                        .ToArray();
+
+                    TransactionResult[] results = await Task.WhenAll(transactions).ConfigureAwait(false);
+
+                    for (int i = 0; i < results.Length; i++)
+                    {
+                        AssertTrue(results[i].Success, "Queued transaction " + i + " committed");
+                        AssertFalse(results[i].RolledBack, "Queued transaction " + i + " did not roll back");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, nodeGuids[i], cancellationToken).ConfigureAwait(false), "Queued transaction node " + i + " exists");
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
         }
 
         private sealed class TransactionTimeoutRepository : GraphRepositoryBase

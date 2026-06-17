@@ -270,9 +270,8 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
             string ret = "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' ";
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
             return ret;
         }
 
@@ -287,9 +286,8 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 "SELECT * FROM 'nodes' WHERE tenantguid = '" + tenantGuid + "' " +
                 "AND graphguid = '" + graphGuid + "' ";
 
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
             return ret;
         }
 
@@ -318,7 +316,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending)
         {
-            string ret = "SELECT * FROM 'nodes' ";
+            string ret = "SELECT nodes.* FROM 'nodes' ";
 
             if (labels != null && labels.Count > 0)
                 ret += "INNER JOIN 'labels' "
@@ -397,9 +395,8 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 }
             }
 
-            ret +=
-                "ORDER BY " + Converters.EnumerationOrderToClause(order) + " "
-                + "LIMIT " + batchSize + " OFFSET " + skip + ";";
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
         }

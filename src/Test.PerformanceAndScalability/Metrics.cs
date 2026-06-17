@@ -256,7 +256,11 @@ namespace Test.PerformanceAndScalability
                 Interlocked.Increment(ref accumulator.Completed);
                 Interlocked.Add(ref accumulator.Items, Math.Max(0, outcome.Items));
                 Interlocked.Add(ref accumulator.ResultCount, Math.Max(0, outcome.ResultCount));
-                if (!outcome.Correct) Interlocked.Increment(ref accumulator.Incorrect);
+                if (!outcome.Correct)
+                {
+                    Interlocked.Increment(ref accumulator.Incorrect);
+                    accumulator.RecordIncorrect(outcome.Error);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -316,6 +320,12 @@ namespace Test.PerformanceAndScalability
             {
                 if (_ErrorSample == null)
                     Interlocked.CompareExchange(ref _ErrorSample, e.GetType().Name + ": " + e.Message, null);
+            }
+
+            public void RecordIncorrect(string? error)
+            {
+                if (!String.IsNullOrWhiteSpace(error) && _ErrorSample == null)
+                    Interlocked.CompareExchange(ref _ErrorSample, "Incorrect: " + error, null);
             }
 
             public ScenarioResult ToResult(TimeSpan duration, DateTime startedUtc)
