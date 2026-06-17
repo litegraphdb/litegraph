@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteGraphConsole", "LiteGra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteGraph.SampleDatabase", "LiteGraph.SampleDatabase\LiteGraph.SampleDatabase.csproj", "{7735775C-C526-4CDB-ACE7-34F38ADFAF42}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.PerformanceAndScalability", "Test.PerformanceAndScalability\Test.PerformanceAndScalability.csproj", "{4381E377-CBA5-4F26-A76C-10765103021D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,18 @@ Global
 		{7735775C-C526-4CDB-ACE7-34F38ADFAF42}.Release|x64.Build.0 = Release|Any CPU
 		{7735775C-C526-4CDB-ACE7-34F38ADFAF42}.Release|x86.ActiveCfg = Release|Any CPU
 		{7735775C-C526-4CDB-ACE7-34F38ADFAF42}.Release|x86.Build.0 = Release|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Debug|x64.Build.0 = Debug|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Debug|x86.Build.0 = Debug|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x64.ActiveCfg = Release|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x64.Build.0 = Release|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x86.ActiveCfg = Release|Any CPU
+		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
