@@ -58,6 +58,11 @@ namespace LiteGraph
             }
         }
 
+        /// <summary>
+        /// Requested provider transaction isolation level.
+        /// </summary>
+        public TransactionIsolationLevelEnum IsolationLevel { get; set; } = TransactionIsolationLevelEnum.Default;
+
         #endregion
 
         #region Private-Members

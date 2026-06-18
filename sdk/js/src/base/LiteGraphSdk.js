@@ -228,6 +228,7 @@ export default class LiteGraphSdk extends SdkBase {
    * @param {Object} [options] - Transaction defaults.
    * @param {number} [options.MaxOperations=1000] - Maximum operation count.
    * @param {number} [options.TimeoutSeconds=60] - Transaction timeout in seconds.
+   * @param {string} [options.IsolationLevel=Default] - Transaction isolation level.
    * @returns {GraphTransactionBuilder} - Transaction builder.
    */
   transaction(graphGuid, options = {}) {
@@ -242,6 +243,7 @@ export default class LiteGraphSdk extends SdkBase {
    * @param {string} graphGuid - The GUID of the graph.
    * @param {Object} request - Transaction request.
    * @param {Array<Object>} request.Operations - Operations to execute atomically.
+   * @param {string} [request.IsolationLevel=Default] - Transaction isolation level.
    * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
    * @returns {Promise<TransactionResult>} - Transaction result.
    */
@@ -253,7 +255,7 @@ export default class LiteGraphSdk extends SdkBase {
       GenericExceptionHandlers.ArgumentNullException('TransactionRequest');
     }
     const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/transaction`;
-    return await this.post(url, request, TransactionResult, cancellationToken);
+    return await this.post(url, request, TransactionResult, cancellationToken, [400, 409]);
   }
 
   //end region

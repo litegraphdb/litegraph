@@ -107,7 +107,7 @@ Navigate to the graph you created to see all five nodes and their edges visualiz
 | Category | Description |
 |----------|-------------|
 | `tenant/*` | Multi-tenant management |
-| `graph/*` | Graph CRUD, search, export (GEXF), vector indexing |
+| `graph/*` | Graph CRUD, search, export (GEXF), vector indexing, graph transactions |
 | `node/*` | Node CRUD, search, traversal, routing |
 | `edge/*` | Edge CRUD, search, traversal |
 | `label/*` | Label metadata on graphs, nodes, and edges |
@@ -119,6 +119,31 @@ Navigate to the graph you created to see all five nodes and their edges visualiz
 | `batch/*` | Batch existence checks |
 
 Run `claude --agent litegraph` and ask Claude what tools are available for a full listing.
+
+## Graph Transactions
+
+The MCP `graph/transaction` tool forwards to the REST transaction endpoint. It accepts either a full `request` object or direct `operations`, `maxOperations`, `timeoutSeconds`, and `isolationLevel` arguments.
+
+```json
+{
+  "tenantGuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "graphGuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "operations": [
+    {
+      "OperationType": "Create",
+      "ObjectType": "Node",
+      "Payload": {
+        "Name": "Ada"
+      }
+    }
+  ],
+  "maxOperations": 10,
+  "timeoutSeconds": 30,
+  "isolationLevel": "Default"
+}
+```
+
+Transaction results include `TransactionId`, validation-failure state, provider/isolation details, commit or rollback timing, retryability, conflict classification, and whether LiteGraph used isolated transaction state or the legacy serialized fallback. Validation failures return diagnostics before a provider transaction starts; failed transaction execution returns rollback diagnostics instead of partial writes.
 
 ## Troubleshooting
 

@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom';
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import RequestHistoryPage from '@/page/request-history/RequestHistoryPage';
 import { setEndpoint } from '@/lib/sdk/litegraph.service';
+import { listRequestHistory } from '@/lib/sdk/requestHistory';
 
 jest.mock('react-hot-toast', () => ({
   success: jest.fn(),
@@ -43,15 +44,17 @@ jest.mock('@/lib/sdk/requestHistory', () => {
           GUID: 'request-2',
           CreatedUtc: '2026-04-17T00:01:00Z',
           Method: 'POST',
-          Path: '/v1.0/tenants/default/graphs/graph-1/query',
-          Url: 'http://localhost/v1.0/tenants/default/graphs/graph-1/query',
-          StatusCode: 403,
+          Path: '/v1.0/tenants/default/graphs/graph-1/transaction',
+          Url: 'http://localhost/v1.0/tenants/default/graphs/graph-1/transaction',
+          StatusCode: 400,
           Success: false,
           ProcessingTimeMs: 40,
           RequestBodyLength: 32,
           ResponseBodyLength: 128,
           RequestBodyTruncated: false,
           ResponseBodyTruncated: false,
+          TransactionDiagnosticsJson:
+            '{"TransactionId":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","Success":false,"ValidationFailure":true,"RolledBack":false,"IsolationLevel":"Serializable","Provider":"Sqlite","ProviderErrorCode":"SQLITE_BUSY","Retryable":true,"ConcurrencyConflict":true}',
         },
       ],
       TotalCount: 2,
@@ -63,8 +66,11 @@ jest.mock('@/lib/sdk/requestHistory', () => {
 });
 
 describe('RequestHistoryPage observability', () => {
+  const listRequestHistoryMock = listRequestHistory as jest.Mock;
+
   beforeEach(() => {
     setEndpoint('http://localhost:8701/');
+    listRequestHistoryMock.mockClear();
   });
 
   it('renders operational telemetry links and visible request statistics', async () => {
@@ -105,6 +111,39 @@ describe('RequestHistoryPage observability', () => {
     );
     expect(screen.getAllByTestId('request-history-time')[0].style.whiteSpace).toBe('nowrap');
     expect(screen.getAllByTestId('request-history-method')[0].style.whiteSpace).toBe('nowrap');
+    expect(screen.getByTestId('request-history-transaction-id')).toHaveTextContent('aaaaaaaa');
+    expect(screen.getByTestId('request-history-transaction-state')).toHaveTextContent(
+      'validation'
+    );
+    expect(screen.getByText('Serializable')).toBeInTheDocument();
+    expect(screen.getByText('Sqlite')).toBeInTheDocument();
+    expect(screen.getByText('SQLITE_BUSY')).toBeInTheDocument();
+    expect(screen.getByText('retryable')).toBeInTheDocument();
+    expect(screen.getByText('conflict')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Transaction ID...')).toBeInTheDocument();
+  });
+
+  it('passes the transaction ID filter to request history search', async () => {
+    render(<RequestHistoryPage mode="admin" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('request-history-observability-summary')).toHaveTextContent(
+        'Visible requests: 2'
+      );
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('Transaction ID...'), {
+        target: { value: 'aaaaaaaa' },
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(listRequestHistoryMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ transactionId: 'aaaaaaaa' })
+      );
+    });
   });
 
   it('uses an actions context menu with view, JSON, and delete options', async () => {

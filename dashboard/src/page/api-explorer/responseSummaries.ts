@@ -9,9 +9,15 @@ type TransactionOperationFailure = {
 
 type TransactionFailure = {
   Success?: boolean;
+  TransactionId?: string;
   RolledBack?: boolean;
+  ValidationFailure?: boolean;
   FailedOperationIndex?: number;
   Error?: string;
+  Provider?: string;
+  Retryable?: boolean;
+  ConcurrencyConflict?: boolean;
+  ProviderErrorCode?: string;
   Operations?: TransactionOperationFailure[];
 };
 
@@ -34,10 +40,16 @@ export const getTransactionFailureSummary = (json: unknown): string | null => {
   const objectType = failedOperation?.ObjectType || 'object';
   const guid = failedOperation?.GUID ? ` (${failedOperation.GUID})` : '';
   const error = failedOperation?.Error || record.Error || 'No error detail returned.';
+  const validation = record.ValidationFailure ? ' The transaction failed validation before starting.' : '';
   const rolledBack = record.RolledBack ? ' The transaction was rolled back.' : '';
   const indexText = typeof failedIndex === 'number' ? ` at index ${failedIndex}` : '';
+  const transactionId = record.TransactionId ? ` Transaction ${record.TransactionId}.` : '';
+  const provider = record.Provider ? ` Provider: ${record.Provider}.` : '';
+  const providerError = record.ProviderErrorCode ? ` Provider error: ${record.ProviderErrorCode}.` : '';
+  const retryable = record.Retryable ? ' The failure is marked retryable.' : '';
+  const conflict = record.ConcurrencyConflict ? ' Concurrency conflict detected.' : '';
 
-  return `${operationType} ${objectType}${guid} failed${indexText}: ${error}.${rolledBack}`;
+  return `${operationType} ${objectType}${guid} failed${indexText}: ${error}.${validation}${rolledBack}${transactionId}${provider}${providerError}${retryable}${conflict}`;
 };
 
 export const getQueryErrorSummary = (json: unknown): string | null => {

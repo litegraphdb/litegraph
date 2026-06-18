@@ -255,16 +255,17 @@ Vector search metrics are recorded for successful native graph query `CALL liteg
 ### Graph Transactions
 
 ```text
-litegraph_graph_transactions_total{success="true",rolled_back="false"} 3
-litegraph_graph_transaction_operations_total{success="true",rolled_back="false"} 9
-litegraph_graph_transaction_duration_ms_sum{success="true",rolled_back="false"} 18.4
-litegraph_graph_transaction_duration_ms_count{success="true",rolled_back="false"} 3
+litegraph_graph_transactions_total{success="true",rolled_back="false",validation_failure="false"} 3
+litegraph_graph_transaction_operations_total{success="true",rolled_back="false",validation_failure="false"} 9
+litegraph_graph_transaction_duration_ms_sum{success="true",rolled_back="false",validation_failure="false"} 18.4
+litegraph_graph_transaction_duration_ms_count{success="true",rolled_back="false",validation_failure="false"} 3
 ```
 
 Labels:
 
 - `success`
 - `rolled_back`
+- `validation_failure`
 
 ### Authentication And Authorization
 
@@ -352,9 +353,20 @@ Core activities:
 - SQLite HNSW vector index search activity: `litegraph.vector.index.search`
 - repository operation activity: `litegraph.repository.operation`
 
-REST request activities parse incoming W3C `traceparent` and `tracestate` headers. When a valid parent context is supplied, LiteGraph starts its request activity under that trace. Server query activities include the required scope, success state, mutation state, row count, query kind, and vector-search tags where applicable. Core query activities add parse, plan, execute, planner seed, estimated cost, row count, and object count tags without recording query text. Vector search activities include domain, search type, dimensions, filter presence, top-k, and result count. Vector index activities include index type, dirty state, used/skip reason, top-k, and result count. Transaction activities include operation count, success state, rollback state, and failed operation index where applicable.
+REST request activities parse incoming W3C `traceparent` and `tracestate` headers. When a valid parent context is supplied, LiteGraph starts its request activity under that trace. Server query activities include the required scope, success state, mutation state, row count, query kind, and vector-search tags where applicable. Core query activities add parse, plan, execute, planner seed, estimated cost, row count, and object count tags without recording query text. Vector search activities include domain, search type, dimensions, filter presence, top-k, and result count. Vector index activities include index type, dirty state, used/skip reason, top-k, and result count. Transaction activities include operation count, success state, validation-failure state, rollback state, and failed operation index where applicable.
 
 Repository operation activities include provider, operation, transactional state, statement count, row count, success, and duration tags. They do not include SQL text.
+
+Core metrics:
+
+- `litegraph.repository.operations`
+- `litegraph.repository.operation.duration`
+- `litegraph.vector.searches`
+- `litegraph.vector.search.results`
+- `litegraph.vector.search.duration`
+- `litegraph.vector.index.mutation.failures`
+
+`litegraph.vector.index.mutation.failures` increments when a staged vector-index mutation fails after the database transaction has committed. It is tagged by repository provider, vector index type, and error type. A non-zero value means the database commit succeeded but the derived vector index was marked dirty and should be rebuilt before relying on indexed vector search latency or recall.
 
 Applications embedding LiteGraph can subscribe to the meter name:
 
@@ -502,6 +514,9 @@ Request history records include:
 - `RequestId`
 - `CorrelationId`
 - `TraceId`
+- `TransactionDiagnosticsJson` for graph transaction responses, including transaction ID, isolation, retry/conflict state, validation state, rollback state, and provider error code.
+
+Request history search accepts `hasTransactionDiagnostics=true|false` to include or exclude captured graph transaction rows, and `transactionId` to find entries by full or partial transaction ID.
 
 `GET /v1.0/requesthistory` supports these filters:
 

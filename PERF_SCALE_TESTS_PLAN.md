@@ -32,7 +32,7 @@ Use these checkbox meanings:
 | Phase 3: Metrics, telemetry, and reporting | Done | Codex | 2026-06-17 | 2026-06-17 | Added latency, throughput, process, storage, repository, vector, query profile, JSON, CSV, and Markdown reporting. |
 | Phase 4: Dataset generator | Done | Codex | 2026-06-17 | 2026-06-17 | Added deterministic dataset generation and topology support. |
 | Phase 5: Core CRUD, read, search, and paging workloads | Done | Codex | 2026-06-17 | 2026-06-17 | Added ingest, reads, search, enumeration, update, and delete scenarios. |
-| Phase 6: Traversal, query, vector, and transaction workloads | Done | Codex | 2026-06-17 | 2026-06-17 | Added traversal, native query, vector, vector index, transaction, and rollback scenarios. |
+| Phase 6: Traversal, query, vector, and transaction workloads | Done | Codex | 2026-06-17 | 2026-06-18 | Added traversal, native query, vector, vector index, transaction create, transaction create-update/read-your-writes, mixed child-object transaction, and rollback scenarios. |
 | Phase 7: Mixed load, stress, soak, and regression comparison | Done | Codex | 2026-06-17 | 2026-06-17 | Added mixed profiles, closed-loop/open-loop execution, concurrency ramps, soak duration support, and baseline comparison. |
 | Phase 8: User documentation in `PERF_SCALE_TESTING.md` | Done | Codex | 2026-06-17 | 2026-06-17 | Added CLI user guide with examples and artifact interpretation. |
 | Phase 9: Validation and polish | Done | Codex | 2026-06-17 | 2026-06-17 | Full solution build and focused smoke validations completed. |
@@ -47,10 +47,13 @@ Add dated evidence as work completes.
 | 2026-06-17 | Project | Added `Test.PerformanceAndScalability` to the solution. | `dotnet sln src/LiteGraph.sln add src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj` | Project targets `net8.0;net10.0`. |
 | 2026-06-17 | CLI | Verified redacted effective configuration. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net8.0 -- --dry-run true --workloads reads --duration 0.1 --warmup 0` | Dry-run succeeds. |
 | 2026-06-17 | Reads | Ran short SQLite read workload validation. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net8.0 -- --workloads reads --duration 0.2 --warmup 0 --capture-process-metrics false --output %TEMP%/litegraph-perfscale-validate` | Completed with zero failures/timeouts. |
-| 2026-06-17 | Transactions | Ran short SQLite transaction workload validation. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net8.0 -- --workloads transactions --duration 0.5 --warmup 0 --capture-process-metrics false --output %TEMP%/litegraph-perfscale-transactions2` | Completed with zero anomalies. |
+| 2026-06-17 | Transactions | Ran short SQLite transaction workload validation. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net8.0 -- --workloads transactions --duration 0.5 --warmup 0 --capture-process-metrics false --output %TEMP%/litegraph-perfscale-transactions2` | Completed with zero harness anomalies; this is performance harness smoke validation, not correctness acceptance. |
 | 2026-06-17 | Query/vector | Ran short SQLite query/vector validation with query profiles. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net8.0 -- --workloads query,vector --duration 0.5 --warmup 0 --capture-process-metrics false --include-query-profile true --output %TEMP%/litegraph-perfscale-vector-query` | Completed with zero anomalies. |
 | 2026-06-17 | All workloads | Ran compact all-workload SQLite smoke. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net8.0 -- --workloads all --duration 0.2 --warmup 0 --capture-process-metrics false --output %TEMP%/litegraph-perfscale-all` | Completed; tiny vector search window cancellation informed anomaly-rule refinement. |
 | 2026-06-17 | Build | Built full solution. | `dotnet build src/LiteGraph.sln` | Succeeded with 0 warnings and 0 errors. |
+| 2026-06-18 | Transactions | Added and validated read-your-writes and mixed child-object transaction scenarios. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net10.0 -- --workloads transactions --duration 0.2 --warmup 0 --capture-process-metrics false --output ./artifacts/perf-scale/validate-transactions-v70 --run-id validate-transactions-v70` | Completed four performance smoke scenarios with zero failures, timeouts, or sampled correctness anomalies; validation artifacts were removed. This does not satisfy v7 correctness/coherency acceptance. |
+| 2026-06-18 | Transactions | Added and validated transaction isolation CLI selection. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net10.0 -- --workloads transactions --duration 0.2 --warmup 0 --capture-process-metrics false --transaction-isolation serializable --output ./artifacts/perf-scale/validate-transactions-isolation-v70 --run-id validate-transactions-isolation-v70` | Completed four performance smoke scenarios with zero failures, timeouts, or sampled correctness anomalies; validation artifacts were removed. This does not satisfy v7 correctness/coherency acceptance. |
+| 2026-06-18 | Transactions | Added and validated transaction-specific artifact metrics. | `dotnet run --project src/Test.PerformanceAndScalability/Test.PerformanceAndScalability.csproj -f net10.0 -- --workloads transactions --duration 0.2 --warmup 0 --capture-process-metrics false --transaction-isolation serializable --output ./artifacts/perf-scale/validate-transaction-metrics-v70 --run-id validate-transaction-metrics-v70` | `report.md` contained a transaction summary table and provider notes; `summary.csv` included `tx_*` lifecycle, contention, isolation, gate, and latency columns; validation artifacts were removed. |
 
 ## Phase 0: Review And Scope Confirmation
 
@@ -96,7 +99,7 @@ Required CLI groups:
 - Provider: `--db-type`, `--connection-string`, `--sqlite-file`, `--in-memory`, `--host`, `--port`, `--database`, `--username`, `--password`, `--schema`, `--max-connections`, `--command-timeout-seconds`.
 - Run selection: `--profile`, `--workloads`, `--operation-mix`, `--scale-factor`, `--topology`.
 - Scale: `--tenants`, `--graphs-per-tenant`, `--nodes-per-graph`, `--edges-per-graph`, `--vectors-per-graph`, `--labels-per-node`, `--tags-per-node`, `--payload-size`, `--vector-dimensions`, `--vector-top-k`.
-- Load: `--concurrency`, `--duration`, `--warmup`, `--cooldown`, `--iterations`, `--target-rate`, `--closed-loop`, `--batch-size`, `--transaction-size`, `--timeout`, `--seed`.
+- Load: `--concurrency`, `--duration`, `--warmup`, `--cooldown`, `--iterations`, `--target-rate`, `--closed-loop`, `--batch-size`, `--transaction-size`, `--transaction-isolation`, `--timeout`, `--seed`.
 - Output: `--output`, `--run-id`, `--include-query-profile`, `--sample-correctness`, `--sample-rate`, `--capture-process-metrics`, `--capture-repository-telemetry`, `--capture-db-file-metrics`, `--keep-database`, `--fail-on-regression`, `--baseline`.
 
 Exit criteria:
@@ -420,7 +423,7 @@ Add notes here as design decisions are made.
 | --- | --- | --- | --- |
 | 2026-06-17 | Primary driver is in-process `LiteGraphClient`. | This isolates LiteGraph repository/client performance before adding HTTP or MCP transport overhead. | Codex |
 | 2026-06-17 | Expensive maintenance scenarios support run-once execution. | Vector index rebuild and flush should measure one operation cleanly instead of looping for an arbitrary duration. | Codex |
-| 2026-06-17 | Transaction workloads use minimal transaction payloads. | Existing transaction tests create minimal nodes through the builder; subordinate-heavy nodes are covered by non-transactional ingest/update workloads. | Codex |
+| 2026-06-18 | Transaction workloads cover create, read-your-writes update, mixed child attachments, and rollback. | This keeps per-operation setup small while exercising more transaction operation types and child-object paths inside the measured transaction. | Codex |
 
 ## Blockers
 

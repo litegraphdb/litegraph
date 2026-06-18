@@ -30,7 +30,7 @@
 	<ItemGroup>
 		<PackageReference Include="Caching" Version="5.0.0" />
 		<PackageReference Include="ExpressionTree" Version="1.1.2" />
-		<PackageReference Include="HnswLite" Version="1.1.2" />
+		<PackageReference Include="HnswLite" Version="2.0.1" />
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.6" />
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.6" />
 		<PackageReference Include="Npgsql" Version="10.0.2" />

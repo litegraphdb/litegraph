@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import RequestHistoryDetailModal from '@/page/request-history/RequestHistoryDetailModal';
 import { RequestHistoryEntry } from '@/lib/sdk/requestHistory';
 
@@ -18,6 +18,8 @@ jest.mock('@/lib/sdk/requestHistory', () => {
       ResponseHeaders: { 'Content-Type': 'application/json' },
       RequestBody: null,
       ResponseBody: '{}',
+      TransactionDiagnosticsJson:
+        '{"TransactionId":"11111111-1111-1111-1111-111111111111","OperationCount":2}',
     }),
   };
 });
@@ -36,6 +38,8 @@ const requestEntry: RequestHistoryEntry = {
   RequestBodyTruncated: false,
   ResponseBodyTruncated: false,
   SourceIp: '2001:db8:85a3::8a2e:370:7334',
+  TransactionDiagnosticsJson:
+    '{"TransactionId":"11111111-1111-1111-1111-111111111111","OperationCount":2}',
 };
 
 describe('RequestHistoryDetailModal', () => {
@@ -55,6 +59,8 @@ describe('RequestHistoryDetailModal', () => {
     expect(screen.getByTestId('request-detail-time').style.whiteSpace).toBe('nowrap');
     expect(screen.getByTestId('request-detail-source-ip').style.whiteSpace).toBe('nowrap');
     expect(screen.getByTestId('request-detail-source-ip')).toHaveTextContent(requestEntry.SourceIp!);
+    fireEvent.click(screen.getByText('Transaction Diagnostics'));
+    expect(screen.getByText(/11111111-1111-1111-1111-111111111111/)).toBeInTheDocument();
     expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('1688px');
     expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain(
       'calc(100vw - 32px)'

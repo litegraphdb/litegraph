@@ -173,6 +173,18 @@ namespace LiteGraph
             _TimingCapture.Value?.AddTransaction(durationMs);
         }
 
+        internal static void RecordVectorIndexMutationFailure(string provider, string indexType, string errorType)
+        {
+            KeyValuePair<string, object>[] tags =
+            {
+                new KeyValuePair<string, object>("litegraph.repository.provider", provider ?? "unknown"),
+                new KeyValuePair<string, object>("litegraph.vector.index.type", indexType ?? "unknown"),
+                new KeyValuePair<string, object>("litegraph.vector.index.error_type", errorType ?? "unknown")
+            };
+
+            _VectorIndexMutationFailureCounter.Add(1, tags);
+        }
+
         #endregion
 
         #region Private-Members
@@ -203,6 +215,11 @@ namespace LiteGraph
             "litegraph.vector.search.duration",
             "ms",
             "Vector search duration in milliseconds.");
+
+        private static readonly Counter<long> _VectorIndexMutationFailureCounter = Meter.CreateCounter<long>(
+            "litegraph.vector.index.mutation.failures",
+            "failures",
+            "Total vector index mutation failures after database commit.");
 
         #endregion
     }

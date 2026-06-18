@@ -114,6 +114,11 @@ namespace LiteGraph
         /// </summary>
         public string ResponseContentType { get; set; } = null;
 
+        /// <summary>
+        /// Compact transaction diagnostics JSON captured from graph transaction responses, if applicable.
+        /// </summary>
+        public string TransactionDiagnosticsJson { get; set; } = null;
+
         #endregion
 
         #region Constructors-and-Factories

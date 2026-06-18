@@ -1,6 +1,7 @@
 const graphTransactionTemplate = {
   MaxOperations: 1000,
   TimeoutSeconds: 60,
+  IsolationLevel: 'Default',
   Operations: [
     {
       OperationType: 'Create',

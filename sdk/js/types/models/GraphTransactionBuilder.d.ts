@@ -4,9 +4,11 @@ export default class GraphTransactionBuilder {
     graphGuid: any;
     maxOperations: any;
     timeoutSeconds: any;
+    isolationLevel: any;
     operations: any[];
     withMaxOperations(maxOperations: any): this;
     withTimeoutSeconds(timeoutSeconds: any): this;
+    withIsolationLevel(isolationLevel: any): this;
     add(operation: any): this;
     create(objectType: any, payload: any): this;
     update(objectType: any, payload: any, guid?: any): this;
@@ -43,6 +45,7 @@ export default class GraphTransactionBuilder {
     build(): {
         MaxOperations: any;
         TimeoutSeconds: any;
+        IsolationLevel: any;
         Operations: any[];
     };
     execute(cancellationToken: any): Promise<any>;

@@ -4026,8 +4026,59 @@ namespace Test.Shared
             AssertNotNull(result, "Transaction result should deserialize");
             AssertTrue(result!.Success, "Transaction should commit");
             AssertFalse(result.RolledBack, "Committed transaction should not roll back");
+            AssertFalse(result.ValidationFailure, "Committed transaction should not be validation failure");
+            AssertFalse(result.TransactionId == Guid.Empty, "Committed transaction should include transaction ID");
             AssertEqual(1, result.Operations.Count, "Transaction operation count");
             AssertEqual(nodeGuid, result.Operations[0].GUID.GetValueOrDefault(), "Created node GUID");
+
+            Guid directNodeGuid = Guid.NewGuid();
+            string directResultJson = await _McpClient.CallAsync<string>("graph/transaction", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                maxOperations = 5,
+                isolationLevel = "Serializable",
+                operations = new object[]
+                {
+                    new
+                    {
+                        OperationType = "Create",
+                        ObjectType = "Node",
+                        Payload = new
+                        {
+                            GUID = directNodeGuid,
+                            Name = "MCP Direct Transaction Node"
+                        }
+                    }
+                }
+            });
+
+            TransactionResult? directResult = _McpSerializer.DeserializeJson<TransactionResult>(directResultJson);
+            AssertNotNull(directResult, "Direct transaction result should deserialize");
+            AssertTrue(directResult!.Success, "Direct transaction should commit");
+            AssertEqual("Serializable", directResult.IsolationLevel, "Direct transaction isolation level");
+            AssertEqual(directNodeGuid, directResult.Operations[0].GUID.GetValueOrDefault(), "Direct transaction created node GUID");
+
+            string invalidResultJson = await _McpClient.CallAsync<string>("graph/transaction", new
+            {
+                tenantGuid = _McpTestTenantGuid.ToString(),
+                graphGuid = _McpTestGraphGuid.ToString(),
+                operations = new object[]
+                {
+                    new
+                    {
+                        OperationType = "Delete",
+                        ObjectType = "Node"
+                    }
+                }
+            });
+
+            TransactionResult? invalidResult = _McpSerializer.DeserializeJson<TransactionResult>(invalidResultJson);
+            AssertNotNull(invalidResult, "Invalid transaction result should deserialize");
+            AssertFalse(invalidResult!.Success, "Invalid transaction should fail");
+            AssertTrue(invalidResult.ValidationFailure, "Invalid transaction should report validation failure");
+            AssertFalse(invalidResult.RolledBack, "Invalid transaction should not roll back before transaction start");
+            AssertEqual(0, invalidResult.FailedOperationIndex.GetValueOrDefault(), "Invalid transaction failed operation index");
 
             string nodeJson = await _McpClient.CallAsync<string>("node/get", new
             {

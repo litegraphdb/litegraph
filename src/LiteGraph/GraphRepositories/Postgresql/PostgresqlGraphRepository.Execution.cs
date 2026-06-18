@@ -6,21 +6,11 @@ namespace LiteGraph.GraphRepositories.Postgresql
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Indexing.Vector;
     using Npgsql;
 
     public partial class PostgresqlGraphRepository
     {
-        internal void NoteVectorIndexMutation(Guid tenantGuid, Guid graphGuid, string reason)
-        {
-            lock (_QueryLock)
-            {
-                if (_Transaction == null) return;
-                if (_GraphTransactionTenantGUID != tenantGuid || _GraphTransactionGraphGUID != graphGuid) return;
-
-                _GraphTransactionVectorIndexTouched = true;
-            }
-        }
-
         internal void NoteVectorIndexFailure(Guid tenantGuid, Guid graphGuid, string reason)
         {
             lock (_QueryLock)
@@ -30,6 +20,24 @@ namespace LiteGraph.GraphRepositories.Postgresql
 
                 _GraphTransactionVectorIndexFailed = true;
                 _GraphTransactionVectorIndexDirtyReason = reason;
+            }
+        }
+
+        internal bool TryStageVectorIndexMutation(
+            Graph graph,
+            string dirtyReason,
+            Func<IVectorIndex, Task> mutation)
+        {
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+
+            lock (_QueryLock)
+            {
+                if (_Transaction == null) return false;
+                if (_GraphTransactionTenantGUID != graph.TenantGUID || _GraphTransactionGraphGUID != graph.GUID) return false;
+
+                _GraphTransactionVectorIndexMutations.Add(new GraphTransactionVectorIndexMutation(graph, dirtyReason, mutation));
+                return true;
             }
         }
 

@@ -167,10 +167,11 @@ export default class SdkBase {
      * @param {Object|string} data - The data to send in the POST request.
      * @param {Class} model - Modal to deserialize on
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @param {number[]} [acceptedStatusCodes] - Additional HTTP status codes to deserialize as successful responses.
      * @return {Promise<Object>} Resolves with the response data.
      * @throws {Error} Rejects if the URL or data is invalid or if the request fails.
      */
-    post(url: string, data: any | string, model: Class, cancellationToken?: AbortController): Promise<any>;
+    post(url: string, data: any | string, model: Class, cancellationToken?: AbortController, acceptedStatusCodes?: number[]): Promise<any>;
     /**
      * Sends a DELETE request to remove an object at a given URL.
      * @param {string} url - The URL of the object to delete.

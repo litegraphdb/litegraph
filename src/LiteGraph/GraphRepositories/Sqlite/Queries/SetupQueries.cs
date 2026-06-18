@@ -380,7 +380,8 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 + "requestheadersjson TEXT, "
                 + "requestbodyb64 TEXT, "
                 + "responseheadersjson TEXT, "
-                + "responsebodyb64 TEXT "
+                + "responsebodyb64 TEXT, "
+                + "transactiondiagnosticsjson TEXT "
                 + ");");
 
             sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_requesthistory_guid' ON 'requesthistory' (guid ASC);");

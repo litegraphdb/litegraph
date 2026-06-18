@@ -216,6 +216,24 @@ dotnet run --project src/Test.PerformanceAndScalability -- --workloads transacti
 dotnet run --project src/Test.PerformanceAndScalability -- --workloads transactions --transaction-size 100
 ```
 
+Select a transaction isolation level for transaction workloads:
+
+```powershell
+dotnet run --project src/Test.PerformanceAndScalability -- --workloads transactions --transaction-isolation serializable
+dotnet run --project src/Test.PerformanceAndScalability -- --db-type postgresql --connection-string "<redacted>" --workloads transactions --transaction-isolation repeatable-read
+```
+
+SQLite supports `default` and `serializable`. PostgreSQL supports `default`, `read-committed`, `repeatable-read`, and `serializable`.
+
+The `transactions` workload currently includes:
+
+- `transaction.create.nodes`: creates new nodes in graph-scoped transactions.
+- `transaction.create-update.nodes`: creates nodes and updates them in the same transaction to exercise read-your-writes behavior.
+- `transaction.mixed.children`: creates nodes and attaches labels, tags, and vectors in the same transaction.
+- `transaction.rollback`: forces a rollback and verifies partial state is not committed.
+
+Transaction runs add transaction-specific columns to `summary.csv` and `operations.csv`, and a transaction summary table to `report.md`. Use these fields to compare transaction start, commit, rollback, conflict, and retry rates across concurrency ramps, and to confirm whether transactions used isolated repository state or the serialized compatibility gate.
+
 ## Vector Tests
 
 Run vector search and index workloads:
@@ -347,6 +365,14 @@ Repository telemetry:
 - High statement counts per operation point to chatty storage access.
 - High row counts with low result counts point to poor selectivity or unnecessary scans.
 - High repository duration with low CPU can indicate storage waits, locks, or connection pool pressure.
+
+Transaction metrics:
+
+- `tx_started_per_sec`, `tx_commits_per_sec`, and `tx_rollbacks_per_sec` show transaction lifecycle throughput.
+- `tx_conflicts_per_sec`, `tx_retry_count`, and `tx_retryable` show provider-level contention or retryable failures.
+- `tx_isolated_repository` should increase with transaction count on providers that support isolated transaction state.
+- `tx_serialized_by_gate` should remain zero for providers expected to support parallel transaction scaling.
+- `tx_commit_p95_ms` and `tx_rollback_p95_ms` isolate commit and rollback tail latency from total operation latency.
 
 Query profiles:
 

@@ -112,7 +112,7 @@ namespace Test.PerformanceAndScalability
         private static async Task WriteScenarioCsvAsync(string path, IReadOnlyList<ScenarioResult> results)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("scenario,category,iteration,concurrency,open_loop,target_rate,duration_ms,attempted,completed,failed,timed_out,canceled,incorrect,items,result_count,ops_per_sec,items_per_sec,p50_ms,p95_ms,p99_ms,p999_ms,max_ms,allocated_bytes,gen0,gen1,gen2,working_set_delta_bytes,error_sample");
+            sb.AppendLine("scenario,category,iteration,concurrency,open_loop,target_rate,duration_ms,attempted,completed,failed,timed_out,canceled,incorrect,items,result_count,ops_per_sec,items_per_sec,p50_ms,p95_ms,p99_ms,p999_ms,max_ms,allocated_bytes,gen0,gen1,gen2,working_set_delta_bytes,tx_started,tx_started_per_sec,tx_committed,tx_commits_per_sec,tx_rolled_back,tx_rollbacks_per_sec,tx_validation_failures,tx_retryable,tx_conflicts,tx_conflicts_per_sec,tx_retry_count,tx_operation_count,tx_isolated_repository,tx_serialized_by_gate,tx_duration_p95_ms,tx_commit_p95_ms,tx_rollback_p95_ms,error_sample");
             foreach (ScenarioResult r in results)
             {
                 sb.AppendCsv(r.Scenario)
@@ -142,6 +142,23 @@ namespace Test.PerformanceAndScalability
                     .AppendCsv(r.ProcessDelta.Gen1Collections)
                     .AppendCsv(r.ProcessDelta.Gen2Collections)
                     .AppendCsv(r.ProcessDelta.WorkingSetDeltaBytes)
+                    .AppendCsv(r.TransactionMetrics.Started)
+                    .AppendCsv(r.TransactionMetrics.StartsPerSecond)
+                    .AppendCsv(r.TransactionMetrics.Committed)
+                    .AppendCsv(r.TransactionMetrics.CommitsPerSecond)
+                    .AppendCsv(r.TransactionMetrics.RolledBack)
+                    .AppendCsv(r.TransactionMetrics.RollbacksPerSecond)
+                    .AppendCsv(r.TransactionMetrics.ValidationFailures)
+                    .AppendCsv(r.TransactionMetrics.Retryable)
+                    .AppendCsv(r.TransactionMetrics.ConcurrencyConflicts)
+                    .AppendCsv(r.TransactionMetrics.ConflictsPerSecond)
+                    .AppendCsv(r.TransactionMetrics.RetryCount)
+                    .AppendCsv(r.TransactionMetrics.OperationCount)
+                    .AppendCsv(r.TransactionMetrics.IsolatedRepository)
+                    .AppendCsv(r.TransactionMetrics.SerializedByGate)
+                    .AppendCsv(r.TransactionMetrics.TransactionLatency.P95Ms)
+                    .AppendCsv(r.TransactionMetrics.CommitLatency.P95Ms)
+                    .AppendCsv(r.TransactionMetrics.RollbackLatency.P95Ms)
                     .AppendCsvLast(r.ErrorSample);
             }
 
@@ -279,6 +296,33 @@ namespace Test.PerformanceAndScalability
                 sb.AppendLine("| `" + r.Scenario + "` | " + r.Category + " | " + r.Concurrency + " | " + Format(r.OperationsPerSecond) + " | " + Format(r.Latency.P50Ms) + " | " + Format(r.Latency.P95Ms) + " | " + Format(r.Latency.P99Ms) + " | " + r.Failed + " | " + r.TimedOut + " | " + r.Incorrect + " |");
             }
 
+            List<ScenarioResult> transactionRows = run.Results.Where(r => r.TransactionMetrics.Started > 0).ToList();
+            if (transactionRows.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("## Transaction Summary");
+                sb.AppendLine();
+                sb.AppendLine("| Scenario | C | Tx/s | Commit/s | Rollback/s | Conflicts/s | Retries | Ops | Isolated | Gate | Tx P95 ms | Commit P95 ms | Rollback P95 ms |");
+                sb.AppendLine("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
+                foreach (ScenarioResult r in transactionRows.OrderBy(r => r.Scenario))
+                {
+                    TransactionMetricSummary t = r.TransactionMetrics;
+                    sb.AppendLine("| `" + r.Scenario + "` | " + r.Concurrency + " | " + Format(t.StartsPerSecond) + " | " + Format(t.CommitsPerSecond) + " | " + Format(t.RollbacksPerSecond) + " | " + Format(t.ConflictsPerSecond) + " | " + t.RetryCount + " | " + t.OperationCount + " | " + t.IsolatedRepository + " | " + t.SerializedByGate + " | " + Format(t.TransactionLatency.P95Ms) + " | " + Format(t.CommitLatency.P95Ms) + " | " + Format(t.RollbackLatency.P95Ms) + " |");
+                }
+            }
+
+            List<string> providerNotes = BuildProviderNotes(run);
+            if (providerNotes.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("## Provider Notes");
+                sb.AppendLine();
+                foreach (string note in providerNotes)
+                {
+                    sb.AppendLine("- " + note);
+                }
+            }
+
             sb.AppendLine();
             sb.AppendLine("## Top Repository Time");
             sb.AppendLine();
@@ -306,6 +350,54 @@ namespace Test.PerformanceAndScalability
         private static string Format(double value)
         {
             return value.ToString("F2", CultureInfo.InvariantCulture);
+        }
+
+        private static List<string> BuildProviderNotes(BenchmarkRunSummary run)
+        {
+            List<string> notes = new List<string>();
+            bool hasTransactionWorkloads = run.Results.Any(r =>
+                string.Equals(r.Category, "transactions", StringComparison.OrdinalIgnoreCase)
+                || r.Scenario.StartsWith("transaction.", StringComparison.OrdinalIgnoreCase));
+
+            if (!hasTransactionWorkloads) return notes;
+
+            string provider = GetConfigurationValue(run.Configuration, "DbType")
+                ?? run.Results.SelectMany(r => r.RepositoryTelemetry)
+                    .Select(r => r.Provider)
+                    .FirstOrDefault(p => !string.IsNullOrWhiteSpace(p))
+                ?? "unknown";
+            string isolation = GetConfigurationValue(run.Configuration, "TransactionIsolation") ?? "Default";
+
+            notes.Add("Transaction isolation requested by this run: `" + isolation + "`.");
+
+            if (provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase)
+                || provider.Equals("SQLite", StringComparison.OrdinalIgnoreCase))
+            {
+                notes.Add("SQLite transaction results should be read as correctness and contention behavior. File-level locking can limit write scaling even when LiteGraph uses isolated transaction repository state.");
+            }
+            else if (provider.Equals("Postgresql", StringComparison.OrdinalIgnoreCase)
+                || provider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase)
+                || provider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
+            {
+                notes.Add("PostgreSQL transaction results are the primary signal for true parallel write scaling. Compare concurrency ramps for throughput growth, p95/p99 latency, retryable conflicts, and absence of serialized-gate queueing.");
+            }
+            else
+            {
+                notes.Add("Validate provider transaction semantics before treating transaction throughput as a scalability signal.");
+            }
+
+            return notes;
+        }
+
+        private static string? GetConfigurationValue(object? configuration, string propertyName)
+        {
+            if (configuration == null) return null;
+            object value = configuration;
+            object? nested = value.GetType().GetProperty("Value")?.GetValue(value);
+            if (nested != null) value = nested;
+
+            object? propertyValue = value.GetType().GetProperty(propertyName)?.GetValue(value);
+            return propertyValue?.ToString();
         }
     }
 

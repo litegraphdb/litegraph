@@ -136,14 +136,29 @@
                         executeAsync: TestGraphTransactionClientTimeout),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Diagnostics.ProviderErrors",
+                        displayName: "Graph transaction diagnostics classify provider concurrency errors",
+                        executeAsync: TestGraphTransactionProviderErrorDiagnostics),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Client.ActiveGuard",
-                        displayName: "Graph transaction client rejects accidental nested or concurrent mutations",
+                        displayName: "Graph query mutations reject active ambient repository transactions",
                         executeAsync: TestGraphTransactionClientActiveGuard),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Client.ConcurrentQueue",
-                        displayName: "Graph transaction client serializes concurrent operation lists",
+                        displayName: "Graph transaction client commits concurrent operation lists",
                         executeAsync: TestGraphTransactionClientConcurrentQueue),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Client.IsolatedParallelExecution",
+                        displayName: "Graph transaction client runs isolated provider transactions in parallel",
+                        executeAsync: TestGraphTransactionClientIsolatedParallelExecution),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Query.IsolatedParallelExecution",
+                        displayName: "Graph query mutations run isolated provider transactions in parallel",
+                        executeAsync: TestGraphQueryIsolatedParallelExecution),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
                         caseId: "Credentials.Scoped.Persistence",
@@ -635,6 +650,45 @@
             AssertEqual(408, timeout.StatusCode, "Request timeout HTTP status");
             AssertTrue(timeout.Message.Contains("timed out", StringComparison.OrdinalIgnoreCase), "Request timeout message");
 
+            AssertEqual(1000, settings.LiteGraph.Transactions.MaxOperations, "Default transaction max operations");
+            AssertEqual(60, settings.LiteGraph.Transactions.MaxTimeoutSeconds, "Default transaction max timeout");
+
+            settings.LiteGraph.Transactions.MaxOperations = 1;
+            AssertEqual(1, settings.LiteGraph.Transactions.MaxOperations, "Minimum transaction max operations");
+
+            settings.LiteGraph.Transactions.MaxOperations = 10000;
+            AssertEqual(10000, settings.LiteGraph.Transactions.MaxOperations, "Maximum transaction max operations");
+
+            settings.LiteGraph.Transactions.MaxTimeoutSeconds = 1;
+            AssertEqual(1, settings.LiteGraph.Transactions.MaxTimeoutSeconds, "Minimum transaction max timeout");
+
+            settings.LiteGraph.Transactions.MaxTimeoutSeconds = 3600;
+            AssertEqual(3600, settings.LiteGraph.Transactions.MaxTimeoutSeconds, "Maximum transaction max timeout");
+
+            bool rejectedTransactionOperationZero = false;
+            try
+            {
+                settings.LiteGraph.Transactions.MaxOperations = 0;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                rejectedTransactionOperationZero = true;
+            }
+
+            AssertTrue(rejectedTransactionOperationZero, "Transaction max operations rejects zero");
+
+            bool rejectedTransactionTimeoutTooLarge = false;
+            try
+            {
+                settings.LiteGraph.Transactions.MaxTimeoutSeconds = 3601;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                rejectedTransactionTimeoutTooLarge = true;
+            }
+
+            AssertTrue(rejectedTransactionTimeoutTooLarge, "Transaction max timeout rejects values above one hour");
+
             Type? constantsType = typeof(Settings).Assembly.GetType("LiteGraph.Server.Classes.Constants");
             AssertNotNull(constantsType, "Server constants type exists");
             if (constantsType == null) throw new InvalidOperationException("Server constants type was not found.");
@@ -645,6 +699,41 @@
 
             object? envValue = envField.GetValue(null);
             AssertEqual("LITEGRAPH_REQUEST_TIMEOUT_SECONDS", envValue as string, "Request timeout environment variable name");
+
+            FieldInfo? transactionMaxOperationsEnvField = constantsType.GetField("TransactionMaxOperationsEnvironmentVariable", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            AssertNotNull(transactionMaxOperationsEnvField, "Transaction max operations environment variable constant exists");
+            if (transactionMaxOperationsEnvField == null) throw new InvalidOperationException("Transaction max operations environment variable constant was not found.");
+            AssertEqual("LITEGRAPH_TRANSACTION_MAX_OPERATIONS", transactionMaxOperationsEnvField.GetValue(null) as string, "Transaction max operations environment variable name");
+
+            FieldInfo? transactionMaxTimeoutEnvField = constantsType.GetField("TransactionMaxTimeoutEnvironmentVariable", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            AssertNotNull(transactionMaxTimeoutEnvField, "Transaction max timeout environment variable constant exists");
+            if (transactionMaxTimeoutEnvField == null) throw new InvalidOperationException("Transaction max timeout environment variable constant was not found.");
+            AssertEqual("LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS", transactionMaxTimeoutEnvField.GetValue(null) as string, "Transaction max timeout environment variable name");
+
+            Type? handlerType = typeof(Settings).Assembly.GetType("LiteGraph.Server.API.REST.RestServiceHandler");
+            AssertNotNull(handlerType, "REST service handler type exists");
+            if (handlerType == null) throw new InvalidOperationException("REST service handler type was not found.");
+
+            MethodInfo? limitMethod = handlerType.GetMethod("ApplyTransactionServerLimits", BindingFlags.Static | BindingFlags.NonPublic);
+            AssertNotNull(limitMethod, "Transaction server limit helper exists");
+            if (limitMethod == null) throw new InvalidOperationException("Transaction server limit helper was not found.");
+
+            TransactionRequest transactionRequest = new TransactionRequest
+            {
+                MaxOperations = 100,
+                TimeoutSeconds = 120
+            };
+            limitMethod.Invoke(null, new object[]
+            {
+                transactionRequest,
+                new TransactionSettings
+                {
+                    MaxOperations = 10,
+                    MaxTimeoutSeconds = 30
+                }
+            });
+            AssertEqual(10, transactionRequest.MaxOperations, "Transaction max operations is capped by server settings");
+            AssertEqual(30, transactionRequest.TimeoutSeconds, "Transaction timeout is capped by server settings");
 
             string restHandler = File.ReadAllText(ResolveRepositoryFile("src", "LiteGraph.Server", "API", "REST", "RestServiceHandler.cs"));
             string authorizationHandler = File.ReadAllText(ResolveRepositoryFile("src", "LiteGraph.Server", "API", "REST", "RestServiceHandler.Authorization.cs"));
@@ -8937,6 +9026,19 @@
 
                 AssertTrue(committed.Success, "Transaction committed");
                 AssertEqual(3, committed.Operations.Count, "Committed operation count");
+                AssertEqual(3, committed.OperationCount, "Committed diagnostic operation count");
+                AssertFalse(committed.TransactionId == Guid.Empty, "Committed transaction has diagnostic ID");
+                AssertTrue(committed.StartedUtc > DateTime.MinValue, "Committed transaction has start timestamp");
+                AssertTrue(committed.CompletedUtc >= committed.StartedUtc, "Committed transaction has completion timestamp");
+                AssertTrue(committed.DurationMs >= 0, "Committed transaction duration is recorded");
+                AssertTrue(committed.CommitDurationMs >= 0, "Committed transaction commit duration is recorded");
+                AssertEqual("Sqlite", committed.Provider, "Committed transaction provider");
+                AssertEqual("Default", committed.IsolationLevel, "Committed transaction isolation level");
+                AssertTrue(committed.IsolatedRepository, "Committed transaction used isolated repository");
+                AssertFalse(committed.SerializedByGate, "Committed transaction did not use legacy gate");
+                AssertEqual(0, committed.RetryCount, "Committed transaction retry count");
+                AssertFalse(committed.Retryable, "Committed transaction is not retryable");
+                AssertFalse(committed.ConcurrencyConflict, "Committed transaction is not a concurrency conflict");
                 AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, node1Guid, cancellationToken).ConfigureAwait(false), "Committed node 1 exists");
                 AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, edgeGuid, cancellationToken).ConfigureAwait(false), "Committed edge exists");
 
@@ -8966,6 +9068,11 @@
 
                 AssertFalse(rolledBack.Success, "Transaction rolled back");
                 AssertTrue(rolledBack.RolledBack, "Rollback flag");
+                AssertFalse(rolledBack.TransactionId == Guid.Empty, "Rolled back transaction has diagnostic ID");
+                AssertEqual(2, rolledBack.OperationCount, "Rolled back diagnostic operation count");
+                AssertTrue(rolledBack.RollbackDurationMs >= 0, "Rolled back transaction rollback duration is recorded");
+                AssertEqual("Sqlite", rolledBack.Provider, "Rolled back transaction provider");
+                AssertTrue(rolledBack.IsolatedRepository, "Rolled back transaction used isolated repository");
                 AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, rollbackNodeGuid, cancellationToken).ConfigureAwait(false), "Rolled back node does not exist");
             }
 
@@ -8994,6 +9101,7 @@
                     .CreateRequestBuilder()
                     .WithMaxOperations(10)
                     .WithTimeoutSeconds(30)
+                    .WithIsolationLevel(TransactionIsolationLevelEnum.Serializable)
                     .CreateNode(new Node { GUID = node1Guid, Name = "Builder Node 1" })
                     .CreateNode(new Node { GUID = node2Guid, Name = "Builder Node 2" })
                     .CreateEdge(new Edge { GUID = edgeGuid, Name = "Builder Edge", From = node1Guid, To = node2Guid })
@@ -9002,6 +9110,7 @@
                 AssertEqual(3, createRequest.Operations.Count, "Builder create operation count");
                 AssertEqual(10, createRequest.MaxOperations, "Builder max operations");
                 AssertEqual(30, createRequest.TimeoutSeconds, "Builder timeout");
+                AssertEqual(TransactionIsolationLevelEnum.Serializable, createRequest.IsolationLevel, "Builder isolation level");
 
                 TransactionResult created = await client.Transaction.Execute(
                     tenant.GUID,
@@ -9010,6 +9119,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertTrue(created.Success, "Builder create transaction committed");
+                AssertEqual("Serializable", created.IsolationLevel, "Builder transaction result isolation level");
                 AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, node1Guid, cancellationToken).ConfigureAwait(false), "Builder node 1 exists");
                 AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, edgeGuid, cancellationToken).ConfigureAwait(false), "Builder edge exists");
 
@@ -9159,9 +9269,10 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(invalidAttach.Success, "Invalid attach transaction fails");
-                AssertTrue(invalidAttach.RolledBack, "Invalid attach rolls back");
+                AssertFalse(invalidAttach.RolledBack, "Invalid attach fails before transaction start");
+                AssertTrue(invalidAttach.ValidationFailure, "Invalid attach reports validation failure");
                 AssertEqual(1, invalidAttach.FailedOperationIndex.GetValueOrDefault(), "Invalid attach failed index");
-                AssertFalse(await client.Label.ExistsByGuid(tenant.GUID, invalidLabelGuid, cancellationToken).ConfigureAwait(false), "Invalid attach rollback removed label");
+                AssertFalse(await client.Label.ExistsByGuid(tenant.GUID, invalidLabelGuid, cancellationToken).ConfigureAwait(false), "Invalid attach did not write label");
             }
 
             DeleteFileIfExists(filename);
@@ -9238,7 +9349,8 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(invalidShape.Success, "Invalid transaction shape fails");
-                AssertTrue(invalidShape.RolledBack, "Invalid transaction shape reports rollback");
+                AssertFalse(invalidShape.RolledBack, "Invalid transaction shape does not report rollback before transaction start");
+                AssertTrue(invalidShape.ValidationFailure, "Invalid transaction shape reports validation failure");
                 AssertTrue(invalidShape.FailedOperationIndex != null, "Invalid transaction shape includes failed index");
                 AssertEqual(1, invalidShape.FailedOperationIndex.GetValueOrDefault(), "Invalid transaction shape failed index");
                 AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, prevalidationNodeGuid, cancellationToken).ConfigureAwait(false), "Prevalidated transaction does not write earlier operations");
@@ -9361,7 +9473,8 @@
                         cancelled.Token).ConfigureAwait(false);
 
                     AssertFalse(result.Success, "Cancelled transaction fails");
-                    AssertTrue(result.RolledBack, "Cancelled transaction reports rollback");
+                    AssertFalse(result.RolledBack, "Cancelled transaction does not report rollback before transaction start");
+                    AssertFalse(result.ValidationFailure, "Cancelled transaction is not validation failure");
                     AssertTrue(result.Error.Contains("canceled") || result.Error.Contains("cancelled"), "Cancelled transaction error indicates cancellation");
                 }
 
@@ -9411,63 +9524,54 @@
             }
         }
 
+        private static Task TestGraphTransactionProviderErrorDiagnostics(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            AssertProviderErrorDiagnostics("40001", true, true, "PostgreSQL serialization failure");
+            AssertProviderErrorDiagnostics("40P01", true, true, "PostgreSQL deadlock detected");
+            AssertProviderErrorDiagnostics("55P03", true, true, "PostgreSQL lock not available");
+            AssertProviderErrorDiagnostics("23505", false, false, "PostgreSQL unique violation");
+
+            return Task.CompletedTask;
+        }
+
+        private static void AssertProviderErrorDiagnostics(
+            string providerCode,
+            bool expectedRetryable,
+            bool expectedConcurrencyConflict,
+            string context)
+        {
+            TransactionResult result = new TransactionResult();
+            MethodInfo? applyDiagnostics = typeof(LiteGraph.Client.Implementations.TransactionMethods).GetMethod(
+                "ApplyProviderErrorDiagnostics",
+                BindingFlags.NonPublic | BindingFlags.Static);
+
+            AssertNotNull(applyDiagnostics, "Transaction diagnostics helper");
+            applyDiagnostics!.Invoke(null, new object[] { result, new SyntheticProviderException(providerCode) });
+
+            AssertEqual(providerCode, result.ProviderErrorCode, context + " provider error code");
+            AssertEqual(expectedRetryable, result.Retryable, context + " retryable flag");
+            AssertEqual(expectedConcurrencyConflict, result.ConcurrencyConflict, context + " concurrency-conflict flag");
+        }
+
         private static async Task TestGraphTransactionClientActiveGuard(CancellationToken cancellationToken)
         {
-            string filename = "test-improvements-transaction-client-active-guard.db";
-            DeleteFileIfExists(filename);
-
-            using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
-            {
-                Filename = filename
-            }))
+            using (GraphRepositoryBase repo = new TransactionTimeoutRepository(TimeSpan.Zero))
             using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
             {
-                client.InitializeRepository();
-                TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Active Guard Tenant" }, cancellationToken).ConfigureAwait(false);
-                Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Active Guard Graph" }, cancellationToken).ConfigureAwait(false);
+                Guid tenantGuid = Guid.NewGuid();
+                Guid graphGuid = Guid.NewGuid();
 
-                Guid heldNodeGuid = Guid.NewGuid();
-                Guid rejectedTransactionNodeGuid = Guid.NewGuid();
-
-                await repo.BeginGraphTransaction(tenant.GUID, graph.GUID, cancellationToken).ConfigureAwait(false);
+                await repo.BeginGraphTransaction(tenantGuid, graphGuid, cancellationToken).ConfigureAwait(false);
 
                 try
                 {
-                    await repo.Node.Create(new Node
-                    {
-                        GUID = heldNodeGuid,
-                        TenantGUID = tenant.GUID,
-                        GraphGUID = graph.GUID,
-                        Name = "Held Transaction Node"
-                    }, cancellationToken).ConfigureAwait(false);
-
-                    TransactionResult rejectedTransaction = await client.Transaction.Execute(
-                        tenant.GUID,
-                        graph.GUID,
-                        new TransactionRequest
-                        {
-                            Operations = new List<TransactionOperation>
-                            {
-                                new TransactionOperation
-                                {
-                                    OperationType = TransactionOperationTypeEnum.Create,
-                                    ObjectType = TransactionObjectTypeEnum.Node,
-                                    Payload = new Node { GUID = rejectedTransactionNodeGuid, Name = "Rejected Transaction Node" }
-                                }
-                            }
-                        },
-                        cancellationToken).ConfigureAwait(false);
-
-                    AssertFalse(rejectedTransaction.Success, "Active transaction guard rejects transaction API call");
-                    AssertTrue(rejectedTransaction.RolledBack, "Rejected transaction reports rollback");
-                    AssertTrue(rejectedTransaction.Error.Contains("already active"), "Rejected transaction names active transaction");
-                    AssertTrue(repo.GraphTransactionActive, "Rejected transaction API call leaves existing transaction active");
-
                     try
                     {
                         await client.Query.Execute(
-                            tenant.GUID,
-                            graph.GUID,
+                            tenantGuid,
+                            graphGuid,
                             new GraphQueryRequest
                             {
                                 Query = "CREATE (n:Blocked { name: $name }) RETURN n",
@@ -9493,13 +9597,10 @@
                         await repo.RollbackGraphTransaction(CancellationToken.None).ConfigureAwait(false);
                 }
 
-                AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, heldNodeGuid, cancellationToken).ConfigureAwait(false), "Outer rollback removes held transaction node");
-                AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, rejectedTransactionNodeGuid, cancellationToken).ConfigureAwait(false), "Rejected transaction node was never written");
-
                 Guid subsequentNodeGuid = Guid.NewGuid();
                 TransactionResult subsequent = await client.Transaction.Execute(
-                    tenant.GUID,
-                    graph.GUID,
+                    tenantGuid,
+                    graphGuid,
                     new TransactionRequest
                     {
                         Operations = new List<TransactionOperation>
@@ -9515,10 +9616,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertTrue(subsequent.Success, "Transaction API works after active guard rollback");
-                AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, subsequentNodeGuid, cancellationToken).ConfigureAwait(false), "Subsequent transaction node committed");
             }
-
-            DeleteFileIfExists(filename);
         }
 
         private static async Task TestGraphTransactionClientConcurrentQueue(CancellationToken cancellationToken)
@@ -9574,6 +9672,264 @@
             finally
             {
                 DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionClientIsolatedParallelExecution(CancellationToken cancellationToken)
+        {
+            ParallelTransactionState state = new ParallelTransactionState();
+            using (LiteGraphClient client = new LiteGraphClient(new ParallelTransactionRepository(state, TimeSpan.FromMilliseconds(250), false)))
+            {
+                Guid tenantGuid = Guid.NewGuid();
+                Guid graphGuid = Guid.NewGuid();
+                Guid[] nodeGuids = Enumerable.Range(0, 4)
+                    .Select(_ => Guid.NewGuid())
+                    .ToArray();
+
+                Stopwatch sw = Stopwatch.StartNew();
+                TransactionResult[] results = await Task.WhenAll(nodeGuids.Select((nodeGuid, index) => client.Transaction.Execute(
+                    tenantGuid,
+                    graphGuid,
+                    new TransactionRequest
+                    {
+                        Operations = new List<TransactionOperation>
+                        {
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Node,
+                                Payload = new Node { GUID = nodeGuid, Name = "Parallel Transaction Node " + index }
+                            }
+                        }
+                    },
+                    cancellationToken))).ConfigureAwait(false);
+                sw.Stop();
+
+                for (int i = 0; i < results.Length; i++)
+                {
+                    AssertTrue(results[i].Success, "Parallel transaction " + i + " committed");
+                    AssertFalse(results[i].RolledBack, "Parallel transaction " + i + " did not roll back");
+                    AssertFalse(results[i].TransactionId == Guid.Empty, "Parallel transaction " + i + " has diagnostic ID");
+                    AssertEqual(1, results[i].OperationCount, "Parallel transaction " + i + " diagnostic operation count");
+                    AssertTrue(results[i].IsolatedRepository, "Parallel transaction " + i + " used isolated repository");
+                    AssertFalse(results[i].SerializedByGate, "Parallel transaction " + i + " did not use legacy gate");
+                    AssertTrue(results[i].CommitDurationMs >= 0, "Parallel transaction " + i + " commit duration is recorded");
+                }
+
+                AssertEqual(nodeGuids.Length, state.BeginCount, "Each parallel transaction started on an isolated repository");
+                AssertEqual(nodeGuids.Length, state.CommitCount, "Each parallel transaction committed");
+                AssertEqual(nodeGuids.Length, state.DisposeCount, "Each isolated transaction repository was disposed");
+                AssertEqual(nodeGuids.Length, state.CreatedNodeGuids.Count, "Each parallel transaction created one node");
+                AssertTrue(state.MaxConcurrentCreates > 1, "Isolated transaction repositories execute node creates concurrently");
+                AssertTrue(sw.Elapsed < TimeSpan.FromMilliseconds(900), "Parallel transactions do not run behind the legacy serialized gate");
+            }
+        }
+
+        private static async Task TestGraphQueryIsolatedParallelExecution(CancellationToken cancellationToken)
+        {
+            ParallelTransactionState state = new ParallelTransactionState();
+            using (LiteGraphClient client = new LiteGraphClient(new ParallelTransactionRepository(state, TimeSpan.FromMilliseconds(250), false)))
+            {
+                Guid tenantGuid = Guid.NewGuid();
+                Guid graphGuid = Guid.NewGuid();
+
+                Stopwatch sw = Stopwatch.StartNew();
+                GraphQueryResult[] results = await Task.WhenAll(Enumerable.Range(0, 4).Select(index => client.Query.Execute(
+                    tenantGuid,
+                    graphGuid,
+                    new GraphQueryRequest
+                    {
+                        Query = "CREATE (n:Parallel { name: $name }) RETURN n",
+                        Parameters = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            { "name", "Parallel Query Node " + index }
+                        }
+                    },
+                    cancellationToken))).ConfigureAwait(false);
+                sw.Stop();
+
+                for (int i = 0; i < results.Length; i++)
+                {
+                    AssertTrue(results[i].Mutated, "Parallel query mutation " + i + " reports mutation");
+                }
+
+                AssertEqual(4, state.BeginCount, "Each parallel query mutation started on an isolated repository");
+                AssertEqual(4, state.CommitCount, "Each parallel query mutation committed");
+                AssertEqual(4, state.DisposeCount, "Each isolated query transaction repository was disposed");
+                AssertEqual(4, state.CreatedNodeGuids.Count, "Each parallel query mutation created one node");
+                AssertTrue(state.MaxConcurrentCreates > 1, "Isolated query transaction repositories execute node creates concurrently");
+                AssertTrue(sw.Elapsed < TimeSpan.FromMilliseconds(900), "Parallel query mutations do not run behind an ambient repository transaction");
+            }
+        }
+
+        private sealed class ParallelTransactionState
+        {
+            internal int BeginCount;
+            internal int CommitCount;
+            internal int RollbackCount;
+            internal int DisposeCount;
+            internal int ActiveCreates;
+            internal int MaxConcurrentCreates;
+            internal List<Guid> CreatedNodeGuids { get; } = new List<Guid>();
+            internal object SyncRoot { get; } = new object();
+
+            internal void TrackCreateStart()
+            {
+                int active = Interlocked.Increment(ref ActiveCreates);
+                int current;
+                do
+                {
+                    current = MaxConcurrentCreates;
+                    if (active <= current) break;
+                }
+                while (Interlocked.CompareExchange(ref MaxConcurrentCreates, active, current) != current);
+            }
+
+            internal void TrackCreateStop()
+            {
+                Interlocked.Decrement(ref ActiveCreates);
+            }
+        }
+
+        private sealed class SyntheticProviderException : Exception
+        {
+            public SyntheticProviderException(string sqlState)
+                : base("Synthetic provider exception " + sqlState)
+            {
+                SqlState = sqlState;
+            }
+
+            public string SqlState { get; }
+        }
+
+        private sealed class ParallelTransactionRepository : GraphRepositoryBase
+        {
+            public override IAdminMethods Admin { get { return Unsupported<IAdminMethods>(); } }
+            public override ITenantMethods Tenant { get { return Unsupported<ITenantMethods>(); } }
+            public override IUserMethods User { get { return Unsupported<IUserMethods>(); } }
+            public override ICredentialMethods Credential { get { return Unsupported<ICredentialMethods>(); } }
+            public override ILabelMethods Label { get { return Unsupported<ILabelMethods>(); } }
+            public override ITagMethods Tag { get { return Unsupported<ITagMethods>(); } }
+            public override IVectorMethods Vector { get { return Unsupported<IVectorMethods>(); } }
+            public override IGraphMethods Graph { get { return Unsupported<IGraphMethods>(); } }
+            public override INodeMethods Node { get { return _Node; } }
+            public override IEdgeMethods Edge { get { return Unsupported<IEdgeMethods>(); } }
+            public override IBatchMethods Batch { get { return Unsupported<IBatchMethods>(); } }
+            public override IVectorIndexMethods VectorIndex { get { return Unsupported<IVectorIndexMethods>(); } }
+            public override IRequestHistoryMethods RequestHistory { get { return Unsupported<IRequestHistoryMethods>(); } }
+            public override IAuthorizationAuditMethods AuthorizationAudit { get { return Unsupported<IAuthorizationAuditMethods>(); } }
+            public override IAuthorizationRoleMethods AuthorizationRoles { get { return Unsupported<IAuthorizationRoleMethods>(); } }
+            public override bool GraphTransactionActive { get { return _Active; } }
+
+            private readonly ParallelTransactionState _State;
+            private readonly TimeSpan _NodeCreateDelay;
+            private readonly bool _IsTransactionRepository;
+            private readonly INodeMethods _Node;
+            private bool _Active = false;
+
+            internal ParallelTransactionRepository(ParallelTransactionState state, TimeSpan nodeCreateDelay, bool isTransactionRepository)
+            {
+                _State = state ?? throw new ArgumentNullException(nameof(state));
+                _NodeCreateDelay = nodeCreateDelay;
+                _IsTransactionRepository = isTransactionRepository;
+                _Node = DispatchProxy.Create<INodeMethods, ParallelNodeMethodsProxy>();
+                ParallelNodeMethodsProxy proxy = (ParallelNodeMethodsProxy)(object)_Node;
+                proxy.State = _State;
+                proxy.Delay = _NodeCreateDelay;
+            }
+
+            public override GraphRepositoryBase CreateIsolatedTransactionRepository()
+            {
+                return new ParallelTransactionRepository(_State, _NodeCreateDelay, true);
+            }
+
+            public override void InitializeRepository()
+            {
+            }
+
+            public override void Flush()
+            {
+            }
+
+            public override Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+            {
+                token.ThrowIfCancellationRequested();
+                if (!_IsTransactionRepository) throw new InvalidOperationException("Parallel transaction test must use an isolated repository.");
+                _Active = true;
+                Interlocked.Increment(ref _State.BeginCount);
+                return Task.CompletedTask;
+            }
+
+            public override Task CommitGraphTransaction(CancellationToken token = default)
+            {
+                token.ThrowIfCancellationRequested();
+                _Active = false;
+                Interlocked.Increment(ref _State.CommitCount);
+                return Task.CompletedTask;
+            }
+
+            public override Task RollbackGraphTransaction(CancellationToken token = default)
+            {
+                _Active = false;
+                Interlocked.Increment(ref _State.RollbackCount);
+                return Task.CompletedTask;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (Disposed) return;
+
+                if (disposing && _IsTransactionRepository)
+                    Interlocked.Increment(ref _State.DisposeCount);
+
+                base.Dispose(disposing);
+            }
+
+            private static T Unsupported<T>() where T : class
+            {
+                T proxy = DispatchProxy.Create<T, UnsupportedMethodsProxy>();
+                ((UnsupportedMethodsProxy)(object)proxy).InterfaceName = typeof(T).Name;
+                return proxy;
+            }
+        }
+
+        private class ParallelNodeMethodsProxy : DispatchProxy
+        {
+            internal ParallelTransactionState State { get; set; } = null!;
+            internal TimeSpan Delay { get; set; } = TimeSpan.FromMilliseconds(250);
+
+            protected override object Invoke(MethodInfo? targetMethod, object?[]? args)
+            {
+                if (targetMethod != null && targetMethod.Name == nameof(INodeMethods.Create))
+                {
+                    if (args == null || args.Length < 1 || args[0] is not Node node)
+                        throw new ArgumentException("Node create requires a node payload.");
+
+                    CancellationToken token = args.Length > 1 && args[1] is CancellationToken suppliedToken ? suppliedToken : CancellationToken.None;
+                    return CreateDelayed(node, token);
+                }
+
+                throw new NotSupportedException("Only node create is supported by the parallel transaction test repository.");
+            }
+
+            private async Task<Node> CreateDelayed(Node node, CancellationToken token)
+            {
+                State.TrackCreateStart();
+                try
+                {
+                    await Task.Delay(Delay, token).ConfigureAwait(false);
+                    token.ThrowIfCancellationRequested();
+                    lock (State.SyncRoot)
+                    {
+                        State.CreatedNodeGuids.Add(node.GUID);
+                    }
+
+                    return node;
+                }
+                finally
+                {
+                    State.TrackCreateStop();
+                }
             }
         }
 
@@ -9699,6 +10055,7 @@
                 observability.RecordGraphQuery(false, true, 3.5);
                 observability.RecordVectorSearch("Node", true, 3, 2.5);
                 observability.RecordGraphTransaction(false, true, 2, 4.5);
+                observability.RecordGraphTransaction(false, false, true, 1, 1.5);
                 observability.RecordAuthentication(AuthenticationResultEnum.Success, AuthorizationResultEnum.Permitted);
                 observability.RecordRepositoryOperation("Sqlite", "read", true, 1.5);
                 observability.RecordStorageBackend("Sqlite", false);
@@ -9717,6 +10074,7 @@
                 AssertTrue(metrics.Contains("litegraph_vector_search_results_total"), "Prometheus vector search result metric exists");
                 AssertTrue(metrics.Contains("domain=\"Node\""), "Prometheus vector search domain label exists");
                 AssertTrue(metrics.Contains("litegraph_graph_transactions_total"), "Prometheus graph transaction metric exists");
+                AssertTrue(metrics.Contains("validation_failure=\"true\""), "Prometheus graph transaction validation label exists");
                 AssertTrue(metrics.Contains("litegraph_authentication_requests_total"), "Prometheus authentication metric exists");
                 AssertTrue(metrics.Contains("litegraph_repository_operations_total"), "Prometheus repository operation metric exists");
                 AssertTrue(metrics.Contains("operation=\"read\""), "Prometheus repository operation label exists");
@@ -10257,6 +10615,7 @@
                 string requestId = "request-" + requestGuid.ToString("N");
                 string correlationId = "correlation-" + Guid.NewGuid().ToString("N");
                 string traceId = "0123456789abcdef0123456789abcdef";
+                string transactionDiagnosticsJson = "{\"TransactionId\":\"11111111-1111-1111-1111-111111111111\",\"OperationCount\":2,\"IsolationLevel\":\"Serializable\",\"RetryCount\":0,\"ProviderErrorCode\":\"40001\"}";
 
                 await repo.RequestHistory.Insert(new RequestHistoryDetail
                 {
@@ -10273,6 +10632,7 @@
                     StatusCode = 200,
                     Success = true,
                     ProcessingTimeMs = 1.25,
+                    TransactionDiagnosticsJson = transactionDiagnosticsJson,
                     RequestHeaders = new Dictionary<string, string>
                     {
                         { "x-request-id", requestId },
@@ -10307,11 +10667,13 @@
                 AssertEqual(requestId, entry.RequestId, "Request history entry request ID");
                 AssertEqual(correlationId, entry.CorrelationId, "Request history entry correlation ID");
                 AssertEqual(traceId, entry.TraceId, "Request history entry trace ID");
+                AssertEqual(transactionDiagnosticsJson, entry.TransactionDiagnosticsJson, "Request history entry transaction diagnostics");
 
                 RequestHistoryDetail detail = await repo.RequestHistory.ReadDetailByGuid(requestGuid, cancellationToken).ConfigureAwait(false);
                 AssertNotNull(detail, "Request history detail exists");
                 AssertEqual(requestId, detail.RequestId, "Request history detail request ID");
                 AssertEqual(correlationId, detail.ResponseHeaders["x-correlation-id"], "Request history response correlation header");
+                AssertEqual(transactionDiagnosticsJson, detail.TransactionDiagnosticsJson, "Request history detail transaction diagnostics");
 
                 RequestHistorySearchResult byCorrelation = await repo.RequestHistory.Search(new RequestHistorySearchRequest
                 {
@@ -10320,6 +10682,7 @@
 
                 AssertEqual(1L, byCorrelation.TotalCount, "Request history correlation search count");
                 AssertEqual(requestGuid, byCorrelation.Objects[0].GUID, "Request history correlation search GUID");
+                AssertEqual(transactionDiagnosticsJson, byCorrelation.Objects[0].TransactionDiagnosticsJson, "Request history search transaction diagnostics");
 
                 RequestHistorySearchResult byTrace = await repo.RequestHistory.Search(new RequestHistorySearchRequest
                 {
@@ -10336,6 +10699,30 @@
 
                 AssertEqual(1L, successes.TotalCount, "Request history success search count");
                 AssertEqual(requestGuid, successes.Objects[0].GUID, "Request history success search GUID");
+
+                RequestHistorySearchResult transactionRows = await repo.RequestHistory.Search(new RequestHistorySearchRequest
+                {
+                    HasTransactionDiagnostics = true
+                }, cancellationToken).ConfigureAwait(false);
+
+                AssertEqual(1L, transactionRows.TotalCount, "Request history transaction diagnostics search count");
+                AssertEqual(requestGuid, transactionRows.Objects[0].GUID, "Request history transaction diagnostics search GUID");
+
+                RequestHistorySearchResult nonTransactionRows = await repo.RequestHistory.Search(new RequestHistorySearchRequest
+                {
+                    HasTransactionDiagnostics = false
+                }, cancellationToken).ConfigureAwait(false);
+
+                AssertEqual(1L, nonTransactionRows.TotalCount, "Request history non-transaction diagnostics search count");
+                AssertEqual(failureGuid, nonTransactionRows.Objects[0].GUID, "Request history non-transaction diagnostics search GUID");
+
+                RequestHistorySearchResult byTransactionId = await repo.RequestHistory.Search(new RequestHistorySearchRequest
+                {
+                    TransactionId = "11111111-1111"
+                }, cancellationToken).ConfigureAwait(false);
+
+                AssertEqual(1L, byTransactionId.TotalCount, "Request history transaction ID search count");
+                AssertEqual(requestGuid, byTransactionId.Objects[0].GUID, "Request history transaction ID search GUID");
 
                 RequestHistorySearchResult failures = await repo.RequestHistory.Search(new RequestHistorySearchRequest
                 {

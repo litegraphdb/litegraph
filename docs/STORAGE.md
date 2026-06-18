@@ -81,6 +81,8 @@ Server startup applies these environment variables after reading `litegraph.json
 | `LITEGRAPH_DB_CONNECTION_STRING` | `LiteGraph.Database.ConnectionString` |
 | `LITEGRAPH_DB_MAX_CONNECTIONS` | `LiteGraph.Database.MaxConnections` |
 | `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS` | `LiteGraph.Database.CommandTimeoutSeconds` |
+| `LITEGRAPH_TRANSACTION_MAX_OPERATIONS` | `LiteGraph.Transactions.MaxOperations` |
+| `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS` | `LiteGraph.Transactions.MaxTimeoutSeconds` |
 
 `LITEGRAPH_DB` and `LITEGRAPH_DB_FILENAME` are aliases for the SQLite filename. `LITEGRAPH_DB` takes precedence when both are set.
 
@@ -156,6 +158,36 @@ PostgreSQL supports:
 - pooled concurrent writes through `NpgsqlDataSource`
 - synchronous and asynchronous repository initialization/disposal
 
+### Docker Compose PostgreSQL Defaults
+
+The checked-in Docker deployment in `docker/compose.yaml` is PostgreSQL-backed by default. It starts a `postgresql` service and injects the matching LiteGraph settings into the server container with `LITEGRAPH_DB_*` environment variables.
+
+Default local Docker values:
+
+| Setting | Default |
+|---------|---------|
+| Host PostgreSQL port | `15432` |
+| Compose PostgreSQL host | `postgresql` |
+| Database | `litegraph` |
+| Username | `litegraph` |
+| Password | `litegraph` |
+| Schema | `litegraph` |
+| Data volume | `postgresql-data` |
+
+Override sample Docker values with:
+
+| Variable | Purpose |
+|----------|---------|
+| `LITEGRAPH_POSTGRESQL_HOST_PORT` | Host port published for PostgreSQL |
+| `LITEGRAPH_POSTGRESQL_DATABASE` | PostgreSQL database name |
+| `LITEGRAPH_POSTGRESQL_USERNAME` | PostgreSQL username |
+| `LITEGRAPH_POSTGRESQL_PASSWORD` | PostgreSQL password |
+| `LITEGRAPH_POSTGRESQL_SCHEMA` | LiteGraph schema inside the database |
+| `LITEGRAPH_DB_MAX_CONNECTIONS` | LiteGraph PostgreSQL pool size |
+| `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS` | LiteGraph database command timeout |
+
+The mounted `docker/litegraph.json` and `docker/factory/litegraph.json` also use `Type = Postgresql`, `Hostname = postgresql`, and the sample credentials so factory reset preserves the PostgreSQL-backed deployment. For SQLite Docker experiments, change the JSON or override `LITEGRAPH_DB_TYPE=Sqlite` and set a SQLite filename.
+
 ### PostgreSQL Production Hardening
 
 Use this checklist before promoting PostgreSQL-backed LiteGraph to production:
@@ -165,13 +197,14 @@ Use this checklist before promoting PostgreSQL-backed LiteGraph to production:
 3. Require TLS for networked PostgreSQL traffic when LiteGraph and PostgreSQL do not run on the same trusted host or private network.
 4. Set `LITEGRAPH_DB_MAX_CONNECTIONS` below the PostgreSQL server's available connection budget after accounting for other applications, migrations, monitoring, and administrative sessions.
 5. Tune `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS` for expected graph query and transaction workloads. Keep the server `Settings.RequestTimeoutSeconds` greater than or equal to the database command timeout unless a shorter HTTP timeout is intentional.
-6. Run `dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net8.0` with `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` pointed at a disposable PostgreSQL database during release validation.
-7. Enable regular PostgreSQL backups and test restore into a disposable database before switching production traffic.
-8. Monitor `/metrics` for `litegraph_storage_backend_info`, repository operation counts, repository operation durations, HTTP errors, graph query errors, and transaction rollbacks.
-9. Keep PostgreSQL autovacuum enabled. Schedule `VACUUM ANALYZE` according to write volume if operational monitoring shows bloat or stale plans.
-10. Rebuild file-backed vector indexes after restoring or migrating database content if vector index files were not restored with the database.
-11. For high-availability deployments, place LiteGraph behind a process supervisor or orchestrator and use PostgreSQL-managed failover. LiteGraph does not implement database failover orchestration itself.
-12. Re-run provider verification after PostgreSQL major-version upgrades, schema migrations, or connection-string changes.
+6. Tune `LITEGRAPH_TRANSACTION_MAX_OPERATIONS` and `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS` for the largest graph transaction workload the server should accept. REST transaction requests are capped by these values before execution.
+7. Run `dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0` with `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` pointed at a disposable PostgreSQL database during release validation.
+8. Enable regular PostgreSQL backups and test restore into a disposable database before switching production traffic.
+9. Monitor `/metrics` for `litegraph_storage_backend_info`, repository operation counts, repository operation durations, HTTP errors, graph query errors, transaction rollbacks, and `litegraph.vector.index.mutation.failures`.
+10. Keep PostgreSQL autovacuum enabled. Schedule `VACUUM ANALYZE` according to write volume if operational monitoring shows bloat or stale plans.
+11. Rebuild file-backed vector indexes after restoring or migrating database content if vector index files were not restored with the database.
+12. For high-availability deployments, place LiteGraph behind a process supervisor or orchestrator and use PostgreSQL-managed failover. LiteGraph does not implement database failover orchestration itself.
+13. Re-run provider verification after PostgreSQL major-version upgrades, schema migrations, or connection-string changes.
 
 ## Provider Test Suites
 
@@ -236,6 +269,12 @@ Verification compares entity counts and sampled source GUIDs in the destination.
 3. review `StorageMigrationResult.Verification.Differences`
 4. start LiteGraph with `Database.Type = Postgresql`
 5. rebuild vector indexes if the deployment uses file-backed vector indexes and the index files were not copied with the database
+
+## File-Backed Vector Index Artifacts
+
+LiteGraph v7.0 uses `HnswLite` `2.0.1` for HNSW vector indexes. `HnswSqlite` index artifacts written by v7.0 include `FormatVersion = 2`, `HnswLiteVersion = "2.0.1"`, vector metadata, layer assignments, and persisted neighbor connections. The neighbor connection data is required for reload-safe indexed search after process restart.
+
+When migrating storage providers, restoring backups, or upgrading from earlier LiteGraph builds, treat file-backed HNSW index files as derived artifacts. Back up `indexes/`, but prefer rebuilding indexes from persisted vectors unless the artifact is known to be v7.0 format. If an existing index file lacks `FormatVersion = 2`, rebuild it with `client.Graph.RebuildVectorIndex(...)`, `client.VectorIndex.RebuildVectorIndex(...)`, or `POST /v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild` before relying on indexed search results.
 
 ## Current Limits
 

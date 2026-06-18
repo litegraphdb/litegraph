@@ -7,6 +7,7 @@ export default class GraphTransactionBuilder {
     this.graphGuid = graphGuid;
     this.maxOperations = options.MaxOperations || options.maxOperations || 1000;
     this.timeoutSeconds = options.TimeoutSeconds || options.timeoutSeconds || 60;
+    this.isolationLevel = options.IsolationLevel || options.isolationLevel || 'Default';
     this.operations = [];
   }
 
@@ -23,6 +24,15 @@ export default class GraphTransactionBuilder {
       GenericExceptionHandlers.GenericException('TimeoutSeconds must be between 1 and 3600.');
     }
     this.timeoutSeconds = timeoutSeconds;
+    return this;
+  }
+
+  withIsolationLevel(isolationLevel) {
+    const allowed = ['Default', 'ReadCommitted', 'RepeatableRead', 'Serializable'];
+    if (!allowed.includes(isolationLevel)) {
+      GenericExceptionHandlers.GenericException('IsolationLevel must be Default, ReadCommitted, RepeatableRead, or Serializable.');
+    }
+    this.isolationLevel = isolationLevel;
     return this;
   }
 
@@ -166,6 +176,7 @@ export default class GraphTransactionBuilder {
     return {
       MaxOperations: this.maxOperations,
       TimeoutSeconds: this.timeoutSeconds,
+      IsolationLevel: this.isolationLevel,
       Operations: this.operations.map((operation) => ({ ...operation })),
     };
   }

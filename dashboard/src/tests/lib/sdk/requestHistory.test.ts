@@ -32,6 +32,8 @@ describe('requestHistory sdk', () => {
       pageSize: 25,
       success: false,
       tenantGuid: 'tenant-1',
+      hasTransactionDiagnostics: true,
+      transactionId: '11111111',
     });
 
     const [url] = (global.fetch as jest.Mock).mock.calls[0];
@@ -40,6 +42,8 @@ describe('requestHistory sdk', () => {
     expect(url).toContain('pageSize=25');
     expect(url).toContain('success=false');
     expect(url).toContain('tenantGuid=tenant-1');
+    expect(url).toContain('hasTransactionDiagnostics=true');
+    expect(url).toContain('transactionId=11111111');
   });
 
   it('lists recent request errors with success=false', async () => {

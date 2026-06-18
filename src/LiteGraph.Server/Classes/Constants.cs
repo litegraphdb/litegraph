@@ -115,6 +115,16 @@ namespace LiteGraph.Server.Classes
         public static string RequestTimeoutEnvironmentVariable = "LITEGRAPH_REQUEST_TIMEOUT_SECONDS";
 
         /// <summary>
+        /// Maximum graph transaction operation count environment variable.
+        /// </summary>
+        public static string TransactionMaxOperationsEnvironmentVariable = "LITEGRAPH_TRANSACTION_MAX_OPERATIONS";
+
+        /// <summary>
+        /// Maximum graph transaction timeout environment variable.
+        /// </summary>
+        public static string TransactionMaxTimeoutEnvironmentVariable = "LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS";
+
+        /// <summary>
         /// Enable built-in OTLP exporter environment variable.
         /// </summary>
         public static string OtlpExporterEnableEnvironmentVariable = "LITEGRAPH_OTLP_ENABLE";

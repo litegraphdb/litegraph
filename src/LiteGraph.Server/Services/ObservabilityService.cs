@@ -261,10 +261,23 @@ namespace LiteGraph.Server.Services
         /// <param name="durationMs">Duration in milliseconds.</param>
         public void RecordGraphTransaction(bool success, bool rolledBack, int operationCount, double durationMs)
         {
+            RecordGraphTransaction(success, rolledBack, false, operationCount, durationMs);
+        }
+
+        /// <summary>
+        /// Record a graph transaction.
+        /// </summary>
+        /// <param name="success">Whether or not the transaction committed.</param>
+        /// <param name="rolledBack">Whether or not the transaction rolled back.</param>
+        /// <param name="validationFailure">Whether or not validation failed before a provider transaction started.</param>
+        /// <param name="operationCount">Number of requested operations.</param>
+        /// <param name="durationMs">Duration in milliseconds.</param>
+        public void RecordGraphTransaction(bool success, bool rolledBack, bool validationFailure, int operationCount, double durationMs)
+        {
             if (!_Settings.Enable) return;
 
-            string key = success.ToString() + "\n" + rolledBack.ToString();
-            GraphTransactionMetric metric = _GraphTransactionMetrics.GetOrAdd(key, _ => new GraphTransactionMetric(success, rolledBack));
+            string key = success.ToString() + "\n" + rolledBack.ToString() + "\n" + validationFailure.ToString();
+            GraphTransactionMetric metric = _GraphTransactionMetrics.GetOrAdd(key, _ => new GraphTransactionMetric(success, rolledBack, validationFailure));
             metric.Record(operationCount, durationMs);
 
             if (_Settings.EnableOpenTelemetry)
@@ -272,7 +285,8 @@ namespace LiteGraph.Server.Services
                 KeyValuePair<string, object>[] tags =
                 {
                     new KeyValuePair<string, object>("litegraph.transaction.success", success),
-                    new KeyValuePair<string, object>("litegraph.transaction.rolled_back", rolledBack)
+                    new KeyValuePair<string, object>("litegraph.transaction.rolled_back", rolledBack),
+                    new KeyValuePair<string, object>("litegraph.transaction.validation_failure", validationFailure)
                 };
 
                 _GraphTransactionCounter.Add(1, tags);
@@ -742,6 +756,8 @@ namespace LiteGraph.Server.Services
             sb.Append(metric.Success ? "true" : "false");
             sb.Append("\",rolled_back=\"");
             sb.Append(metric.RolledBack ? "true" : "false");
+            sb.Append("\",validation_failure=\"");
+            sb.Append(metric.ValidationFailure ? "true" : "false");
             sb.Append("\"}");
         }
 
@@ -956,14 +972,16 @@ namespace LiteGraph.Server.Services
 
             internal bool Success { get; }
             internal bool RolledBack { get; }
+            internal bool ValidationFailure { get; }
             internal long Count { get; private set; }
             internal long OperationCount { get; private set; }
             internal double DurationSumMs { get; private set; }
 
-            internal GraphTransactionMetric(bool success, bool rolledBack)
+            internal GraphTransactionMetric(bool success, bool rolledBack, bool validationFailure)
             {
                 Success = success;
                 RolledBack = rolledBack;
+                ValidationFailure = validationFailure;
             }
 
             internal void Record(int operationCount, double durationMs)

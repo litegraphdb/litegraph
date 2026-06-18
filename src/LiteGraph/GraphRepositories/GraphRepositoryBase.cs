@@ -209,6 +209,16 @@
         }
 
         /// <summary>
+        /// Create a repository instance that owns isolated transaction state for a single transaction execution.
+        /// Providers that do not override this method continue to use the caller repository and the legacy transaction gate.
+        /// </summary>
+        /// <returns>Repository instance.</returns>
+        public virtual GraphRepositoryBase CreateIsolatedTransactionRepository()
+        {
+            return this;
+        }
+
+        /// <summary>
         /// Begin a graph-scoped transaction.  Transactions are limited to one tenant and one graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
@@ -218,6 +228,19 @@
         public virtual Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
             throw new NotSupportedException(GetType().Name + " does not support graph-scoped transactions.");
+        }
+
+        /// <summary>
+        /// Begin a graph-scoped transaction with a requested isolation level. Transactions are limited to one tenant and one graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="isolationLevel">Requested isolation level.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        public virtual Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, TransactionIsolationLevelEnum isolationLevel, CancellationToken token = default)
+        {
+            return BeginGraphTransaction(tenantGuid, graphGuid, token);
         }
 
         /// <summary>

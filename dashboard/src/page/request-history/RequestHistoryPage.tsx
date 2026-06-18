@@ -78,6 +78,12 @@ const OUTCOME_OPTIONS = [
   { value: 'false', label: 'Errors' },
 ];
 
+const TRANSACTION_OPTIONS = [
+  { value: '', label: 'All requests' },
+  { value: 'true', label: 'Transactions' },
+  { value: 'false', label: 'Non-transactions' },
+];
+
 const METHOD_OPTIONS = [
   { value: '', label: 'All methods' },
   'GET',
@@ -87,6 +93,41 @@ const METHOD_OPTIONS = [
   'HEAD',
   'PATCH',
 ].map((m) => (typeof m === 'string' ? { value: m, label: m } : m));
+
+type TransactionDiagnostics = {
+  TransactionId?: string;
+  Success?: boolean;
+  RolledBack?: boolean;
+  ValidationFailure?: boolean;
+  IsolationLevel?: string;
+  Provider?: string;
+  Retryable?: boolean;
+  ConcurrencyConflict?: boolean;
+  ProviderErrorCode?: string;
+};
+
+const parseTransactionDiagnostics = (
+  value?: string | null
+): TransactionDiagnostics | null => {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed as TransactionDiagnostics;
+  } catch {
+    return null;
+  }
+};
+
+const transactionState = (
+  diagnostics: TransactionDiagnostics
+): { label: string; color: string } => {
+  if (diagnostics.ValidationFailure) return { label: 'validation', color: 'orange' };
+  if (diagnostics.RolledBack) return { label: 'rolled back', color: 'red' };
+  if (diagnostics.Success === true) return { label: 'committed', color: 'green' };
+  if (diagnostics.Success === false) return { label: 'failed', color: 'red' };
+  return { label: 'transaction', color: 'blue' };
+};
 
 const statusColor = (code: number): string => {
   if (code >= 200 && code < 300) return 'green';
@@ -135,6 +176,8 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const [method, setMethod] = useState<string>('');
   const [statusCode, setStatusCode] = useState<string>('');
   const [outcome, setOutcome] = useState<string>('');
+  const [transactionFilter, setTransactionFilter] = useState<string>('');
+  const [transactionId, setTransactionId] = useState<string>('');
   const [path, setPath] = useState<string>('');
   const [result, setResult] = useState<RequestHistorySearchResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -152,6 +195,10 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
       method: method || undefined,
       statusCode: statusCode ? Number(statusCode) : undefined,
       success: outcome ? outcome === 'true' : undefined,
+      hasTransactionDiagnostics: transactionFilter
+        ? transactionFilter === 'true'
+        : undefined,
+      transactionId: transactionId || undefined,
       path: path || undefined,
       tenantGuid: mode === 'tenant' ? tenantScope : undefined,
     })
@@ -161,7 +208,19 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         toast.error('Unable to load request history', { id: globalToastId });
       })
       .finally(() => setLoading(false));
-  }, [page, pageSize, method, statusCode, outcome, path, mode, tenantScope, refreshKey]);
+  }, [
+    page,
+    pageSize,
+    method,
+    statusCode,
+    outcome,
+    transactionFilter,
+    transactionId,
+    path,
+    mode,
+    tenantScope,
+    refreshKey,
+  ]);
 
   useEffect(() => {
     fetchList();
@@ -229,6 +288,46 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         dataIndex: 'StatusCode',
         width: 80,
         render: (v: number) => <Tag color={statusColor(v)}>{v}</Tag>,
+      },
+      {
+        title: 'Transaction',
+        dataIndex: 'TransactionDiagnosticsJson',
+        width: 190,
+        render: (v?: string | null) => {
+          const diagnostics = parseTransactionDiagnostics(v);
+          if (!diagnostics) return <Text type="secondary">-</Text>;
+
+          const state = transactionState(diagnostics);
+          const shortId = diagnostics.TransactionId
+            ? diagnostics.TransactionId.substring(0, 8)
+            : 'transaction';
+
+          return (
+            <Space direction="vertical" size={2}>
+              <Text code style={{ fontSize: 11 }} data-testid="request-history-transaction-id">
+                {shortId}
+              </Text>
+              <Space size={4} wrap>
+                <Tag
+                  color={state.color}
+                  style={noWrapStyle}
+                  data-testid="request-history-transaction-state"
+                >
+                  {state.label}
+                </Tag>
+                {diagnostics.IsolationLevel && (
+                  <Tag style={noWrapStyle}>{diagnostics.IsolationLevel}</Tag>
+                )}
+                {diagnostics.Provider && <Tag style={noWrapStyle}>{diagnostics.Provider}</Tag>}
+                {diagnostics.ProviderErrorCode && (
+                  <Tag style={noWrapStyle}>{diagnostics.ProviderErrorCode}</Tag>
+                )}
+                {diagnostics.Retryable && <Tag color="purple">retryable</Tag>}
+                {diagnostics.ConcurrencyConflict && <Tag color="red">conflict</Tag>}
+              </Space>
+            </Space>
+          );
+        },
       },
       {
         title: 'Duration',
@@ -404,6 +503,23 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
               setPage(0);
             }}
             options={OUTCOME_OPTIONS}
+          />
+          <Select
+            style={{ width: 170 }}
+            value={transactionFilter}
+            onChange={(v) => {
+              setTransactionFilter(v);
+              setPage(0);
+            }}
+            options={TRANSACTION_OPTIONS}
+          />
+          <Input
+            placeholder="Transaction ID..."
+            value={transactionId}
+            onChange={(e) => setTransactionId(e.target.value)}
+            onPressEnter={() => setPage(0)}
+            style={{ width: 220, maxWidth: '100%' }}
+            allowClear
           />
           <Input
             placeholder="Path contains..."

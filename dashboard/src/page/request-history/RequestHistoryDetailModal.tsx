@@ -256,6 +256,20 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
               />
             ),
           },
+          ...(entry.TransactionDiagnosticsJson || detail?.TransactionDiagnosticsJson
+            ? [
+                {
+                  key: 'transaction-diagnostics',
+                  label: 'Transaction Diagnostics',
+                  children: (
+                    <CodeBlock
+                      text={prettyJson(detail?.TransactionDiagnosticsJson || entry.TransactionDiagnosticsJson)}
+                      empty={loading ? 'Loading...' : '(empty)'}
+                    />
+                  ),
+                },
+              ]
+            : []),
         ]}
       />
     </Modal>

@@ -68,22 +68,26 @@
   },
   "LiteGraph": {
     "AdminBearerToken": "litegraphadmin",
-    "GraphRepositoryFilename": "./docker/litegraph.db",
+    "GraphRepositoryFilename": "./docker/postgresql-unused.db",
     "Database": {
-      "Type": "Sqlite",
-      "Filename": "./docker/litegraph.db",
+      "Type": "Postgresql",
+      "Filename": "./docker/postgresql-unused.db",
       "InMemory": false,
-      "Hostname": "localhost",
-      "Port": null,
+      "Hostname": "postgresql",
+      "Port": 5432,
       "DatabaseName": "litegraph",
-      "Username": null,
-      "Password": null,
+      "Username": "litegraph",
+      "Password": "litegraph",
       "Schema": "litegraph",
       "ConnectionString": null,
       "MaxConnections": 32,
       "CommandTimeoutSeconds": 30
     },
     "MaxConcurrentOperations": 4,
+    "Transactions": {
+      "MaxOperations": 1000,
+      "MaxTimeoutSeconds": 60
+    },
     "InMemory": false
   },
   "Encryption": {

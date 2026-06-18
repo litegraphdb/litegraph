@@ -211,9 +211,10 @@ namespace LiteGraph.GraphRepositories.Sqlite
         private SqliteTransaction _Transaction = null;
         private Guid? _GraphTransactionTenantGUID = null;
         private Guid? _GraphTransactionGraphGUID = null;
-        private bool _GraphTransactionVectorIndexTouched = false;
         private bool _GraphTransactionVectorIndexFailed = false;
         private string _GraphTransactionVectorIndexDirtyReason = null;
+        private readonly List<GraphTransactionVectorIndexMutation> _GraphTransactionVectorIndexMutations = new List<GraphTransactionVectorIndexMutation>();
+        private bool _OwnsVectorIndexManager = true;
 
         private int _SelectBatchSize = 100;
         private int _MaxStatementLength = 1000000000; // https://www.sqlite.org/limits.html
@@ -331,7 +332,34 @@ namespace LiteGraph.GraphRepositories.Sqlite
         }
 
         /// <inheritdoc />
+        public override GraphRepositoryBase CreateIsolatedTransactionRepository()
+        {
+            ThrowIfDisposed();
+
+            SqliteGraphRepository clone = new SqliteGraphRepository(_Filename, _InMemory)
+            {
+                Logging = Logging,
+                Serializer = Serializer,
+                SelectBatchSize = SelectBatchSize,
+                MaxStatementLength = MaxStatementLength,
+                TimestampFormat = TimestampFormat
+            };
+
+            clone.VectorIndexManager?.Dispose();
+            clone.VectorIndexManager = VectorIndexManager;
+            clone._OwnsVectorIndexManager = false;
+
+            return clone;
+        }
+
+        /// <inheritdoc />
         public override Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+        {
+            return BeginGraphTransaction(tenantGuid, graphGuid, TransactionIsolationLevelEnum.Default, token);
+        }
+
+        /// <inheritdoc />
+        public override Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, TransactionIsolationLevelEnum isolationLevel, CancellationToken token = default)
         {
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
@@ -346,6 +374,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     try
                     {
                         conn.Open();
+                        ApplyPerformanceSettings(conn);
                     }
                     catch (Exception e) when (IsTransientOpenFailure(e))
                     {
@@ -357,19 +386,21 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 }
 
                 _TransactionConnection = conn;
-                _Transaction = conn.BeginTransaction();
+                _Transaction = isolationLevel == TransactionIsolationLevelEnum.Default
+                    ? conn.BeginTransaction()
+                    : conn.BeginTransaction(MapIsolationLevel(isolationLevel));
                 _GraphTransactionTenantGUID = tenantGuid;
                 _GraphTransactionGraphGUID = graphGuid;
-                _GraphTransactionVectorIndexTouched = false;
                 _GraphTransactionVectorIndexFailed = false;
                 _GraphTransactionVectorIndexDirtyReason = null;
+                _GraphTransactionVectorIndexMutations.Clear();
             }
 
             return Task.CompletedTask;
         }
 
         /// <inheritdoc />
-        public override Task CommitGraphTransaction(CancellationToken token = default)
+        public override async Task CommitGraphTransaction(CancellationToken token = default)
         {
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
@@ -379,6 +410,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
             bool markDirty = false;
             string dirtyReason = null;
             Exception commitException = null;
+            List<GraphTransactionVectorIndexMutation> stagedMutations = new List<GraphTransactionVectorIndexMutation>();
 
             lock (_QueryLock)
             {
@@ -388,6 +420,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 graphGuid = _GraphTransactionGraphGUID;
                 markDirty = _GraphTransactionVectorIndexFailed;
                 dirtyReason = _GraphTransactionVectorIndexDirtyReason;
+                stagedMutations = _GraphTransactionVectorIndexMutations.ToList();
 
                 try
                 {
@@ -396,10 +429,10 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 catch (Exception e)
                 {
                     commitException = e;
-                    if (_GraphTransactionVectorIndexTouched || _GraphTransactionVectorIndexFailed)
+                    if (_GraphTransactionVectorIndexFailed)
                     {
                         markDirty = true;
-                        dirtyReason = "Graph transaction commit failed after vector index mutation: " + e.Message;
+                        dirtyReason = "Graph transaction commit failed after vector index failure: " + e.Message;
                     }
                 }
                 finally
@@ -408,13 +441,21 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 }
             }
 
+            if (commitException == null && stagedMutations.Count > 0)
+            {
+                string stagedFailure = await ApplyStagedVectorIndexMutationsAsync(stagedMutations).ConfigureAwait(false);
+                if (!string.IsNullOrEmpty(stagedFailure))
+                {
+                    markDirty = true;
+                    dirtyReason = stagedFailure;
+                }
+            }
+
             if (markDirty && tenantGuid.HasValue && graphGuid.HasValue)
                 MarkVectorIndexDirtyAfterTransaction(tenantGuid.Value, graphGuid.Value, dirtyReason);
 
             if (commitException != null)
                 ExceptionDispatchInfo.Capture(commitException).Throw();
-
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
@@ -435,9 +476,9 @@ namespace LiteGraph.GraphRepositories.Sqlite
 
                 tenantGuid = _GraphTransactionTenantGUID;
                 graphGuid = _GraphTransactionGraphGUID;
-                markDirty = _GraphTransactionVectorIndexTouched || _GraphTransactionVectorIndexFailed;
+                markDirty = _GraphTransactionVectorIndexFailed;
                 dirtyReason = _GraphTransactionVectorIndexDirtyReason
-                    ?? "Graph transaction rollback after vector index mutation";
+                    ?? "Graph transaction rollback after vector index failure";
 
                 try
                 {
@@ -446,10 +487,10 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 catch (Exception e)
                 {
                     rollbackException = e;
-                    if (_GraphTransactionVectorIndexTouched || _GraphTransactionVectorIndexFailed)
+                    if (_GraphTransactionVectorIndexFailed)
                     {
                         markDirty = true;
-                        dirtyReason = "Graph transaction rollback failed after vector index mutation: " + e.Message;
+                        dirtyReason = "Graph transaction rollback failed after vector index failure: " + e.Message;
                     }
                 }
                 finally
@@ -471,17 +512,6 @@ namespace LiteGraph.GraphRepositories.Sqlite
 
         #region Internal-Methods
 
-        internal void NoteVectorIndexMutation(Guid tenantGuid, Guid graphGuid, string reason)
-        {
-            lock (_QueryLock)
-            {
-                if (_Transaction == null) return;
-                if (_GraphTransactionTenantGUID != tenantGuid || _GraphTransactionGraphGUID != graphGuid) return;
-
-                _GraphTransactionVectorIndexTouched = true;
-            }
-        }
-
         internal void NoteVectorIndexFailure(Guid tenantGuid, Guid graphGuid, string reason)
         {
             lock (_QueryLock)
@@ -491,6 +521,24 @@ namespace LiteGraph.GraphRepositories.Sqlite
 
                 _GraphTransactionVectorIndexFailed = true;
                 _GraphTransactionVectorIndexDirtyReason = reason;
+            }
+        }
+
+        internal bool TryStageVectorIndexMutation(
+            Graph graph,
+            string dirtyReason,
+            Func<IVectorIndex, Task> mutation)
+        {
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+
+            lock (_QueryLock)
+            {
+                if (_Transaction == null) return false;
+                if (_GraphTransactionTenantGUID != graph.TenantGUID || _GraphTransactionGraphGUID != graph.GUID) return false;
+
+                _GraphTransactionVectorIndexMutations.Add(new GraphTransactionVectorIndexMutation(graph, dirtyReason, mutation));
+                return true;
             }
         }
 
@@ -980,7 +1028,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     }
                     finally
                     {
-                        VectorIndexManager?.Dispose();
+                        if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
                         VectorIndexManager = null;
 
                         _SqliteConnection?.Close();
@@ -1139,10 +1187,26 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 cmd.CommandText =
                     "PRAGMA journal_mode = WAL; " +
                     "PRAGMA synchronous = NORMAL; " +
+                    "PRAGMA busy_timeout = 10000; " +
                     "PRAGMA cache_size = -128000; " +
                     "PRAGMA temp_store = MEMORY; " +
                     "PRAGMA mmap_size = 536870912; ";
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        private IsolationLevel MapIsolationLevel(TransactionIsolationLevelEnum isolationLevel)
+        {
+            switch (isolationLevel)
+            {
+                case TransactionIsolationLevelEnum.Default:
+                    return IsolationLevel.Unspecified;
+                case TransactionIsolationLevelEnum.Serializable:
+                    return IsolationLevel.Serializable;
+                case TransactionIsolationLevelEnum.ReadCommitted:
+                case TransactionIsolationLevelEnum.RepeatableRead:
+                default:
+                    throw new NotSupportedException("SQLite transaction isolation level '" + isolationLevel + "' is not supported.");
             }
         }
 
@@ -1280,9 +1344,9 @@ namespace LiteGraph.GraphRepositories.Sqlite
             _TransactionConnection = null;
             _GraphTransactionTenantGUID = null;
             _GraphTransactionGraphGUID = null;
-            _GraphTransactionVectorIndexTouched = false;
             _GraphTransactionVectorIndexFailed = false;
             _GraphTransactionVectorIndexDirtyReason = null;
+            _GraphTransactionVectorIndexMutations.Clear();
 
             try { transaction?.Dispose(); } catch { }
 
@@ -1307,6 +1371,47 @@ namespace LiteGraph.GraphRepositories.Sqlite
             {
                 Logging.Log(SeverityEnum.Warn, "failed to mark vector index dirty after graph transaction: " + e.Message);
             }
+        }
+
+        private async Task<string> ApplyStagedVectorIndexMutationsAsync(List<GraphTransactionVectorIndexMutation> mutations)
+        {
+            foreach (GraphTransactionVectorIndexMutation staged in mutations)
+            {
+                try
+                {
+                    await VectorIndexManager.ExecuteWithIndexAsync(staged.Graph, staged.Mutation).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    string reason = (staged.DirtyReason ?? "Graph transaction vector index mutation failed after commit")
+                        + ": " + e.GetType().Name + ": " + e.Message;
+                    LiteGraphTelemetry.RecordVectorIndexMutationFailure(
+                        ProviderName,
+                        staged.Graph.VectorIndexType?.ToString(),
+                        e.GetType().Name);
+                    Logging.Log(SeverityEnum.Warn, reason);
+                    return reason;
+                }
+            }
+
+            return null;
+        }
+
+        private sealed class GraphTransactionVectorIndexMutation
+        {
+            public GraphTransactionVectorIndexMutation(
+                Graph graph,
+                string dirtyReason,
+                Func<IVectorIndex, Task> mutation)
+            {
+                Graph = graph;
+                DirtyReason = dirtyReason;
+                Mutation = mutation;
+            }
+
+            public Graph Graph { get; }
+            public string DirtyReason { get; }
+            public Func<IVectorIndex, Task> Mutation { get; }
         }
 
         private void EnsureCredentialScopeColumns()
@@ -1360,6 +1465,11 @@ namespace LiteGraph.GraphRepositories.Sqlite
             if (!ColumnExists(tableInfo, "traceid"))
             {
                 ExecuteQuery("ALTER TABLE 'requesthistory' ADD COLUMN traceid VARCHAR(128);");
+            }
+
+            if (!ColumnExists(tableInfo, "transactiondiagnosticsjson"))
+            {
+                ExecuteQuery("ALTER TABLE 'requesthistory' ADD COLUMN transactiondiagnosticsjson TEXT;");
             }
 
             ExecuteQuery("CREATE INDEX IF NOT EXISTS 'idx_requesthistory_requestid' ON 'requesthistory' (requestid ASC);");

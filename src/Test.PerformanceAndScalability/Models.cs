@@ -124,27 +124,88 @@ namespace Test.PerformanceAndScalability
         public int ResultCount { get; init; }
         public bool Correct { get; init; } = true;
         public string? Error { get; init; }
+        public TransactionMetricSample? Transaction { get; init; }
 
-        public static OperationOutcome Success(int items = 1, int resultCount = 0)
+        public static OperationOutcome Success(int items = 1, int resultCount = 0, TransactionMetricSample? transaction = null)
         {
             return new OperationOutcome
             {
                 Items = items,
                 ResultCount = resultCount,
-                Correct = true
+                Correct = true,
+                Transaction = transaction
             };
         }
 
-        public static OperationOutcome Incorrect(int items = 1, int resultCount = 0, string? error = null)
+        public static OperationOutcome Incorrect(int items = 1, int resultCount = 0, string? error = null, TransactionMetricSample? transaction = null)
         {
             return new OperationOutcome
             {
                 Items = items,
                 ResultCount = resultCount,
                 Correct = false,
-                Error = error
+                Error = error,
+                Transaction = transaction
             };
         }
+    }
+
+    internal sealed class TransactionMetricSample
+    {
+        public long Started { get; init; }
+        public long Committed { get; init; }
+        public long RolledBack { get; init; }
+        public long ValidationFailures { get; init; }
+        public long Retryable { get; init; }
+        public long ConcurrencyConflicts { get; init; }
+        public long RetryCount { get; init; }
+        public long IsolatedRepository { get; init; }
+        public long SerializedByGate { get; init; }
+        public long OperationCount { get; init; }
+        public double DurationMs { get; init; }
+        public double CommitDurationMs { get; init; }
+        public double RollbackDurationMs { get; init; }
+
+        public static TransactionMetricSample From(TransactionResult result)
+        {
+            return new TransactionMetricSample
+            {
+                Started = 1,
+                Committed = result.Success && !result.RolledBack ? 1 : 0,
+                RolledBack = result.RolledBack ? 1 : 0,
+                ValidationFailures = result.ValidationFailure ? 1 : 0,
+                Retryable = result.Retryable ? 1 : 0,
+                ConcurrencyConflicts = result.ConcurrencyConflict ? 1 : 0,
+                RetryCount = Math.Max(0, result.RetryCount),
+                IsolatedRepository = result.IsolatedRepository ? 1 : 0,
+                SerializedByGate = result.SerializedByGate ? 1 : 0,
+                OperationCount = result.OperationCount > 0 ? result.OperationCount : result.Operations.Count,
+                DurationMs = result.DurationMs,
+                CommitDurationMs = result.CommitDurationMs,
+                RollbackDurationMs = result.RollbackDurationMs
+            };
+        }
+    }
+
+    internal sealed class TransactionMetricSummary
+    {
+        public long Started { get; set; }
+        public long Committed { get; set; }
+        public long RolledBack { get; set; }
+        public long ValidationFailures { get; set; }
+        public long Retryable { get; set; }
+        public long ConcurrencyConflicts { get; set; }
+        public long RetryCount { get; set; }
+        public long IsolatedRepository { get; set; }
+        public long SerializedByGate { get; set; }
+        public long OperationCount { get; set; }
+        public double StartsPerSecond { get; set; }
+        public double CommitsPerSecond { get; set; }
+        public double RollbacksPerSecond { get; set; }
+        public double ConflictsPerSecond { get; set; }
+        public LatencyStats TransactionLatency { get; set; } = new LatencyStats();
+        public LatencyStats CommitLatency { get; set; } = new LatencyStats();
+        public LatencyStats RollbackLatency { get; set; } = new LatencyStats();
     }
 
     internal sealed class ScenarioResult
@@ -176,6 +237,7 @@ namespace Test.PerformanceAndScalability
         public List<RepositoryTelemetrySummary> RepositoryTelemetry { get; set; } = new List<RepositoryTelemetrySummary>();
         public List<VectorTelemetrySummary> VectorTelemetry { get; set; } = new List<VectorTelemetrySummary>();
         public List<QueryProfileSample> QueryProfiles { get; set; } = new List<QueryProfileSample>();
+        public TransactionMetricSummary TransactionMetrics { get; set; } = new TransactionMetricSummary();
         public string? ErrorSample { get; set; }
     }
 

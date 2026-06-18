@@ -107,6 +107,19 @@ def test_successful_request(base_client, monkeypatch):
         assert response == {"data": "test"}
 
 
+def test_request_accepts_configured_non_success_status(base_client):
+    """Test opted-in non-2xx responses can be returned as normal response bodies."""
+    mock_response = Mock(spec=httpx.Response)
+    mock_response.status_code = 409
+    mock_response.content = b'{"Success": false, "RolledBack": true}'
+    mock_response.json.return_value = {"Success": False, "RolledBack": True}
+    mock_response.raise_for_status.side_effect = AssertionError("raise_for_status should not be called")
+
+    with patch.object(base_client.client, "request", return_value=mock_response):
+        response = base_client.request("POST", "/test", accepted_status_codes=[409])
+        assert response == {"Success": False, "RolledBack": True}
+
+
 def test_empty_response(base_client, monkeypatch):
     """Test successful request with empty response."""
     mock_response = Mock(spec=httpx.Response)

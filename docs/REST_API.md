@@ -552,9 +552,9 @@ Graph transactions execute atomically inside one tenant and one graph. See [TRAN
 {
     "Operations": [
         {
-            "Operation": "Create",
+            "OperationType": "Create",
             "ObjectType": "Node",
-            "Object": {
+            "Payload": {
                 "Name": "Ada",
                 "Data": {
                     "role": "mathematician"
@@ -563,27 +563,50 @@ Graph transactions execute atomically inside one tenant and one graph. See [TRAN
         }
     ],
     "MaxOperations": 100,
-    "TimeoutSeconds": 30
+    "TimeoutSeconds": 30,
+    "IsolationLevel": "Default"
 }
 ```
 
+Server-side REST settings can cap transaction size and timeout through `LiteGraph.Transactions.MaxOperations`, `LiteGraph.Transactions.MaxTimeoutSeconds`, `LITEGRAPH_TRANSACTION_MAX_OPERATIONS`, and `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS`.
+
 ### Graph Transaction Response
+
+Committed transactions return HTTP `200`. Request-shape validation failures return HTTP `400` with a transaction result body and `ValidationFailure: true` when LiteGraph can identify the failed operation. Failed transaction execution after provider work begins returns HTTP `409` with the same transaction result shape so callers can inspect rollback diagnostics.
 
 ```
 {
     "Success": true,
+    "TransactionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "RolledBack": false,
+    "ValidationFailure": false,
     "FailedOperationIndex": null,
-    "ErrorMessage": null,
-    "Results": [
+    "Error": null,
+    "Operations": [
         {
-            "Success": true,
-            "OperationIndex": 0,
+            "Index": 0,
+            "OperationType": "Create",
             "ObjectType": "Node",
-            "ObjectGUID": "00000000-0000-0000-0000-000000000000",
-            "Object": { }
+            "GUID": "00000000-0000-0000-0000-000000000000",
+            "Success": true,
+            "Result": { },
+            "Error": null
         }
-    ]
+    ],
+    "OperationCount": 1,
+    "StartedUtc": "2026-06-17T19:00:00.000000Z",
+    "CompletedUtc": "2026-06-17T19:00:00.012500Z",
+    "DurationMs": 12.5,
+    "CommitDurationMs": 1.25,
+    "RollbackDurationMs": 0,
+    "Provider": "Postgresql",
+    "IsolationLevel": "Default",
+    "IsolatedRepository": true,
+    "SerializedByGate": false,
+    "RetryCount": 0,
+    "Retryable": false,
+    "ConcurrencyConflict": false,
+    "ProviderErrorCode": null
 }
 ```
 
@@ -921,7 +944,10 @@ Request history APIs require read/admin access according to the authenticated pr
 | Delete entry            | DELETE | /v1.0/requesthistory/[requestGuid]        |
 | Bulk delete             | DELETE | /v1.0/requesthistory/bulk                 |
 
-Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `pathContains`, paging, and time-range filters. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
+Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `hasTransactionDiagnostics`, `transactionId`, paging, and time-range filters. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
+
+Graph transaction entries include `TransactionDiagnosticsJson` when LiteGraph can parse the transaction result body. The compact JSON includes transaction ID, operation count, isolation level, provider, rollback and validation state, retry/conflict fields, and provider error code.
+Use `hasTransactionDiagnostics=true` to list only graph transaction rows, `hasTransactionDiagnostics=false` to exclude them, and `transactionId=[full-or-partial-id]` to find entries for a known transaction ID.
 
 ## Enumeration APIs
 

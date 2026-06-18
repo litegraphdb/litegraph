@@ -532,10 +532,11 @@ export default class SdkBase {
    * @param {Object|string} data - The data to send in the POST request.
    * @param {Class} model - Modal to deserialize on
    * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @param {number[]} [acceptedStatusCodes] - Additional HTTP status codes to deserialize as successful responses.
    * @return {Promise<Object>} Resolves with the response data.
    * @throws {Error} Rejects if the URL or data is invalid or if the request fails.
    */
-  post(url, data, model, cancellationToken) {
+  post(url, data, model, cancellationToken, acceptedStatusCodes = []) {
     return new Promise((resolve, reject) => {
       if (!url) return reject(new Error('URL cannot be null or empty.'));
 
@@ -558,6 +559,14 @@ export default class SdkBase {
           resolve(Serializer.deserializeJson(res.text, model));
         })
         .catch((err) => {
+          const statusCode = err?.response?.status;
+          if (acceptedStatusCodes.includes(statusCode)) {
+            this.log(SeverityEnum.Debug, `Accepted non-success reported from ${url}: ${statusCode}`);
+            const responseText = err?.response?.text || JSON.stringify(err?.response?.body || {});
+            resolve(Serializer.deserializeJson(responseText, model));
+            return;
+          }
+
           this.log(SeverityEnum.Warn, `Failed to retrieve object from ${url}: ${err.message}`);
           const errorResponse = err?.response?.body || null;
           if (errorResponse && errorResponse?.Error) {

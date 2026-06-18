@@ -5150,12 +5150,29 @@
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.CreateIsolatedTransactionRepository">
+            <summary>
+            Create a repository instance that owns isolated transaction state for a single transaction execution.
+            Providers that do not override this method continue to use the caller repository and the legacy transaction gate.
+            </summary>
+            <returns>Repository instance.</returns>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.BeginGraphTransaction(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
             Begin a graph-scoped transaction.  Transactions are limited to one tenant and one graph.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.BeginGraphTransaction(System.Guid,System.Guid,LiteGraph.TransactionIsolationLevelEnum,System.Threading.CancellationToken)">
+            <summary>
+            Begin a graph-scoped transaction with a requested isolation level. Transactions are limited to one tenant and one graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="isolationLevel">Requested isolation level.</param>
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
@@ -8455,7 +8472,13 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.FlushAsync(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.CreateIsolatedTransactionRepository">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.BeginGraphTransaction(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.BeginGraphTransaction(System.Guid,System.Guid,LiteGraph.TransactionIsolationLevelEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.CommitGraphTransaction(System.Threading.CancellationToken)">
@@ -9512,7 +9535,13 @@
             Saves the in-memory database back to disk file
             </summary>
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.CreateIsolatedTransactionRepository">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.BeginGraphTransaction(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.BeginGraphTransaction(System.Guid,System.Guid,LiteGraph.TransactionIsolationLevelEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.CommitGraphTransaction(System.Threading.CancellationToken)">
@@ -9859,6 +9888,21 @@
             Represents the state of an HNSW index for serialization/deserialization.
             </summary>
         </member>
+        <member name="F:LiteGraph.Indexing.Vector.HnswIndexState.CurrentFormatVersion">
+            <summary>
+            Current LiteGraph HNSW persistence format version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.FormatVersion">
+            <summary>
+            LiteGraph HNSW persistence format version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.HnswLiteVersion">
+            <summary>
+            HnswLite package version used when the index state was written.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Indexing.Vector.HnswIndexState.EntryPoint">
             <summary>
             The entry point node GUID for the HNSW index.
@@ -9996,6 +10040,11 @@
         <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Tags">
             <summary>
             Arbitrary key/value metadata.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.HnswNodeState.Connections">
+            <summary>
+            HNSW neighbor connections keyed by layer.
             </summary>
         </member>
         <member name="T:LiteGraph.Indexing.Vector.IVectorIndex">
@@ -10148,6 +10197,17 @@
             </summary>
             <param name="id">Vector identifier.</param>
             <param name="distance">Distance from query vector.</param>
+        </member>
+        <member name="T:LiteGraph.Indexing.Vector.VectorIndexCompatibilityException">
+            <summary>
+            Exception raised when a persisted vector index artifact cannot be safely used by the current index implementation.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Indexing.Vector.VectorIndexCompatibilityException.#ctor(System.String)">
+            <summary>
+            Instantiate the exception.
+            </summary>
+            <param name="message">Compatibility failure message.</param>
         </member>
         <member name="T:LiteGraph.Indexing.Vector.VectorIndexEntry">
             <summary>
@@ -11966,6 +12026,11 @@
             Response content type.
             </summary>
         </member>
+        <member name="P:LiteGraph.RequestHistoryEntry.TransactionDiagnosticsJson">
+            <summary>
+            Compact transaction diagnostics JSON captured from graph transaction responses, if applicable.
+            </summary>
+        </member>
         <member name="M:LiteGraph.RequestHistoryEntry.#ctor">
             <summary>
             Instantiate.
@@ -12019,6 +12084,16 @@
         <member name="P:LiteGraph.RequestHistorySearchRequest.SourceIp">
             <summary>
             Source IP filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.RequestHistorySearchRequest.HasTransactionDiagnostics">
+            <summary>
+            Transaction diagnostics presence filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.RequestHistorySearchRequest.TransactionId">
+            <summary>
+            Transaction ID substring filter.
             </summary>
         </member>
         <member name="P:LiteGraph.RequestHistorySearchRequest.FromUtc">
@@ -12820,6 +12895,31 @@
             Tenant statistics.
             </summary>
         </member>
+        <member name="T:LiteGraph.TransactionIsolationLevelEnum">
+            <summary>
+            Provider-neutral transaction isolation level.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.TransactionIsolationLevelEnum.Default">
+            <summary>
+            Use the provider default isolation level.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.TransactionIsolationLevelEnum.ReadCommitted">
+            <summary>
+            Read committed isolation where supported by the provider.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.TransactionIsolationLevelEnum.RepeatableRead">
+            <summary>
+            Repeatable read isolation where supported by the provider.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.TransactionIsolationLevelEnum.Serializable">
+            <summary>
+            Serializable isolation where supported by the provider.
+            </summary>
+        </member>
         <member name="T:LiteGraph.TransactionObjectTypeEnum">
             <summary>
             Graph child object types that can participate in graph-scoped transactions.
@@ -12970,6 +13070,11 @@
             Request timeout in seconds.
             </summary>
         </member>
+        <member name="P:LiteGraph.TransactionRequest.IsolationLevel">
+            <summary>
+            Requested provider transaction isolation level.
+            </summary>
+        </member>
         <member name="T:LiteGraph.TransactionRequestBuilder">
             <summary>
             Fluent builder for graph-scoped transaction requests.
@@ -12992,6 +13097,13 @@
             Set the timeout for the request.
             </summary>
             <param name="timeoutSeconds">Timeout in seconds.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.TransactionRequestBuilder.WithIsolationLevel(LiteGraph.TransactionIsolationLevelEnum)">
+            <summary>
+            Set the provider transaction isolation level for the request.
+            </summary>
+            <param name="isolationLevel">Isolation level.</param>
             <returns>The transaction request builder.</returns>
         </member>
         <member name="M:LiteGraph.TransactionRequestBuilder.Add(LiteGraph.TransactionOperation)">
@@ -13263,9 +13375,19 @@
             True if the transaction committed.
             </summary>
         </member>
+        <member name="P:LiteGraph.TransactionResult.TransactionId">
+            <summary>
+            Transaction identifier assigned by LiteGraph.
+            </summary>
+        </member>
         <member name="P:LiteGraph.TransactionResult.RolledBack">
             <summary>
             True if the transaction rolled back.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.ValidationFailure">
+            <summary>
+            True if request validation failed before a provider transaction started.
             </summary>
         </member>
         <member name="P:LiteGraph.TransactionResult.FailedOperationIndex">
@@ -13283,9 +13405,74 @@
             Operation results.
             </summary>
         </member>
+        <member name="P:LiteGraph.TransactionResult.OperationCount">
+            <summary>
+            Number of operations submitted with the transaction request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.StartedUtc">
+            <summary>
+            UTC timestamp when transaction execution started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.CompletedUtc">
+            <summary>
+            UTC timestamp when transaction execution completed.
+            </summary>
+        </member>
         <member name="P:LiteGraph.TransactionResult.DurationMs">
             <summary>
             Transaction duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.CommitDurationMs">
+            <summary>
+            Commit duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.RollbackDurationMs">
+            <summary>
+            Rollback duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.Provider">
+            <summary>
+            Provider name that executed the transaction.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.IsolationLevel">
+            <summary>
+            Provider transaction isolation level used for the transaction.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.IsolatedRepository">
+            <summary>
+            True if execution used a transaction-local repository/session instead of the caller repository instance.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.SerializedByGate">
+            <summary>
+            True if execution used the legacy per-repository transaction gate.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.RetryCount">
+            <summary>
+            Number of transaction retries attempted.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.Retryable">
+            <summary>
+            True if the failure is retryable.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.ConcurrencyConflict">
+            <summary>
+            True if the failure represents a concurrency conflict.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.ProviderErrorCode">
+            <summary>
+            Provider-specific error code, if available.
             </summary>
         </member>
         <member name="T:LiteGraph.UserMaster">

@@ -20,7 +20,7 @@ Current release: v6.0.2.
 - Built-in retry mechanism and error handling
 - Comprehensive logging system
 - Access key authentication support
-- Native graph query, graph transaction, authorization, and request history resources for LiteGraph v6
+- Native graph query, graph transaction, authorization, and request history resources for LiteGraph v7
 
 ## Requirements
 
@@ -97,6 +97,33 @@ edge = Edge.create(
     data={"type": "direct"}
 )
 ```
+
+## Graph Transactions
+
+Graph transactions execute create, update, delete, attach, detach, and upsert operations atomically inside one tenant and graph. The transaction resource preserves diagnostic result bodies returned by LiteGraph with HTTP `400` validation failures or HTTP `409` rollback/conflict failures.
+
+```python
+from litegraph_sdk import Transaction
+import uuid
+
+ada_guid = str(uuid.uuid4())
+grace_guid = str(uuid.uuid4())
+
+result = (
+    Transaction.builder(graph_guid=graph.guid)
+    .with_max_operations(10)
+    .with_timeout_seconds(30)
+    .with_isolation_level("Default")
+    .create_node({"GUID": ada_guid, "Name": "Ada"})
+    .create_node({"GUID": grace_guid, "Name": "Grace"})
+    .create_edge({"From": ada_guid, "To": grace_guid, "Name": "Worked With"})
+    .execute()
+)
+
+print(result.success, result.transaction_id, result.duration_ms)
+```
+
+`TransactionResultModel` includes validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
 
 ## API Endpoints Reference
 

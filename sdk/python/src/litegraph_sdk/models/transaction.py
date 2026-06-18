@@ -40,6 +40,7 @@ class TransactionRequestModel(BaseModel):
     )
     max_operations: int = Field(default=1000, alias="MaxOperations", ge=1, le=10000)
     timeout_seconds: int = Field(default=60, alias="TimeoutSeconds", ge=1, le=3600)
+    isolation_level: str = Field(default="Default", alias="IsolationLevel")
     model_config = ConfigDict(populate_by_name=True)
 
 
@@ -49,7 +50,9 @@ class TransactionResultModel(BaseModel):
     """
 
     success: bool = Field(default=True, alias="Success")
+    transaction_id: Optional[str] = Field(default=None, alias="TransactionId")
     rolled_back: bool = Field(default=False, alias="RolledBack")
+    validation_failure: bool = Field(default=False, alias="ValidationFailure")
     failed_operation_index: Optional[int] = Field(
         default=None, alias="FailedOperationIndex"
     )
@@ -57,5 +60,18 @@ class TransactionResultModel(BaseModel):
     operations: List[TransactionOperationResultModel] = Field(
         default_factory=list, alias="Operations"
     )
+    operation_count: int = Field(default=0, alias="OperationCount")
+    started_utc: Optional[str] = Field(default=None, alias="StartedUtc")
+    completed_utc: Optional[str] = Field(default=None, alias="CompletedUtc")
     duration_ms: float = Field(default=0, alias="DurationMs")
+    commit_duration_ms: float = Field(default=0, alias="CommitDurationMs")
+    rollback_duration_ms: float = Field(default=0, alias="RollbackDurationMs")
+    provider: Optional[str] = Field(default=None, alias="Provider")
+    isolation_level: str = Field(default="Default", alias="IsolationLevel")
+    isolated_repository: bool = Field(default=False, alias="IsolatedRepository")
+    serialized_by_gate: bool = Field(default=False, alias="SerializedByGate")
+    retry_count: int = Field(default=0, alias="RetryCount")
+    retryable: bool = Field(default=False, alias="Retryable")
+    concurrency_conflict: bool = Field(default=False, alias="ConcurrencyConflict")
+    provider_error_code: Optional[str] = Field(default=None, alias="ProviderErrorCode")
     model_config = ConfigDict(populate_by_name=True)

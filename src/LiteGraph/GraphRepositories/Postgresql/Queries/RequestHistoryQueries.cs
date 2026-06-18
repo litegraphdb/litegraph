@@ -25,7 +25,7 @@
             sb.Append("tenantguid, userguid, statuscode, success, processingtimems, ");
             sb.Append("requestbodylength, responsebodylength, requestbodytruncated, responsebodytruncated, ");
             sb.Append("requestcontenttype, responsecontenttype, requestheadersjson, requestbodyb64, ");
-            sb.Append("responseheadersjson, responsebodyb64");
+            sb.Append("responseheadersjson, responsebodyb64, transactiondiagnosticsjson");
             sb.Append(") VALUES (");
             sb.Append("'").Append(detail.GUID).Append("', ");
             sb.Append(StringOrNull(detail.RequestId)).Append(", ");
@@ -51,7 +51,8 @@
             sb.Append(JsonOrNull(reqHeadersJson)).Append(", ");
             sb.Append(StringOrNull(reqBodyB64)).Append(", ");
             sb.Append(JsonOrNull(respHeadersJson)).Append(", ");
-            sb.Append(StringOrNull(respBodyB64));
+            sb.Append(StringOrNull(respBodyB64)).Append(", ");
+            sb.Append(JsonOrNull(detail.TransactionDiagnosticsJson));
             sb.Append(");");
             return sb.ToString();
         }
@@ -67,7 +68,7 @@
             if (countOnly)
                 sb.Append("SELECT COUNT(*) AS record_count FROM 'requesthistory' WHERE 1=1 ");
             else
-                sb.Append("SELECT guid, requestid, correlationid, traceid, createdutc, completedutc, method, path, url, sourceip, tenantguid, userguid, statuscode, success, processingtimems, requestbodylength, responsebodylength, requestbodytruncated, responsebodytruncated, requestcontenttype, responsecontenttype FROM 'requesthistory' WHERE 1=1 ");
+                sb.Append("SELECT guid, requestid, correlationid, traceid, createdutc, completedutc, method, path, url, sourceip, tenantguid, userguid, statuscode, success, processingtimems, requestbodylength, responsebodylength, requestbodytruncated, responsebodytruncated, requestcontenttype, responsecontenttype, transactiondiagnosticsjson FROM 'requesthistory' WHERE 1=1 ");
 
             AppendFilters(sb, search);
 
@@ -158,6 +159,17 @@
 
             if (!string.IsNullOrEmpty(search.SourceIp))
                 sb.Append("AND sourceip = '").Append(Sanitizer.Sanitize(search.SourceIp)).Append("' ");
+
+            if (search.HasTransactionDiagnostics.HasValue)
+            {
+                if (search.HasTransactionDiagnostics.Value)
+                    sb.Append("AND transactiondiagnosticsjson IS NOT NULL AND transactiondiagnosticsjson <> '' ");
+                else
+                    sb.Append("AND (transactiondiagnosticsjson IS NULL OR transactiondiagnosticsjson = '') ");
+            }
+
+            if (!string.IsNullOrEmpty(search.TransactionId))
+                sb.Append("AND transactiondiagnosticsjson LIKE '%").Append(EscapeQuotes(search.TransactionId)).Append("%' ");
 
             if (search.FromUtc.HasValue)
                 sb.Append("AND createdutc >= '").Append(search.FromUtc.Value.ToString(TimestampFormat)).Append("' ");

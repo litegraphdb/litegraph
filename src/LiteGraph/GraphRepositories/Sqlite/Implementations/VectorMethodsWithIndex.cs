@@ -243,6 +243,17 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
                 LiteGraphTelemetry.SetActivityOk(activity);
                 return scoredResults;
             }
+            catch (VectorIndexCompatibilityException e)
+            {
+                string reason = "Vector index artifact compatibility check failed: " + e.Message;
+                repo.Logging.Log(SeverityEnum.Warn, reason);
+                await repo.Graph.MarkVectorIndexDirtyAsync(graph.TenantGUID, graph.GUID, reason).ConfigureAwait(false);
+
+                activity?.SetTag("litegraph.vector.index.used", false);
+                activity?.SetTag("litegraph.vector.index.skip_reason", "incompatible_artifact");
+                LiteGraphTelemetry.SetActivityOk(activity);
+                return null;
+            }
             catch (Exception e)
             {
                 LiteGraphTelemetry.SetActivityException(activity, e);
@@ -279,10 +290,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
             string dirtyReason,
             Func<IVectorIndex, Task> mutation)
         {
+            if (repo.TryStageVectorIndexMutation(graph, dirtyReason, mutation)) return;
+
             try
             {
                 await repo.VectorIndexManager.ExecuteWithIndexAsync(graph, mutation).ConfigureAwait(false);
-                repo.NoteVectorIndexMutation(graph.TenantGUID, graph.GUID, dirtyReason);
             }
             catch (Exception e)
             {

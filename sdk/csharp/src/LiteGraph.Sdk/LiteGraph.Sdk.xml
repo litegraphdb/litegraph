@@ -630,6 +630,296 @@
             Graph statistics.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.GraphTransactionBuilder">
+            <summary>
+            Fluent builder for graph-scoped transaction requests.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphTransactionBuilder.Count">
+            <summary>
+            Number of operations currently added to the request.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.WithMaxOperations(System.Int32)">
+            <summary>
+            Set the maximum operation count for the request.
+            </summary>
+            <param name="maxOperations">Maximum operation count.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.WithTimeoutSeconds(System.Int32)">
+            <summary>
+            Set the timeout for the request.
+            </summary>
+            <param name="timeoutSeconds">Timeout in seconds.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.WithIsolationLevel(LiteGraph.Sdk.TransactionIsolationLevelEnum)">
+            <summary>
+            Set the provider transaction isolation level for the request.
+            </summary>
+            <param name="isolationLevel">Isolation level.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Add(LiteGraph.Sdk.TransactionOperation)">
+            <summary>
+            Add a raw transaction operation.
+            </summary>
+            <param name="operation">Transaction operation.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Create(LiteGraph.Sdk.TransactionObjectTypeEnum,System.Object)">
+            <summary>
+            Add a create operation.
+            </summary>
+            <param name="objectType">Object type.</param>
+            <param name="payload">Object payload.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Update(LiteGraph.Sdk.TransactionObjectTypeEnum,System.Object,System.Nullable{System.Guid})">
+            <summary>
+            Add an update operation.
+            </summary>
+            <param name="objectType">Object type.</param>
+            <param name="payload">Object payload.</param>
+            <param name="guid">Object GUID. If set, this overrides any payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Delete(LiteGraph.Sdk.TransactionObjectTypeEnum,System.Guid)">
+            <summary>
+            Add a delete operation.
+            </summary>
+            <param name="objectType">Object type.</param>
+            <param name="guid">Object GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Attach(LiteGraph.Sdk.TransactionObjectTypeEnum,System.Object,System.Nullable{System.Guid})">
+            <summary>
+            Add an attach operation for a label, tag, or vector subordinate.
+            </summary>
+            <param name="objectType">Object type.</param>
+            <param name="payload">Object payload.</param>
+            <param name="guid">Object GUID. If set, this overrides any payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Detach(LiteGraph.Sdk.TransactionObjectTypeEnum,System.Guid)">
+            <summary>
+            Add a detach operation for a label, tag, or vector subordinate.
+            </summary>
+            <param name="objectType">Object type.</param>
+            <param name="guid">Object GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Upsert(LiteGraph.Sdk.TransactionObjectTypeEnum,System.Object,System.Nullable{System.Guid})">
+            <summary>
+            Add an upsert operation.
+            </summary>
+            <param name="objectType">Object type.</param>
+            <param name="payload">Object payload.</param>
+            <param name="guid">Object GUID. If set, this overrides any payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.CreateNode(LiteGraph.Sdk.Node)">
+            <summary>
+            Add a node create operation.
+            </summary>
+            <param name="node">Node.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpdateNode(LiteGraph.Sdk.Node,System.Nullable{System.Guid})">
+            <summary>
+            Add a node update operation.
+            </summary>
+            <param name="node">Node.</param>
+            <param name="guid">Node GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DeleteNode(System.Guid)">
+            <summary>
+            Add a node delete operation.
+            </summary>
+            <param name="guid">Node GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpsertNode(LiteGraph.Sdk.Node,System.Nullable{System.Guid})">
+            <summary>
+            Add a node upsert operation.
+            </summary>
+            <param name="node">Node.</param>
+            <param name="guid">Node GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.CreateEdge(LiteGraph.Sdk.Edge)">
+            <summary>
+            Add an edge create operation.
+            </summary>
+            <param name="edge">Edge.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpdateEdge(LiteGraph.Sdk.Edge,System.Nullable{System.Guid})">
+            <summary>
+            Add an edge update operation.
+            </summary>
+            <param name="edge">Edge.</param>
+            <param name="guid">Edge GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DeleteEdge(System.Guid)">
+            <summary>
+            Add an edge delete operation.
+            </summary>
+            <param name="guid">Edge GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpsertEdge(LiteGraph.Sdk.Edge,System.Nullable{System.Guid})">
+            <summary>
+            Add an edge upsert operation.
+            </summary>
+            <param name="edge">Edge.</param>
+            <param name="guid">Edge GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.CreateLabel(LiteGraph.Sdk.LabelMetadata)">
+            <summary>
+            Add a label create operation.
+            </summary>
+            <param name="label">Label.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpdateLabel(LiteGraph.Sdk.LabelMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a label update operation.
+            </summary>
+            <param name="label">Label.</param>
+            <param name="guid">Label GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DeleteLabel(System.Guid)">
+            <summary>
+            Add a label delete operation.
+            </summary>
+            <param name="guid">Label GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.AttachLabel(LiteGraph.Sdk.LabelMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a label attach operation.
+            </summary>
+            <param name="label">Label.</param>
+            <param name="guid">Label GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DetachLabel(System.Guid)">
+            <summary>
+            Add a label detach operation.
+            </summary>
+            <param name="guid">Label GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpsertLabel(LiteGraph.Sdk.LabelMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a label upsert operation.
+            </summary>
+            <param name="label">Label.</param>
+            <param name="guid">Label GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.CreateTag(LiteGraph.Sdk.TagMetadata)">
+            <summary>
+            Add a tag create operation.
+            </summary>
+            <param name="tag">Tag.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpdateTag(LiteGraph.Sdk.TagMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a tag update operation.
+            </summary>
+            <param name="tag">Tag.</param>
+            <param name="guid">Tag GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DeleteTag(System.Guid)">
+            <summary>
+            Add a tag delete operation.
+            </summary>
+            <param name="guid">Tag GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.AttachTag(LiteGraph.Sdk.TagMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a tag attach operation.
+            </summary>
+            <param name="tag">Tag.</param>
+            <param name="guid">Tag GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DetachTag(System.Guid)">
+            <summary>
+            Add a tag detach operation.
+            </summary>
+            <param name="guid">Tag GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpsertTag(LiteGraph.Sdk.TagMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a tag upsert operation.
+            </summary>
+            <param name="tag">Tag.</param>
+            <param name="guid">Tag GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.CreateVector(LiteGraph.Sdk.VectorMetadata)">
+            <summary>
+            Add a vector create operation.
+            </summary>
+            <param name="vector">Vector.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpdateVector(LiteGraph.Sdk.VectorMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a vector update operation.
+            </summary>
+            <param name="vector">Vector.</param>
+            <param name="guid">Vector GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DeleteVector(System.Guid)">
+            <summary>
+            Add a vector delete operation.
+            </summary>
+            <param name="guid">Vector GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.AttachVector(LiteGraph.Sdk.VectorMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a vector attach operation.
+            </summary>
+            <param name="vector">Vector.</param>
+            <param name="guid">Vector GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.DetachVector(System.Guid)">
+            <summary>
+            Add a vector detach operation.
+            </summary>
+            <param name="guid">Vector GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.UpsertVector(LiteGraph.Sdk.VectorMetadata,System.Nullable{System.Guid})">
+            <summary>
+            Add a vector upsert operation.
+            </summary>
+            <param name="vector">Vector.</param>
+            <param name="guid">Vector GUID. If set, this overrides the payload GUID.</param>
+            <returns>The transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphTransactionBuilder.Build">
+            <summary>
+            Build the transaction request.
+            </summary>
+            <returns>Transaction request.</returns>
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -1141,6 +1431,23 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.TenantMethods.GetStatistics(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Sdk.Implementations.TransactionMethods">
+            <summary>
+            Graph transaction methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.TransactionMethods.#ctor(LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Transaction methods.
+            </summary>
+            <param name="sdk">LiteGraph SDK.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.TransactionMethods.CreateRequestBuilder">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.TransactionMethods.Execute(System.Guid,System.Guid,LiteGraph.Sdk.TransactionRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Sdk.Implementations.UserAuthentication">
@@ -2623,6 +2930,27 @@
             <param name="token">Cancellation token.</param>
             <returns>Dictionary of tenant statistics.</returns>
         </member>
+        <member name="T:LiteGraph.Sdk.Interfaces.ITransactionMethods">
+            <summary>
+            Interface for graph transaction methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.ITransactionMethods.CreateRequestBuilder">
+            <summary>
+            Create a transaction request builder.
+            </summary>
+            <returns>Transaction request builder.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.ITransactionMethods.Execute(System.Guid,System.Guid,LiteGraph.Sdk.TransactionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Execute a graph-scoped transaction.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Transaction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Transaction result.</returns>
+        </member>
         <member name="T:LiteGraph.Sdk.Interfaces.IUserAuthentication">
             <summary>
             Interface for user authentication methods.
@@ -3020,6 +3348,11 @@
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.Tenant">
             <summary>
             Tenant methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdk.Transaction">
+            <summary>
+            Graph transaction methods.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.User">
@@ -3877,6 +4210,296 @@
         <member name="M:LiteGraph.Sdk.TenantStatistics.#ctor">
             <summary>
             Tenant statistics.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionIsolationLevelEnum">
+            <summary>
+            Provider transaction isolation level.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionIsolationLevelEnum.Default">
+            <summary>
+            Use the provider default.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionIsolationLevelEnum.ReadCommitted">
+            <summary>
+            Read committed isolation.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionIsolationLevelEnum.RepeatableRead">
+            <summary>
+            Repeatable read isolation.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionIsolationLevelEnum.Serializable">
+            <summary>
+            Serializable isolation.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionObjectTypeEnum">
+            <summary>
+            Graph child object types that can participate in graph-scoped transactions.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionObjectTypeEnum.Node">
+            <summary>
+            Node.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionObjectTypeEnum.Edge">
+            <summary>
+            Edge.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionObjectTypeEnum.Label">
+            <summary>
+            Label.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionObjectTypeEnum.Tag">
+            <summary>
+            Tag.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionObjectTypeEnum.Vector">
+            <summary>
+            Vector.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionOperation">
+            <summary>
+            A single graph-scoped transaction operation.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperation.OperationType">
+            <summary>
+            Operation type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperation.ObjectType">
+            <summary>
+            Target object type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperation.GUID">
+            <summary>
+            Target object GUID for update, delete, detach, or upsert operations, or when payload omits a GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperation.Payload">
+            <summary>
+            Typed payload for create, update, attach, and upsert operations.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionOperationResult">
+            <summary>
+            Result for a single graph transaction operation.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.Index">
+            <summary>
+            Operation index in the original request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.OperationType">
+            <summary>
+            Operation type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.ObjectType">
+            <summary>
+            Object type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.GUID">
+            <summary>
+            Object GUID, where available.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.Success">
+            <summary>
+            True if the operation succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.Result">
+            <summary>
+            Result object, where available.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionOperationResult.Error">
+            <summary>
+            Error message, if the operation failed.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionOperationTypeEnum">
+            <summary>
+            Graph transaction operation type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionOperationTypeEnum.Create">
+            <summary>
+            Create an object.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionOperationTypeEnum.Update">
+            <summary>
+            Update an object.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionOperationTypeEnum.Delete">
+            <summary>
+            Delete an object.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionOperationTypeEnum.Attach">
+            <summary>
+            Attach a subordinate object to a node or edge.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionOperationTypeEnum.Detach">
+            <summary>
+            Detach a subordinate object from a node or edge.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionOperationTypeEnum.Upsert">
+            <summary>
+            Create an object when missing or update it when present.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionRequest">
+            <summary>
+            Graph-scoped transaction request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionRequest.Operations">
+            <summary>
+            Operations to execute atomically.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionRequest.MaxOperations">
+            <summary>
+            Maximum number of operations permitted by this request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionRequest.TimeoutSeconds">
+            <summary>
+            Request timeout in seconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionRequest.IsolationLevel">
+            <summary>
+            Requested provider transaction isolation level.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionResult">
+            <summary>
+            Graph-scoped transaction result.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.Success">
+            <summary>
+            True if the transaction committed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.TransactionId">
+            <summary>
+            Transaction identifier assigned by LiteGraph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.RolledBack">
+            <summary>
+            True if the transaction rolled back.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.ValidationFailure">
+            <summary>
+            True if request validation failed before a provider transaction started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.FailedOperationIndex">
+            <summary>
+            Index of failed operation, if any.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.Error">
+            <summary>
+            Error message, if the transaction failed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.Operations">
+            <summary>
+            Operation results.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.OperationCount">
+            <summary>
+            Number of operations submitted with the transaction request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.StartedUtc">
+            <summary>
+            UTC timestamp when transaction execution started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.CompletedUtc">
+            <summary>
+            UTC timestamp when transaction execution completed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.DurationMs">
+            <summary>
+            Transaction duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.CommitDurationMs">
+            <summary>
+            Commit duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.RollbackDurationMs">
+            <summary>
+            Rollback duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.Provider">
+            <summary>
+            Provider name that executed the transaction.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.IsolationLevel">
+            <summary>
+            Provider transaction isolation level used for the transaction.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.IsolatedRepository">
+            <summary>
+            True if execution used a transaction-local repository/session instead of the caller repository instance.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.SerializedByGate">
+            <summary>
+            True if execution used the legacy per-repository transaction gate.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.RetryCount">
+            <summary>
+            Number of transaction retries attempted.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.Retryable">
+            <summary>
+            True if the failure is retryable.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.ConcurrencyConflict">
+            <summary>
+            True if the failure represents a concurrency conflict.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.ProviderErrorCode">
+            <summary>
+            Provider-specific error code, if available.
             </summary>
         </member>
         <member name="T:LiteGraph.Sdk.UserMaster">

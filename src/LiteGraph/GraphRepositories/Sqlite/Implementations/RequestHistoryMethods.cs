@@ -283,6 +283,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
             entry.ResponseBodyTruncated = Converters.GetDataRowIntValue(row, "responsebodytruncated") == 1;
             entry.RequestContentType = Converters.GetDataRowStringValue(row, "requestcontenttype");
             entry.ResponseContentType = Converters.GetDataRowStringValue(row, "responsecontenttype");
+            if (row.Table.Columns.Contains("transactiondiagnosticsjson")) entry.TransactionDiagnosticsJson = Converters.GetDataRowStringValue(row, "transactiondiagnosticsjson");
         }
 
         #endregion

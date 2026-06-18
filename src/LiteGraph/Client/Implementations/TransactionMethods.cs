@@ -60,8 +60,17 @@ namespace LiteGraph.Client.Implementations
             using (CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, timeoutCts.Token))
             {
                 CancellationToken linkedToken = linkedCts.Token;
-                TransactionResult result = new TransactionResult();
+                TransactionResult result = new TransactionResult
+                {
+                    TransactionId = Guid.NewGuid(),
+                    OperationCount = request.Operations.Count,
+                    StartedUtc = DateTime.UtcNow,
+                    IsolationLevel = request.IsolationLevel.ToString(),
+                    RetryCount = 0
+                };
 
+                GraphRepositoryBase transactionRepo = null;
+                bool disposeTransactionRepo = false;
                 bool startedTransaction = false;
                 bool gateAcquired = false;
                 int currentOperationIndex = -1;
@@ -69,13 +78,23 @@ namespace LiteGraph.Client.Implementations
                 {
                     ValidateOperations(request, ref currentOperationIndex);
 
-                    await _TransactionGate.WaitAsync(linkedToken).ConfigureAwait(false);
-                    gateAcquired = true;
+                    transactionRepo = _Repo.CreateIsolatedTransactionRepository();
+                    if (transactionRepo == null) throw new InvalidOperationException("Transaction repository factory returned null.");
+                    disposeTransactionRepo = !ReferenceEquals(transactionRepo, _Repo);
+                    result.Provider = ResolveProviderName(transactionRepo);
+                    result.IsolatedRepository = disposeTransactionRepo;
+                    result.SerializedByGate = !disposeTransactionRepo;
 
-                    if (_Repo.GraphTransactionActive)
+                    if (!disposeTransactionRepo)
+                    {
+                        await _TransactionGate.WaitAsync(linkedToken).ConfigureAwait(false);
+                        gateAcquired = true;
+                    }
+
+                    if (transactionRepo.GraphTransactionActive)
                         throw new InvalidOperationException("A graph transaction is already active on this repository.");
 
-                    await _Repo.BeginGraphTransaction(tenantGuid, graphGuid, linkedToken).ConfigureAwait(false);
+                    await transactionRepo.BeginGraphTransaction(tenantGuid, graphGuid, request.IsolationLevel, linkedToken).ConfigureAwait(false);
                     startedTransaction = true;
 
                     for (int i = 0; i < request.Operations.Count; i++)
@@ -83,24 +102,45 @@ namespace LiteGraph.Client.Implementations
                         currentOperationIndex = i;
                         linkedToken.ThrowIfCancellationRequested();
                         TransactionOperation op = request.Operations[i] ?? throw new ArgumentException("Transaction operation " + i + " is null.");
-                        TransactionOperationResult opResult = await ExecuteOperation(tenantGuid, graphGuid, i, op, linkedToken).ConfigureAwait(false);
+                        TransactionOperationResult opResult = await ExecuteOperation(transactionRepo, tenantGuid, graphGuid, i, op, linkedToken).ConfigureAwait(false);
                         result.Operations.Add(opResult);
                     }
 
-                    if (startedTransaction) await _Repo.CommitGraphTransaction(linkedToken).ConfigureAwait(false);
+                    if (startedTransaction)
+                    {
+                        Stopwatch commitStopwatch = Stopwatch.StartNew();
+                        try
+                        {
+                            await transactionRepo.CommitGraphTransaction(linkedToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            commitStopwatch.Stop();
+                            result.CommitDurationMs = commitStopwatch.Elapsed.TotalMilliseconds;
+                        }
+                    }
+
                     result.Success = true;
                     return result;
                 }
                 catch (Exception e)
                 {
-                    if (startedTransaction && _Repo.GraphTransactionActive)
+                    if (startedTransaction && transactionRepo != null && transactionRepo.GraphTransactionActive)
                     {
-                        try { await _Repo.RollbackGraphTransaction(CancellationToken.None).ConfigureAwait(false); } catch { }
+                        Stopwatch rollbackStopwatch = Stopwatch.StartNew();
+                        try { await transactionRepo.RollbackGraphTransaction(CancellationToken.None).ConfigureAwait(false); } catch { }
+                        finally
+                        {
+                            rollbackStopwatch.Stop();
+                            result.RollbackDurationMs = rollbackStopwatch.Elapsed.TotalMilliseconds;
+                        }
                     }
 
                     result.Success = false;
-                    result.RolledBack = true;
+                    result.RolledBack = startedTransaction;
+                    result.ValidationFailure = !startedTransaction && IsValidationException(e);
                     result.Error = e.Message;
+                    ApplyProviderErrorDiagnostics(result, e);
                     result.FailedOperationIndex = currentOperationIndex >= 0 ? currentOperationIndex : result.Operations.Count;
                     if (request.Operations != null
                         && result.FailedOperationIndex >= 0
@@ -124,7 +164,13 @@ namespace LiteGraph.Client.Implementations
                 finally
                 {
                     if (gateAcquired) _TransactionGate.Release();
+                    if (disposeTransactionRepo && transactionRepo != null)
+                    {
+                        await transactionRepo.DisposeAsync().ConfigureAwait(false);
+                    }
+
                     sw.Stop();
+                    result.CompletedUtc = DateTime.UtcNow;
                     result.DurationMs = sw.Elapsed.TotalMilliseconds;
                 }
             }
@@ -134,22 +180,22 @@ namespace LiteGraph.Client.Implementations
 
         #region Private-Methods
 
-        private async Task<TransactionOperationResult> ExecuteOperation(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> ExecuteOperation(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
             switch (op.OperationType)
             {
                 case TransactionOperationTypeEnum.Create:
-                    return await Create(tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
+                    return await Create(repo, tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
                 case TransactionOperationTypeEnum.Update:
-                    return await Update(tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
+                    return await Update(repo, tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
                 case TransactionOperationTypeEnum.Delete:
-                    return await Delete(tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
+                    return await Delete(repo, tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
                 case TransactionOperationTypeEnum.Attach:
-                    return await Attach(tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
+                    return await Attach(repo, tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
                 case TransactionOperationTypeEnum.Detach:
-                    return await Detach(tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
+                    return await Detach(repo, tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
                 case TransactionOperationTypeEnum.Upsert:
-                    return await Upsert(tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
+                    return await Upsert(repo, tenantGuid, graphGuid, index, op, token).ConfigureAwait(false);
                 default:
                     throw new NotSupportedException("Unsupported transaction operation type '" + op.OperationType + "'.");
             }
@@ -215,7 +261,7 @@ namespace LiteGraph.Client.Implementations
             currentOperationIndex = -1;
         }
 
-        private async Task<TransactionOperationResult> Create(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> Create(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
             object created;
             Guid? guid;
@@ -224,27 +270,27 @@ namespace LiteGraph.Client.Implementations
             {
                 case TransactionObjectTypeEnum.Node:
                     Node node = PrepareNode(tenantGuid, graphGuid, ConvertPayload<Node>(op.Payload));
-                    created = await _Repo.Node.Create(node, token).ConfigureAwait(false);
+                    created = await repo.Node.Create(node, token).ConfigureAwait(false);
                     guid = ((Node)created).GUID;
                     break;
                 case TransactionObjectTypeEnum.Edge:
                     Edge edge = PrepareEdge(tenantGuid, graphGuid, ConvertPayload<Edge>(op.Payload));
-                    created = await _Repo.Edge.Create(edge, token).ConfigureAwait(false);
+                    created = await repo.Edge.Create(edge, token).ConfigureAwait(false);
                     guid = ((Edge)created).GUID;
                     break;
                 case TransactionObjectTypeEnum.Label:
                     LabelMetadata label = PrepareLabel(tenantGuid, graphGuid, ConvertPayload<LabelMetadata>(op.Payload));
-                    created = await _Repo.Label.Create(label, token).ConfigureAwait(false);
+                    created = await repo.Label.Create(label, token).ConfigureAwait(false);
                     guid = ((LabelMetadata)created).GUID;
                     break;
                 case TransactionObjectTypeEnum.Tag:
                     TagMetadata tag = PrepareTag(tenantGuid, graphGuid, ConvertPayload<TagMetadata>(op.Payload));
-                    created = await _Repo.Tag.Create(tag, token).ConfigureAwait(false);
+                    created = await repo.Tag.Create(tag, token).ConfigureAwait(false);
                     guid = ((TagMetadata)created).GUID;
                     break;
                 case TransactionObjectTypeEnum.Vector:
                     VectorMetadata vector = PrepareVector(tenantGuid, graphGuid, ConvertPayload<VectorMetadata>(op.Payload));
-                    created = await _Repo.Vector.Create(vector, token).ConfigureAwait(false);
+                    created = await repo.Vector.Create(vector, token).ConfigureAwait(false);
                     guid = ((VectorMetadata)created).GUID;
                     break;
                 default:
@@ -254,7 +300,7 @@ namespace LiteGraph.Client.Implementations
             return Success(index, op, guid, created);
         }
 
-        private async Task<TransactionOperationResult> Update(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> Update(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
             object updated;
             Guid? guid;
@@ -264,31 +310,31 @@ namespace LiteGraph.Client.Implementations
                 case TransactionObjectTypeEnum.Node:
                     Node node = PrepareNode(tenantGuid, graphGuid, ConvertPayload<Node>(op.Payload));
                     if (op.GUID != null) node.GUID = op.GUID.Value;
-                    updated = await _Repo.Node.Update(node, token).ConfigureAwait(false);
+                    updated = await repo.Node.Update(node, token).ConfigureAwait(false);
                     guid = ((Node)updated).GUID;
                     break;
                 case TransactionObjectTypeEnum.Edge:
                     Edge edge = PrepareEdge(tenantGuid, graphGuid, ConvertPayload<Edge>(op.Payload));
                     if (op.GUID != null) edge.GUID = op.GUID.Value;
-                    updated = await _Repo.Edge.Update(edge, token).ConfigureAwait(false);
+                    updated = await repo.Edge.Update(edge, token).ConfigureAwait(false);
                     guid = ((Edge)updated).GUID;
                     break;
                 case TransactionObjectTypeEnum.Label:
                     LabelMetadata label = PrepareLabel(tenantGuid, graphGuid, ConvertPayload<LabelMetadata>(op.Payload));
                     if (op.GUID != null) label.GUID = op.GUID.Value;
-                    updated = await _Repo.Label.Update(label, token).ConfigureAwait(false);
+                    updated = await repo.Label.Update(label, token).ConfigureAwait(false);
                     guid = ((LabelMetadata)updated).GUID;
                     break;
                 case TransactionObjectTypeEnum.Tag:
                     TagMetadata tag = PrepareTag(tenantGuid, graphGuid, ConvertPayload<TagMetadata>(op.Payload));
                     if (op.GUID != null) tag.GUID = op.GUID.Value;
-                    updated = await _Repo.Tag.Update(tag, token).ConfigureAwait(false);
+                    updated = await repo.Tag.Update(tag, token).ConfigureAwait(false);
                     guid = ((TagMetadata)updated).GUID;
                     break;
                 case TransactionObjectTypeEnum.Vector:
                     VectorMetadata vector = PrepareVector(tenantGuid, graphGuid, ConvertPayload<VectorMetadata>(op.Payload));
                     if (op.GUID != null) vector.GUID = op.GUID.Value;
-                    updated = await _Repo.Vector.Update(vector, token).ConfigureAwait(false);
+                    updated = await repo.Vector.Update(vector, token).ConfigureAwait(false);
                     guid = ((VectorMetadata)updated).GUID;
                     break;
                 default:
@@ -298,26 +344,26 @@ namespace LiteGraph.Client.Implementations
             return Success(index, op, guid, updated);
         }
 
-        private async Task<TransactionOperationResult> Delete(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> Delete(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
             Guid guid = ResolveGuid(op);
 
             switch (op.ObjectType)
             {
                 case TransactionObjectTypeEnum.Node:
-                    await _Repo.Node.DeleteByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
+                    await repo.Node.DeleteByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
                     break;
                 case TransactionObjectTypeEnum.Edge:
-                    await _Repo.Edge.DeleteByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
+                    await repo.Edge.DeleteByGuid(tenantGuid, graphGuid, guid, token).ConfigureAwait(false);
                     break;
                 case TransactionObjectTypeEnum.Label:
-                    await _Repo.Label.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
+                    await repo.Label.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
                     break;
                 case TransactionObjectTypeEnum.Tag:
-                    await _Repo.Tag.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
+                    await repo.Tag.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
                     break;
                 case TransactionObjectTypeEnum.Vector:
-                    await _Repo.Vector.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
+                    await repo.Vector.DeleteByGuid(tenantGuid, guid, token).ConfigureAwait(false);
                     break;
                 default:
                     throw new NotSupportedException("Unsupported transaction object type '" + op.ObjectType + "'.");
@@ -326,7 +372,7 @@ namespace LiteGraph.Client.Implementations
             return Success(index, op, guid, null);
         }
 
-        private async Task<TransactionOperationResult> Attach(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> Attach(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
             TransactionOperation create = new TransactionOperation
             {
@@ -345,21 +391,21 @@ namespace LiteGraph.Client.Implementations
                     LabelMetadata label = PrepareLabel(tenantGuid, graphGuid, ConvertPayload<LabelMetadata>(op.Payload));
                     if (op.GUID != null) label.GUID = op.GUID.Value;
                     ValidateAttachmentTarget(label.NodeGUID, label.EdgeGUID, "Label attach");
-                    created = await _Repo.Label.Create(label, token).ConfigureAwait(false);
+                    created = await repo.Label.Create(label, token).ConfigureAwait(false);
                     guid = ((LabelMetadata)created).GUID;
                     break;
                 case TransactionObjectTypeEnum.Tag:
                     TagMetadata tag = PrepareTag(tenantGuid, graphGuid, ConvertPayload<TagMetadata>(op.Payload));
                     if (op.GUID != null) tag.GUID = op.GUID.Value;
                     ValidateAttachmentTarget(tag.NodeGUID, tag.EdgeGUID, "Tag attach");
-                    created = await _Repo.Tag.Create(tag, token).ConfigureAwait(false);
+                    created = await repo.Tag.Create(tag, token).ConfigureAwait(false);
                     guid = ((TagMetadata)created).GUID;
                     break;
                 case TransactionObjectTypeEnum.Vector:
                     VectorMetadata vector = PrepareVector(tenantGuid, graphGuid, ConvertPayload<VectorMetadata>(op.Payload));
                     if (op.GUID != null) vector.GUID = op.GUID.Value;
                     ValidateAttachmentTarget(vector.NodeGUID, vector.EdgeGUID, "Vector attach");
-                    created = await _Repo.Vector.Create(vector, token).ConfigureAwait(false);
+                    created = await repo.Vector.Create(vector, token).ConfigureAwait(false);
                     guid = ((VectorMetadata)created).GUID;
                     break;
                 default:
@@ -369,9 +415,9 @@ namespace LiteGraph.Client.Implementations
             return Success(index, create, guid, created);
         }
 
-        private async Task<TransactionOperationResult> Detach(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> Detach(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
-            return await Delete(tenantGuid, graphGuid, index, new TransactionOperation
+            return await Delete(repo, tenantGuid, graphGuid, index, new TransactionOperation
             {
                 OperationType = TransactionOperationTypeEnum.Detach,
                 ObjectType = op.ObjectType,
@@ -380,7 +426,7 @@ namespace LiteGraph.Client.Implementations
             }, token).ConfigureAwait(false);
         }
 
-        private async Task<TransactionOperationResult> Upsert(Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
+        private async Task<TransactionOperationResult> Upsert(GraphRepositoryBase repo, Guid tenantGuid, Guid graphGuid, int index, TransactionOperation op, CancellationToken token)
         {
             object saved;
             Guid? guid;
@@ -391,46 +437,46 @@ namespace LiteGraph.Client.Implementations
                 case TransactionObjectTypeEnum.Node:
                     Node node = PrepareNode(tenantGuid, graphGuid, ConvertPayload<Node>(op.Payload));
                     if (op.GUID != null) node.GUID = op.GUID.Value;
-                    Node existingNode = await _Repo.Node.ReadByGuid(tenantGuid, node.GUID, token).ConfigureAwait(false);
+                    Node existingNode = await repo.Node.ReadByGuid(tenantGuid, node.GUID, token).ConfigureAwait(false);
                     if (existingNode != null && existingNode.GraphGUID != graphGuid) throw new InvalidOperationException("Node upsert target belongs to another graph.");
                     exists = existingNode != null;
-                    saved = exists ? await _Repo.Node.Update(node, token).ConfigureAwait(false) : await _Repo.Node.Create(node, token).ConfigureAwait(false);
+                    saved = exists ? await repo.Node.Update(node, token).ConfigureAwait(false) : await repo.Node.Create(node, token).ConfigureAwait(false);
                     guid = ((Node)saved).GUID;
                     break;
                 case TransactionObjectTypeEnum.Edge:
                     Edge edge = PrepareEdge(tenantGuid, graphGuid, ConvertPayload<Edge>(op.Payload));
                     if (op.GUID != null) edge.GUID = op.GUID.Value;
-                    Edge existingEdge = await _Repo.Edge.ReadByGuid(tenantGuid, edge.GUID, token).ConfigureAwait(false);
+                    Edge existingEdge = await repo.Edge.ReadByGuid(tenantGuid, edge.GUID, token).ConfigureAwait(false);
                     if (existingEdge != null && existingEdge.GraphGUID != graphGuid) throw new InvalidOperationException("Edge upsert target belongs to another graph.");
                     exists = existingEdge != null;
-                    saved = exists ? await _Repo.Edge.Update(edge, token).ConfigureAwait(false) : await _Repo.Edge.Create(edge, token).ConfigureAwait(false);
+                    saved = exists ? await repo.Edge.Update(edge, token).ConfigureAwait(false) : await repo.Edge.Create(edge, token).ConfigureAwait(false);
                     guid = ((Edge)saved).GUID;
                     break;
                 case TransactionObjectTypeEnum.Label:
                     LabelMetadata label = PrepareLabel(tenantGuid, graphGuid, ConvertPayload<LabelMetadata>(op.Payload));
                     if (op.GUID != null) label.GUID = op.GUID.Value;
-                    LabelMetadata existingLabel = await _Repo.Label.ReadByGuid(tenantGuid, label.GUID, token).ConfigureAwait(false);
+                    LabelMetadata existingLabel = await repo.Label.ReadByGuid(tenantGuid, label.GUID, token).ConfigureAwait(false);
                     if (existingLabel != null && existingLabel.GraphGUID != graphGuid) throw new InvalidOperationException("Label upsert target belongs to another graph.");
                     exists = existingLabel != null;
-                    saved = exists ? await _Repo.Label.Update(label, token).ConfigureAwait(false) : await _Repo.Label.Create(label, token).ConfigureAwait(false);
+                    saved = exists ? await repo.Label.Update(label, token).ConfigureAwait(false) : await repo.Label.Create(label, token).ConfigureAwait(false);
                     guid = ((LabelMetadata)saved).GUID;
                     break;
                 case TransactionObjectTypeEnum.Tag:
                     TagMetadata tag = PrepareTag(tenantGuid, graphGuid, ConvertPayload<TagMetadata>(op.Payload));
                     if (op.GUID != null) tag.GUID = op.GUID.Value;
-                    TagMetadata existingTag = await _Repo.Tag.ReadByGuid(tenantGuid, tag.GUID, token).ConfigureAwait(false);
+                    TagMetadata existingTag = await repo.Tag.ReadByGuid(tenantGuid, tag.GUID, token).ConfigureAwait(false);
                     if (existingTag != null && existingTag.GraphGUID != graphGuid) throw new InvalidOperationException("Tag upsert target belongs to another graph.");
                     exists = existingTag != null;
-                    saved = exists ? await _Repo.Tag.Update(tag, token).ConfigureAwait(false) : await _Repo.Tag.Create(tag, token).ConfigureAwait(false);
+                    saved = exists ? await repo.Tag.Update(tag, token).ConfigureAwait(false) : await repo.Tag.Create(tag, token).ConfigureAwait(false);
                     guid = ((TagMetadata)saved).GUID;
                     break;
                 case TransactionObjectTypeEnum.Vector:
                     VectorMetadata vector = PrepareVector(tenantGuid, graphGuid, ConvertPayload<VectorMetadata>(op.Payload));
                     if (op.GUID != null) vector.GUID = op.GUID.Value;
-                    VectorMetadata existingVector = await _Repo.Vector.ReadByGuid(tenantGuid, vector.GUID, token).ConfigureAwait(false);
+                    VectorMetadata existingVector = await repo.Vector.ReadByGuid(tenantGuid, vector.GUID, token).ConfigureAwait(false);
                     if (existingVector != null && existingVector.GraphGUID != graphGuid) throw new InvalidOperationException("Vector upsert target belongs to another graph.");
                     exists = existingVector != null;
-                    saved = exists ? await _Repo.Vector.Update(vector, token).ConfigureAwait(false) : await _Repo.Vector.Create(vector, token).ConfigureAwait(false);
+                    saved = exists ? await repo.Vector.Update(vector, token).ConfigureAwait(false) : await repo.Vector.Create(vector, token).ConfigureAwait(false);
                     guid = ((VectorMetadata)saved).GUID;
                     break;
                 default:
@@ -463,6 +509,86 @@ namespace LiteGraph.Client.Implementations
 
             string json = JsonSerializer.Serialize(payload, JsonOptions);
             return JsonSerializer.Deserialize<T>(json, JsonOptions);
+        }
+
+        private static string ResolveProviderName(GraphRepositoryBase repo)
+        {
+            if (repo == null) return null;
+
+            string typeName = repo.GetType().Name;
+            const string suffix = "GraphRepository";
+            if (typeName.EndsWith(suffix, StringComparison.Ordinal) && typeName.Length > suffix.Length)
+                return typeName.Substring(0, typeName.Length - suffix.Length);
+
+            return typeName;
+        }
+
+        private static bool IsValidationException(Exception e)
+        {
+            return e is ArgumentNullException
+                || e is ArgumentOutOfRangeException
+                || e is ArgumentException
+                || e is FormatException
+                || e is NotSupportedException;
+        }
+
+        private static void ApplyProviderErrorDiagnostics(TransactionResult result, Exception exception)
+        {
+            if (result == null || exception == null) return;
+
+            Exception current = exception;
+            while (current != null)
+            {
+                string typeName = current.GetType().FullName;
+                string providerCode = ReadStringProperty(current, "SqlState") ?? ReadIntProperty(current, "SqliteErrorCode");
+                if (!String.IsNullOrEmpty(providerCode))
+                {
+                    result.ProviderErrorCode = providerCode;
+                    if (IsRetryableProviderError(typeName, providerCode))
+                    {
+                        result.Retryable = true;
+                        result.ConcurrencyConflict = true;
+                    }
+
+                    return;
+                }
+
+                current = current.InnerException;
+            }
+        }
+
+        private static string ReadStringProperty(Exception exception, string propertyName)
+        {
+            object value = exception.GetType().GetProperty(propertyName)?.GetValue(exception);
+            return value as string;
+        }
+
+        private static string ReadIntProperty(Exception exception, string propertyName)
+        {
+            object value = exception.GetType().GetProperty(propertyName)?.GetValue(exception);
+            if (value == null) return null;
+            return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private static bool IsRetryableProviderError(string exceptionTypeName, string providerCode)
+        {
+            if (String.IsNullOrEmpty(providerCode)) return false;
+
+            if (String.Equals(providerCode, "40001", StringComparison.Ordinal)
+                || String.Equals(providerCode, "40P01", StringComparison.Ordinal)
+                || String.Equals(providerCode, "55P03", StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (String.Equals(providerCode, "5", StringComparison.Ordinal)
+                || String.Equals(providerCode, "6", StringComparison.Ordinal))
+            {
+                return exceptionTypeName != null
+                    && exceptionTypeName.IndexOf("Sqlite", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+
+            return false;
         }
 
         private static Guid ResolveGuid(TransactionOperation op)

@@ -1,6 +1,30 @@
 services:
 
   #
+  # PostgreSQL
+  # Primary storage backend for the Docker deployment.
+  #
+
+  postgresql:
+    container_name: 'litegraph-postgresql'
+    image: 'postgres:17'
+    stdin_open: true
+    tty: true
+    ports:
+      - '${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}:5432'
+    environment:
+      POSTGRES_DB: '${LITEGRAPH_POSTGRESQL_DATABASE:-litegraph}'
+      POSTGRES_USER: '${LITEGRAPH_POSTGRESQL_USERNAME:-litegraph}'
+      POSTGRES_PASSWORD: '${LITEGRAPH_POSTGRESQL_PASSWORD:-litegraph}'
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  #
   # LiteGraph Server
   # See https://hub.docker.com/r/jchristn77/litegraph
   # and https://github.com/jchristn/LiteGraph
@@ -13,10 +37,23 @@ services:
     tty: true
     ports:
       - '8701:8701'
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+      LITEGRAPH_DB_TYPE: 'Postgresql'
+      LITEGRAPH_DB_HOST: 'postgresql'
+      LITEGRAPH_DB_PORT: '5432'
+      LITEGRAPH_DB_NAME: '${LITEGRAPH_POSTGRESQL_DATABASE:-litegraph}'
+      LITEGRAPH_DB_USERNAME: '${LITEGRAPH_POSTGRESQL_USERNAME:-litegraph}'
+      LITEGRAPH_DB_PASSWORD: '${LITEGRAPH_POSTGRESQL_PASSWORD:-litegraph}'
+      LITEGRAPH_DB_SCHEMA: '${LITEGRAPH_POSTGRESQL_SCHEMA:-litegraph}'
+      LITEGRAPH_DB_MAX_CONNECTIONS: '${LITEGRAPH_DB_MAX_CONNECTIONS:-32}'
+      LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS: '${LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS:-30}'
     volumes:
       - ./litegraph.json:/app/litegraph.json
-      # Mount the full docker directory so the legacy litegraph.db path keeps
-      # working while SQLite sidecar files and vector indexes persist together.
+      # Mount the full docker directory so vector indexes, backups, logs, and
+      # optional migration artifacts persist together.
       - ./:/app/docker/
       - ./logs/litegraph/:/app/logs/
       - ./backups/litegraph/:/app/backups/
@@ -125,6 +162,7 @@ services:
       - ../assets/grafana:/var/lib/grafana/dashboards/litegraph:ro
 
 volumes:
+  postgresql-data:
   prometheus-data:
   grafana-storage:
 

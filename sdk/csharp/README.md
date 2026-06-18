@@ -19,7 +19,7 @@ Current release: v6.0.2.
 ## New in v6.0.0
 
 - Native graph query, graph transaction, authorization, and request history client helpers
-- v6 request/response models for query, transaction, and authorization workflows
+- v7 request/response models for query, transaction, and authorization workflows
 - API coverage aligned with the LiteGraph v6.0.0 REST surface
 
 ## Bugs, Feedback, or Enhancement Requests
@@ -41,6 +41,30 @@ Node node1 = sdk.Node.Create(new Node { TenantGUID = tenantGuid, GraphGUID = gra
 Node node2 = sdk.Node.Create(new Node { TenantGUID = tenantGuid, GraphGUID = graph.GUID, Name = "My node 2" });
 Edge edgeFrom1To2 = sdk.Edge.Create(new Edge { TenantGUID = tenantGuid, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID });
 ```
+
+## Graph Transactions
+
+Graph transactions execute create, update, delete, attach, detach, and upsert operations atomically inside one tenant and graph. Failed execution returns a `TransactionResult` with `Success = false` and diagnostics. Request validation failures set `ValidationFailure = true`; provider execution failures set `RolledBack = true`.
+
+```csharp
+Guid adaGuid = Guid.NewGuid();
+Guid graceGuid = Guid.NewGuid();
+
+TransactionRequest request = sdk.Transaction.CreateRequestBuilder()
+    .WithMaxOperations(10)
+    .WithTimeoutSeconds(30)
+    .WithIsolationLevel(TransactionIsolationLevelEnum.Default)
+    .CreateNode(new Node { GUID = adaGuid, Name = "Ada" })
+    .CreateNode(new Node { GUID = graceGuid, Name = "Grace" })
+    .CreateEdge(new Edge { From = adaGuid, To = graceGuid, Name = "Worked With" })
+    .Build();
+
+TransactionResult result = await sdk.Transaction.Execute(tenantGuid, graph.GUID, request);
+
+Console.WriteLine($"{result.Success} {result.TransactionId} {result.DurationMs}ms");
+```
+
+`TransactionResult` includes validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether the request used an isolated transaction repository or the legacy serialized fallback.
 
 ## Version History
 

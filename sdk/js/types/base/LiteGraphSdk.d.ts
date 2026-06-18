@@ -117,22 +117,26 @@ export default class LiteGraphSdk extends SdkBase {
      * @param {Object} [options] - Transaction defaults.
      * @param {number} [options.MaxOperations=1000] - Maximum operation count.
      * @param {number} [options.TimeoutSeconds=60] - Transaction timeout in seconds.
+     * @param {string} [options.IsolationLevel=Default] - Transaction isolation level.
      * @returns {GraphTransactionBuilder} - Transaction builder.
      */
     transaction(graphGuid: string, options?: {
         MaxOperations?: number;
         TimeoutSeconds?: number;
+        IsolationLevel?: string;
     }): GraphTransactionBuilder;
     /**
      * Execute a graph-scoped transaction.
      * @param {string} graphGuid - The GUID of the graph.
      * @param {Object} request - Transaction request.
      * @param {Array<Object>} request.Operations - Operations to execute atomically.
+     * @param {string} [request.IsolationLevel=Default] - Transaction isolation level.
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
      * @returns {Promise<TransactionResult>} - Transaction result.
      */
     executeTransaction(graphGuid: string, request: {
         Operations: Array<any>;
+        IsolationLevel?: string;
     }, cancellationToken?: AbortController): Promise<TransactionResult>;
     /**
      * Create a native graph query request.

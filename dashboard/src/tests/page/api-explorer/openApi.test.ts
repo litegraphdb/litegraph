@@ -27,6 +27,7 @@ describe('API Explorer OpenAPI helpers', () => {
     expect(operations).toHaveLength(1);
     const body = JSON.parse(operations[0].requestBodyExample || '{}');
     expect(body.TimeoutSeconds).toBe(60);
+    expect(body.IsolationLevel).toBe('Default');
     expect(body.Operations[0]).toMatchObject({
       OperationType: 'Create',
       ObjectType: 'Node',

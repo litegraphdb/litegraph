@@ -28,6 +28,7 @@ namespace LiteGraph
         private readonly List<TransactionOperation> _Operations = new List<TransactionOperation>();
         private int _MaxOperations = 1000;
         private int _TimeoutSeconds = 60;
+        private TransactionIsolationLevelEnum _IsolationLevel = TransactionIsolationLevelEnum.Default;
 
         #endregion
 
@@ -62,6 +63,17 @@ namespace LiteGraph
             };
 
             _TimeoutSeconds = request.TimeoutSeconds;
+            return this;
+        }
+
+        /// <summary>
+        /// Set the provider transaction isolation level for the request.
+        /// </summary>
+        /// <param name="isolationLevel">Isolation level.</param>
+        /// <returns>The transaction request builder.</returns>
+        public TransactionRequestBuilder WithIsolationLevel(TransactionIsolationLevelEnum isolationLevel)
+        {
+            _IsolationLevel = isolationLevel;
             return this;
         }
 
@@ -439,6 +451,7 @@ namespace LiteGraph
             {
                 MaxOperations = _MaxOperations,
                 TimeoutSeconds = _TimeoutSeconds,
+                IsolationLevel = _IsolationLevel,
                 Operations = new List<TransactionOperation>(_Operations)
             };
         }

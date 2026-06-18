@@ -32,5 +32,10 @@
         /// Arbitrary key/value metadata.
         /// </summary>
         public Dictionary<string, object> Tags { get; set; } = null;
+
+        /// <summary>
+        /// HNSW neighbor connections keyed by layer.
+        /// </summary>
+        public Dictionary<int, List<Guid>> Connections { get; set; } = new Dictionary<int, List<Guid>>();
     }
 }

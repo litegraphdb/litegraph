@@ -30,6 +30,7 @@ namespace LiteGraph.Indexing.Vector
         private DateTime? _LastRemoveUtc;
         private DateTime? _LastSearchUtc;
         private bool _Disposed = false;
+        private string _LoadCompatibilityIssue = null;
 
         #endregion
 
@@ -59,6 +60,7 @@ namespace LiteGraph.Indexing.Vector
 
             DisposeIndexStorage();
             _Graph = graph;
+            _LoadCompatibilityIssue = null;
 
             // Create appropriate storage based on index type
             if (graph.VectorIndexType == VectorIndexTypeEnum.HnswRam)
@@ -71,8 +73,16 @@ namespace LiteGraph.Indexing.Vector
                 if (string.IsNullOrEmpty(graph.VectorIndexFile))
                     throw new ArgumentException("Graph must have VectorIndexFile set for HnswSqlite index type.");
 
-                _Storage = new SqliteHnswStorage(graph.VectorIndexFile);
+                SqliteHnswStorage sqliteStorage = new SqliteHnswStorage(graph.VectorIndexFile);
+                _Storage = sqliteStorage;
                 _LayerStorage = new SqliteHnswLayerStorage(graph.VectorIndexFile + ".layers");
+                _LoadCompatibilityIssue = sqliteStorage.LoadCompatibilityIssue;
+                if (!string.IsNullOrEmpty(_LoadCompatibilityIssue))
+                {
+                    graph.VectorIndexDirty = true;
+                    graph.VectorIndexDirtyUtc = DateTime.UtcNow;
+                    graph.VectorIndexDirtyReason = _LoadCompatibilityIssue;
+                }
             }
             else
             {
@@ -130,6 +140,7 @@ namespace LiteGraph.Indexing.Vector
             if (_Index == null) throw new InvalidOperationException("Index not initialized.");
 
             await _Index.AddNodesAsync(vectors, cancellationToken);
+            PersistStorageIfNeeded();
             _LastAddUtc = DateTime.UtcNow;
         }
 
@@ -188,6 +199,7 @@ namespace LiteGraph.Indexing.Vector
             if (_Index == null) throw new InvalidOperationException("Index not initialized.");
 
             await _Index.RemoveAsync(vectorId, cancellationToken);
+            PersistStorageIfNeeded();
             _LastRemoveUtc = DateTime.UtcNow;
         }
 
@@ -200,6 +212,7 @@ namespace LiteGraph.Indexing.Vector
             if (_Index == null) throw new InvalidOperationException("Index not initialized.");
 
             await _Index.RemoveNodesAsync(vectorIds, cancellationToken);
+            PersistStorageIfNeeded();
             _LastRemoveUtc = DateTime.UtcNow;
         }
 
@@ -215,10 +228,11 @@ namespace LiteGraph.Indexing.Vector
             if (queryVector == null || queryVector.Count == 0) throw new ArgumentNullException(nameof(queryVector));
             if (k <= 0) throw new ArgumentOutOfRangeException(nameof(k), "k must be greater than 0.");
             if (_Index == null) throw new InvalidOperationException("Index not initialized.");
+            if (!string.IsNullOrEmpty(_LoadCompatibilityIssue)) throw new VectorIndexCompatibilityException(_LoadCompatibilityIssue);
 
             // Set search ef parameter (defaults to graph's VectorIndexEf or 50)
             int searchEf = ef ?? _Graph?.VectorIndexEf ?? 50;
-            if (_Storage?.EntryPoint == null)
+            if (await _Storage.GetEntryPointAsync(cancellationToken).ConfigureAwait(false) == null)
             {
                 _LastSearchUtc = DateTime.UtcNow;
                 return new List<VectorDistanceResult>();
@@ -450,7 +464,7 @@ namespace LiteGraph.Indexing.Vector
                 IHnswNode node = await _Storage.GetNodeAsync(entry.Id, cancellationToken).ConfigureAwait(false);
                 if (node == null) continue;
 
-                ApplyMetadata(node, entry);
+                await ApplyMetadataAsync(node, entry, cancellationToken).ConfigureAwait(false);
                 metadataApplied = true;
             }
 
@@ -458,11 +472,19 @@ namespace LiteGraph.Indexing.Vector
                 sqliteStorage.Save();
         }
 
-        private static void ApplyMetadata(IHnswNode node, VectorIndexEntry entry)
+        private static async Task ApplyMetadataAsync(IHnswNode node, VectorIndexEntry entry, CancellationToken cancellationToken)
         {
-            node.Name = entry.Name;
-            node.Labels = entry.Labels != null ? new List<string>(entry.Labels) : null;
-            node.Tags = entry.Tags != null ? new Dictionary<string, object>(entry.Tags) : null;
+            await node.SetMetadataAsync(
+                entry.Name,
+                entry.Labels != null ? new List<string>(entry.Labels) : null,
+                entry.Tags != null ? new Dictionary<string, object>(entry.Tags) : null,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private void PersistStorageIfNeeded()
+        {
+            if (_Storage is SqliteHnswStorage sqliteStorage)
+                sqliteStorage.Save();
         }
 
         #endregion
@@ -478,6 +500,17 @@ namespace LiteGraph.Indexing.Vector
             private Guid? _EntryPoint;
 
             public Guid? EntryPoint { get => _EntryPoint; set => _EntryPoint = value; }
+
+            public Task<Guid?> GetEntryPointAsync(CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(_EntryPoint);
+            }
+
+            public Task SetEntryPointAsync(Guid? entryPoint, CancellationToken cancellationToken = default)
+            {
+                _EntryPoint = entryPoint;
+                return Task.CompletedTask;
+            }
 
             public Task AddNodeAsync(Guid id, List<float> vector, CancellationToken cancellationToken = default)
             {
@@ -563,16 +596,16 @@ namespace LiteGraph.Indexing.Vector
         private class HnswNode : IHnswNode
         {
             public Guid Id { get; }
-            public List<float> Vector { get; }
-            public string Name { get; set; } = string.Empty;
-            public List<string> Labels { get; set; } = new List<string>();
-            public Dictionary<string, object> Tags { get; set; } = new Dictionary<string, object>();
+            public IReadOnlyList<float> Vector { get; }
+            public string Name { get; private set; } = string.Empty;
+            public IReadOnlyList<string> Labels { get; private set; } = new List<string>();
+            public IReadOnlyDictionary<string, object> Tags { get; private set; } = new Dictionary<string, object>();
             public Dictionary<int, HashSet<Guid>> Connections { get; }
 
             public HnswNode(Guid id, List<float> vector)
             {
                 Id = id;
-                Vector = vector;
+                Vector = new List<float>(vector);
                 Connections = new Dictionary<int, HashSet<Guid>>();
             }
 
@@ -593,6 +626,36 @@ namespace LiteGraph.Indexing.Vector
                 if (Connections.TryGetValue(layer, out HashSet<Guid> neighbors))
                     neighbors.Remove(neighborId);
             }
+
+            public Task<Dictionary<int, HashSet<Guid>>> GetNeighborsAsync(CancellationToken cancellationToken = default)
+            {
+                Dictionary<int, HashSet<Guid>> result = Connections.ToDictionary(kvp => kvp.Key, kvp => new HashSet<Guid>(kvp.Value));
+                return Task.FromResult(result);
+            }
+
+            public Task AddNeighborAsync(int layer, Guid neighborGuid, CancellationToken cancellationToken = default)
+            {
+                AddNeighbor(layer, neighborGuid);
+                return Task.CompletedTask;
+            }
+
+            public Task RemoveNeighborAsync(int layer, Guid neighborGuid, CancellationToken cancellationToken = default)
+            {
+                RemoveNeighbor(layer, neighborGuid);
+                return Task.CompletedTask;
+            }
+
+            public Task SetMetadataAsync(
+                string name,
+                List<string> labels,
+                Dictionary<string, object> tags,
+                CancellationToken cancellationToken = default)
+            {
+                Name = name ?? string.Empty;
+                Labels = labels != null ? new List<string>(labels) : new List<string>();
+                Tags = tags != null ? new Dictionary<string, object>(tags) : new Dictionary<string, object>();
+                return Task.CompletedTask;
+            }
         }
 
         /// <summary>
@@ -605,6 +668,8 @@ namespace LiteGraph.Indexing.Vector
             private readonly object _Lock = new object();
             private bool _Disposed = false;
 
+            public string LoadCompatibilityIssue { get; private set; } = null;
+
             public SqliteHnswStorage(string filePath)
             {
                 _FilePath = filePath;
@@ -613,22 +678,37 @@ namespace LiteGraph.Indexing.Vector
 
             public Guid? EntryPoint
             {
-                get => _Storage.EntryPoint;
+                get => _Storage.GetEntryPointAsync().Result;
                 set
                 {
-                    _Storage.EntryPoint = value;
+                    ThrowIfUnsupportedState();
+                    _Storage.SetEntryPointAsync(value).Wait();
                     SaveToFile();
                 }
             }
 
+            public Task<Guid?> GetEntryPointAsync(CancellationToken cancellationToken = default)
+            {
+                return _Storage.GetEntryPointAsync(cancellationToken);
+            }
+
+            public async Task SetEntryPointAsync(Guid? entryPoint, CancellationToken cancellationToken = default)
+            {
+                ThrowIfUnsupportedState();
+                await _Storage.SetEntryPointAsync(entryPoint, cancellationToken).ConfigureAwait(false);
+                SaveToFile();
+            }
+
             public async Task AddNodeAsync(Guid id, List<float> vector, CancellationToken cancellationToken = default)
             {
+                ThrowIfUnsupportedState();
                 await _Storage.AddNodeAsync(id, vector, cancellationToken);
                 SaveToFile();
             }
 
             public async Task RemoveNodeAsync(Guid id, CancellationToken cancellationToken = default)
             {
+                ThrowIfUnsupportedState();
                 await _Storage.RemoveNodeAsync(id, cancellationToken);
                 SaveToFile();
             }
@@ -655,12 +735,14 @@ namespace LiteGraph.Indexing.Vector
 
             public async Task AddNodesAsync(Dictionary<Guid, List<float>> nodes, CancellationToken cancellationToken = default)
             {
+                ThrowIfUnsupportedState();
                 await _Storage.AddNodesAsync(nodes, cancellationToken);
                 SaveToFile();
             }
 
             public async Task RemoveNodesAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
             {
+                ThrowIfUnsupportedState();
                 await _Storage.RemoveNodesAsync(ids, cancellationToken);
                 SaveToFile();
             }
@@ -673,6 +755,7 @@ namespace LiteGraph.Indexing.Vector
             private void SaveToFile()
             {
                 if (_Disposed) return;
+                if (!string.IsNullOrEmpty(LoadCompatibilityIssue)) return;
 
                 lock (_Lock)
                 {
@@ -685,19 +768,23 @@ namespace LiteGraph.Indexing.Vector
                         {
                             IHnswNode node = _Storage.GetNodeAsync(nodeId).Result;
                             if (node == null) continue;
+                            Dictionary<int, HashSet<Guid>> neighbors = node.GetNeighborsAsync().Result ?? new Dictionary<int, HashSet<Guid>>();
                             nodes.Add(new HnswNodeState
                             {
                                 Id = nodeId,
-                                Vector = node.Vector,
+                                Vector = node.Vector != null ? node.Vector.ToList() : null,
                                 Name = node.Name,
                                 Labels = node.Labels != null ? new List<string>(node.Labels) : null,
-                                Tags = node.Tags != null ? new Dictionary<string, object>(node.Tags) : null
+                                Tags = node.Tags != null ? new Dictionary<string, object>(node.Tags) : null,
+                                Connections = neighbors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToList())
                             });
                         }
 
                         HnswIndexState data = new HnswIndexState
                         {
-                            EntryPoint = _Storage.EntryPoint,
+                            FormatVersion = HnswIndexState.CurrentFormatVersion,
+                            HnswLiteVersion = "2.0.1",
+                            EntryPoint = _Storage.GetEntryPointAsync().Result,
                             NodeCount = _Storage.GetCountAsync().Result,
                             LastSaved = DateTime.UtcNow,
                             Node = nodes
@@ -730,6 +817,12 @@ namespace LiteGraph.Indexing.Vector
                     try
                     {
                         string json = File.ReadAllText(_FilePath);
+                        if (!IsSupportedStateFormat(json, out string compatibilityIssue))
+                        {
+                            LoadCompatibilityIssue = compatibilityIssue;
+                            return;
+                        }
+
                         HnswIndexState indexState = System.Text.Json.JsonSerializer.Deserialize<HnswIndexState>(json);
 
                         if (indexState == null) return;
@@ -745,9 +838,22 @@ namespace LiteGraph.Indexing.Vector
                                     IHnswNode node = _Storage.GetNodeAsync(nodeState.Id).Result;
                                     if (node != null)
                                     {
-                                        node.Name = nodeState.Name;
-                                        node.Labels = nodeState.Labels != null ? new List<string>(nodeState.Labels) : null;
-                                        node.Tags = nodeState.Tags != null ? new Dictionary<string, object>(nodeState.Tags) : null;
+                                        node.SetMetadataAsync(
+                                            nodeState.Name,
+                                            nodeState.Labels != null ? new List<string>(nodeState.Labels) : null,
+                                            nodeState.Tags != null ? new Dictionary<string, object>(nodeState.Tags) : null).Wait();
+
+                                        if (nodeState.Connections != null)
+                                        {
+                                            foreach (KeyValuePair<int, List<Guid>> layer in nodeState.Connections)
+                                            {
+                                                if (layer.Value == null) continue;
+                                                foreach (Guid neighborId in layer.Value)
+                                                {
+                                                    node.AddNeighborAsync(layer.Key, neighborId).Wait();
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -756,7 +862,7 @@ namespace LiteGraph.Indexing.Vector
                         // Set entry point
                         if (indexState.EntryPoint.HasValue)
                         {
-                            _Storage.EntryPoint = indexState.EntryPoint.Value;
+                            _Storage.SetEntryPointAsync(indexState.EntryPoint.Value).Wait();
                         }
                     }
                     catch
@@ -764,6 +870,29 @@ namespace LiteGraph.Indexing.Vector
                         // Best effort load, don't throw on file errors
                     }
                 }
+            }
+
+            private void ThrowIfUnsupportedState()
+            {
+                if (!string.IsNullOrEmpty(LoadCompatibilityIssue))
+                    throw new VectorIndexCompatibilityException(LoadCompatibilityIssue);
+            }
+
+            private bool IsSupportedStateFormat(string json, out string compatibilityIssue)
+            {
+                compatibilityIssue = null;
+
+                using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
+                if (!document.RootElement.TryGetProperty(nameof(HnswIndexState.FormatVersion), out System.Text.Json.JsonElement formatElement)
+                    || !formatElement.TryGetInt32(out int formatVersion)
+                    || formatVersion != HnswIndexState.CurrentFormatVersion)
+                {
+                    compatibilityIssue = "HNSW SQLite index artifact '" + _FilePath + "' is not LiteGraph HNSW format "
+                        + HnswIndexState.CurrentFormatVersion + " for HnswLite 2.0.1. Rebuild the vector index before using indexed search.";
+                    return false;
+                }
+
+                return true;
             }
             public void Dispose()
             {
@@ -813,6 +942,39 @@ namespace LiteGraph.Indexing.Vector
             {
                 _NodeLayers.Clear();
             }
+
+            public Task<int> GetNodeLayerAsync(Guid nodeId, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(GetNodeLayer(nodeId));
+            }
+
+            public Task SetNodeLayerAsync(Guid nodeId, int layer, CancellationToken cancellationToken = default)
+            {
+                SetNodeLayer(nodeId, layer);
+                return Task.CompletedTask;
+            }
+
+            public Task RemoveNodeLayerAsync(Guid nodeId, CancellationToken cancellationToken = default)
+            {
+                RemoveNodeLayer(nodeId);
+                return Task.CompletedTask;
+            }
+
+            public Task<Dictionary<Guid, int>> GetAllNodeLayersAsync(CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(GetAllNodeLayers());
+            }
+
+            public Task ClearLayersAsync(CancellationToken cancellationToken = default)
+            {
+                Clear();
+                return Task.CompletedTask;
+            }
+
+            public Task<int> GetLayerCountAsync(CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(Count);
+            }
         }
 
         /// <summary>
@@ -860,6 +1022,39 @@ namespace LiteGraph.Indexing.Vector
             {
                 _Storage.Clear();
                 SaveToFile();
+            }
+
+            public Task<int> GetNodeLayerAsync(Guid nodeId, CancellationToken cancellationToken = default)
+            {
+                return _Storage.GetNodeLayerAsync(nodeId, cancellationToken);
+            }
+
+            public async Task SetNodeLayerAsync(Guid nodeId, int layer, CancellationToken cancellationToken = default)
+            {
+                await _Storage.SetNodeLayerAsync(nodeId, layer, cancellationToken).ConfigureAwait(false);
+                SaveToFile();
+            }
+
+            public async Task RemoveNodeLayerAsync(Guid nodeId, CancellationToken cancellationToken = default)
+            {
+                await _Storage.RemoveNodeLayerAsync(nodeId, cancellationToken).ConfigureAwait(false);
+                SaveToFile();
+            }
+
+            public Task<Dictionary<Guid, int>> GetAllNodeLayersAsync(CancellationToken cancellationToken = default)
+            {
+                return _Storage.GetAllNodeLayersAsync(cancellationToken);
+            }
+
+            public async Task ClearLayersAsync(CancellationToken cancellationToken = default)
+            {
+                await _Storage.ClearLayersAsync(cancellationToken).ConfigureAwait(false);
+                SaveToFile();
+            }
+
+            public Task<int> GetLayerCountAsync(CancellationToken cancellationToken = default)
+            {
+                return _Storage.GetLayerCountAsync(cancellationToken);
             }
 
             private void LoadFromFile()

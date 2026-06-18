@@ -670,6 +670,10 @@ namespace Test.Automated
 			await RunTest("Vector.Enumerate", TestVectorEnumerate).ConfigureAwait(false);
 			await RunTest("Vector.Search", TestVectorSearch).ConfigureAwait(false);
 
+			// Transaction tests
+			await RunTest("Transaction.Builder", TestTransactionBuilder).ConfigureAwait(false);
+			await RunTest("Transaction.Execute", TestTransactionExecute).ConfigureAwait(false);
+
 			// User tests (require tenant)
 			await RunTest("User.Create", TestUserCreate).ConfigureAwait(false);
 			await RunTest("User.ReadByGuid", TestUserReadByGuid).ConfigureAwait(false);
@@ -2358,6 +2362,136 @@ namespace Test.Automated
 
             AssertNotNull(results, "Vector search results");
             AssertTrue(results!.Count >= 0, "Vector search results returned");
+        }
+
+        #endregion
+
+        #region Transaction-Tests
+
+        private static Task TestTransactionBuilder()
+        {
+            Guid nodeGuid = Guid.NewGuid();
+            GraphTransactionBuilder builder = new GraphTransactionBuilder()
+                .WithMaxOperations(10)
+                .WithTimeoutSeconds(15)
+                .WithIsolationLevel(TransactionIsolationLevelEnum.Serializable)
+                .CreateNode(new Node
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    GUID = nodeGuid,
+                    Name = UniqueName("sdk-transaction-builder")
+                })
+                .DeleteNode(nodeGuid);
+
+            TransactionRequest request = builder.Build();
+            AssertEqual(2, builder.Count, "Transaction builder count");
+            AssertEqual(2, request.Operations.Count, "Transaction request operation count");
+            AssertEqual(10, request.MaxOperations, "Transaction request max operations");
+            AssertEqual(15, request.TimeoutSeconds, "Transaction request timeout");
+            AssertEqual(TransactionIsolationLevelEnum.Serializable, request.IsolationLevel, "Transaction request isolation level");
+            AssertEqual(TransactionOperationTypeEnum.Create, request.Operations[0].OperationType, "Transaction create operation type");
+            AssertEqual(TransactionObjectTypeEnum.Node, request.Operations[0].ObjectType, "Transaction node object type");
+            AssertEqual(nodeGuid, request.Operations[1].GUID!.Value, "Transaction delete GUID");
+
+            string json = Serializer.SerializeJson(request, true);
+            AssertTrue(json.Contains("\"IsolationLevel\""), "Transaction JSON has isolation level");
+            AssertTrue(json.Contains("\"Serializable\""), "Transaction JSON serializes isolation level as string");
+            AssertTrue(json.Contains("\"Operations\""), "Transaction JSON has operations");
+
+            return Task.CompletedTask;
+        }
+
+        private static async Task TestTransactionExecute()
+        {
+            AssertNotEmpty(_TenantGuid, "Tenant GUID for TestTransactionExecute");
+            AssertNotEmpty(_GraphGuid, "Graph GUID for TestTransactionExecute");
+
+            LiteGraphSdk sdk = RequireSdk();
+
+            Guid fromNodeGuid = Guid.NewGuid();
+            Guid toNodeGuid = Guid.NewGuid();
+            Guid edgeGuid = Guid.NewGuid();
+
+            TransactionRequest successRequest = sdk.Transaction.CreateRequestBuilder()
+                .WithMaxOperations(5)
+                .WithTimeoutSeconds(30)
+                .WithIsolationLevel(TransactionIsolationLevelEnum.Default)
+                .CreateNode(new Node
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    GUID = fromNodeGuid,
+                    Name = UniqueName("sdk-transaction-from"),
+                    Data = new { scenario = "transaction-success", role = "from" }
+                })
+                .CreateNode(new Node
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    GUID = toNodeGuid,
+                    Name = UniqueName("sdk-transaction-to"),
+                    Data = new { scenario = "transaction-success", role = "to" }
+                })
+                .CreateEdge(new Edge
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    GUID = edgeGuid,
+                    From = fromNodeGuid,
+                    To = toNodeGuid,
+                    Name = UniqueName("sdk-transaction-edge"),
+                    Cost = 1
+                })
+                .Build();
+
+            TransactionResult? success = await sdk.Transaction.Execute(_TenantGuid, _GraphGuid, successRequest).ConfigureAwait(false);
+            AssertNotNull(success, "Transaction success result");
+            AssertTrue(success!.Success, "Transaction committed");
+            AssertFalse(success.RolledBack, "Transaction success not rolled back");
+            AssertFalse(success.ValidationFailure, "Transaction success not validation failure");
+            AssertNotEmpty(success.TransactionId, "Transaction success ID");
+            AssertEqual(3, success.OperationCount, "Transaction success operation count");
+            AssertEqual(3, success.Operations.Count, "Transaction success operation results");
+            AssertTrue(success.DurationMs >= 0, "Transaction success duration");
+            AssertFalse(string.IsNullOrEmpty(success.IsolationLevel), "Transaction success isolation level");
+
+            Node? committedNode = await sdk.Node.ReadByGuid(_TenantGuid, _GraphGuid, fromNodeGuid).ConfigureAwait(false);
+            AssertNotNull(committedNode, "Transaction committed node visible");
+
+            Guid rolledBackNodeGuid = Guid.NewGuid();
+            TransactionRequest failureRequest = sdk.Transaction.CreateRequestBuilder()
+                .WithMaxOperations(3)
+                .WithTimeoutSeconds(30)
+                .CreateNode(new Node
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    GUID = rolledBackNodeGuid,
+                    Name = UniqueName("sdk-transaction-rollback"),
+                    Data = new { scenario = "transaction-rollback" }
+                })
+                .AttachLabel(new LabelMetadata
+                {
+                    TenantGUID = _TenantGuid,
+                    GraphGUID = _GraphGuid,
+                    Label = UniqueName("sdk-transaction-invalid-label")
+                })
+                .Build();
+
+            TransactionResult? failure = await sdk.Transaction.Execute(_TenantGuid, _GraphGuid, failureRequest).ConfigureAwait(false);
+            AssertNotNull(failure, "Transaction failure result");
+            AssertFalse(failure!.Success, "Transaction failure success flag");
+            AssertTrue(failure.RolledBack, "Transaction failure rolled back");
+            AssertFalse(failure.ValidationFailure, "Transaction failure is not validation failure");
+            AssertNotEmpty(failure.TransactionId, "Transaction failure ID");
+            AssertEqual(2, failure.OperationCount, "Transaction failure operation count");
+            AssertEqual(1, failure.FailedOperationIndex!.Value, "Transaction failure index");
+            AssertFalse(string.IsNullOrEmpty(failure.Error), "Transaction failure error");
+            AssertTrue(failure.RollbackDurationMs >= 0, "Transaction rollback duration");
+
+            Node? rolledBackNode = await sdk.Node.ReadByGuid(_TenantGuid, _GraphGuid, rolledBackNodeGuid).ConfigureAwait(false);
+            AssertNull(rolledBackNode, "Transaction rolled back node is not visible");
         }
 
         #endregion

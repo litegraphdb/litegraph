@@ -1,10 +1,12 @@
 ﻿namespace LiteGraph.GraphRepositories.Postgresql
 {
     using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Postgresql.Queries;
+    using LiteGraph.Indexing.Vector;
     using Npgsql;
 
     public partial class PostgresqlGraphRepository
@@ -24,7 +26,7 @@
                         ClearGraphTransaction();
                     }
 
-                    VectorIndexManager?.Dispose();
+                    if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
                     VectorIndexManager = null;
                     _DataSource?.Dispose();
                 }
@@ -50,9 +52,9 @@
                 _TransactionConnection = null;
                 _GraphTransactionTenantGUID = null;
                 _GraphTransactionGraphGUID = null;
-                _GraphTransactionVectorIndexTouched = false;
                 _GraphTransactionVectorIndexFailed = false;
                 _GraphTransactionVectorIndexDirtyReason = null;
+                _GraphTransactionVectorIndexMutations.Clear();
             }
 
             if (transaction != null)
@@ -67,7 +69,7 @@
                 try { await conn.DisposeAsync().ConfigureAwait(false); } catch { }
             }
 
-            VectorIndexManager?.Dispose();
+            if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
             VectorIndexManager = null;
             await _DataSource.DisposeAsync().ConfigureAwait(false);
 
@@ -83,9 +85,9 @@
             _TransactionConnection = null;
             _GraphTransactionTenantGUID = null;
             _GraphTransactionGraphGUID = null;
-            _GraphTransactionVectorIndexTouched = false;
             _GraphTransactionVectorIndexFailed = false;
             _GraphTransactionVectorIndexDirtyReason = null;
+            _GraphTransactionVectorIndexMutations.Clear();
 
             try { transaction?.Dispose(); } catch { }
             try { conn?.Close(); } catch { }
@@ -106,6 +108,57 @@
             {
                 Logging.Log(SeverityEnum.Warn, "failed to mark vector index dirty after graph transaction: " + e.Message);
             }
+        }
+
+        private async Task<string> ApplyStagedVectorIndexMutationsAsync(List<GraphTransactionVectorIndexMutation> mutations)
+        {
+            foreach (GraphTransactionVectorIndexMutation staged in mutations)
+            {
+                try
+                {
+                    await VectorIndexManager.ExecuteWithIndexAsync(staged.Graph, staged.Mutation).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    string reason = (staged.DirtyReason ?? "Graph transaction vector index mutation failed after commit")
+                        + ": " + e.GetType().Name + ": " + e.Message;
+                    LiteGraphTelemetry.RecordVectorIndexMutationFailure(
+                        ProviderName,
+                        staged.Graph.VectorIndexType?.ToString(),
+                        e.GetType().Name);
+                    Logging.Log(SeverityEnum.Warn, reason);
+                    return reason;
+                }
+            }
+
+            return null;
+        }
+
+        private sealed class GraphTransactionVectorIndexMutation
+        {
+            public GraphTransactionVectorIndexMutation(
+                Graph graph,
+                string dirtyReason,
+                Func<IVectorIndex, Task> mutation)
+            {
+                Graph = graph;
+                DirtyReason = dirtyReason;
+                Mutation = mutation;
+            }
+
+            public Graph Graph { get; }
+            public string DirtyReason { get; }
+            public Func<IVectorIndex, Task> Mutation { get; }
+        }
+
+        private void EnsureRequestHistoryTransactionDiagnosticsColumn()
+        {
+            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory") + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT;", true);
+        }
+
+        private Task EnsureRequestHistoryTransactionDiagnosticsColumnAsync(CancellationToken token)
+        {
+            return ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory") + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT;", true, token);
         }
 
         private void EnsureBuiltInAuthorizationRoles()

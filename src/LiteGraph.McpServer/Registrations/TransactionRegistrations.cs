@@ -44,7 +44,8 @@ namespace LiteGraph.McpServer.Registrations
                         transaction = new { type = "object", description = "Alias for request" },
                         operations = new { type = "array", description = "Transaction operations, used when request is omitted" },
                         maxOperations = new { type = "integer", description = "Maximum operations allowed for this request" },
-                        timeoutSeconds = new { type = "integer", description = "Transaction timeout in seconds" }
+                        timeoutSeconds = new { type = "integer", description = "Transaction timeout in seconds" },
+                        isolationLevel = new { type = "string", description = "Transaction isolation level: Default, ReadCommitted, RepeatableRead, or Serializable" }
                     },
                     required = new[] { "tenantGuid", "graphGuid" }
                 },
@@ -102,7 +103,7 @@ namespace LiteGraph.McpServer.Registrations
                 using (HttpResponseMessage response = _Http.Send(request))
                 {
                     string body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                    if (!response.IsSuccessStatusCode)
+                    if (!response.IsSuccessStatusCode && !IsDiagnosticTransactionResult(response.StatusCode, body))
                     {
                         throw new InvalidOperationException(
                             "LiteGraph transaction endpoint returned "
@@ -115,6 +116,32 @@ namespace LiteGraph.McpServer.Registrations
 
                     return body;
                 }
+            }
+        }
+
+        private static bool IsDiagnosticTransactionResult(System.Net.HttpStatusCode statusCode, string body)
+        {
+            if (statusCode != System.Net.HttpStatusCode.BadRequest
+                && statusCode != System.Net.HttpStatusCode.Conflict)
+            {
+                return false;
+            }
+
+            if (String.IsNullOrWhiteSpace(body)) return false;
+
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(body))
+                {
+                    JsonElement root = document.RootElement;
+                    return root.ValueKind == JsonValueKind.Object
+                        && root.TryGetProperty("Success", out _)
+                        && root.TryGetProperty("TransactionId", out _);
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -155,6 +182,9 @@ namespace LiteGraph.McpServer.Registrations
 
             if (args.TryGetProperty("timeoutSeconds", out JsonElement timeoutSecondsProp))
                 requestObject["TimeoutSeconds"] = timeoutSecondsProp.GetInt32();
+
+            if (args.TryGetProperty("isolationLevel", out JsonElement isolationLevelProp))
+                requestObject["IsolationLevel"] = isolationLevelProp.GetString();
 
             return requestObject.ToJsonString();
         }

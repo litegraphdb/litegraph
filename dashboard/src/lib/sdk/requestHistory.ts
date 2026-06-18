@@ -19,6 +19,7 @@ export type RequestHistoryEntry = {
   ResponseBodyTruncated: boolean;
   RequestContentType?: string | null;
   ResponseContentType?: string | null;
+  TransactionDiagnosticsJson?: string | null;
 };
 
 export type RequestHistoryDetail = RequestHistoryEntry & {
@@ -59,6 +60,8 @@ export type RequestHistoryListParams = {
   success?: boolean;
   path?: string;
   sourceIp?: string;
+  hasTransactionDiagnostics?: boolean;
+  transactionId?: string;
   tenantGuid?: string;
   fromUtc?: string;
   toUtc?: string;

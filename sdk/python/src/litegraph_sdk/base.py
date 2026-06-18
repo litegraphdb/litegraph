@@ -95,6 +95,7 @@ class BaseClient:
             SdkException: If the request fails after all retries.
             Various exceptions from get_exception_for_error_code based on the API error response.
         """
+        accepted_status_codes = set(kwargs.pop("accepted_status_codes", []))
         headers = self._get_headers()
         if "headers" in kwargs:
             headers.update(kwargs["headers"])
@@ -108,6 +109,15 @@ class BaseClient:
         for attempt in range(self.retries):
             try:
                 response = self.client.request(method, url, **kwargs)
+                if response.status_code in accepted_status_codes:
+                    log_info(
+                        Severity_Enum.Info.value,
+                        f"Accepted non-success response: {response.status_code}",
+                    )
+                    try:
+                        return response.json() if response.content else None
+                    except json.JSONDecodeError:
+                        return response.content
                 return self._handle_response(response)
 
             except httpx.HTTPStatusError as e:

@@ -55,6 +55,16 @@ namespace LiteGraph
         public string SourceIp { get; set; } = null;
 
         /// <summary>
+        /// Transaction diagnostics presence filter.
+        /// </summary>
+        public bool? HasTransactionDiagnostics { get; set; } = null;
+
+        /// <summary>
+        /// Transaction ID substring filter.
+        /// </summary>
+        public string TransactionId { get; set; } = null;
+
+        /// <summary>
         /// Inclusive lower bound on createdutc.
         /// </summary>
         public DateTime? FromUtc { get; set; } = null;

@@ -60,6 +60,22 @@
         }
 
         /// <summary>
+        /// Server-side graph transaction limits.
+        /// </summary>
+        public TransactionSettings Transactions
+        {
+            get
+            {
+                return _Transactions;
+            }
+            set
+            {
+                if (value == null) value = new TransactionSettings();
+                _Transactions = value;
+            }
+        }
+
+        /// <summary>
         /// Reserved concurrency limit setting.
         /// This value is preserved for compatibility with existing configuration files.
         /// The current server request pipeline does not actively enforce it.
@@ -93,6 +109,7 @@
 
         private string _AdminBearerToken = "litegraphadmin";
         private DatabaseSettings _Database = new DatabaseSettings();
+        private TransactionSettings _Transactions = new TransactionSettings();
         private int _MaxConcurrentOperations = 4;
 
         #endregion

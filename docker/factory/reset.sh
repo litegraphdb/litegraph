@@ -2,9 +2,9 @@
 #
 # reset.sh - Reset LiteGraph docker environment to factory defaults
 #
-# This script destroys runtime Docker data (SQLite state, vector index files,
-# Grafana and Prometheus volumes, logs, and backups) and restores the
-# factory-default LiteGraph database and Docker configuration files.
+# This script destroys runtime Docker data (PostgreSQL volume, optional
+# SQLite state, vector index files, Grafana and Prometheus volumes, logs,
+# and backups) and restores the factory-default Docker configuration files.
 
 set -e
 
@@ -21,8 +21,9 @@ echo ""
 echo "WARNING: This is a DESTRUCTIVE action. The following will"
 echo "be permanently deleted:"
 echo ""
-echo "  - LiteGraph SQLite database runtime state"
-echo "  - SQLite sidecar files (.db-wal, .db-shm, .db-journal)"
+echo "  - LiteGraph PostgreSQL Docker volume"
+echo "  - Optional LiteGraph SQLite database runtime state"
+echo "  - Optional SQLite sidecar files (.db-wal, .db-shm, .db-journal)"
 echo "  - Vector index files under docker/indexes/"
 echo "  - Grafana and Prometheus Docker volumes"
 echo "  - LiteGraph and LiteGraph MCP logs"
@@ -32,7 +33,7 @@ echo "  - Docker configuration changes to litegraph.json"
 echo "  - Docker configuration changes to litegraph-mcp.json"
 echo "  - Grafana provisioning and dashboard asset changes"
 echo ""
-echo "LiteGraph Docker configuration and the seeded sample database"
+echo "LiteGraph Docker configuration"
 echo "will be restored to factory defaults."
 echo ""
 read -r -p "Type 'RESET' to confirm: " CONFIRM
@@ -48,9 +49,10 @@ cd "$DOCKER_DIR"
 docker compose down 2>/dev/null || true
 
 echo "[2/5] Removing Docker volumes..."
+docker volume rm docker_postgresql-data 2>/dev/null || docker volume rm postgresql-data 2>/dev/null || true
 docker volume rm docker_prometheus-data 2>/dev/null || docker volume rm prometheus-data 2>/dev/null || true
 docker volume rm docker_grafana-storage 2>/dev/null || docker volume rm grafana-storage 2>/dev/null || true
-echo "        Removed Prometheus and Grafana volumes"
+echo "        Removed PostgreSQL, Prometheus, and Grafana volumes"
 
 echo "[3/5] Restoring factory defaults..."
 rm -f "$DOCKER_DIR/litegraph.db"
@@ -75,7 +77,7 @@ cp "$FACTORY_DIR/grafana/provisioning/datasources/litegraph-prometheus.yml" "$DO
 cp "$FACTORY_DIR/grafana/provisioning/dashboards/litegraph.yml" "$DOCKER_DIR/grafana/provisioning/dashboards/litegraph.yml"
 mkdir -p "$REPO_DIR/assets/grafana"
 cp "$FACTORY_DIR/assets/grafana/litegraph-observability-dashboard.json" "$REPO_DIR/assets/grafana/litegraph-observability-dashboard.json"
-echo "        Restored compose.yaml, Prometheus, Grafana, litegraph.db, litegraph.json, and litegraph-mcp.json"
+echo "        Restored compose.yaml, Prometheus, Grafana, litegraph.json, and litegraph-mcp.json"
 
 echo "[4/5] Clearing runtime directories..."
 rm -rf "$DOCKER_DIR/logs/litegraph" "$DOCKER_DIR/logs/litegraph-mcp"

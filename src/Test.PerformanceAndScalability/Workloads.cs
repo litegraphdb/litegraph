@@ -68,6 +68,8 @@ namespace Test.PerformanceAndScalability
             if (selected.Contains("transactions"))
             {
                 scenarios.Add(Scenario("transaction.create.nodes", "transactions", "Create nodes in graph-scoped transactions.", TransactionCreateNodesAsync));
+                scenarios.Add(Scenario("transaction.create-update.nodes", "transactions", "Create and update nodes inside one graph-scoped transaction.", TransactionCreateUpdateNodesAsync));
+                scenarios.Add(Scenario("transaction.mixed.children", "transactions", "Create nodes and attach labels, tags, and vectors inside one transaction.", TransactionMixedChildrenAsync));
                 scenarios.Add(Scenario("transaction.rollback", "transactions", "Force a rollback and verify partial state is not committed.", TransactionRollbackAsync));
             }
 
@@ -464,6 +466,7 @@ namespace Test.PerformanceAndScalability
             GraphDataset graph = context.Dataset.PickGraph(worker.Random);
             TransactionRequestBuilder builder = context.Client.Transaction.CreateRequestBuilder()
                 .WithMaxOperations(Math.Max(context.Options.TransactionSize, 1))
+                .WithIsolationLevel(context.Options.TransactionIsolation)
                 .WithTimeoutSeconds((int)Math.Max(1, context.Options.Timeout.TotalSeconds));
 
             for (int i = 0; i < context.Options.TransactionSize; i++)
@@ -478,8 +481,107 @@ namespace Test.PerformanceAndScalability
             TransactionResult result = await context.Client.Transaction.Execute(graph.Tenant.GUID, graph.Graph.GUID, builder.Build(), token).ConfigureAwait(false);
             if (!result.Success && token.IsCancellationRequested) token.ThrowIfCancellationRequested();
             return result.Success
-                ? OperationOutcome.Success(context.Options.TransactionSize, result.Operations.Count)
-                : OperationOutcome.Incorrect(context.Options.TransactionSize, result.Operations.Count, result.Error);
+                ? OperationOutcome.Success(context.Options.TransactionSize, result.Operations.Count, TransactionMetricSample.From(result))
+                : OperationOutcome.Incorrect(context.Options.TransactionSize, result.Operations.Count, result.Error, TransactionMetricSample.From(result));
+        }
+
+        private static async Task<OperationOutcome> TransactionCreateUpdateNodesAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
+        {
+            GraphDataset graph = context.Dataset.PickGraph(worker.Random);
+            int pairCount = Math.Max(1, context.Options.TransactionSize / 2);
+            int operationCount = pairCount * 2;
+            TransactionRequestBuilder builder = context.Client.Transaction.CreateRequestBuilder()
+                .WithMaxOperations(operationCount)
+                .WithIsolationLevel(context.Options.TransactionIsolation)
+                .WithTimeoutSeconds((int)Math.Max(1, context.Options.Timeout.TotalSeconds));
+
+            for (int i = 0; i < pairCount; i++)
+            {
+                Guid nodeGuid = Guid.NewGuid();
+                long operationIndex = worker.OperationIndex + i;
+                builder.CreateNode(new Node
+                {
+                    GUID = nodeGuid,
+                    Name = "transaction-rwy-node-" + operationIndex,
+                    Data = new Dictionary<string, object>
+                    {
+                        ["phase"] = "created",
+                        ["operation"] = operationIndex
+                    }
+                });
+                builder.UpdateNode(new Node
+                {
+                    GUID = nodeGuid,
+                    Name = "transaction-rwy-updated-" + operationIndex,
+                    Data = new Dictionary<string, object>
+                    {
+                        ["phase"] = "updated",
+                        ["operation"] = operationIndex
+                    }
+                }, nodeGuid);
+            }
+
+            TransactionResult result = await context.Client.Transaction.Execute(graph.Tenant.GUID, graph.Graph.GUID, builder.Build(), token).ConfigureAwait(false);
+            if (!result.Success && token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+            return result.Success
+                ? OperationOutcome.Success(operationCount, result.Operations.Count, TransactionMetricSample.From(result))
+                : OperationOutcome.Incorrect(operationCount, result.Operations.Count, result.Error, TransactionMetricSample.From(result));
+        }
+
+        private static async Task<OperationOutcome> TransactionMixedChildrenAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
+        {
+            GraphDataset graph = context.Dataset.PickGraph(worker.Random);
+            int groupSize = 4;
+            int groupCount = Math.Max(1, context.Options.TransactionSize / groupSize);
+            int operationCount = groupCount * groupSize;
+            TransactionRequestBuilder builder = context.Client.Transaction.CreateRequestBuilder()
+                .WithMaxOperations(operationCount)
+                .WithIsolationLevel(context.Options.TransactionIsolation)
+                .WithTimeoutSeconds((int)Math.Max(1, context.Options.Timeout.TotalSeconds));
+
+            for (int i = 0; i < groupCount; i++)
+            {
+                Guid nodeGuid = Guid.NewGuid();
+                long operationIndex = worker.OperationIndex + i;
+                builder.CreateNode(new Node
+                {
+                    GUID = nodeGuid,
+                    Name = "transaction-mixed-node-" + operationIndex,
+                    Data = new Dictionary<string, object>
+                    {
+                        ["kind"] = "transaction-mixed",
+                        ["operation"] = operationIndex
+                    }
+                });
+                builder.AttachLabel(new LabelMetadata
+                {
+                    GUID = Guid.NewGuid(),
+                    NodeGUID = nodeGuid,
+                    Label = "TxnMixed"
+                });
+                builder.AttachTag(new TagMetadata
+                {
+                    GUID = Guid.NewGuid(),
+                    NodeGUID = nodeGuid,
+                    Key = "txn",
+                    Value = "mixed-" + operationIndex
+                });
+                builder.AttachVector(new VectorMetadata
+                {
+                    GUID = Guid.NewGuid(),
+                    NodeGUID = nodeGuid,
+                    Model = "perf-" + context.Options.VectorDimensions,
+                    Dimensionality = context.Options.VectorDimensions,
+                    Content = "transaction mixed vector " + operationIndex,
+                    Vectors = DatasetGenerator.BuildEmbedding(context.Options.VectorDimensions, (int)(operationIndex % int.MaxValue))
+                });
+            }
+
+            TransactionResult result = await context.Client.Transaction.Execute(graph.Tenant.GUID, graph.Graph.GUID, builder.Build(), token).ConfigureAwait(false);
+            if (!result.Success && token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+            return result.Success
+                ? OperationOutcome.Success(operationCount, result.Operations.Count, TransactionMetricSample.From(result))
+                : OperationOutcome.Incorrect(operationCount, result.Operations.Count, result.Error, TransactionMetricSample.From(result));
         }
 
         private static async Task<OperationOutcome> TransactionRollbackAsync(BenchmarkContext context, WorkerContext worker, CancellationToken token)
@@ -494,6 +596,7 @@ namespace Test.PerformanceAndScalability
 
             TransactionRequest request = context.Client.Transaction.CreateRequestBuilder()
                 .WithMaxOperations(2)
+                .WithIsolationLevel(context.Options.TransactionIsolation)
                 .CreateNode(node)
                 .UpdateNode(new Node { Name = "missing-node-update" }, missingNodeGuid)
                 .Build();
@@ -503,7 +606,9 @@ namespace Test.PerformanceAndScalability
                 TransactionResult result = await context.Client.Transaction.Execute(graph.Tenant.GUID, graph.Graph.GUID, request, token).ConfigureAwait(false);
                 if (!result.Success && token.IsCancellationRequested) token.ThrowIfCancellationRequested();
                 bool exists = await context.Client.Node.ExistsByGuid(graph.Tenant.GUID, node.GUID, token).ConfigureAwait(false);
-                return !result.Success && result.RolledBack && !exists ? OperationOutcome.Success(items: 2) : OperationOutcome.Incorrect(items: 2);
+                return !result.Success && result.RolledBack && !exists
+                    ? OperationOutcome.Success(items: 2, transaction: TransactionMetricSample.From(result))
+                    : OperationOutcome.Incorrect(items: 2, transaction: TransactionMetricSample.From(result));
             }
             catch
             {

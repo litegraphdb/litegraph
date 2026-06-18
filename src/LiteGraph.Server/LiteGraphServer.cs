@@ -389,6 +389,27 @@ namespace LiteGraph.Server
             }
         }
 
+        private static void ApplyTransactionEnvironmentVariables()
+        {
+            string maxOperations = Environment.GetEnvironmentVariable(Constants.TransactionMaxOperationsEnvironmentVariable);
+            if (!String.IsNullOrEmpty(maxOperations))
+            {
+                if (Int32.TryParse(maxOperations, out int parsedMaxOperations) && parsedMaxOperations >= 1 && parsedMaxOperations <= 10000)
+                    _Settings.LiteGraph.Transactions.MaxOperations = parsedMaxOperations;
+                else
+                    Console.WriteLine("Invalid transaction max operations detected in environment variable " + Constants.TransactionMaxOperationsEnvironmentVariable);
+            }
+
+            string maxTimeout = Environment.GetEnvironmentVariable(Constants.TransactionMaxTimeoutEnvironmentVariable);
+            if (!String.IsNullOrEmpty(maxTimeout))
+            {
+                if (Int32.TryParse(maxTimeout, out int parsedMaxTimeout) && parsedMaxTimeout >= 1 && parsedMaxTimeout <= 3600)
+                    _Settings.LiteGraph.Transactions.MaxTimeoutSeconds = parsedMaxTimeout;
+                else
+                    Console.WriteLine("Invalid transaction max timeout detected in environment variable " + Constants.TransactionMaxTimeoutEnvironmentVariable);
+            }
+        }
+
         private static bool TryParseBoolean(string value, out bool parsed)
         {
             parsed = false;
@@ -446,6 +467,7 @@ namespace LiteGraph.Server
             }
 
             ApplyDatabaseEnvironmentVariables();
+            ApplyTransactionEnvironmentVariables();
             ApplyObservabilityEnvironmentVariables();
 
             #endregion

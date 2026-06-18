@@ -30,11 +30,13 @@ class TransactionBuilder:
         graph_guid: Optional[str] = None,
         max_operations: int = 1000,
         timeout_seconds: int = 60,
+        isolation_level: str = "Default",
         execute_on_exit: bool = False,
     ):
         self.graph_guid = graph_guid
         self.max_operations = max_operations
         self.timeout_seconds = timeout_seconds
+        self.isolation_level = isolation_level
         self.operations: List[TransactionOperationModel] = []
         self.execute_on_exit = execute_on_exit
         self.result: Optional[TransactionResultModel] = None
@@ -55,6 +57,15 @@ class TransactionBuilder:
     def with_timeout_seconds(self, timeout_seconds: int) -> "TransactionBuilder":
         TransactionRequestModel(TimeoutSeconds=timeout_seconds)
         self.timeout_seconds = timeout_seconds
+        return self
+
+    def with_isolation_level(self, isolation_level: str) -> "TransactionBuilder":
+        allowed = {"Default", "ReadCommitted", "RepeatableRead", "Serializable"}
+        if isolation_level not in allowed:
+            raise ValueError(
+                "IsolationLevel must be Default, ReadCommitted, RepeatableRead, or Serializable."
+            )
+        self.isolation_level = isolation_level
         return self
 
     def add(self, operation: Union[TransactionOperationModel, Dict[str, Any]]):
@@ -175,6 +186,7 @@ class TransactionBuilder:
             Operations=self.operations,
             MaxOperations=self.max_operations,
             TimeoutSeconds=self.timeout_seconds,
+            IsolationLevel=self.isolation_level,
         )
 
     def execute(self, graph_guid: Optional[str] = None) -> TransactionResultModel:
@@ -208,8 +220,11 @@ class Transaction:
         graph_guid: Optional[str] = None,
         max_operations: int = 1000,
         timeout_seconds: int = 60,
+        isolation_level: str = "Default",
     ) -> TransactionBuilder:
-        return TransactionBuilder(graph_guid, max_operations, timeout_seconds)
+        return TransactionBuilder(
+            graph_guid, max_operations, timeout_seconds, isolation_level
+        )
 
     @classmethod
     def context(
@@ -217,9 +232,14 @@ class Transaction:
         graph_guid: Optional[str] = None,
         max_operations: int = 1000,
         timeout_seconds: int = 60,
+        isolation_level: str = "Default",
     ) -> TransactionBuilder:
         return TransactionBuilder(
-            graph_guid, max_operations, timeout_seconds, execute_on_exit=True
+            graph_guid,
+            max_operations,
+            timeout_seconds,
+            isolation_level,
+            execute_on_exit=True,
         )
 
     @classmethod
@@ -244,5 +264,11 @@ class Transaction:
 
         data = request.model_dump(mode="json", by_alias=True, exclude_none=True)
         url = f"v1.0/tenants/{client.tenant_guid}/graphs/{gid}/transaction"
-        response = client.request("POST", url, json=data, headers=JSON_CONTENT_TYPE)
+        response = client.request(
+            "POST",
+            url,
+            json=data,
+            headers=JSON_CONTENT_TYPE,
+            accepted_status_codes=[400, 409],
+        )
         return TransactionResultModel.model_validate(response)

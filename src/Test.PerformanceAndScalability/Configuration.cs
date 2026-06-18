@@ -50,6 +50,7 @@ namespace Test.PerformanceAndScalability
         public bool ClosedLoop { get; private set; } = true;
         public int BatchSize { get; private set; } = 100;
         public int TransactionSize { get; private set; } = 10;
+        public TransactionIsolationLevelEnum TransactionIsolation { get; private set; } = TransactionIsolationLevelEnum.Default;
         public TimeSpan Timeout { get; private set; } = TimeSpan.FromSeconds(30);
         public int Seed { get; private set; } = 12345;
 
@@ -198,6 +199,10 @@ namespace Test.PerformanceAndScalability
                     case "transaction-size":
                         options.TransactionSize = ParseInt(key, value, 1, 1000);
                         break;
+                    case "transaction-isolation":
+                    case "isolation-level":
+                        options.TransactionIsolation = ParseTransactionIsolation(RequireValue(key, value));
+                        break;
                     case "timeout":
                         options.Timeout = ParseTimeSpan(key, value);
                         break;
@@ -332,6 +337,7 @@ namespace Test.PerformanceAndScalability
                 ClosedLoop,
                 BatchSize,
                 TransactionSize,
+                TransactionIsolation,
                 Timeout = Timeout.ToString(),
                 Seed,
                 OutputDirectory,
@@ -392,6 +398,7 @@ Run options:
   --closed-loop true|false
   --batch-size <count>
   --transaction-size <count>
+  --transaction-isolation default|read-committed|repeatable-read|serializable
   --seed <integer>
 
 Output options:
@@ -615,6 +622,13 @@ Output options:
                 default:
                     throw new ArgumentException("Unsupported database type '" + value + "'.");
             }
+        }
+
+        private static TransactionIsolationLevelEnum ParseTransactionIsolation(string value)
+        {
+            string normalized = value.Trim().Replace("-", string.Empty).Replace("_", string.Empty);
+            if (Enum.TryParse(normalized, true, out TransactionIsolationLevelEnum ret)) return ret;
+            throw new ArgumentException("Unsupported transaction isolation level '" + value + "'. Use default, read-committed, repeatable-read, or serializable.");
         }
 
         private static readonly HashSet<string> KnownPayloadSizes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)

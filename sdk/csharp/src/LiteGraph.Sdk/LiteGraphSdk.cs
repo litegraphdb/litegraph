@@ -60,6 +60,11 @@
         public ITenantMethods Tenant { get; }
 
         /// <summary>
+        /// Graph transaction methods.
+        /// </summary>
+        public ITransactionMethods Transaction { get; }
+
+        /// <summary>
         /// User methods.
         /// </summary>
         public IUserMethods User { get; }
@@ -115,6 +120,7 @@
             Node = new NodeMethods(this);
             Tag = new TagMethods(this);
             Tenant = new TenantMethods(this);
+            Transaction = new TransactionMethods(this);
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
         }
@@ -151,6 +157,7 @@
             Node = new NodeMethods(this);
             Tag = new TagMethods(this);
             Tenant = new TenantMethods(this);
+            Transaction = new TransactionMethods(this);
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
             UserAuthentication = new UserAuthentication(this);

@@ -256,6 +256,7 @@ namespace Test.PerformanceAndScalability
                 Interlocked.Increment(ref accumulator.Completed);
                 Interlocked.Add(ref accumulator.Items, Math.Max(0, outcome.Items));
                 Interlocked.Add(ref accumulator.ResultCount, Math.Max(0, outcome.ResultCount));
+                if (outcome.Transaction != null) accumulator.RecordTransaction(outcome.Transaction);
                 if (!outcome.Correct)
                 {
                     Interlocked.Increment(ref accumulator.Incorrect);
@@ -306,9 +307,23 @@ namespace Test.PerformanceAndScalability
             public long Incorrect;
             public long Items;
             public long ResultCount;
+            public long TransactionStarted;
+            public long TransactionCommitted;
+            public long TransactionRolledBack;
+            public long TransactionValidationFailures;
+            public long TransactionRetryable;
+            public long TransactionConcurrencyConflicts;
+            public long TransactionRetryCount;
+            public long TransactionIsolatedRepository;
+            public long TransactionSerializedByGate;
+            public long TransactionOperationCount;
 
             private readonly object _LatencyLock = new object();
             private readonly List<double> _Latencies = new List<double>();
+            private readonly object _TransactionLatencyLock = new object();
+            private readonly List<double> _TransactionLatencies = new List<double>();
+            private readonly List<double> _TransactionCommitLatencies = new List<double>();
+            private readonly List<double> _TransactionRollbackLatencies = new List<double>();
             private string? _ErrorSample;
 
             public void RecordLatency(double ms)
@@ -328,10 +343,41 @@ namespace Test.PerformanceAndScalability
                     Interlocked.CompareExchange(ref _ErrorSample, "Incorrect: " + error, null);
             }
 
+            public void RecordTransaction(TransactionMetricSample sample)
+            {
+                Interlocked.Add(ref TransactionStarted, Math.Max(0, sample.Started));
+                Interlocked.Add(ref TransactionCommitted, Math.Max(0, sample.Committed));
+                Interlocked.Add(ref TransactionRolledBack, Math.Max(0, sample.RolledBack));
+                Interlocked.Add(ref TransactionValidationFailures, Math.Max(0, sample.ValidationFailures));
+                Interlocked.Add(ref TransactionRetryable, Math.Max(0, sample.Retryable));
+                Interlocked.Add(ref TransactionConcurrencyConflicts, Math.Max(0, sample.ConcurrencyConflicts));
+                Interlocked.Add(ref TransactionRetryCount, Math.Max(0, sample.RetryCount));
+                Interlocked.Add(ref TransactionIsolatedRepository, Math.Max(0, sample.IsolatedRepository));
+                Interlocked.Add(ref TransactionSerializedByGate, Math.Max(0, sample.SerializedByGate));
+                Interlocked.Add(ref TransactionOperationCount, Math.Max(0, sample.OperationCount));
+
+                lock (_TransactionLatencyLock)
+                {
+                    if (sample.Started > 0) _TransactionLatencies.Add(Math.Max(0, sample.DurationMs));
+                    if (sample.Committed > 0) _TransactionCommitLatencies.Add(Math.Max(0, sample.CommitDurationMs));
+                    if (sample.RolledBack > 0) _TransactionRollbackLatencies.Add(Math.Max(0, sample.RollbackDurationMs));
+                }
+            }
+
             public ScenarioResult ToResult(TimeSpan duration, DateTime startedUtc)
             {
                 List<double> latencies;
                 lock (_LatencyLock) latencies = new List<double>(_Latencies);
+
+                List<double> transactionLatencies;
+                List<double> transactionCommitLatencies;
+                List<double> transactionRollbackLatencies;
+                lock (_TransactionLatencyLock)
+                {
+                    transactionLatencies = new List<double>(_TransactionLatencies);
+                    transactionCommitLatencies = new List<double>(_TransactionCommitLatencies);
+                    transactionRollbackLatencies = new List<double>(_TransactionRollbackLatencies);
+                }
 
                 double seconds = Math.Max(duration.TotalSeconds, 0.000001);
                 return new ScenarioResult
@@ -350,6 +396,26 @@ namespace Test.PerformanceAndScalability
                     OperationsPerSecond = Completed / seconds,
                     ItemsPerSecond = Items / seconds,
                     Latency = LatencyStats.From(latencies),
+                    TransactionMetrics = new TransactionMetricSummary
+                    {
+                        Started = TransactionStarted,
+                        Committed = TransactionCommitted,
+                        RolledBack = TransactionRolledBack,
+                        ValidationFailures = TransactionValidationFailures,
+                        Retryable = TransactionRetryable,
+                        ConcurrencyConflicts = TransactionConcurrencyConflicts,
+                        RetryCount = TransactionRetryCount,
+                        IsolatedRepository = TransactionIsolatedRepository,
+                        SerializedByGate = TransactionSerializedByGate,
+                        OperationCount = TransactionOperationCount,
+                        StartsPerSecond = TransactionStarted / seconds,
+                        CommitsPerSecond = TransactionCommitted / seconds,
+                        RollbacksPerSecond = TransactionRolledBack / seconds,
+                        ConflictsPerSecond = TransactionConcurrencyConflicts / seconds,
+                        TransactionLatency = LatencyStats.From(transactionLatencies),
+                        CommitLatency = LatencyStats.From(transactionCommitLatencies),
+                        RollbackLatency = LatencyStats.From(transactionRollbackLatencies)
+                    },
                     ErrorSample = _ErrorSample
                 };
             }

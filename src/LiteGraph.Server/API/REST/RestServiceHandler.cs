@@ -763,6 +763,7 @@ namespace LiteGraph.Server.API.REST
                     RequestId = req?.RequestId,
                     CorrelationId = req?.CorrelationId,
                     TraceId = req?.TraceId,
+                    TransactionDiagnosticsJson = CaptureTransactionDiagnosticsJson(req, responseText),
                     RequestBody = reqBody,
                     ResponseBody = respBody
                 };
@@ -773,6 +774,62 @@ namespace LiteGraph.Server.API.REST
             {
                 _Logging.Warn(_Header + "request history capture error: " + e.Message);
             }
+        }
+
+        private string CaptureTransactionDiagnosticsJson(RequestContext req, string responseText)
+        {
+            if (req == null || req.RequestType != RequestTypeEnum.GraphTransaction) return null;
+            if (String.IsNullOrWhiteSpace(responseText)) return null;
+
+            try
+            {
+                TransactionResult result = _Serializer.DeserializeJson<TransactionResult>(responseText);
+                if (result == null || result.TransactionId == Guid.Empty) return null;
+
+                return _Serializer.SerializeJson(new RequestHistoryTransactionDiagnostics
+                {
+                    TransactionId = result.TransactionId,
+                    Success = result.Success,
+                    RolledBack = result.RolledBack,
+                    ValidationFailure = result.ValidationFailure,
+                    FailedOperationIndex = result.FailedOperationIndex,
+                    OperationCount = result.OperationCount,
+                    IsolationLevel = result.IsolationLevel,
+                    Provider = result.Provider,
+                    IsolatedRepository = result.IsolatedRepository,
+                    SerializedByGate = result.SerializedByGate,
+                    RetryCount = result.RetryCount,
+                    Retryable = result.Retryable,
+                    ConcurrencyConflict = result.ConcurrencyConflict,
+                    ProviderErrorCode = result.ProviderErrorCode,
+                    CommitDurationMs = result.CommitDurationMs,
+                    RollbackDurationMs = result.RollbackDurationMs
+                }, false);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private sealed class RequestHistoryTransactionDiagnostics
+        {
+            public Guid TransactionId { get; set; } = Guid.Empty;
+            public bool Success { get; set; } = false;
+            public bool RolledBack { get; set; } = false;
+            public bool ValidationFailure { get; set; } = false;
+            public int? FailedOperationIndex { get; set; } = null;
+            public int OperationCount { get; set; } = 0;
+            public string IsolationLevel { get; set; } = null;
+            public string Provider { get; set; } = null;
+            public bool IsolatedRepository { get; set; } = false;
+            public bool SerializedByGate { get; set; } = false;
+            public int RetryCount { get; set; } = 0;
+            public bool Retryable { get; set; } = false;
+            public bool ConcurrencyConflict { get; set; } = false;
+            public string ProviderErrorCode { get; set; } = null;
+            public double CommitDurationMs { get; set; } = 0;
+            public double RollbackDurationMs { get; set; } = 0;
         }
 
         internal async Task ExceptionHandler(HttpContextBase @base, Exception exception)
@@ -2080,6 +2137,7 @@ namespace LiteGraph.Server.API.REST
             }
 
             TransactionRequest transaction = _Serializer.DeserializeJson<TransactionRequest>(ctx.Request.DataAsString);
+            ApplyTransactionServerLimits(transaction, _Settings?.LiteGraph?.Transactions);
             DateTime start = DateTime.UtcNow;
             using (Activity activity = StartInternalActivity("litegraph.graph.transaction", req))
             using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
@@ -2094,21 +2152,46 @@ namespace LiteGraph.Server.API.REST
                 }
                 catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
                 {
-                    _Observability.RecordGraphTransaction(false, true, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
+                    _Observability.RecordGraphTransaction(false, true, false, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
                     ctx.Response.StatusCode = 408;
                     RecordActivityException(activity, new TimeoutException("Graph transaction timed out."), ctx.Response.StatusCode);
                     await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.RequestTimeout)));
                     return;
                 }
 
-                _Observability.RecordGraphTransaction(result.Success, result.RolledBack, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
+                _Observability.RecordGraphTransaction(result.Success, result.RolledBack, result.ValidationFailure, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
+                activity?.SetTag("litegraph.transaction.id", result.TransactionId);
                 activity?.SetTag("litegraph.transaction.success", result.Success);
                 activity?.SetTag("litegraph.transaction.rolled_back", result.RolledBack);
+                activity?.SetTag("litegraph.transaction.provider", result.Provider);
+                activity?.SetTag("litegraph.transaction.isolation_level", result.IsolationLevel);
+                activity?.SetTag("litegraph.transaction.isolated_repository", result.IsolatedRepository);
+                activity?.SetTag("litegraph.transaction.serialized_by_gate", result.SerializedByGate);
+                activity?.SetTag("litegraph.transaction.retry_count", result.RetryCount);
+                activity?.SetTag("litegraph.transaction.retryable", result.Retryable);
+                activity?.SetTag("litegraph.transaction.concurrency_conflict", result.ConcurrencyConflict);
+                activity?.SetTag("litegraph.transaction.validation_failure", result.ValidationFailure);
+                if (!String.IsNullOrEmpty(result.ProviderErrorCode)) activity?.SetTag("litegraph.transaction.provider_error_code", result.ProviderErrorCode);
                 if (result.FailedOperationIndex != null) activity?.SetTag("litegraph.transaction.failed_operation_index", result.FailedOperationIndex.Value);
 
-                ctx.Response.StatusCode = result.Success ? 200 : 409;
+                ctx.Response.StatusCode = GraphTransactionStatusCode(result);
                 await ctx.Response.Send(_Serializer.SerializeJson(result));
             }
+        }
+
+        private static void ApplyTransactionServerLimits(TransactionRequest transaction, TransactionSettings settings)
+        {
+            if (transaction == null || settings == null) return;
+            if (transaction.MaxOperations > settings.MaxOperations) transaction.MaxOperations = settings.MaxOperations;
+            if (transaction.TimeoutSeconds > settings.MaxTimeoutSeconds) transaction.TimeoutSeconds = settings.MaxTimeoutSeconds;
+        }
+
+        private static int GraphTransactionStatusCode(TransactionResult result)
+        {
+            if (result == null || result.Success) return 200;
+            if (result.ValidationFailure) return 400;
+            if (result.RolledBack || result.Retryable || result.ConcurrencyConflict) return 409;
+            return 500;
         }
 
         private async Task GraphSubgraphRoute(HttpContextBase ctx)
@@ -3271,8 +3354,10 @@ namespace LiteGraph.Server.API.REST
             if (!string.IsNullOrEmpty(q?["method"])) search.Method = q["method"];
             if (!string.IsNullOrEmpty(q?["path"])) search.Path = q["path"];
             if (!string.IsNullOrEmpty(q?["sourceIp"])) search.SourceIp = q["sourceIp"];
+            if (!string.IsNullOrEmpty(q?["transactionId"])) search.TransactionId = q["transactionId"];
             if (!string.IsNullOrEmpty(q?["statusCode"]) && int.TryParse(q["statusCode"], out int sc)) search.StatusCode = sc;
             if (!string.IsNullOrEmpty(q?["success"]) && bool.TryParse(q["success"], out bool success)) search.Success = success;
+            if (!string.IsNullOrEmpty(q?["hasTransactionDiagnostics"]) && bool.TryParse(q["hasTransactionDiagnostics"], out bool hasTransactionDiagnostics)) search.HasTransactionDiagnostics = hasTransactionDiagnostics;
             if (!string.IsNullOrEmpty(q?["fromUtc"]) && DateTime.TryParse(q["fromUtc"], null, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTime from))
                 search.FromUtc = from;
             if (!string.IsNullOrEmpty(q?["toUtc"]) && DateTime.TryParse(q["toUtc"], null, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTime to))

@@ -29,6 +29,8 @@ New provider-neutral storage settings live under:
 
 PostgreSQL deployments should set either individual database fields or `LITEGRAPH_DB_CONNECTION_STRING`. See `STORAGE.md` for production hardening.
 
+The checked-in Docker Compose deployment now starts PostgreSQL and configures LiteGraph with `LITEGRAPH_DB_TYPE=Postgresql`. Existing Docker users who want to keep SQLite for local-only evaluation must override `LITEGRAPH_DB_TYPE=Sqlite` and set a SQLite filename explicitly.
+
 ## Existing Access Behavior
 
 Existing users and credentials retain effective access after migration. The upgrade initializes the authorization schema and seeds built-in roles. The administrator bearer token is still unconstrained by role and credential-scope assignments.
@@ -47,6 +49,18 @@ Use this path when staying on SQLite:
 6. Run representative reads, writes, graph transactions, native graph queries, and authorization-management calls.
 7. Rebuild vector indexes if index files were not deployed with the database.
 
+## HnswLite 2.0.1 Vector Index Upgrade
+
+LiteGraph v7.0 uses `HnswLite` `2.0.1` explicitly. File-backed `HnswSqlite` index state written by this release includes:
+
+- `FormatVersion = 2`
+- `HnswLiteVersion = "2.0.1"`
+- persisted HNSW neighbor connections for reload-safe indexed search
+
+Before upgrading an existing deployment that uses file-backed vector indexes, back up the database, SQLite sidecar files, and the full `indexes/` directory. After upgrade, inspect each `HnswSqlite` index JSON file. If it does not include `FormatVersion` with value `2`, treat the artifact as legacy and rebuild it with `client.Graph.RebuildVectorIndex(...)`, `client.VectorIndex.RebuildVectorIndex(...)`, `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild`, or `POST /v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild`.
+
+If a legacy artifact cannot be trusted or validated, delete the index file and its `.layers` sidecar only after the database backup is complete, then rebuild the graph's vector index from persisted vectors. Do not copy stale `HnswLite` 1.x artifacts into a v7.0 deployment and assume indexed search is valid without a rebuild or a post-upgrade search validation.
+
 ## SQLite To PostgreSQL
 
 Use this path when moving production storage to PostgreSQL:
@@ -60,6 +74,8 @@ Use this path when moving production storage to PostgreSQL:
 7. Confirm `/metrics` reports `litegraph_storage_backend_info{provider="Postgresql",production_recommended="true"} 1`.
 8. Rebuild vector indexes if file-backed vector index files were not migrated with the database.
 9. Keep the SQLite backup until application smoke tests and operational dashboards are clean.
+
+For the checked-in Docker deployment, Compose publishes PostgreSQL on `${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}` and stores data in the `postgresql-data` volume. To migrate an existing Docker SQLite deployment, stop writes, back up `docker/litegraph.db` plus SQLite sidecar files, run the migration into a disposable PostgreSQL database first, then repeat into the Compose PostgreSQL database and start the v7.0 Compose stack only after verification succeeds.
 
 ## SDK Changes
 
@@ -79,6 +95,25 @@ Python and JavaScript SDK consumers should update to the release that includes:
 - role and credential-scope helpers
 
 Existing resource CRUD calls are unchanged.
+
+## Graph Transaction Changes
+
+Graph transaction requests now accept `IsolationLevel` with `Default`, `ReadCommitted`, `RepeatableRead`, or `Serializable`. PostgreSQL supports `ReadCommitted`, `RepeatableRead`, and `Serializable`; SQLite supports `Default` and `Serializable` and rejects isolation levels it cannot provide exactly.
+
+Transaction responses include additional diagnostics:
+
+- `TransactionId`
+- `OperationCount`
+- `StartedUtc`, `CompletedUtc`, `DurationMs`
+- `CommitDurationMs`, `RollbackDurationMs`
+- `Provider`, `IsolationLevel`
+- `IsolatedRepository`, `SerializedByGate`
+- `ValidationFailure`
+- `RetryCount`, `Retryable`, `ConcurrencyConflict`, `ProviderErrorCode`
+
+REST transaction validation failures return HTTP `400` with a `TransactionResult` body when LiteGraph can identify the failed operation. Failures during execution return HTTP `409` with a `TransactionResult` body. Updated SDKs preserve those diagnostic bodies so callers can inspect validation and rollback details. Older clients that treat all non-2xx responses as exceptions may need to catch the response body explicitly.
+
+PostgreSQL is the primary provider for parallel transaction write scaling. SQLite uses isolated transaction sessions for correctness, but file-level write locking still limits write throughput. Monitor `SerializedByGate`; it should be `false` for providers using transaction-local repository/session state.
 
 ## Dashboard And Operations
 

@@ -7,6 +7,7 @@ namespace Test.Shared
     using System.Linq;
     using System.Reflection;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Text.Json.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
@@ -57,6 +58,16 @@ namespace Test.Shared
                         executeAsync: ExecuteVectorIndexMetadataSuiteAsync),
                     new TestCaseDescriptor(
                         suiteId: "Vector.Index.Implementation",
+                        caseId: "SqlitePersistence",
+                        displayName: "HNSW SQLite index persists searchable graph topology across reload",
+                        executeAsync: ExecuteVectorIndexPersistenceSuiteAsync),
+                    new TestCaseDescriptor(
+                        suiteId: "Vector.Index.Implementation",
+                        caseId: "LegacySqliteArtifact",
+                        displayName: "Legacy HNSW SQLite artifacts are marked dirty and bypassed",
+                        executeAsync: ExecuteLegacyVectorIndexArtifactSuiteAsync),
+                    new TestCaseDescriptor(
+                        suiteId: "Vector.Index.Implementation",
                         caseId: "Lifecycle",
                         displayName: "HNSW RAM index supports enable, search, add, and remove flows",
                         executeAsync: ExecuteVectorIndexLifecycleSuiteAsync),
@@ -67,9 +78,14 @@ namespace Test.Shared
                         executeAsync: ExecuteVectorIndexDirtyRepairSuiteAsync),
                     new TestCaseDescriptor(
                         suiteId: "Vector.Index.Implementation",
-                        caseId: "TransactionRollbackDirty",
-                        displayName: "Graph transaction rollback marks touched vector indexes dirty",
-                        executeAsync: ExecuteVectorIndexTransactionRollbackDirtySuiteAsync)
+                        caseId: "TransactionRollbackStaging",
+                        displayName: "Graph transaction rollback discards staged vector index mutations",
+                        executeAsync: ExecuteVectorIndexTransactionRollbackDirtySuiteAsync),
+                    new TestCaseDescriptor(
+                        suiteId: "Vector.Index.Implementation",
+                        caseId: "ConcurrentTransactionStaging",
+                        displayName: "Concurrent graph transactions preserve staged vector index correctness",
+                        executeAsync: ExecuteVectorIndexConcurrentTransactionSuiteAsync)
                 });
         }
 
@@ -347,6 +363,185 @@ namespace Test.Shared
             {
                 sqliteIndex.Dispose();
                 CleanupSqliteArtifacts(sqliteIndexPath, sqliteIndexPath + ".layers");
+            }
+        }
+
+        private static async Task ExecuteVectorIndexPersistenceSuiteAsync(CancellationToken cancellationToken)
+        {
+            const int dimensionality = 16;
+            const int vectorCount = 12;
+            string sqliteIndexPath = BuildVectorArtifactPath("touchstone-vector-index-persistence.sqlite");
+
+            CleanupSqliteArtifacts(sqliteIndexPath, sqliteIndexPath + ".layers");
+
+            Guid tenantGuid = Guid.NewGuid();
+            Graph graph = new Graph
+            {
+                TenantGUID = tenantGuid,
+                GUID = Guid.NewGuid(),
+                Name = "Persistent SQLite HNSW Graph",
+                VectorIndexType = VectorIndexTypeEnum.HnswSqlite,
+                VectorIndexFile = sqliteIndexPath,
+                VectorDimensionality = dimensionality,
+                VectorIndexM = 8,
+                VectorIndexEf = 32,
+                VectorIndexEfConstruction = 64
+            };
+
+            List<VectorIndexEntry> entries = new List<VectorIndexEntry>();
+            for (int i = 0; i < vectorCount; i++)
+            {
+                Guid nodeGuid = Guid.NewGuid();
+                entries.Add(new VectorIndexEntry
+                {
+                    Id = nodeGuid,
+                    Vector = BuildDeterministicVector(i, dimensionality),
+                    Name = "Persistent Vector Node " + i,
+                    Labels = new List<string> { "persistent", "node-" + i },
+                    Tags = new Dictionary<string, object>
+                    {
+                        { "litegraph.domain", "Node" },
+                        { "litegraph.node_guid", nodeGuid.ToString("D") }
+                    }
+                });
+            }
+
+            Guid expectedTopId = entries[0].Id;
+            HnswLiteVectorIndex writer = new HnswLiteVectorIndex();
+            HnswLiteVectorIndex reader = new HnswLiteVectorIndex();
+
+            try
+            {
+                await writer.InitializeAsync(graph, cancellationToken).ConfigureAwait(false);
+                await writer.AddBatchAsync(entries, cancellationToken).ConfigureAwait(false);
+                await writer.SaveAsync(cancellationToken).ConfigureAwait(false);
+
+                List<VectorDistanceResult> preReloadResults = await writer.SearchAsync(
+                    BuildDeterministicVector(0, dimensionality),
+                    3,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                AssertTrue(preReloadResults.Count > 0, "SQLite HNSW pre-reload search should return results");
+                AssertEqual(expectedTopId, preReloadResults[0].Id, "SQLite HNSW pre-reload top result");
+                writer.Dispose();
+
+                AssertTrue(File.Exists(sqliteIndexPath), "SQLite HNSW state file should exist");
+
+                HnswIndexState state = JsonSerializer.Deserialize<HnswIndexState>(File.ReadAllText(sqliteIndexPath))!;
+                AssertEqual(HnswIndexState.CurrentFormatVersion, state.FormatVersion, "SQLite HNSW persisted format version");
+                AssertEqual("2.0.1", state.HnswLiteVersion, "SQLite HNSW persisted HnswLite version");
+                AssertTrue(
+                    state.Node.Sum(nodeState => nodeState.Connections?.Values.Sum(neighbors => neighbors?.Count ?? 0) ?? 0) > 0,
+                    "SQLite HNSW state should persist neighbor connections");
+
+                await reader.InitializeAsync(graph, cancellationToken).ConfigureAwait(false);
+                List<VectorDistanceResult> postReloadResults = await reader.SearchAsync(
+                    BuildDeterministicVector(0, dimensionality),
+                    3,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                AssertTrue(postReloadResults.Count > 0, "SQLite HNSW post-reload search should return results");
+                AssertEqual(expectedTopId, postReloadResults[0].Id, "SQLite HNSW post-reload top result");
+            }
+            finally
+            {
+                writer.Dispose();
+                reader.Dispose();
+                CleanupSqliteArtifacts(sqliteIndexPath, sqliteIndexPath + ".layers");
+            }
+        }
+
+        private static async Task ExecuteLegacyVectorIndexArtifactSuiteAsync(CancellationToken cancellationToken)
+        {
+            const int dimensionality = 8;
+            const int nodeCount = 6;
+            string databasePath = BuildVectorArtifactPath("touchstone-vector-index-legacy-artifact.db");
+            string sqliteIndexPath = BuildVectorArtifactPath("touchstone-vector-index-legacy-artifact.sqlite");
+
+            CleanupSqliteArtifacts(databasePath, sqliteIndexPath, sqliteIndexPath + ".layers");
+
+            LiteGraphClient? writer = null;
+            LiteGraphClient? reader = null;
+
+            try
+            {
+                writer = new LiteGraphClient(new SqliteGraphRepository(databasePath, false));
+                writer.InitializeRepository();
+
+                TenantMetadata tenant = await writer.Tenant.Create(new TenantMetadata
+                {
+                    Name = "Touchstone Legacy HNSW Tenant"
+                }, cancellationToken).ConfigureAwait(false);
+
+                Graph graph = await writer.Graph.Create(new Graph
+                {
+                    TenantGUID = tenant.GUID,
+                    Name = "Touchstone Legacy HNSW Graph"
+                }, cancellationToken).ConfigureAwait(false);
+
+                List<Node> nodes = await CreateDeterministicNodesWithVectorsAsync(
+                    writer,
+                    tenant.GUID,
+                    graph.GUID,
+                    startIndex: 0,
+                    count: nodeCount,
+                    dimensionality: dimensionality,
+                    cancellationToken).ConfigureAwait(false);
+
+                await writer.Graph.EnableVectorIndexing(
+                    tenant.GUID,
+                    graph.GUID,
+                    new VectorIndexConfiguration
+                    {
+                        VectorIndexType = VectorIndexTypeEnum.HnswSqlite,
+                        VectorIndexFile = sqliteIndexPath,
+                        VectorDimensionality = dimensionality,
+                        VectorIndexThreshold = 1,
+                        VectorIndexM = 8,
+                        VectorIndexEf = 32,
+                        VectorIndexEfConstruction = 64
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                writer.Dispose();
+                writer = null;
+
+                RewriteHnswStateAsLegacyArtifact(sqliteIndexPath);
+
+                reader = new LiteGraphClient(new SqliteGraphRepository(databasePath, false));
+                reader.InitializeRepository();
+
+                List<VectorSearchResult> results = await SearchVectorsAsync(
+                    reader,
+                    tenant.GUID,
+                    graph.GUID,
+                    BuildDeterministicVector(0, dimensionality),
+                    VectorSearchTypeEnum.CosineSimilarity,
+                    topK: 3,
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertTopNode(results, nodes[0].GUID, "Legacy HNSW artifact fallback search");
+
+                Graph dirtyGraph = await reader.Graph.ReadByGuid(tenant.GUID, graph.GUID, token: cancellationToken).ConfigureAwait(false);
+                AssertTrue(dirtyGraph.VectorIndexDirty, "Legacy HNSW artifact should mark graph dirty");
+                AssertTrue(
+                    dirtyGraph.VectorIndexDirtyReason != null
+                    && dirtyGraph.VectorIndexDirtyReason.Contains("HnswLite 2.0.1", StringComparison.Ordinal),
+                    "Legacy HNSW dirty reason should name HnswLite 2.0.1");
+
+                VectorIndexStatistics? dirtyStats = await reader.Graph.GetVectorIndexStatistics(
+                    tenant.GUID,
+                    graph.GUID,
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertNotNull(dirtyStats, "Legacy HNSW dirty statistics");
+                AssertTrue(dirtyStats!.IsDirty, "Legacy HNSW statistics should expose dirty state");
+            }
+            finally
+            {
+                writer?.Dispose();
+                reader?.Dispose();
+                CleanupSqliteArtifacts(databasePath, sqliteIndexPath, sqliteIndexPath + ".layers");
             }
         }
 
@@ -741,33 +936,177 @@ namespace Test.Shared
                     graph.GUID,
                     token: cancellationToken).ConfigureAwait(false);
 
-                AssertTrue(dirtyGraph.VectorIndexDirty, "Transaction rollback should mark touched index dirty");
+                AssertTrue(!dirtyGraph.VectorIndexDirty, "Transaction rollback should not dirty index when staged mutations are discarded");
+
+                VectorIndexStatistics? rollbackStats = await client.Graph.GetVectorIndexStatistics(
+                    tenant.GUID,
+                    graph.GUID,
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertNotNull(rollbackStats, "Transaction rollback vector index statistics");
+                AssertTrue(!rollbackStats!.IsDirty, "Transaction rollback should leave vector index clean");
+                AssertEqual(0, rollbackStats.VectorCount, "Transaction rollback should not apply staged vector index mutation");
+
+                Guid committedVectorGuid = Guid.NewGuid();
+                TransactionResult commitResult = await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    new TransactionRequest
+                    {
+                        Operations = new List<TransactionOperation>
+                        {
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Vector,
+                                Payload = new VectorMetadata
+                                {
+                                    GUID = committedVectorGuid,
+                                    NodeGUID = node.GUID,
+                                    Model = "transaction-staged-model",
+                                    Dimensionality = dimensionality,
+                                    Content = "Committed vector",
+                                    Vectors = new List<float> { 1.0f, 0.0f, 0.0f }
+                                }
+                            }
+                        }
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertTrue(commitResult.Success, "Committed vector transaction should succeed");
                 AssertTrue(
-                    dirtyGraph.VectorIndexDirtyReason != null
-                    && dirtyGraph.VectorIndexDirtyReason.Contains("Graph transaction rollback", StringComparison.Ordinal),
-                    "Transaction rollback should record dirty reason");
+                    await client.Vector.ExistsByGuid(tenant.GUID, committedVectorGuid, cancellationToken).ConfigureAwait(false),
+                    "Committed vector should remain in the database");
 
-                VectorIndexStatistics? dirtyStats = await client.Graph.GetVectorIndexStatistics(
+                VectorIndexStatistics? commitStats = await client.Graph.GetVectorIndexStatistics(
                     tenant.GUID,
                     graph.GUID,
                     cancellationToken).ConfigureAwait(false);
 
-                AssertNotNull(dirtyStats, "Transaction rollback dirty vector index statistics");
-                AssertTrue(dirtyStats!.IsDirty, "Transaction rollback should expose dirty stats");
+                AssertNotNull(commitStats, "Committed transaction vector index statistics");
+                AssertTrue(!commitStats!.IsDirty, "Committed staged vector index mutation should leave index clean");
+                AssertEqual(1, commitStats.VectorCount, "Committed staged vector index mutation should apply after commit");
 
-                await client.Graph.RebuildVectorIndex(
+                List<VectorSearchResult> committedResults = await SearchVectorsAsync(
+                    client,
+                    tenant.GUID,
+                    graph.GUID,
+                    new List<float> { 1.0f, 0.0f, 0.0f },
+                    VectorSearchTypeEnum.CosineSimilarity,
+                    topK: 1,
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertTopNode(committedResults, node.GUID, "Committed staged vector index search");
+            }
+            finally
+            {
+                client?.Dispose();
+                CleanupSqliteArtifacts(databasePath);
+            }
+        }
+
+        private static async Task ExecuteVectorIndexConcurrentTransactionSuiteAsync(CancellationToken cancellationToken)
+        {
+            const int dimensionality = 4;
+            string databasePath = BuildVectorArtifactPath("touchstone-vector-index-concurrent-transactions.db");
+
+            CleanupSqliteArtifacts(databasePath);
+
+            LiteGraphClient? client = null;
+
+            try
+            {
+                client = new LiteGraphClient(new SqliteGraphRepository(databasePath, false));
+                client.InitializeRepository();
+
+                TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata
+                {
+                    Name = "Touchstone Vector Index Concurrent Tenant"
+                }, cancellationToken).ConfigureAwait(false);
+
+                Graph graph = await client.Graph.Create(new Graph
+                {
+                    TenantGUID = tenant.GUID,
+                    Name = "Touchstone Vector Index Concurrent Graph"
+                }, cancellationToken).ConfigureAwait(false);
+
+                Node firstNode = await client.Node.Create(new Node
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = "Concurrent Transaction Node 1"
+                }, cancellationToken).ConfigureAwait(false);
+
+                Node secondNode = await client.Node.Create(new Node
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = "Concurrent Transaction Node 2"
+                }, cancellationToken).ConfigureAwait(false);
+
+                await client.Graph.EnableVectorIndexing(
+                    tenant.GUID,
+                    graph.GUID,
+                    new VectorIndexConfiguration
+                    {
+                        VectorIndexType = VectorIndexTypeEnum.HnswRam,
+                        VectorDimensionality = dimensionality,
+                        VectorIndexThreshold = 1,
+                        VectorIndexM = 8,
+                        VectorIndexEf = 16,
+                        VectorIndexEfConstruction = 32
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                TransactionRequest firstRequest = CreateSingleVectorTransactionRequest(
+                    firstNode.GUID,
+                    "concurrent-vector-1",
+                    dimensionality,
+                    BuildDeterministicVector(0, dimensionality));
+
+                TransactionRequest secondRequest = CreateSingleVectorTransactionRequest(
+                    secondNode.GUID,
+                    "concurrent-vector-2",
+                    dimensionality,
+                    BuildDeterministicVector(1, dimensionality));
+
+                Task<TransactionResult> firstTask = client.Transaction.Execute(tenant.GUID, graph.GUID, firstRequest, cancellationToken);
+                Task<TransactionResult> secondTask = client.Transaction.Execute(tenant.GUID, graph.GUID, secondRequest, cancellationToken);
+
+                TransactionResult[] results = await Task.WhenAll(firstTask, secondTask).ConfigureAwait(false);
+
+                AssertTrue(results[0].Success, "First concurrent vector transaction succeeds");
+                AssertTrue(results[1].Success, "Second concurrent vector transaction succeeds");
+
+                VectorIndexStatistics? stats = await client.Graph.GetVectorIndexStatistics(
                     tenant.GUID,
                     graph.GUID,
                     cancellationToken).ConfigureAwait(false);
 
-                VectorIndexStatistics? repairedStats = await client.Graph.GetVectorIndexStatistics(
+                AssertNotNull(stats, "Concurrent vector transaction index stats");
+                AssertTrue(!stats!.IsDirty, "Concurrent vector transactions leave index clean");
+                AssertEqual(2, stats.VectorCount, "Concurrent vector transactions apply both staged index mutations");
+
+                List<VectorSearchResult> firstResults = await SearchVectorsAsync(
+                    client,
                     tenant.GUID,
                     graph.GUID,
+                    BuildDeterministicVector(0, dimensionality),
+                    VectorSearchTypeEnum.CosineSimilarity,
+                    topK: 1,
                     cancellationToken).ConfigureAwait(false);
 
-                AssertNotNull(repairedStats, "Transaction rollback repaired vector index statistics");
-                AssertTrue(!repairedStats!.IsDirty, "Rebuild should clear transaction rollback dirty state");
-                AssertEqual(0, repairedStats.VectorCount, "Rebuilt index should match rolled-back vector table");
+                List<VectorSearchResult> secondResults = await SearchVectorsAsync(
+                    client,
+                    tenant.GUID,
+                    graph.GUID,
+                    BuildDeterministicVector(1, dimensionality),
+                    VectorSearchTypeEnum.CosineSimilarity,
+                    topK: 1,
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertTopNode(firstResults, firstNode.GUID, "First concurrent vector transaction search");
+                AssertTopNode(secondResults, secondNode.GUID, "Second concurrent vector transaction search");
             }
             finally
             {
@@ -1005,6 +1344,34 @@ namespace Test.Shared
             };
         }
 
+        private static TransactionRequest CreateSingleVectorTransactionRequest(
+            Guid nodeGuid,
+            string content,
+            int dimensionality,
+            List<float> vector)
+        {
+            return new TransactionRequest
+            {
+                Operations = new List<TransactionOperation>
+                {
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Create,
+                        ObjectType = TransactionObjectTypeEnum.Vector,
+                        Payload = new VectorMetadata
+                        {
+                            GUID = Guid.NewGuid(),
+                            NodeGUID = nodeGuid,
+                            Model = "transaction-staged-model",
+                            Dimensionality = dimensionality,
+                            Content = content,
+                            Vectors = vector
+                        }
+                    }
+                }
+            };
+        }
+
         private static async Task<object> GetIndexedNodeAsync(
             HnswLiteVectorIndex index,
             Guid id,
@@ -1079,6 +1446,23 @@ namespace Test.Shared
         {
             Directory.CreateDirectory(_VectorArtifactDirectory);
             return Path.Combine(_VectorArtifactDirectory, filename);
+        }
+
+        private static void RewriteHnswStateAsLegacyArtifact(string indexPath)
+        {
+            JsonObject root = JsonNode.Parse(File.ReadAllText(indexPath))!.AsObject();
+            root.Remove(nameof(HnswIndexState.FormatVersion));
+            root.Remove(nameof(HnswIndexState.HnswLiteVersion));
+
+            if (root[nameof(HnswIndexState.Node)] is JsonArray nodeStates)
+            {
+                foreach (JsonNode? nodeState in nodeStates)
+                {
+                    nodeState?.AsObject().Remove(nameof(HnswNodeState.Connections));
+                }
+            }
+
+            File.WriteAllText(indexPath, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
 
         private static void CleanupSqliteArtifacts(params string?[] paths)

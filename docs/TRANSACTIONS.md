@@ -21,6 +21,7 @@ TransactionRequest request = client.Transaction
     .CreateRequestBuilder()
     .WithMaxOperations(10)
     .WithTimeoutSeconds(30)
+    .WithIsolationLevel(TransactionIsolationLevelEnum.Default)
     .CreateNode(new Node { GUID = adaGuid, Name = "Ada" })
     .CreateNode(new Node { GUID = graceGuid, Name = "Grace" })
     .CreateEdge(new Edge
@@ -54,11 +55,45 @@ The builder supports generic `Create`, `Update`, `Delete`, `Attach`, `Detach`, a
     }
   ],
   "MaxOperations": 1000,
-  "TimeoutSeconds": 60
+  "TimeoutSeconds": 60,
+  "IsolationLevel": "Default"
 }
 ```
 
-`MaxOperations` defaults to `1000`. `TimeoutSeconds` defaults to `60`.
+`MaxOperations` defaults to `1000`. `TimeoutSeconds` defaults to `60`. `IsolationLevel` defaults to `Default`.
+For REST execution, server settings can cap these values before the core transaction executor runs:
+
+- `LiteGraph.Transactions.MaxOperations`
+- `LiteGraph.Transactions.MaxTimeoutSeconds`
+- `LITEGRAPH_TRANSACTION_MAX_OPERATIONS`
+- `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS`
+
+If a REST request contains more operations than the capped `MaxOperations`, LiteGraph returns transaction validation diagnostics rather than starting a provider transaction.
+
+## Isolation Levels
+
+Supported `IsolationLevel` values:
+
+- `Default`
+- `ReadCommitted`
+- `RepeatableRead`
+- `Serializable`
+
+`Default` uses the provider's default transaction isolation. PostgreSQL maps `ReadCommitted`, `RepeatableRead`, and `Serializable` to native PostgreSQL isolation levels. SQLite supports `Default` and `Serializable`; `ReadCommitted` and `RepeatableRead` are rejected because SQLite cannot provide those exact semantics.
+
+Use stable GUIDs in transaction payloads when clients may retry after a timeout, deadlock, or serialization conflict. LiteGraph reports retryability and provider error codes, but it does not automatically retry non-idempotent transaction requests.
+
+## Parallel Transaction Scaling
+
+LiteGraph v7 transaction execution uses isolated repository/session state for converted providers instead of sharing the caller repository's active transaction fields. This allows multiple transactions to execute through one `LiteGraphClient` instance without the legacy per-repository safety gate when the provider supports isolated transaction repositories.
+
+Provider behavior:
+
+- PostgreSQL: transaction sessions use separate pooled connections and can scale parallel writes according to PostgreSQL locks, isolation level, and pool limits.
+- SQLite: transaction sessions are isolated for correctness, but writes remain constrained by SQLite file locking. SQLite `busy_timeout` is applied so lock waits fail deterministically instead of immediately.
+- Unconverted providers: LiteGraph can fall back to serialized execution until provider transaction sessions are implemented.
+
+The response fields `IsolatedRepository` and `SerializedByGate` show which path executed a transaction.
 
 ## Operation Types
 
@@ -291,7 +326,9 @@ Attach supports `Label`, `Tag`, and `Vector`. Use create/delete for nodes and ed
 ```json
 {
   "Success": true,
+  "TransactionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   "RolledBack": false,
+  "ValidationFailure": false,
   "FailedOperationIndex": null,
   "Error": null,
   "Operations": [
@@ -307,11 +344,42 @@ Attach supports `Label`, `Tag`, and `Vector`. Use create/delete for nodes and ed
       "Error": null
     }
   ],
-  "DurationMs": 12.5
+  "OperationCount": 1,
+  "StartedUtc": "2026-06-17T19:00:00.000000Z",
+  "CompletedUtc": "2026-06-17T19:00:00.012500Z",
+  "DurationMs": 12.5,
+  "CommitDurationMs": 1.25,
+  "RollbackDurationMs": 0,
+  "Provider": "Postgresql",
+  "IsolationLevel": "Default",
+  "IsolatedRepository": true,
+  "SerializedByGate": false,
+  "RetryCount": 0,
+  "Retryable": false,
+  "ConcurrencyConflict": false,
+  "ProviderErrorCode": null
 }
 ```
 
-If any operation fails, LiteGraph rolls back the transaction and returns `Success: false`, `RolledBack: true`, `FailedOperationIndex`, and an error message. Successful operation results before the failed operation may appear in the response, but their database writes are rolled back.
+If request validation fails before LiteGraph starts a provider transaction, LiteGraph returns `Success: false`, `ValidationFailure: true`, `RolledBack: false`, `FailedOperationIndex`, and an error message. The REST API returns this diagnostic result with HTTP `400`.
+
+If any operation fails during execution, LiteGraph rolls back the transaction and returns `Success: false`, `RolledBack: true`, `ValidationFailure: false`, `FailedOperationIndex`, and an error message. The REST API returns this rollback result with HTTP `409` so callers can inspect the transaction diagnostics instead of treating it as a generic API error. Successful operation results before the failed operation may appear in the response, but their database writes are rolled back.
+
+Diagnostic fields:
+
+- `TransactionId`: LiteGraph-assigned identifier for correlating logs, request history, metrics, and client errors.
+- `OperationCount`: number of submitted operations.
+- `StartedUtc`, `CompletedUtc`, `DurationMs`: transaction execution timing.
+- `CommitDurationMs`, `RollbackDurationMs`: provider commit or rollback timing.
+- `ValidationFailure`: `true` when request validation failed before a provider transaction started.
+- `Provider`: provider repository that executed the transaction.
+- `IsolationLevel`: requested isolation level.
+- `IsolatedRepository`: `true` when execution used transaction-local repository/session state.
+- `SerializedByGate`: `true` when execution used the legacy serialized fallback.
+- `RetryCount`: number of retries attempted by LiteGraph. Automatic retries are not enabled for normal requests.
+- `Retryable`: `true` when the failure is safe for the caller to consider retrying after applying idempotency safeguards.
+- `ConcurrencyConflict`: `true` for provider conflicts such as PostgreSQL serialization failures, deadlocks, or lock-not-available errors.
+- `ProviderErrorCode`: provider-specific error code, such as PostgreSQL `40001`, `40P01`, or `55P03`.
 
 ## MCP Usage
 
@@ -351,7 +419,8 @@ Or pass `operations`, `maxOperations`, and `timeoutSeconds` directly:
     }
   ],
   "maxOperations": 10,
-  "timeoutSeconds": 30
+  "timeoutSeconds": 30,
+  "isolationLevel": "Default"
 }
 ```
 
@@ -362,4 +431,4 @@ The MCP tool forwards to the REST transaction endpoint so the configured MCP cre
 - One transaction executes within one tenant and one graph.
 - Nested transactions are not a public API.
 - Vector index rollback is not guaranteed; LiteGraph marks uncertain index state dirty and rebuild remains the repair path.
-- SQLite and PostgreSQL graph transactions are implemented. MySQL and SQL Server transaction behavior remains provider work.
+- SQLite and PostgreSQL graph transactions are implemented. PostgreSQL is the primary provider for parallel write scaling. SQLite remains correct under concurrent transaction requests, but file-level locking limits write throughput. MySQL and SQL Server transaction behavior remains provider work.

@@ -116,7 +116,7 @@ namespace LiteGraph.Client.Implementations
                         try
                         {
                             SetQueryPlanActivityTags(executeActivity, plan);
-                            result = await _Executor.Execute(tenantGuid, graphGuid, request, plan, linkedCts.Token).ConfigureAwait(false);
+                            result = await ExecutePlanned(tenantGuid, graphGuid, request, plan, linkedCts.Token).ConfigureAwait(false);
                             phase.Stop();
                             if (profile != null) profile.ExecuteTimeMs = phase.Elapsed.TotalMilliseconds;
                             SetQueryResultActivityTags(executeActivity, result);
@@ -167,6 +167,28 @@ namespace LiteGraph.Client.Implementations
         #endregion
 
         #region Private-Methods
+
+        private async Task<GraphQueryResult> ExecutePlanned(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryPlan plan, CancellationToken token)
+        {
+            if (!plan.Mutates)
+                return await _Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
+
+            GraphRepositoryBase transactionRepo = _Repo.CreateIsolatedTransactionRepository();
+            if (transactionRepo == null) throw new InvalidOperationException("Transaction repository factory returned null.");
+
+            if (ReferenceEquals(transactionRepo, _Repo))
+                return await _Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
+
+            try
+            {
+                QueryExecutionEngine transactionEngine = new QueryExecutionEngine(_Client, transactionRepo);
+                return await transactionEngine._Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
+            }
+            finally
+            {
+                await transactionRepo.DisposeAsync().ConfigureAwait(false);
+            }
+        }
 
         internal async Task<GraphQueryResult> ExecuteMatchNode(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)
         {

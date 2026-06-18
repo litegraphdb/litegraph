@@ -21,7 +21,7 @@ Current release: v6.0.2.
 - Built-in retry mechanism and error handling
 - Comprehensive logging system
 - Access key authentication support
-- Native graph query, graph transaction, authorization, and request history models for LiteGraph v6
+- Native graph query, graph transaction, authorization, and request history models for LiteGraph v7
 
 ## Requirements
 
@@ -112,6 +112,28 @@ sdk.searchNodes(searchRequest).then((response) => {
 })
 ```
 
+## Graph Transactions
+
+Graph transactions execute create, update, delete, attach, detach, and upsert operations atomically inside one tenant and graph. The transaction API preserves diagnostic result bodies returned by LiteGraph with HTTP `400` validation failures or HTTP `409` rollback/conflict failures.
+
+```js
+const adaGuid = crypto.randomUUID();
+const graceGuid = crypto.randomUUID();
+
+const result = await sdk
+  .transaction(graphGuid)
+  .withMaxOperations(10)
+  .withTimeoutSeconds(30)
+  .withIsolationLevel('Default')
+  .createNode({ GUID: adaGuid, Name: 'Ada' })
+  .createNode({ GUID: graceGuid, Name: 'Grace' })
+  .createEdge({ From: adaGuid, To: graceGuid, Name: 'Worked With' })
+  .execute();
+
+console.log(result.Success, result.TransactionId, result.DurationMs);
+```
+
+`TransactionResult` includes validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
 
 ## API Endpoints Reference
 
