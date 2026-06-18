@@ -32,7 +32,7 @@ services:
 
   litegraph:
     container_name: 'litegraph'
-    image: 'jchristn77/litegraph:v6.0.0'
+    image: 'jchristn77/litegraph:v7.0.0'
     stdin_open: true
     tty: true
     ports:
@@ -71,7 +71,7 @@ services:
 
   litegraph-mcp:
     container_name: 'litegraph-mcp'
-    image: 'jchristn77/litegraph-mcp:v6.0.0'
+    image: 'jchristn77/litegraph-mcp:v7.0.0'
     stdin_open: true
     tty: true
     ports:
@@ -99,7 +99,7 @@ services:
 
   litegraph-ui:
     container_name: 'litegraph-ui'
-    image: 'jchristn77/litegraph-ui:v6.0.0'
+    image: 'jchristn77/litegraph-ui:v7.0.0'
     stdin_open: true
     tty: true
     ports:
