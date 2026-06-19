@@ -803,6 +803,7 @@ namespace LiteGraph.Server.API.REST
                     Retryable = result.Retryable,
                     ConcurrencyConflict = result.ConcurrencyConflict,
                     ProviderErrorCode = result.ProviderErrorCode,
+                    QueueWaitDurationMs = result.QueueWaitDurationMs,
                     CommitDurationMs = result.CommitDurationMs,
                     RollbackDurationMs = result.RollbackDurationMs
                 }, false);
@@ -830,6 +831,7 @@ namespace LiteGraph.Server.API.REST
             public bool Retryable { get; set; } = false;
             public bool ConcurrencyConflict { get; set; } = false;
             public string ProviderErrorCode { get; set; } = null;
+            public double QueueWaitDurationMs { get; set; } = 0;
             public double CommitDurationMs { get; set; } = 0;
             public double RollbackDurationMs { get; set; } = 0;
         }
@@ -2143,6 +2145,7 @@ namespace LiteGraph.Server.API.REST
             DateTime start = DateTime.UtcNow;
             using (Activity activity = StartInternalActivity("litegraph.graph.transaction", req))
             using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
+            using (IDisposable activeTransaction = _Observability.BeginGraphTransaction())
             {
                 int operationCount = transaction?.Operations?.Count ?? 0;
                 activity?.SetTag("litegraph.transaction.operation_count", operationCount);
@@ -2161,7 +2164,7 @@ namespace LiteGraph.Server.API.REST
                     return;
                 }
 
-                _Observability.RecordGraphTransaction(result.Success, result.RolledBack, result.ValidationFailure, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
+                _Observability.RecordGraphTransaction(result, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
                 activity?.SetTag("litegraph.transaction.id", result.TransactionId);
                 activity?.SetTag("litegraph.transaction.state", result.State);
                 activity?.SetTag("litegraph.transaction.success", result.Success);
@@ -2174,6 +2177,9 @@ namespace LiteGraph.Server.API.REST
                 activity?.SetTag("litegraph.transaction.retryable", result.Retryable);
                 activity?.SetTag("litegraph.transaction.concurrency_conflict", result.ConcurrencyConflict);
                 activity?.SetTag("litegraph.transaction.validation_failure", result.ValidationFailure);
+                activity?.SetTag("litegraph.transaction.queue_wait_duration_ms", result.QueueWaitDurationMs);
+                activity?.SetTag("litegraph.transaction.commit_duration_ms", result.CommitDurationMs);
+                activity?.SetTag("litegraph.transaction.rollback_duration_ms", result.RollbackDurationMs);
                 if (!String.IsNullOrEmpty(result.ProviderErrorCode)) activity?.SetTag("litegraph.transaction.provider_error_code", result.ProviderErrorCode);
                 if (result.FailedOperationIndex != null) activity?.SetTag("litegraph.transaction.failed_operation_index", result.FailedOperationIndex.Value);
 

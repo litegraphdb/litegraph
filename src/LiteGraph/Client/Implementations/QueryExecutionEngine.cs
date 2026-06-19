@@ -26,6 +26,7 @@ namespace LiteGraph.Client.Implementations
         private readonly GraphRepositoryBase _Repo;
         private readonly Planner _Planner;
         private readonly Executor _Executor;
+        private readonly bool _AllowActiveTransaction;
 
         #endregion
 
@@ -36,12 +37,14 @@ namespace LiteGraph.Client.Implementations
         /// </summary>
         /// <param name="client">LiteGraph client.</param>
         /// <param name="repo">Graph repository.</param>
-        internal QueryExecutionEngine(LiteGraphClient client, GraphRepositoryBase repo)
+        /// <param name="allowActiveTransaction">Allow mutation execution to participate in an already-active explicit transaction context.</param>
+        internal QueryExecutionEngine(LiteGraphClient client, GraphRepositoryBase repo, bool allowActiveTransaction = false)
         {
             _Client = client ?? throw new ArgumentNullException(nameof(client));
             _Repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _Planner = new Planner();
             _Executor = new Executor(this);
+            _AllowActiveTransaction = allowActiveTransaction;
         }
 
         #endregion
@@ -173,20 +176,46 @@ namespace LiteGraph.Client.Implementations
             if (!plan.Mutates)
                 return await _Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
 
-            GraphRepositoryBase transactionRepo = _Repo.CreateIsolatedTransactionRepository();
-            if (transactionRepo == null) throw new InvalidOperationException("Transaction repository factory returned null.");
+            TransactionExecutionOptions options = new TransactionExecutionOptions
+            {
+                TenantGUID = tenantGuid,
+                GraphGUID = graphGuid,
+                IsolationLevel = TransactionIsolationLevelEnum.Default,
+                OperationCount = 1,
+                Source = "LiteGraphClient.Query.Execute"
+            };
 
-            if (ReferenceEquals(transactionRepo, _Repo))
+            IRepositorySession session = _Repo.CreateRepositorySession(options);
+            if (session == null) throw new InvalidOperationException("Transaction repository session factory returned null.");
+
+            if (!session.IsIsolated)
+            {
+                await session.DisposeAsync().ConfigureAwait(false);
                 return await _Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
-
-            try
-            {
-                QueryExecutionEngine transactionEngine = new QueryExecutionEngine(_Client, transactionRepo);
-                return await transactionEngine._Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
             }
-            finally
+
+            await using (GraphTransactionContext context = new GraphTransactionContext(options, session))
             {
-                await transactionRepo.DisposeAsync().ConfigureAwait(false);
+                Stopwatch transactionStopwatch = Stopwatch.StartNew();
+                try
+                {
+                    await context.BeginAsync(token).ConfigureAwait(false);
+                    QueryExecutionEngine transactionEngine = new QueryExecutionEngine(_Client, context.Repository, true);
+                    GraphQueryResult result = await transactionEngine._Executor.Execute(tenantGuid, graphGuid, request, plan, token).ConfigureAwait(false);
+                    await context.CommitAsync(token).ConfigureAwait(false);
+                    return result;
+                }
+                catch
+                {
+                    if (context.Repository.GraphTransactionActive)
+                        await context.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+                    throw;
+                }
+                finally
+                {
+                    transactionStopwatch.Stop();
+                    LiteGraphTelemetry.RecordTransactionTiming(transactionStopwatch.Elapsed.TotalMilliseconds);
+                }
             }
         }
 
@@ -1148,7 +1177,12 @@ namespace LiteGraph.Client.Implementations
         private async Task<GraphQueryResult> ExecuteMutation(Func<Task<GraphQueryResult>> action, Guid tenantGuid, Guid graphGuid, CancellationToken token)
         {
             if (_Repo.GraphTransactionActive)
-                throw new InvalidOperationException("A graph transaction is already active on this repository.");
+            {
+                if (!_AllowActiveTransaction)
+                    throw new InvalidOperationException("A graph transaction is already active on this repository.");
+
+                return await action().ConfigureAwait(false);
+            }
 
             Stopwatch transactionStopwatch = Stopwatch.StartNew();
             bool startedTransaction = false;

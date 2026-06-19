@@ -18,7 +18,7 @@
     /// The graph repository base class is only responsible for primitives.
     /// Validation and cross-cutting functions should be performed in LiteGraphClient rather than in the graph repository base.
     /// </summary>
-    public abstract class GraphRepositoryBase : IDisposable, IAsyncDisposable
+    public abstract class GraphRepositoryBase : IDisposable, IAsyncDisposable, IRepositorySessionFactory
     {
         #region Public-Members
 
@@ -216,6 +216,23 @@
         public virtual GraphRepositoryBase CreateIsolatedTransactionRepository()
         {
             return this;
+        }
+
+        /// <summary>
+        /// Create a repository session that owns transaction state for a single transaction execution.
+        /// Providers that do not create an isolated repository return a session requiring serialized execution.
+        /// </summary>
+        /// <param name="options">Transaction execution options.</param>
+        /// <returns>Repository session.</returns>
+        public virtual IRepositorySession CreateRepositorySession(TransactionExecutionOptions options)
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            options.Validate();
+
+            GraphRepositoryBase repo = CreateIsolatedTransactionRepository();
+            if (repo == null) throw new InvalidOperationException("Transaction repository factory returned null.");
+
+            return new RepositoryTransactionSession(repo, !ReferenceEquals(repo, this));
         }
 
         /// <summary>

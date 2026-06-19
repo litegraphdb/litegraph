@@ -2483,6 +2483,7 @@ namespace Test.Automated
             AssertEqual(3, success.OperationCount, "Transaction success operation count");
             AssertEqual(3, success.Operations.Count, "Transaction success operation results");
             AssertTrue(success.DurationMs >= 0, "Transaction success duration");
+            AssertTrue(success.QueueWaitDurationMs >= 0, "Transaction success queue wait duration");
             AssertFalse(string.IsNullOrEmpty(success.IsolationLevel), "Transaction success isolation level");
 
             Node? committedNode = await sdk.Node.ReadByGuid(_TenantGuid, _GraphGuid, fromNodeGuid).ConfigureAwait(false);
@@ -2518,6 +2519,7 @@ namespace Test.Automated
             AssertEqual(2, failure.OperationCount, "Transaction failure operation count");
             AssertEqual(1, failure.FailedOperationIndex!.Value, "Transaction failure index");
             AssertFalse(string.IsNullOrEmpty(failure.Error), "Transaction failure error");
+            AssertTrue(failure.QueueWaitDurationMs >= 0, "Transaction failure queue wait duration");
             AssertTrue(failure.RollbackDurationMs >= 0, "Transaction rollback duration");
 
             Node? rolledBackNode = await sdk.Node.ReadByGuid(_TenantGuid, _GraphGuid, rolledBackNodeGuid).ConfigureAwait(false);

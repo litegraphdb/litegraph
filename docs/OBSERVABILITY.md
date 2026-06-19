@@ -95,6 +95,7 @@ The dashboard expects a Prometheus datasource and includes panels for:
 
 - HTTP request rate, status mix, and average latency
 - native graph query and graph transaction rates, outcomes, and average latency
+- active graph transactions, serialized fallback queue wait, conflict rate, and retry rate
 - vector search rates and result counts
 - repository operation rates by provider, operation, and success
 - latest entity count gauges
@@ -255,10 +256,19 @@ Vector search metrics are recorded for successful native graph query `CALL liteg
 ### Graph Transactions
 
 ```text
-litegraph_graph_transactions_total{success="true",rolled_back="false",validation_failure="false"} 3
-litegraph_graph_transaction_operations_total{success="true",rolled_back="false",validation_failure="false"} 9
-litegraph_graph_transaction_duration_ms_sum{success="true",rolled_back="false",validation_failure="false"} 18.4
-litegraph_graph_transaction_duration_ms_count{success="true",rolled_back="false",validation_failure="false"} 3
+litegraph_graph_transactions_total{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 3
+litegraph_graph_transaction_operations_total{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 9
+litegraph_graph_transaction_duration_ms_sum{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 18.4
+litegraph_graph_transaction_duration_ms_count{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 3
+litegraph_graph_transaction_queue_wait_duration_ms_sum{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 0
+litegraph_graph_transaction_queue_wait_duration_ms_count{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 3
+litegraph_graph_transaction_commit_duration_ms_sum{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 4.2
+litegraph_graph_transaction_commit_duration_ms_count{success="true",rolled_back="false",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="Committed",serialized_by_gate="false",retryable="false",concurrency_conflict="false"} 3
+litegraph_graph_transaction_rollback_duration_ms_sum{success="false",rolled_back="true",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="RolledBack",serialized_by_gate="false",retryable="true",concurrency_conflict="true"} 2.8
+litegraph_graph_transaction_rollback_duration_ms_count{success="false",rolled_back="true",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="RolledBack",serialized_by_gate="false",retryable="true",concurrency_conflict="true"} 1
+litegraph_graph_transaction_conflicts_total{success="false",rolled_back="true",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="RolledBack",serialized_by_gate="false",retryable="true",concurrency_conflict="true"} 1
+litegraph_graph_transaction_retries_total{success="false",rolled_back="true",validation_failure="false",provider="Postgresql",isolation_level="Serializable",state="RolledBack",serialized_by_gate="false",retryable="true",concurrency_conflict="true"} 0
+litegraph_graph_transaction_active 0
 ```
 
 Labels:
@@ -266,6 +276,16 @@ Labels:
 - `success`
 - `rolled_back`
 - `validation_failure`
+- `provider`
+- `isolation_level`
+- `state`
+- `serialized_by_gate`
+- `retryable`
+- `concurrency_conflict`
+
+`litegraph_graph_transaction_queue_wait_duration_ms` measures time spent waiting on the legacy serialized fallback gate. It should remain near zero for PostgreSQL and SQLite v7 transaction-local sessions. A non-zero value usually means an unconverted provider is using the compatibility path.
+
+`litegraph_graph_transaction_commit_duration_ms` and `litegraph_graph_transaction_rollback_duration_ms` isolate provider commit/rollback cost from operation execution time. `litegraph_graph_transaction_conflicts_total` increments for transactions classified as provider concurrency conflicts. `litegraph_graph_transaction_retries_total` reports retries recorded by LiteGraph; automatic retries are not enabled for normal graph transaction requests. `litegraph_graph_transaction_active` is a point-in-time gauge of REST graph transactions currently executing.
 
 ### Authentication And Authorization
 
@@ -352,8 +372,11 @@ Core activities:
 - vector search activity: `litegraph.vector.search`
 - SQLite HNSW vector index search activity: `litegraph.vector.index.search`
 - repository operation activity: `litegraph.repository.operation`
+- graph transaction activity: `litegraph.transaction`
 
-REST request activities parse incoming W3C `traceparent` and `tracestate` headers. When a valid parent context is supplied, LiteGraph starts its request activity under that trace. Server query activities include the required scope, success state, mutation state, row count, query kind, and vector-search tags where applicable. Core query activities add parse, plan, execute, planner seed, estimated cost, row count, and object count tags without recording query text. Vector search activities include domain, search type, dimensions, filter presence, top-k, and result count. Vector index activities include index type, dirty state, used/skip reason, top-k, and result count. Transaction activities include operation count, lifecycle state, success state, validation-failure state, rollback state, and failed operation index where applicable.
+REST request activities parse incoming W3C `traceparent` and `tracestate` headers. When a valid parent context is supplied, LiteGraph starts its request activity under that trace. Server query activities include the required scope, success state, mutation state, row count, query kind, and vector-search tags where applicable. Core query activities add parse, plan, execute, planner seed, estimated cost, row count, and object count tags without recording query text. Vector search activities include domain, search type, dimensions, filter presence, top-k, and result count. Vector index activities include index type, dirty state, used/skip reason, top-k, and result count. Transaction activities include transaction ID, provider, isolation level, operation count, lifecycle state, success state, validation-failure state, rollback state, serialized fallback state, queue wait, commit/rollback duration, retryability, concurrency-conflict classification, provider error code, and failed operation index where applicable.
+
+Graph transaction activities emit lifecycle events named `litegraph.transaction.validated`, `litegraph.transaction.started`, `litegraph.transaction.committed`, and `litegraph.transaction.rolled_back` where those lifecycle steps occur.
 
 Repository operation activities include provider, operation, transactional state, statement count, row count, success, and duration tags. They do not include SQL text.
 
@@ -514,7 +537,7 @@ Request history records include:
 - `RequestId`
 - `CorrelationId`
 - `TraceId`
-- `TransactionDiagnosticsJson` for graph transaction responses, including transaction ID, lifecycle state, isolation, retry/conflict state, validation state, rollback state, and provider error code.
+- `TransactionDiagnosticsJson` for graph transaction responses, including transaction ID, lifecycle state, isolation, retry/conflict state, validation state, rollback state, queue wait, commit/rollback duration, and provider error code.
 
 Request history search accepts `hasTransactionDiagnostics=true|false` to include or exclude captured graph transaction rows, and `transactionId` to find entries by full or partial transaction ID.
 

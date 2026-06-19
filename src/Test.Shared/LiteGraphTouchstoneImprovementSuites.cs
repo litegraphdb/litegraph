@@ -228,6 +228,41 @@
                         executeAsync: TestGraphTransactionAuthorizationBoundary),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Session.ContextLifecycle",
+                        displayName: "Explicit graph transaction contexts enforce lifecycle and disposal",
+                        executeAsync: TestGraphTransactionSessionContextLifecycle),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Correctness.DeterministicHistory",
+                        displayName: "Deterministic transaction history matches the committed-state oracle",
+                        executeAsync: TestGraphTransactionDeterministicHistoryCorrectness),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Correctness.ConcurrentReplay",
+                        displayName: "Concurrent deterministic transaction replay preserves graph invariants",
+                        executeAsync: TestGraphTransactionConcurrentReplayCorrectness),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Correctness.SoakInvariants",
+                        displayName: "Bounded transaction soak validates invariants after every round",
+                        executeAsync: TestGraphTransactionSoakInvariantCorrectness),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Correctness.RandomizedHistory",
+                        displayName: "Seeded randomized transaction history replays against the committed-state oracle",
+                        executeAsync: TestGraphTransactionRandomizedHistoryCorrectness),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Correctness.FaultInjection",
+                        displayName: "Injected transaction faults roll back and report coherent diagnostics",
+                        executeAsync: TestGraphTransactionFaultInjectionCorrectness),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Correctness.ApiSurfaceCoherency",
+                        displayName: "Direct transaction and native query mutation surfaces produce coherent graph state",
+                        executeAsync: TestGraphTransactionApiSurfaceCoherency),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Credentials.Scoped.Persistence",
                         displayName: "Credential scopes and graph allow-lists persist",
                         executeAsync: TestScopedCredentialPersistence),
@@ -11053,6 +11088,521 @@
             }
         }
 
+        private static async Task TestGraphTransactionSessionContextLifecycle(CancellationToken cancellationToken)
+        {
+            ParallelTransactionState state = new ParallelTransactionState();
+            using (ParallelTransactionRepository repo = new ParallelTransactionRepository(state, TimeSpan.FromMilliseconds(1), false))
+            {
+                TransactionExecutionOptions options = new TransactionExecutionOptions
+                {
+                    TenantGUID = Guid.NewGuid(),
+                    GraphGUID = Guid.NewGuid(),
+                    IsolationLevel = TransactionIsolationLevelEnum.Serializable,
+                    OperationCount = 1,
+                    Source = "session-lifecycle-test"
+                };
+
+                IRepositorySession session = repo.CreateRepositorySession(options);
+                await using (GraphTransactionContext context = new GraphTransactionContext(options, session))
+                {
+                    AssertTrue(context.IsolatedRepository, "Context uses isolated repository session");
+                    AssertFalse(context.SerializedByGate, "Context does not require serialized gate");
+                    AssertEqual(TransactionStateEnum.Created, context.State, "Context initial state");
+
+                    await context.BeginAsync(cancellationToken).ConfigureAwait(false);
+                    AssertEqual(TransactionStateEnum.Active, context.State, "Context active state");
+                    AssertTrue(context.Repository.GraphTransactionActive, "Session repository transaction active");
+
+                    await context.CommitAsync(cancellationToken).ConfigureAwait(false);
+                    AssertEqual(TransactionStateEnum.Committed, context.State, "Context committed state");
+                    AssertTrue(context.CommitDurationMs >= 0, "Context commit timing");
+
+                    bool secondCommitRejected = false;
+                    try
+                    {
+                        await context.CommitAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        secondCommitRejected = true;
+                    }
+
+                    AssertTrue(secondCommitRejected, "Context rejects double commit");
+                }
+
+                AssertEqual(1, state.SessionFactoryCount, "Session factory called once");
+                AssertEqual(1, state.BeginCount, "Session transaction began once");
+                AssertEqual(1, state.CommitCount, "Session transaction committed once");
+                AssertEqual(0, state.RollbackCount, "Session transaction did not roll back");
+                AssertEqual(1, state.DisposeCount, "Isolated session repository disposed once");
+            }
+        }
+
+        private static async Task TestGraphTransactionDeterministicHistoryCorrectness(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-correctness-history.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename })))
+                {
+                    client.InitializeRepository();
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Correctness Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Correctness Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    TransactionCorrectnessOracle oracle = new TransactionCorrectnessOracle();
+                    Node anchorA = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Anchor A" }, cancellationToken).ConfigureAwait(false);
+                    Node anchorB = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Anchor B" }, cancellationToken).ConfigureAwait(false);
+                    oracle.Nodes.Add(anchorA.GUID);
+                    oracle.Nodes.Add(anchorB.GUID);
+
+                    for (int i = 0; i < 12; i++)
+                    {
+                        TransactionCorrectnessSpec spec = CreateTransactionCorrectnessSpec(i, anchorA.GUID, anchorB.GUID);
+                        bool expectRollback = i % 4 == 3;
+                        TransactionResult result = await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            CreateCorrectnessTransactionRequest(spec, expectRollback, anchorA.GUID),
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (expectRollback)
+                        {
+                            AssertFalse(result.Success, "Deterministic history rollback transaction " + i + " failed as expected");
+                            AssertTrue(result.RolledBack, "Deterministic history rollback transaction " + i + " rolled back");
+                            oracle.Absent.AddRange(spec.AllObjectAbsences());
+                        }
+                        else
+                        {
+                            AssertTrue(result.Success, "Deterministic history transaction " + i + " committed");
+                            AssertFalse(result.SerializedByGate, "Deterministic history transaction " + i + " did not use legacy gate");
+                            oracle.Apply(spec);
+                        }
+
+                        await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentReplayCorrectness(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-correctness-concurrent.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename })))
+                {
+                    client.InitializeRepository();
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Concurrent Replay Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Concurrent Replay Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    TransactionCorrectnessOracle oracle = new TransactionCorrectnessOracle();
+                    Node anchorA = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Replay Anchor A" }, cancellationToken).ConfigureAwait(false);
+                    Node anchorB = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Replay Anchor B" }, cancellationToken).ConfigureAwait(false);
+                    oracle.Nodes.Add(anchorA.GUID);
+                    oracle.Nodes.Add(anchorB.GUID);
+
+                    List<TransactionCorrectnessSpec> specs = Enumerable.Range(0, 16)
+                        .Select(i => CreateTransactionCorrectnessSpec(100 + i, anchorA.GUID, anchorB.GUID))
+                        .ToList();
+
+                    Task<TransactionResult>[] tasks = specs.Select((spec, index) => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        CreateCorrectnessTransactionRequest(spec, index % 5 == 4, anchorA.GUID),
+                        cancellationToken)).ToArray();
+
+                    TransactionResult[] results = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    for (int i = 0; i < results.Length; i++)
+                    {
+                        bool expectedRollback = i % 5 == 4;
+                        if (expectedRollback)
+                        {
+                            AssertFalse(results[i].Success, "Concurrent replay rollback transaction " + i + " failed as expected");
+                            AssertTrue(results[i].RolledBack, "Concurrent replay rollback transaction " + i + " rolled back");
+                            oracle.Absent.AddRange(specs[i].AllObjectAbsences());
+                        }
+                        else
+                        {
+                            AssertTrue(results[i].Success, "Concurrent replay transaction " + i + " committed");
+                            AssertFalse(results[i].SerializedByGate, "Concurrent replay transaction " + i + " did not use legacy gate");
+                            oracle.Apply(specs[i]);
+                        }
+                    }
+
+                    await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionSoakInvariantCorrectness(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-correctness-soak.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename })))
+                {
+                    client.InitializeRepository();
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Soak Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Soak Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    TransactionCorrectnessOracle oracle = new TransactionCorrectnessOracle();
+                    Node anchorA = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Soak Anchor A" }, cancellationToken).ConfigureAwait(false);
+                    Node anchorB = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Soak Anchor B" }, cancellationToken).ConfigureAwait(false);
+                    oracle.Nodes.Add(anchorA.GUID);
+                    oracle.Nodes.Add(anchorB.GUID);
+
+                    for (int round = 0; round < 20; round++)
+                    {
+                        TransactionCorrectnessSpec spec = CreateTransactionCorrectnessSpec(200 + round, anchorA.GUID, anchorB.GUID);
+                        TransactionResult committed = await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            CreateCorrectnessTransactionRequest(spec, false, anchorA.GUID),
+                            cancellationToken).ConfigureAwait(false);
+                        AssertTrue(committed.Success, "Soak transaction " + round + " committed");
+                        oracle.Apply(spec);
+
+                        if (round % 4 == 3)
+                        {
+                            TransactionCorrectnessSpec rollbackSpec = CreateTransactionCorrectnessSpec(300 + round, anchorA.GUID, anchorB.GUID);
+                            TransactionResult rolledBack = await client.Transaction.Execute(
+                                tenant.GUID,
+                                graph.GUID,
+                                CreateCorrectnessTransactionRequest(rollbackSpec, true, anchorA.GUID),
+                                cancellationToken).ConfigureAwait(false);
+                            AssertFalse(rolledBack.Success, "Soak rollback transaction " + round + " failed as expected");
+                            oracle.Absent.AddRange(rollbackSpec.AllObjectAbsences());
+                        }
+
+                        if (round % 5 == 4 && oracle.Vectors.Count > 0)
+                        {
+                            Guid vectorGuid = oracle.Vectors.First();
+                            TransactionResult deleted = await client.Transaction.Execute(
+                                tenant.GUID,
+                                graph.GUID,
+                                new TransactionRequest
+                                {
+                                    Operations = new List<TransactionOperation>
+                                    {
+                                        new TransactionOperation
+                                        {
+                                            OperationType = TransactionOperationTypeEnum.Delete,
+                                            ObjectType = TransactionObjectTypeEnum.Vector,
+                                            GUID = vectorGuid
+                                        }
+                                    }
+                                },
+                                cancellationToken).ConfigureAwait(false);
+                            AssertTrue(deleted.Success, "Soak vector delete transaction " + round + " committed");
+                            oracle.Vectors.Remove(vectorGuid);
+                            oracle.Absent.Add(new TransactionOracleAbsence(TransactionObjectTypeEnum.Vector, vectorGuid));
+                        }
+
+                        await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionRandomizedHistoryCorrectness(CancellationToken cancellationToken)
+        {
+            const int seed = 7001;
+            string filename = "test-improvements-transaction-correctness-randomized.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename })))
+                {
+                    client.InitializeRepository();
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Randomized Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Randomized Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    TransactionCorrectnessOracle oracle = new TransactionCorrectnessOracle();
+                    Node anchorA = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Random Anchor A" }, cancellationToken).ConfigureAwait(false);
+                    Node anchorB = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Random Anchor B" }, cancellationToken).ConfigureAwait(false);
+                    oracle.Nodes.Add(anchorA.GUID);
+                    oracle.Nodes.Add(anchorB.GUID);
+
+                    Random random = new Random(seed);
+                    for (int round = 0; round < 48; round++)
+                    {
+                        TransactionCorrectnessSpec spec = CreateTransactionCorrectnessSpec(400 + round, anchorA.GUID, anchorB.GUID);
+                        switch (random.Next(0, 4))
+                        {
+                            case 0:
+                                spec.EdgeFrom = anchorA.GUID;
+                                spec.EdgeTo = spec.NodeA;
+                                break;
+                            case 1:
+                                spec.EdgeFrom = spec.NodeA;
+                                spec.EdgeTo = spec.NodeB;
+                                break;
+                            case 2:
+                                spec.EdgeFrom = anchorB.GUID;
+                                spec.EdgeTo = spec.NodeB;
+                                break;
+                            default:
+                                spec.EdgeFrom = spec.NodeB;
+                                spec.EdgeTo = anchorA.GUID;
+                                break;
+                        }
+
+                        bool expectRollback = random.Next(0, 7) == 0;
+                        TransactionResult result = await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            CreateCorrectnessTransactionRequest(spec, expectRollback, anchorA.GUID),
+                            cancellationToken).ConfigureAwait(false);
+
+                        string context = "seed " + seed + " round " + round;
+                        if (expectRollback)
+                        {
+                            AssertFalse(result.Success, "Randomized history rollback failed as expected for " + context);
+                            AssertTrue(result.RolledBack, "Randomized history rollback reported for " + context);
+                            oracle.Absent.AddRange(spec.AllObjectAbsences());
+                        }
+                        else
+                        {
+                            AssertTrue(result.Success, "Randomized history committed for " + context);
+                            AssertFalse(result.SerializedByGate, "Randomized history avoided legacy gate for " + context);
+                            oracle.Apply(spec);
+                        }
+
+                        if (round % 6 == 5 && oracle.Vectors.Count > 0 && random.Next(0, 2) == 0)
+                        {
+                            Guid vectorGuid = oracle.Vectors.ElementAt(random.Next(0, oracle.Vectors.Count));
+                            TransactionResult deleteResult = await client.Transaction.Execute(
+                                tenant.GUID,
+                                graph.GUID,
+                                new TransactionRequest
+                                {
+                                    Operations = new List<TransactionOperation>
+                                    {
+                                        new TransactionOperation
+                                        {
+                                            OperationType = TransactionOperationTypeEnum.Delete,
+                                            ObjectType = TransactionObjectTypeEnum.Vector,
+                                            GUID = vectorGuid
+                                        }
+                                    }
+                                },
+                                cancellationToken).ConfigureAwait(false);
+
+                            AssertTrue(deleteResult.Success, "Randomized vector delete committed for " + context);
+                            oracle.Vectors.Remove(vectorGuid);
+                            oracle.Absent.Add(new TransactionOracleAbsence(TransactionObjectTypeEnum.Vector, vectorGuid));
+                        }
+
+                        if (round % 4 == 3)
+                            await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionFaultInjectionCorrectness(CancellationToken cancellationToken)
+        {
+            Guid tenantGuid = Guid.NewGuid();
+            Guid graphGuid = Guid.NewGuid();
+
+            FaultInjectionState validationState = new FaultInjectionState();
+            using (LiteGraphClient client = new LiteGraphClient(new FaultInjectionRepository(validationState, false)))
+            {
+                TransactionResult validationFailure = await client.Transaction.Execute(
+                    tenantGuid,
+                    graphGuid,
+                    new TransactionRequest
+                    {
+                        Operations = new List<TransactionOperation>
+                        {
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Delete,
+                                ObjectType = TransactionObjectTypeEnum.Node
+                            }
+                        }
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertFalse(validationFailure.Success, "Validation fault fails");
+                AssertTrue(validationFailure.ValidationFailure, "Validation fault classified before begin");
+                AssertFalse(validationFailure.RolledBack, "Validation fault does not roll back");
+                AssertEqual(0, validationState.SessionFactoryCount, "Validation fault does not create a session");
+                AssertEqual(0, validationState.BeginCount, "Validation fault does not begin provider transaction");
+            }
+
+            await AssertFaultInjectedTransaction(
+                new FaultInjectionState { ThrowOnBegin = true },
+                true,
+                false,
+                "Faulted",
+                "Begin fault",
+                cancellationToken).ConfigureAwait(false);
+
+            await AssertFaultInjectedTransaction(
+                new FaultInjectionState { ThrowOnOperation = true },
+                true,
+                true,
+                "RolledBack",
+                "Operation fault",
+                cancellationToken).ConfigureAwait(false);
+
+            await AssertFaultInjectedTransaction(
+                new FaultInjectionState { ThrowOnCommit = true },
+                true,
+                true,
+                "RolledBack",
+                "Commit fault",
+                cancellationToken).ConfigureAwait(false);
+
+            await AssertFaultInjectedTransaction(
+                new FaultInjectionState { ThrowOnOperation = true, ThrowOnRollback = true },
+                true,
+                true,
+                "Faulted",
+                "Rollback fault",
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestGraphTransactionApiSurfaceCoherency(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-correctness-surfaces.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename })))
+                {
+                    client.InitializeRepository();
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Surface Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Surface Graph" }, cancellationToken).ConfigureAwait(false);
+                    TransactionCorrectnessOracle oracle = new TransactionCorrectnessOracle();
+
+                    Guid transactionNodeGuid = DeterministicGuid("surface-transaction-node");
+                    TransactionResult transactionResult = await client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        new TransactionRequest
+                        {
+                            Operations = new List<TransactionOperation>
+                            {
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Create,
+                                    ObjectType = TransactionObjectTypeEnum.Node,
+                                    Payload = new Node { GUID = transactionNodeGuid, Name = "Surface Transaction Node" }
+                                }
+                            }
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(transactionResult.Success, "Direct transaction surface commits");
+                    oracle.Nodes.Add(transactionNodeGuid);
+
+                    GraphQueryResult queryResult = await client.Query.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        new GraphQueryRequest
+                        {
+                            Query = "CREATE (n:Surface { name: $name }) RETURN n",
+                            Parameters = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                { "name", "Surface Query Node" }
+                            }
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(queryResult.Mutated, "Native query surface reports mutation");
+                    AssertEqual(1, queryResult.Nodes.Count, "Native query surface returns created node");
+                    Guid queryNodeGuid = queryResult.Nodes[0].GUID;
+                    oracle.Nodes.Add(queryNodeGuid);
+                    List<LabelMetadata> queryLabels = await MaterializeAsync(client.Label.ReadManyNode(tenant.GUID, graph.GUID, queryNodeGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+                    foreach (LabelMetadata label in queryLabels) oracle.Labels.Add(label.GUID);
+
+                    Guid edgeGuid = DeterministicGuid("surface-edge");
+                    Guid labelGuid = DeterministicGuid("surface-label");
+                    Guid tagGuid = DeterministicGuid("surface-tag");
+                    Guid vectorGuid = DeterministicGuid("surface-vector");
+                    TransactionResult metadataResult = await client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        new TransactionRequest
+                        {
+                            Operations = new List<TransactionOperation>
+                            {
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Create,
+                                    ObjectType = TransactionObjectTypeEnum.Edge,
+                                    Payload = new Edge { GUID = edgeGuid, Name = "Surface Edge", From = transactionNodeGuid, To = queryNodeGuid, Cost = 7 }
+                                },
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Attach,
+                                    ObjectType = TransactionObjectTypeEnum.Label,
+                                    Payload = new LabelMetadata { GUID = labelGuid, NodeGUID = queryNodeGuid, Label = "surface" }
+                                },
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Attach,
+                                    ObjectType = TransactionObjectTypeEnum.Tag,
+                                    Payload = new TagMetadata { GUID = tagGuid, EdgeGUID = edgeGuid, Key = "surface", Value = "coherent" }
+                                },
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Attach,
+                                    ObjectType = TransactionObjectTypeEnum.Vector,
+                                    Payload = new VectorMetadata
+                                    {
+                                        GUID = vectorGuid,
+                                        NodeGUID = queryNodeGuid,
+                                        Model = "surface-model",
+                                        Dimensionality = 3,
+                                        Content = "surface vector",
+                                        Vectors = new List<float> { 0.4f, 0.5f, 0.6f }
+                                    }
+                                }
+                            }
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(metadataResult.Success, "Cross-surface metadata transaction commits");
+
+                    oracle.Edges[edgeGuid] = Tuple.Create(transactionNodeGuid, queryNodeGuid);
+                    oracle.Labels.Add(labelGuid);
+                    oracle.Tags.Add(tagGuid);
+                    oracle.Vectors.Add(vectorGuid);
+                    await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
         private static async Task TestGraphTransactionClientIsolatedParallelExecution(CancellationToken cancellationToken)
         {
             ParallelTransactionState state = new ParallelTransactionState();
@@ -11141,12 +11691,427 @@
             }
         }
 
+        private static TransactionCorrectnessSpec CreateTransactionCorrectnessSpec(int index, Guid anchorA, Guid anchorB)
+        {
+            Guid nodeA = DeterministicGuid("correctness-node-a-" + index);
+            Guid nodeB = DeterministicGuid("correctness-node-b-" + index);
+            Guid edge = DeterministicGuid("correctness-edge-" + index);
+            Guid label = DeterministicGuid("correctness-label-" + index);
+            Guid tag = DeterministicGuid("correctness-tag-" + index);
+            Guid vector = DeterministicGuid("correctness-vector-" + index);
+
+            return new TransactionCorrectnessSpec
+            {
+                Index = index,
+                NodeA = nodeA,
+                NodeB = nodeB,
+                Edge = edge,
+                Label = label,
+                Tag = tag,
+                Vector = vector,
+                EdgeFrom = index % 2 == 0 ? anchorA : nodeA,
+                EdgeTo = index % 2 == 0 ? nodeA : anchorB
+            };
+        }
+
+        private static TransactionRequest CreateCorrectnessTransactionRequest(TransactionCorrectnessSpec spec, bool includeRollbackFault, Guid duplicateGuid)
+        {
+            TransactionRequest request = new TransactionRequest
+            {
+                Operations = new List<TransactionOperation>
+                {
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Create,
+                        ObjectType = TransactionObjectTypeEnum.Node,
+                        Payload = new Node { GUID = spec.NodeA, Name = "Correctness Node A " + spec.Index }
+                    },
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Create,
+                        ObjectType = TransactionObjectTypeEnum.Node,
+                        Payload = new Node { GUID = spec.NodeB, Name = "Correctness Node B " + spec.Index }
+                    },
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Create,
+                        ObjectType = TransactionObjectTypeEnum.Edge,
+                        Payload = new Edge { GUID = spec.Edge, Name = "Correctness Edge " + spec.Index, From = spec.EdgeFrom, To = spec.EdgeTo, Cost = spec.Index + 1 }
+                    },
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Attach,
+                        ObjectType = TransactionObjectTypeEnum.Label,
+                        Payload = new LabelMetadata { GUID = spec.Label, NodeGUID = spec.NodeA, Label = "correctness-" + spec.Index }
+                    },
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Attach,
+                        ObjectType = TransactionObjectTypeEnum.Tag,
+                        Payload = new TagMetadata { GUID = spec.Tag, EdgeGUID = spec.Edge, Key = "round", Value = spec.Index.ToString() }
+                    },
+                    new TransactionOperation
+                    {
+                        OperationType = TransactionOperationTypeEnum.Attach,
+                        ObjectType = TransactionObjectTypeEnum.Vector,
+                        Payload = new VectorMetadata
+                        {
+                            GUID = spec.Vector,
+                            NodeGUID = spec.NodeB,
+                            Model = "correctness-model",
+                            Dimensionality = 3,
+                            Content = "correctness vector " + spec.Index,
+                            Vectors = new List<float> { 0.1f + spec.Index, 0.2f + spec.Index, 0.3f + spec.Index }
+                        }
+                    }
+                }
+            };
+
+            if (includeRollbackFault)
+            {
+                request.Operations.Add(new TransactionOperation
+                {
+                    OperationType = TransactionOperationTypeEnum.Create,
+                    ObjectType = TransactionObjectTypeEnum.Node,
+                    Payload = new Node { GUID = duplicateGuid, Name = "Duplicate rollback trigger " + spec.Index }
+                });
+            }
+
+            return request;
+        }
+
+        private static async Task AssertTransactionOracle(
+            LiteGraphClient client,
+            Guid tenantGuid,
+            Guid graphGuid,
+            TransactionCorrectnessOracle oracle,
+            CancellationToken cancellationToken)
+        {
+            List<Node> nodes = await MaterializeAsync(client.Node.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+            List<Edge> edges = await MaterializeAsync(client.Edge.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+            List<LabelMetadata> labels = await MaterializeAsync(client.Label.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+            List<TagMetadata> tags = await MaterializeAsync(client.Tag.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+            List<VectorMetadata> vectors = await MaterializeAsync(client.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            HashSet<Guid> actualNodes = new HashSet<Guid>(nodes.Select(n => n.GUID));
+            HashSet<Guid> actualEdges = new HashSet<Guid>(edges.Select(e => e.GUID));
+            HashSet<Guid> actualLabels = new HashSet<Guid>(labels.Select(l => l.GUID));
+            HashSet<Guid> actualTags = new HashSet<Guid>(tags.Select(t => t.GUID));
+            HashSet<Guid> actualVectors = new HashSet<Guid>(vectors.Select(v => v.GUID));
+
+            AssertEqual(oracle.Nodes.Count, actualNodes.Count, "Oracle node count");
+            AssertEqual(oracle.Edges.Count, actualEdges.Count, "Oracle edge count");
+            AssertEqual(oracle.Labels.Count, actualLabels.Count, "Oracle label count");
+            AssertEqual(oracle.Tags.Count, actualTags.Count, "Oracle tag count");
+            AssertEqual(oracle.Vectors.Count, actualVectors.Count, "Oracle vector count");
+
+            foreach (Guid guid in oracle.Nodes) AssertTrue(actualNodes.Contains(guid), "Oracle node exists " + guid);
+            foreach (Guid guid in oracle.Edges.Keys) AssertTrue(actualEdges.Contains(guid), "Oracle edge exists " + guid);
+            foreach (Guid guid in oracle.Labels) AssertTrue(actualLabels.Contains(guid), "Oracle label exists " + guid);
+            foreach (Guid guid in oracle.Tags) AssertTrue(actualTags.Contains(guid), "Oracle tag exists " + guid);
+            foreach (Guid guid in oracle.Vectors) AssertTrue(actualVectors.Contains(guid), "Oracle vector exists " + guid);
+
+            foreach (Edge edge in edges)
+            {
+                AssertTrue(actualNodes.Contains(edge.From), "Edge source node exists for " + edge.GUID);
+                AssertTrue(actualNodes.Contains(edge.To), "Edge target node exists for " + edge.GUID);
+            }
+
+            foreach (LabelMetadata label in labels)
+            {
+                AssertEqual(graphGuid, label.GraphGUID, "Label graph scope");
+                AssertTrue(label.NodeGUID != null || label.EdgeGUID != null || label.GraphGUID != Guid.Empty, "Label has a target");
+                if (label.NodeGUID != null) AssertTrue(actualNodes.Contains(label.NodeGUID.Value), "Label node target exists");
+                if (label.EdgeGUID != null) AssertTrue(actualEdges.Contains(label.EdgeGUID.Value), "Label edge target exists");
+            }
+
+            foreach (TagMetadata tag in tags)
+            {
+                AssertEqual(graphGuid, tag.GraphGUID, "Tag graph scope");
+                AssertTrue(tag.NodeGUID != null || tag.EdgeGUID != null || tag.GraphGUID != Guid.Empty, "Tag has a target");
+                if (tag.NodeGUID != null) AssertTrue(actualNodes.Contains(tag.NodeGUID.Value), "Tag node target exists");
+                if (tag.EdgeGUID != null) AssertTrue(actualEdges.Contains(tag.EdgeGUID.Value), "Tag edge target exists");
+            }
+
+            foreach (VectorMetadata vector in vectors)
+            {
+                AssertEqual(graphGuid, vector.GraphGUID, "Vector graph scope");
+                AssertTrue(vector.NodeGUID != null || vector.EdgeGUID != null || vector.GraphGUID != Guid.Empty, "Vector has a target");
+                if (vector.NodeGUID != null) AssertTrue(actualNodes.Contains(vector.NodeGUID.Value), "Vector node target exists");
+                if (vector.EdgeGUID != null) AssertTrue(actualEdges.Contains(vector.EdgeGUID.Value), "Vector edge target exists");
+                AssertEqual(3, vector.Dimensionality, "Vector dimensionality");
+                AssertTrue(vector.Vectors != null && vector.Vectors.Count == 3, "Vector payload persisted");
+            }
+
+            foreach (TransactionOracleAbsence absence in oracle.Absent)
+            {
+                switch (absence.ObjectType)
+                {
+                    case TransactionObjectTypeEnum.Node:
+                        AssertFalse(actualNodes.Contains(absence.GUID), "Rolled-back node absent " + absence.GUID);
+                        break;
+                    case TransactionObjectTypeEnum.Edge:
+                        AssertFalse(actualEdges.Contains(absence.GUID), "Rolled-back edge absent " + absence.GUID);
+                        break;
+                    case TransactionObjectTypeEnum.Label:
+                        AssertFalse(actualLabels.Contains(absence.GUID), "Rolled-back label absent " + absence.GUID);
+                        break;
+                    case TransactionObjectTypeEnum.Tag:
+                        AssertFalse(actualTags.Contains(absence.GUID), "Rolled-back tag absent " + absence.GUID);
+                        break;
+                    case TransactionObjectTypeEnum.Vector:
+                        AssertFalse(actualVectors.Contains(absence.GUID), "Rolled-back vector absent " + absence.GUID);
+                        break;
+                }
+            }
+        }
+
+        private static async Task AssertFaultInjectedTransaction(
+            FaultInjectionState state,
+            bool expectSession,
+            bool expectRollback,
+            string expectedState,
+            string context,
+            CancellationToken cancellationToken)
+        {
+            using (LiteGraphClient client = new LiteGraphClient(new FaultInjectionRepository(state, false)))
+            {
+                TransactionResult result = await client.Transaction.Execute(
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
+                    new TransactionRequest
+                    {
+                        Operations = new List<TransactionOperation>
+                        {
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Node,
+                                Payload = new Node { GUID = Guid.NewGuid(), Name = context + " node" }
+                            }
+                        }
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                AssertFalse(result.Success, context + " fails");
+                AssertEqual(expectedState, result.State, context + " lifecycle state");
+                AssertEqual(expectRollback, result.RolledBack, context + " rollback diagnostic");
+                AssertEqual(expectSession ? 1 : 0, state.SessionFactoryCount, context + " session count");
+                AssertEqual(expectSession ? 1 : 0, state.BeginCount, context + " begin count");
+                if (expectRollback) AssertTrue(state.RollbackCount >= 1, context + " rollback attempted");
+                if (!expectRollback) AssertEqual(0, state.RollbackCount, context + " rollback count");
+                AssertEqual(expectSession ? 1 : 0, state.DisposeCount, context + " isolated repository disposed");
+                AssertTrue(result.DurationMs >= 0, context + " duration recorded");
+                AssertTrue(result.QueueWaitDurationMs >= 0, context + " queue wait recorded");
+            }
+        }
+
+        private static Guid DeterministicGuid(string value)
+        {
+            using System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create();
+            byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
+            byte[] guidBytes = new byte[16];
+            Array.Copy(bytes, guidBytes, guidBytes.Length);
+            return new Guid(guidBytes);
+        }
+
+        private sealed class TransactionCorrectnessSpec
+        {
+            internal int Index { get; set; }
+            internal Guid NodeA { get; set; }
+            internal Guid NodeB { get; set; }
+            internal Guid Edge { get; set; }
+            internal Guid Label { get; set; }
+            internal Guid Tag { get; set; }
+            internal Guid Vector { get; set; }
+            internal Guid EdgeFrom { get; set; }
+            internal Guid EdgeTo { get; set; }
+
+            internal IEnumerable<TransactionOracleAbsence> AllObjectAbsences()
+            {
+                yield return new TransactionOracleAbsence(TransactionObjectTypeEnum.Node, NodeA);
+                yield return new TransactionOracleAbsence(TransactionObjectTypeEnum.Node, NodeB);
+                yield return new TransactionOracleAbsence(TransactionObjectTypeEnum.Edge, Edge);
+                yield return new TransactionOracleAbsence(TransactionObjectTypeEnum.Label, Label);
+                yield return new TransactionOracleAbsence(TransactionObjectTypeEnum.Tag, Tag);
+                yield return new TransactionOracleAbsence(TransactionObjectTypeEnum.Vector, Vector);
+            }
+        }
+
+        private sealed class TransactionCorrectnessOracle
+        {
+            internal HashSet<Guid> Nodes { get; } = new HashSet<Guid>();
+            internal Dictionary<Guid, Tuple<Guid, Guid>> Edges { get; } = new Dictionary<Guid, Tuple<Guid, Guid>>();
+            internal HashSet<Guid> Labels { get; } = new HashSet<Guid>();
+            internal HashSet<Guid> Tags { get; } = new HashSet<Guid>();
+            internal HashSet<Guid> Vectors { get; } = new HashSet<Guid>();
+            internal List<TransactionOracleAbsence> Absent { get; } = new List<TransactionOracleAbsence>();
+
+            internal void Apply(TransactionCorrectnessSpec spec)
+            {
+                Nodes.Add(spec.NodeA);
+                Nodes.Add(spec.NodeB);
+                Edges[spec.Edge] = Tuple.Create(spec.EdgeFrom, spec.EdgeTo);
+                Labels.Add(spec.Label);
+                Tags.Add(spec.Tag);
+                Vectors.Add(spec.Vector);
+            }
+        }
+
+        private sealed class TransactionOracleAbsence
+        {
+            internal TransactionOracleAbsence(TransactionObjectTypeEnum objectType, Guid guid)
+            {
+                ObjectType = objectType;
+                GUID = guid;
+            }
+
+            internal TransactionObjectTypeEnum ObjectType { get; }
+            internal Guid GUID { get; }
+        }
+
+        private sealed class FaultInjectionState
+        {
+            internal bool ThrowOnBegin { get; set; }
+            internal bool ThrowOnOperation { get; set; }
+            internal bool ThrowOnCommit { get; set; }
+            internal bool ThrowOnRollback { get; set; }
+            internal int SessionFactoryCount;
+            internal int BeginCount;
+            internal int CommitCount;
+            internal int RollbackCount;
+            internal int DisposeCount;
+            internal int NodeCreateCount;
+        }
+
+        private sealed class FaultInjectionRepository : GraphRepositoryBase
+        {
+            public override IAdminMethods Admin { get { return Unsupported<IAdminMethods>(); } }
+            public override ITenantMethods Tenant { get { return Unsupported<ITenantMethods>(); } }
+            public override IUserMethods User { get { return Unsupported<IUserMethods>(); } }
+            public override ICredentialMethods Credential { get { return Unsupported<ICredentialMethods>(); } }
+            public override ILabelMethods Label { get { return Unsupported<ILabelMethods>(); } }
+            public override ITagMethods Tag { get { return Unsupported<ITagMethods>(); } }
+            public override IVectorMethods Vector { get { return Unsupported<IVectorMethods>(); } }
+            public override IGraphMethods Graph { get { return Unsupported<IGraphMethods>(); } }
+            public override INodeMethods Node { get { return _Node; } }
+            public override IEdgeMethods Edge { get { return Unsupported<IEdgeMethods>(); } }
+            public override IBatchMethods Batch { get { return Unsupported<IBatchMethods>(); } }
+            public override IVectorIndexMethods VectorIndex { get { return Unsupported<IVectorIndexMethods>(); } }
+            public override IRequestHistoryMethods RequestHistory { get { return Unsupported<IRequestHistoryMethods>(); } }
+            public override IAuthorizationAuditMethods AuthorizationAudit { get { return Unsupported<IAuthorizationAuditMethods>(); } }
+            public override IAuthorizationRoleMethods AuthorizationRoles { get { return Unsupported<IAuthorizationRoleMethods>(); } }
+            public override bool GraphTransactionActive { get { return _Active; } }
+
+            private readonly FaultInjectionState _State;
+            private readonly bool _IsTransactionRepository;
+            private readonly INodeMethods _Node;
+            private bool _Active = false;
+
+            internal FaultInjectionRepository(FaultInjectionState state, bool isTransactionRepository)
+            {
+                _State = state ?? throw new ArgumentNullException(nameof(state));
+                _IsTransactionRepository = isTransactionRepository;
+                _Node = DispatchProxy.Create<INodeMethods, FaultInjectionNodeMethodsProxy>();
+                ((FaultInjectionNodeMethodsProxy)(object)_Node).State = _State;
+            }
+
+            public override GraphRepositoryBase CreateIsolatedTransactionRepository()
+            {
+                return new FaultInjectionRepository(_State, true);
+            }
+
+            public override IRepositorySession CreateRepositorySession(TransactionExecutionOptions options)
+            {
+                Interlocked.Increment(ref _State.SessionFactoryCount);
+                return base.CreateRepositorySession(options);
+            }
+
+            public override void InitializeRepository()
+            {
+            }
+
+            public override void Flush()
+            {
+            }
+
+            public override Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+            {
+                token.ThrowIfCancellationRequested();
+                if (!_IsTransactionRepository) throw new InvalidOperationException("Fault injection transactions must use an isolated repository.");
+                Interlocked.Increment(ref _State.BeginCount);
+                if (_State.ThrowOnBegin) throw new InvalidOperationException("Injected begin failure.");
+                _Active = true;
+                return Task.CompletedTask;
+            }
+
+            public override Task CommitGraphTransaction(CancellationToken token = default)
+            {
+                token.ThrowIfCancellationRequested();
+                Interlocked.Increment(ref _State.CommitCount);
+                if (_State.ThrowOnCommit) throw new InvalidOperationException("Injected commit failure.");
+                _Active = false;
+                return Task.CompletedTask;
+            }
+
+            public override Task RollbackGraphTransaction(CancellationToken token = default)
+            {
+                Interlocked.Increment(ref _State.RollbackCount);
+                if (_State.ThrowOnRollback) throw new InvalidOperationException("Injected rollback failure.");
+                _Active = false;
+                return Task.CompletedTask;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (Disposed) return;
+
+                if (disposing && _IsTransactionRepository)
+                    Interlocked.Increment(ref _State.DisposeCount);
+
+                base.Dispose(disposing);
+            }
+
+            private static T Unsupported<T>() where T : class
+            {
+                T proxy = DispatchProxy.Create<T, UnsupportedMethodsProxy>();
+                ((UnsupportedMethodsProxy)(object)proxy).InterfaceName = typeof(T).Name;
+                return proxy;
+            }
+        }
+
+        private class FaultInjectionNodeMethodsProxy : DispatchProxy
+        {
+            internal FaultInjectionState State { get; set; } = null!;
+
+            protected override object Invoke(MethodInfo? targetMethod, object?[]? args)
+            {
+                if (targetMethod != null && targetMethod.Name == nameof(INodeMethods.Create))
+                {
+                    if (args == null || args.Length < 1 || args[0] is not Node node)
+                        throw new ArgumentException("Node create requires a node payload.");
+
+                    return CreateNode(node);
+                }
+
+                throw new NotSupportedException("Only node create is supported by the transaction fault-injection repository.");
+            }
+
+            private Task<Node> CreateNode(Node node)
+            {
+                Interlocked.Increment(ref State.NodeCreateCount);
+                if (State.ThrowOnOperation) throw new InvalidOperationException("Injected operation failure.");
+                return Task.FromResult(node);
+            }
+        }
+
         private sealed class ParallelTransactionState
         {
             internal int BeginCount;
             internal int CommitCount;
             internal int RollbackCount;
             internal int DisposeCount;
+            internal int SessionFactoryCount;
             internal int ActiveCreates;
             internal int MaxConcurrentCreates;
             internal List<Guid> CreatedNodeGuids { get; } = new List<Guid>();
@@ -11220,6 +12185,12 @@
             public override GraphRepositoryBase CreateIsolatedTransactionRepository()
             {
                 return new ParallelTransactionRepository(_State, _NodeCreateDelay, true);
+            }
+
+            public override IRepositorySession CreateRepositorySession(TransactionExecutionOptions options)
+            {
+                Interlocked.Increment(ref _State.SessionFactoryCount);
+                return base.CreateRepositorySession(options);
             }
 
             public override void InitializeRepository()
@@ -11435,6 +12406,28 @@
                 observability.RecordVectorSearch("Node", true, 3, 2.5);
                 observability.RecordGraphTransaction(false, true, 2, 4.5);
                 observability.RecordGraphTransaction(false, false, true, 1, 1.5);
+                observability.RecordGraphTransaction(
+                    false,
+                    true,
+                    false,
+                    3,
+                    7.5,
+                    "Postgresql",
+                    "Serializable",
+                    "RolledBack",
+                    false,
+                    true,
+                    true,
+                    2,
+                    1.25,
+                    0,
+                    2.75);
+                using (IDisposable active = observability.BeginGraphTransaction())
+                {
+                    string activeMetrics = observability.RenderPrometheus();
+                    AssertTrue(activeMetrics.Contains("litegraph_graph_transaction_active 1"), "Prometheus active transaction gauge increments");
+                }
+
                 observability.RecordAuthentication(AuthenticationResultEnum.Success, AuthorizationResultEnum.Permitted);
                 observability.RecordRepositoryOperation("Sqlite", "read", true, 1.5);
                 observability.RecordStorageBackend("Sqlite", false);
@@ -11454,6 +12447,15 @@
                 AssertTrue(metrics.Contains("domain=\"Node\""), "Prometheus vector search domain label exists");
                 AssertTrue(metrics.Contains("litegraph_graph_transactions_total"), "Prometheus graph transaction metric exists");
                 AssertTrue(metrics.Contains("validation_failure=\"true\""), "Prometheus graph transaction validation label exists");
+                AssertTrue(metrics.Contains("provider=\"Postgresql\""), "Prometheus graph transaction provider label exists");
+                AssertTrue(metrics.Contains("isolation_level=\"Serializable\""), "Prometheus graph transaction isolation label exists");
+                AssertTrue(metrics.Contains("state=\"RolledBack\""), "Prometheus graph transaction state label exists");
+                AssertTrue(metrics.Contains("litegraph_graph_transaction_queue_wait_duration_ms_sum"), "Prometheus graph transaction queue wait metric exists");
+                AssertTrue(metrics.Contains("litegraph_graph_transaction_commit_duration_ms_sum"), "Prometheus graph transaction commit duration metric exists");
+                AssertTrue(metrics.Contains("litegraph_graph_transaction_rollback_duration_ms_sum"), "Prometheus graph transaction rollback duration metric exists");
+                AssertTrue(metrics.Contains("litegraph_graph_transaction_conflicts_total"), "Prometheus graph transaction conflict metric exists");
+                AssertTrue(metrics.Contains("litegraph_graph_transaction_retries_total"), "Prometheus graph transaction retry metric exists");
+                AssertTrue(metrics.Contains("litegraph_graph_transaction_active 0"), "Prometheus active transaction gauge decrements");
                 AssertTrue(metrics.Contains("litegraph_authentication_requests_total"), "Prometheus authentication metric exists");
                 AssertTrue(metrics.Contains("litegraph_repository_operations_total"), "Prometheus repository operation metric exists");
                 AssertTrue(metrics.Contains("operation=\"read\""), "Prometheus repository operation label exists");
@@ -11521,6 +12523,10 @@
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_http_request_duration_ms_sum", StringComparison.Ordinal)), "Grafana HTTP duration metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_queries_total", StringComparison.Ordinal)), "Grafana graph query metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_transactions_total", StringComparison.Ordinal)), "Grafana transaction metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_transaction_active", StringComparison.Ordinal)), "Grafana active transaction metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_transaction_queue_wait_duration_ms_sum", StringComparison.Ordinal)), "Grafana transaction queue wait metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_transaction_conflicts_total", StringComparison.Ordinal)), "Grafana transaction conflict metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_transaction_retries_total", StringComparison.Ordinal)), "Grafana transaction retry metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_vector_searches_total", StringComparison.Ordinal)), "Grafana vector search metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_repository_operations_total", StringComparison.Ordinal)), "Grafana repository metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_entity_count", StringComparison.Ordinal)), "Grafana entity count metric");

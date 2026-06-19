@@ -22,6 +22,7 @@ export default class TransactionResult {
     StartedUtc: any;
     CompletedUtc: any;
     DurationMs: any;
+    QueueWaitDurationMs: any;
     CommitDurationMs: any;
     RollbackDurationMs: any;
     Provider: any;

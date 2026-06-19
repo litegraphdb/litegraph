@@ -4,7 +4,7 @@
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<Version>7.0.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>Patch release with bulk create return modes and targeted node/edge subordinate hydration.</PackageReleaseNotes>
+		<PackageReleaseNotes>v7.0.0 release with explicit transaction sessions, parallel transaction scaling, transaction diagnostics, PostgreSQL Docker defaults, and HnswLite 2.0.1 vector index support.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>

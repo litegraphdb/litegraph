@@ -4457,6 +4457,11 @@
             Transaction duration in milliseconds.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.QueueWaitDurationMs">
+            <summary>
+            Time spent waiting behind the serialized fallback gate, in milliseconds.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.TransactionResult.CommitDurationMs">
             <summary>
             Commit duration in milliseconds.

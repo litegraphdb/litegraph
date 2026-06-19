@@ -1326,12 +1326,13 @@
             Native graph query execution engine.
             </summary>
         </member>
-        <member name="M:LiteGraph.Client.Implementations.QueryExecutionEngine.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+        <member name="M:LiteGraph.Client.Implementations.QueryExecutionEngine.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase,System.Boolean)">
             <summary>
             Instantiate.
             </summary>
             <param name="client">LiteGraph client.</param>
             <param name="repo">Graph repository.</param>
+            <param name="allowActiveTransaction">Allow mutation execution to participate in an already-active explicit transaction context.</param>
         </member>
         <member name="M:LiteGraph.Client.Implementations.QueryExecutionEngine.Execute(System.Guid,System.Guid,LiteGraph.GraphQueryRequest,System.Threading.CancellationToken)">
             <inheritdoc />
@@ -5156,6 +5157,14 @@
             Providers that do not override this method continue to use the caller repository and the legacy transaction gate.
             </summary>
             <returns>Repository instance.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.CreateRepositorySession(LiteGraph.TransactionExecutionOptions)">
+            <summary>
+            Create a repository session that owns transaction state for a single transaction execution.
+            Providers that do not create an isolated repository return a session requiring serialized execution.
+            </summary>
+            <param name="options">Transaction execution options.</param>
+            <returns>Repository session.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.GraphRepositoryBase.BeginGraphTransaction(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -9674,6 +9683,66 @@
             Graph statistics.
             </summary>
         </member>
+        <member name="T:LiteGraph.GraphTransactionContext">
+            <summary>
+            Explicit lifecycle controller for one graph transaction.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.Options">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.Repository">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.State">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.Provider">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.IsolatedRepository">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.SerializedByGate">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.QueueWaitDurationMs">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.CommitDurationMs">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphTransactionContext.RollbackDurationMs">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphTransactionContext.#ctor(LiteGraph.TransactionExecutionOptions,LiteGraph.IRepositorySession,System.Threading.SemaphoreSlim)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="options">Transaction execution options.</param>
+            <param name="session">Repository session.</param>
+            <param name="serializedGate">Optional fallback serialization gate.</param>
+        </member>
+        <member name="M:LiteGraph.GraphTransactionContext.BeginAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphTransactionContext.CommitAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphTransactionContext.RollbackAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphTransactionContext.Dispose">
+            <summary>
+            Dispose.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphTransactionContext.DisposeAsync">
+            <summary>
+            Dispose asynchronously.
+            </summary>
+            <returns>Value task.</returns>
+        </member>
         <member name="T:LiteGraph.Helpers.FileHelpers">
             <summary>
             File helpers.
@@ -10495,6 +10564,141 @@
             Hierarchical navigable small world, in a separate Sqlite database.
             </summary>
         </member>
+        <member name="T:LiteGraph.IRepositorySession">
+            <summary>
+            Repository state owned by one transaction execution.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.IRepositorySession.Repository">
+            <summary>
+            Repository instance used by operations executed inside the session.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.IRepositorySession.Provider">
+            <summary>
+            Storage provider name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.IRepositorySession.IsIsolated">
+            <summary>
+            True if the session owns a repository instance distinct from the caller repository.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.IRepositorySession.RequiresSerializedExecution">
+            <summary>
+            True if callers must serialize access before using this session.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.IRepositorySession.Active">
+            <summary>
+            True if a provider transaction is active inside this session.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.IRepositorySession.BeginTransactionAsync(LiteGraph.TransactionExecutionOptions,System.Threading.CancellationToken)">
+            <summary>
+            Begin the provider transaction.
+            </summary>
+            <param name="options">Transaction execution options.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.IRepositorySession.CommitTransactionAsync(System.Threading.CancellationToken)">
+            <summary>
+            Commit the provider transaction.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.IRepositorySession.RollbackTransactionAsync(System.Threading.CancellationToken)">
+            <summary>
+            Roll back the provider transaction.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="T:LiteGraph.IRepositorySessionFactory">
+            <summary>
+            Factory for transaction-scoped repository sessions.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.IRepositorySessionFactory.CreateRepositorySession(LiteGraph.TransactionExecutionOptions)">
+            <summary>
+            Create a repository session for one graph transaction execution.
+            </summary>
+            <param name="options">Transaction execution options.</param>
+            <returns>Repository session.</returns>
+        </member>
+        <member name="T:LiteGraph.ITransactionContext">
+            <summary>
+            Lifecycle controller for one graph transaction execution.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.Options">
+            <summary>
+            Transaction execution options.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.Repository">
+            <summary>
+            Repository used by operations executed inside this transaction.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.State">
+            <summary>
+            Current transaction lifecycle state.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.Provider">
+            <summary>
+            Storage provider name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.IsolatedRepository">
+            <summary>
+            True if execution uses a transaction-local repository/session.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.SerializedByGate">
+            <summary>
+            True if execution waited behind the serialized fallback gate.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.QueueWaitDurationMs">
+            <summary>
+            Time spent waiting to enter the serialized fallback gate.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.CommitDurationMs">
+            <summary>
+            Time spent committing.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ITransactionContext.RollbackDurationMs">
+            <summary>
+            Time spent rolling back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ITransactionContext.BeginAsync(System.Threading.CancellationToken)">
+            <summary>
+            Begin the transaction.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.ITransactionContext.CommitAsync(System.Threading.CancellationToken)">
+            <summary>
+            Commit the transaction.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.ITransactionContext.RollbackAsync(System.Threading.CancellationToken)">
+            <summary>
+            Roll back the transaction.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
         <member name="T:LiteGraph.LabelMetadata">
             <summary>
             Label metadata.
@@ -10796,6 +11000,11 @@
         <member name="F:LiteGraph.LiteGraphTelemetry.RepositoryOperationActivityName">
             <summary>
             Repository operation activity name.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.LiteGraphTelemetry.TransactionActivityName">
+            <summary>
+            Graph transaction activity name.
             </summary>
         </member>
         <member name="F:LiteGraph.LiteGraphTelemetry.ActivitySource">
@@ -11886,6 +12095,53 @@
             <param name="request">Query request.</param>
             <returns>Query plan.</returns>
         </member>
+        <member name="T:LiteGraph.RepositoryTransactionSession">
+            <summary>
+            Default repository-session adapter for graph transaction execution.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.RepositoryTransactionSession.Repository">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.RepositoryTransactionSession.Provider">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.RepositoryTransactionSession.IsIsolated">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.RepositoryTransactionSession.RequiresSerializedExecution">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.RepositoryTransactionSession.Active">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.RepositoryTransactionSession.#ctor(LiteGraph.GraphRepositories.GraphRepositoryBase,System.Boolean)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="repository">Repository instance.</param>
+            <param name="isIsolated">True if the repository is isolated from the caller repository.</param>
+        </member>
+        <member name="M:LiteGraph.RepositoryTransactionSession.BeginTransactionAsync(LiteGraph.TransactionExecutionOptions,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.RepositoryTransactionSession.CommitTransactionAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.RepositoryTransactionSession.RollbackTransactionAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.RepositoryTransactionSession.Dispose">
+            <summary>
+            Dispose.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.RepositoryTransactionSession.DisposeAsync">
+            <summary>
+            Dispose asynchronously.
+            </summary>
+            <returns>Value task.</returns>
+        </member>
         <member name="T:LiteGraph.RequestHistoryDetail">
             <summary>
             Request history detail, including headers and bodies.
@@ -12895,6 +13151,46 @@
             Tenant statistics.
             </summary>
         </member>
+        <member name="T:LiteGraph.TransactionExecutionOptions">
+            <summary>
+            Options used to create a graph transaction execution context.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionExecutionOptions.TransactionId">
+            <summary>
+            Transaction identifier assigned by LiteGraph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionExecutionOptions.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionExecutionOptions.GraphGUID">
+            <summary>
+            Graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionExecutionOptions.IsolationLevel">
+            <summary>
+            Requested provider isolation level.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionExecutionOptions.OperationCount">
+            <summary>
+            Number of operations in the transaction request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionExecutionOptions.Source">
+            <summary>
+            Caller or subsystem creating the transaction context.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.TransactionExecutionOptions.Validate">
+            <summary>
+            Validate options.
+            </summary>
+        </member>
         <member name="T:LiteGraph.TransactionIsolationLevelEnum">
             <summary>
             Provider-neutral transaction isolation level.
@@ -13428,6 +13724,11 @@
         <member name="P:LiteGraph.TransactionResult.DurationMs">
             <summary>
             Transaction duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.TransactionResult.QueueWaitDurationMs">
+            <summary>
+            Time spent waiting behind the serialized fallback gate, in milliseconds.
             </summary>
         </member>
         <member name="P:LiteGraph.TransactionResult.CommitDurationMs">

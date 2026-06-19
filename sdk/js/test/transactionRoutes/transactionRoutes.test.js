@@ -63,6 +63,7 @@ describe('TransactionRoute Tests', () => {
     expect(result.IsolationLevel).toBe('Default');
     expect(result.IsolatedRepository).toBe(true);
     expect(result.SerializedByGate).toBe(false);
+    expect(result.QueueWaitDurationMs).toBe(0);
     expect(result.CommitDurationMs).toBe(0.75);
     expect(result.Operations[0].GUID).toBe(mockNodeGuid);
     expect(postSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Object), TransactionResult, undefined, [400, 409]);
@@ -92,6 +93,7 @@ describe('TransactionRoute Tests', () => {
     expect(result.Retryable).toBe(true);
     expect(result.ConcurrencyConflict).toBe(true);
     expect(result.ProviderErrorCode).toBe('40001');
+    expect(result.QueueWaitDurationMs).toBe(0);
     expect(result.RollbackDurationMs).toBe(0.5);
     expect(result.Operations[0].Error).toBe('duplicate node');
     expect(postSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Object), TransactionResult, undefined, [400, 409]);

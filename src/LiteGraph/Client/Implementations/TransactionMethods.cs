@@ -60,9 +60,18 @@ namespace LiteGraph.Client.Implementations
             using (CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, timeoutCts.Token))
             {
                 CancellationToken linkedToken = linkedCts.Token;
-                TransactionResult result = new TransactionResult
+                TransactionExecutionOptions executionOptions = new TransactionExecutionOptions
                 {
                     TransactionId = Guid.NewGuid(),
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    IsolationLevel = request.IsolationLevel,
+                    OperationCount = request.Operations.Count,
+                    Source = "LiteGraphClient.Transaction.Execute"
+                };
+                TransactionResult result = new TransactionResult
+                {
+                    TransactionId = executionOptions.TransactionId,
                     OperationCount = request.Operations.Count,
                     StartedUtc = DateTime.UtcNow,
                     IsolationLevel = request.IsolationLevel.ToString(),
@@ -70,73 +79,63 @@ namespace LiteGraph.Client.Implementations
                     RetryCount = 0
                 };
 
-                GraphRepositoryBase transactionRepo = null;
-                bool disposeTransactionRepo = false;
+                IRepositorySession session = null;
+                GraphTransactionContext transactionContext = null;
                 bool startedTransaction = false;
-                bool gateAcquired = false;
                 int currentOperationIndex = -1;
+                using Activity activity = LiteGraphTelemetry.ActivitySource.StartActivity(LiteGraphTelemetry.TransactionActivityName, ActivityKind.Internal);
                 try
                 {
                     ValidateOperations(request, ref currentOperationIndex);
+                    activity?.AddEvent(new ActivityEvent("litegraph.transaction.validated"));
 
-                    transactionRepo = _Repo.CreateIsolatedTransactionRepository();
-                    if (transactionRepo == null) throw new InvalidOperationException("Transaction repository factory returned null.");
-                    disposeTransactionRepo = !ReferenceEquals(transactionRepo, _Repo);
-                    result.Provider = ResolveProviderName(transactionRepo);
-                    result.IsolatedRepository = disposeTransactionRepo;
-                    result.SerializedByGate = !disposeTransactionRepo;
+                    session = _Repo.CreateRepositorySession(executionOptions);
+                    if (session == null) throw new InvalidOperationException("Transaction repository session factory returned null.");
+                    transactionContext = new GraphTransactionContext(executionOptions, session, _TransactionGate);
 
-                    if (!disposeTransactionRepo)
-                    {
-                        await _TransactionGate.WaitAsync(linkedToken).ConfigureAwait(false);
-                        gateAcquired = true;
-                    }
-
-                    if (transactionRepo.GraphTransactionActive)
-                        throw new InvalidOperationException("A graph transaction is already active on this repository.");
-
-                    await transactionRepo.BeginGraphTransaction(tenantGuid, graphGuid, request.IsolationLevel, linkedToken).ConfigureAwait(false);
+                    SetTransactionActivityStartTags(activity, transactionContext, request.Operations.Count);
+                    await transactionContext.BeginAsync(linkedToken).ConfigureAwait(false);
                     startedTransaction = true;
-                    result.State = TransactionStateEnum.Active.ToString();
+                    result.Provider = transactionContext.Provider;
+                    result.IsolatedRepository = transactionContext.IsolatedRepository;
+                    result.SerializedByGate = transactionContext.SerializedByGate;
+                    result.QueueWaitDurationMs = transactionContext.QueueWaitDurationMs;
+                    result.State = transactionContext.State.ToString();
+                    activity?.AddEvent(new ActivityEvent("litegraph.transaction.started"));
 
                     for (int i = 0; i < request.Operations.Count; i++)
                     {
                         currentOperationIndex = i;
                         linkedToken.ThrowIfCancellationRequested();
                         TransactionOperation op = request.Operations[i] ?? throw new ArgumentException("Transaction operation " + i + " is null.");
-                        TransactionOperationResult opResult = await ExecuteOperation(transactionRepo, tenantGuid, graphGuid, i, op, linkedToken).ConfigureAwait(false);
+                        TransactionOperationResult opResult = await ExecuteOperation(transactionContext.Repository, tenantGuid, graphGuid, i, op, linkedToken).ConfigureAwait(false);
                         result.Operations.Add(opResult);
                     }
 
                     if (startedTransaction)
                     {
-                        Stopwatch commitStopwatch = Stopwatch.StartNew();
-                        try
-                        {
-                            result.State = TransactionStateEnum.Committing.ToString();
-                            await transactionRepo.CommitGraphTransaction(linkedToken).ConfigureAwait(false);
-                            result.State = TransactionStateEnum.Committed.ToString();
-                        }
-                        finally
-                        {
-                            commitStopwatch.Stop();
-                            result.CommitDurationMs = commitStopwatch.Elapsed.TotalMilliseconds;
-                        }
+                        result.State = TransactionStateEnum.Committing.ToString();
+                        await transactionContext.CommitAsync(linkedToken).ConfigureAwait(false);
+                        result.State = transactionContext.State.ToString();
+                        result.CommitDurationMs = transactionContext.CommitDurationMs;
+                        activity?.AddEvent(new ActivityEvent("litegraph.transaction.committed"));
                     }
 
                     result.Success = true;
+                    SetTransactionActivityResultTags(activity, result);
+                    LiteGraphTelemetry.SetActivityOk(activity);
                     return result;
                 }
                 catch (Exception e)
                 {
-                    if (startedTransaction && transactionRepo != null && transactionRepo.GraphTransactionActive)
+                    if (startedTransaction && transactionContext != null && transactionContext.Repository.GraphTransactionActive)
                     {
-                        Stopwatch rollbackStopwatch = Stopwatch.StartNew();
                         result.State = TransactionStateEnum.RollingBack.ToString();
                         try
                         {
-                            await transactionRepo.RollbackGraphTransaction(CancellationToken.None).ConfigureAwait(false);
-                            result.State = TransactionStateEnum.RolledBack.ToString();
+                            await transactionContext.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+                            result.State = transactionContext.State.ToString();
+                            activity?.AddEvent(new ActivityEvent("litegraph.transaction.rolled_back"));
                         }
                         catch
                         {
@@ -144,13 +143,21 @@ namespace LiteGraph.Client.Implementations
                         }
                         finally
                         {
-                            rollbackStopwatch.Stop();
-                            result.RollbackDurationMs = rollbackStopwatch.Elapsed.TotalMilliseconds;
+                            result.RollbackDurationMs = transactionContext.RollbackDurationMs;
                         }
                     }
 
                     result.Success = false;
                     result.RolledBack = startedTransaction;
+                    if (transactionContext != null)
+                    {
+                        result.Provider = transactionContext.Provider;
+                        result.IsolatedRepository = transactionContext.IsolatedRepository;
+                        result.SerializedByGate = transactionContext.SerializedByGate;
+                        result.QueueWaitDurationMs = transactionContext.QueueWaitDurationMs;
+                        result.CommitDurationMs = transactionContext.CommitDurationMs;
+                        result.RollbackDurationMs = transactionContext.RollbackDurationMs;
+                    }
                     if (!String.Equals(result.State, TransactionStateEnum.RolledBack.ToString(), StringComparison.Ordinal)
                         && !String.Equals(result.State, TransactionStateEnum.Faulted.ToString(), StringComparison.Ordinal))
                     {
@@ -177,14 +184,19 @@ namespace LiteGraph.Client.Implementations
                         });
                     }
 
+                    SetTransactionActivityResultTags(activity, result);
+                    LiteGraphTelemetry.SetActivityException(activity, e);
                     return result;
                 }
                 finally
                 {
-                    if (gateAcquired) _TransactionGate.Release();
-                    if (disposeTransactionRepo && transactionRepo != null)
+                    if (transactionContext != null)
                     {
-                        await transactionRepo.DisposeAsync().ConfigureAwait(false);
+                        await transactionContext.DisposeAsync().ConfigureAwait(false);
+                    }
+                    else if (session != null)
+                    {
+                        await session.DisposeAsync().ConfigureAwait(false);
                     }
 
                     sw.Stop();
@@ -217,6 +229,37 @@ namespace LiteGraph.Client.Implementations
                 default:
                     throw new NotSupportedException("Unsupported transaction operation type '" + op.OperationType + "'.");
             }
+        }
+
+        private static void SetTransactionActivityStartTags(Activity activity, GraphTransactionContext context, int operationCount)
+        {
+            if (activity == null || context == null) return;
+
+            activity.SetTag("litegraph.transaction.id", context.Options.TransactionId);
+            activity.SetTag("litegraph.transaction.source", context.Options.Source);
+            activity.SetTag("litegraph.transaction.provider", context.Provider);
+            activity.SetTag("litegraph.transaction.isolation_level", context.Options.IsolationLevel.ToString());
+            activity.SetTag("litegraph.transaction.operation_count", operationCount);
+            activity.SetTag("litegraph.transaction.isolated_repository", context.IsolatedRepository);
+            activity.SetTag("litegraph.transaction.serialized_by_gate", context.SerializedByGate);
+        }
+
+        private static void SetTransactionActivityResultTags(Activity activity, TransactionResult result)
+        {
+            if (activity == null || result == null) return;
+
+            activity.SetTag("litegraph.transaction.state", result.State);
+            activity.SetTag("litegraph.transaction.success", result.Success);
+            activity.SetTag("litegraph.transaction.rolled_back", result.RolledBack);
+            activity.SetTag("litegraph.transaction.validation_failure", result.ValidationFailure);
+            activity.SetTag("litegraph.transaction.queue_wait_duration_ms", result.QueueWaitDurationMs);
+            activity.SetTag("litegraph.transaction.commit_duration_ms", result.CommitDurationMs);
+            activity.SetTag("litegraph.transaction.rollback_duration_ms", result.RollbackDurationMs);
+            activity.SetTag("litegraph.transaction.retry_count", result.RetryCount);
+            activity.SetTag("litegraph.transaction.retryable", result.Retryable);
+            activity.SetTag("litegraph.transaction.concurrency_conflict", result.ConcurrencyConflict);
+            if (!String.IsNullOrEmpty(result.ProviderErrorCode)) activity.SetTag("litegraph.transaction.provider_error_code", result.ProviderErrorCode);
+            if (result.FailedOperationIndex != null) activity.SetTag("litegraph.transaction.failed_operation_index", result.FailedOperationIndex.Value);
         }
 
         private static void ValidateOperations(TransactionRequest request, ref int currentOperationIndex)

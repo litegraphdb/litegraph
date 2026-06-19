@@ -106,6 +106,7 @@ Transaction responses include additional diagnostics:
 - `State`
 - `OperationCount`
 - `StartedUtc`, `CompletedUtc`, `DurationMs`
+- `QueueWaitDurationMs`
 - `CommitDurationMs`, `RollbackDurationMs`
 - `Provider`, `IsolationLevel`
 - `IsolatedRepository`, `SerializedByGate`
@@ -114,7 +115,7 @@ Transaction responses include additional diagnostics:
 
 REST transaction validation failures return HTTP `400` with a `TransactionResult` body when LiteGraph can identify the failed operation. Failures during execution return HTTP `409` with a `TransactionResult` body. Updated SDKs preserve those diagnostic bodies so callers can inspect validation and rollback details. Older clients that treat all non-2xx responses as exceptions may need to catch the response body explicitly.
 
-PostgreSQL is the primary provider for parallel transaction write scaling. SQLite uses isolated transaction sessions for correctness, but file-level write locking still limits write throughput. Monitor `SerializedByGate`; it should be `false` for providers using transaction-local repository/session state.
+PostgreSQL is the primary provider for parallel transaction write scaling. SQLite uses isolated transaction sessions for correctness, but file-level write locking still limits write throughput. Monitor `SerializedByGate`; it should be `false` for providers using transaction-local repository/session state. Monitor `QueueWaitDurationMs` and `litegraph_graph_transaction_queue_wait_duration_ms`; sustained non-zero values identify traffic flowing through the compatibility gate instead of provider-isolated sessions.
 
 ## Dashboard And Operations
 

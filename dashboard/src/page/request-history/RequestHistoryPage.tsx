@@ -102,6 +102,9 @@ type TransactionDiagnostics = {
   ValidationFailure?: boolean;
   IsolationLevel?: string;
   Provider?: string;
+  QueueWaitDurationMs?: number;
+  CommitDurationMs?: number;
+  RollbackDurationMs?: number;
   Retryable?: boolean;
   ConcurrencyConflict?: boolean;
   ProviderErrorCode?: string;

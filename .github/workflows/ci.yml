@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - v7.0
+  pull_request:
+    branches:
+      - main
+      - v7.0
+
+jobs:
+  dotnet:
+    name: .NET build and transaction gates
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: litegraph_ci
+          POSTGRES_USER: litegraph
+          POSTGRES_PASSWORD: litegraph
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U litegraph -d litegraph_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore src/LiteGraph.sln
+
+      - name: Build
+        run: dotnet build src/LiteGraph.sln -c Debug --no-restore
+
+      - name: Vulnerability audit
+        run: dotnet list src/LiteGraph.sln package --vulnerable --include-transitive
+
+      - name: NuGet package validation
+        run: dotnet pack src/LiteGraph/LiteGraph.csproj -c Release -o artifacts/nuget
+
+      - name: SQLite transaction concurrency gate
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+
+      - name: PostgreSQL transaction concurrency gate
+        env:
+          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=localhost;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=128;Timeout=15;Command Timeout=60
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+
+  javascript-sdk:
+    name: JavaScript SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: sdk/js/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test -- --runInBand
+
+      - name: Package dry run
+        run: npm pack --dry-run
+
+  python-sdk:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/python
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+          python -m pip install -e ".[testing]"
+
+      - name: Test
+        run: pytest
+
+      - name: Package build
+        run: python -m build
+
+  dashboard:
+    name: Dashboard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test -- --runInBand
+
+      - name: Build
+        run: npm run build

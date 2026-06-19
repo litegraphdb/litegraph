@@ -8,7 +8,7 @@ GOTO :Done
 :Usage
 ECHO.
 ECHO Provide a tag argument.
-ECHO Example: build-mcp.bat v6.0.0
+ECHO Example: build-mcp.bat v7.0.0
 
 :Done
 ECHO.

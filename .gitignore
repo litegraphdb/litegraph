@@ -349,7 +349,11 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
- 
+*.egg-info/
+.pytest_cache/
+htmlcov/
+dist/
+
 
 # Local diagnostics and generated test databases
 .codex-temp/

@@ -8,7 +8,7 @@ GOTO :Done
 :Usage
 ECHO.
 ECHO Provide a tag argument.
-ECHO Example: build-server.bat v6.0.0
+ECHO Example: build-server.bat v7.0.0
 
 :Done
 ECHO.

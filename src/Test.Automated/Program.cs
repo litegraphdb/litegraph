@@ -25,7 +25,14 @@ namespace Test.Automated
             "Transactions.ProviderMatrix.PostgresqlConcurrency",
             "Transactions.Client.IsolatedParallelExecution",
             "Transactions.Query.IsolatedParallelExecution",
-            "Transactions.Authorization.Boundary"
+            "Transactions.Authorization.Boundary",
+            "Transactions.Session.ContextLifecycle",
+            "Transactions.Correctness.DeterministicHistory",
+            "Transactions.Correctness.ConcurrentReplay",
+            "Transactions.Correctness.SoakInvariants",
+            "Transactions.Correctness.RandomizedHistory",
+            "Transactions.Correctness.FaultInjection",
+            "Transactions.Correctness.ApiSurfaceCoherency"
         };
 
         private static async Task<int> Main(string[] args)

@@ -44,7 +44,7 @@ This monorepo contains the LiteGraph database core, server, dashboard, and clien
 
 The `v7.0` branch adds isolated graph transaction execution so converted providers no longer need a shared per-repository safety gate for correctness. PostgreSQL transactions can use separate pooled connections for parallel write scaling, while SQLite remains correct under concurrent requests but is still bounded by SQLite file locking.
 
-Transaction requests support provider isolation selection through `IsolationLevel`, and transaction responses now include `TransactionId`, lifecycle state, validation-failure state, provider/isolation metadata, commit and rollback timing, retryability, concurrency-conflict classification, provider error codes, and flags showing whether execution used isolated transaction state or the legacy serialized fallback.
+Transaction requests support provider isolation selection through `IsolationLevel`, and transaction responses now include `TransactionId`, lifecycle state, validation-failure state, provider/isolation metadata, fallback queue wait, commit and rollback timing, retryability, concurrency-conflict classification, provider error codes, and flags showing whether execution used isolated transaction state or the legacy serialized fallback.
 
 See [Graph transactions](docs/TRANSACTIONS.md) and the [Upgrade guide](docs/UPGRADE.md) for provider caveats, rollback semantics, SDK behavior, and operational guidance.
 

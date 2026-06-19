@@ -73,6 +73,7 @@ def test_transaction_execute_posts_to_graph_scoped_endpoint(mock_client):
             }
         ],
         "DurationMs": 2.5,
+        "QueueWaitDurationMs": 0,
         "CommitDurationMs": 0.5,
         "RollbackDurationMs": 0,
         "Provider": "Sqlite",
@@ -104,6 +105,7 @@ def test_transaction_execute_posts_to_graph_scoped_endpoint(mock_client):
     assert result.isolation_level == "Default"
     assert result.isolated_repository is True
     assert result.serialized_by_gate is False
+    assert result.queue_wait_duration_ms == 0
     assert result.commit_duration_ms == 0.5
     assert result.operations[0].guid == "node-1"
 
@@ -118,6 +120,7 @@ def test_transaction_context_executes_on_clean_exit(mock_client):
         "FailedOperationIndex": 0,
         "Error": "duplicate node",
         "OperationCount": 1,
+        "QueueWaitDurationMs": 0,
         "RollbackDurationMs": 0.75,
         "Provider": "Postgresql",
         "Retryable": True,
@@ -148,6 +151,7 @@ def test_transaction_context_executes_on_clean_exit(mock_client):
     assert tx.result.retryable is True
     assert tx.result.concurrency_conflict is True
     assert tx.result.provider_error_code == "40001"
+    assert tx.result.queue_wait_duration_ms == 0
     assert tx.result.rollback_duration_ms == 0.75
 
 

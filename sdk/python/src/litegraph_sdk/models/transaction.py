@@ -65,6 +65,7 @@ class TransactionResultModel(BaseModel):
     started_utc: Optional[str] = Field(default=None, alias="StartedUtc")
     completed_utc: Optional[str] = Field(default=None, alias="CompletedUtc")
     duration_ms: float = Field(default=0, alias="DurationMs")
+    queue_wait_duration_ms: float = Field(default=0, alias="QueueWaitDurationMs")
     commit_duration_ms: float = Field(default=0, alias="CommitDurationMs")
     rollback_duration_ms: float = Field(default=0, alias="RollbackDurationMs")
     provider: Optional[str] = Field(default=None, alias="Provider")

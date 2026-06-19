@@ -7,6 +7,7 @@ namespace LiteGraph.Server.Services
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Text;
+    using System.Threading;
     using LiteGraph.Server.Classes;
     using OpenTelemetry;
     using OpenTelemetry.Exporter;
@@ -70,15 +71,22 @@ namespace LiteGraph.Server.Services
         private readonly Histogram<double> _VectorSearchDurationMs;
         private readonly Counter<long> _GraphTransactionCounter;
         private readonly Histogram<double> _GraphTransactionDurationMs;
+        private readonly Histogram<double> _GraphTransactionQueueWaitDurationMs;
+        private readonly Histogram<double> _GraphTransactionCommitDurationMs;
+        private readonly Histogram<double> _GraphTransactionRollbackDurationMs;
+        private readonly Counter<long> _GraphTransactionConflictCounter;
+        private readonly Counter<long> _GraphTransactionRetryCounter;
         private readonly Counter<long> _AuthenticationCounter;
         private readonly Counter<long> _RepositoryOperationCounter;
         private readonly Histogram<double> _RepositoryOperationDurationMs;
+        private readonly ObservableGauge<long> _GraphTransactionActiveGauge;
         private readonly ObservableGauge<long> _StorageBackendGauge;
         private readonly ObservableGauge<long> _StorageConnectionPoolMaxGauge;
         private readonly ObservableGauge<long> _StorageCommandTimeoutGauge;
         private readonly ObservableGauge<long> _EntityCountGauge;
         private TracerProvider _TracerProvider;
         private MeterProvider _MeterProvider;
+        private long _ActiveGraphTransactions = 0;
         private bool _Disposed = false;
 
         #endregion
@@ -103,9 +111,15 @@ namespace LiteGraph.Server.Services
             _VectorSearchDurationMs = Meter.CreateHistogram<double>("litegraph.vector.search.duration", "ms", "Vector search duration in milliseconds.");
             _GraphTransactionCounter = Meter.CreateCounter<long>("litegraph.graph.transactions", "transactions", "Total graph transactions processed by LiteGraph.");
             _GraphTransactionDurationMs = Meter.CreateHistogram<double>("litegraph.graph.transaction.duration", "ms", "Graph transaction duration in milliseconds.");
+            _GraphTransactionQueueWaitDurationMs = Meter.CreateHistogram<double>("litegraph.graph.transaction.queue_wait.duration", "ms", "Graph transaction serialized fallback queue wait duration in milliseconds.");
+            _GraphTransactionCommitDurationMs = Meter.CreateHistogram<double>("litegraph.graph.transaction.commit.duration", "ms", "Graph transaction commit duration in milliseconds.");
+            _GraphTransactionRollbackDurationMs = Meter.CreateHistogram<double>("litegraph.graph.transaction.rollback.duration", "ms", "Graph transaction rollback duration in milliseconds.");
+            _GraphTransactionConflictCounter = Meter.CreateCounter<long>("litegraph.graph.transaction.conflicts", "conflicts", "Total graph transaction concurrency conflicts.");
+            _GraphTransactionRetryCounter = Meter.CreateCounter<long>("litegraph.graph.transaction.retries", "retries", "Total graph transaction retry attempts reported by LiteGraph.");
             _AuthenticationCounter = Meter.CreateCounter<long>("litegraph.authentication.requests", "requests", "Total authenticated requests by authentication and authorization result.");
             _RepositoryOperationCounter = Meter.CreateCounter<long>("litegraph.repository.operations", "operations", "Total repository operations executed by LiteGraph.");
             _RepositoryOperationDurationMs = Meter.CreateHistogram<double>("litegraph.repository.operation.duration", "ms", "Repository operation duration in milliseconds.");
+            _GraphTransactionActiveGauge = Meter.CreateObservableGauge<long>("litegraph.graph.transaction.active", ObserveActiveGraphTransactions, "transactions", "Currently active graph transactions.");
             _StorageBackendGauge = Meter.CreateObservableGauge<long>("litegraph.storage.backend.info", ObserveStorageBackends, "backend", "Selected LiteGraph storage backend.");
             _StorageConnectionPoolMaxGauge = Meter.CreateObservableGauge<long>("litegraph.storage.connection.pool.max", ObserveStorageConnectionPoolMax, "connections", "Configured maximum storage connection pool size.");
             _StorageCommandTimeoutGauge = Meter.CreateObservableGauge<long>("litegraph.storage.command.timeout", ObserveStorageCommandTimeouts, "s", "Configured storage command timeout in seconds.");
@@ -274,11 +288,122 @@ namespace LiteGraph.Server.Services
         /// <param name="durationMs">Duration in milliseconds.</param>
         public void RecordGraphTransaction(bool success, bool rolledBack, bool validationFailure, int operationCount, double durationMs)
         {
+            RecordGraphTransaction(
+                success,
+                rolledBack,
+                validationFailure,
+                operationCount,
+                durationMs,
+                provider: null,
+                isolationLevel: null,
+                state: null,
+                serializedByGate: false,
+                retryable: false,
+                concurrencyConflict: false,
+                retryCount: 0,
+                queueWaitDurationMs: 0,
+                commitDurationMs: 0,
+                rollbackDurationMs: 0);
+        }
+
+        /// <summary>
+        /// Record a graph transaction from a transaction result.
+        /// </summary>
+        /// <param name="result">Transaction result.</param>
+        /// <param name="operationCount">Number of requested operations.</param>
+        /// <param name="durationMs">Duration in milliseconds.</param>
+        public void RecordGraphTransaction(TransactionResult result, int operationCount, double durationMs)
+        {
+            if (result == null)
+            {
+                RecordGraphTransaction(false, false, false, operationCount, durationMs);
+                return;
+            }
+
+            RecordGraphTransaction(
+                result.Success,
+                result.RolledBack,
+                result.ValidationFailure,
+                operationCount,
+                durationMs,
+                result.Provider,
+                result.IsolationLevel,
+                result.State,
+                result.SerializedByGate,
+                result.Retryable,
+                result.ConcurrencyConflict,
+                result.RetryCount,
+                result.QueueWaitDurationMs,
+                result.CommitDurationMs,
+                result.RollbackDurationMs);
+        }
+
+        /// <summary>
+        /// Record a graph transaction.
+        /// </summary>
+        /// <param name="success">Whether or not the transaction committed.</param>
+        /// <param name="rolledBack">Whether or not the transaction rolled back.</param>
+        /// <param name="validationFailure">Whether or not validation failed before a provider transaction started.</param>
+        /// <param name="operationCount">Number of requested operations.</param>
+        /// <param name="durationMs">Duration in milliseconds.</param>
+        /// <param name="provider">Provider that executed the transaction.</param>
+        /// <param name="isolationLevel">Requested isolation level.</param>
+        /// <param name="state">Final transaction state.</param>
+        /// <param name="serializedByGate">Whether the fallback transaction gate serialized execution.</param>
+        /// <param name="retryable">Whether the failure is retryable.</param>
+        /// <param name="concurrencyConflict">Whether the failure was a concurrency conflict.</param>
+        /// <param name="retryCount">Retry count reported by LiteGraph.</param>
+        /// <param name="queueWaitDurationMs">Serialized fallback queue wait in milliseconds.</param>
+        /// <param name="commitDurationMs">Commit duration in milliseconds.</param>
+        /// <param name="rollbackDurationMs">Rollback duration in milliseconds.</param>
+        public void RecordGraphTransaction(
+            bool success,
+            bool rolledBack,
+            bool validationFailure,
+            int operationCount,
+            double durationMs,
+            string provider,
+            string isolationLevel,
+            string state,
+            bool serializedByGate,
+            bool retryable,
+            bool concurrencyConflict,
+            int retryCount,
+            double queueWaitDurationMs,
+            double commitDurationMs,
+            double rollbackDurationMs)
+        {
             if (!_Settings.Enable) return;
 
-            string key = success.ToString() + "\n" + rolledBack.ToString() + "\n" + validationFailure.ToString();
-            GraphTransactionMetric metric = _GraphTransactionMetrics.GetOrAdd(key, _ => new GraphTransactionMetric(success, rolledBack, validationFailure));
-            metric.Record(operationCount, durationMs);
+            provider = NormalizeLabel(provider);
+            isolationLevel = NormalizeLabel(isolationLevel);
+            state = NormalizeLabel(state);
+            if (operationCount < 0) operationCount = 0;
+            if (retryCount < 0) retryCount = 0;
+            if (queueWaitDurationMs < 0) queueWaitDurationMs = 0;
+            if (commitDurationMs < 0) commitDurationMs = 0;
+            if (rollbackDurationMs < 0) rollbackDurationMs = 0;
+
+            string key = success.ToString()
+                + "\n" + rolledBack.ToString()
+                + "\n" + validationFailure.ToString()
+                + "\n" + provider
+                + "\n" + isolationLevel
+                + "\n" + state
+                + "\n" + serializedByGate.ToString()
+                + "\n" + retryable.ToString()
+                + "\n" + concurrencyConflict.ToString();
+            GraphTransactionMetric metric = _GraphTransactionMetrics.GetOrAdd(key, _ => new GraphTransactionMetric(
+                success,
+                rolledBack,
+                validationFailure,
+                provider,
+                isolationLevel,
+                state,
+                serializedByGate,
+                retryable,
+                concurrencyConflict));
+            metric.Record(operationCount, durationMs, queueWaitDurationMs, commitDurationMs, rollbackDurationMs, retryCount);
 
             if (_Settings.EnableOpenTelemetry)
             {
@@ -286,12 +411,34 @@ namespace LiteGraph.Server.Services
                 {
                     new KeyValuePair<string, object>("litegraph.transaction.success", success),
                     new KeyValuePair<string, object>("litegraph.transaction.rolled_back", rolledBack),
-                    new KeyValuePair<string, object>("litegraph.transaction.validation_failure", validationFailure)
+                    new KeyValuePair<string, object>("litegraph.transaction.validation_failure", validationFailure),
+                    new KeyValuePair<string, object>("litegraph.transaction.provider", provider),
+                    new KeyValuePair<string, object>("litegraph.transaction.isolation_level", isolationLevel),
+                    new KeyValuePair<string, object>("litegraph.transaction.state", state),
+                    new KeyValuePair<string, object>("litegraph.transaction.serialized_by_gate", serializedByGate),
+                    new KeyValuePair<string, object>("litegraph.transaction.retryable", retryable),
+                    new KeyValuePair<string, object>("litegraph.transaction.concurrency_conflict", concurrencyConflict)
                 };
 
                 _GraphTransactionCounter.Add(1, tags);
                 _GraphTransactionDurationMs.Record(durationMs, tags);
+                _GraphTransactionQueueWaitDurationMs.Record(queueWaitDurationMs, tags);
+                _GraphTransactionCommitDurationMs.Record(commitDurationMs, tags);
+                _GraphTransactionRollbackDurationMs.Record(rollbackDurationMs, tags);
+                if (concurrencyConflict) _GraphTransactionConflictCounter.Add(1, tags);
+                if (retryCount > 0) _GraphTransactionRetryCounter.Add(retryCount, tags);
             }
+        }
+
+        /// <summary>
+        /// Track an active graph transaction for active-transaction gauges.
+        /// </summary>
+        /// <returns>Disposable scope.</returns>
+        public IDisposable BeginGraphTransaction()
+        {
+            if (!_Settings.Enable) return NullDisposable.Instance;
+            Interlocked.Increment(ref _ActiveGraphTransactions);
+            return new ActiveGraphTransactionScope(this);
         }
 
         /// <summary>
@@ -540,6 +687,76 @@ namespace LiteGraph.Server.Services
                 sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
             }
 
+            sb.AppendLine("# HELP litegraph_graph_transaction_queue_wait_duration_ms Total and count of serialized fallback queue wait durations in milliseconds.");
+            sb.AppendLine("# TYPE litegraph_graph_transaction_queue_wait_duration_ms summary");
+            foreach (GraphTransactionMetric metric in _GraphTransactionMetrics.Values)
+            {
+                sb.Append("litegraph_graph_transaction_queue_wait_duration_ms_sum");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.QueueWaitDurationSumMs.ToString(CultureInfo.InvariantCulture));
+
+                sb.Append("litegraph_graph_transaction_queue_wait_duration_ms_count");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_graph_transaction_commit_duration_ms Total and count of graph transaction commit durations in milliseconds.");
+            sb.AppendLine("# TYPE litegraph_graph_transaction_commit_duration_ms summary");
+            foreach (GraphTransactionMetric metric in _GraphTransactionMetrics.Values)
+            {
+                sb.Append("litegraph_graph_transaction_commit_duration_ms_sum");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.CommitDurationSumMs.ToString(CultureInfo.InvariantCulture));
+
+                sb.Append("litegraph_graph_transaction_commit_duration_ms_count");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_graph_transaction_rollback_duration_ms Total and count of graph transaction rollback durations in milliseconds.");
+            sb.AppendLine("# TYPE litegraph_graph_transaction_rollback_duration_ms summary");
+            foreach (GraphTransactionMetric metric in _GraphTransactionMetrics.Values)
+            {
+                sb.Append("litegraph_graph_transaction_rollback_duration_ms_sum");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.RollbackDurationSumMs.ToString(CultureInfo.InvariantCulture));
+
+                sb.Append("litegraph_graph_transaction_rollback_duration_ms_count");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_graph_transaction_conflicts_total Total graph transaction concurrency conflicts.");
+            sb.AppendLine("# TYPE litegraph_graph_transaction_conflicts_total counter");
+            foreach (GraphTransactionMetric metric in _GraphTransactionMetrics.Values)
+            {
+                sb.Append("litegraph_graph_transaction_conflicts_total");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.ConflictCount.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_graph_transaction_retries_total Total graph transaction retry attempts reported by LiteGraph.");
+            sb.AppendLine("# TYPE litegraph_graph_transaction_retries_total counter");
+            foreach (GraphTransactionMetric metric in _GraphTransactionMetrics.Values)
+            {
+                sb.Append("litegraph_graph_transaction_retries_total");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.RetryCount.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_graph_transaction_active Currently active graph transactions.");
+            sb.AppendLine("# TYPE litegraph_graph_transaction_active gauge");
+            sb.Append("litegraph_graph_transaction_active ");
+            sb.AppendLine(Interlocked.Read(ref _ActiveGraphTransactions).ToString(CultureInfo.InvariantCulture));
+
             sb.AppendLine("# HELP litegraph_authentication_requests_total Total authenticated requests by authentication and authorization result.");
             sb.AppendLine("# TYPE litegraph_authentication_requests_total counter");
             foreach (AuthenticationMetric metric in _AuthenticationMetrics.Values)
@@ -758,6 +975,18 @@ namespace LiteGraph.Server.Services
             sb.Append(metric.RolledBack ? "true" : "false");
             sb.Append("\",validation_failure=\"");
             sb.Append(metric.ValidationFailure ? "true" : "false");
+            sb.Append("\",provider=\"");
+            sb.Append(EscapeLabel(metric.Provider));
+            sb.Append("\",isolation_level=\"");
+            sb.Append(EscapeLabel(metric.IsolationLevel));
+            sb.Append("\",state=\"");
+            sb.Append(EscapeLabel(metric.State));
+            sb.Append("\",serialized_by_gate=\"");
+            sb.Append(metric.SerializedByGate ? "true" : "false");
+            sb.Append("\",retryable=\"");
+            sb.Append(metric.Retryable ? "true" : "false");
+            sb.Append("\",concurrency_conflict=\"");
+            sb.Append(metric.ConcurrencyConflict ? "true" : "false");
             sb.Append("\"}");
         }
 
@@ -818,6 +1047,11 @@ namespace LiteGraph.Server.Services
 
                 yield return new Measurement<long>(1, tags);
             }
+        }
+
+        private IEnumerable<Measurement<long>> ObserveActiveGraphTransactions()
+        {
+            yield return new Measurement<long>(Interlocked.Read(ref _ActiveGraphTransactions));
         }
 
         private IEnumerable<Measurement<long>> ObserveStorageConnectionPoolMax()
@@ -973,25 +1207,89 @@ namespace LiteGraph.Server.Services
             internal bool Success { get; }
             internal bool RolledBack { get; }
             internal bool ValidationFailure { get; }
+            internal string Provider { get; }
+            internal string IsolationLevel { get; }
+            internal string State { get; }
+            internal bool SerializedByGate { get; }
+            internal bool Retryable { get; }
+            internal bool ConcurrencyConflict { get; }
             internal long Count { get; private set; }
             internal long OperationCount { get; private set; }
+            internal long RetryCount { get; private set; }
+            internal long ConflictCount { get; private set; }
             internal double DurationSumMs { get; private set; }
+            internal double QueueWaitDurationSumMs { get; private set; }
+            internal double CommitDurationSumMs { get; private set; }
+            internal double RollbackDurationSumMs { get; private set; }
 
-            internal GraphTransactionMetric(bool success, bool rolledBack, bool validationFailure)
+            internal GraphTransactionMetric(
+                bool success,
+                bool rolledBack,
+                bool validationFailure,
+                string provider,
+                string isolationLevel,
+                string state,
+                bool serializedByGate,
+                bool retryable,
+                bool concurrencyConflict)
             {
                 Success = success;
                 RolledBack = rolledBack;
                 ValidationFailure = validationFailure;
+                Provider = provider;
+                IsolationLevel = isolationLevel;
+                State = state;
+                SerializedByGate = serializedByGate;
+                Retryable = retryable;
+                ConcurrencyConflict = concurrencyConflict;
             }
 
-            internal void Record(int operationCount, double durationMs)
+            internal void Record(
+                int operationCount,
+                double durationMs,
+                double queueWaitDurationMs,
+                double commitDurationMs,
+                double rollbackDurationMs,
+                int retryCount)
             {
                 lock (_Lock)
                 {
                     Count++;
                     OperationCount += operationCount;
                     DurationSumMs += durationMs;
+                    QueueWaitDurationSumMs += queueWaitDurationMs;
+                    CommitDurationSumMs += commitDurationMs;
+                    RollbackDurationSumMs += rollbackDurationMs;
+                    RetryCount += retryCount;
+                    if (ConcurrencyConflict) ConflictCount++;
                 }
+            }
+        }
+
+        private sealed class ActiveGraphTransactionScope : IDisposable
+        {
+            private readonly ObservabilityService _Owner;
+            private bool _Disposed = false;
+
+            internal ActiveGraphTransactionScope(ObservabilityService owner)
+            {
+                _Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+            }
+
+            public void Dispose()
+            {
+                if (_Disposed) return;
+                _Disposed = true;
+                Interlocked.Decrement(ref _Owner._ActiveGraphTransactions);
+            }
+        }
+
+        private sealed class NullDisposable : IDisposable
+        {
+            internal static readonly NullDisposable Instance = new NullDisposable();
+
+            public void Dispose()
+            {
             }
         }
 

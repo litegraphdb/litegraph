@@ -372,6 +372,7 @@ Diagnostic fields:
 - `State`: final transaction lifecycle state, such as `Committed`, `RolledBack`, or `Faulted`.
 - `OperationCount`: number of submitted operations.
 - `StartedUtc`, `CompletedUtc`, `DurationMs`: transaction execution timing.
+- `QueueWaitDurationMs`: time spent waiting for the legacy serialized fallback gate before the provider transaction started.
 - `CommitDurationMs`, `RollbackDurationMs`: provider commit or rollback timing.
 - `ValidationFailure`: `true` when request validation failed before a provider transaction started.
 - `Provider`: provider repository that executed the transaction.

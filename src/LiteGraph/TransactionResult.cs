@@ -71,6 +71,11 @@ namespace LiteGraph
         public double DurationMs { get; set; } = 0;
 
         /// <summary>
+        /// Time spent waiting behind the serialized fallback gate, in milliseconds.
+        /// </summary>
+        public double QueueWaitDurationMs { get; set; } = 0;
+
+        /// <summary>
         /// Commit duration in milliseconds.
         /// </summary>
         public double CommitDurationMs { get; set; } = 0;

@@ -35,6 +35,7 @@ export default class TransactionResult {
       StartedUtc = null,
       CompletedUtc = null,
       DurationMs = 0,
+      QueueWaitDurationMs = 0,
       CommitDurationMs = 0,
       RollbackDurationMs = 0,
       Provider = null,
@@ -59,6 +60,7 @@ export default class TransactionResult {
     this.StartedUtc = StartedUtc;
     this.CompletedUtc = CompletedUtc;
     this.DurationMs = DurationMs;
+    this.QueueWaitDurationMs = QueueWaitDurationMs;
     this.CommitDurationMs = CommitDurationMs;
     this.RollbackDurationMs = RollbackDurationMs;
     this.Provider = Provider;

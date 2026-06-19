@@ -59,6 +59,11 @@ namespace LiteGraph
         public const string RepositoryOperationActivityName = "litegraph.repository.operation";
 
         /// <summary>
+        /// Graph transaction activity name.
+        /// </summary>
+        public const string TransactionActivityName = "litegraph.transaction";
+
+        /// <summary>
         /// Core ActivitySource used by embedded LiteGraph operations.
         /// </summary>
         public static readonly ActivitySource ActivitySource = new ActivitySource(ActivitySourceName);
