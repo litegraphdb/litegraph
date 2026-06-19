@@ -61,10 +61,10 @@ TransactionRequest request = sdk.Transaction.CreateRequestBuilder()
 
 TransactionResult result = await sdk.Transaction.Execute(tenantGuid, graph.GUID, request);
 
-Console.WriteLine($"{result.Success} {result.TransactionId} {result.DurationMs}ms");
+Console.WriteLine($"{result.Success} {result.State} {result.TransactionId} {result.DurationMs}ms");
 ```
 
-`TransactionResult` includes validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether the request used an isolated transaction repository or the legacy serialized fallback.
+`TransactionResult` includes lifecycle state, validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether the request used an isolated transaction repository or the legacy serialized fallback.
 
 ## Version History
 

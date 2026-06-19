@@ -53,6 +53,11 @@
                         executeAsync: TestPostgresqlSqlTranslation),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Storage.Postgresql.TransactionClonePool",
+                        displayName: "PostgreSQL transaction clones share the repository connection pool",
+                        executeAsync: TestPostgresqlTransactionClonePool),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Storage.Migration.SqliteRoundTrip",
                         displayName: "Storage migration copies and verifies repository data",
                         executeAsync: TestStorageMigrationSqliteRoundTrip),
@@ -121,6 +126,11 @@
                         executeAsync: TestGraphTransactionClientAttachDetachUpsert),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Client.OperationMatrix",
+                        displayName: "Graph transaction client creates, updates, deletes, and verifies graph child objects",
+                        executeAsync: TestGraphTransactionClientOperationMatrix),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Client.MixedRollbackAndLimits",
                         displayName: "Graph transaction client enforces limits and rolls back mixed operations",
                         executeAsync: TestGraphTransactionClientMixedRollbackAndLimits),
@@ -149,6 +159,36 @@
                         caseId: "Transactions.Client.ConcurrentQueue",
                         displayName: "Graph transaction client commits concurrent operation lists",
                         executeAsync: TestGraphTransactionClientConcurrentQueue),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.SameGraphMixedObjects",
+                        displayName: "Concurrent graph transactions commit mixed objects on the same graph",
+                        executeAsync: TestGraphTransactionConcurrentSameGraphMixedObjects),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.DifferentGraphs",
+                        displayName: "Concurrent graph transactions commit independently across graphs",
+                        executeAsync: TestGraphTransactionConcurrentDifferentGraphs),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.CommitRollbackIsolation",
+                        displayName: "Concurrent graph transaction rollbacks do not affect commits",
+                        executeAsync: TestGraphTransactionConcurrentCommitRollbackIsolation),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.AttachDetachMetadata",
+                        displayName: "Concurrent graph transactions attach and detach metadata safely",
+                        executeAsync: TestGraphTransactionConcurrentAttachDetachMetadata),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.UpsertWaves",
+                        displayName: "Concurrent graph transactions upsert object waves safely",
+                        executeAsync: TestGraphTransactionConcurrentUpsertWaves),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.VectorCommitRollback",
+                        displayName: "Concurrent graph vector transactions isolate commit and rollback",
+                        executeAsync: TestGraphTransactionConcurrentVectorCommitRollback),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Client.IsolatedParallelExecution",
@@ -395,6 +435,42 @@
                 "INSERT INTO 'vectors' VALUES (X'0A0B');",
                 "litegraph");
             AssertTrue(blobSql.Contains("decode('0A0B', 'hex')", StringComparison.Ordinal), "PostgreSQL translates SQLite blob literals");
+
+            return Task.CompletedTask;
+        }
+
+        private static Task TestPostgresqlTransactionClonePool(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (PostgresqlGraphRepository repo = new PostgresqlGraphRepository(new DatabaseSettings
+            {
+                Type = DatabaseTypeEnum.Postgresql,
+                ConnectionString = "Host=localhost;Database=litegraph;Username=litegraph;Password=litegraph",
+                Schema = "clone_pool_test",
+                MaxConnections = 7
+            }))
+            using (GraphRepositoryBase clone = repo.CreateIsolatedTransactionRepository())
+            {
+                AssertTrue(clone is PostgresqlGraphRepository, "PostgreSQL transaction clone type");
+                AssertEqual(repo.Schema, ((PostgresqlGraphRepository)clone).Schema, "PostgreSQL transaction clone preserves schema");
+
+                FieldInfo? dataSourceField = typeof(PostgresqlGraphRepository).GetField("_DataSource", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo? ownsDataSourceField = typeof(PostgresqlGraphRepository).GetField("_OwnsDataSource", BindingFlags.Instance | BindingFlags.NonPublic);
+                AssertNotNull(dataSourceField, "PostgreSQL data source field exists");
+                AssertNotNull(ownsDataSourceField, "PostgreSQL data source ownership field exists");
+                if (dataSourceField == null || ownsDataSourceField == null) throw new InvalidOperationException("PostgreSQL clone pool fields were not found.");
+
+                object? parentDataSource = dataSourceField.GetValue(repo);
+                object? cloneDataSource = dataSourceField.GetValue(clone);
+                object? parentOwnsDataSource = ownsDataSourceField.GetValue(repo);
+                object? cloneOwnsDataSource = ownsDataSourceField.GetValue(clone);
+                AssertNotNull(parentDataSource, "PostgreSQL parent data source exists");
+                AssertNotNull(cloneDataSource, "PostgreSQL clone data source exists");
+                AssertTrue(Object.ReferenceEquals(parentDataSource, cloneDataSource), "PostgreSQL transaction clone shares parent data source");
+                AssertTrue(parentOwnsDataSource is bool parentOwns && parentOwns, "PostgreSQL parent owns data source");
+                AssertTrue(cloneOwnsDataSource is bool cloneOwns && !cloneOwns, "PostgreSQL transaction clone does not own data source");
+            }
 
             return Task.CompletedTask;
         }
@@ -9035,6 +9111,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertTrue(committed.Success, "Transaction committed");
+                AssertEqual("Committed", committed.State, "Committed transaction lifecycle state");
                 AssertEqual(3, committed.Operations.Count, "Committed operation count");
                 AssertEqual(3, committed.OperationCount, "Committed diagnostic operation count");
                 AssertFalse(committed.TransactionId == Guid.Empty, "Committed transaction has diagnostic ID");
@@ -9077,6 +9154,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(rolledBack.Success, "Transaction rolled back");
+                AssertEqual("RolledBack", rolledBack.State, "Rolled back transaction lifecycle state");
                 AssertTrue(rolledBack.RolledBack, "Rollback flag");
                 AssertFalse(rolledBack.TransactionId == Guid.Empty, "Rolled back transaction has diagnostic ID");
                 AssertEqual(2, rolledBack.OperationCount, "Rolled back diagnostic operation count");
@@ -9279,10 +9357,140 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(invalidAttach.Success, "Invalid attach transaction fails");
+                AssertEqual("Faulted", invalidAttach.State, "Invalid attach lifecycle state");
                 AssertFalse(invalidAttach.RolledBack, "Invalid attach fails before transaction start");
                 AssertTrue(invalidAttach.ValidationFailure, "Invalid attach reports validation failure");
                 AssertEqual(1, invalidAttach.FailedOperationIndex.GetValueOrDefault(), "Invalid attach failed index");
                 AssertFalse(await client.Label.ExistsByGuid(tenant.GUID, invalidLabelGuid, cancellationToken).ConfigureAwait(false), "Invalid attach did not write label");
+            }
+
+            DeleteFileIfExists(filename);
+        }
+
+        private static async Task TestGraphTransactionClientOperationMatrix(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-operation-matrix.db";
+            DeleteFileIfExists(filename);
+
+            using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+            {
+                Filename = filename
+            })))
+            {
+                client.InitializeRepository();
+                TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Transaction Matrix Tenant" }, cancellationToken).ConfigureAwait(false);
+                Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Transaction Matrix Graph" }, cancellationToken).ConfigureAwait(false);
+
+                Guid node1Guid = Guid.NewGuid();
+                Guid node2Guid = Guid.NewGuid();
+                Guid edgeGuid = Guid.NewGuid();
+                Guid labelGuid = Guid.NewGuid();
+                Guid tagGuid = Guid.NewGuid();
+                Guid vectorGuid = Guid.NewGuid();
+
+                TransactionRequest createRequest = client.Transaction
+                    .CreateRequestBuilder()
+                    .CreateNode(new Node { GUID = node1Guid, Name = "Matrix Node 1" })
+                    .CreateNode(new Node { GUID = node2Guid, Name = "Matrix Node 2" })
+                    .CreateEdge(new Edge { GUID = edgeGuid, Name = "Matrix Edge", From = node1Guid, To = node2Guid, Cost = 4 })
+                    .CreateLabel(new LabelMetadata { GUID = labelGuid, NodeGUID = node1Guid, Label = "MatrixLabel" })
+                    .CreateTag(new TagMetadata { GUID = tagGuid, NodeGUID = node1Guid, Key = "matrix", Value = "initial" })
+                    .CreateVector(new VectorMetadata
+                    {
+                        GUID = vectorGuid,
+                        NodeGUID = node1Guid,
+                        Model = "transaction-matrix",
+                        Dimensionality = 4,
+                        Content = "matrix vector",
+                        Vectors = BuildDeterministicVector(2, 4)
+                    })
+                    .Build();
+
+                TransactionResult created = await client.Transaction.Execute(tenant.GUID, graph.GUID, createRequest, cancellationToken).ConfigureAwait(false);
+                AssertTrue(created.Success, "Operation matrix create transaction committed");
+                AssertEqual("Committed", created.State, "Operation matrix create transaction state");
+                AssertEqual(6, created.OperationCount, "Operation matrix create operation count");
+                AssertEqual(6, created.Operations.Count, "Operation matrix create results");
+                AssertTrue(created.Operations.All(operation => operation.Success), "Operation matrix create results succeeded");
+                AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, node1Guid, cancellationToken).ConfigureAwait(false), "Operation matrix node 1 create persisted");
+                AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, node2Guid, cancellationToken).ConfigureAwait(false), "Operation matrix node 2 create persisted");
+                AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, edgeGuid, cancellationToken).ConfigureAwait(false), "Operation matrix edge create persisted");
+                AssertTrue(await client.Label.ExistsByGuid(tenant.GUID, labelGuid, cancellationToken).ConfigureAwait(false), "Operation matrix label create persisted");
+                AssertTrue(await client.Tag.ExistsByGuid(tenant.GUID, tagGuid, cancellationToken).ConfigureAwait(false), "Operation matrix tag create persisted");
+                AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, vectorGuid, cancellationToken).ConfigureAwait(false), "Operation matrix vector create persisted");
+
+                TransactionRequest updateRequest = client.Transaction
+                    .CreateRequestBuilder()
+                    .UpdateEdge(new Edge { Name = "Matrix Edge Updated", From = node1Guid, To = node2Guid, Cost = 8 }, edgeGuid)
+                    .UpdateLabel(new LabelMetadata { NodeGUID = node1Guid, Label = "MatrixLabelUpdated" }, labelGuid)
+                    .UpdateTag(new TagMetadata { NodeGUID = node1Guid, Key = "matrix", Value = "updated" }, tagGuid)
+                    .UpdateVector(new VectorMetadata
+                    {
+                        NodeGUID = node1Guid,
+                        Model = "transaction-matrix",
+                        Dimensionality = 4,
+                        Content = "matrix vector updated",
+                        Vectors = BuildDeterministicVector(3, 4)
+                    }, vectorGuid)
+                    .Build();
+
+                TransactionResult updated = await client.Transaction.Execute(tenant.GUID, graph.GUID, updateRequest, cancellationToken).ConfigureAwait(false);
+                AssertTrue(updated.Success, "Operation matrix update transaction committed at failed index " + updated.FailedOperationIndex + ": " + updated.Error);
+                AssertEqual("Committed", updated.State, "Operation matrix update transaction state");
+                AssertEqual(4, updated.OperationCount, "Operation matrix update operation count");
+
+                Edge updatedEdge = await client.Edge.ReadByGuid(tenant.GUID, graph.GUID, edgeGuid, token: cancellationToken).ConfigureAwait(false);
+                LabelMetadata updatedLabel = await client.Label.ReadByGuid(tenant.GUID, labelGuid, cancellationToken).ConfigureAwait(false);
+                TagMetadata updatedTag = await client.Tag.ReadByGuid(tenant.GUID, tagGuid, cancellationToken).ConfigureAwait(false);
+                VectorMetadata updatedVector = await client.Vector.ReadByGuid(tenant.GUID, vectorGuid, cancellationToken).ConfigureAwait(false);
+                AssertEqual("Matrix Edge Updated", updatedEdge.Name, "Operation matrix edge update persisted");
+                AssertEqual(8, updatedEdge.Cost, "Operation matrix edge cost update persisted");
+                AssertEqual("MatrixLabelUpdated", updatedLabel.Label, "Operation matrix label update persisted");
+                AssertEqual("updated", updatedTag.Value, "Operation matrix tag update persisted");
+                AssertEqual("matrix vector updated", updatedVector.Content, "Operation matrix vector update persisted");
+                AssertEqual(4, updatedVector.Vectors.Count, "Operation matrix vector embedding persisted");
+
+                TransactionRequest deleteRequest = client.Transaction
+                    .CreateRequestBuilder()
+                    .DeleteLabel(labelGuid)
+                    .DeleteTag(tagGuid)
+                    .DeleteVector(vectorGuid)
+                    .Build();
+
+                TransactionResult deleted = await client.Transaction.Execute(tenant.GUID, graph.GUID, deleteRequest, cancellationToken).ConfigureAwait(false);
+                AssertTrue(deleted.Success, "Operation matrix child delete transaction committed");
+                AssertEqual("Committed", deleted.State, "Operation matrix child delete transaction state");
+                AssertEqual(3, deleted.OperationCount, "Operation matrix child delete operation count");
+                AssertFalse(await client.Label.ExistsByGuid(tenant.GUID, labelGuid, cancellationToken).ConfigureAwait(false), "Operation matrix label delete persisted");
+                AssertFalse(await client.Tag.ExistsByGuid(tenant.GUID, tagGuid, cancellationToken).ConfigureAwait(false), "Operation matrix tag delete persisted");
+                AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, vectorGuid, cancellationToken).ConfigureAwait(false), "Operation matrix vector delete persisted");
+
+                TransactionResult parentUpdated = await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    client.Transaction
+                        .CreateRequestBuilder()
+                        .UpdateNode(new Node { Name = "Matrix Node 1 Updated" }, node1Guid)
+                        .Build(),
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(parentUpdated.Success, "Operation matrix node update transaction committed: " + parentUpdated.Error);
+                Node updatedNode = await client.Node.ReadByGuid(tenant.GUID, graph.GUID, node1Guid, token: cancellationToken).ConfigureAwait(false);
+                AssertEqual("Matrix Node 1 Updated", updatedNode.Name, "Operation matrix node update persisted");
+
+                TransactionResult parentDeleted = await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    client.Transaction
+                        .CreateRequestBuilder()
+                        .DeleteEdge(edgeGuid)
+                        .DeleteNode(node2Guid)
+                        .Build(),
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(parentDeleted.Success, "Operation matrix edge/node delete transaction committed: " + parentDeleted.Error);
+                AssertEqual("Committed", parentDeleted.State, "Operation matrix edge/node delete transaction state");
+                AssertFalse(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, edgeGuid, cancellationToken).ConfigureAwait(false), "Operation matrix edge delete persisted");
+                AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, node2Guid, cancellationToken).ConfigureAwait(false), "Operation matrix node delete persisted");
+                AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, node1Guid, cancellationToken).ConfigureAwait(false), "Operation matrix unaffected node remains");
             }
 
             DeleteFileIfExists(filename);
@@ -9359,6 +9567,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(invalidShape.Success, "Invalid transaction shape fails");
+                AssertEqual("Faulted", invalidShape.State, "Invalid transaction shape lifecycle state");
                 AssertFalse(invalidShape.RolledBack, "Invalid transaction shape does not report rollback before transaction start");
                 AssertTrue(invalidShape.ValidationFailure, "Invalid transaction shape reports validation failure");
                 AssertTrue(invalidShape.FailedOperationIndex != null, "Invalid transaction shape includes failed index");
@@ -9434,6 +9643,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(rolledBack.Success, "Mixed transaction rolled back");
+                AssertEqual("RolledBack", rolledBack.State, "Mixed transaction lifecycle state");
                 AssertTrue(rolledBack.RolledBack, "Mixed transaction rollback flag");
                 AssertEqual(6, rolledBack.FailedOperationIndex.GetValueOrDefault(), "Mixed transaction failed operation index");
                 AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, node1Guid, cancellationToken).ConfigureAwait(false), "Mixed rollback removed node 1");
@@ -9483,6 +9693,7 @@
                         cancelled.Token).ConfigureAwait(false);
 
                     AssertFalse(result.Success, "Cancelled transaction fails");
+                    AssertEqual("Faulted", result.State, "Cancelled transaction lifecycle state");
                     AssertFalse(result.RolledBack, "Cancelled transaction does not report rollback before transaction start");
                     AssertFalse(result.ValidationFailure, "Cancelled transaction is not validation failure");
                     AssertTrue(result.Error.Contains("canceled") || result.Error.Contains("cancelled"), "Cancelled transaction error indicates cancellation");
@@ -9524,6 +9735,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 AssertFalse(result.Success, "Timed-out transaction fails");
+                AssertEqual("RolledBack", result.State, "Timed-out transaction lifecycle state");
                 AssertTrue(result.RolledBack, "Timed-out transaction reports rollback");
                 AssertEqual(0, result.FailedOperationIndex.GetValueOrDefault(), "Timed-out transaction failed operation index");
                 AssertTrue(result.Error.Contains("canceled", StringComparison.OrdinalIgnoreCase)
@@ -9674,8 +9886,463 @@
                     for (int i = 0; i < results.Length; i++)
                     {
                         AssertTrue(results[i].Success, "Queued transaction " + i + " committed");
+                        AssertEqual("Committed", results[i].State, "Queued transaction " + i + " lifecycle state");
                         AssertFalse(results[i].RolledBack, "Queued transaction " + i + " did not roll back");
                         AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, nodeGuids[i], cancellationToken).ConfigureAwait(false), "Queued transaction node " + i + " exists");
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentSameGraphMixedObjects(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-same-graph.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Concurrent Same Graph Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Concurrent Same Graph" }, cancellationToken).ConfigureAwait(false);
+                    var specs = Enumerable.Range(0, 6)
+                        .Select(index => new
+                        {
+                            Index = index,
+                            NodeA = Guid.NewGuid(),
+                            NodeB = Guid.NewGuid(),
+                            Edge = Guid.NewGuid(),
+                            Label = Guid.NewGuid(),
+                            Tag = Guid.NewGuid(),
+                            Vector = Guid.NewGuid()
+                        })
+                        .ToArray();
+
+                    Task<TransactionResult>[] transactions = specs
+                        .Select(spec => client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .CreateNode(new Node { GUID = spec.NodeA, Name = "Concurrent Mixed Node A " + spec.Index })
+                                .CreateNode(new Node { GUID = spec.NodeB, Name = "Concurrent Mixed Node B " + spec.Index })
+                                .CreateEdge(new Edge { GUID = spec.Edge, Name = "Concurrent Mixed Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB, Cost = spec.Index + 1 })
+                                .CreateLabel(new LabelMetadata { GUID = spec.Label, NodeGUID = spec.NodeA, Label = "ConcurrentMixed" + spec.Index })
+                                .CreateTag(new TagMetadata { GUID = spec.Tag, NodeGUID = spec.NodeA, Key = "slot", Value = spec.Index.ToString() })
+                                .CreateVector(new VectorMetadata
+                                {
+                                    GUID = spec.Vector,
+                                    NodeGUID = spec.NodeA,
+                                    Model = "concurrent-mixed",
+                                    Dimensionality = 4,
+                                    Content = "concurrent mixed vector " + spec.Index,
+                                    Vectors = BuildDeterministicVector(spec.Index % 4, 4)
+                                })
+                                .Build(),
+                            cancellationToken))
+                        .ToArray();
+
+                    TransactionResult[] results = await Task.WhenAll(transactions).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        AssertTrue(results[i].Success, "Same-graph mixed transaction " + i + " committed: " + results[i].Error);
+                        AssertEqual("Committed", results[i].State, "Same-graph mixed transaction " + i + " lifecycle state");
+                        AssertEqual(6, results[i].OperationCount, "Same-graph mixed transaction " + i + " operation count");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeA, cancellationToken).ConfigureAwait(false), "Same-graph mixed node A " + i + " exists");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeB, cancellationToken).ConfigureAwait(false), "Same-graph mixed node B " + i + " exists");
+                        AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, specs[i].Edge, cancellationToken).ConfigureAwait(false), "Same-graph mixed edge " + i + " exists");
+                        AssertTrue(await client.Label.ExistsByGuid(tenant.GUID, specs[i].Label, cancellationToken).ConfigureAwait(false), "Same-graph mixed label " + i + " exists");
+                        AssertTrue(await client.Tag.ExistsByGuid(tenant.GUID, specs[i].Tag, cancellationToken).ConfigureAwait(false), "Same-graph mixed tag " + i + " exists");
+                        AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, specs[i].Vector, cancellationToken).ConfigureAwait(false), "Same-graph mixed vector " + i + " exists");
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentDifferentGraphs(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-different-graphs.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Concurrent Different Graphs Tenant" }, cancellationToken).ConfigureAwait(false);
+                    List<(int Index, Graph Graph, Guid NodeA, Guid NodeB, Guid Edge)> specs = new List<(int Index, Graph Graph, Guid NodeA, Guid NodeB, Guid Edge)>();
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Concurrent Graph " + i }, cancellationToken).ConfigureAwait(false);
+                        specs.Add((i, graph, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
+                    }
+
+                    Task<TransactionResult>[] transactions = specs
+                        .Select(spec => client.Transaction.Execute(
+                            tenant.GUID,
+                            spec.Graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .CreateNode(new Node { GUID = spec.NodeA, Name = "Different Graph Node A " + spec.Index })
+                                .CreateNode(new Node { GUID = spec.NodeB, Name = "Different Graph Node B " + spec.Index })
+                                .CreateEdge(new Edge { GUID = spec.Edge, Name = "Different Graph Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB })
+                                .Build(),
+                            cancellationToken))
+                        .ToArray();
+
+                    TransactionResult[] results = await Task.WhenAll(transactions).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Count; i++)
+                    {
+                        AssertTrue(results[i].Success, "Different-graph transaction " + i + " committed: " + results[i].Error);
+                        AssertEqual("Committed", results[i].State, "Different-graph transaction " + i + " lifecycle state");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeA, cancellationToken).ConfigureAwait(false), "Different-graph node A " + i + " exists");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeB, cancellationToken).ConfigureAwait(false), "Different-graph node B " + i + " exists");
+                        AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, specs[i].Graph.GUID, specs[i].Edge, cancellationToken).ConfigureAwait(false), "Different-graph edge " + i + " exists");
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentCommitRollbackIsolation(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-commit-rollback.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Concurrent Rollback Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Concurrent Rollback Graph" }, cancellationToken).ConfigureAwait(false);
+                    var specs = Enumerable.Range(0, 8)
+                        .Select(index => new
+                        {
+                            Index = index,
+                            ShouldCommit = index % 2 == 0,
+                            NodeA = Guid.NewGuid(),
+                            NodeB = Guid.NewGuid(),
+                            Edge = Guid.NewGuid(),
+                            RollbackNode = Guid.NewGuid()
+                        })
+                        .ToArray();
+
+                    Task<TransactionResult>[] transactions = specs
+                        .Select(spec =>
+                        {
+                            TransactionRequestBuilder builder = client.Transaction.CreateRequestBuilder();
+                            if (spec.ShouldCommit)
+                            {
+                                builder
+                                    .CreateNode(new Node { GUID = spec.NodeA, Name = "Commit Isolation Node A " + spec.Index })
+                                    .CreateNode(new Node { GUID = spec.NodeB, Name = "Commit Isolation Node B " + spec.Index })
+                                    .CreateEdge(new Edge { GUID = spec.Edge, Name = "Commit Isolation Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB });
+                            }
+                            else
+                            {
+                                builder
+                                    .CreateNode(new Node { GUID = spec.RollbackNode, Name = "Rollback Isolation Node " + spec.Index })
+                                    .CreateNode(new Node { GUID = spec.RollbackNode, Name = "Rollback Isolation Duplicate " + spec.Index });
+                            }
+
+                            return client.Transaction.Execute(tenant.GUID, graph.GUID, builder.Build(), cancellationToken);
+                        })
+                        .ToArray();
+
+                    TransactionResult[] results = await Task.WhenAll(transactions).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        if (specs[i].ShouldCommit)
+                        {
+                            AssertTrue(results[i].Success, "Concurrent commit " + i + " succeeded: " + results[i].Error);
+                            AssertEqual("Committed", results[i].State, "Concurrent commit " + i + " lifecycle state");
+                            AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeA, cancellationToken).ConfigureAwait(false), "Concurrent commit node A " + i + " exists");
+                            AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeB, cancellationToken).ConfigureAwait(false), "Concurrent commit node B " + i + " exists");
+                            AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, specs[i].Edge, cancellationToken).ConfigureAwait(false), "Concurrent commit edge " + i + " exists");
+                        }
+                        else
+                        {
+                            AssertFalse(results[i].Success, "Concurrent rollback " + i + " failed as expected");
+                            AssertEqual("RolledBack", results[i].State, "Concurrent rollback " + i + " lifecycle state");
+                            AssertTrue(results[i].RolledBack, "Concurrent rollback " + i + " reports rollback");
+                            AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, specs[i].RollbackNode, cancellationToken).ConfigureAwait(false), "Concurrent rollback node " + i + " is absent");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentAttachDetachMetadata(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-attach-detach.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Concurrent Attach Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Concurrent Attach Graph" }, cancellationToken).ConfigureAwait(false);
+                    List<(int Index, Guid Node, Guid Label, Guid Tag, Guid Vector)> specs = new List<(int Index, Guid Node, Guid Label, Guid Tag, Guid Vector)>();
+                    for (int i = 0; i < 6; i++)
+                    {
+                        Guid nodeGuid = Guid.NewGuid();
+                        Node node = await client.Node.Create(new Node
+                        {
+                            GUID = nodeGuid,
+                            TenantGUID = tenant.GUID,
+                            GraphGUID = graph.GUID,
+                            Name = "Attach Target Node " + i
+                        }, cancellationToken).ConfigureAwait(false);
+
+                        specs.Add((i, node.GUID, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
+                    }
+
+                    TransactionResult[] attached = await Task.WhenAll(specs.Select(spec => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .AttachLabel(new LabelMetadata { GUID = spec.Label, NodeGUID = spec.Node, Label = "ConcurrentAttach" + spec.Index })
+                            .AttachTag(new TagMetadata { GUID = spec.Tag, NodeGUID = spec.Node, Key = "attach", Value = spec.Index.ToString() })
+                            .AttachVector(new VectorMetadata
+                            {
+                                GUID = spec.Vector,
+                                NodeGUID = spec.Node,
+                                Model = "concurrent-attach",
+                                Dimensionality = 4,
+                                Content = "concurrent attach vector " + spec.Index,
+                                Vectors = BuildDeterministicVector(spec.Index % 4, 4)
+                            })
+                            .Build(),
+                        cancellationToken))).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Count; i++)
+                    {
+                        AssertTrue(attached[i].Success, "Concurrent attach transaction " + i + " committed: " + attached[i].Error);
+                        AssertEqual("Committed", attached[i].State, "Concurrent attach transaction " + i + " lifecycle state");
+                        AssertTrue(await client.Label.ExistsByGuid(tenant.GUID, specs[i].Label, cancellationToken).ConfigureAwait(false), "Concurrent attach label " + i + " exists");
+                        AssertTrue(await client.Tag.ExistsByGuid(tenant.GUID, specs[i].Tag, cancellationToken).ConfigureAwait(false), "Concurrent attach tag " + i + " exists");
+                        AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, specs[i].Vector, cancellationToken).ConfigureAwait(false), "Concurrent attach vector " + i + " exists");
+                    }
+
+                    TransactionResult[] detached = await Task.WhenAll(specs.Select(spec => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .DetachLabel(spec.Label)
+                            .DetachTag(spec.Tag)
+                            .DetachVector(spec.Vector)
+                            .Build(),
+                        cancellationToken))).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Count; i++)
+                    {
+                        AssertTrue(detached[i].Success, "Concurrent detach transaction " + i + " committed: " + detached[i].Error);
+                        AssertEqual("Committed", detached[i].State, "Concurrent detach transaction " + i + " lifecycle state");
+                        AssertFalse(await client.Label.ExistsByGuid(tenant.GUID, specs[i].Label, cancellationToken).ConfigureAwait(false), "Concurrent detach label " + i + " removed");
+                        AssertFalse(await client.Tag.ExistsByGuid(tenant.GUID, specs[i].Tag, cancellationToken).ConfigureAwait(false), "Concurrent detach tag " + i + " removed");
+                        AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, specs[i].Vector, cancellationToken).ConfigureAwait(false), "Concurrent detach vector " + i + " removed");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].Node, cancellationToken).ConfigureAwait(false), "Concurrent detach leaves node " + i);
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentUpsertWaves(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-upsert-waves.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Concurrent Upsert Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Concurrent Upsert Graph" }, cancellationToken).ConfigureAwait(false);
+                    var specs = Enumerable.Range(0, 6)
+                        .Select(index => new
+                        {
+                            Index = index,
+                            NodeA = Guid.NewGuid(),
+                            NodeB = Guid.NewGuid(),
+                            Edge = Guid.NewGuid()
+                        })
+                        .ToArray();
+
+                    TransactionResult[] created = await Task.WhenAll(specs.Select(spec => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .UpsertNode(new Node { GUID = spec.NodeA, Name = "Upsert Wave Node A " + spec.Index })
+                            .UpsertNode(new Node { GUID = spec.NodeB, Name = "Upsert Wave Node B " + spec.Index })
+                            .UpsertEdge(new Edge { GUID = spec.Edge, Name = "Upsert Wave Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB, Cost = spec.Index + 1 })
+                            .Build(),
+                        cancellationToken))).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        AssertTrue(created[i].Success, "Concurrent upsert create wave " + i + " committed: " + created[i].Error);
+                        AssertEqual("Committed", created[i].State, "Concurrent upsert create wave " + i + " lifecycle state");
+                    }
+
+                    TransactionResult[] updated = await Task.WhenAll(specs.Select(spec => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .UpsertNode(new Node { Name = "Upsert Wave Node A Updated " + spec.Index }, spec.NodeA)
+                            .UpsertNode(new Node { Name = "Upsert Wave Node B Updated " + spec.Index }, spec.NodeB)
+                            .UpsertEdge(new Edge { Name = "Upsert Wave Edge Updated " + spec.Index, From = spec.NodeA, To = spec.NodeB, Cost = spec.Index + 10 }, spec.Edge)
+                            .Build(),
+                        cancellationToken))).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        AssertTrue(updated[i].Success, "Concurrent upsert update wave " + i + " committed: " + updated[i].Error);
+                        AssertEqual("Committed", updated[i].State, "Concurrent upsert update wave " + i + " lifecycle state");
+                        Node nodeA = await client.Node.ReadByGuid(tenant.GUID, graph.GUID, specs[i].NodeA, token: cancellationToken).ConfigureAwait(false);
+                        Node nodeB = await client.Node.ReadByGuid(tenant.GUID, graph.GUID, specs[i].NodeB, token: cancellationToken).ConfigureAwait(false);
+                        Edge edge = await client.Edge.ReadByGuid(tenant.GUID, graph.GUID, specs[i].Edge, token: cancellationToken).ConfigureAwait(false);
+                        AssertEqual("Upsert Wave Node A Updated " + i, nodeA.Name, "Concurrent upsert node A " + i + " updated");
+                        AssertEqual("Upsert Wave Node B Updated " + i, nodeB.Name, "Concurrent upsert node B " + i + " updated");
+                        AssertEqual("Upsert Wave Edge Updated " + i, edge.Name, "Concurrent upsert edge " + i + " updated");
+                        AssertEqual(i + 10, edge.Cost, "Concurrent upsert edge " + i + " cost updated");
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentVectorCommitRollback(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-vector-rollback.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Concurrent Vector Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Concurrent Vector Graph" }, cancellationToken).ConfigureAwait(false);
+                    List<(int Index, bool ShouldCommit, Guid Node, Guid Vector)> specs = new List<(int Index, bool ShouldCommit, Guid Node, Guid Vector)>();
+                    for (int i = 0; i < 8; i++)
+                    {
+                        Guid nodeGuid = Guid.NewGuid();
+                        await client.Node.Create(new Node
+                        {
+                            GUID = nodeGuid,
+                            TenantGUID = tenant.GUID,
+                            GraphGUID = graph.GUID,
+                            Name = "Vector Target Node " + i
+                        }, cancellationToken).ConfigureAwait(false);
+
+                        specs.Add((i, i % 2 == 0, nodeGuid, Guid.NewGuid()));
+                    }
+
+                    TransactionResult[] results = await Task.WhenAll(specs.Select(spec =>
+                    {
+                        VectorMetadata vector = new VectorMetadata
+                        {
+                            GUID = spec.Vector,
+                            NodeGUID = spec.Node,
+                            Model = "concurrent-vector",
+                            Dimensionality = 4,
+                            Content = "concurrent vector " + spec.Index,
+                            Vectors = BuildDeterministicVector(spec.Index % 4, 4)
+                        };
+
+                        TransactionRequestBuilder builder = client.Transaction
+                            .CreateRequestBuilder()
+                            .CreateVector(vector);
+
+                        if (!spec.ShouldCommit)
+                        {
+                            builder.CreateVector(new VectorMetadata
+                            {
+                                GUID = spec.Vector,
+                                NodeGUID = spec.Node,
+                                Model = "concurrent-vector",
+                                Dimensionality = 4,
+                                Content = "concurrent duplicate vector " + spec.Index,
+                                Vectors = BuildDeterministicVector((spec.Index + 1) % 4, 4)
+                            });
+                        }
+
+                        return client.Transaction.Execute(tenant.GUID, graph.GUID, builder.Build(), cancellationToken);
+                    })).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Count; i++)
+                    {
+                        if (specs[i].ShouldCommit)
+                        {
+                            AssertTrue(results[i].Success, "Concurrent vector commit " + i + " succeeded: " + results[i].Error);
+                            AssertEqual("Committed", results[i].State, "Concurrent vector commit " + i + " lifecycle state");
+                            AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, specs[i].Vector, cancellationToken).ConfigureAwait(false), "Concurrent vector commit " + i + " exists");
+                        }
+                        else
+                        {
+                            AssertFalse(results[i].Success, "Concurrent vector rollback " + i + " failed as expected");
+                            AssertEqual("RolledBack", results[i].State, "Concurrent vector rollback " + i + " lifecycle state");
+                            AssertTrue(results[i].RolledBack, "Concurrent vector rollback " + i + " reports rollback");
+                            AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, specs[i].Vector, cancellationToken).ConfigureAwait(false), "Concurrent vector rollback " + i + " absent");
+                        }
                     }
                 }
             }
@@ -9718,6 +10385,7 @@
                 for (int i = 0; i < results.Length; i++)
                 {
                     AssertTrue(results[i].Success, "Parallel transaction " + i + " committed");
+                    AssertEqual("Committed", results[i].State, "Parallel transaction " + i + " lifecycle state");
                     AssertFalse(results[i].RolledBack, "Parallel transaction " + i + " did not roll back");
                     AssertFalse(results[i].TransactionId == Guid.Empty, "Parallel transaction " + i + " has diagnostic ID");
                     AssertEqual(1, results[i].OperationCount, "Parallel transaction " + i + " diagnostic operation count");
@@ -10625,7 +11293,7 @@
                 string requestId = "request-" + requestGuid.ToString("N");
                 string correlationId = "correlation-" + Guid.NewGuid().ToString("N");
                 string traceId = "0123456789abcdef0123456789abcdef";
-                string transactionDiagnosticsJson = "{\"TransactionId\":\"11111111-1111-1111-1111-111111111111\",\"OperationCount\":2,\"IsolationLevel\":\"Serializable\",\"RetryCount\":0,\"ProviderErrorCode\":\"40001\"}";
+                string transactionDiagnosticsJson = "{\"TransactionId\":\"11111111-1111-1111-1111-111111111111\",\"State\":\"RolledBack\",\"OperationCount\":2,\"IsolationLevel\":\"Serializable\",\"RetryCount\":0,\"ProviderErrorCode\":\"40001\"}";
 
                 await repo.RequestHistory.Insert(new RequestHistoryDetail
                 {

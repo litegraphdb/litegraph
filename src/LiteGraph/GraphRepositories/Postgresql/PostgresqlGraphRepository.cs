@@ -132,6 +132,7 @@
 
         private readonly object _QueryLock = new object();
         private readonly NpgsqlDataSource _DataSource;
+        private readonly bool _OwnsDataSource;
         private NpgsqlConnection _TransactionConnection = null;
         private NpgsqlTransaction _Transaction = null;
         private Guid? _GraphTransactionTenantGUID = null;
@@ -149,13 +150,32 @@
         /// </summary>
         /// <param name="settings">Database settings.</param>
         public PostgresqlGraphRepository(DatabaseSettings settings)
+            : this(settings, null, null, true, true)
+        {
+        }
+
+        private PostgresqlGraphRepository(
+            DatabaseSettings settings,
+            NpgsqlDataSource dataSource,
+            VectorIndexManager vectorIndexManager,
+            bool ownsDataSource,
+            bool ownsVectorIndexManager)
         {
             Settings = settings?.Clone() ?? throw new ArgumentNullException(nameof(settings));
             Settings.Type = DatabaseTypeEnum.Postgresql;
             Schema = NormalizeSchema(Settings.Schema);
 
-            NpgsqlConnectionStringBuilder builder = BuildConnectionString(Settings);
-            _DataSource = NpgsqlDataSource.Create(builder.ConnectionString);
+            if (dataSource != null)
+            {
+                _DataSource = dataSource;
+                _OwnsDataSource = ownsDataSource;
+            }
+            else
+            {
+                NpgsqlConnectionStringBuilder builder = BuildConnectionString(Settings);
+                _DataSource = NpgsqlDataSource.Create(builder.ConnectionString);
+                _OwnsDataSource = true;
+            }
 
             Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
@@ -173,8 +193,17 @@
             AuthorizationAudit = new AuthorizationAuditMethods(this);
             AuthorizationRoles = new AuthorizationRoleMethods(this);
 
-            string indexDirectory = Path.Combine(".", "indexes", "postgresql", Schema);
-            VectorIndexManager = new VectorIndexManager(indexDirectory);
+            if (vectorIndexManager != null)
+            {
+                VectorIndexManager = vectorIndexManager;
+                _OwnsVectorIndexManager = ownsVectorIndexManager;
+            }
+            else
+            {
+                string indexDirectory = Path.Combine(".", "indexes", "postgresql", Schema);
+                VectorIndexManager = new VectorIndexManager(indexDirectory);
+                _OwnsVectorIndexManager = true;
+            }
         }
 
         /// <inheritdoc />
@@ -217,7 +246,7 @@
         {
             ThrowIfDisposed();
 
-            PostgresqlGraphRepository clone = new PostgresqlGraphRepository(Settings.Clone())
+            PostgresqlGraphRepository clone = new PostgresqlGraphRepository(Settings.Clone(), _DataSource, VectorIndexManager, false, false)
             {
                 Logging = Logging,
                 Serializer = Serializer,
@@ -225,10 +254,6 @@
                 MaxStatementLength = MaxStatementLength,
                 TimestampFormat = TimestampFormat
             };
-
-            clone.VectorIndexManager?.Dispose();
-            clone.VectorIndexManager = VectorIndexManager;
-            clone._OwnsVectorIndexManager = false;
 
             return clone;
         }

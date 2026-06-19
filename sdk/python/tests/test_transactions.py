@@ -56,6 +56,7 @@ def test_transaction_execute_posts_to_graph_scoped_endpoint(mock_client):
     mock_client.request.return_value = {
         "Success": True,
         "TransactionId": "11111111-1111-1111-1111-111111111111",
+        "State": "Committed",
         "RolledBack": False,
         "ValidationFailure": False,
         "OperationCount": 1,
@@ -97,6 +98,7 @@ def test_transaction_execute_posts_to_graph_scoped_endpoint(mock_client):
     assert result.success is True
     assert result.validation_failure is False
     assert result.transaction_id == "11111111-1111-1111-1111-111111111111"
+    assert result.state == "Committed"
     assert result.operation_count == 1
     assert result.provider == "Sqlite"
     assert result.isolation_level == "Default"
@@ -110,6 +112,7 @@ def test_transaction_context_executes_on_clean_exit(mock_client):
     mock_client.request.return_value = {
         "Success": False,
         "TransactionId": "22222222-2222-2222-2222-222222222222",
+        "State": "RolledBack",
         "RolledBack": True,
         "ValidationFailure": False,
         "FailedOperationIndex": 0,
@@ -137,6 +140,7 @@ def test_transaction_context_executes_on_clean_exit(mock_client):
 
     assert tx.result is not None
     assert tx.result.success is False
+    assert tx.result.state == "RolledBack"
     assert tx.result.rolled_back is True
     assert tx.result.validation_failure is False
     assert tx.result.failed_operation_index == 0

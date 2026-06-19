@@ -57,6 +57,7 @@ describe('TransactionRoute Tests', () => {
     expect(result instanceof TransactionResult).toBe(true);
     expect(result.Success).toBe(true);
     expect(result.TransactionId).toBe('11111111-1111-1111-1111-111111111111');
+    expect(result.State).toBe('Committed');
     expect(result.OperationCount).toBe(1);
     expect(result.Provider).toBe('Sqlite');
     expect(result.IsolationLevel).toBe('Default');
@@ -85,6 +86,7 @@ describe('TransactionRoute Tests', () => {
     const result = await api.transaction(mockGraphGuid).createNode({ GUID: mockNodeGuid, Name: 'fail' }).execute();
 
     expect(result.Success).toBe(false);
+    expect(result.State).toBe('RolledBack');
     expect(result.RolledBack).toBe(true);
     expect(result.FailedOperationIndex).toBe(0);
     expect(result.Retryable).toBe(true);

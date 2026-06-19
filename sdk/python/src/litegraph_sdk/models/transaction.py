@@ -51,6 +51,7 @@ class TransactionResultModel(BaseModel):
 
     success: bool = Field(default=True, alias="Success")
     transaction_id: Optional[str] = Field(default=None, alias="TransactionId")
+    state: str = Field(default="Created", alias="State")
     rolled_back: bool = Field(default=False, alias="RolledBack")
     validation_failure: bool = Field(default=False, alias="ValidationFailure")
     failed_operation_index: Optional[int] = Field(

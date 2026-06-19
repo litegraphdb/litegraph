@@ -10,6 +10,7 @@ type TransactionOperationFailure = {
 type TransactionFailure = {
   Success?: boolean;
   TransactionId?: string;
+  State?: string;
   RolledBack?: boolean;
   ValidationFailure?: boolean;
   FailedOperationIndex?: number;
@@ -44,12 +45,13 @@ export const getTransactionFailureSummary = (json: unknown): string | null => {
   const rolledBack = record.RolledBack ? ' The transaction was rolled back.' : '';
   const indexText = typeof failedIndex === 'number' ? ` at index ${failedIndex}` : '';
   const transactionId = record.TransactionId ? ` Transaction ${record.TransactionId}.` : '';
+  const state = record.State ? ` State: ${record.State}.` : '';
   const provider = record.Provider ? ` Provider: ${record.Provider}.` : '';
   const providerError = record.ProviderErrorCode ? ` Provider error: ${record.ProviderErrorCode}.` : '';
   const retryable = record.Retryable ? ' The failure is marked retryable.' : '';
   const conflict = record.ConcurrencyConflict ? ' Concurrency conflict detected.' : '';
 
-  return `${operationType} ${objectType}${guid} failed${indexText}: ${error}.${validation}${rolledBack}${transactionId}${provider}${providerError}${retryable}${conflict}`;
+  return `${operationType} ${objectType}${guid} failed${indexText}: ${error}.${validation}${rolledBack}${transactionId}${state}${provider}${providerError}${retryable}${conflict}`;
 };
 
 export const getQueryErrorSummary = (json: unknown): string | null => {

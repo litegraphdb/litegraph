@@ -28,7 +28,7 @@
 
                     if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
                     VectorIndexManager = null;
-                    _DataSource?.Dispose();
+                    if (_OwnsDataSource) _DataSource?.Dispose();
                 }
             }
 
@@ -71,7 +71,7 @@
 
             if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
             VectorIndexManager = null;
-            await _DataSource.DisposeAsync().ConfigureAwait(false);
+            if (_OwnsDataSource) await _DataSource.DisposeAsync().ConfigureAwait(false);
 
             base.Dispose(true);
         }

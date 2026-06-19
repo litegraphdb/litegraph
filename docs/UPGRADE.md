@@ -103,6 +103,7 @@ Graph transaction requests now accept `IsolationLevel` with `Default`, `ReadComm
 Transaction responses include additional diagnostics:
 
 - `TransactionId`
+- `State`
 - `OperationCount`
 - `StartedUtc`, `CompletedUtc`, `DurationMs`
 - `CommitDurationMs`, `RollbackDurationMs`

@@ -25,6 +25,7 @@ export default class TransactionResult {
     const {
       Success = true,
       TransactionId = null,
+      State = 'Created',
       RolledBack = false,
       ValidationFailure = false,
       FailedOperationIndex = null,
@@ -48,6 +49,7 @@ export default class TransactionResult {
 
     this.Success = Success;
     this.TransactionId = TransactionId;
+    this.State = State;
     this.RolledBack = RolledBack;
     this.ValidationFailure = ValidationFailure;
     this.FailedOperationIndex = FailedOperationIndex;

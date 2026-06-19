@@ -130,10 +130,10 @@ const result = await sdk
   .createEdge({ From: adaGuid, To: graceGuid, Name: 'Worked With' })
   .execute();
 
-console.log(result.Success, result.TransactionId, result.DurationMs);
+console.log(result.Success, result.State, result.TransactionId, result.DurationMs);
 ```
 
-`TransactionResult` includes validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
+`TransactionResult` includes lifecycle state, validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
 
 ## API Endpoints Reference
 

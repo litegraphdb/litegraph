@@ -96,6 +96,7 @@ const METHOD_OPTIONS = [
 
 type TransactionDiagnostics = {
   TransactionId?: string;
+  State?: string;
   Success?: boolean;
   RolledBack?: boolean;
   ValidationFailure?: boolean;
@@ -123,6 +124,9 @@ const transactionState = (
   diagnostics: TransactionDiagnostics
 ): { label: string; color: string } => {
   if (diagnostics.ValidationFailure) return { label: 'validation', color: 'orange' };
+  if (diagnostics.State === 'Committed') return { label: 'committed', color: 'green' };
+  if (diagnostics.State === 'RolledBack') return { label: 'rolled back', color: 'red' };
+  if (diagnostics.State === 'Faulted') return { label: 'failed', color: 'red' };
   if (diagnostics.RolledBack) return { label: 'rolled back', color: 'red' };
   if (diagnostics.Success === true) return { label: 'committed', color: 'green' };
   if (diagnostics.Success === false) return { label: 'failed', color: 'red' };

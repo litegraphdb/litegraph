@@ -5,6 +5,7 @@ export const mockTagGuid = '03030303-0303-0303-0303-030303030303';
 export const transactionResponse = (request) => ({
   Success: true,
   TransactionId: '11111111-1111-1111-1111-111111111111',
+  State: 'Committed',
   RolledBack: false,
   ValidationFailure: false,
   FailedOperationIndex: null,
@@ -36,6 +37,7 @@ export const transactionResponse = (request) => ({
 export const transactionFailureResponse = {
   Success: false,
   TransactionId: '22222222-2222-2222-2222-222222222222',
+  State: 'RolledBack',
   RolledBack: true,
   ValidationFailure: false,
   FailedOperationIndex: 0,

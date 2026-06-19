@@ -327,6 +327,7 @@ Attach supports `Label`, `Tag`, and `Vector`. Use create/delete for nodes and ed
 {
   "Success": true,
   "TransactionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "State": "Committed",
   "RolledBack": false,
   "ValidationFailure": false,
   "FailedOperationIndex": null,
@@ -368,6 +369,7 @@ If any operation fails during execution, LiteGraph rolls back the transaction an
 Diagnostic fields:
 
 - `TransactionId`: LiteGraph-assigned identifier for correlating logs, request history, metrics, and client errors.
+- `State`: final transaction lifecycle state, such as `Committed`, `RolledBack`, or `Faulted`.
 - `OperationCount`: number of submitted operations.
 - `StartedUtc`, `CompletedUtc`, `DurationMs`: transaction execution timing.
 - `CommitDurationMs`, `RollbackDurationMs`: provider commit or rollback timing.

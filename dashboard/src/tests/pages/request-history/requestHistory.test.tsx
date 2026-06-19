@@ -54,7 +54,7 @@ jest.mock('@/lib/sdk/requestHistory', () => {
           RequestBodyTruncated: false,
           ResponseBodyTruncated: false,
           TransactionDiagnosticsJson:
-            '{"TransactionId":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","Success":false,"ValidationFailure":true,"RolledBack":false,"IsolationLevel":"Serializable","Provider":"Sqlite","ProviderErrorCode":"SQLITE_BUSY","Retryable":true,"ConcurrencyConflict":true}',
+            '{"TransactionId":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","State":"Faulted","Success":false,"ValidationFailure":true,"RolledBack":false,"IsolationLevel":"Serializable","Provider":"Sqlite","ProviderErrorCode":"SQLITE_BUSY","Retryable":true,"ConcurrencyConflict":true}',
         },
       ],
       TotalCount: 2,

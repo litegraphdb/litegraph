@@ -19,6 +19,11 @@ namespace LiteGraph.Sdk
         public Guid TransactionId { get; set; } = Guid.Empty;
 
         /// <summary>
+        /// Final lifecycle state reached by the transaction.
+        /// </summary>
+        public string State { get; set; } = TransactionStateEnum.Created.ToString();
+
+        /// <summary>
         /// True if the transaction rolled back.
         /// </summary>
         public bool RolledBack { get; set; } = false;

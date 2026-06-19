@@ -789,6 +789,7 @@ namespace LiteGraph.Server.API.REST
                 return _Serializer.SerializeJson(new RequestHistoryTransactionDiagnostics
                 {
                     TransactionId = result.TransactionId,
+                    State = result.State,
                     Success = result.Success,
                     RolledBack = result.RolledBack,
                     ValidationFailure = result.ValidationFailure,
@@ -815,6 +816,7 @@ namespace LiteGraph.Server.API.REST
         private sealed class RequestHistoryTransactionDiagnostics
         {
             public Guid TransactionId { get; set; } = Guid.Empty;
+            public string State { get; set; } = null;
             public bool Success { get; set; } = false;
             public bool RolledBack { get; set; } = false;
             public bool ValidationFailure { get; set; } = false;
@@ -2161,6 +2163,7 @@ namespace LiteGraph.Server.API.REST
 
                 _Observability.RecordGraphTransaction(result.Success, result.RolledBack, result.ValidationFailure, operationCount, (DateTime.UtcNow - start).TotalMilliseconds);
                 activity?.SetTag("litegraph.transaction.id", result.TransactionId);
+                activity?.SetTag("litegraph.transaction.state", result.State);
                 activity?.SetTag("litegraph.transaction.success", result.Success);
                 activity?.SetTag("litegraph.transaction.rolled_back", result.RolledBack);
                 activity?.SetTag("litegraph.transaction.provider", result.Provider);

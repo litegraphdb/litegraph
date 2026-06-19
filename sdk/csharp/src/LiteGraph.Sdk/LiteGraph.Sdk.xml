@@ -3302,7 +3302,7 @@
         </member>
         <member name="T:LiteGraph.Sdk.LiteGraphSdk">
             <summary>
-            LiteGraph SDK. 
+            LiteGraph SDK.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.Admin">
@@ -4407,6 +4407,11 @@
             Transaction identifier assigned by LiteGraph.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.TransactionResult.State">
+            <summary>
+            Final lifecycle state reached by the transaction.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.TransactionResult.RolledBack">
             <summary>
             True if the transaction rolled back.
@@ -4500,6 +4505,51 @@
         <member name="P:LiteGraph.Sdk.TransactionResult.ProviderErrorCode">
             <summary>
             Provider-specific error code, if available.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.TransactionStateEnum">
+            <summary>
+            Graph transaction lifecycle state.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.Created">
+            <summary>
+            Transaction result has been created but provider execution has not started.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.Active">
+            <summary>
+            Provider transaction is active.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.Committing">
+            <summary>
+            Provider transaction is committing.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.Committed">
+            <summary>
+            Provider transaction committed.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.RollingBack">
+            <summary>
+            Provider transaction is rolling back.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.RolledBack">
+            <summary>
+            Provider transaction rolled back.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.Faulted">
+            <summary>
+            Transaction failed before a committed or rolled-back final state was established.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.TransactionStateEnum.Disposed">
+            <summary>
+            Transaction-owned resources have been disposed.
             </summary>
         </member>
         <member name="T:LiteGraph.Sdk.UserMaster">

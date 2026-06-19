@@ -5,6 +5,7 @@ describe('API Explorer response summaries', () => {
     const summary = getTransactionFailureSummary({
       Success: false,
       TransactionId: 'tx-1',
+      State: 'RolledBack',
       RolledBack: true,
       FailedOperationIndex: 1,
       Error: 'duplicate node',
@@ -31,6 +32,7 @@ describe('API Explorer response summaries', () => {
     expect(summary).toContain('duplicate node');
     expect(summary).toContain('rolled back');
     expect(summary).toContain('tx-1');
+    expect(summary).toContain('RolledBack');
     expect(summary).toContain('Postgresql');
     expect(summary).toContain('40001');
     expect(summary).toContain('retryable');

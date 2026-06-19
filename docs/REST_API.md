@@ -578,6 +578,7 @@ Committed transactions return HTTP `200`. Request-shape validation failures retu
 {
     "Success": true,
     "TransactionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "State": "Committed",
     "RolledBack": false,
     "ValidationFailure": false,
     "FailedOperationIndex": null,

@@ -120,10 +120,10 @@ result = (
     .execute()
 )
 
-print(result.success, result.transaction_id, result.duration_ms)
+print(result.success, result.state, result.transaction_id, result.duration_ms)
 ```
 
-`TransactionResultModel` includes validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
+`TransactionResultModel` includes lifecycle state, validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
 
 ## API Endpoints Reference
 

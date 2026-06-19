@@ -353,7 +353,7 @@ Core activities:
 - SQLite HNSW vector index search activity: `litegraph.vector.index.search`
 - repository operation activity: `litegraph.repository.operation`
 
-REST request activities parse incoming W3C `traceparent` and `tracestate` headers. When a valid parent context is supplied, LiteGraph starts its request activity under that trace. Server query activities include the required scope, success state, mutation state, row count, query kind, and vector-search tags where applicable. Core query activities add parse, plan, execute, planner seed, estimated cost, row count, and object count tags without recording query text. Vector search activities include domain, search type, dimensions, filter presence, top-k, and result count. Vector index activities include index type, dirty state, used/skip reason, top-k, and result count. Transaction activities include operation count, success state, validation-failure state, rollback state, and failed operation index where applicable.
+REST request activities parse incoming W3C `traceparent` and `tracestate` headers. When a valid parent context is supplied, LiteGraph starts its request activity under that trace. Server query activities include the required scope, success state, mutation state, row count, query kind, and vector-search tags where applicable. Core query activities add parse, plan, execute, planner seed, estimated cost, row count, and object count tags without recording query text. Vector search activities include domain, search type, dimensions, filter presence, top-k, and result count. Vector index activities include index type, dirty state, used/skip reason, top-k, and result count. Transaction activities include operation count, lifecycle state, success state, validation-failure state, rollback state, and failed operation index where applicable.
 
 Repository operation activities include provider, operation, transactional state, statement count, row count, success, and duration tags. They do not include SQL text.
 
@@ -514,7 +514,7 @@ Request history records include:
 - `RequestId`
 - `CorrelationId`
 - `TraceId`
-- `TransactionDiagnosticsJson` for graph transaction responses, including transaction ID, isolation, retry/conflict state, validation state, rollback state, and provider error code.
+- `TransactionDiagnosticsJson` for graph transaction responses, including transaction ID, lifecycle state, isolation, retry/conflict state, validation state, rollback state, and provider error code.
 
 Request history search accepts `hasTransactionDiagnostics=true|false` to include or exclude captured graph transaction rows, and `transactionId` to find entries by full or partial transaction ID.
 

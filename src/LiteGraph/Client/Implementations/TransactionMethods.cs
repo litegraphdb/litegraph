@@ -66,6 +66,7 @@ namespace LiteGraph.Client.Implementations
                     OperationCount = request.Operations.Count,
                     StartedUtc = DateTime.UtcNow,
                     IsolationLevel = request.IsolationLevel.ToString(),
+                    State = TransactionStateEnum.Created.ToString(),
                     RetryCount = 0
                 };
 
@@ -96,6 +97,7 @@ namespace LiteGraph.Client.Implementations
 
                     await transactionRepo.BeginGraphTransaction(tenantGuid, graphGuid, request.IsolationLevel, linkedToken).ConfigureAwait(false);
                     startedTransaction = true;
+                    result.State = TransactionStateEnum.Active.ToString();
 
                     for (int i = 0; i < request.Operations.Count; i++)
                     {
@@ -111,7 +113,9 @@ namespace LiteGraph.Client.Implementations
                         Stopwatch commitStopwatch = Stopwatch.StartNew();
                         try
                         {
+                            result.State = TransactionStateEnum.Committing.ToString();
                             await transactionRepo.CommitGraphTransaction(linkedToken).ConfigureAwait(false);
+                            result.State = TransactionStateEnum.Committed.ToString();
                         }
                         finally
                         {
@@ -128,7 +132,16 @@ namespace LiteGraph.Client.Implementations
                     if (startedTransaction && transactionRepo != null && transactionRepo.GraphTransactionActive)
                     {
                         Stopwatch rollbackStopwatch = Stopwatch.StartNew();
-                        try { await transactionRepo.RollbackGraphTransaction(CancellationToken.None).ConfigureAwait(false); } catch { }
+                        result.State = TransactionStateEnum.RollingBack.ToString();
+                        try
+                        {
+                            await transactionRepo.RollbackGraphTransaction(CancellationToken.None).ConfigureAwait(false);
+                            result.State = TransactionStateEnum.RolledBack.ToString();
+                        }
+                        catch
+                        {
+                            result.State = TransactionStateEnum.Faulted.ToString();
+                        }
                         finally
                         {
                             rollbackStopwatch.Stop();
@@ -138,6 +151,11 @@ namespace LiteGraph.Client.Implementations
 
                     result.Success = false;
                     result.RolledBack = startedTransaction;
+                    if (!String.Equals(result.State, TransactionStateEnum.RolledBack.ToString(), StringComparison.Ordinal)
+                        && !String.Equals(result.State, TransactionStateEnum.Faulted.ToString(), StringComparison.Ordinal))
+                    {
+                        result.State = TransactionStateEnum.Faulted.ToString();
+                    }
                     result.ValidationFailure = !startedTransaction && IsValidationException(e);
                     result.Error = e.Message;
                     ApplyProviderErrorDiagnostics(result, e);

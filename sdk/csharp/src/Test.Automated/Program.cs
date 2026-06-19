@@ -2451,6 +2451,7 @@ namespace Test.Automated
             AssertFalse(success.RolledBack, "Transaction success not rolled back");
             AssertFalse(success.ValidationFailure, "Transaction success not validation failure");
             AssertNotEmpty(success.TransactionId, "Transaction success ID");
+            AssertEqual("Committed", success.State, "Transaction success lifecycle state");
             AssertEqual(3, success.OperationCount, "Transaction success operation count");
             AssertEqual(3, success.Operations.Count, "Transaction success operation results");
             AssertTrue(success.DurationMs >= 0, "Transaction success duration");
@@ -2485,6 +2486,7 @@ namespace Test.Automated
             AssertTrue(failure.RolledBack, "Transaction failure rolled back");
             AssertFalse(failure.ValidationFailure, "Transaction failure is not validation failure");
             AssertNotEmpty(failure.TransactionId, "Transaction failure ID");
+            AssertEqual("RolledBack", failure.State, "Transaction failure lifecycle state");
             AssertEqual(2, failure.OperationCount, "Transaction failure operation count");
             AssertEqual(1, failure.FailedOperationIndex!.Value, "Transaction failure index");
             AssertFalse(string.IsNullOrEmpty(failure.Error), "Transaction failure error");

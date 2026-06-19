@@ -12,6 +12,7 @@ export default class TransactionResult {
     constructor(result?: {});
     Success: any;
     TransactionId: any;
+    State: any;
     RolledBack: any;
     ValidationFailure: any;
     FailedOperationIndex: any;
