@@ -3,19 +3,10 @@ import React from 'react';
 import { Form } from 'antd';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import VectorsInput from '@/components/inputs/vectors-input.tsx/VectorsInput';
+import { convertVectorsToAPIRecord } from '@/components/inputs/vectors-input.tsx/utils';
 
 jest.mock('uuid', () => ({
   v4: () => 'test-vector-key',
-}));
-
-jest.mock('jsoneditor-react', () => ({
-  JsonEditor: ({ value, onChange }: any) => (
-    <input
-      data-testid="vector-json-editor"
-      value={JSON.stringify(value)}
-      onChange={(event) => onChange(JSON.parse(event.target.value))}
-    />
-  ),
 }));
 
 const Harness = ({
@@ -32,7 +23,10 @@ const Harness = ({
   return (
     <Form form={form} initialValues={{ vectors: initialVectors }}>
       <VectorsInput name="vectors" />
-      <button type="button" onClick={() => onSubmit(form.getFieldValue('vectors'))}>
+      <button
+        type="button"
+        onClick={() => onSubmit(convertVectorsToAPIRecord(form.getFieldValue('vectors')))}
+      >
         Capture
       </button>
       <button
@@ -51,7 +45,7 @@ const Harness = ({
 };
 
 describe('VectorsInput', () => {
-  it('binds the vector values editor to the nested vectors form field', async () => {
+  it('binds the direct vector values input to the nested vectors form field', async () => {
     const onSubmit = jest.fn();
     render(
       <Harness
@@ -67,11 +61,11 @@ describe('VectorsInput', () => {
       />
     );
 
-    const vectorEditor = screen.getByTestId('vector-json-editor');
-    expect(vectorEditor).toHaveValue('[0.1,0.2,0.3]');
+    const vectorValuesInput = screen.getByTestId('vector-values-input');
+    expect(vectorValuesInput).toHaveValue('[0.1, 0.2, 0.3]');
 
     await act(async () => {
-      fireEvent.change(vectorEditor, { target: { value: '[0.4,0.5,0.6]' } });
+      fireEvent.change(vectorValuesInput, { target: { value: '[0.4, 0.5, 0.6]' } });
     });
     fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
 
@@ -93,11 +87,11 @@ describe('VectorsInput', () => {
       fireEvent.click(screen.getByRole('button', { name: /add vector/i }));
     });
 
-    const vectorEditor = screen.getByTestId('vector-json-editor');
-    expect(vectorEditor).toHaveValue('[0.1,0.2,0.3]');
+    const vectorValuesInput = screen.getByTestId('vector-values-input');
+    expect(vectorValuesInput).toHaveValue('[0.1, 0.2, 0.3]');
 
     await act(async () => {
-      fireEvent.change(vectorEditor, { target: { value: '[1,2,3]' } });
+      fireEvent.change(vectorValuesInput, { target: { value: '1, 2, 3' } });
     });
     fireEvent.click(screen.getByRole('button', { name: 'Capture' }));
 

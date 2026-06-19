@@ -1,15 +1,18 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Form, Button } from 'antd';
+import { Form, Button, Input } from 'antd';
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import LitegraphInput from '@/components/base/input/Input';
-import JsonEditorWithAce from '@/components/inputs/json-editor/JsonEditorWithAce';
 import { v4 } from 'uuid';
 import styles from './styles.module.scss';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import CopyButton from '@/components/base/copy-button/CopyButton';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
+import {
+  parseVectorValuesInput,
+  vectorValuesToInputText,
+} from '@/components/inputs/vectors-input.tsx/utils';
 
 interface VectorsInputProps {
   value?: any[];
@@ -18,28 +21,41 @@ interface VectorsInputProps {
   readonly?: boolean;
 }
 
+interface VectorValuesTextAreaProps {
+  value?: unknown;
+  onChange?: (value: string) => void;
+  readonly?: boolean;
+}
+
+const VectorValuesTextArea = ({ value, onChange, readonly }: VectorValuesTextAreaProps) => (
+  <Input.TextArea
+    data-testid="vector-values-input"
+    value={vectorValuesToInputText(value)}
+    onChange={(event) => onChange?.(event.target.value)}
+    readOnly={readonly}
+    variant={readonly ? 'borderless' : 'outlined'}
+    autoSize={{ minRows: 3, maxRows: 8 }}
+    placeholder="[0.1, 0.2, 0.3]"
+    className={styles.vectorValuesInput}
+  />
+);
+
 const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], name, readonly }) => {
   const [uniqueKeys, setUniqueKeys] = useState<string[]>([]);
   const form = Form.useFormInstance();
 
   const validateVectorValues = (fieldName: number, vectorValues: unknown) => {
-    if (!Array.isArray(vectorValues) || vectorValues.length === 0) {
+    const parsedVectorValues = parseVectorValuesInput(vectorValues);
+
+    if (!parsedVectorValues.valid) {
       return Promise.reject(new Error('Please input vector values as a non-empty JSON array.'));
-    }
-
-    const hasOnlyNumbers = vectorValues.every(
-      (vectorValue) => typeof vectorValue === 'number' && Number.isFinite(vectorValue)
-    );
-
-    if (!hasOnlyNumbers) {
-      return Promise.reject(new Error('Vector values must contain only numbers.'));
     }
 
     const dimensionality = Number(form.getFieldValue([name, fieldName, 'Dimensionality']));
     if (
       Number.isFinite(dimensionality) &&
       dimensionality > 0 &&
-      vectorValues.length !== dimensionality
+      parsedVectorValues.values.length !== dimensionality
     ) {
       return Promise.reject(new Error('Vector value count must match dimensionality.'));
     }
@@ -117,6 +133,7 @@ const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], name, readonly 
                   </LitegraphFormItem>
                   <LitegraphFormItem
                     name={[field.name, 'Vectors']}
+                    dependencies={[[name, field.name, 'Dimensionality']]}
                     label={
                       <LitegraphFlex align="center" gap={8}>
                         <span>Vector Values</span>
@@ -124,7 +141,9 @@ const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], name, readonly 
                           <CopyButton
                             getText={() =>
                               JSON.stringify(
-                                form.getFieldValue([name, field.name, 'Vectors']) || [],
+                                parseVectorValuesInput(
+                                  form.getFieldValue([name, field.name, 'Vectors'])
+                                ).values,
                                 null,
                                 2
                               )
@@ -142,15 +161,7 @@ const VectorsInput: React.FC<VectorsInputProps> = ({ value = [], name, readonly 
                       },
                     ]}
                   >
-                    <JsonEditorWithAce
-                      key={uniqueKeys[index] || field.key}
-                      mode={readonly ? 'view' : 'code'}
-                      enableSort={false}
-                      enableTransform={false}
-                      mainMenuBar={!readonly}
-                      statusBar={!readonly}
-                      navigationBar={!readonly}
-                    />
+                    <VectorValuesTextArea key={uniqueKeys[index] || field.key} readonly={readonly} />
                   </LitegraphFormItem>
                 </div>
               ))
