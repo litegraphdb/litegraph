@@ -5,7 +5,7 @@
   background: transparent;
 
   :global(.ant-card) {
-    width: 400px !important;
+    width: 600px !important;
     overflow: hidden;
     position: relative;
     border: 1px solid var(--ant-color-border) !important;
@@ -19,8 +19,8 @@
   :global(.ant-card .ant-card-body) {
     padding-top: 10px;
     padding-bottom: 10px;
-    max-height: 320px;
-    overflow-y: hidden;
+    max-height: 426px;
+    overflow-y: auto;
   }
 
   :global(.ant-card .ant-card-body .jsoneditor) {

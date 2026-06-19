@@ -1,8 +1,9 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Input, Select, Space, Tag, Typography, Tooltip, message } from 'antd';
-import { CopyOutlined, SendOutlined, ReloadOutlined, ClearOutlined } from '@ant-design/icons';
+import { SendOutlined, ReloadOutlined, ClearOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import { sdk } from '@/lib/sdk/litegraph.service';
 import { flattenOpenApi, buildRequestUrl } from './openApi';
 import { generateSnippet, CodeLanguage } from './codeSnippets';
@@ -72,7 +73,7 @@ const ApiExplorerPage: React.FC = () => {
   const [body, setBody] = useState<string>('');
   const [sending, setSending] = useState(false);
   const [response, setResponse] = useState<ApiResponseState | null>(null);
-  const [activeTab, setActiveTab] = useState<typeof RESPONSE_TABS[number]>('preview');
+  const [activeTab, setActiveTab] = useState<(typeof RESPONSE_TABS)[number]>('preview');
   const [codeLang, setCodeLang] = useState<CodeLanguage>('curl');
   const [history, setHistory] = useState<RecentRequest[]>(() => loadHistory());
 
@@ -189,15 +190,6 @@ const ApiExplorerPage: React.FC = () => {
     }
   };
 
-  const onCopy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      message.success('Copied');
-    } catch {
-      message.error('Copy failed');
-    }
-  };
-
   const codeSnippet = useMemo(() => {
     if (!selectedOperation) return '';
     return generateSnippet(codeLang, {
@@ -284,17 +276,17 @@ const ApiExplorerPage: React.FC = () => {
             {selectedOperation && (
               <>
                 <div className={styles.endpointBox}>
-                  <span className={`${styles.methodBadge} ${methodClass(selectedOperation.method)}`}>
+                  <span
+                    className={`${styles.methodBadge} ${methodClass(selectedOperation.method)}`}
+                  >
                     {selectedOperation.method}
                   </span>
                   <Text code style={{ flex: 1, wordBreak: 'break-all' }}>
                     {computedUrl || selectedOperation.path}
                   </Text>
-                  <Button
-                    size="small"
-                    type="text"
-                    icon={<CopyOutlined />}
-                    onClick={() => onCopy(computedUrl || selectedOperation.path)}
+                  <CopyButton
+                    text={computedUrl || selectedOperation.path}
+                    tooltipTitle="Copy URL"
                   />
                 </div>
 
@@ -306,7 +298,10 @@ const ApiExplorerPage: React.FC = () => {
 
                 {selectedOperation.parameters.some((p) => p.in === 'path') && (
                   <>
-                    <Text strong style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    <Text
+                      strong
+                      style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                    >
                       Path parameters
                     </Text>
                     <div className={styles.paramGrid}>
@@ -328,7 +323,10 @@ const ApiExplorerPage: React.FC = () => {
 
                 {selectedOperation.parameters.some((p) => p.in === 'query') && (
                   <>
-                    <Text strong style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    <Text
+                      strong
+                      style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                    >
                       Query parameters
                     </Text>
                     <div className={styles.paramGrid}>
@@ -350,7 +348,10 @@ const ApiExplorerPage: React.FC = () => {
 
                 {selectedOperation.hasRequestBody && (
                   <>
-                    <Text strong style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    <Text
+                      strong
+                      style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                    >
                       Request body
                     </Text>
                     <Input.TextArea
@@ -370,7 +371,10 @@ const ApiExplorerPage: React.FC = () => {
             {history.length > 0 && (
               <>
                 <Space>
-                  <Text strong style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  <Text
+                    strong
+                    style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                  >
                     Recent Requests
                   </Text>
                   <Button
@@ -401,7 +405,12 @@ const ApiExplorerPage: React.FC = () => {
                         {h.method}
                       </span>
                       <Text
-                        style={{ flex: 1, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        style={{
+                          flex: 1,
+                          fontSize: 12,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
                       >
                         {h.path}
                       </Text>
@@ -447,12 +456,7 @@ const ApiExplorerPage: React.FC = () => {
               />
             )}
             {queryError && (
-              <Alert
-                type="error"
-                showIcon
-                message="Query failed"
-                description={queryError}
-              />
+              <Alert type="error" showIcon message="Query failed" description={queryError} />
             )}
             {activeTab === 'preview' && (
               <pre className={styles.codeBlock}>{previewText || '(no response yet)'}</pre>
@@ -501,13 +505,13 @@ const ApiExplorerPage: React.FC = () => {
                       {l === 'curl' ? 'curl' : l === 'javascript' ? 'JavaScript' : 'C#'}
                     </Button>
                   ))}
-                  <Button
+                  <CopyButton
+                    text={codeSnippet}
+                    tooltipTitle="Copy code"
+                    label="Copy"
                     size="small"
-                    icon={<CopyOutlined />}
-                    onClick={() => onCopy(codeSnippet)}
-                  >
-                    Copy
-                  </Button>
+                    type="default"
+                  />
                 </Space>
                 <pre className={styles.codeBlock}>{codeSnippet || '(select an operation)'}</pre>
               </>

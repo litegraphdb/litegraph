@@ -15,8 +15,7 @@ import TagsInput from '@/components/inputs/tags-input/TagsInput';
 import { convertTagsToRecord } from '@/components/inputs/tags-input/utils';
 import { convertVectorsToAPIRecord } from '@/components/inputs/vectors-input.tsx/utils';
 import LitegraphFlex from '@/components/base/flex/Flex';
-import { CopyOutlined } from '@ant-design/icons';
-import { copyJsonToClipboard, copyTextToClipboard } from '@/utils/jsonCopyUtils';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import {
   useCreateNodeMutation,
   useGetGraphByIdQuery,
@@ -341,11 +340,9 @@ const AddEditNode = ({
                 label={
                   <LitegraphFlex align="center" gap={8}>
                     <span>GUID</span>
-                    <CopyOutlined
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        copyTextToClipboard(form.getFieldValue('guid') || '', 'GUID');
-                      }}
+                    <CopyButton
+                      getText={() => form.getFieldValue('guid') || ''}
+                      tooltipTitle="Copy GUID"
                     />
                   </LitegraphFlex>
                 }
@@ -446,12 +443,9 @@ const AddEditNode = ({
               <LitegraphFlex align="center" gap={8}>
                 <span>Data</span>
                 {readonly && (
-                  <CopyOutlined
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      const data = form.getFieldValue('data') || {};
-                      copyJsonToClipboard(data, 'Data');
-                    }}
+                  <CopyButton
+                    getText={() => JSON.stringify(form.getFieldValue('data') || {}, null, 2)}
+                    tooltipTitle="Copy Data"
                   />
                 )}
               </LitegraphFlex>

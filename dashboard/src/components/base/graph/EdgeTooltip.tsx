@@ -3,12 +3,7 @@ import { GraphEdgeTooltip } from './types';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import LiteGraphSpace from '@/components/base/space/Space';
 import LiteGraphCard from '@/components/base/card/Card';
-import {
-  CloseCircleFilled,
-  CopyOutlined,
-  ExpandOutlined,
-  LoadingOutlined,
-} from '@ant-design/icons';
+import { CloseCircleFilled, ExpandOutlined, LoadingOutlined } from '@ant-design/icons';
 import FallBack from '@/components/base/fallback/FallBack';
 import PageLoading from '@/components/base/loading/PageLoading';
 import LitegraphFlex from '@/components/base/flex/Flex';
@@ -26,7 +21,7 @@ import {
   useGetGraphGexfContentQuery,
   useGetManyNodesQuery,
 } from '@/lib/store/slice/slice';
-import { copyTextToClipboard } from '@/utils/jsonCopyUtils';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 
 type EdgeTooltipProps = {
   tooltip: GraphEdgeTooltip;
@@ -151,6 +146,33 @@ const EdgeToolTip = ({
     isAddingNewEdge,
   ]);
 
+  useEffect(() => {
+    if (!tooltip.visible) {
+      return;
+    }
+
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      const target = event.target;
+      if (!(target instanceof globalThis.Element)) {
+        return;
+      }
+
+      if (target.closest('[data-tooltip-boundary="edge-information"]')) {
+        return;
+      }
+
+      setTooltip(defaultEdgeTooltip);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [setTooltip, tooltip.visible]);
+
   return (
     <>
       <LiteGraphSpace
@@ -158,6 +180,7 @@ const EdgeToolTip = ({
         direction="vertical"
         size={16}
         className={classNames(styles.tooltipContainer)}
+        data-tooltip-boundary="edge-information"
         style={{
           top: tooltip.y,
           left: tooltip.x,
@@ -220,13 +243,10 @@ const EdgeToolTip = ({
               <LitegraphFlex vertical className="card-details">
                 <LitegraphText data-testid="edge-guid">
                   <strong>GUID: </strong>
-                  {displayEdge?.GUID}{' '}
-                  <CopyOutlined
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      copyTextToClipboard(displayEdge?.GUID || '', 'GUID');
-                    }}
-                  />
+                  <span data-testid="edge-guid-value" style={{ fontFamily: 'monospace' }}>
+                    {displayEdge?.GUID}
+                  </span>{' '}
+                  <CopyButton text={displayEdge?.GUID || ''} tooltipTitle="Copy GUID" />
                 </LitegraphText>
                 <LitegraphText>
                   <strong>Name: </strong>
@@ -279,30 +299,6 @@ const EdgeToolTip = ({
                     <LitegraphText>None</LitegraphText>
                   )}
                 </LitegraphText>
-                {/* 
-                <LitegraphFlex align="center" gap={6}>
-                  <LitegraphText>
-                    <strong>Data:</strong>
-                  </LitegraphText>
-                  <LitegraphTooltip title="Copy JSON">
-                    <CopyOutlined
-                      className="cursor-pointer"
-                      onClick={() => {
-                        copyJsonToClipboard(displayEdge?.Data || {}, 'Data');
-                      }}
-                    />
-                  </LitegraphTooltip>
-                </LitegraphFlex>
-                <JsonEditorWithAce
-                  key={JSON.stringify(displayEdge?.Data && JSON.parse(JSON.stringify(displayEdge?.Data)))}
-                  value={(displayEdge?.Data && JSON.parse(JSON.stringify(displayEdge.Data))) || {}}
-                  mode="view" // Use 'view' mode to make it read-only
-                  mainMenuBar={false} // Hide the menu bar
-                  statusBar={false} // Hide the status bar
-                  navigationBar={false} // Hide the navigation bar
-                  enableSort={false}
-                  enableTransform={false}
-                /> */}
               </LitegraphFlex>
 
               {/* Buttons */}

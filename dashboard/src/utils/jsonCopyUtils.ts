@@ -19,7 +19,11 @@ const fallbackCopyText = (text: string): boolean => {
   return success;
 };
 
-export const copyTextToClipboard = async (text: string, label: string = 'Text', showToast: boolean = true): Promise<boolean> => {
+export const copyTextToClipboard = async (
+  text: string,
+  label: string = 'Text',
+  showToast: boolean = false
+): Promise<boolean> => {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
@@ -27,7 +31,6 @@ export const copyTextToClipboard = async (text: string, label: string = 'Text', 
       const ok = fallbackCopyText(text);
       if (!ok) throw new Error('execCommand copy failed');
     }
-    if (showToast) toast.success(`${label} copied to clipboard`);
     return true;
   } catch (error) {
     console.error('Copy failed:', error);
@@ -36,7 +39,11 @@ export const copyTextToClipboard = async (text: string, label: string = 'Text', 
   }
 };
 
-export const copyJsonToClipboard = async (data: any, label: string = 'JSON', showToast: boolean = true): Promise<boolean> => {
+export const copyJsonToClipboard = async (
+  data: any,
+  label: string = 'JSON',
+  showToast: boolean = false
+): Promise<boolean> => {
   try {
     const jsonString = JSON.stringify(data, null, 2);
     return await copyTextToClipboard(jsonString, label, showToast);

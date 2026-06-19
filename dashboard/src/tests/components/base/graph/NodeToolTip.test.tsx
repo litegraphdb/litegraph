@@ -22,6 +22,24 @@ jest.mock('@/lib/store/slice/slice', () => ({
   useEnumerateAndSearchTagQuery: jest.fn(),
 }));
 
+jest.mock('@/page/nodes/components/AddEditNode', () => {
+  return function MockAddEditNode() {
+    return null;
+  };
+});
+
+jest.mock('@/page/nodes/components/DeleteNode', () => {
+  return function MockDeleteNode() {
+    return null;
+  };
+});
+
+jest.mock('@/page/edges/components/AddEditEdge', () => {
+  return function MockAddEditEdge() {
+    return null;
+  };
+});
+
 // Mock the JsonEditor component
 jest.mock('jsoneditor-react', () => ({
   JsonEditor: ({ value }: { value: any }) => (
@@ -150,7 +168,7 @@ describe('NodeToolTip Component', () => {
     expect(screen.getByText('{"category":"test","priority":"high"}')).toBeInTheDocument();
   });
 
-  it('displays node GUID in gray text', () => {
+  it('displays node GUID value in a fixed-width font', () => {
     const {
       useGetNodeByIdQuery,
       useEnumerateAndSearchTagQuery,
@@ -182,6 +200,71 @@ describe('NodeToolTip Component', () => {
     );
 
     expect(screen.getByTestId('node-guid')).toBeInTheDocument();
+    const guidValue = screen.getByTestId('node-guid-value');
+    expect(guidValue).toHaveTextContent('test-node-id');
+    expect(guidValue.style.fontFamily).toBe('monospace');
+  });
+
+  it('does not close when clicking inside the node information modal', () => {
+    const {
+      useGetNodeByIdQuery,
+      useEnumerateAndSearchTagQuery,
+    } = require('@/lib/store/slice/slice');
+    useGetNodeByIdQuery.mockReturnValue({
+      data: mockNode,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    useEnumerateAndSearchTagQuery.mockReturnValue({
+      data: { Objects: [] },
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    renderWithRedux(
+      <NodeToolTip tooltip={mockTooltip} setTooltip={mockSetTooltip} graphId="test-graph" />,
+      createMockInitialState()
+    );
+
+    fireEvent.mouseDown(screen.getByText('Node Information'));
+
+    expect(mockSetTooltip).not.toHaveBeenCalled();
+  });
+
+  it('closes when clicking outside the node information modal', () => {
+    const {
+      useGetNodeByIdQuery,
+      useEnumerateAndSearchTagQuery,
+    } = require('@/lib/store/slice/slice');
+    useGetNodeByIdQuery.mockReturnValue({
+      data: mockNode,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    useEnumerateAndSearchTagQuery.mockReturnValue({
+      data: { Objects: [] },
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    renderWithRedux(
+      <NodeToolTip tooltip={mockTooltip} setTooltip={mockSetTooltip} graphId="test-graph" />,
+      createMockInitialState()
+    );
+
+    fireEvent.mouseDown(document.body);
+
+    expect(mockSetTooltip).toHaveBeenCalledWith(defaultNodeTooltip);
   });
 
   it('handles complex tag objects', () => {

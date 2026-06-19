@@ -1,9 +1,9 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Modal, Collapse, Button, Typography, Tag, Space, Descriptions } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
+import { Modal, Collapse, Typography, Tag, Space, Descriptions } from 'antd';
 import { toast } from 'react-hot-toast';
 import { globalToastId } from '@/constants/config';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 import {
   getRequestHistoryDetail,
   RequestHistoryDetail,
@@ -51,24 +51,16 @@ const noWrapValueStyle: React.CSSProperties = {
 };
 
 const CodeBlock: React.FC<{ text: string; empty?: string }> = ({ text, empty = '(empty)' }) => {
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text || '');
-      toast.success('Copied to clipboard', { id: globalToastId });
-    } catch {
-      toast.error('Unable to copy', { id: globalToastId });
-    }
-  };
   return (
     <div style={{ position: 'relative' }}>
-      <Button
+      <CopyButton
+        text={text || ''}
+        tooltipTitle="Copy"
+        label="Copy"
         size="small"
-        icon={<CopyOutlined />}
-        onClick={onCopy}
+        type="default"
         style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
-      >
-        Copy
-      </Button>
+      />
       <pre
         style={{
           margin: 0,
@@ -143,9 +135,10 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
         styles={{ label: { whiteSpace: 'nowrap' } }}
       >
         <Descriptions.Item label="ID" span={2}>
-          <Text code copyable>
-            {entry.GUID}
-          </Text>
+          <Space size={4}>
+            <Text code>{entry.GUID}</Text>
+            <CopyButton text={entry.GUID} tooltipTitle="Copy ID" />
+          </Space>
         </Descriptions.Item>
         <Descriptions.Item label="Method">{entry.Method}</Descriptions.Item>
         <Descriptions.Item label="Status">
@@ -167,8 +160,12 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
         <Descriptions.Item label="Tenant">
           {entry.TenantGUID ? <Text code>{entry.TenantGUID}</Text> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label="Request Size">{formatBytes(entry.RequestBodyLength)}</Descriptions.Item>
-        <Descriptions.Item label="Response Size">{formatBytes(entry.ResponseBodyLength)}</Descriptions.Item>
+        <Descriptions.Item label="Request Size">
+          {formatBytes(entry.RequestBodyLength)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Response Size">
+          {formatBytes(entry.ResponseBodyLength)}
+        </Descriptions.Item>
         <Descriptions.Item label="URL" span={2}>
           <Text code style={{ wordBreak: 'break-all' }}>
             {entry.Url}
@@ -263,7 +260,9 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
                   label: 'Transaction Diagnostics',
                   children: (
                     <CodeBlock
-                      text={prettyJson(detail?.TransactionDiagnosticsJson || entry.TransactionDiagnosticsJson)}
+                      text={prettyJson(
+                        detail?.TransactionDiagnosticsJson || entry.TransactionDiagnosticsJson
+                      )}
                       empty={loading ? 'Loading...' : '(empty)'}
                     />
                   ),

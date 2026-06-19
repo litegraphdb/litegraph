@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import EdgeToolTip from '@/components/base/graph/EdgeTooltip';
+import { defaultEdgeTooltip } from '@/components/base/graph/constant';
 import { GraphEdgeTooltip } from '@/components/base/graph/types';
 import { createMockInitialState } from '../../../store/mockStore';
 import { renderWithRedux } from '../../../store/utils';
@@ -18,6 +19,18 @@ jest.mock('@/lib/store/slice/slice', () => ({
   useGetNodeByIdQuery: jest.fn(),
   useSearchNodesMutation: jest.fn(),
 }));
+
+jest.mock('@/page/edges/components/AddEditEdge', () => {
+  return function MockAddEditEdge() {
+    return null;
+  };
+});
+
+jest.mock('@/page/edges/components/DeleteEdge', () => {
+  return function MockDeleteEdge() {
+    return null;
+  };
+});
 
 // Mock the JsonEditor component
 jest.mock('jsoneditor-react', () => ({
@@ -101,6 +114,7 @@ describe('EdgeTooltip Component', () => {
       data: null,
       isLoading: false,
       isFetching: false,
+      refetch: jest.fn(),
     });
 
     renderWithRedux(
@@ -124,6 +138,7 @@ describe('EdgeTooltip Component', () => {
       data: mockNodes,
       isLoading: false,
       isFetching: false,
+      refetch: jest.fn(),
     });
 
     renderWithRedux(
@@ -135,7 +150,7 @@ describe('EdgeTooltip Component', () => {
     expect(screen.getByText('{"category":"test","priority":"high"}')).toBeInTheDocument();
   });
 
-  it('displays edge GUID in gray text', () => {
+  it('displays edge GUID value in a fixed-width font', () => {
     const { useGetEdgeByIdQuery, useGetManyNodesQuery } = require('@/lib/store/slice/slice');
     useGetEdgeByIdQuery.mockReturnValue({
       data: mockEdge,
@@ -148,6 +163,7 @@ describe('EdgeTooltip Component', () => {
       data: mockNodes,
       isLoading: false,
       isFetching: false,
+      refetch: jest.fn(),
     });
 
     renderWithRedux(
@@ -156,5 +172,60 @@ describe('EdgeTooltip Component', () => {
     );
 
     expect(screen.getByTestId('edge-guid')).toBeInTheDocument();
+    const guidValue = screen.getByTestId('edge-guid-value');
+    expect(guidValue).toHaveTextContent('test-edge-id');
+    expect(guidValue.style.fontFamily).toBe('monospace');
+  });
+
+  it('does not close when clicking inside the edge information modal', () => {
+    const { useGetEdgeByIdQuery, useGetManyNodesQuery } = require('@/lib/store/slice/slice');
+    useGetEdgeByIdQuery.mockReturnValue({
+      data: mockEdge,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    useGetManyNodesQuery.mockReturnValue({
+      data: mockNodes,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    renderWithRedux(
+      <EdgeToolTip tooltip={mockTooltip} setTooltip={mockSetTooltip} graphId="test-graph" />,
+      createMockInitialState()
+    );
+
+    fireEvent.mouseDown(screen.getByText('Edge Information'));
+
+    expect(mockSetTooltip).not.toHaveBeenCalled();
+  });
+
+  it('closes when clicking outside the edge information modal', () => {
+    const { useGetEdgeByIdQuery, useGetManyNodesQuery } = require('@/lib/store/slice/slice');
+    useGetEdgeByIdQuery.mockReturnValue({
+      data: mockEdge,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    useGetManyNodesQuery.mockReturnValue({
+      data: mockNodes,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    renderWithRedux(
+      <EdgeToolTip tooltip={mockTooltip} setTooltip={mockSetTooltip} graphId="test-graph" />,
+      createMockInitialState()
+    );
+
+    fireEvent.mouseDown(document.body);
+
+    expect(mockSetTooltip).toHaveBeenCalledWith(defaultEdgeTooltip);
   });
 });

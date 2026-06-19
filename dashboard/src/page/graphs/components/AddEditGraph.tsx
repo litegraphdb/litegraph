@@ -23,6 +23,7 @@ import { GraphCreateRequest } from 'litegraphdb/dist/types/types';
 import { getCreateEditViewModelTitle } from '@/utils/appUtils';
 import PageLoading from '@/components/base/loading/PageLoading';
 import { cloneDeep } from 'lodash';
+import { vectorsToFormList } from '@/utils/formValueUtils';
 
 const initialValues = {
   name: '',
@@ -147,7 +148,7 @@ const AddEditGraph = ({
           key,
           value,
         })),
-        vectors: graph.Vectors || [],
+        vectors: vectorsToFormList(graph.Vectors),
       });
       setUniqueKey(v4());
     } else if (!graphWithOldData?.GUID) {

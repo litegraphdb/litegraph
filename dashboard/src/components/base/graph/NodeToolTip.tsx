@@ -3,7 +3,7 @@ import LiteGraphCard from '@/components/base/card/Card';
 import LiteGraphSpace from '@/components/base/space/Space';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { GraphNodeTooltip } from './types';
-import { CloseCircleFilled, CopyOutlined, ExpandOutlined } from '@ant-design/icons';
+import { CloseCircleFilled, ExpandOutlined } from '@ant-design/icons';
 import { defaultNodeTooltip } from './constant';
 import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphFlex from '@/components/base/flex/Flex';
@@ -18,9 +18,9 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import AddEditEdge from '@/page/edges/components/AddEditEdge';
 import classNames from 'classnames';
 import styles from './tooltip.module.scss';
-import { copyTextToClipboard } from '@/utils/jsonCopyUtils';
 import { useGetNodeByIdQuery } from '@/lib/store/slice/slice';
 import { useEnumerateAndSearchTagQuery } from '@/lib/store/slice/slice';
+import CopyButton from '@/components/base/copy-button/CopyButton';
 
 type NodeTooltipProps = {
   tooltip: GraphNodeTooltip;
@@ -174,6 +174,34 @@ const NodeToolTip = ({
       }
     }
   }, [tooltip.visible, tooltip.nodeId, graphId, refetchTags, isAddingNewNode]);
+
+  useEffect(() => {
+    if (!tooltip.visible) {
+      return;
+    }
+
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      const target = event.target;
+      if (!(target instanceof globalThis.Element)) {
+        return;
+      }
+
+      if (target.closest('[data-tooltip-boundary="node-information"]')) {
+        return;
+      }
+
+      setTooltip(defaultNodeTooltip);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [setTooltip, tooltip.visible]);
+
   return (
     <>
       <LiteGraphSpace
@@ -181,6 +209,7 @@ const NodeToolTip = ({
         direction="vertical"
         size={16}
         className={classNames(styles.tooltipContainer)}
+        data-tooltip-boundary="node-information"
         style={{
           top: tooltip.y,
           left: tooltip.x,
@@ -243,13 +272,10 @@ const NodeToolTip = ({
               <LitegraphFlex vertical className="card-details">
                 <LitegraphText data-testid="node-guid">
                   <strong>GUID: </strong>
-                  {nodeWithTags?.GUID}{' '}
-                  <CopyOutlined
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      copyTextToClipboard(nodeWithTags?.GUID || '', 'GUID');
-                    }}
-                  />
+                  <span data-testid="node-guid-value" style={{ fontFamily: 'monospace' }}>
+                    {nodeWithTags?.GUID}
+                  </span>{' '}
+                  <CopyButton text={nodeWithTags?.GUID || ''} tooltipTitle="Copy GUID" />
                 </LitegraphText>
                 <LitegraphText>
                   <strong>Name: </strong>
@@ -289,29 +315,6 @@ const NodeToolTip = ({
                   })()}
                 </LitegraphText>
 
-                {/* <LitegraphFlex align="center" gap={6}>
-                  <LitegraphText>
-                    <strong>Data:</strong>
-                  </LitegraphText>
-                  <LitegraphTooltip title="Copy JSON">
-                    <CopyOutlined
-                      className="cursor-pointer"
-                      onClick={() => {
-                        copyJsonToClipboard(node?.Data || {}, 'Data');
-                      }}
-                    />
-                  </LitegraphTooltip>
-                </LitegraphFlex>
-                <JsonEditorWithAce
-                  key={JSON.stringify(node?.Data && JSON.parse(JSON.stringify(node.Data)))}
-                  value={(node?.Data && JSON.parse(JSON.stringify(node.Data))) || {}}
-                  mode="view"
-                  mainMenuBar={false}
-                  statusBar={false}
-                  navigationBar={false}
-                  enableSort={false}
-                  enableTransform={false}
-                /> */}
               </LitegraphFlex>
               {/* Buttons */}
               <LitegraphFlex className="pt-3" gap={10} justify="space-between">
