@@ -11,6 +11,8 @@ namespace Test.Shared
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
+    using LiteGraph.GraphRepositories;
+    using LiteGraph.GraphRepositories.Postgresql;
     using LiteGraph.GraphRepositories.Sqlite;
     using LiteGraph.McpServer;
     using LiteGraph.Serialization;
@@ -49,6 +51,8 @@ namespace Test.Shared
         private static McpHttpClient? _McpClient = null;
         private static Serializer _McpSerializer = new Serializer();
         private static bool _PreserveMcpArtifactsOnCleanup = false;
+        private static string? _PostgresqlSuiteConnectionString = null;
+        private static string? _PostgresqlSuiteSchema = null;
         private static readonly (string CaseId, string DisplayName, Func<Task> ExecuteAsync)[] _CoreTestCases =
         {
             ("Tenant.Create", "Tenant.Create", TestTenantCreate),
@@ -332,7 +336,7 @@ namespace Test.Shared
         {
             get
             {
-                return new List<TestSuiteDescriptor>
+                List<TestSuiteDescriptor> suites = new List<TestSuiteDescriptor>
                 {
                     CreateLegacyExecutionSuite(
                         suiteId: "Database.InMemory",
@@ -351,6 +355,11 @@ namespace Test.Shared
                     CreateVectorIndexImplementationSuite(),
                     CreateVectorIndexSearchSuite()
                 };
+
+                if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable)))
+                    suites.Insert(2, CreatePostgresqlExecutionSuite());
+
+                return suites;
             }
         }
 
@@ -372,6 +381,16 @@ namespace Test.Shared
                 cases: CreateCaseDescriptors(suiteId, _CoreTestCases, displayNamePrefix: databaseModePrefix),
                 beforeSuiteAsync: ct => InitializeLegacySuiteAsync(databaseFilename, inMemory, ct),
                 afterSuiteAsync: CleanupLegacySuiteAsync);
+        }
+
+        private static TestSuiteDescriptor CreatePostgresqlExecutionSuite()
+        {
+            return new TestSuiteDescriptor(
+                suiteId: "Database.Postgresql",
+                displayName: "Full automated suite against the PostgreSQL repository",
+                cases: CreateCaseDescriptors("Database.Postgresql", _CoreTestCases, displayNamePrefix: "Postgresql"),
+                beforeSuiteAsync: InitializePostgresqlSuiteAsync,
+                afterSuiteAsync: CleanupPostgresqlSuiteAsync);
         }
 
         private static TestSuiteDescriptor CreateRouteAuthenticationSuite()
@@ -464,6 +483,43 @@ namespace Test.Shared
         {
             cancellationToken.ThrowIfCancellationRequested();
             await Cleanup().ConfigureAwait(false);
+        }
+
+        private static async ValueTask InitializePostgresqlSuiteAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Cleanup().ConfigureAwait(false);
+            ResetTestState();
+
+            string? connectionString = Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable);
+            if (String.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("PostgreSQL suite requires " + PostgresqlTestConnectionStringEnvironmentVariable + ".");
+
+            _PostgresqlSuiteConnectionString = connectionString;
+            _PostgresqlSuiteSchema = "litegraph_test_" + Guid.NewGuid().ToString("N");
+
+            GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
+            {
+                Type = DatabaseTypeEnum.Postgresql,
+                ConnectionString = connectionString,
+                Schema = _PostgresqlSuiteSchema
+            });
+
+            _Client = new LiteGraphClient(repo);
+            _Client.InitializeRepository();
+        }
+
+        private static async ValueTask CleanupPostgresqlSuiteAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _Client?.Dispose();
+            _Client = null;
+            ResetTestState();
+
+            await DropPostgresqlSchemaAsync(_PostgresqlSuiteConnectionString, _PostgresqlSuiteSchema, cancellationToken).ConfigureAwait(false);
+            _PostgresqlSuiteConnectionString = null;
+            _PostgresqlSuiteSchema = null;
         }
 
         private static async ValueTask InitializeMcpSuiteAsync(CancellationToken cancellationToken)
@@ -608,6 +664,7 @@ namespace Test.Shared
             {
                 await CleanupMcpServer();
                 _Client?.Dispose();
+                _Client = null;
 
                 if (File.Exists("test-automated-memory.db"))
                 {
@@ -622,6 +679,28 @@ namespace Test.Shared
             catch (Exception)
             {
             }
+        }
+
+        private static async Task DropPostgresqlSchemaAsync(string? connectionString, string? schema, CancellationToken cancellationToken)
+        {
+            if (String.IsNullOrWhiteSpace(connectionString) || String.IsNullOrWhiteSpace(schema)) return;
+
+            try
+            {
+                await using Npgsql.NpgsqlConnection connection = new Npgsql.NpgsqlConnection(connectionString);
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                await using Npgsql.NpgsqlCommand command = connection.CreateCommand();
+                command.CommandText = "DROP SCHEMA IF EXISTS " + QuotePostgresqlIdentifier(schema) + " CASCADE;";
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string QuotePostgresqlIdentifier(string identifier)
+        {
+            return "\"" + identifier.Replace("\"", "\"\"") + "\"";
         }
 
         // ========================================

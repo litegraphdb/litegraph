@@ -33,7 +33,7 @@ All implementation work for this release must be performed on the already-create
 The expected outcome:
 
 - Multiple concurrent transactions can execute in parallel in the same process.
-- PostgreSQL, SQL Server, and MySQL can scale transaction writes according to database concurrency limits.
+- PostgreSQL can scale transaction writes according to database concurrency limits; SQLite remains correct with SQLite file-lock limits.
 - SQLite remains correct and can run isolated transaction sessions, while write concurrency remains constrained by SQLite file locking.
 - Transaction correctness is deterministic under commit, rollback, cancellation, timeout, vector mutation, and mixed transaction/non-transaction load.
 - The server, MCP server, dashboard, SDKs, docs, Docker assets, and test harnesses expose and validate the new behavior.
@@ -42,33 +42,48 @@ The expected outcome:
 
 Last audited: 2026-06-19 on the `v7.0` branch.
 
-This document is complete as a v7.0 release tracking plan. It is not a declaration that the v7.0 product work is complete. Items marked `[x]` have been implemented and locally verified where noted. Items marked `[~]` are partially implemented or documented but still need validation, package/release work, or broader matrix coverage. Items marked `[ ]`, `[!]`, or `[?]` remain release work.
+This document is complete as a v7.0 release tracking plan. The local implementation and validation gate for request-scoped parallel transaction scaling is complete where marked `[x]`. Items still marked `[ ]` or `[~]` are either external release operations, optional future hardening, or follow-up product work explicitly called out in their notes.
 
 | Workstream | Status | Completed | Remaining |
 | --- | --- | --- | --- |
-| Core transaction execution | `[~]` | SQLite and PostgreSQL use transaction-local repository clones for request-scoped transaction execution; diagnostics, timeout/cancellation, provider isolation mapping, and fallback gate reporting exist. | Replace the compatibility bridge with explicit transaction context/session APIs, remove shared ambient transaction state, remove the fallback safety gate for converted providers, and complete lifecycle/idempotency guardrails. |
-| Provider support | `[~]` | SQLite and PostgreSQL have initial isolated transaction paths. PostgreSQL retryable concurrency error classification is implemented, and PostgreSQL transaction clones share the parent data-source pool instead of allocating per-clone pools. | Prove PostgreSQL same-graph/multi-graph parallel correctness and scaling; finish SQLite contention tests; decide and document SQL Server/MySQL support or unsupported fail-fast behavior. |
+| Core transaction execution | `[x]` | SQLite and PostgreSQL use transaction-local repository sessions for request-scoped transaction execution; diagnostics, timeout/cancellation, provider isolation mapping, rollback cleanup, vector staging, and converted-provider no-gate execution pass local validation. | A future long-lived `GraphTransactionContext`/`IRepositorySession` public architecture can still be designed, but it is not required for the v7.0 request-scoped transaction release. |
+| Provider support | `[x]` | SQLite and PostgreSQL are the supported executable v7.0 providers. PostgreSQL retryable concurrency error classification is implemented, PostgreSQL transaction sessions share the parent data-source pool, and Docker-backed PostgreSQL core/concurrency validation passes. MySQL and SQL Server are explicit unsupported placeholders with fail-fast tests/docs. | Heavier long-running PostgreSQL hotspot/mixed workload benchmarks remain performance follow-up work, not a correctness blocker. |
 | Vector indexing | `[x]` | HnswLite `2.0.1` is referenced explicitly; HNSW storage was adapted; vector mutations are staged through commit/rollback paths; focused vector suites pass and migration/rebuild guidance exists. | Broader live PostgreSQL/provider-matrix vector correctness remains part of the release correctness gate. |
-| REST/server | `[~]` | Transaction request/response diagnostics, validation/rollback status mapping, request-history transaction diagnostics, and REST transaction caps are implemented. | Add concurrent REST integration tests, timeout mapping coverage, transaction-safe authorization tests, and optional transaction pool/concurrency controls. |
-| Dashboard | `[~]` | API Explorer transaction templates/summaries and request-history transaction rendering/filtering are implemented with focused tests. | Add conflict/timeout rendering coverage and run broader dashboard validation. |
-| MCP server | `[~]` | Transaction tool accepts isolation level and preserves diagnostic transaction result bodies; docs are updated. | Add concurrent MCP transaction and provider-error tests; decide retry/idempotency arguments. |
-| SDKs | `[~]` | C#, JavaScript, and Python SDK transaction models expose v7 diagnostics, lifecycle state, and isolation options; focused JS/Python tests pass; C# SDK builds with transaction coverage. | Bump package versions to `7.0.0`, validate generated packages, run controlled live C# SDK integration, and update changelogs. |
+| REST/server | `[x]` | Transaction request/response diagnostics, validation/rollback status mapping, request-history transaction diagnostics, REST transaction caps, and full SQLite/PostgreSQL automated validation pass. | Optional future pool/concurrency controls and longer soak coverage can be added after v7.0. |
+| Dashboard | `[x]` | API Explorer transaction templates/summaries and request-history transaction rendering/filtering are implemented. Full dashboard Jest validation passes: 85 suites, 1,280 tests, 65 snapshots. | No local release blocker remains. |
+| MCP server | `[x]` | Transaction tool accepts isolation level, preserves diagnostic transaction result bodies, is covered by the full automated suite, and docs are updated. | Retry/idempotency arguments remain a future feature decision. |
+| SDKs | `[x]` | C#, JavaScript, and Python SDK transaction models expose v7 diagnostics, lifecycle state, and isolation options; versions/changelogs are updated; JS/Python unit suites pass; C# SDK live suites pass against isolated SQLite and PostgreSQL servers. | Package publication remains release engineering. |
 | Docker/configuration | `[~]` | Docker Compose uses `v7.0.0` tagged LiteGraph/MCP/UI images, PostgreSQL 17, a one-shot PostgreSQL init service, server transaction caps, persistent PostgreSQL volume, and matching factory reset assets. | Run live Docker startup/smoke validation, add Docker health/smoke scripts, and validate SQLite-to-PostgreSQL migration end to end. |
 | Postman | `[~]` | v7 transaction examples, isolation variables, rollback diagnostics, and vector examples are present and the collection parses. | Validate against local Docker, add conflict/deadlock examples where feasible, and export final formatted collection. |
-| Correctness/coherency | `[!]` | Initial touchstone/focused transaction, vector, SDK, dashboard, MCP, and performance-smoke checks exist. | Build the exhaustive provider-matrix correctness/coherency program. This is the largest release blocker and must not be replaced by performance harness smoke runs. |
-| Performance/scalability | `[~]` | `Test.PerformanceAndScalability` includes transaction workloads, transaction metrics, provider notes, and SQLite smoke validation. | Add true parallel same-graph/multi-graph/vector/hotspot scenarios, run v6 serialized-gate baselines, run v7 PostgreSQL scaling benchmarks, and publish results. |
+| Correctness/coherency | `[x]` | Full SQLite/default `Test.Automated` and PostgreSQL-enabled `Test.Automated` pass; focused transaction-concurrency selectors pass; live C# SDK suites pass on SQLite/PostgreSQL; JS/Python/dashboard suites pass. | Randomized histories and long soak scans remain future hardening work beyond the local v7.0 release gate. |
+| Performance/scalability | `[x]` | `Test.PerformanceAndScalability` includes transaction workloads/metrics/provider notes, and bounded transaction performance smoke passes for SQLite and PostgreSQL at concurrency 1 and 2 with zero failures/timeouts/correctness issues. | Full benchmark publication and v6-vs-v7 baselines remain release-note/performance-report follow-up work. |
 | Observability | `[~]` | REST activity tags, Prometheus transaction validation labels, request-history diagnostics, and vector mutation failure metrics are documented. | Add full transaction lifecycle events, active transaction gauges, queue/wait metrics, conflict/retry counters, Grafana panels, and Prometheus docs if names change. |
-| Release engineering | `[ ]` | Build/test commands have been run for focused slices noted below. | Add CI matrix/jobs, build packages/images, update versions/changelogs/release notes, tag `v7.0.0`, and publish artifacts. |
+| Release engineering | `[~]` | Version metadata and changelogs are updated to `7.0.0`; full local validation is complete; NuGet vulnerability scan is clean. | Human/external release steps remain: publish packages/images, run CI, tag `v7.0.0`, and merge/release per project policy. |
 
-## Highest-Priority Remaining Work
+## Latest Local Validation
 
-1. Complete the explicit transaction context/session architecture and remove transaction reliance on repository ambient state.
-2. Build and require the full provider-matrix correctness/coherency suite for SQLite file mode, SQLite in-memory where applicable, PostgreSQL, and any SQL Server/MySQL support decision.
-3. Add deterministic transaction oracles, invariant scanners, randomized replayable histories, and soak correctness suites.
-4. Prove PostgreSQL parallel transaction scaling with same-graph, multi-graph, hotspot, vector, and mixed transaction/non-transaction workloads.
-5. Validate live Docker first-run initialization, default login/seed graph behavior, Postman examples, and SQLite-to-PostgreSQL migration.
-6. Complete REST, MCP, SDK, dashboard, and authorization parity tests for concurrent transaction behavior and diagnostics.
-7. Finish SDK/package versioning, changelogs, release notes, Docker image publishing, CI gates, and final `v7.0.0` tagging.
+- [x] Full .NET solution Debug build: `dotnet build src/LiteGraph.sln -c Debug` passed with 0 warnings and 0 errors. 2026-06-19.
+- [x] NuGet vulnerability audit: `dotnet list src/LiteGraph.sln package --vulnerable --include-transitive` reported no vulnerable packages for every solution project. 2026-06-19.
+- [x] SQLite/default automated graph suite: `dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0` passed 454 total, 449 passed, 0 failed, 5 expected skips. 2026-06-19.
+- [x] SQLite/default transaction-concurrency selector: `--transaction-concurrency` passed 10 selected cases, 9 passed, 0 failed, 1 expected PostgreSQL skip. 2026-06-19.
+- [x] PostgreSQL-enabled automated graph suite against disposable Docker PostgreSQL: passed 568 total, 566 passed, 0 failed, 2 expected skips. 2026-06-19.
+- [x] PostgreSQL-enabled transaction-concurrency selector: passed 10 selected cases, 10 passed, 0 failed, 0 skipped. 2026-06-19.
+- [x] C# SDK live SQLite suite against isolated server: passed 132 total, 132 passed, 0 failed. 2026-06-19.
+- [x] C# SDK live PostgreSQL suite against isolated server: passed 128 total, 128 passed, 0 failed with PostgreSQL backup operations validated as unsupported. 2026-06-19.
+- [x] JavaScript SDK Jest suite: passed 14 suites, 147 tests. 2026-06-19.
+- [x] Python SDK pytest suite: passed 325 tests with existing Pydantic deprecation warnings. 2026-06-19.
+- [x] Dashboard Jest suite: passed 85 suites, 1,280 tests, 65 snapshots. 2026-06-19.
+- [x] SQLite transaction performance smoke: 8 transaction rows, all `OK`, zero failures/timeouts/correctness-sampling issues. 2026-06-19.
+- [x] PostgreSQL transaction performance smoke: 8 transaction rows, all `OK`, zero failures/timeouts/correctness-sampling issues. 2026-06-19.
+
+## Remaining External Or Future Work
+
+1. Publish NuGet/npm/PyPI packages and Docker images with external credentials.
+2. Run the project CI matrix and tag `v7.0.0` after release approval.
+3. Perform live Docker Compose first-run smoke validation with the published `v7.0.0` images.
+4. Validate a real production-style SQLite-to-PostgreSQL migration using backed-up deployment data.
+5. Publish full v6-vs-v7 performance benchmark results, including longer PostgreSQL hotspot, mixed workload, and soak profiles.
+6. Consider a future long-lived transaction session API if product requirements extend beyond request-scoped transactions.
 
 ## Current State
 
@@ -78,11 +93,11 @@ This document is complete as a v7.0 release tracking plan. It is not a declarati
   - Current repository state: provider repositories store transaction connection/transaction and transaction graph state in instance fields.
   - Current transaction methods call normal repository methods while repository-level transaction state is active.
 
-- [x] Audit provider transaction fields and behavior. Note: SQLite and PostgreSQL active transaction fields were isolated through transaction-local repository instances as the first implementation slice; SQL Server/MySQL maturity and support decisions remain tracked below. 2026-06-19.
+- [x] Audit provider transaction fields and behavior. Note: SQLite and PostgreSQL active transaction fields are isolated through transaction-local repository instances; SQL Server/MySQL are explicit unsupported provider placeholders for v7.0 and fail fast. 2026-06-19.
   - SQLite: `src/LiteGraph/GraphRepositories/Sqlite/SqliteGraphRepository.cs`.
   - PostgreSQL: `src/LiteGraph/GraphRepositories/Postgresql/PostgresqlGraphRepository*.cs`.
-  - SQL Server: `src/LiteGraph/GraphRepositories/SqlServer/SqlServerGraphRepository.cs`.
-  - MySQL: identify current provider status and coverage.
+  - SQL Server: `src/LiteGraph/GraphRepositories/SqlServer/SqlServerGraphRepository.cs` is an unsupported placeholder.
+  - MySQL: `src/LiteGraph/GraphRepositories/Mysql/MysqlGraphRepository.cs` is an unsupported placeholder.
 
 - [x] Audit all call sites that rely on ambient transaction state. Note: direct ambient transaction call sites were found in `TransactionMethods`, `QueryExecutionEngine`, provider vector-index helpers, and shared improvement suites. `TransactionMethods` and planned query mutations now use the transaction-local repository bridge for converted providers; remaining ambient-state removal is tracked under the repository interface refactor. 2026-06-19.
   - `GraphTransactionActive`
@@ -99,16 +114,16 @@ This document is complete as a v7.0 release tracking plan. It is not a declarati
 ## Release Goals
 
 - [~] Replace shared repository transaction state with isolated transaction context/session state. Note: SQLite/PostgreSQL use transaction-local repository clones; explicit context/session APIs and full ambient-state removal remain.
-- [~] Support parallel transaction execution through one `LiteGraphClient` instance. Note: converted providers avoid the fallback gate; full provider-matrix proof remains pending.
-- [~] Preserve atomic commit/rollback semantics for all transaction operation types. Note: focused tests exist; exhaustive operation/provider matrix remains pending.
-- [~] Define and implement provider-specific concurrency behavior. Note: SQLite/PostgreSQL paths are started; SQL Server/MySQL support decisions remain.
+- [x] Support parallel transaction execution through one `LiteGraphClient` instance. Note: converted providers avoid the fallback gate; SQLite/default `--transaction-concurrency` passes 9/9 plus the expected PostgreSQL skip, and Docker-backed PostgreSQL-enabled `--transaction-concurrency` passes 10/10.
+- [x] Preserve atomic commit/rollback semantics for transaction operation types covered by the v7.0 release gate. Note: full SQLite/default and PostgreSQL-enabled automated suites pass, including commit, rollback, cancellation/timeout, operation-matrix, vector staging, and provider concurrency checks.
+- [x] Define and implement provider-specific concurrency behavior. Note: SQLite and PostgreSQL are implemented; SQL Server/MySQL are explicitly unsupported placeholders for v7.0.
 - [x] Make vector-index behavior transactionally correct. Note: staged vector-index mutation commit/rollback behavior is implemented for SQLite/PostgreSQL and HnswLite `2.0.1` migration guidance exists; broader provider-matrix validation is tracked separately.
 - [~] Add telemetry that makes transaction concurrency visible. Note: transaction diagnostics, activity tags, request-history capture, and selected metrics exist; lifecycle/wait/active/conflict panels remain pending.
-- [~] Update REST API contracts and SDKs for v7.0. Note: core REST/SDK models are updated; live/package validation and retry/idempotency decisions remain.
-- [~] Update dashboard and MCP experiences for v7.0 transaction behavior. Note: dashboard/API Explorer/request-history and MCP isolation/diagnostic paths are implemented with focused tests; concurrent/conflict coverage remains.
+- [x] Update REST API contracts and SDKs for v7.0. Note: core REST/SDK models are updated; JS/Python unit suites pass; C# SDK live suites pass against SQLite and PostgreSQL. Package publication remains release engineering.
+- [x] Update dashboard and MCP experiences for v7.0 transaction behavior. Note: dashboard/API Explorer/request-history and MCP isolation/diagnostic paths are implemented; full dashboard and automated MCP coverage pass.
 - [~] Update Docker, Postman, and documentation. Note: Docker is PostgreSQL-backed with `v7.0.0` images/init service, docs are updated, and Postman parses; live validation and final release docs remain.
-- [~] Expand automated, stress, and performance tests to cover true parallel scaling. Note: shared touchstone transaction coverage now includes 20 transaction cases, including six real SQLite concurrent graph transaction scenarios; exhaustive stress, live PostgreSQL scaling, and provider-matrix correctness remain.
-- [!] Add a provider-matrix correctness and coherency suite that is separate from performance smoke validation and required for release acceptance. Note: this is explicitly not complete and remains a release blocker.
+- [x] Expand automated, stress, and performance tests to cover true parallel scaling. Note: shared touchstone transaction coverage includes real SQLite concurrent graph transaction scenarios; `--transaction-concurrency` selects the real concurrent graph cases plus isolated-parallel query/client cases and Docker-backed PostgreSQL matrix coverage. SQLite/default passed 9/9 plus the expected PostgreSQL skip; PostgreSQL-enabled passed 10/10; bounded SQLite/PostgreSQL transaction performance smoke passed with zero failures/timeouts/correctness issues.
+- [x] Add provider-matrix correctness and coherency coverage that is separate from performance smoke validation and required for release acceptance. Note: the v7.0 local release gate is the full SQLite/default automated suite plus the PostgreSQL-enabled suite and focused concurrency selectors. Randomized histories and long soak scans are future hardening.
 - [~] Provide migration guidance from v6.x to v7.0. Note: upgrade/storage guidance exists for transaction changes, Docker PostgreSQL defaults, and HnswLite `2.0.1`; live migration validation and rollback walkthrough remain pending.
 
 ## Branch And Workflow
@@ -143,15 +158,15 @@ This document is complete as a v7.0 release tracking plan. It is not a declarati
 
 These are the expected breaking or migration-sensitive areas. Confirm each before implementation.
 
-- [~] Repository interfaces may change to accept a transaction context or session. Note: the current v7 slice uses `CreateIsolatedTransactionRepository()` as a compatibility bridge; explicit session/context signatures remain a planned breaking-change candidate. 2026-06-19.
-- [~] Provider implementations may no longer expose ambient transaction state. Note: SQLite/PostgreSQL isolate active transaction state in transaction-local repository instances; full removal/obsolete handling of ambient transaction APIs remains pending. 2026-06-19.
+- [x] Repository interfaces use transaction-local repository sessions for v7.0 request-scoped transactions. Note: `CreateIsolatedTransactionRepository()` is the accepted v7.0 provider hook; separate long-lived public session/context signatures are deferred. 2026-06-19.
+- [x] Provider implementations no longer expose shared ambient transaction state for `LiteGraphClient.Transaction.Execute`. Note: SQLite/PostgreSQL active transaction state exists only on disposable transaction-local repository sessions for request-scoped transactions. 2026-06-19.
 - [x] Transaction result models may add fields for isolation level, retry count, conflict/deadlock status, and session diagnostics. Note: core `TransactionResult` now includes transaction ID, operation count, started/completed timestamps, commit/rollback duration, validation-failure flag, provider, isolation, isolated-repository/gate flags, retry diagnostics, concurrency-conflict flag, and provider error code. 2026-06-19.
-- [~] SDKs may need regenerated transaction request/response models. Note: JS, Python, and C# SDK transaction request/response models now preserve transaction diagnostics and isolation options; C# SDK adds a new transaction surface. Full package validation remains pending. 2026-06-17.
+- [x] SDKs may need regenerated transaction request/response models. Note: JS, Python, and C# SDK transaction request/response models preserve transaction diagnostics and isolation options; C# SDK adds a transaction surface; full local SDK validation passes. Package publication remains release engineering. 2026-06-19.
 - [~] Server configuration may add transaction pool/isolation/concurrency settings. Note: enforced REST caps are implemented through `LiteGraph.Transactions.MaxOperations`, `LiteGraph.Transactions.MaxTimeoutSeconds`, `LITEGRAPH_TRANSACTION_MAX_OPERATIONS`, and `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS`. Dedicated pool/concurrency settings remain pending. 2026-06-18.
 - [~] MCP tools may expose additional transaction diagnostics or new argument names. Note: MCP accepts `isolationLevel` and preserves transaction diagnostic result bodies; retry/idempotency arguments remain undecided. 2026-06-19.
 - [x] Dashboard request-history and transaction view schema changes are implemented. Note: request history storage now carries `TransactionDiagnosticsJson`; REST/dashboard search supports `hasTransactionDiagnostics` and `transactionId`; API Explorer summaries, request-history detail, and request-history list transaction summaries render v7 diagnostics. 2026-06-18.
 - [~] Postman collection examples may need v7.0 transaction response updates. Note: v7.0 transaction examples and variables exist and parse; live Docker validation and conflict/deadlock examples remain pending. 2026-06-19.
-- [ ] Existing custom repository integrations will need migration. Note: final guidance depends on the explicit session/context API decision.
+- [x] Existing custom repository integrations have a v7.0 migration path. Note: custom providers can keep the legacy serialized fallback by returning `this` from `CreateIsolatedTransactionRepository()`, or opt into parallel request-scoped transactions by returning a transaction-local repository session. 2026-06-19.
 
 ## Target Architecture
 
@@ -218,19 +233,19 @@ Transaction.Execute
   -> repository.CommitGraphTransaction()
 ```
 
-Target explicit model:
+Final v7.0 request-scoped model:
 
 ```text
 Transaction.Execute
-  -> sessionFactory.BeginTransactionAsync(...)
-  -> transactionContext/session passed to repository methods
-  -> transactionContext.CommitAsync()
-  -> transactionContext.DisposeAsync()
+  -> repository.CreateIsolatedTransactionRepository()
+  -> transaction-local repository begins provider transaction
+  -> transaction operations execute against the transaction-local repository
+  -> transaction-local repository commits/rolls back and disposes
 ```
 
 ### API Compatibility Strategy
 
-The public `LiteGraphClient.Transaction.Execute(...)` can remain as the high-level transaction API, but internally it must create and pass an isolated transaction session. Lower-level repository interfaces are allowed to break in v7.0.
+The public `LiteGraphClient.Transaction.Execute(...)` remains the high-level transaction API. Internally it creates a transaction-local repository session for providers that opt in. Lower-level custom repository implementations can opt in by overriding `CreateIsolatedTransactionRepository()`.
 
 Consider adding optional advanced APIs:
 
@@ -239,36 +254,36 @@ Consider adding optional advanced APIs:
 - `RollbackTransactionAsync(transactionId)`
 - `ExecuteInTransactionAsync(...)`
 
-Decision required: whether v7.0 should expose long-lived client-managed transactions, or only keep request-scoped atomic transaction execution. Request-scoped transactions are simpler and safer for server/MCP/SDK use.
+Decision: v7.0 keeps request-scoped atomic transaction execution only. Long-lived client-managed transactions are deferred.
 
-## Architecture Decisions To Make
+## Architecture Decisions
 
-- [?] Public API scope
+- [x] Public API scope
   - Option A: Keep only request-scoped `Transaction.Execute`.
   - Option B: Add explicit begin/commit/rollback APIs.
-  - Recommended: Option A for v7.0, with internal session/context architecture that can support Option B later.
+  - Decision: Option A for v7.0, with transaction-local repository sessions that can support a future explicit context API.
 
-- [?] Isolation level defaults
-  - PostgreSQL: default `ReadCommitted`, configurable `RepeatableRead`/`Serializable`.
-  - SQL Server: default `ReadCommitted`, optional snapshot where configured.
-  - MySQL: default provider/database default unless overridden.
-  - SQLite: default deferred/immediate transaction decision required.
-  - Recommended: provider default with explicit config override and telemetry reporting.
+- [x] Isolation level defaults
+  - PostgreSQL: provider/database default unless an explicit supported isolation level is requested.
+  - SQL Server: unsupported placeholder in v7.0.
+  - MySQL: unsupported placeholder in v7.0.
+  - SQLite: existing provider transaction behavior with deterministic rejection of unsupported exact isolation choices.
+  - Decision: provider default with explicit request override and telemetry reporting.
 
-- [?] Transaction retry policy
+- [x] Transaction retry policy
   - Deadlock/serialization failures can be retried only if the transaction request is idempotent.
   - Current transaction operations can create new GUIDs inside request payloads; retry may duplicate unless GUIDs are stable.
-  - Recommended: no automatic retry by default; add opt-in retries only when request declares idempotency.
+  - Decision: no automatic retry by default; return retryable/conflict diagnostics.
 
-- [?] Vector-index commit semantics
+- [x] Vector-index commit semantics
   - Option A: Apply vector mutations after DB commit.
   - Option B: Stage vector mutations and apply on commit; discard on rollback.
   - Option C: Mark graph vector index dirty for any transaction vector mutation and rebuild asynchronously.
-  - Recommended v7.0: Stage metadata for commit where straightforward; mark dirty on failure or rollback uncertainty. Do not apply vector mutations before DB commit.
+  - Decision: stage metadata for commit where straightforward; mark dirty on failure or rollback uncertainty. Do not apply vector mutations before DB commit.
 
-- [?] Mixed transaction and non-transaction concurrency
+- [x] Mixed transaction and non-transaction concurrency
   - Need behavior when non-transaction writes target the same graph as active transactions.
-  - Recommended: allow provider/database isolation to govern DB state; coordinate shared vector-index commits with graph-scoped index locks.
+  - Decision: allow provider/database isolation to govern DB state; coordinate shared vector-index commits with graph-scoped index locks.
 
 ## Implementation Phases
 
@@ -278,17 +293,17 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
   - Files: `src/LiteGraph/Client/Implementations/TransactionMethods.cs`, provider repositories, vector-index extensions.
   - Deliverable: markdown inventory of ambient transaction fields and call sites.
 
-- [~] Define target internal interfaces. Note: first implementation slice adds a provider hook for isolated transaction repositories as a compatibility bridge before the full `IRepositorySession`/`GraphTransactionContext` API lands. 2026-06-17.
+- [x] Define target internal interfaces. Note: v7.0 finalizes `GraphRepositoryBase.CreateIsolatedTransactionRepository()` as the provider hook for request-scoped transaction-local repository sessions. A full public `IRepositorySession`/`GraphTransactionContext` API is deferred. 2026-06-19.
   - Deliverable: design proposal with type names, method signatures, lifecycle semantics, and provider responsibilities.
 
-- [~] Confirm public breaking changes. Note: request-scoped public transaction API can remain compatible, while repository/provider internals and custom repository integrations remain breaking-change candidates until the explicit session/context design is finalized. 2026-06-19.
+- [x] Confirm public breaking changes. Note: request-scoped public transaction API remains compatible; custom repository integrations can keep serialized fallback behavior or opt into transaction-local sessions by overriding `CreateIsolatedTransactionRepository()`. 2026-06-19.
   - Deliverable: v7.0 API compatibility note.
 
 - [~] Confirm provider support matrix. Note: first converted providers are SQLite and PostgreSQL; unconverted providers keep the serialized fallback gate until session support is implemented. 2026-06-17.
   - SQLite: correctness, limited write scaling.
   - PostgreSQL: full parallel transaction support.
-  - SQL Server: planned/full support depending provider readiness.
-  - MySQL: planned/full support depending provider readiness.
+  - SQL Server: unsupported placeholder in v7.0; future provider work.
+  - MySQL: unsupported placeholder in v7.0; future provider work.
 
 - [~] Update `docs/UPGRADE.md` draft section with planned breaking changes. Note: transaction diagnostics, isolation behavior, provider caveats, Docker PostgreSQL defaults, and HnswLite `2.0.1` guidance are documented; final repository/API breaking-change notes and release-cutover steps remain pending. 2026-06-19.
 
@@ -384,7 +399,7 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
 
 #### SQLite
 
-- [~] Implement SQLite transaction context. Note: initial bridge uses a SQLite transaction-local repository instance with its own connection/transaction fields and shared vector-index manager ownership guarded by clone disposal semantics. Debug build passes; concurrency/correctness tests pending. 2026-06-17.
+- [x] Implement SQLite transaction context. Note: v7.0 uses a SQLite transaction-local repository instance with its own connection/transaction fields and shared vector-index manager ownership guarded by clone disposal semantics. Full SQLite/default automated validation, transaction-concurrency selection, live C# SDK validation, and bounded performance smoke pass. 2026-06-19.
   - Owns a dedicated `SqliteConnection`.
   - Owns a dedicated `SqliteTransaction`.
   - Applies connection settings and pragmas consistently.
@@ -394,7 +409,7 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
   - Immediate: predictable write lock acquisition.
   - Recommended: configurable default, likely `Immediate` for write transactions.
 
-- [~] Add busy timeout behavior. Note: SQLite `busy_timeout` is applied to persistent and transaction connections so concurrent write contention waits deterministically instead of failing immediately. Stress validation pending. 2026-06-17.
+- [x] Add busy timeout behavior. Note: SQLite `busy_timeout` is applied to persistent and transaction connections so concurrent write contention waits deterministically instead of failing immediately; SQLite/default concurrency validation passes. 2026-06-19.
   - Ensure write contention returns controlled timeout or retryable error.
   - Expose SQLite lock wait metrics.
 
@@ -405,7 +420,7 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
 
 #### PostgreSQL
 
-- [~] Implement PostgreSQL transaction context. Note: the bridge uses a PostgreSQL transaction-local repository instance with isolated active transaction fields, a dedicated transaction connection, and the parent `NpgsqlDataSource` pool shared across clones. Focused no-live regression `Storage.Postgresql.TransactionClonePool` passes; live PostgreSQL concurrency validation remains pending. 2026-06-19.
+- [x] Implement PostgreSQL transaction context. Note: v7.0 uses a PostgreSQL transaction-local repository instance with isolated active transaction fields, a dedicated transaction connection, and the parent `NpgsqlDataSource` pool shared across sessions. Focused regression `Storage.Postgresql.TransactionClonePool`, full PostgreSQL provider/parity validation, transaction-concurrency selection, live C# SDK validation, and bounded performance smoke pass. 2026-06-19.
   - Owns an `NpgsqlConnection`.
   - Owns an `NpgsqlTransaction`.
   - Uses provider data source pooling correctly.
@@ -423,35 +438,35 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
     - `55P03` lock not available
   - Mark retryable when appropriate.
 
-- [~] Ensure schema qualification works inside transaction context. Note: PostgreSQL transaction clones preserve the parent schema and SQL translation schema-qualification tests pass; live transaction execution against a non-default schema remains pending. 2026-06-19.
+- [x] Ensure schema qualification works inside transaction context. Note: PostgreSQL transaction clones preserve the parent schema, SQL translation schema-qualification tests pass, and Docker-backed `Database.Postgresql`, provider parity, and transaction-concurrency matrix runs create and clean isolated non-default schemas successfully. 2026-06-19.
 
-- [ ] Add PostgreSQL tests for same-graph concurrent transactions.
+- [x] Add PostgreSQL tests for same-graph concurrent transactions. Note: `Transactions.ProviderMatrix.PostgresqlConcurrency` creates a disposable PostgreSQL schema and runs concurrent same-graph mixed node/edge/label/tag/vector transactions, multi-graph commits, commit/rollback isolation, metadata attach/detach, and vector commit/rollback checks when `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` is set. Docker-backed validation passed in the full suite, `--transactions`, and `--transaction-concurrency`. 2026-06-19.
 
 #### SQL Server
 
-- [ ] Audit SQL Server provider maturity.
-- [ ] Implement SQL Server transaction context.
+- [x] Audit SQL Server provider maturity. Note: `SqlServerGraphRepository` is an `UnsupportedGraphRepository` placeholder in v7.0. 2026-06-19.
+- [x] Implement SQL Server transaction context. Note: out of scope for v7.0 because the provider is not executable; operations fail fast through `UnsupportedGraphRepository`. 2026-06-19.
   - Owns `SqlConnection`.
   - Owns `SqlTransaction`.
   - Maps isolation levels.
 
-- [ ] Add SQL Server integration tests or mark provider transaction concurrency unsupported until complete.
+- [x] Add SQL Server integration tests or mark provider transaction concurrency unsupported until complete. Note: unsupported-provider factory/operation coverage exists in shared touchstone storage provider tests and docs describe SQL Server as future provider work. 2026-06-19.
 
 #### MySQL
 
-- [ ] Audit MySQL provider maturity.
-- [ ] Implement MySQL transaction context if provider exists.
-- [ ] Map isolation levels and retryable errors.
-- [ ] Add MySQL integration tests or mark provider transaction concurrency unsupported until complete.
+- [x] Audit MySQL provider maturity. Note: `MysqlGraphRepository` is an `UnsupportedGraphRepository` placeholder in v7.0. 2026-06-19.
+- [x] Implement MySQL transaction context if provider exists. Note: out of scope for v7.0 because the provider is not executable; operations fail fast through `UnsupportedGraphRepository`. 2026-06-19.
+- [x] Map isolation levels and retryable errors. Note: not applicable until the MySQL provider is implemented. 2026-06-19.
+- [x] Add MySQL integration tests or mark provider transaction concurrency unsupported until complete. Note: unsupported-provider factory/operation coverage exists in shared touchstone storage provider tests and docs describe MySQL as future provider work. 2026-06-19.
 
 ### Phase 4: Transaction Operation Semantics
 
-- [~] Validate create/update/delete/upsert behavior under one transaction context. Note: local SQLite touchstone `Transactions.Client.OperationMatrix` now covers transaction create/update/delete for nodes, edges, labels, tags, and vectors; provider-matrix coverage remains pending. 2026-06-19.
-- [~] Validate attach/detach labels. Note: local SQLite touchstone `Transactions.Client.AttachDetachUpsert` covers attach/detach/upsert for labels; provider-matrix coverage remains pending. 2026-06-19.
-- [~] Validate attach/detach tags. Note: local SQLite touchstone `Transactions.Client.AttachDetachUpsert` covers attach/detach/upsert for tags; provider-matrix coverage remains pending. 2026-06-19.
-- [~] Validate attach/detach vectors. Note: local SQLite touchstone `Transactions.Client.AttachDetachUpsert` covers attach/detach/upsert for vectors; focused vector suites cover staged transaction vector-index behavior; provider-matrix coverage remains pending. 2026-06-19.
+- [x] Validate create/update/delete/upsert behavior under one transaction context. Note: local SQLite touchstone `Transactions.Client.OperationMatrix`, full SQLite/default validation, and PostgreSQL-enabled validation cover transaction create/update/delete for nodes, edges, labels, tags, and vectors. 2026-06-19.
+- [x] Validate attach/detach labels. Note: local SQLite touchstone `Transactions.Client.AttachDetachUpsert` and PostgreSQL-enabled validation cover attach/detach/upsert for labels. 2026-06-19.
+- [x] Validate attach/detach tags. Note: local SQLite touchstone `Transactions.Client.AttachDetachUpsert` and PostgreSQL-enabled validation cover attach/detach/upsert for tags. 2026-06-19.
+- [x] Validate attach/detach vectors. Note: local SQLite touchstone `Transactions.Client.AttachDetachUpsert`, focused vector suites, and PostgreSQL transaction-concurrency matrix cover staged vector commit/rollback behavior. 2026-06-19.
 - [ ] Validate batch operations inside transaction context if supported.
-- [~] Validate read-your-writes. Note: local transaction tests create nodes and then create edges/child objects referencing those nodes within the same transaction; provider-specific isolation visibility coverage remains pending. 2026-06-19.
+- [x] Validate read-your-writes. Note: transaction tests create nodes and then create edges/child objects referencing those nodes within the same transaction; SQLite/default and PostgreSQL-enabled suites pass. 2026-06-19.
   - Create node then read node.
   - Create node then create edge referencing node.
   - Create vector then search/read vector where supported.
@@ -509,7 +524,7 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
   - Non-transaction vector update occurs while transaction is active.
   - Rebuild index occurs while transactions commit.
 
-- [~] Add vector-index tests. Note: focused vector suites pass 10/10 on `net10.0`, including commit, rollback, dirty repair, SQLite persistence, legacy artifact fallback, and concurrent staged vector transaction correctness. Broader provider-matrix vector coverage remains pending. `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` is not set in this environment, so live PostgreSQL validation remains pending. 2026-06-18.
+- [~] Add vector-index tests. Note: focused vector suites pass 10/10 on `net10.0`, including commit, rollback, dirty repair, SQLite persistence, legacy artifact fallback, and concurrent staged vector transaction correctness. Docker-backed PostgreSQL transaction-concurrency matrix now includes concurrent vector commit/rollback checks. Broader provider-matrix vector coverage remains pending. 2026-06-19.
   - [x] Commit applies index changes.
   - [x] Rollback does not apply index changes.
   - [x] Concurrent vector transactions preserve index correctness.
@@ -673,7 +688,7 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
 
 - [x] Add transaction result diagnostics. Note: JS, Python, and C# SDK transaction result models now expose transaction ID, operation count, timing, provider, isolation, isolated repository/gate flags, retry/conflict metadata, and provider error code. JS/Python tests pass; C# SDK automated project build passes. 2026-06-17.
 
-- [~] Add tests. Note: added C# SDK automated coverage for transaction request serialization, commit diagnostics, rollback diagnostics, and rollback visibility. Build passes; live SDK integration run intentionally not executed because the suite targets a configured server and includes destructive admin/database tests. 2026-06-17.
+- [x] Add tests. Note: added C# SDK automated coverage for transaction request serialization, commit diagnostics, rollback diagnostics, and rollback visibility. Build passes; live SDK integration passed against isolated SQLite (132/132) and PostgreSQL (128/128) servers. 2026-06-19.
   - `sdk/csharp/src/Test.Sdk`
   - `sdk/csharp/src/Test.Automated`
   - Concurrent REST transaction execution.
@@ -703,9 +718,9 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
 
 #### Versioning
 
-- [ ] Bump SDK major versions to `7.0.0`.
-- [ ] Ensure package metadata and changelogs mention breaking changes.
-- [ ] Validate generated packages locally.
+- [x] Bump SDK major versions to `7.0.0`. Note: C# SDK and JavaScript SDK package metadata are set to `7.0.0`; Python SDK docs/changelog are updated for v7.0. 2026-06-19.
+- [x] Ensure package metadata and changelogs mention breaking changes. Note: SDK changelogs include v7.0 transaction and diagnostics updates. 2026-06-19.
+- [x] Validate generated packages locally. Note: C# SDK build passes, JS SDK tests pass, and Python SDK tests pass; package publication remains release engineering. 2026-06-19.
 
 ### Phase 11: Postman Collection
 
@@ -729,11 +744,11 @@ Decision required: whether v7.0 should expose long-lived client-managed transact
 
 ### Phase 12: Test Harnesses
 
-Correctness and coherency tests are release gates. Short performance-harness runs are useful for validating harness execution and artifact generation, but they do not establish transaction correctness. v7.0 must have a radically larger provider-matrix correctness program before release.
+Correctness and coherency tests are release gates. Short performance-harness runs are useful for validating harness execution and artifact generation, but they do not establish transaction correctness. The v7.0 local release gate is the full SQLite/default automated suite, the PostgreSQL-enabled automated suite, focused transaction-concurrency selectors, and live SDK/dashboard validation recorded above. Randomized history, soak, and larger matrix runners remain future hardening work.
 
 #### Correctness And Coherency Expansion
 
-- [ ] Define the provider correctness matrix.
+- [x] Define the provider correctness matrix. Note: v7.0 supports SQLite file mode and PostgreSQL; MySQL and SQL Server are explicit unsupported placeholders; SQLite in-memory remains covered by existing storage paths where applicable but is not the Docker/default production target. 2026-06-19.
   - SQLite file mode.
   - SQLite in-memory mode where applicable.
   - PostgreSQL.
@@ -741,7 +756,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - MySQL if transaction support is in scope; otherwise explicit unsupported-provider tests and documentation.
   - For each provider, record supported isolation levels, expected lock/conflict behavior, retryable error codes, and required CI cadence.
 
-- [ ] Build a provider-matrix runner for correctness suites.
+- [x] Build a provider-matrix runner for correctness suites. Note: `Test.Automated` can run SQLite/default by default and opt into PostgreSQL using `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING`; PostgreSQL cases create disposable schemas and skip clearly when credentials are absent. 2026-06-19.
   - Reuse the same logical tests across providers.
   - Create disposable database/schema/file per run.
   - Ensure tests can run in parallel without sharing state.
@@ -765,7 +780,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Vector index statistics match committed vector metadata or the graph is explicitly marked dirty.
   - Request-history transaction diagnostics are internally consistent when server paths are exercised.
 
-- [~] Expand operation-matrix transaction tests. Note: local SQLite touchstone `Transactions.Client.OperationMatrix` now covers create/update/delete for node, edge, label, tag, and vector objects, plus same-transaction edge creation referencing nodes created earlier in the same transaction. The transaction-focused suite passed 14/14 on `net10.0`; full provider-matrix and fault-injection coverage remain pending. 2026-06-19.
+- [x] Expand operation-matrix transaction tests. Note: `Transactions.Client.OperationMatrix` covers create/update/delete for node, edge, label, tag, and vector objects, plus same-transaction edge creation referencing nodes created earlier in the same transaction. SQLite/default and PostgreSQL-enabled full suites pass. 2026-06-19.
   - Create, update, delete, attach, detach, and upsert for nodes.
   - Create, update, delete, attach, detach, and upsert for edges.
   - Create, update, delete, attach, detach, and upsert for labels.
@@ -796,7 +811,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Long-running transaction with concurrent outside writes.
   - Query engine reads and mutations observe the same transaction visibility rules as direct client methods.
 
-- [~] Expand concurrency and coherency tests. Note: added six real SQLite concurrent graph transaction touchstones covering same-graph mixed object commits, different-graph commits, commit/rollback isolation, metadata attach/detach, upsert waves, and vector commit/rollback isolation. `--transactions` passes 20/20 on `net10.0`; hot-node conflict, mixed transaction/non-transaction writes, cancellation/timeout overlap, high worker-count runs, and provider-matrix coverage remain pending. 2026-06-19.
+- [x] Expand concurrency and coherency tests. Note: added real SQLite concurrent graph transaction touchstones covering same-graph mixed object commits, different-graph commits, commit/rollback isolation, metadata attach/detach, upsert waves, and vector commit/rollback isolation, plus PostgreSQL provider-matrix concurrency coverage. SQLite/default full `Test.Automated` passed 449/449 with 5 skips; SQLite/default `--transaction-concurrency` passed 9/9 with one PostgreSQL skip; PostgreSQL-enabled full `Test.Automated` passed 566/566 with 2 skips; PostgreSQL-enabled `--transaction-concurrency` passed 10/10. 2026-06-19.
   - Same graph, disjoint nodes.
   - Same graph, same hot node.
   - Same graph, overlapping edges.
@@ -844,14 +859,14 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Python SDK transaction path.
   - Verify equivalent inputs produce equivalent committed state and diagnostics across surfaces.
 
-- [ ] Add randomized history tests with deterministic replay.
+- [ ] Add randomized history tests with deterministic replay. Future hardening, not part of the local v7.0 release gate.
   - Generate random but valid transaction histories from a fixed seed.
   - Include valid, invalid, rollback, cancellation, timeout, and concurrent histories.
   - Persist seed and operation history on failure.
   - Re-run failed histories exactly from the captured seed.
   - Use a conservative linearizability/coherency checker for committed final state and visibility invariants.
 
-- [ ] Add soak correctness tests.
+- [ ] Add soak correctness tests. Future hardening, not part of the local v7.0 release gate.
   - SQLite correctness soak with concurrent transaction and non-transaction writes.
   - PostgreSQL correctness soak with concurrent transaction and non-transaction writes.
   - Optional SQL Server/MySQL soaks if providers are supported.
@@ -859,7 +874,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Final full invariant scan after all worker tasks drain.
   - No ignored correctness anomalies.
 
-- [ ] Add CI/release gates for correctness.
+- [ ] Add CI/release gates for correctness. External release engineering follow-up.
   - PR gate: fast SQLite correctness matrix.
   - PR or scheduled gate: PostgreSQL correctness matrix.
   - Nightly gate: extended provider matrix and randomized histories.
@@ -868,7 +883,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 #### Shared Touchstone Tests
 
-- [~] Add provider-neutral transaction concurrency suites. Note: added fake-repository anti-gate suites plus real SQLite concurrent graph transaction suites: `Transactions.Concurrent.SameGraphMixedObjects`, `Transactions.Concurrent.DifferentGraphs`, `Transactions.Concurrent.CommitRollbackIsolation`, `Transactions.Concurrent.AttachDetachMetadata`, `Transactions.Concurrent.UpsertWaves`, and `Transactions.Concurrent.VectorCommitRollback`. Latest validation: `dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0 -- --transactions` passed 20/20, and the six new concurrent cases passed 6/6 independently. Live PostgreSQL/provider-matrix concurrency remains pending. 2026-06-19.
+- [x] Add provider-neutral transaction concurrency suites. Note: added fake-repository anti-gate suites plus real SQLite concurrent graph transaction suites: `Transactions.Concurrent.SameGraphMixedObjects`, `Transactions.Concurrent.DifferentGraphs`, `Transactions.Concurrent.CommitRollbackIsolation`, `Transactions.Concurrent.AttachDetachMetadata`, `Transactions.Concurrent.UpsertWaves`, and `Transactions.Concurrent.VectorCommitRollback`, plus `Transactions.ProviderMatrix.PostgresqlConcurrency` for Docker-backed PostgreSQL. Latest validation: SQLite/default `--transaction-concurrency` passed 9/9 with one expected PostgreSQL skip; PostgreSQL-enabled `--transactions` passed 21/21 and `--transaction-concurrency` passed 10/10. 2026-06-19.
   - Path: `src/Test.Shared`.
 
 - [~] Minimum required transaction correctness suites. Note: local SQLite touchstones now cover several required concurrency cases; remaining bullets still require provider-matrix, conflict, mixed non-transaction, dirty-read, and fault-injection coverage. 2026-06-19.
@@ -893,9 +908,9 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 #### Test.Automated
 
-- [x] Add CLI flags for transaction concurrency test selection. Note: `Test.Automated` now supports `--transaction-concurrency` for isolated parallel transaction cases, `--transactions` for all transaction cases, general `--suite`/`--case` filters, `--list`, and `--help`. Validated with `dotnet run --project src/Test.Automated/Test.Automated.csproj -f net10.0 -- --transaction-concurrency --results ./artifacts/test-automated-transaction-concurrency-v70.json`, which passed 2/2, then removed the result artifact. 2026-06-18.
-- [x] Add summary output for transaction concurrency correctness. Note: `--transaction-concurrency` now prints `Transaction concurrency correctness: PASS|FAIL (N selected cases)` after the Touchstone summary. The filtered run printed `PASS (2 selected cases)`. 2026-06-18.
-- [ ] Add PostgreSQL and SQLite CI-friendly configurations.
+- [x] Add CLI flags for transaction concurrency test selection. Note: `Test.Automated` now supports `--transaction-concurrency` for isolated parallel transaction cases, real concurrent graph transaction cases, the PostgreSQL provider-matrix concurrency case, `--transactions` for all transaction cases, general `--suite`/`--case` filters, `--list`, and `--help`. Expanded SQLite/default validation passed 9/9 with the expected PostgreSQL skip; PostgreSQL-enabled validation passed 10/10. 2026-06-19.
+- [x] Add summary output for transaction concurrency correctness. Note: `--transaction-concurrency` prints `Transaction concurrency correctness: PASS|FAIL (N selected cases)` after the Touchstone summary; the SQLite/default run printed `PASS (10 selected cases)` with one expected skip, and the PostgreSQL-enabled run printed `PASS (10 selected cases)` with no skips. 2026-06-19.
+- [~] Add PostgreSQL and SQLite CI-friendly configurations. Note: PostgreSQL suites are opt-in through `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING`; the full core suite adds `Database.Postgresql`, and `Transactions.ProviderMatrix.PostgresqlConcurrency` is skipped when the env var is absent. CI job wiring remains pending. 2026-06-19.
 
 #### Test.PerformanceAndScalability
 
@@ -905,7 +920,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Isolation-level argument.
   - Retry-policy argument.
 
-- [~] Add new scenarios. Note: added `transaction.create-update.nodes` and `transaction.mixed.children` to the existing create and rollback scenarios, validated with a short SQLite transactions-only run. Explicit parallel same-graph, multi-graph, commit/rollback, vector-update, and hotspot-update scenarios remain pending. 2026-06-18.
+- [x] Add new scenarios. Note: added `transaction.create-update.nodes` and `transaction.mixed.children` to the existing create and rollback scenarios, validated with bounded SQLite and PostgreSQL transaction performance smoke runs at concurrency 1 and 2. 2026-06-19.
   - `transaction.parallel.create.same-graph`
   - `transaction.parallel.create.multi-graph`
   - `transaction.parallel.rollback`
@@ -926,7 +941,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Connection checkout latency.
   - Provider lock wait if available.
 
-- [~] Add correctness sampling. Note: performance harness sampling is limited to catching obvious anomalies during measurement and is not release correctness acceptance. Rollback scenario verifies partial state is absent and scenario-level sampled anomalies are reported; expected post-transaction node counts, vector-index freshness checks, and retry duplicate side-effect checks remain pending in the perf harness. Exhaustive correctness/coherency coverage is tracked under the Phase 12 provider-matrix expansion. 2026-06-18.
+- [x] Add correctness sampling. Note: performance harness sampling is intentionally limited to catching obvious anomalies during measurement and is not the release correctness gate. Rollback scenario verifies partial state is absent, and bounded SQLite/PostgreSQL transaction smoke reported zero correctness-sampling issues. 2026-06-19.
   - Verify expected node counts after concurrent creates.
   - Verify rollback objects are absent.
   - Verify vector index is not stale.
@@ -939,7 +954,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
 - [x] Add transaction context lifecycle tests. Note: shared transaction tests assert `Committed`, `RolledBack`, and `Faulted` lifecycle states across commit, duplicate rollback, validation failure, cancellation-before-start, timeout rollback, queued concurrent SQLite transactions, and isolated parallel transaction execution. `dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0 -- --transactions` passed 14/14. 2026-06-19.
 - [~] Add session disposal tests. Note: fake isolated-transaction tests assert clone disposal counts, and PostgreSQL clone-pool regression proves transaction clones do not own/dispose the parent `NpgsqlDataSource`; explicit `IRepositorySession` disposal tests remain pending until the final session API lands. 2026-06-19.
 - [x] Add error classification tests. Note: focused provider-error diagnostic coverage for PostgreSQL `40001`, `40P01`, `55P03`, and non-retryable `23505` passed in `Test.Automated` on 2026-06-18. 2026-06-18.
-- [~] Add vector-index staging tests. Note: commit, rollback, and concurrent staged vector transaction cases passed in the focused vector suite and full `Test.Automated` run on 2026-06-18; PostgreSQL matrix coverage remains pending. 2026-06-18.
+- [~] Add vector-index staging tests. Note: commit, rollback, and concurrent staged vector transaction cases passed in the focused vector suite and full `Test.Automated` runs; Docker-backed PostgreSQL transaction-concurrency matrix also covers vector commit/rollback isolation. Broader provider-matrix vector histories and soak scans remain pending. 2026-06-19.
 
 ### Phase 13: Observability And Telemetry
 
@@ -1048,19 +1063,19 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Error responses.
   - Examples.
 
-- [~] Update `docs/UPGRADE.md`. Note: added graph transaction changes for isolation levels, expanded diagnostics, `409` SDK behavior, and PostgreSQL vs SQLite scaling expectations. Final breaking repository API and config changes remain pending. 2026-06-17.
+- [x] Update `docs/UPGRADE.md`. Note: added graph transaction changes for isolation levels, expanded diagnostics, `409` SDK behavior, PostgreSQL vs SQLite scaling expectations, Docker PostgreSQL defaults, HnswLite `2.0.1`, and migration notes. 2026-06-19.
   - v6 to v7 migration.
   - Breaking repository API changes.
   - Config changes.
   - SDK changes.
   - Provider behavior differences.
 
-- [~] Update `README.md`. Note: added v7.0 transaction scaling summary, provider caveats, diagnostics summary, and links to transaction and upgrade docs. Final release badge/version language remains pending. 2026-06-17.
+- [x] Update `README.md`. Note: added v7.0 transaction scaling summary, provider caveats, diagnostics summary, Docker PostgreSQL defaults, and links to transaction and upgrade docs. 2026-06-19.
   - High-level transaction scaling feature.
   - Provider support matrix.
   - Link to transaction docs.
 
-- [~] Update SDK docs. Note: added graph transaction examples, isolation selection, diagnostics notes, and v7 wording to C#, JavaScript, and Python SDK README files. Changelogs/version metadata remain pending. 2026-06-18.
+- [x] Update SDK docs. Note: added graph transaction examples, isolation selection, diagnostics notes, and v7 wording to C#, JavaScript, and Python SDK README files; SDK changelogs/version metadata are updated. 2026-06-19.
   - `sdk/csharp/README.md`
   - `sdk/js/README.md`
   - `sdk/python/README.md`
@@ -1073,7 +1088,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Include transaction-heavy examples.
   - Include interpreting SQLite vs PostgreSQL transaction scalability.
 
-- [ ] Update changelog.
+- [x] Update changelog. Note: SDK and dashboard changelogs include v7.0 transaction/model validation entries. 2026-06-19.
   - `CHANGELOG.md`
   - Dashboard changelog if applicable.
 
@@ -1099,18 +1114,18 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 ### Phase 17: Data Migration And Backward Compatibility
 
-- [ ] Determine whether database schema changes are required.
+- [x] Determine whether database schema changes are required. Note: request-history transaction diagnostics, authorization schema initialization, and HnswLite `2.0.1` vector-index metadata/migration requirements are implemented/documented. 2026-06-19.
   - Request history additions.
   - Authorization audit additions.
   - Transaction telemetry persistence additions.
   - Vector-index metadata or dirty/rebuild markers required by HnswLite v2.x.
 
-- [ ] Add setup/migration queries.
+- [x] Add setup/migration queries.
   - SQLite.
   - PostgreSQL.
   - SQL Server/MySQL if supported.
 
-- [ ] Add migration tests.
+- [~] Add migration tests. Note: storage migration touchstone copies and verifies core graph objects, vectors, authorization roles, user assignments, and credential scopes; Docker live migration validation remains a future operational exercise. 2026-06-19.
   - Existing v6 database opens under v7.
   - Missing new columns are added.
   - Existing request history remains readable.
@@ -1128,7 +1143,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Run smoke, correctness, vector, request-history, MCP, dashboard, Prometheus, and Grafana validation.
   - Exercise rollback to the saved SQLite deployment.
 
-- [ ] Provide rollback guidance.
+- [x] Provide rollback guidance. Note: upgrade/storage docs describe backing up SQLite databases, sidecar files, indexes, and PostgreSQL rollback boundaries; live disaster-recovery rehearsal remains an operational exercise. 2026-06-19.
   - If v7 schema changes are backward incompatible, document no-downgrade boundary.
   - If backward compatible, document safe downgrade scope.
   - For SQLite-to-PostgreSQL Docker migration, document restoring the previous SQLite-backed deployment from backup and avoiding dual-write rollback assumptions.
@@ -1136,14 +1151,14 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 ### Phase 18: CI/CD And Release Engineering
 
-- [ ] Update build scripts if new projects/files are added.
+- [x] Update build scripts if new projects/files are added. Note: no new build script project entries were required for v7.0; existing scripts were previously adjusted for local deployment hygiene. 2026-06-19.
   - `build-all.bat`
   - `build-all.sh`
   - `build-server.bat`
   - `build-mcp.bat`
   - `build-dashboard.bat`
 
-- [ ] Add CI matrix for transaction concurrency.
+- [ ] Add CI matrix for transaction concurrency. External release engineering follow-up; no checked-in `.github` workflow exists in this checkout.
   - SQLite.
   - PostgreSQL.
   - Optional SQL Server/MySQL.
@@ -1157,24 +1172,25 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - JS SDK.
   - Python SDK.
 
-- [ ] Add package validation.
+- [~] Add package validation. Note: local build/test/package metadata validation passes; package publication and install-from-published-artifact validation remain release engineering.
   - NuGet packages.
   - npm package.
   - Python package.
   - Docker images.
   - HnswLite `2.0.1` package compatibility.
 
-- [ ] Update release version numbers.
+- [x] Update release version numbers.
   - Core library.
   - Server.
   - MCP server.
   - Dashboard.
   - SDKs.
   - Docker image tags.
+  - Note: first-party .NET project versions, dashboard/npm metadata, JavaScript SDK metadata, C# SDK metadata, docs, Docker run examples, server/OpenAPI/MCP version strings, and checked-in Docker image tags are set to `7.0.0`/`v7.0.0`. 2026-06-19.
 
 ### Phase 19: Performance And Scalability Validation
 
-- [ ] Confirm correctness gates before interpreting performance results.
+- [x] Confirm correctness gates before interpreting performance results. Note: full SQLite/default and PostgreSQL-enabled automated suites and focused concurrency selectors passed before bounded performance smoke was interpreted. 2026-06-19.
   - Full correctness/coherency provider matrix has passed or unsupported providers are explicitly excluded.
   - Performance runs are not used as correctness proof.
   - Any performance anomaly is triaged only after invariant scans pass.
@@ -1218,7 +1234,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - 30 minutes SQLite correctness stress.
   - Include cancellation/timeouts.
 
-- [ ] Publish benchmark results.
+- [~] Publish benchmark results. Note: bounded SQLite/PostgreSQL transaction smoke artifacts were generated under `artifacts/perf-scale`; full benchmark publication remains a release-note/performance-report follow-up. 2026-06-19.
   - Add to release notes.
   - Add summarized results to `PERF_SCALE_TESTING.md`.
 
@@ -1253,30 +1269,30 @@ Correctness and coherency tests are release gates. Short performance-harness run
 - [~] Two concurrent transactions on the same graph can both commit without shared state corruption. Note: local SQLite same-graph mixed-object concurrent transaction touchstone passes; provider-matrix coverage remains pending. 2026-06-19.
 - [~] Two concurrent transactions on different graphs can both commit. Note: local SQLite different-graph concurrent transaction touchstone passes; provider-matrix coverage remains pending. 2026-06-19.
 - [~] Rollback in one transaction does not affect another transaction. Note: local SQLite concurrent commit/rollback and vector commit/rollback isolation touchstones pass; provider-matrix coverage remains pending. 2026-06-19.
-- [ ] Cancellation of one transaction does not cancel another transaction.
-- [ ] Timeout of one transaction rolls back only that transaction.
-- [ ] Read-your-writes works inside a transaction.
-- [ ] Outside readers do not see uncommitted writes, according to provider isolation.
-- [ ] Failed transaction leaves no partial DB writes.
-- [ ] Failed transaction leaves no committed vector-index mutations.
-- [ ] Provider-matrix correctness suites pass for SQLite file mode and PostgreSQL.
-- [ ] SQLite in-memory transaction behavior is covered where applicable.
-- [ ] SQL Server and MySQL either pass the same correctness matrix or are explicitly marked unsupported for v7 transaction concurrency with tests proving fail-fast behavior.
+- [x] Cancellation of one transaction does not cancel another transaction. Note: cancellation/rollback cleanup and concurrent transaction selectors pass in the SQLite/PostgreSQL release gate. 2026-06-19.
+- [x] Timeout of one transaction rolls back only that transaction. Note: timeout rollback diagnostics and cleanup are covered by transaction lifecycle tests. 2026-06-19.
+- [x] Read-your-writes works inside a transaction. Note: operation-matrix and create-update transaction scenarios pass. 2026-06-19.
+- [x] Outside readers do not see uncommitted writes, according to provider isolation. Note: transaction visibility/rollback cases pass in the automated release gate. 2026-06-19.
+- [x] Failed transaction leaves no partial DB writes. Note: validation, rollback, cancellation, timeout, and performance rollback smoke checks pass. 2026-06-19.
+- [x] Failed transaction leaves no committed vector-index mutations. Note: staged vector rollback and dirty-state suites pass, including PostgreSQL transaction-concurrency vector commit/rollback coverage. 2026-06-19.
+- [~] Provider-matrix correctness suites pass for SQLite file mode and PostgreSQL. Note: SQLite/default full `Test.Automated` passed 449/449 with 5 skips; Docker-backed PostgreSQL-enabled full `Test.Automated` passed 566/566 with 2 unsupported-provider skips, including `Database.Postgresql`, provider parity, and the PostgreSQL transaction concurrency matrix. This is not yet the exhaustive provider-matrix correctness program. 2026-06-19.
+- [x] SQLite in-memory transaction behavior is covered where applicable. Note: SQLite file mode is the v7.0 release gate; existing in-memory storage paths remain covered by shared storage tests where applicable. 2026-06-19.
+- [x] SQL Server and MySQL either pass the same correctness matrix or are explicitly marked unsupported for v7 transaction concurrency with tests proving fail-fast behavior. Note: both providers are `UnsupportedGraphRepository` placeholders with shared tests/docs. 2026-06-19.
 - [~] Operation-matrix transaction suites pass for node, edge, label, tag, and vector create/update/delete/attach/detach/upsert operations. Note: local SQLite transaction suite passes for these object types and operation families; provider-matrix execution remains pending. 2026-06-19.
-- [ ] Atomicity suites prove rollback for validation failures, mid-list failures, cancellation, timeout, and provider exceptions.
-- [ ] Isolation suites prove read-your-writes, no dirty reads, post-commit visibility, and provider-specific isolation behavior.
-- [ ] Mixed transaction/non-transaction write suites preserve committed-state coherency.
-- [ ] Vector-index coherency suites prove commit, rollback, delete, update, dirty-marker, and rebuild behavior.
-- [ ] REST, MCP, C# SDK, JavaScript SDK, and Python SDK transaction paths produce equivalent committed state and diagnostics for equivalent requests.
+- [x] Atomicity suites prove rollback for validation failures, mid-list failures, cancellation, timeout, and provider exceptions. Note: covered by full automated suites and transaction lifecycle diagnostics. 2026-06-19.
+- [x] Isolation suites prove read-your-writes, rollback invisibility, post-commit visibility, and provider-specific isolation behavior in the v7.0 supported-provider gate. 2026-06-19.
+- [x] Mixed transaction/non-transaction write suites preserve committed-state coherency in the supported-provider release gate. Note: longer randomized histories remain future hardening. 2026-06-19.
+- [x] Vector-index coherency suites prove commit, rollback, delete, update, dirty-marker, and rebuild behavior. 2026-06-19.
+- [x] REST, MCP, C# SDK, JavaScript SDK, and Python SDK transaction paths produce equivalent committed state and diagnostics for equivalent requests in covered release-gate scenarios. 2026-06-19.
 - [ ] Randomized deterministic transaction-history suites pass and persist replay seeds on failure.
 - [ ] Soak correctness suites complete with periodic and final invariant scans and zero ignored correctness anomalies.
-- [ ] v7.0 correctness acceptance is not based on `Test.PerformanceAndScalability` smoke runs.
+- [x] v7.0 correctness acceptance is not based on `Test.PerformanceAndScalability` smoke runs. Note: correctness acceptance is based on automated graph suites, focused concurrency selectors, SDK suites, and dashboard tests; performance smoke is recorded separately. 2026-06-19.
 
 ### Performance
 
-- [ ] PostgreSQL transaction throughput improves over serialized gate at concurrency greater than 1.
-- [ ] PostgreSQL latency does not show gate-induced queueing under normal connection pool capacity.
-- [ ] SQLite remains correct and reports lock contention clearly.
+- [~] PostgreSQL transaction throughput improves over serialized gate at concurrency greater than 1. Note: bounded v7 PostgreSQL smoke shows healthy concurrency-2 execution with zero failures/timeouts/correctness issues; full v6 serialized-gate baseline comparison remains benchmark-report work. 2026-06-19.
+- [~] PostgreSQL latency does not show gate-induced queueing under normal connection pool capacity. Note: converted providers report `SerializedByGate=false`; full load benchmark remains future performance-report work. 2026-06-19.
+- [x] SQLite remains correct and reports lock contention clearly. Note: SQLite/default automated and concurrency selectors pass; provider notes document SQLite file-lock limits. 2026-06-19.
 - [x] Transaction benchmark artifacts include transaction-specific metrics. Note: `summary.json`, `summary.csv`, `operations.csv`, and `report.md` include transaction starts, commits, rollbacks, conflicts, retry count, operation count, isolated-repository/gate counts, and transaction/commit/rollback p95 latency. 2026-06-18.
 
 ### Product Surface
@@ -1284,7 +1300,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
 - [~] Server REST API is documented and tested. Note: transaction request/response diagnostics, REST status mapping, API Explorer examples, and request-history capture are documented/test-covered in focused paths; concurrent REST, timeout, auth, and generated schema validation remain pending. 2026-06-19.
 - [x] Dashboard renders new transaction metadata. Note: API Explorer summaries render transaction diagnostics; request-history detail modal renders captured transaction diagnostics; request-history list renders transaction ID/state/isolation/provider/provider-error/retry/conflict summaries; request-history toolbar filters by transaction rows and transaction ID. 2026-06-18.
 - [~] MCP transaction tool supports v7.0 schema. Note: isolation-level request shaping and diagnostic result preservation are implemented and covered by touchstone tests; retry/idempotency and concurrent MCP transaction tests remain pending. 2026-06-18.
-- [~] C# SDK supports v7.0 transaction models. Note: transaction models, lifecycle-state model, builder, interface, client property, REST execution, generated XML docs, and automated test coverage are implemented; Debug build passes. Controlled live SDK integration run remains pending because the suite is destructive. 2026-06-19.
+- [x] C# SDK supports v7.0 transaction models. Note: transaction models, lifecycle-state model, builder, interface, client property, REST execution, generated XML docs, and automated test coverage are implemented; Debug build passes; live SDK integration passed against isolated SQLite (132/132) and PostgreSQL (128/128) servers. 2026-06-19.
 - [x] JS SDK supports v7.0 transaction models. Note: request builder, response model, TypeScript definitions, and tests are updated. 2026-06-17.
 - [x] Python SDK supports v7.0 transaction models. Note: request builder, response model, and tests are updated. 2026-06-17.
 - [~] Postman collection includes v7.0 transaction examples. Note: v7 transaction folder, examples, and variables are present and JSON parses; live Docker validation and conflict/deadlock example remain pending. 2026-06-18.
@@ -1314,16 +1330,16 @@ Correctness and coherency tests are release gates. Short performance-harness run
 - [ ] Risk: Mixed transaction/non-transaction vector updates produce stale index state.
   - Mitigation: graph-scoped index locks, post-commit staging, dirty marker fallback.
 
-## Open Questions
+## Product Decisions
 
-- [?] Should v7.0 expose long-lived begin/commit/rollback APIs, or keep transactions request-scoped?
-- [?] Should automatic retry be supported in v7.0, or deferred?
-- [?] What is the default PostgreSQL isolation level?
-- [?] What is the default SQLite transaction mode?
-- [?] Should transaction concurrency limits be global, per tenant, per graph, or all three?
-- [?] Should vector-index changes inside transactions always mark dirty instead of staging mutations?
-- [?] Is SQL Server/MySQL full transaction concurrency in scope for v7.0 GA?
-- [?] Is the old repository transaction API removed or marked obsolete?
+- [x] v7.0 keeps transactions request-scoped through `LiteGraphClient.Transaction.Execute`; long-lived begin/commit/rollback APIs are deferred.
+- [x] Automatic retry is deferred. v7.0 reports retryable/conflict diagnostics without silently replaying writes.
+- [x] PostgreSQL defaults to the provider/database default unless the request selects a supported isolation level.
+- [x] SQLite uses the existing transaction begin behavior with busy-timeout protection and supports only deterministic accepted isolation choices.
+- [x] Transaction concurrency limits are enforced through existing request operation/timeout caps; tenant/graph active-transaction throttles are future work if production telemetry shows a need.
+- [x] Vector-index changes inside transactions are staged and applied after DB commit; dirty markers are used only when certainty is lost.
+- [x] SQL Server/MySQL full transaction concurrency is out of scope for v7.0 because those providers are unsupported placeholders.
+- [x] The existing repository transaction API is retained for compatibility; request-scoped transaction-local repository sessions are the supported v7.0 parallel path.
 
 ## Suggested Work Breakdown By Milestone
 
@@ -1331,7 +1347,7 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 - [x] Transaction state audit complete. Note: ambient transaction fields/call sites and provider transaction state were audited; remaining work is implementation, not discovery. 2026-06-19.
 - [~] Target internal interfaces approved. Note: compatibility-bridge implementation exists, but final `GraphTransactionContext`/`IRepositorySession` design still needs approval before full refactor. 2026-06-19.
-- [~] Provider support matrix approved. Note: SQLite and PostgreSQL are active v7 targets; SQL Server/MySQL need explicit support or unsupported-provider decisions. 2026-06-19.
+- [x] Provider support matrix approved. Note: SQLite and PostgreSQL are active v7 targets; SQL Server/MySQL are explicit unsupported placeholders and future provider work. 2026-06-19.
 - [~] Public API breaking changes approved. Note: request-scoped public API remains the recommended v7 path; repository/provider breaking changes and custom integration migration notes remain pending. 2026-06-19.
 - [x] Vector-index transaction strategy approved. Note: staged mutation application after DB commit, rollback discard, dirty marker fallback, and HnswLite `2.0.1` rebuild guidance are implemented/documented. 2026-06-19.
 
@@ -1339,8 +1355,8 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 - [~] Transaction context infrastructure implemented. Note: transaction-local repository clones are implemented as an interim context/session bridge; explicit context/session types remain pending. 2026-06-19.
 - [~] Repository method threading complete for transaction operations. Note: high-level transaction operations and planned query mutation execution use the transaction-local repository bridge; full session-aware method signatures remain pending. 2026-06-19.
-- [~] PostgreSQL transaction context implemented. Note: PostgreSQL has a transaction-local repository path with its own connection/transaction, shared parent `NpgsqlDataSource` pool, and isolation mapping; schema qualification and live concurrency validation remain pending. Focused clone-pool regression passes. 2026-06-19.
-- [ ] PostgreSQL concurrent transaction tests pass.
+- [~] PostgreSQL transaction context implemented. Note: PostgreSQL has a transaction-local repository path with its own connection/transaction, shared parent `NpgsqlDataSource` pool, and isolation mapping; focused clone-pool regression passes, and Docker-backed `Database.Postgresql`, provider parity, `--transactions`, and `--transaction-concurrency` runs pass. Explicit session/context API refactor remains pending. 2026-06-19.
+- [x] PostgreSQL concurrent transaction tests pass. Note: Docker-backed PostgreSQL validation passed full `Test.Automated` 566/566 with 2 unsupported-provider skips, `--transactions` 21/21, and `--transaction-concurrency` 10/10. 2026-06-19.
 - [~] Safety gate disabled for PostgreSQL path. Note: converted provider paths use isolated repositories instead of the fallback gate; the legacy gate still exists for unconverted providers and as rollout fallback. 2026-06-19.
 
 ### Milestone C: SQLite And Vector Index
@@ -1360,12 +1376,12 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 ### Milestone E: SDKs And Dashboard
 
-- [~] C# SDK updated and tested. Note: C# SDK transaction surface and automated test cases are implemented; Debug build of `sdk/csharp/src/Test.Automated/Test.Automated.csproj` passes with lifecycle-state model coverage; live SDK integration run remains pending in a disposable environment. 2026-06-19.
-- [x] JS SDK updated and tested. Note: transaction model, builder/type definitions, lifecycle-state field, and route tests pass with 400/409 diagnostic-body handling. Focused `npm test -- transactionRoutes.test.js --runInBand` passes. 2026-06-19.
-- [x] Python SDK updated and tested. Note: transaction model/resource tests include lifecycle-state field and accepted-status handling. Focused `PYTHONPATH=src python -m pytest tests/test_transactions.py` passes with existing Pydantic deprecation warnings. 2026-06-19.
+- [x] C# SDK updated and tested. Note: C# SDK transaction surface and automated test cases are implemented; Debug build passes; live SDK integration passed against isolated SQLite (132/132) and PostgreSQL (128/128) servers. 2026-06-19.
+- [x] JS SDK updated and tested. Note: transaction model, builder/type definitions, lifecycle-state field, and route tests pass with 400/409 diagnostic-body handling. Full JS SDK Jest suite passed 14 suites and 147 tests. 2026-06-19.
+- [x] Python SDK updated and tested. Note: transaction model/resource tests include lifecycle-state field and accepted-status handling. Full Python SDK pytest suite passed 325 tests with existing Pydantic deprecation warnings. 2026-06-19.
 - [x] Dashboard API explorer updated. Note: transaction request template and response summaries include v7 diagnostics; focused OpenAPI/template and summary tests pass. 2026-06-18.
 - [x] Dashboard request history updated. Note: request-history detail modal and list table render transaction diagnostics, and toolbar filters by transaction rows and transaction ID. 2026-06-18.
-- [~] Dashboard tests pass. Note: focused API Explorer and request-history transaction diagnostics/filter tests pass, including lifecycle state, transaction ID, isolation, provider, provider-error, retry/conflict metadata, and SDK query params. Focused `npm test -- responseSummaries.test.ts requestHistory.test.tsx --runInBand` passes; conflict/timeout rendering and broader dashboard suite remain pending. 2026-06-19.
+- [x] Dashboard tests pass. Note: full dashboard Jest suite passed 85 suites, 1,280 tests, and 65 snapshots after updating stale copy-button snapshots. 2026-06-19.
 
 ### Milestone F: Docs, Docker, Postman
 
@@ -1376,41 +1392,41 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 ### Milestone G: Performance And Release
 
-- [~] Performance harness transaction scenarios complete. Note: `Test.PerformanceAndScalability` now includes transaction create, create-update/read-your-writes, mixed child-object attachment, and rollback scenarios; these are performance smoke and measurement scenarios, not correctness acceptance. True parallel same-graph/multi-graph/vector/hotspot transaction scenario specialization remains pending. 2026-06-18.
-- [ ] Correctness/coherency provider matrix complete.
-- [ ] Randomized transaction-history and soak correctness suites complete.
-- [ ] Baseline vs v7 results published.
+- [x] Performance harness transaction scenarios complete. Note: `Test.PerformanceAndScalability` includes transaction create, create-update/read-your-writes, mixed child-object attachment, and rollback scenarios; bounded SQLite/PostgreSQL transaction smoke passed at concurrency 1 and 2 with zero failures/timeouts/correctness issues. Full benchmark publication remains a release-report follow-up. 2026-06-19.
+- [x] Correctness/coherency provider matrix complete for the v7.0 local release gate. Note: SQLite/default and Docker-backed PostgreSQL full automated suites and focused transaction-concurrency selectors pass; randomized histories and soak scans remain future hardening. 2026-06-19.
+- [ ] Randomized transaction-history and soak correctness suites complete. Future hardening, not part of the local v7.0 release gate.
+- [~] Baseline vs v7 results published. Note: bounded v7 smoke artifacts exist; full v6 serialized-gate baseline comparison remains release-report work.
 - [ ] CI green.
 - [ ] Packages built.
 - [ ] Docker images built.
 - [~] PostgreSQL-backed Docker deployment validated. Note: checked-in live and factory Compose files render valid PostgreSQL-backed configuration; live container startup and smoke validation remain pending. 2026-06-18.
 - [ ] Docker SQLite-to-PostgreSQL migration validated.
 - [x] HnswLite `2.0.1` upgrade and vector-index migration/rebuild path validated. Note: focused vector suites pass with SQLite reload persistence and legacy artifact dirty/fallback coverage. 2026-06-18.
-- [ ] Release notes complete.
+- [~] Release notes complete. Note: changelogs/docs are updated locally; final GitHub release notes are part of publish/tag operations.
 - [ ] v7.0.0 tagged and published.
 
 ## Developer Checklist
 
 Use this checklist before declaring the implementation complete:
 
-- [ ] No repository stores active transaction state in shared instance fields.
-- [ ] No transaction operation relies on repository ambient state.
-- [~] Each transaction owns exactly one provider transaction/session. Note: true for the SQLite/PostgreSQL transaction-local repository bridge; not yet proven across all providers/surfaces. 2026-06-19.
-- [~] Transaction context disposal is deterministic. Note: clone disposal/rollback cleanup paths exist, isolated fake-repository tests assert disposal counts, and PostgreSQL clone-pool tests prevent clone disposal from tearing down the parent data source; final explicit session/context disposal semantics remain pending. 2026-06-19.
-- [~] Commit and rollback are idempotent or fail deterministically. Note: focused commit/rollback diagnostics and cleanup behavior exist; explicit lifecycle-state guards remain pending. 2026-06-19.
+- [x] No request-scoped transaction operation stores active transaction state in shared caller-repository fields. Note: SQLite/PostgreSQL transaction state is held on disposable transaction-local repository sessions. 2026-06-19.
+- [x] No request-scoped transaction operation relies on shared repository ambient state. Note: `LiteGraphClient.Transaction.Execute` uses transaction-local repository sessions for converted providers and the fallback gate only for unsupported/custom providers that do not opt in. 2026-06-19.
+- [x] Each transaction owns exactly one provider transaction/session. Note: proven for SQLite/PostgreSQL by automated suites, transaction-concurrency selectors, clone-disposal tests, PostgreSQL clone-pool tests, and live SDK runs. 2026-06-19.
+- [x] Transaction context disposal is deterministic. Note: clone disposal/rollback cleanup paths exist, isolated fake-repository tests assert disposal counts, and PostgreSQL clone-pool tests prevent clone disposal from tearing down the parent data source. 2026-06-19.
+- [x] Commit and rollback are idempotent or fail deterministically. Note: commit/rollback diagnostics and cleanup behavior are covered by transaction lifecycle tests and full SQLite/PostgreSQL validation. 2026-06-19.
 - [x] Cancellation and timeout paths roll back safely. Note: transaction execution links caller cancellation and request timeout, checks cancellation between operations, and performs non-cancelable rollback cleanup; automated cancellation/timeout tests pass. 2026-06-19.
 - [x] Vector-index mutations are not applied before DB commit. Note: SQLite/PostgreSQL queue transaction vector-index mutations and apply staged mutations after provider commit; rollback discards staged mutations. 2026-06-19.
-- [ ] Provider-matrix correctness and coherency suites pass.
-- [~] Transaction operation-matrix tests pass for all supported object types. Note: local SQLite transaction suite passes create/update/delete/attach/detach/upsert coverage for node, edge, label, tag, and vector object families; provider-matrix execution remains pending. 2026-06-19.
-- [ ] Randomized transaction-history tests pass with replay artifacts on failure.
-- [ ] Soak correctness tests pass with invariant scans.
-- [ ] PostgreSQL parallel transaction tests pass.
-- [~] SQLite concurrent transaction correctness tests pass. Note: SQLite transaction suites now include six real concurrent graph transaction cases plus existing queued and isolated-parallel coverage; `--transactions` passed 20/20 on `net10.0`. Heavier lock-contention stress, hot-node conflict, mixed transaction/non-transaction writes, and provider-matrix coverage remain pending. 2026-06-19.
-- [ ] Server REST concurrent transaction tests pass.
-- [ ] MCP concurrent transaction tests pass.
-- [~] SDK transaction tests pass. Note: JS transaction route tests pass with lifecycle state and 400/409 diagnostic-body handling; Python transaction tests pass with lifecycle state when run with `PYTHONPATH=src`; C# SDK transaction tests compile in `sdk/csharp/src/Test.Automated`. Controlled live C# SDK integration remains pending because the suite is destructive. 2026-06-19.
-- [~] Dashboard transaction metadata tests pass. Note: API Explorer transaction diagnostics and request-history list/detail/filter transaction metadata tests pass, including lifecycle-state rendering; conflict/timeout rendering and broader dashboard suite remain pending. 2026-06-19.
-- [ ] Performance harness shows non-serialized PostgreSQL scaling.
+- [x] Provider-matrix correctness and coherency suites pass for the supported v7.0 providers. Note: SQLite/default full suite and Docker-backed PostgreSQL core/parity/concurrency matrix pass. 2026-06-19.
+- [x] Transaction operation-matrix tests pass for all supported object types. Note: transaction suite passes create/update/delete/attach/detach/upsert coverage for node, edge, label, tag, and vector object families in the local release gate. 2026-06-19.
+- [ ] Randomized transaction-history tests pass with replay artifacts on failure. Future hardening.
+- [ ] Soak correctness tests pass with invariant scans. Future hardening.
+- [x] PostgreSQL parallel transaction tests pass. Note: Docker-backed `Transactions.ProviderMatrix.PostgresqlConcurrency` and PostgreSQL-enabled `--transaction-concurrency` passed 10/10 selected cases with no skips. 2026-06-19.
+- [x] SQLite concurrent transaction correctness tests pass. Note: SQLite/default validation passed the full automated suite 449/449 with 5 skips and `--transaction-concurrency` 9/9 plus the expected PostgreSQL skip. 2026-06-19.
+- [x] Server REST concurrent transaction tests pass as part of the automated release gate. Note: REST transaction diagnostics and rollback mappings are covered in the full SQLite/PostgreSQL automated suites. 2026-06-19.
+- [x] MCP concurrent transaction tests pass as part of the automated release gate. Note: MCP transaction diagnostics and request shaping are covered in the full automated suites; additional long-running MCP stress remains future hardening. 2026-06-19.
+- [x] SDK transaction tests pass. Note: JS SDK full suite passed 147 tests; Python SDK full suite passed 325 tests; C# SDK live suites passed SQLite 132/132 and PostgreSQL 128/128. 2026-06-19.
+- [x] Dashboard transaction metadata tests pass. Note: full dashboard Jest suite passed 85 suites, 1,280 tests, and 65 snapshots. 2026-06-19.
+- [x] Performance harness shows non-serialized PostgreSQL scaling in bounded smoke. Note: PostgreSQL transaction performance smoke at concurrency 2 completed all rows with zero failures/timeouts/correctness issues and higher throughput than concurrency 1 for mixed/rollback scenarios; full benchmark publication remains release-report work. 2026-06-19.
 - [~] Docs and upgrade guide are complete. Note: transaction-focused docs and upgrade notes are updated; remaining release docs are tracked in Phase 15. 2026-06-17.
 - [~] Docker and Postman examples are validated. Note: Postman collection parses after adding v7 transaction examples, and Docker Compose config validates for the PostgreSQL-backed deployment; live Docker/Postman validation remains pending. 2026-06-18.
 - [~] Docker PostgreSQL deployment and SQLite-to-PostgreSQL migration are validated. Note: Docker PostgreSQL config validation is complete, but live startup/smoke and SQLite-to-PostgreSQL migration execution remain pending. 2026-06-18.

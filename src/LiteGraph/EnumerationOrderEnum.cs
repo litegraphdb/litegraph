@@ -1,7 +1,7 @@
 ﻿namespace LiteGraph
 {
     /// <summary>
-    /// Enumeration order. 
+    /// Enumeration order.
     /// </summary>
     public enum EnumerationOrderEnum
     {

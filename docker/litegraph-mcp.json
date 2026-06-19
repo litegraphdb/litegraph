@@ -2,7 +2,7 @@
   "CreatedUtc": "2025-11-24T10:13:33.307268Z",
   "CreatedBy": "Setup",
   "DeploymentType": "Private",
-  "SoftwareVersion": "v6.0.2",
+  "SoftwareVersion": "v7.0.0",
   "Node": {
     "GUID": "d2ebf75d-ec51-4836-b831-6555bff66ef7",
     "Name": "LiteGraph Model Context Protocol Server",

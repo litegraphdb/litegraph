@@ -13,7 +13,7 @@ GOTO :Done
 
 :Usage
 ECHO Provide a tag argument for the build.
-ECHO Example: dockerbuild.bat v6.0.2
+ECHO Example: dockerbuild.bat v7.0.0
 
 :Done
 IF DEFINED PUSHED POPD

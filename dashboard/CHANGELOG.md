@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v7.0.0
+
+- Added v7 transaction diagnostics rendering in API Explorer and request history
+- Added transaction filtering and isolation/provider metadata display
+- Updated package metadata for the LiteGraph v7.0.0 dashboard release
+
 v6.0.0
 
 - Added administrator authorization management

@@ -12,6 +12,14 @@ namespace Test.Automated
     {
         private static readonly HashSet<string> TransactionConcurrencyCaseIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
+            "Transactions.Client.ConcurrentQueue",
+            "Transactions.Concurrent.SameGraphMixedObjects",
+            "Transactions.Concurrent.DifferentGraphs",
+            "Transactions.Concurrent.CommitRollbackIsolation",
+            "Transactions.Concurrent.AttachDetachMetadata",
+            "Transactions.Concurrent.UpsertWaves",
+            "Transactions.Concurrent.VectorCommitRollback",
+            "Transactions.ProviderMatrix.PostgresqlConcurrency",
             "Transactions.Client.IsolatedParallelExecution",
             "Transactions.Query.IsolatedParallelExecution"
         };

@@ -88,7 +88,7 @@ namespace LiteGraph.Server.API.REST
             _Webserver.UseOpenApi(openApi =>
             {
                 openApi.Info.Title = "LiteGraph API";
-                openApi.Info.Version = "v6.0.2";
+                openApi.Info.Version = "v7.0.0";
                 openApi.Info.Description = "LiteGraph is a lightweight graph database with vector search, multi-tenancy, and AI agent integration. This API provides full CRUD operations for graphs, nodes, edges, labels, tags, and vectors with built-in HNSW vector indexing.";
                 openApi.Info.Contact = new OpenApiContact
                 {

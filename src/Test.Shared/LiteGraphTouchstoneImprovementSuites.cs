@@ -82,6 +82,13 @@
                         skipReason: ProviderSuiteSkipReason("PostgreSQL parity", PostgresqlTestConnectionStringEnvironmentVariable)),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.ProviderMatrix.PostgresqlConcurrency",
+                        displayName: "PostgreSQL graph transaction concurrency matrix passes",
+                        executeAsync: ct => TestPostgresqlTransactionConcurrencyMatrix(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL transaction concurrency", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Storage.Provider.Mysql",
                         displayName: "MySQL provider suite",
                         executeAsync: ct => TestProviderBackendSuite(DatabaseTypeEnum.Mysql, "MySQL", MysqlTestConnectionStringEnvironmentVariable, ct),
@@ -1085,6 +1092,266 @@
             {
                 DeleteFileIfExists(sqliteFilename);
             }
+        }
+
+        private static async Task TestPostgresqlTransactionConcurrencyMatrix(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string? connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariable);
+            if (String.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("PostgreSQL transaction concurrency suite requires " + connectionStringEnvironmentVariable + ".");
+
+            string schema = "litegraph_txn_matrix_" + Guid.NewGuid().ToString("N");
+            string indexDirectory = Path.Combine(".", "indexes", "postgresql", schema);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Type = DatabaseTypeEnum.Postgresql,
+                    ConnectionString = connectionString,
+                    Schema = schema
+                }))
+                using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
+                {
+                    repo.InitializeRepository();
+                    await RunProviderTransactionConcurrencyMatrix(client, "PostgreSQL", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                await DropPostgresqlSchemaAsync(connectionString, schema, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    if (Directory.Exists(indexDirectory)) Directory.Delete(indexDirectory, true);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private static async Task RunProviderTransactionConcurrencyMatrix(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            string suffix = Guid.NewGuid().ToString("N");
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " Transaction Matrix Tenant " + suffix }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Transaction Matrix Graph " + suffix }, cancellationToken).ConfigureAwait(false);
+
+            var mixedSpecs = Enumerable.Range(0, 4)
+                .Select(index => new
+                {
+                    Index = index,
+                    NodeA = Guid.NewGuid(),
+                    NodeB = Guid.NewGuid(),
+                    Edge = Guid.NewGuid(),
+                    Label = Guid.NewGuid(),
+                    Tag = Guid.NewGuid(),
+                    Vector = Guid.NewGuid()
+                })
+                .ToArray();
+
+            TransactionResult[] mixedResults = await Task.WhenAll(mixedSpecs.Select(spec => client.Transaction.Execute(
+                tenant.GUID,
+                graph.GUID,
+                client.Transaction
+                    .CreateRequestBuilder()
+                    .CreateNode(new Node { GUID = spec.NodeA, Name = providerName + " Same Graph Node A " + spec.Index })
+                    .CreateNode(new Node { GUID = spec.NodeB, Name = providerName + " Same Graph Node B " + spec.Index })
+                    .CreateEdge(new Edge { GUID = spec.Edge, Name = providerName + " Same Graph Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB })
+                    .CreateLabel(new LabelMetadata { GUID = spec.Label, NodeGUID = spec.NodeA, Label = providerName + "SameGraph" + spec.Index })
+                    .CreateTag(new TagMetadata { GUID = spec.Tag, NodeGUID = spec.NodeA, Key = "provider", Value = providerName + spec.Index })
+                    .CreateVector(new VectorMetadata
+                    {
+                        GUID = spec.Vector,
+                        NodeGUID = spec.NodeA,
+                        Model = "provider-matrix",
+                        Dimensionality = 4,
+                        Content = providerName + " same graph vector " + spec.Index,
+                        Vectors = BuildDeterministicVector(spec.Index % 4, 4)
+                    })
+                    .Build(),
+                cancellationToken))).ConfigureAwait(false);
+
+            for (int i = 0; i < mixedSpecs.Length; i++)
+            {
+                AssertTrue(mixedResults[i].Success, providerName + " same-graph mixed transaction " + i + " committed: " + mixedResults[i].Error);
+                AssertEqual("Committed", mixedResults[i].State, providerName + " same-graph mixed transaction " + i + " state");
+                AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, mixedSpecs[i].NodeA, cancellationToken).ConfigureAwait(false), providerName + " same-graph mixed node A " + i + " exists");
+                AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, mixedSpecs[i].NodeB, cancellationToken).ConfigureAwait(false), providerName + " same-graph mixed node B " + i + " exists");
+                AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, mixedSpecs[i].Edge, cancellationToken).ConfigureAwait(false), providerName + " same-graph mixed edge " + i + " exists");
+                AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, mixedSpecs[i].Vector, cancellationToken).ConfigureAwait(false), providerName + " same-graph mixed vector " + i + " exists");
+            }
+
+            List<(int Index, Graph Graph, Guid NodeA, Guid NodeB, Guid Edge)> graphSpecs = new List<(int Index, Graph Graph, Guid NodeA, Guid NodeB, Guid Edge)>();
+            for (int i = 0; i < 3; i++)
+            {
+                Graph nextGraph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Matrix Parallel Graph " + i + " " + suffix }, cancellationToken).ConfigureAwait(false);
+                graphSpecs.Add((i, nextGraph, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()));
+            }
+
+            TransactionResult[] graphResults = await Task.WhenAll(graphSpecs.Select(spec => client.Transaction.Execute(
+                tenant.GUID,
+                spec.Graph.GUID,
+                client.Transaction
+                    .CreateRequestBuilder()
+                    .CreateNode(new Node { GUID = spec.NodeA, Name = providerName + " Multi Graph Node A " + spec.Index })
+                    .CreateNode(new Node { GUID = spec.NodeB, Name = providerName + " Multi Graph Node B " + spec.Index })
+                    .CreateEdge(new Edge { GUID = spec.Edge, Name = providerName + " Multi Graph Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB })
+                    .Build(),
+                cancellationToken))).ConfigureAwait(false);
+
+            for (int i = 0; i < graphSpecs.Count; i++)
+            {
+                AssertTrue(graphResults[i].Success, providerName + " different-graph transaction " + i + " committed: " + graphResults[i].Error);
+                AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graphSpecs[i].Graph.GUID, graphSpecs[i].Edge, cancellationToken).ConfigureAwait(false), providerName + " different-graph edge " + i + " exists");
+            }
+
+            var rollbackSpecs = Enumerable.Range(0, 6)
+                .Select(index => new
+                {
+                    Index = index,
+                    ShouldCommit = index % 2 == 0,
+                    Node = Guid.NewGuid(),
+                    DuplicateNode = Guid.NewGuid()
+                })
+                .ToArray();
+
+            TransactionResult[] rollbackResults = await Task.WhenAll(rollbackSpecs.Select(spec =>
+            {
+                TransactionRequestBuilder builder = client.Transaction.CreateRequestBuilder();
+                if (spec.ShouldCommit)
+                {
+                    builder.CreateNode(new Node { GUID = spec.Node, Name = providerName + " Commit Node " + spec.Index });
+                }
+                else
+                {
+                    builder
+                        .CreateNode(new Node { GUID = spec.DuplicateNode, Name = providerName + " Rollback Node " + spec.Index })
+                        .CreateNode(new Node { GUID = spec.DuplicateNode, Name = providerName + " Rollback Duplicate " + spec.Index });
+                }
+
+                return client.Transaction.Execute(tenant.GUID, graph.GUID, builder.Build(), cancellationToken);
+            })).ConfigureAwait(false);
+
+            for (int i = 0; i < rollbackSpecs.Length; i++)
+            {
+                if (rollbackSpecs[i].ShouldCommit)
+                {
+                    AssertTrue(rollbackResults[i].Success, providerName + " concurrent commit " + i + " succeeded: " + rollbackResults[i].Error);
+                    AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, rollbackSpecs[i].Node, cancellationToken).ConfigureAwait(false), providerName + " concurrent commit node " + i + " exists");
+                }
+                else
+                {
+                    AssertFalse(rollbackResults[i].Success, providerName + " concurrent rollback " + i + " failed as expected");
+                    AssertEqual("RolledBack", rollbackResults[i].State, providerName + " concurrent rollback " + i + " state");
+                    AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, rollbackSpecs[i].DuplicateNode, cancellationToken).ConfigureAwait(false), providerName + " concurrent rollback node " + i + " absent");
+                }
+            }
+
+            List<(int Index, Guid Node, Guid Label, Guid Tag)> metadataSpecs = new List<(int Index, Guid Node, Guid Label, Guid Tag)>();
+            for (int i = 0; i < 4; i++)
+            {
+                Guid nodeGuid = Guid.NewGuid();
+                await client.Node.Create(new Node
+                {
+                    GUID = nodeGuid,
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = providerName + " Metadata Target " + i
+                }, cancellationToken).ConfigureAwait(false);
+                metadataSpecs.Add((i, nodeGuid, Guid.NewGuid(), Guid.NewGuid()));
+            }
+
+            TransactionResult[] attachResults = await Task.WhenAll(metadataSpecs.Select(spec => client.Transaction.Execute(
+                tenant.GUID,
+                graph.GUID,
+                client.Transaction
+                    .CreateRequestBuilder()
+                    .AttachLabel(new LabelMetadata { GUID = spec.Label, NodeGUID = spec.Node, Label = providerName + "Attach" + spec.Index })
+                    .AttachTag(new TagMetadata { GUID = spec.Tag, NodeGUID = spec.Node, Key = "attach", Value = spec.Index.ToString() })
+                    .Build(),
+                cancellationToken))).ConfigureAwait(false);
+
+            TransactionResult[] detachResults = await Task.WhenAll(metadataSpecs.Select(spec => client.Transaction.Execute(
+                tenant.GUID,
+                graph.GUID,
+                client.Transaction
+                    .CreateRequestBuilder()
+                    .DetachLabel(spec.Label)
+                    .DetachTag(spec.Tag)
+                    .Build(),
+                cancellationToken))).ConfigureAwait(false);
+
+            for (int i = 0; i < metadataSpecs.Count; i++)
+            {
+                AssertTrue(attachResults[i].Success, providerName + " metadata attach " + i + " committed: " + attachResults[i].Error);
+                AssertTrue(detachResults[i].Success, providerName + " metadata detach " + i + " committed: " + detachResults[i].Error);
+                AssertFalse(await client.Label.ExistsByGuid(tenant.GUID, metadataSpecs[i].Label, cancellationToken).ConfigureAwait(false), providerName + " metadata label " + i + " detached");
+                AssertFalse(await client.Tag.ExistsByGuid(tenant.GUID, metadataSpecs[i].Tag, cancellationToken).ConfigureAwait(false), providerName + " metadata tag " + i + " detached");
+            }
+
+            List<(int Index, bool ShouldCommit, Guid Node, Guid Vector)> vectorSpecs = new List<(int Index, bool ShouldCommit, Guid Node, Guid Vector)>();
+            for (int i = 0; i < 6; i++)
+            {
+                Guid nodeGuid = Guid.NewGuid();
+                await client.Node.Create(new Node
+                {
+                    GUID = nodeGuid,
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = providerName + " Vector Target " + i
+                }, cancellationToken).ConfigureAwait(false);
+                vectorSpecs.Add((i, i % 2 == 0, nodeGuid, Guid.NewGuid()));
+            }
+
+            TransactionResult[] vectorResults = await Task.WhenAll(vectorSpecs.Select(spec =>
+            {
+                TransactionRequestBuilder builder = client.Transaction
+                    .CreateRequestBuilder()
+                    .CreateVector(new VectorMetadata
+                    {
+                        GUID = spec.Vector,
+                        NodeGUID = spec.Node,
+                        Model = "provider-matrix",
+                        Dimensionality = 4,
+                        Content = providerName + " vector " + spec.Index,
+                        Vectors = BuildDeterministicVector(spec.Index % 4, 4)
+                    });
+
+                if (!spec.ShouldCommit)
+                {
+                    builder.CreateVector(new VectorMetadata
+                    {
+                        GUID = spec.Vector,
+                        NodeGUID = spec.Node,
+                        Model = "provider-matrix",
+                        Dimensionality = 4,
+                        Content = providerName + " duplicate vector " + spec.Index,
+                        Vectors = BuildDeterministicVector((spec.Index + 1) % 4, 4)
+                    });
+                }
+
+                return client.Transaction.Execute(tenant.GUID, graph.GUID, builder.Build(), cancellationToken);
+            })).ConfigureAwait(false);
+
+            for (int i = 0; i < vectorSpecs.Count; i++)
+            {
+                if (vectorSpecs[i].ShouldCommit)
+                {
+                    AssertTrue(vectorResults[i].Success, providerName + " vector commit " + i + " succeeded: " + vectorResults[i].Error);
+                    AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, vectorSpecs[i].Vector, cancellationToken).ConfigureAwait(false), providerName + " vector commit " + i + " exists");
+                }
+                else
+                {
+                    AssertFalse(vectorResults[i].Success, providerName + " vector rollback " + i + " failed as expected");
+                    AssertEqual("RolledBack", vectorResults[i].State, providerName + " vector rollback " + i + " state");
+                    AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, vectorSpecs[i].Vector, cancellationToken).ConfigureAwait(false), providerName + " vector rollback " + i + " absent");
+                }
+            }
+
+            await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
+            AssertFalse(await client.Tenant.ExistsByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), providerName + " transaction matrix tenant cleanup");
         }
 
         private static async Task<ProviderParitySnapshot> BuildProviderParitySnapshot(GraphRepositoryBase repo, string providerName, string suffix, CancellationToken cancellationToken)

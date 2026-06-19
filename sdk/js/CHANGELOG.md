@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v7.0.0
+
+- Added v7 graph transaction diagnostics, lifecycle state, and isolation-level response fields
+- Added isolation-level request support for transaction helpers
+- Updated package metadata for the LiteGraph v7.0.0 release
+
 v6.0.2
 
 - Added minimal/full bulk create return modes for labels, tags, vectors, nodes, and edges

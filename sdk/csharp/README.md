@@ -8,7 +8,13 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v6.0.2.
+Current release: v7.0.0.
+
+## New in v7.0.0
+
+- Added v7 graph transaction diagnostics, lifecycle state, and isolation-level models
+- Added transaction execution helpers aligned with the REST v7 transaction response body
+- Updated SDK metadata for the LiteGraph v7.0.0 release
 
 ## New in v6.0.2
 
@@ -19,7 +25,7 @@ Current release: v6.0.2.
 ## New in v6.0.0
 
 - Native graph query, graph transaction, authorization, and request history client helpers
-- v7 request/response models for query, transaction, and authorization workflows
+- v6 request/response models for query, transaction, and authorization workflows
 - API coverage aligned with the LiteGraph v6.0.0 REST surface
 
 ## Bugs, Feedback, or Enhancement Requests

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-		<Version>6.0.3</Version>
+		<Version>7.0.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
 		<PackageReleaseNotes>Patch release with bulk create return modes and targeted node/edge subordinate hydration.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -36,6 +36,7 @@
 		<PackageReference Include="Npgsql" Version="10.0.2" />
 		<PackageReference Include="PrettyId" Version="2.0.1" />
 		<PackageReference Include="RestWrapper" Version="3.1.8" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
 		<PackageReference Include="SyslogLogging" Version="2.0.13" />
 		<PackageReference Include="System.Text.Json" Version="10.0.6" />
 		<PackageReference Include="Timestamps" Version="1.0.12" />

@@ -6,7 +6,7 @@ A web interface for visualizing and managing network graphs, built with Next.js 
 
 This dashboard is part of the [LiteGraph monorepo](../README.md).
 
-Current release: v6.0.0.
+Current release: v7.0.0.
 
 ## Documentation
 

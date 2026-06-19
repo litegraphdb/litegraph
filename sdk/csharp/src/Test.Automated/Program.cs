@@ -15,6 +15,7 @@ namespace Test.Automated
 		private const string EndpointEnvVar = "LITEGRAPH_ENDPOINT";
 		private const string TokenEnvVar = "LITEGRAPH_BEARER_TOKEN";
 		private const string VerboseEnvVar = "LITEGRAPH_TEST_VERBOSE";
+		private const string BackupsSupportedEnvVar = "LITEGRAPH_TEST_BACKUPS_SUPPORTED";
 
 		private static LiteGraphSdk? _Sdk = null;
 		private static Guid _TenantGuid = Guid.Empty;
@@ -77,6 +78,7 @@ namespace Test.Automated
 			Environment.GetEnvironmentVariable(VerboseEnvVar),
 			"true",
 			StringComparison.OrdinalIgnoreCase);
+		private static bool _BackupsSupported = ParseBooleanEnvironment(BackupsSupportedEnvVar, true);
 
 		#endregion
 
@@ -699,11 +701,19 @@ namespace Test.Automated
 			await RunTest("Credential.Enumerate", TestCredentialEnumerate).ConfigureAwait(false);
 
 			// Admin tests
-			await RunTest("Admin.Backup", TestAdminBackup).ConfigureAwait(false);
-			await RunTest("Admin.ListBackups", TestAdminListBackups).ConfigureAwait(false);
-			await RunTest("Admin.ReadBackup", TestAdminReadBackup).ConfigureAwait(false);
-			await RunTest("Admin.BackupExists", TestAdminBackupExists).ConfigureAwait(false);
-			await RunTest("Admin.DeleteBackup", TestAdminDeleteBackup).ConfigureAwait(false);
+			if (_BackupsSupported)
+			{
+				await RunTest("Admin.Backup", TestAdminBackup).ConfigureAwait(false);
+				await RunTest("Admin.ListBackups", TestAdminListBackups).ConfigureAwait(false);
+				await RunTest("Admin.ReadBackup", TestAdminReadBackup).ConfigureAwait(false);
+				await RunTest("Admin.BackupExists", TestAdminBackupExists).ConfigureAwait(false);
+				await RunTest("Admin.DeleteBackup", TestAdminDeleteBackup).ConfigureAwait(false);
+			}
+			else
+			{
+				await RunTest("Admin.Backup.Unsupported", TestAdminBackupUnsupported).ConfigureAwait(false);
+			}
+
 			await RunTest("Admin.FlushDatabase", TestAdminFlushDatabase).ConfigureAwait(false);
 
 			// Batch tests
@@ -1766,6 +1776,24 @@ namespace Test.Automated
 			{
 				_BackupFilename = null;
 			}
+		}
+
+		private static async Task TestAdminBackupUnsupported()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			string filename = $"sdk-unsupported-backup-{Guid.NewGuid():N}.bak";
+
+			await sdk.Admin.Backup(filename).ConfigureAwait(false);
+			bool exists = await sdk.Admin.BackupExists(filename).ConfigureAwait(false);
+			AssertFalse(exists, "Unsupported backup provider should not create backup files");
+
+			List<BackupFile>? backups = await sdk.Admin.ListBackups().ConfigureAwait(false);
+			AssertTrue(
+				backups == null || backups.All(b => !string.Equals(b.Filename, filename, StringComparison.OrdinalIgnoreCase)),
+				"Unsupported backup provider should not list backup files");
+
+			BackupFile? backup = await sdk.Admin.ReadBackup(filename).ConfigureAwait(false);
+			AssertTrue(backup == null, "Unsupported backup provider should not read backup files");
 		}
 
 		private static async Task TestAdminFlushDatabase()
@@ -3044,6 +3072,10 @@ namespace Test.Automated
 				{
 					_VerboseLogging = true;
 				}
+				else if (arg.StartsWith("--backups-supported=", StringComparison.OrdinalIgnoreCase))
+				{
+					_BackupsSupported = ParseBoolean(arg.Substring("--backups-supported=".Length), nameof(_BackupsSupported));
+				}
 			}
 		}
 
@@ -3055,6 +3087,7 @@ namespace Test.Automated
 			Console.WriteLine($"Endpoint     : {_Endpoint}");
 			Console.WriteLine($"Bearer Token : {MaskToken(_BearerToken)}");
 			Console.WriteLine($"Verbose Logs : {_VerboseLogging}");
+			Console.WriteLine($"Backups      : {(_BackupsSupported ? "Supported" : "Unsupported")}");
 			Console.WriteLine("");
 		}
 
@@ -3113,6 +3146,23 @@ namespace Test.Automated
 			if (token.Length <= 6) return new string('*', token.Length);
 
 			return token.Substring(0, 3) + new string('*', token.Length - 6) + token.Substring(token.Length - 3);
+		}
+
+		private static bool ParseBooleanEnvironment(string name, bool defaultValue)
+		{
+			string? value = Environment.GetEnvironmentVariable(name);
+			if (string.IsNullOrWhiteSpace(value)) return defaultValue;
+			return ParseBoolean(value, name);
+		}
+
+		private static bool ParseBoolean(string value, string name)
+		{
+			if (bool.TryParse(value, out bool parsed)) return parsed;
+			if (string.Equals(value, "1", StringComparison.OrdinalIgnoreCase)) return true;
+			if (string.Equals(value, "0", StringComparison.OrdinalIgnoreCase)) return false;
+			if (string.Equals(value, "yes", StringComparison.OrdinalIgnoreCase)) return true;
+			if (string.Equals(value, "no", StringComparison.OrdinalIgnoreCase)) return false;
+			throw new ArgumentException("Invalid boolean value for " + name + ": " + value);
 		}
 
 		private static async Task<string> EnsureBackupAsync(bool forceNew = false)

@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v7.0.0
+
+- Added v7 graph transaction diagnostics, lifecycle state, and isolation-level response fields
+- Added isolation-level request support for transaction resources
+- Updated SDK documentation for LiteGraph v7.0.0
+
 v6.0.2
 
 - Added `return_mode` support for bulk create helpers

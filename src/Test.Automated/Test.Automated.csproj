@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <Version>6.0.2</Version>
+    <Version>7.0.0</Version>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>disable</ImplicitUsings>

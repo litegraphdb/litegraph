@@ -239,7 +239,7 @@ Modify ./litegraph.json to change the REST listener hostname to make externally 
 
 ## Running in Docker
 
-A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v6.0.2`. Use `docker/compose.yaml` if you wish to run LiteGraph, the MCP server, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.db`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are configured for your deployment.
+A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v7.0.0`. Use `docker/compose.yaml` if you wish to run LiteGraph, the MCP server, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.db`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are configured for your deployment.
 
 ## Version History
 

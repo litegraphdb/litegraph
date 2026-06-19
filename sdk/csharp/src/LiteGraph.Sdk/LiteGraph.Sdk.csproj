@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>6.0.3</Version>
+		<Version>7.0.0</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>Patch release with bulk create return mode overloads for LiteGraph v6.0.3.</PackageReleaseNotes>
+		<PackageReleaseNotes>v7.0.0 release with transaction diagnostics, isolation options, and parallel transaction scaling support.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>LiteGraph.Sdk</Title>

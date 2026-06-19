@@ -196,7 +196,7 @@ async Task EnsureScreenshotGraph(LiteGraphClient graphClient, Guid tenant, Guid 
         Labels = new List<string> { "AI", "Demo" },
         Tags = TagSet(
             ("environment", "demo"),
-            ("release", "6.0"),
+            ("release", "7.0"),
             ("purpose", "dashboard screenshots")),
         Data = new
         {
@@ -337,7 +337,7 @@ static IReadOnlyList<NodeSeed> NodeSeeds() =>
     new(1, "LiteGraph Server",
         ["Service", "Database"],
         [("domain", "graph"), ("tier", "core"), ("status", "active")],
-        new { kind = "service", version = "6.0.2", surfaces = new[] { "REST", "SDK", "MCP" } }),
+        new { kind = "service", version = "7.0.0", surfaces = new[] { "REST", "SDK", "MCP" } }),
 
     new(2, "AI Assistant",
         ["Application", "AI"],

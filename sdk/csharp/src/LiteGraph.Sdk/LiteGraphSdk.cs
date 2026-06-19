@@ -8,7 +8,7 @@
     using RestWrapper;
 
     /// <summary>
-    /// LiteGraph SDK. 
+    /// LiteGraph SDK.
     /// </summary>
     public class LiteGraphSdk : SdkBase
     {

@@ -17,7 +17,7 @@
         public GexfMetadata Meta { get; set; } = new GexfMetadata();
 
         /// <summary>
-        /// Graph.  
+        /// Graph.
         /// </summary>
         [XmlElement(ElementName = "graph", Namespace = "http://www.gexf.net/1.3")]
         public GexfGraph Graph { get; set; } = new GexfGraph();
