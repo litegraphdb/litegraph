@@ -65,6 +65,12 @@ cd docker
 docker compose up -d
 ```
 
+After startup, run the checked-in smoke test from the Docker directory to verify Compose service state, REST authentication, metrics, MCP, UI, Prometheus, and Grafana endpoints:
+
+```bat
+smoke.bat
+```
+
 Default endpoints:
 
 - LiteGraph REST: `http://localhost:8701`

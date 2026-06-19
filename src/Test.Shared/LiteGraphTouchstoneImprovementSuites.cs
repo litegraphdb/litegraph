@@ -108,6 +108,11 @@
                         executeAsync: TestSqliteGraphTransactionCommitRollback),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Sqlite.ConcurrentWriteContention",
+                        displayName: "SQLite graph transactions wait through write contention without corrupting state",
+                        executeAsync: TestSqliteGraphTransactionConcurrentWriteContention),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Storage.Sqlite.PersistentConnectionFallback",
                         displayName: "SQLite repository falls back to the persistent WAL connection after transient open failures",
                         executeAsync: TestSqlitePersistentConnectionFallback),
@@ -198,6 +203,16 @@
                         executeAsync: TestGraphTransactionConcurrentVectorCommitRollback),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.MixedTransactionalNonTransactionalWrites",
+                        displayName: "Concurrent transaction and non-transaction graph writes remain coherent",
+                        executeAsync: TestGraphTransactionConcurrentMixedTransactionalNonTransactionalWrites),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Concurrent.MixedVectorIndexChanges",
+                        displayName: "Concurrent transaction and non-transaction vector index changes remain coherent",
+                        executeAsync: TestGraphTransactionConcurrentMixedVectorIndexChanges),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Client.IsolatedParallelExecution",
                         displayName: "Graph transaction client runs isolated provider transactions in parallel",
                         executeAsync: TestGraphTransactionClientIsolatedParallelExecution),
@@ -206,6 +221,11 @@
                         caseId: "Transactions.Query.IsolatedParallelExecution",
                         displayName: "Graph query mutations run isolated provider transactions in parallel",
                         executeAsync: TestGraphQueryIsolatedParallelExecution),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Authorization.Boundary",
+                        displayName: "Graph transaction authorization boundaries require transaction write permission",
+                        executeAsync: TestGraphTransactionAuthorizationBoundary),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
                         caseId: "Credentials.Scoped.Persistence",
@@ -1914,6 +1934,70 @@
             }
 
             DeleteFileIfExists(filename);
+        }
+
+        private static async Task TestSqliteGraphTransactionConcurrentWriteContention(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-sqlite-transaction-contention.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                }))
+                using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "SQLite Contention Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "SQLite Contention Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    var specs = Enumerable.Range(0, 12)
+                        .Select(index => new
+                        {
+                            Index = index,
+                            NodeA = Guid.NewGuid(),
+                            NodeB = Guid.NewGuid(),
+                            Edge = Guid.NewGuid()
+                        })
+                        .ToArray();
+
+                    TransactionResult[] results = await Task.WhenAll(specs.Select(spec => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .WithIsolationLevel(TransactionIsolationLevelEnum.Serializable)
+                            .CreateNode(new Node { GUID = spec.NodeA, Name = "SQLite Contention Node A " + spec.Index })
+                            .CreateNode(new Node { GUID = spec.NodeB, Name = "SQLite Contention Node B " + spec.Index })
+                            .CreateEdge(new Edge { GUID = spec.Edge, Name = "SQLite Contention Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB })
+                            .Build(),
+                        cancellationToken))).ConfigureAwait(false);
+
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        AssertTrue(results[i].Success, "SQLite contended transaction " + i + " committed: " + results[i].Error);
+                        AssertEqual("Committed", results[i].State, "SQLite contended transaction " + i + " lifecycle state");
+                        AssertTrue(results[i].IsolatedRepository, "SQLite contended transaction " + i + " used an isolated repository");
+                        AssertFalse(results[i].SerializedByGate, "SQLite contended transaction " + i + " did not use the legacy safety gate");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeA, cancellationToken).ConfigureAwait(false), "SQLite contended node A " + i + " exists");
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, specs[i].NodeB, cancellationToken).ConfigureAwait(false), "SQLite contended node B " + i + " exists");
+                        AssertTrue(await client.Edge.ExistsByGuid(tenant.GUID, graph.GUID, specs[i].Edge, cancellationToken).ConfigureAwait(false), "SQLite contended edge " + i + " exists");
+                    }
+
+                    int nodeCount = await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+                    int edgeCount = await CountAsync(client.Edge.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+                    AssertEqual(specs.Length * 2, nodeCount, "SQLite contention graph node count");
+                    AssertEqual(specs.Length, edgeCount, "SQLite contention graph edge count");
+                    AssertFalse(repo.GraphTransactionActive, "Parent SQLite repository has no leaked transaction state");
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
         }
 
         private static async Task TestSqlitePersistentConnectionFallback(CancellationToken cancellationToken)
@@ -10611,6 +10695,356 @@
                             AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, specs[i].Vector, cancellationToken).ConfigureAwait(false), "Concurrent vector rollback " + i + " absent");
                         }
                     }
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentMixedTransactionalNonTransactionalWrites(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-concurrent-mixed-writes.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Mixed Write Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Mixed Write Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    Guid[] transactionNodeGuids = Enumerable.Range(0, 6).Select(_ => Guid.NewGuid()).ToArray();
+                    Guid[] directNodeGuids = Enumerable.Range(0, 6).Select(_ => Guid.NewGuid()).ToArray();
+                    Guid rolledBackNodeGuid = Guid.NewGuid();
+
+                    List<Task> tasks = new List<Task>();
+                    tasks.AddRange(transactionNodeGuids.Select((nodeGuid, index) => client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .CreateNode(new Node { GUID = nodeGuid, Name = "Mixed Transaction Node " + index })
+                            .Build(),
+                        cancellationToken)));
+                    tasks.AddRange(directNodeGuids.Select((nodeGuid, index) => client.Node.Create(new Node
+                    {
+                        GUID = nodeGuid,
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = "Mixed Direct Node " + index
+                    }, cancellationToken)));
+                    Task<TransactionResult> rollback = client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .CreateNode(new Node { GUID = rolledBackNodeGuid, Name = "Mixed Rollback Node" })
+                            .CreateNode(new Node { GUID = rolledBackNodeGuid, Name = "Mixed Duplicate Rollback Node" })
+                            .Build(),
+                        cancellationToken);
+                    tasks.Add(rollback);
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                    TransactionResult rollbackResult = await rollback.ConfigureAwait(false);
+                    AssertFalse(rollbackResult.Success, "Mixed duplicate transaction rolls back");
+                    AssertEqual("RolledBack", rollbackResult.State, "Mixed duplicate transaction lifecycle state");
+                    AssertTrue(rollbackResult.RolledBack, "Mixed duplicate transaction reports rollback");
+
+                    foreach (Guid nodeGuid in transactionNodeGuids)
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, nodeGuid, cancellationToken).ConfigureAwait(false), "Mixed transaction node " + nodeGuid + " exists");
+
+                    foreach (Guid nodeGuid in directNodeGuids)
+                        AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, nodeGuid, cancellationToken).ConfigureAwait(false), "Mixed direct node " + nodeGuid + " exists");
+
+                    AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, rolledBackNodeGuid, cancellationToken).ConfigureAwait(false), "Mixed rolled-back node is absent");
+
+                    int nodeCount = await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+                    AssertEqual(transactionNodeGuids.Length + directNodeGuids.Length, nodeCount, "Mixed write graph has only committed nodes");
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionConcurrentMixedVectorIndexChanges(CancellationToken cancellationToken)
+        {
+            const int dimensionality = 4;
+            string filename = "test-improvements-transaction-concurrent-mixed-vectors.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+
+                    TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Mixed Vector Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Mixed Vector Graph" }, cancellationToken).ConfigureAwait(false);
+
+                    await client.Graph.EnableVectorIndexing(
+                        tenant.GUID,
+                        graph.GUID,
+                        new VectorIndexConfiguration
+                        {
+                            VectorIndexType = VectorIndexTypeEnum.HnswRam,
+                            VectorDimensionality = dimensionality,
+                            VectorIndexThreshold = 1,
+                            VectorIndexM = 8,
+                            VectorIndexEf = 16,
+                            VectorIndexEfConstruction = 32
+                        },
+                        cancellationToken).ConfigureAwait(false);
+
+                    Node updateNode = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Mixed Vector Update Node" }, cancellationToken).ConfigureAwait(false);
+                    Node deleteNode = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Mixed Vector Delete Node" }, cancellationToken).ConfigureAwait(false);
+                    Node transactionCreateNode = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Mixed Vector Transaction Create Node" }, cancellationToken).ConfigureAwait(false);
+                    Node directCreateNode = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Mixed Vector Direct Create Node" }, cancellationToken).ConfigureAwait(false);
+                    Node rollbackNode = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Mixed Vector Rollback Node" }, cancellationToken).ConfigureAwait(false);
+
+                    VectorMetadata updateVector = await client.Vector.Create(new VectorMetadata
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        NodeGUID = updateNode.GUID,
+                        Model = "mixed-vector",
+                        Dimensionality = dimensionality,
+                        Content = "original update vector",
+                        Vectors = BuildDeterministicVector(0, dimensionality)
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    VectorMetadata deleteVector = await client.Vector.Create(new VectorMetadata
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        NodeGUID = deleteNode.GUID,
+                        Model = "mixed-vector",
+                        Dimensionality = dimensionality,
+                        Content = "delete vector",
+                        Vectors = BuildDeterministicVector(1, dimensionality)
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    Guid transactionCreateVectorGuid = Guid.NewGuid();
+                    Guid directCreateVectorGuid = Guid.NewGuid();
+                    Guid rollbackVectorGuid = Guid.NewGuid();
+
+                    Task<TransactionResult> transactionCreate = client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .CreateVector(new VectorMetadata
+                            {
+                                GUID = transactionCreateVectorGuid,
+                                NodeGUID = transactionCreateNode.GUID,
+                                Model = "mixed-vector",
+                                Dimensionality = dimensionality,
+                                Content = "transaction create vector",
+                                Vectors = BuildDeterministicVector(2, dimensionality)
+                            })
+                            .Build(),
+                        cancellationToken);
+
+                    Task<TransactionResult> transactionUpdate = client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .UpdateVector(new VectorMetadata
+                            {
+                                GUID = updateVector.GUID,
+                                NodeGUID = updateNode.GUID,
+                                Model = "mixed-vector",
+                                Dimensionality = dimensionality,
+                                Content = "updated transaction vector",
+                                Vectors = BuildDeterministicVector(3, dimensionality)
+                            })
+                            .Build(),
+                        cancellationToken);
+
+                    Task<TransactionResult> transactionRollback = client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        client.Transaction
+                            .CreateRequestBuilder()
+                            .CreateVector(new VectorMetadata
+                            {
+                                GUID = rollbackVectorGuid,
+                                NodeGUID = rollbackNode.GUID,
+                                Model = "mixed-vector",
+                                Dimensionality = dimensionality,
+                                Content = "rollback vector",
+                                Vectors = BuildDeterministicVector(0, dimensionality)
+                            })
+                            .CreateVector(new VectorMetadata
+                            {
+                                GUID = rollbackVectorGuid,
+                                NodeGUID = rollbackNode.GUID,
+                                Model = "mixed-vector",
+                                Dimensionality = dimensionality,
+                                Content = "rollback duplicate vector",
+                                Vectors = BuildDeterministicVector(1, dimensionality)
+                            })
+                            .Build(),
+                        cancellationToken);
+
+                    Task<VectorMetadata> directCreate = client.Vector.Create(new VectorMetadata
+                    {
+                        GUID = directCreateVectorGuid,
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        NodeGUID = directCreateNode.GUID,
+                        Model = "mixed-vector",
+                        Dimensionality = dimensionality,
+                        Content = "direct create vector",
+                        Vectors = BuildDeterministicVector(1, dimensionality)
+                    }, cancellationToken);
+
+                    Task directDelete = client.Vector.DeleteByGuid(tenant.GUID, deleteVector.GUID, cancellationToken);
+
+                    await Task.WhenAll(transactionCreate, transactionUpdate, transactionRollback, directCreate, directDelete).ConfigureAwait(false);
+
+                    TransactionResult createResult = await transactionCreate.ConfigureAwait(false);
+                    TransactionResult updateResult = await transactionUpdate.ConfigureAwait(false);
+                    TransactionResult rollbackResult = await transactionRollback.ConfigureAwait(false);
+
+                    AssertTrue(createResult.Success, "Mixed vector transaction create committed: " + createResult.Error);
+                    AssertTrue(updateResult.Success, "Mixed vector transaction update committed: " + updateResult.Error);
+                    AssertFalse(rollbackResult.Success, "Mixed vector duplicate transaction rolls back");
+                    AssertEqual("RolledBack", rollbackResult.State, "Mixed vector rollback lifecycle state");
+
+                    AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, transactionCreateVectorGuid, cancellationToken).ConfigureAwait(false), "Mixed vector transaction create exists");
+                    AssertTrue(await client.Vector.ExistsByGuid(tenant.GUID, directCreateVectorGuid, cancellationToken).ConfigureAwait(false), "Mixed vector direct create exists");
+                    AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, rollbackVectorGuid, cancellationToken).ConfigureAwait(false), "Mixed vector rollback is absent");
+                    AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, deleteVector.GUID, cancellationToken).ConfigureAwait(false), "Mixed vector direct delete is absent");
+
+                    VectorMetadata updated = await client.Vector.ReadByGuid(tenant.GUID, updateVector.GUID, cancellationToken).ConfigureAwait(false);
+                    AssertEqual("updated transaction vector", updated.Content, "Mixed vector transaction update content");
+
+                    VectorIndexStatistics? stats = await client.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID, cancellationToken).ConfigureAwait(false);
+                    AssertNotNull(stats, "Mixed vector index statistics");
+                    AssertFalse(stats!.IsDirty, "Mixed vector index remains clean");
+                    AssertEqual(3, stats.VectorCount, "Mixed vector index contains committed vectors only");
+
+                    List<VectorSearchResult> updatedResults = await SearchVectorsAsync(
+                        client,
+                        tenant.GUID,
+                        graph.GUID,
+                        BuildDeterministicVector(3, dimensionality),
+                        VectorSearchTypeEnum.CosineSimilarity,
+                        1,
+                        cancellationToken).ConfigureAwait(false);
+
+                    AssertTopNode(updatedResults, updateNode.GUID, "Mixed vector updated search");
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestGraphTransactionAuthorizationBoundary(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-authorization-boundary.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                }))
+                {
+                    repo.InitializeRepository();
+                    AuthorizationService service = new AuthorizationService(new LoggingModule(), repo);
+
+                    Guid tenantGuid = Guid.NewGuid();
+                    Guid graphGuid = Guid.NewGuid();
+                    Guid transactionCredentialGuid = Guid.NewGuid();
+                    Guid viewerCredentialGuid = Guid.NewGuid();
+                    Guid queryWriterCredentialGuid = Guid.NewGuid();
+
+                    AssertRequestAuthorization(
+                        RequestTypeEnum.GraphTransaction,
+                        "write",
+                        AuthorizationPermissionEnum.Write,
+                        AuthorizationResourceTypeEnum.Transaction);
+
+                    Credential readOnly = new Credential
+                    {
+                        GUID = viewerCredentialGuid,
+                        TenantGUID = tenantGuid,
+                        UserGUID = Guid.NewGuid(),
+                        Scopes = new List<string> { "read" },
+                        GraphGUIDs = new List<Guid> { graphGuid }
+                    };
+
+                    await repo.AuthorizationRoles.CreateCredentialScope(new CredentialScopeAssignment
+                    {
+                        TenantGUID = tenantGuid,
+                        CredentialGUID = readOnly.GUID,
+                        RoleName = AuthorizationPolicyDefinitions.ViewerRoleName,
+                        ResourceScope = AuthorizationResourceScopeEnum.Graph,
+                        GraphGUID = graphGuid
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    await AssertCredentialAccess(service, readOnly, graphGuid, RequestTypeEnum.GraphTransaction, AuthorizationResultEnum.Denied, AuthorizationDecisionReason.MissingScope, "Viewer credential cannot execute graph transactions", cancellationToken).ConfigureAwait(false);
+
+                    Credential queryWriter = new Credential
+                    {
+                        GUID = queryWriterCredentialGuid,
+                        TenantGUID = tenantGuid,
+                        UserGUID = Guid.NewGuid(),
+                        Scopes = new List<string> { "write" },
+                        GraphGUIDs = new List<Guid> { graphGuid }
+                    };
+
+                    await repo.AuthorizationRoles.CreateCredentialScope(new CredentialScopeAssignment
+                    {
+                        TenantGUID = tenantGuid,
+                        CredentialGUID = queryWriter.GUID,
+                        ResourceScope = AuthorizationResourceScopeEnum.Graph,
+                        GraphGUID = graphGuid,
+                        Permissions = new List<AuthorizationPermissionEnum> { AuthorizationPermissionEnum.Write },
+                        ResourceTypes = new List<AuthorizationResourceTypeEnum> { AuthorizationResourceTypeEnum.Query }
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    await AssertCredentialAccess(service, queryWriter, graphGuid, "write", AuthorizationResourceTypeEnum.Query, RequestTypeEnum.GraphQuery, AuthorizationResultEnum.Permitted, AuthorizationDecisionReason.Permitted, "Query writer credential can execute graph mutations", cancellationToken).ConfigureAwait(false);
+                    await AssertCredentialAccess(service, queryWriter, graphGuid, RequestTypeEnum.GraphTransaction, AuthorizationResultEnum.Denied, AuthorizationDecisionReason.MissingScope, "Query writer credential cannot execute graph transactions", cancellationToken).ConfigureAwait(false);
+
+                    Credential transactionWriter = new Credential
+                    {
+                        GUID = transactionCredentialGuid,
+                        TenantGUID = tenantGuid,
+                        UserGUID = Guid.NewGuid(),
+                        Scopes = new List<string> { "write" },
+                        GraphGUIDs = new List<Guid> { graphGuid }
+                    };
+
+                    await repo.AuthorizationRoles.CreateCredentialScope(new CredentialScopeAssignment
+                    {
+                        TenantGUID = tenantGuid,
+                        CredentialGUID = transactionWriter.GUID,
+                        ResourceScope = AuthorizationResourceScopeEnum.Graph,
+                        GraphGUID = graphGuid,
+                        Permissions = new List<AuthorizationPermissionEnum> { AuthorizationPermissionEnum.Write },
+                        ResourceTypes = new List<AuthorizationResourceTypeEnum> { AuthorizationResourceTypeEnum.Transaction }
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    await AssertCredentialAccess(service, transactionWriter, graphGuid, RequestTypeEnum.GraphTransaction, AuthorizationResultEnum.Permitted, AuthorizationDecisionReason.Permitted, "Transaction writer credential can execute graph transactions", cancellationToken).ConfigureAwait(false);
                 }
             }
             finally

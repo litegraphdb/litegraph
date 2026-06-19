@@ -13,15 +13,19 @@ namespace Test.Automated
         private static readonly HashSet<string> TransactionConcurrencyCaseIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Transactions.Client.ConcurrentQueue",
+            "Transactions.Sqlite.ConcurrentWriteContention",
             "Transactions.Concurrent.SameGraphMixedObjects",
             "Transactions.Concurrent.DifferentGraphs",
             "Transactions.Concurrent.CommitRollbackIsolation",
             "Transactions.Concurrent.AttachDetachMetadata",
             "Transactions.Concurrent.UpsertWaves",
             "Transactions.Concurrent.VectorCommitRollback",
+            "Transactions.Concurrent.MixedTransactionalNonTransactionalWrites",
+            "Transactions.Concurrent.MixedVectorIndexChanges",
             "Transactions.ProviderMatrix.PostgresqlConcurrency",
             "Transactions.Client.IsolatedParallelExecution",
-            "Transactions.Query.IsolatedParallelExecution"
+            "Transactions.Query.IsolatedParallelExecution",
+            "Transactions.Authorization.Boundary"
         };
 
         private static async Task<int> Main(string[] args)
