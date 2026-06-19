@@ -350,3 +350,23 @@ __pycache__/
 # Local diagnostics and generated test databases
 .codex-temp/
 test-automated-*.db
+
+# Local Docker deployment runtime artifacts
+docker/logs/
+docker/backups/
+docker/temp/
+docker/postgresql-data/
+docker/indexes/*
+!docker/indexes/.gitkeep
+docker/*.db-shm
+docker/*.db-wal
+docker/*.db-journal
+docker/factory/logs/
+docker/factory/backups/
+docker/factory/temp/
+docker/factory/postgresql-data/
+docker/factory/indexes/*
+!docker/factory/indexes/.gitkeep
+docker/factory/*.db-shm
+docker/factory/*.db-wal
+docker/factory/*.db-journal
