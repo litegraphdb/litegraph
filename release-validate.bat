@@ -13,7 +13,10 @@ IF ERRORLEVEL 1 GOTO :Error
 dotnet list "%ROOT%src\LiteGraph.sln" package --vulnerable --include-transitive
 IF ERRORLEVEL 1 GOTO :Error
 
-dotnet pack "%ROOT%src\LiteGraph\LiteGraph.csproj" -c Release -o "%ROOT%artifacts\release-validate\nuget"
+dotnet build "%ROOT%src\LiteGraph\LiteGraph.csproj" -c Release
+IF ERRORLEVEL 1 GOTO :Error
+
+dotnet pack "%ROOT%src\LiteGraph\LiteGraph.csproj" -c Release --no-build -o "%ROOT%artifacts\release-validate\nuget"
 IF ERRORLEVEL 1 GOTO :Error
 
 cmd /C "set LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING=& dotnet run --project ""%ROOT%src\Test.Automated\Test.Automated.csproj"" -c Debug --framework net10.0 -- --transaction-concurrency"

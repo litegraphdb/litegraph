@@ -5,7 +5,7 @@ export const dateInMonthWordsTimeFormat = 'Do MMM YYYY, HH:mm';
 export const formatDateTime = (dateTime: string, format?: string) => {
   try {
     if (dateTime) {
-      return moment(dateTime).format(format || dateInMonthWordsTimeFormat);
+      return moment.utc(dateTime).format(format || dateInMonthWordsTimeFormat);
     }
     return 'Invalid Date';
   } catch (error) {

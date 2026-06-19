@@ -1041,10 +1041,10 @@ exports[`UsersPage renders the users page: initial table state 1`] = `
                         </td>
                         <td
                           class="ant-table-cell ant-table-cell-ellipsis"
-                          title="31st Dec 2023, 16:00"
+                          title="1st Jan 2024, 00:00"
                         >
                           <div>
-                            31st Dec 2023, 16:00
+                            1st Jan 2024, 00:00
                           </div>
                         </td>
                         <td
@@ -1229,10 +1229,10 @@ exports[`UsersPage renders the users page: initial table state 1`] = `
                         </td>
                         <td
                           class="ant-table-cell ant-table-cell-ellipsis"
-                          title="1st Jan 2024, 16:00"
+                          title="2nd Jan 2024, 00:00"
                         >
                           <div>
-                            1st Jan 2024, 16:00
+                            2nd Jan 2024, 00:00
                           </div>
                         </td>
                         <td
@@ -2441,10 +2441,10 @@ exports[`UsersPage should create a user and should be visible in the table: fina
             </td>
             <td
               class="ant-table-cell ant-table-cell-ellipsis"
-              title="31st Dec 2023, 16:00"
+              title="1st Jan 2024, 00:00"
             >
               <div>
-                31st Dec 2023, 16:00
+                1st Jan 2024, 00:00
               </div>
             </td>
             <td
@@ -2629,10 +2629,10 @@ exports[`UsersPage should create a user and should be visible in the table: fina
             </td>
             <td
               class="ant-table-cell ant-table-cell-ellipsis"
-              title="1st Jan 2024, 16:00"
+              title="2nd Jan 2024, 00:00"
             >
               <div>
-                1st Jan 2024, 16:00
+                2nd Jan 2024, 00:00
               </div>
             </td>
             <td
@@ -3434,10 +3434,10 @@ exports[`UsersPage should delete user successfully: final table state after dele
             </td>
             <td
               class="ant-table-cell ant-table-cell-ellipsis"
-              title="31st Dec 2023, 16:00"
+              title="1st Jan 2024, 00:00"
             >
               <div>
-                31st Dec 2023, 16:00
+                1st Jan 2024, 00:00
               </div>
             </td>
             <td
@@ -3622,10 +3622,10 @@ exports[`UsersPage should delete user successfully: final table state after dele
             </td>
             <td
               class="ant-table-cell ant-table-cell-ellipsis"
-              title="1st Jan 2024, 16:00"
+              title="2nd Jan 2024, 00:00"
             >
               <div>
-                1st Jan 2024, 16:00
+                2nd Jan 2024, 00:00
               </div>
             </td>
             <td

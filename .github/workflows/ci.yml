@@ -49,7 +49,9 @@ jobs:
         run: dotnet list src/LiteGraph.sln package --vulnerable --include-transitive
 
       - name: NuGet package validation
-        run: dotnet pack src/LiteGraph/LiteGraph.csproj -c Release -o artifacts/nuget
+        run: |
+          dotnet build src/LiteGraph/LiteGraph.csproj -c Release
+          dotnet pack src/LiteGraph/LiteGraph.csproj -c Release --no-build -o artifacts/nuget
 
       - name: SQLite transaction concurrency gate
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency

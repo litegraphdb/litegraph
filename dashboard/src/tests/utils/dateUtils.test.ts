@@ -14,6 +14,7 @@ jest.mock('moment', () => {
       return 'Mocked Date';
     },
   });
+  mockMoment.utc = mockMoment;
   mockMoment.mockReturnValue = mockMoment;
   return mockMoment;
 });
