@@ -23,7 +23,7 @@ LiteGraph already has patterns the harness should reuse where practical:
 - Existing correctness suites live in `src/Test.Shared` and `src/Test.Automated`, with `Test.Automated` using `Touchstone.Cli`.
 - `LiteGraphClient` exposes the main API surface: tenants, graphs, nodes, edges, labels, tags, vectors, vector indexes, native graph queries, transactions, batching, request history, and admin/storage operations.
 - `GraphRepositoryFactory.Create(DatabaseSettings)` is the natural provider entry point.
-- `DatabaseSettings` supports `Sqlite`, `Postgresql`, `Mysql`, and `SqlServer` settings, but only SQLite and PostgreSQL currently have real repository implementations. MySQL and SQL Server should be accepted by the CLI but fail clearly until their repositories are implemented.
+- `DatabaseSettings` supports `Sqlite` and `Postgresql` settings.
 - SQLite supports file and in-memory modes and configures WAL, cache, synchronous mode, temp store, and memory mapping. It uses repository-level synchronization in several transaction/shared-connection paths, so concurrency testing must explicitly expose lock contention.
 - PostgreSQL uses `NpgsqlDataSource`, schema-aware storage, command timeout settings, max connections, graph-scoped transactions, and provider-specific vector index storage.
 - LiteGraph already emits useful telemetry through `LiteGraphTelemetry`, including repository operation timing, statement counts, row counts, transactional flags, vector search timing, and native query profile timings.
@@ -68,7 +68,7 @@ Expected default:
 Provider options:
 
 ```text
---db-type sqlite|postgresql|mysql|sqlserver
+--db-type sqlite|postgresql
 --connection-string <connection-string>
 --sqlite-file <path>
 --in-memory true|false
@@ -151,7 +151,7 @@ Responsibilities:
 - Parse CLI arguments.
 - Build `DatabaseSettings`.
 - Expand named profiles into concrete scale, workload, and duration settings.
-- Validate unsupported combinations early. For example, MySQL and SQL Server should currently report that the repository provider is not implemented.
+- Validate unsupported combinations early.
 - Write the effective configuration to the output directory with secrets redacted.
 
 ### Run Controller
@@ -1353,7 +1353,6 @@ Exit criteria:
 
 - Running with no arguments uses a temporary SQLite file.
 - SQLite file, SQLite in-memory, and PostgreSQL can be selected through CLI arguments.
-- MySQL and SQL Server options fail with a clear unsupported-provider message until implemented.
 - The harness can generate deterministic smoke and small datasets.
 - The harness measures ingestion, reads, search, traversal, native query, vector, transaction, update, delete, mixed, stress, and soak workload families.
 - Every scenario reports throughput, latency percentiles, success rate, timeout rate, and operation counts.
@@ -1370,7 +1369,6 @@ Exit criteria:
 - A single-process console app can saturate only what one machine can drive. For distributed load, the same harness may later need a coordinator/worker mode, but that is outside the first implementation.
 - Large profiles can consume significant disk, memory, and time. Defaults must be conservative, with explicit opt-in for large and soak runs.
 - Provider-specific database metrics for PostgreSQL are useful but should not block the first implementation.
-- MySQL and SQL Server settings exist in `DatabaseSettings`, but the current repository implementations are placeholders. The harness should not pretend to benchmark unsupported providers.
 - BenchmarkDotNet can be valuable for future microbenchmarks, but the main harness should remain a configurable load generator.
 - Vector index behavior must be carefully isolated because index files live outside normal entity tables and can affect repeatability if not cleaned between runs.
 - Destructive workloads must use isolated tenants, graphs, or disposable databases so they do not corrupt shared test datasets.

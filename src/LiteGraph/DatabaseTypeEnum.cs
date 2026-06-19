@@ -13,16 +13,6 @@ namespace LiteGraph
         /// <summary>
         /// PostgreSQL storage.
         /// </summary>
-        Postgresql,
-
-        /// <summary>
-        /// MySQL storage.
-        /// </summary>
-        Mysql,
-
-        /// <summary>
-        /// SQL Server storage.
-        /// </summary>
-        SqlServer
+        Postgresql
     }
 }

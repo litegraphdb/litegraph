@@ -84,15 +84,6 @@ dotnet run --project src/Test.PerformanceAndScalability -- --db-type postgresql 
 
 Passwords and connection strings are redacted in console output and artifacts.
 
-## Unsupported Providers
-
-The CLI accepts `mysql` and `sqlserver` as database type values so scripts can be provider-neutral. LiteGraph currently has placeholder repositories for these providers, so the harness fails fast with a clear unsupported-provider message.
-
-```powershell
-dotnet run --project src/Test.PerformanceAndScalability -- --db-type mysql
-dotnet run --project src/Test.PerformanceAndScalability -- --db-type sqlserver
-```
-
 ## Profiles
 
 Profiles set default dataset sizes and run durations.
@@ -394,7 +385,7 @@ Storage metrics:
 
 Unsupported provider:
 
-- MySQL and SQL Server repositories are placeholders. Use SQLite or PostgreSQL.
+- Use `sqlite` or `postgresql` for `--db-type`.
 
 SQLite file already contains prior data:
 

@@ -67,7 +67,7 @@ Goal: confirm implementation scope before adding code.
 | [x] Confirm REST or MCP driver support is deferred unless explicitly required. | Done | Codex | Deferred below. |
 | [x] Confirm SQLite file mode is the no-argument default. | Done | Codex | Default creates a temporary SQLite file. |
 | [x] Confirm PostgreSQL is supported when connection settings are supplied. | Done | Codex | CLI builds PostgreSQL `DatabaseSettings`; runtime depends on supplied database. |
-| [x] Confirm MySQL and SQL Server fail clearly as unsupported until repositories are implemented. | Done | Codex | CLI fail-fast validation is implemented. |
+| [x] Confirm the CLI provider scope. | Done | Codex | CLI provider choices are SQLite and PostgreSQL. |
 | [x] Confirm artifact formats: JSON, CSV, and Markdown. | Done | Codex | Implemented in `ArtifactWriter`. |
 
 ## Phase 1: Project Skeleton And CLI
@@ -102,7 +102,7 @@ Goal: initialize LiteGraph reliably and capture enough metadata to reproduce a r
 | [x] Build `DatabaseSettings` from CLI options. | Done | Codex | SQLite and PostgreSQL settings are mapped. |
 | [x] Use `GraphRepositoryFactory.Create(DatabaseSettings)`. | Done | Codex | Implemented in `Program.Main`. |
 | [x] Create and initialize `LiteGraphClient`. | Done | Codex | Client is initialized before dataset generation. |
-| [x] Fail fast for unsupported MySQL and SQL Server providers. | Done | Codex | Validation rejects placeholders. |
+| [x] Validate unsupported `--db-type` values. | Done | Codex | Validation rejects values outside SQLite and PostgreSQL. |
 | [x] Redact secrets in all console and artifact output. | Done | Codex | Redaction is implemented; needs periodic artifact scan in Phase 9. |
 | [x] Capture git SHA and dirty-tree status. | Done | Codex | `EnvironmentCapture`. |
 | [x] Capture LiteGraph assembly version. | Done | Codex | `EnvironmentCapture`. |
@@ -260,7 +260,7 @@ Goal: create a practical user guide for running the CLI against common scenarios
 | [x] Overview, prerequisites, build, and quick start. | Done | Codex | Present. |
 | [x] SQLite file and in-memory examples. | Done | Codex | Present. |
 | [x] PostgreSQL examples using connection string and properties. | Done | Codex | Present. |
-| [x] Unsupported provider behavior for MySQL and SQL Server. | Done | Codex | Present. |
+| [x] Supported provider behavior. | Done | Codex | SQLite and PostgreSQL examples are present. |
 | [x] Smoke, small, medium, large, and soak profile examples. | Done | Codex | Present. |
 | [x] Workload selection, concurrency ramp, open-loop, batch-size, and transaction-size examples. | Done | Codex | Present. |
 | [x] Vector, native query profile, mixed workload, and soak examples. | Done | Codex | Present. |

@@ -3934,16 +3934,6 @@
             PostgreSQL storage.
             </summary>
         </member>
-        <member name="F:LiteGraph.DatabaseTypeEnum.Mysql">
-            <summary>
-            MySQL storage.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.DatabaseTypeEnum.SqlServer">
-            <summary>
-            SQL Server storage.
-            </summary>
-        </member>
         <member name="T:LiteGraph.Edge">
             <summary>
             Edge in the graph.
@@ -7458,17 +7448,6 @@
             <param name="token">Cancellation token.</param>
             <returns>Vector search results containing edges.</returns>
         </member>
-        <member name="T:LiteGraph.GraphRepositories.Mysql.MysqlGraphRepository">
-            <summary>
-            MySQL graph repository placeholder.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Mysql.MysqlGraphRepository.#ctor(LiteGraph.DatabaseSettings)">
-            <summary>
-            Instantiate.
-            </summary>
-            <param name="settings">Database settings.</param>
-        </member>
         <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -9561,92 +9540,6 @@
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.Dispose(System.Boolean)">
             <inheritdoc />
-        </member>
-        <member name="T:LiteGraph.GraphRepositories.SqlServer.SqlServerGraphRepository">
-            <summary>
-            SQL Server graph repository placeholder.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.SqlServer.SqlServerGraphRepository.#ctor(LiteGraph.DatabaseSettings)">
-            <summary>
-            Instantiate.
-            </summary>
-            <param name="settings">Database settings.</param>
-        </member>
-        <member name="T:LiteGraph.GraphRepositories.UnsupportedGraphRepository">
-            <summary>
-            Provider placeholder used before a full repository implementation exists.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Settings">
-            <summary>
-            Provider settings.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Admin">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Tenant">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.User">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Credential">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Label">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Tag">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Vector">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Graph">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Node">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Edge">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Batch">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.VectorIndex">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.RequestHistory">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.AuthorizationAudit">
-            <inheritdoc />
-        </member>
-        <member name="P:LiteGraph.GraphRepositories.UnsupportedGraphRepository.AuthorizationRoles">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.UnsupportedGraphRepository.#ctor(System.String,LiteGraph.DatabaseSettings)">
-            <summary>
-            Instantiate.
-            </summary>
-            <param name="providerName">Provider name.</param>
-            <param name="settings">Database settings.</param>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.UnsupportedGraphRepository.InitializeRepository">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Flush">
-            <inheritdoc />
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.UnsupportedGraphRepository.Unsupported(System.String)">
-            <summary>
-            Create a provider-specific unsupported-operation exception.
-            </summary>
-            <param name="operation">Operation name.</param>
-            <returns>Exception.</returns>
         </member>
         <member name="T:LiteGraph.GraphStatistics">
             <summary>

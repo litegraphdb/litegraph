@@ -1,8 +1,8 @@
 ﻿# LiteGraph Storage Configuration
 
-LiteGraph now uses provider-neutral database settings while keeping SQLite as the default zero-configuration backend.
+LiteGraph uses provider-neutral database settings while keeping SQLite as the default zero-configuration backend.
 
-The current implementation supports SQLite execution through the repository factory and includes an executable PostgreSQL provider backed by `NpgsqlDataSource`. MySQL and SQL Server are represented in the public settings model and provider folders so the storage contract can grow without another configuration redesign, but those provider implementations remain placeholders.
+The current implementation supports SQLite execution through the repository factory and includes an executable PostgreSQL provider backed by `NpgsqlDataSource`.
 
 ## Defaults
 
@@ -107,8 +107,6 @@ client.InitializeRepository();
 ```
 
 The factory returns `SqliteGraphRepository` for `DatabaseTypeEnum.Sqlite` and `PostgresqlGraphRepository` for `DatabaseTypeEnum.Postgresql`.
-
-Selecting `Mysql` or `SqlServer` returns a provider-specific placeholder repository. Calling repository operations on those placeholders throws `NotSupportedException` naming the provider and operation. This keeps configuration and factory wiring testable while making the remaining provider work explicit.
 
 The embedded C# SDK surface uses the same public storage model. `DatabaseSettings`, `DatabaseTypeEnum`, and `GraphRepositoryFactory` are the supported storage configuration API for in-process callers. There is no separate storage-admin REST model in this release because the running server's provider is selected at startup and is not mutable through an authenticated admin route.
 
@@ -215,13 +213,11 @@ Use this checklist before promoting PostgreSQL-backed LiteGraph to production:
 
 ## Provider Test Suites
 
-SQLite tests run by default. Server-backed provider suites are registered in `Test.Shared` but skip unless a dedicated test database is configured through an environment variable:
+SQLite tests run by default. The PostgreSQL provider suite is registered in `Test.Shared` but skips unless a dedicated test database is configured through an environment variable:
 
 - `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING`
-- `LITEGRAPH_TEST_MYSQL_CONNECTION_STRING`
-- `LITEGRAPH_TEST_SQLSERVER_CONNECTION_STRING`
 
-These values are intentionally connection strings so test runners do not need to print or assemble credentials. When a variable is absent, the test is reported as skipped with a reason. When the PostgreSQL variable is present, the suite initializes PostgreSQL storage and runs a live provider smoke covering core CRUD, JSON data filtering, concurrent writes, and graph transaction commit/rollback.
+This value is intentionally a connection string so test runners do not need to print or assemble credentials. When the variable is absent, the test is reported as skipped with a reason. When the PostgreSQL variable is present, the suite initializes PostgreSQL storage and runs a live provider smoke covering core CRUD, JSON data filtering, concurrent writes, and graph transaction commit/rollback.
 
 ## Logging Safety
 
@@ -286,7 +282,6 @@ When migrating storage providers, restoring backups, or upgrading from earlier L
 ## Current Limits
 
 - SQLite and PostgreSQL are implemented providers.
-- MySQL and SQL Server provider implementations are placeholders and are not complete.
-- Provider-specific query generation is normalized for SQLite and PostgreSQL; MySQL and SQL Server remain future provider work.
+- Provider-specific query generation is normalized for SQLite and PostgreSQL.
 - Provider-neutral migration copies repository data but does not perform online dual-write cutover or external backup orchestration.
-- PostgreSQL provider coverage runs through the live provider suite when `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` is configured; MySQL and SQL Server suites remain skipped until those providers are implemented.
+- PostgreSQL provider coverage runs through the live provider suite when `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` is configured.

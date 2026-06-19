@@ -373,7 +373,7 @@ Defaults:
   writes artifacts under artifacts/perf-scale/{run-id}, and deletes the temporary database.
 
 Provider options:
-  --db-type sqlite|postgresql|mysql|sqlserver
+  --db-type sqlite|postgresql
   --connection-string <value>
   --sqlite-file <path>
   --in-memory true|false
@@ -438,9 +438,6 @@ Output options:
 
         private void Validate()
         {
-            if (DbType == DatabaseTypeEnum.Mysql || DbType == DatabaseTypeEnum.SqlServer)
-                throw new NotSupportedException("The " + DbType + " repository is present as a placeholder in LiteGraph and is not supported by this harness yet.");
-
             if (DbType != DatabaseTypeEnum.Sqlite && InMemory)
                 throw new ArgumentException("--in-memory is only valid for SQLite.");
 
@@ -613,12 +610,6 @@ Output options:
                 case "postgres":
                 case "postgresql":
                     return DatabaseTypeEnum.Postgresql;
-                case "mysql":
-                    return DatabaseTypeEnum.Mysql;
-                case "sqlserver":
-                case "sql-server":
-                case "sql_server":
-                    return DatabaseTypeEnum.SqlServer;
                 default:
                     throw new ArgumentException("Unsupported database type '" + value + "'.");
             }

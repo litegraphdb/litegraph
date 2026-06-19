@@ -289,5 +289,5 @@ litegraph_authentication_requests_total
 ## Current Limits
 
 - Full MCP per-tool authorization for legacy direct-SDK tools remains future hardening; v6.0.0 query, transaction, and authorization MCP tools route through REST authorization.
-- SQLite and PostgreSQL authorization role, assignment, and audit storage are implemented. MySQL and SQL Server authorization storage remains provider work.
+- SQLite and PostgreSQL authorization role, assignment, and audit storage are implemented.
 - External identity mapping is out of scope for this release unless a separate design adds it.

@@ -24,7 +24,6 @@ All five areas are **P1** for this release. The release should be planned as one
 
 - SQLite remains the default zero-config backend.
 - PostgreSQL is the recommended production backend.
-- The storage architecture must be designed so MySQL and SQL Server can be added without redesign.
 - Storage backend implementations live inside the main LiteGraph project, following the provider folder pattern used in `C:\code\Verbex\Verbex\src\Verbex\Database`.
 - Query execution should prefer repository-level planning/execution. `LiteGraphClient` methods may be used where they are the correct abstraction.
 - Transactions are limited to one tenant and one graph.
@@ -135,7 +134,7 @@ Deliverables:
 
 **Priority:** P1
 **Effort:** Very Large
-**Status:** `[x]` Completed for SQLite and PostgreSQL; MySQL and SQL Server remain explicit placeholders behind the provider-neutral contract
+**Status:** `[x]` Completed for SQLite and PostgreSQL
 **Impact:** Removes SQLite-only architecture assumptions and enables production deployment on PostgreSQL
 
 ### Why This Matters
@@ -143,12 +142,11 @@ Deliverables:
 - SQLite is excellent as the zero-config default.
 - Production deployments need server-backed storage, write concurrency, operational tooling, replication, and backup workflows.
 - PostgreSQL is the first production backend.
-- MySQL and SQL Server should be supported by architecture, settings, and provider boundaries without forcing a later redesign.
 
 ### Implementation Steps
 
 - [x] **1.1** Introduce provider-neutral database settings and type selection.
-  - [x] Add `DatabaseTypeEnum`: `Sqlite`, `Postgresql`, `Mysql`, `SqlServer`.
+  - [x] Add `DatabaseTypeEnum`: `Sqlite`, `Postgresql`.
   - [x] Add provider-neutral settings modeled after Verbex `DatabaseSettings`.
   - [x] Preserve backward compatibility with `LiteGraph.GraphRepositoryFilename`.
   - [x] Support environment variables for database type, filename, host, port, database, username, password, schema, pool size, and command timeout.
@@ -190,11 +188,6 @@ Deliverables:
     - [x] Use server-side connection pooling and database transactions.
     - [x] Live concurrent writer coverage with a configured PostgreSQL test database.
 
-- [x] **1.6** Prepare MySQL and SQL Server support.
-  - [x] Add provider folders and settings support.
-  - [x] Add explicit unsupported-operation errors until full implementation is finished.
-  - [x] Ensure architecture and tests can add these providers without changing public contracts.
-
 - [x] **1.7** Migration and backup tools.
   - [x] Export/import SQLite to PostgreSQL through the provider-neutral `StorageMigrationManager`.
   - [x] Verification tool compares entity counts and sampled records.
@@ -207,13 +200,13 @@ Deliverables:
     - [x] PostgreSQL SQL translation unit coverage verifies schema qualification, GUID primary keys, `BYTEA`, JSON field filters, and blob literal translation.
     - [x] PostgreSQL live provider smoke covers initialization, tenant/graph/node/edge/label/tag/vector CRUD, JSON filters, concurrent writes, and graph transaction commit/rollback when `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` is configured.
     - [x] Storage migration round-trip coverage verifies tenants, users, credentials, graphs, nodes, edges, labels, tags, vectors, custom roles, user role assignments, credential scopes, counts, sampled records, and async disposal cleanup.
-  - [x] Add provider implementation test for PostgreSQL and provider placeholder tests for MySQL and SQL Server.
+  - [x] Add provider implementation test for PostgreSQL.
   - [x] Expose via `Test.Automated`, `Test.Xunit`, and `Test.Nunit`.
 
 ### Verification
 
 - [x] `dotnet build src\LiteGraph.sln -f net8.0`
-- [x] `dotnet run --project src\Test.Automated\Test.Automated.csproj --framework net8.0` with `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` against a disposable PostgreSQL 16 container: 429 total, 427 passed, 0 failed, 2 skipped (`Mysql`, `SqlServer` placeholder suites).
+- [x] `dotnet run --project src\Test.Automated\Test.Automated.csproj --framework net8.0` with `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` against a disposable PostgreSQL 16 container: 429 total, 427 passed, 0 failed, 2 skipped.
 
 ### Acceptance Criteria
 
@@ -222,7 +215,6 @@ Deliverables:
 - Server startup selects storage backend by configuration.
 - PostgreSQL supports concurrent writes from multiple server instances.
 - Existing LiteGraph data can be migrated from SQLite to PostgreSQL with verification.
-- MySQL and SQL Server can be added without changing public repository contracts.
 
 ---
 
@@ -910,8 +902,7 @@ RBAC does not apply inside:
     - [x] SQL translation unit coverage verifies core provider dialect rewrites.
     - [x] Environment-gated live smoke covers initialization, core graph child CRUD, and graph transaction commit/rollback.
     - [x] Full SQLite parity suite against PostgreSQL.
-  - [x] MySQL and SQL Server placeholders or preview suites if applicable.
-  - [x] PostgreSQL, MySQL, and SQL Server provider suites are registered with explicit dependency skip reasons when test connection strings are not configured.
+  - [x] PostgreSQL provider suites are registered with explicit dependency skip reasons when test connection strings are not configured.
 
 - [x] **7.2** Transaction suites.
   - [x] Successful mixed operation commit.
@@ -1021,7 +1012,6 @@ The release is complete when:
 
 - SQLite remains backward compatible and default.
 - PostgreSQL is production-ready and documented.
-- Storage architecture can support MySQL and SQL Server without redesign.
 - Graph-scoped transactions work for nodes, edges, labels, tags, and vectors.
 - Native query endpoint supports reads, traversals, vector search, and child-object mutations.
 - Query language syntax and parameter model decisions are documented in `DSL.md`.

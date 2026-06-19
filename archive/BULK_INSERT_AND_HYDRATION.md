@@ -104,21 +104,15 @@ Observed code paths:
 
 ## Supported Database Scope
 
-LiteGraph currently has four configured database type values:
+LiteGraph currently has two configured database type values:
 
 - `Sqlite`
 - `Postgresql`
-- `Mysql`
-- `SqlServer`
 
 Implementation scope:
 
 - [x] SQLite: fully implement and test all bulk insert return modes and targeted node/edge hydration.
 - [x] PostgreSQL: fully implement targeted query support and shared behavior coverage for all bulk insert return modes and targeted node/edge hydration.
-- [x] MySQL: confirm placeholder repository behavior remains unsupported; no bulk insert behavior to fix until the provider is implemented.
-- [x] SQL Server: confirm placeholder repository behavior remains unsupported; no bulk insert behavior to fix until the provider is implemented.
-
-MySQL and SQL Server currently derive from `UnsupportedGraphRepository`. If repository interfaces are expanded, placeholder behavior must remain explicit and tests should still verify that unsupported providers fail clearly.
 
 ## API Decision
 
@@ -580,13 +574,6 @@ This phase covers bulk insert risks that are not response hydration but still af
   - Assert only requested targets are returned.
 - [ ] Add PostgreSQL integration tests for targeted subordinate reads.
   - Same behavior as SQLite.
-- [ ] Confirm MySQL placeholder tests.
-  - Factory still creates `MysqlGraphRepository`.
-  - Accessing repository operations still throws `NotSupportedException`.
-- [ ] Confirm SQL Server placeholder tests.
-  - Factory still creates `SqlServerGraphRepository`.
-  - Accessing repository operations still throws `NotSupportedException`.
-
 ### REST Tests
 
 - [x] Add REST tests for label bulk create.
@@ -673,8 +660,6 @@ Database/provider matrix:
 | --- | --- | --- |
 | SQLite | Full | All five bulk insert operations, targeted node/edge hydration, REST, SDK default/minimal |
 | PostgreSQL | Full | All five bulk insert operations, targeted node/edge hydration, REST, SDK default/minimal |
-| MySQL | Placeholder | Factory and unsupported-operation tests only |
-| SQL Server | Placeholder | Factory and unsupported-operation tests only |
 
 Runtime surfaces:
 
@@ -704,7 +689,6 @@ Runtime surfaces:
 - [x] Minimal mode does not skip validation, persistence, vector index updates, or authorization.
 - [x] Minimal mode does not poison node or edge caches with under-hydrated objects.
 - [ ] SQLite and PostgreSQL both pass the same behavior tests.
-- [x] MySQL and SQL Server placeholder tests still pass.
 - [x] REST docs, SDK docs, dashboard API Explorer, and Postman all show the new return mode for every bulk insert endpoint.
 - [x] Existing clients that do not pass `return=minimal` keep current behavior.
 - [x] SDK old call styles continue to compile/run.

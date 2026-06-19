@@ -434,4 +434,4 @@ The MCP tool forwards to the REST transaction endpoint so the configured MCP cre
 - One transaction executes within one tenant and one graph.
 - Nested transactions are not a public API.
 - Vector index rollback is not guaranteed; LiteGraph marks uncertain index state dirty and rebuild remains the repair path.
-- SQLite and PostgreSQL graph transactions are implemented. PostgreSQL is the primary provider for parallel write scaling. SQLite remains correct under concurrent transaction requests, but file-level locking limits write throughput. MySQL and SQL Server transaction behavior remains provider work.
+- SQLite and PostgreSQL graph transactions are implemented. PostgreSQL is the primary provider for parallel write scaling. SQLite remains correct under concurrent transaction requests, but file-level locking limits write throughput.

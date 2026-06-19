@@ -21,7 +21,6 @@ v6.0.0
 - Storage architecture
   - Added provider-neutral repository selection and storage settings
   - Added PostgreSQL repository implementation alongside SQLite
-  - Added placeholders for future MySQL and SQL Server providers
 
 - Observability and operations
   - Added Prometheus metrics at `/metrics`

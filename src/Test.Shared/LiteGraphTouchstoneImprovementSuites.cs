@@ -31,8 +31,6 @@
     public static partial class LiteGraphTouchstoneSuites
     {
         private const string PostgresqlTestConnectionStringEnvironmentVariable = "LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING";
-        private const string MysqlTestConnectionStringEnvironmentVariable = "LITEGRAPH_TEST_MYSQL_CONNECTION_STRING";
-        private const string SqlServerTestConnectionStringEnvironmentVariable = "LITEGRAPH_TEST_SQLSERVER_CONNECTION_STRING";
 
         private static TestSuiteDescriptor CreateImprovementFoundationSuite()
         {
@@ -89,18 +87,59 @@
                         skipReason: ProviderSuiteSkipReason("PostgreSQL transaction concurrency", PostgresqlTestConnectionStringEnvironmentVariable)),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
-                        caseId: "Storage.Provider.Mysql",
-                        displayName: "MySQL provider suite",
-                        executeAsync: ct => TestProviderBackendSuite(DatabaseTypeEnum.Mysql, "MySQL", MysqlTestConnectionStringEnvironmentVariable, ct),
-                        skip: ShouldSkipProviderSuite(MysqlTestConnectionStringEnvironmentVariable),
-                        skipReason: ProviderSuiteSkipReason("MySQL", MysqlTestConnectionStringEnvironmentVariable)),
+                        caseId: "Transactions.ProviderMatrix.SqliteCorrectness",
+                        displayName: "SQLite graph transaction correctness oracle provider matrix passes",
+                        executeAsync: TestSqliteTransactionCorrectnessMatrix),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
-                        caseId: "Storage.Provider.SqlServer",
-                        displayName: "SQL Server provider suite",
-                        executeAsync: ct => TestProviderBackendSuite(DatabaseTypeEnum.SqlServer, "SQL Server", SqlServerTestConnectionStringEnvironmentVariable, ct),
-                        skip: ShouldSkipProviderSuite(SqlServerTestConnectionStringEnvironmentVariable),
-                        skipReason: ProviderSuiteSkipReason("SQL Server", SqlServerTestConnectionStringEnvironmentVariable)),
+                        caseId: "Transactions.ProviderMatrix.PostgresqlCorrectness",
+                        displayName: "PostgreSQL graph transaction correctness oracle provider matrix passes",
+                        executeAsync: ct => TestPostgresqlTransactionCorrectnessMatrix(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL transaction correctness", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.ProviderMatrix.SqliteHighConcurrencyReadWrite",
+                        displayName: "SQLite graph transactions preserve invariants under high mixed read/write concurrency",
+                        executeAsync: TestSqliteTransactionHighConcurrencyReadWrite),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.ProviderMatrix.PostgresqlHighConcurrencyReadWrite",
+                        displayName: "PostgreSQL graph transactions preserve invariants under high mixed read/write concurrency",
+                        executeAsync: ct => TestPostgresqlTransactionHighConcurrencyReadWrite(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL high concurrency read/write", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.ProviderMatrix.PostgresqlSerializableConflict",
+                        displayName: "PostgreSQL serializable transaction conflicts are classified and leave coherent state",
+                        executeAsync: ct => TestPostgresqlSerializableConflictClassification(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL serializable conflict classification", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.ProviderMatrix.SqliteVectorSearchMutation",
+                        displayName: "SQLite vector searches stay coherent during concurrent transaction mutations",
+                        executeAsync: TestSqliteVectorSearchMutationConcurrency),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.ProviderMatrix.PostgresqlVectorSearchMutation",
+                        displayName: "PostgreSQL vector searches stay coherent during concurrent transaction mutations",
+                        executeAsync: ct => TestPostgresqlVectorSearchMutationConcurrency(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL vector search/mutation concurrency", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Server.SqliteRestConcurrency",
+                        displayName: "SQLite REST graph transactions preserve response and state coherence under concurrency",
+                        executeAsync: TestSqliteRestTransactionConcurrency),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Transactions.Server.PostgresqlRestConcurrency",
+                        displayName: "PostgreSQL REST graph transactions preserve response and state coherence under concurrency",
+                        executeAsync: ct => TestPostgresqlRestTransactionConcurrency(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL REST transaction concurrency", PostgresqlTestConnectionStringEnvironmentVariable)),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
                         caseId: "Transactions.Sqlite.CommitRollback",
@@ -468,9 +507,6 @@
             {
                 AssertTrue(postgresqlRepo is PostgresqlGraphRepository, "Factory returns PostgreSQL repository");
             }
-
-            AssertUnsupportedProvider(DatabaseTypeEnum.Mysql, "MySQL");
-            AssertUnsupportedProvider(DatabaseTypeEnum.SqlServer, "SQL Server");
 
             DeleteFileIfExists(filename);
             return Task.CompletedTask;
@@ -906,7 +942,7 @@
                 Schema = "litegraph"
             }))
             {
-                AssertFalse(repo is UnsupportedGraphRepository, providerName + " provider implementation is required when the provider suite is enabled.");
+                AssertTrue(repo is PostgresqlGraphRepository, providerName + " provider implementation is required when the provider suite is enabled.");
                 repo.InitializeRepository();
 
                 if (type == DatabaseTypeEnum.Postgresql)
@@ -1131,8 +1167,8 @@
                     Schema = "litegraph"
                 }))
                 {
-                    AssertFalse(sqliteRepo is UnsupportedGraphRepository, "SQLite parity repository is supported");
-                    AssertFalse(postgresqlRepo is UnsupportedGraphRepository, "PostgreSQL parity repository is supported");
+                    AssertTrue(sqliteRepo is SqliteGraphRepository, "SQLite parity repository is supported");
+                    AssertTrue(postgresqlRepo is PostgresqlGraphRepository, "PostgreSQL parity repository is supported");
 
                     sqliteRepo.InitializeRepository();
                     postgresqlRepo.InitializeRepository();
@@ -1151,13 +1187,409 @@
 
         private static async Task TestPostgresqlTransactionConcurrencyMatrix(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
         {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_txn_matrix_",
+                (client, ct) => RunProviderTransactionConcurrencyMatrix(client, "PostgreSQL", ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestSqliteTransactionCorrectnessMatrix(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-provider-sqlite-correctness.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename }))
+                using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
+                {
+                    repo.InitializeRepository();
+                    await RunProviderTransactionCorrectnessOracleSuite(client, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestPostgresqlTransactionCorrectnessMatrix(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_txn_correctness_",
+                (client, ct) => RunProviderTransactionCorrectnessOracleSuite(client, "PostgreSQL", ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestSqliteTransactionHighConcurrencyReadWrite(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-provider-sqlite-high-concurrency.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename }))
+                using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
+                {
+                    repo.InitializeRepository();
+                    await RunProviderHighConcurrencyReadWriteMatrix(client, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestPostgresqlTransactionHighConcurrencyReadWrite(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_txn_stress_",
+                (client, ct) => RunProviderHighConcurrencyReadWriteMatrix(client, "PostgreSQL", ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestPostgresqlSerializableConflictClassification(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_txn_serializable_",
+                (client, ct) => RunPostgresqlSerializableConflictClassification(client, ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestSqliteVectorSearchMutationConcurrency(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-transaction-provider-sqlite-vector-concurrency.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings { Filename = filename }))
+                using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
+                {
+                    repo.InitializeRepository();
+                    await RunProviderVectorSearchMutationConcurrency(client, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestPostgresqlVectorSearchMutationConcurrency(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_txn_vectors_",
+                (client, ct) => RunProviderVectorSearchMutationConcurrency(client, "PostgreSQL", ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestSqliteRestTransactionConcurrency(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+            if (_McpEnvironment == null) throw new InvalidOperationException("MCP environment was not initialized.");
+
+            await RunRestTransactionConcurrency(
+                _McpEnvironment.LiteGraphEndpoint,
+                new DatabaseSettings { Filename = _McpEnvironment.DatabasePath },
+                "SQLite",
+                TransactionIsolationLevelEnum.Serializable,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestPostgresqlRestTransactionConcurrency(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
 
             string? connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariable);
             if (String.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException("PostgreSQL transaction concurrency suite requires " + connectionStringEnvironmentVariable + ".");
+                throw new InvalidOperationException("PostgreSQL REST transaction suite requires " + connectionStringEnvironmentVariable + ".");
 
-            string schema = "litegraph_txn_matrix_" + Guid.NewGuid().ToString("N");
+            string schema = "litegraph_rest_txn_" + Guid.NewGuid().ToString("N");
+            string artifactDirectory = Path.Combine(
+                Path.GetTempPath(),
+                "LiteGraph.Touchstone",
+                "PostgresqlRestHost",
+                DateTime.UtcNow.ToString("yyyyMMddHHmmss"),
+                Guid.NewGuid().ToString("N"));
+            string workingDirectory = Path.Combine(artifactDirectory, "litegraph-server");
+            string indexDirectory = Path.Combine(".", "indexes", "postgresql", schema);
+            int port = ReserveAvailablePort(new HashSet<int>());
+            string endpoint = "http://127.0.0.1:" + port;
+            ManagedProcess? process = null;
+
+            try
+            {
+                Directory.CreateDirectory(workingDirectory);
+                string configuration = GetCurrentBuildConfiguration();
+                string targetFramework = GetCurrentTargetFrameworkMoniker();
+                string serverAssembly = ResolveBuildOutput("LiteGraph.Server", configuration, targetFramework, "LiteGraph.Server.dll");
+
+                process = StartDotnetProcess(
+                    displayName: "LiteGraph.Server.PostgresqlRest",
+                    assemblyPath: serverAssembly,
+                    workingDirectory: workingDirectory,
+                    environmentVariables: new Dictionary<string, string>
+                    {
+                        { "LITEGRAPH_PORT", port.ToString() },
+                        { "LITEGRAPH_DB_TYPE", "Postgresql" },
+                        { "LITEGRAPH_DB_CONNECTION_STRING", connectionString },
+                        { "LITEGRAPH_DB_SCHEMA", schema },
+                        { "LITEGRAPH_DB_MAX_CONNECTIONS", "128" },
+                        { "LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS", "60" }
+                    });
+
+                await WaitForHttpSuccessAsync(
+                    displayName: "LiteGraph.Server.PostgresqlRest",
+                    endpoint: endpoint,
+                    managedProcess: process,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                await RunRestTransactionConcurrency(
+                    endpoint,
+                    new DatabaseSettings
+                    {
+                        Type = DatabaseTypeEnum.Postgresql,
+                        ConnectionString = connectionString,
+                        Schema = schema
+                    },
+                    "PostgreSQL",
+                    TransactionIsolationLevelEnum.ReadCommitted,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await StopManagedProcessAsync(process).ConfigureAwait(false);
+                await DropPostgresqlSchemaAsync(connectionString, schema, cancellationToken).ConfigureAwait(false);
+
+                try
+                {
+                    if (Directory.Exists(indexDirectory)) Directory.Delete(indexDirectory, true);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    if (Directory.Exists(artifactDirectory)) Directory.Delete(artifactDirectory, true);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private static async Task RunRestTransactionConcurrency(
+            string endpoint,
+            DatabaseSettings databaseSettings,
+            string providerName,
+            TransactionIsolationLevelEnum isolationLevel,
+            CancellationToken cancellationToken)
+        {
+            Guid tenantGuid = Guid.Empty;
+            Guid graphGuid = Guid.Empty;
+
+            try
+            {
+                using (LiteGraphClient seedClient = new LiteGraphClient(GraphRepositoryFactory.Create(databaseSettings.Clone())))
+                {
+                    seedClient.InitializeRepository();
+                    TenantMetadata tenant = await seedClient.Tenant.Create(new TenantMetadata { Name = providerName + " REST Transaction Concurrency Tenant" }, cancellationToken).ConfigureAwait(false);
+                    Graph graph = await seedClient.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " REST Transaction Concurrency Graph" }, cancellationToken).ConfigureAwait(false);
+                    tenantGuid = tenant.GUID;
+                    graphGuid = graph.GUID;
+                }
+
+                string transactionEndpoint = endpoint + "/v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/transaction";
+                string nodesEndpoint = endpoint + "/v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/all";
+                var transactionSpecs = new List<(int Index, bool ShouldCommit, Guid NodeA, Guid NodeB, Guid Edge, Guid RollbackNode, string Body)>();
+
+                for (int i = 0; i < 12; i++)
+                {
+                    Guid nodeA = Guid.NewGuid();
+                    Guid nodeB = Guid.NewGuid();
+                    Guid edge = Guid.NewGuid();
+                    TransactionRequest request = new TransactionRequest
+                    {
+                        IsolationLevel = isolationLevel,
+                        Operations = new List<TransactionOperation>
+                        {
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Node,
+                                Payload = new Node { GUID = nodeA, Name = providerName + " REST Concurrent Node A " + i }
+                            },
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Node,
+                                Payload = new Node { GUID = nodeB, Name = providerName + " REST Concurrent Node B " + i }
+                            },
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Edge,
+                                Payload = new Edge { GUID = edge, Name = providerName + " REST Concurrent Edge " + i, From = nodeA, To = nodeB }
+                            }
+                        }
+                    };
+
+                    transactionSpecs.Add((i, true, nodeA, nodeB, edge, Guid.Empty, _McpSerializer.SerializeJson(request, false)));
+                }
+
+                for (int i = 0; i < 4; i++)
+                {
+                    Guid rollbackNode = Guid.NewGuid();
+                    TransactionRequest request = new TransactionRequest
+                    {
+                        IsolationLevel = isolationLevel,
+                        Operations = new List<TransactionOperation>
+                        {
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Node,
+                                Payload = new Node { GUID = rollbackNode, Name = providerName + " REST Rollback Node " + i }
+                            },
+                            new TransactionOperation
+                            {
+                                OperationType = TransactionOperationTypeEnum.Create,
+                                ObjectType = TransactionObjectTypeEnum.Node,
+                                Payload = new Node { GUID = rollbackNode, Name = providerName + " REST Duplicate Rollback Node " + i }
+                            }
+                        }
+                    };
+
+                    transactionSpecs.Add((12 + i, false, Guid.Empty, Guid.Empty, Guid.Empty, rollbackNode, _McpSerializer.SerializeJson(request, false)));
+                }
+
+                using (HttpClient http = new HttpClient())
+                {
+                    http.Timeout = TimeSpan.FromSeconds(30);
+                    TaskCompletionSource<bool> gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                    Task<(int Status, string Body)>[] transactionTasks = transactionSpecs.Select(async spec =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        return await SendRestRequestAsync(http, HttpMethod.Post, transactionEndpoint, spec.Body, cancellationToken).ConfigureAwait(false);
+                    }).ToArray();
+
+                    Task<(int Status, string Body)>[] readerTasks = Enumerable.Range(0, 8).Select(async index =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        (int Status, string Body) response = await SendRestRequestAsync(http, HttpMethod.Get, nodesEndpoint, null, cancellationToken).ConfigureAwait(false);
+                        AssertEqual(200, response.Status, providerName + " REST concurrent reader " + index + " status");
+                        List<Node> nodes = _McpSerializer.DeserializeJson<List<Node>>(response.Body);
+                        AssertNotNull(nodes, providerName + " REST concurrent reader " + index + " nodes");
+                        return response;
+                    }).ToArray();
+
+                    gate.SetResult(true);
+                    await Task.WhenAll(transactionTasks.Cast<Task>().Concat(readerTasks.Cast<Task>())).ConfigureAwait(false);
+
+                    (int Status, string Body)[] transactionResponses = await Task.WhenAll(transactionTasks).ConfigureAwait(false);
+                    for (int i = 0; i < transactionResponses.Length; i++)
+                    {
+                        (int Index, bool ShouldCommit, Guid NodeA, Guid NodeB, Guid Edge, Guid RollbackNode, string Body) spec = transactionSpecs[i];
+                        TransactionResult result = _McpSerializer.DeserializeJson<TransactionResult>(transactionResponses[i].Body);
+                        AssertNotNull(result, providerName + " REST transaction " + spec.Index + " result");
+
+                        if (spec.ShouldCommit)
+                        {
+                            AssertEqual(200, transactionResponses[i].Status, providerName + " REST committed transaction " + spec.Index + " HTTP status");
+                            AssertTrue(result.Success, providerName + " REST committed transaction " + spec.Index + " success: " + result.Error);
+                            AssertEqual("Committed", result.State, providerName + " REST committed transaction " + spec.Index + " state");
+                            AssertTrue(result.IsolatedRepository, providerName + " REST committed transaction " + spec.Index + " used isolated repository");
+                            AssertFalse(result.SerializedByGate, providerName + " REST committed transaction " + spec.Index + " avoided serialized gate");
+                            AssertEqual(isolationLevel.ToString(), result.IsolationLevel, providerName + " REST committed transaction " + spec.Index + " isolation level");
+                        }
+                        else
+                        {
+                            AssertEqual(409, transactionResponses[i].Status, providerName + " REST rolled-back transaction " + spec.Index + " HTTP status");
+                            AssertFalse(result.Success, providerName + " REST rolled-back transaction " + spec.Index + " failed as expected");
+                            AssertTrue(result.RolledBack, providerName + " REST rolled-back transaction " + spec.Index + " reported rollback");
+                            AssertEqual("RolledBack", result.State, providerName + " REST rolled-back transaction " + spec.Index + " state");
+                        }
+                    }
+                }
+
+                using (LiteGraphClient verifyClient = new LiteGraphClient(GraphRepositoryFactory.Create(databaseSettings.Clone())))
+                {
+                    verifyClient.InitializeRepository();
+                    int committedCount = transactionSpecs.Count(spec => spec.ShouldCommit);
+                    AssertEqual(committedCount * 2, await CountAsync(verifyClient.Node.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " REST concurrency final node count");
+                    AssertEqual(committedCount, await CountAsync(verifyClient.Edge.ReadAllInGraph(tenantGuid, graphGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " REST concurrency final edge count");
+
+                    foreach ((int Index, bool ShouldCommit, Guid NodeA, Guid NodeB, Guid Edge, Guid RollbackNode, string Body) spec in transactionSpecs)
+                    {
+                        if (spec.ShouldCommit)
+                        {
+                            AssertTrue(await verifyClient.Node.ExistsByGuid(tenantGuid, spec.NodeA, cancellationToken).ConfigureAwait(false), providerName + " REST committed node A " + spec.Index + " exists");
+                            AssertTrue(await verifyClient.Node.ExistsByGuid(tenantGuid, spec.NodeB, cancellationToken).ConfigureAwait(false), providerName + " REST committed node B " + spec.Index + " exists");
+                            AssertTrue(await verifyClient.Edge.ExistsByGuid(tenantGuid, graphGuid, spec.Edge, cancellationToken).ConfigureAwait(false), providerName + " REST committed edge " + spec.Index + " exists");
+                        }
+                        else
+                        {
+                            AssertFalse(await verifyClient.Node.ExistsByGuid(tenantGuid, spec.RollbackNode, cancellationToken).ConfigureAwait(false), providerName + " REST rolled-back node " + spec.Index + " absent");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if (tenantGuid != Guid.Empty)
+                {
+                    using (LiteGraphClient cleanupClient = new LiteGraphClient(GraphRepositoryFactory.Create(databaseSettings.Clone())))
+                    {
+                        cleanupClient.InitializeRepository();
+                        if (await cleanupClient.Tenant.ExistsByGuid(tenantGuid, cancellationToken).ConfigureAwait(false))
+                            await cleanupClient.Tenant.DeleteByGuid(tenantGuid, true, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
+        private static async Task<(int Status, string Body)> SendRestRequestAsync(
+            HttpClient http,
+            HttpMethod method,
+            string url,
+            string? body,
+            CancellationToken cancellationToken)
+        {
+            using (HttpRequestMessage request = new HttpRequestMessage(method, url))
+            {
+                request.Headers.Add("Authorization", "Bearer litegraphadmin");
+                if (body != null)
+                    request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                using (HttpResponseMessage response = await http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+                {
+                    return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                }
+            }
+        }
+
+        private static async Task RunPostgresqlIsolatedSchemaTest(
+            string connectionStringEnvironmentVariable,
+            string schemaPrefix,
+            Func<LiteGraphClient, CancellationToken, Task> runAsync,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string? connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariable);
+            if (String.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("PostgreSQL transaction suite requires " + connectionStringEnvironmentVariable + ".");
+
+            string schema = schemaPrefix + Guid.NewGuid().ToString("N");
             string indexDirectory = Path.Combine(".", "indexes", "postgresql", schema);
 
             try
@@ -1171,7 +1603,7 @@
                 using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
                 {
                     repo.InitializeRepository();
-                    await RunProviderTransactionConcurrencyMatrix(client, "PostgreSQL", cancellationToken).ConfigureAwait(false);
+                    await runAsync(client, cancellationToken).ConfigureAwait(false);
                 }
             }
             finally
@@ -1407,6 +1839,830 @@
 
             await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
             AssertFalse(await client.Tenant.ExistsByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), providerName + " transaction matrix tenant cleanup");
+        }
+
+        private static async Task RunProviderTransactionCorrectnessOracleSuite(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            string suffix = Guid.NewGuid().ToString("N");
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " Correctness Tenant " + suffix }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Correctness Graph " + suffix }, cancellationToken).ConfigureAwait(false);
+
+            TransactionCorrectnessOracle oracle = new TransactionCorrectnessOracle();
+            Node anchorA = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = providerName + " Correctness Anchor A" }, cancellationToken).ConfigureAwait(false);
+            Node anchorB = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = providerName + " Correctness Anchor B" }, cancellationToken).ConfigureAwait(false);
+            oracle.Nodes.Add(anchorA.GUID);
+            oracle.Nodes.Add(anchorB.GUID);
+
+            for (int i = 0; i < 12; i++)
+            {
+                TransactionCorrectnessSpec spec = CreateTransactionCorrectnessSpec(1000 + i, anchorA.GUID, anchorB.GUID);
+                bool expectRollback = i % 4 == 3;
+                TransactionResult result = await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    CreateCorrectnessTransactionRequest(spec, expectRollback, anchorA.GUID),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (expectRollback)
+                {
+                    AssertFalse(result.Success, providerName + " deterministic rollback " + i + " failed as expected");
+                    AssertTrue(result.RolledBack, providerName + " deterministic rollback " + i + " rolled back");
+                    oracle.Absent.AddRange(spec.AllObjectAbsences());
+                }
+                else
+                {
+                    AssertTrue(result.Success, providerName + " deterministic transaction " + i + " committed: " + result.Error);
+                    AssertTrue(result.IsolatedRepository, providerName + " deterministic transaction " + i + " used isolated repository");
+                    AssertFalse(result.SerializedByGate, providerName + " deterministic transaction " + i + " avoided serialized gate");
+                    oracle.Apply(spec);
+                }
+
+                await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+            }
+
+            List<TransactionCorrectnessSpec> replaySpecs = Enumerable.Range(0, 20)
+                .Select(i => CreateTransactionCorrectnessSpec(2000 + i, anchorA.GUID, anchorB.GUID))
+                .ToList();
+            Task<TransactionResult>[] replayTasks = replaySpecs.Select((spec, index) => client.Transaction.Execute(
+                tenant.GUID,
+                graph.GUID,
+                CreateCorrectnessTransactionRequest(spec, index % 5 == 4, anchorA.GUID),
+                cancellationToken)).ToArray();
+
+            TransactionResult[] replayResults = await Task.WhenAll(replayTasks).ConfigureAwait(false);
+            for (int i = 0; i < replayResults.Length; i++)
+            {
+                bool expectedRollback = i % 5 == 4;
+                if (expectedRollback)
+                {
+                    AssertFalse(replayResults[i].Success, providerName + " concurrent replay rollback " + i + " failed as expected");
+                    AssertTrue(replayResults[i].RolledBack, providerName + " concurrent replay rollback " + i + " rolled back");
+                    oracle.Absent.AddRange(replaySpecs[i].AllObjectAbsences());
+                }
+                else
+                {
+                    AssertTrue(replayResults[i].Success, providerName + " concurrent replay transaction " + i + " committed: " + replayResults[i].Error);
+                    AssertTrue(replayResults[i].IsolatedRepository, providerName + " concurrent replay transaction " + i + " used isolated repository");
+                    AssertFalse(replayResults[i].SerializedByGate, providerName + " concurrent replay transaction " + i + " avoided serialized gate");
+                    oracle.Apply(replaySpecs[i]);
+                }
+            }
+
+            await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+
+            for (int round = 0; round < 16; round++)
+            {
+                TransactionCorrectnessSpec spec = CreateTransactionCorrectnessSpec(3000 + round, anchorA.GUID, anchorB.GUID);
+                TransactionResult committed = await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    CreateCorrectnessTransactionRequest(spec, false, anchorA.GUID),
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(committed.Success, providerName + " soak transaction " + round + " committed: " + committed.Error);
+                AssertFalse(committed.SerializedByGate, providerName + " soak transaction " + round + " avoided serialized gate");
+                oracle.Apply(spec);
+
+                if (round % 4 == 3)
+                {
+                    TransactionCorrectnessSpec rollbackSpec = CreateTransactionCorrectnessSpec(4000 + round, anchorA.GUID, anchorB.GUID);
+                    TransactionResult rolledBack = await client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        CreateCorrectnessTransactionRequest(rollbackSpec, true, anchorA.GUID),
+                        cancellationToken).ConfigureAwait(false);
+                    AssertFalse(rolledBack.Success, providerName + " soak rollback transaction " + round + " failed as expected");
+                    AssertTrue(rolledBack.RolledBack, providerName + " soak rollback transaction " + round + " rolled back");
+                    oracle.Absent.AddRange(rollbackSpec.AllObjectAbsences());
+                }
+
+                if (round % 5 == 4 && oracle.Vectors.Count > 0)
+                {
+                    Guid vectorGuid = oracle.Vectors.First();
+                    TransactionResult deleted = await client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        new TransactionRequest
+                        {
+                            Operations = new List<TransactionOperation>
+                            {
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Delete,
+                                    ObjectType = TransactionObjectTypeEnum.Vector,
+                                    GUID = vectorGuid
+                                }
+                            }
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(deleted.Success, providerName + " soak vector delete transaction " + round + " committed: " + deleted.Error);
+                    oracle.Vectors.Remove(vectorGuid);
+                    oracle.Absent.Add(new TransactionOracleAbsence(TransactionObjectTypeEnum.Vector, vectorGuid));
+                }
+
+                await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+            }
+
+            Random random = new Random(9001);
+            for (int round = 0; round < 32; round++)
+            {
+                TransactionCorrectnessSpec spec = CreateTransactionCorrectnessSpec(5000 + round, anchorA.GUID, anchorB.GUID);
+                switch (random.Next(0, 4))
+                {
+                    case 0:
+                        spec.EdgeFrom = anchorA.GUID;
+                        spec.EdgeTo = spec.NodeA;
+                        break;
+                    case 1:
+                        spec.EdgeFrom = spec.NodeA;
+                        spec.EdgeTo = spec.NodeB;
+                        break;
+                    case 2:
+                        spec.EdgeFrom = anchorB.GUID;
+                        spec.EdgeTo = spec.NodeB;
+                        break;
+                    default:
+                        spec.EdgeFrom = spec.NodeB;
+                        spec.EdgeTo = anchorA.GUID;
+                        break;
+                }
+
+                bool expectRollback = random.Next(0, 6) == 0;
+                TransactionResult result = await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    CreateCorrectnessTransactionRequest(spec, expectRollback, anchorA.GUID),
+                    cancellationToken).ConfigureAwait(false);
+
+                string context = providerName + " randomized seed 9001 round " + round;
+                if (expectRollback)
+                {
+                    AssertFalse(result.Success, context + " rolled back as expected");
+                    AssertTrue(result.RolledBack, context + " rollback reported");
+                    oracle.Absent.AddRange(spec.AllObjectAbsences());
+                }
+                else
+                {
+                    AssertTrue(result.Success, context + " committed: " + result.Error);
+                    AssertFalse(result.SerializedByGate, context + " avoided serialized gate");
+                    oracle.Apply(spec);
+                }
+
+                if (round % 6 == 5 && oracle.Vectors.Count > 0 && random.Next(0, 2) == 0)
+                {
+                    Guid vectorGuid = oracle.Vectors.ElementAt(random.Next(0, oracle.Vectors.Count));
+                    TransactionResult deleteResult = await client.Transaction.Execute(
+                        tenant.GUID,
+                        graph.GUID,
+                        new TransactionRequest
+                        {
+                            Operations = new List<TransactionOperation>
+                            {
+                                new TransactionOperation
+                                {
+                                    OperationType = TransactionOperationTypeEnum.Delete,
+                                    ObjectType = TransactionObjectTypeEnum.Vector,
+                                    GUID = vectorGuid
+                                }
+                            }
+                        },
+                        cancellationToken).ConfigureAwait(false);
+
+                    AssertTrue(deleteResult.Success, context + " vector delete committed: " + deleteResult.Error);
+                    oracle.Vectors.Remove(vectorGuid);
+                    oracle.Absent.Add(new TransactionOracleAbsence(TransactionObjectTypeEnum.Vector, vectorGuid));
+                }
+
+                if (round % 4 == 3)
+                    await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+            }
+
+            Guid surfaceNodeGuid = Guid.NewGuid();
+            TransactionResult surfaceTransaction = await client.Transaction.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new TransactionRequest
+                {
+                    Operations = new List<TransactionOperation>
+                    {
+                        new TransactionOperation
+                        {
+                            OperationType = TransactionOperationTypeEnum.Create,
+                            ObjectType = TransactionObjectTypeEnum.Node,
+                            Payload = new Node { GUID = surfaceNodeGuid, Name = providerName + " Surface Transaction Node" }
+                        }
+                    }
+                },
+                cancellationToken).ConfigureAwait(false);
+            AssertTrue(surfaceTransaction.Success, providerName + " direct transaction surface commits: " + surfaceTransaction.Error);
+            oracle.Nodes.Add(surfaceNodeGuid);
+
+            GraphQueryResult queryResult = await client.Query.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest
+                {
+                    Query = "CREATE (n:Surface { name: $name }) RETURN n",
+                    Parameters = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "name", providerName + " Surface Query Node" }
+                    }
+                },
+                cancellationToken).ConfigureAwait(false);
+            AssertTrue(queryResult.Mutated, providerName + " native query surface reports mutation");
+            AssertEqual(1, queryResult.Nodes.Count, providerName + " native query surface returns created node");
+
+            Guid queryNodeGuid = queryResult.Nodes[0].GUID;
+            oracle.Nodes.Add(queryNodeGuid);
+            List<LabelMetadata> queryLabels = await MaterializeAsync(client.Label.ReadManyNode(tenant.GUID, graph.GUID, queryNodeGuid, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+            foreach (LabelMetadata label in queryLabels) oracle.Labels.Add(label.GUID);
+
+            TransactionCorrectnessSpec surfaceSpec = CreateTransactionCorrectnessSpec(6000, surfaceNodeGuid, queryNodeGuid);
+            surfaceSpec.EdgeFrom = surfaceNodeGuid;
+            surfaceSpec.EdgeTo = queryNodeGuid;
+            TransactionResult surfaceMetadata = await client.Transaction.Execute(
+                tenant.GUID,
+                graph.GUID,
+                CreateCorrectnessTransactionRequest(surfaceSpec, false, surfaceNodeGuid),
+                cancellationToken).ConfigureAwait(false);
+            AssertTrue(surfaceMetadata.Success, providerName + " mixed surface metadata transaction commits: " + surfaceMetadata.Error);
+            oracle.Apply(surfaceSpec);
+
+            await AssertTransactionOracle(client, tenant.GUID, graph.GUID, oracle, cancellationToken).ConfigureAwait(false);
+
+            await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
+            AssertFalse(await client.Tenant.ExistsByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), providerName + " correctness tenant cleanup");
+        }
+
+        private static async Task RunProviderHighConcurrencyReadWriteMatrix(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            string suffix = Guid.NewGuid().ToString("N");
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " High Concurrency Tenant " + suffix }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " High Concurrency Graph " + suffix }, cancellationToken).ConfigureAwait(false);
+
+            List<Node> anchors = new List<Node>();
+            for (int i = 0; i < 4; i++)
+            {
+                anchors.Add(await client.Node.Create(new Node
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = providerName + " High Concurrency Anchor " + i
+                }, cancellationToken).ConfigureAwait(false));
+            }
+
+            int writeCount = providerName.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase) ? 40 : 28;
+            TransactionIsolationLevelEnum pressureIsolation = providerName.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase)
+                ? TransactionIsolationLevelEnum.ReadCommitted
+                : TransactionIsolationLevelEnum.Serializable;
+            var createSpecs = Enumerable.Range(0, writeCount)
+                .Select(index => new
+                {
+                    Index = index,
+                    NodeA = Guid.NewGuid(),
+                    NodeB = Guid.NewGuid(),
+                    Edge = Guid.NewGuid(),
+                    Tag = Guid.NewGuid()
+                })
+                .ToArray();
+
+            TaskCompletionSource<bool> createGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task<TransactionResult>[] createTasks = createSpecs.Select(async spec =>
+            {
+                await createGate.Task.ConfigureAwait(false);
+                return await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    client.Transaction
+                        .CreateRequestBuilder()
+                        .WithIsolationLevel(pressureIsolation)
+                        .CreateNode(new Node { GUID = spec.NodeA, Name = providerName + " High Create Node A " + spec.Index })
+                        .CreateNode(new Node { GUID = spec.NodeB, Name = providerName + " High Create Node B " + spec.Index })
+                        .CreateEdge(new Edge { GUID = spec.Edge, Name = providerName + " High Create Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB, Cost = spec.Index })
+                        .CreateTag(new TagMetadata { GUID = spec.Tag, NodeGUID = spec.NodeA, Key = "wave", Value = "create-" + spec.Index })
+                        .Build(),
+                    cancellationToken).ConfigureAwait(false);
+            }).ToArray();
+
+            Task<int>[] readerTasks = Enumerable.Range(0, Math.Min(16, writeCount / 2)).Select(async index =>
+            {
+                await createGate.Task.ConfigureAwait(false);
+                int observed = await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+                AssertTrue(observed >= anchors.Count, providerName + " concurrent reader " + index + " saw seeded nodes");
+                foreach (Node anchor in anchors)
+                    AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, anchor.GUID, cancellationToken).ConfigureAwait(false), providerName + " concurrent reader " + index + " sees anchor " + anchor.GUID);
+                return observed;
+            }).ToArray();
+
+            createGate.SetResult(true);
+            await Task.WhenAll(createTasks.Cast<Task>().Concat(readerTasks.Cast<Task>())).ConfigureAwait(false);
+
+            TransactionResult[] createResults = await Task.WhenAll(createTasks).ConfigureAwait(false);
+            for (int i = 0; i < createResults.Length; i++)
+            {
+                AssertTrue(createResults[i].Success, providerName + " high-concurrency create transaction " + i + " committed: " + createResults[i].Error);
+                AssertTrue(createResults[i].IsolatedRepository, providerName + " high-concurrency create transaction " + i + " used isolated repository");
+                AssertFalse(createResults[i].SerializedByGate, providerName + " high-concurrency create transaction " + i + " avoided serialized gate");
+            }
+
+            int expectedNodeCount = anchors.Count + writeCount * 2;
+            int expectedEdgeCount = writeCount;
+            int expectedTagCount = writeCount;
+            AssertEqual(expectedNodeCount, await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency create node count");
+            AssertEqual(expectedEdgeCount, await CountAsync(client.Edge.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency create edge count");
+            AssertEqual(expectedTagCount, await CountAsync(client.Tag.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency create tag count");
+
+            TaskCompletionSource<bool> updateGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task<TransactionResult>[] updateTasks = createSpecs.Select(async spec =>
+            {
+                await updateGate.Task.ConfigureAwait(false);
+                return await client.Transaction.Execute(
+                    tenant.GUID,
+                    graph.GUID,
+                    client.Transaction
+                        .CreateRequestBuilder()
+                        .WithIsolationLevel(pressureIsolation)
+                        .UpsertNode(new Node { Name = providerName + " High Updated Node A " + spec.Index }, spec.NodeA)
+                        .UpsertNode(new Node { Name = providerName + " High Updated Node B " + spec.Index }, spec.NodeB)
+                        .UpsertEdge(new Edge { Name = providerName + " High Updated Edge " + spec.Index, From = spec.NodeA, To = spec.NodeB, Cost = spec.Index + 100 }, spec.Edge)
+                        .Build(),
+                    cancellationToken).ConfigureAwait(false);
+            }).ToArray();
+
+            updateGate.SetResult(true);
+            TransactionResult[] updateResults = await Task.WhenAll(updateTasks).ConfigureAwait(false);
+            for (int i = 0; i < updateResults.Length; i++)
+            {
+                AssertTrue(updateResults[i].Success, providerName + " high-concurrency update transaction " + i + " committed: " + updateResults[i].Error);
+                Node node = await client.Node.ReadByGuid(tenant.GUID, graph.GUID, createSpecs[i].NodeA, token: cancellationToken).ConfigureAwait(false);
+                Edge edge = await client.Edge.ReadByGuid(tenant.GUID, graph.GUID, createSpecs[i].Edge, token: cancellationToken).ConfigureAwait(false);
+                AssertEqual(providerName + " High Updated Node A " + i, node.Name, providerName + " high-concurrency node update " + i);
+                AssertEqual(providerName + " High Updated Edge " + i, edge.Name, providerName + " high-concurrency edge update " + i);
+                AssertEqual(i + 100, edge.Cost, providerName + " high-concurrency edge cost update " + i);
+            }
+
+            expectedTagCount = 0;
+            AssertEqual(expectedTagCount, await CountAsync(client.Tag.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency replacement updates clear omitted tags");
+
+            int rollbackCount = providerName.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase) ? 24 : 18;
+            var rollbackSpecs = Enumerable.Range(0, rollbackCount)
+                .Select(index => new
+                {
+                    Index = index,
+                    ShouldCommit = index % 2 == 0,
+                    Node = Guid.NewGuid()
+                })
+                .ToArray();
+
+            TaskCompletionSource<bool> rollbackGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task<TransactionResult>[] rollbackTasks = rollbackSpecs.Select(async spec =>
+            {
+                await rollbackGate.Task.ConfigureAwait(false);
+                TransactionRequestBuilder builder = client.Transaction.CreateRequestBuilder().WithIsolationLevel(pressureIsolation);
+                if (spec.ShouldCommit)
+                {
+                    builder.CreateNode(new Node { GUID = spec.Node, Name = providerName + " High Commit Node " + spec.Index });
+                }
+                else
+                {
+                    builder
+                        .CreateNode(new Node { GUID = spec.Node, Name = providerName + " High Rollback Node " + spec.Index })
+                        .CreateNode(new Node { GUID = spec.Node, Name = providerName + " High Duplicate Rollback Node " + spec.Index });
+                }
+
+                return await client.Transaction.Execute(tenant.GUID, graph.GUID, builder.Build(), cancellationToken).ConfigureAwait(false);
+            }).ToArray();
+
+            rollbackGate.SetResult(true);
+            TransactionResult[] rollbackResults = await Task.WhenAll(rollbackTasks).ConfigureAwait(false);
+            int committedRollbackWave = 0;
+            for (int i = 0; i < rollbackResults.Length; i++)
+            {
+                if (rollbackSpecs[i].ShouldCommit)
+                {
+                    committedRollbackWave++;
+                    AssertTrue(rollbackResults[i].Success, providerName + " high-concurrency commit wave " + i + " committed: " + rollbackResults[i].Error);
+                    AssertTrue(await client.Node.ExistsByGuid(tenant.GUID, rollbackSpecs[i].Node, cancellationToken).ConfigureAwait(false), providerName + " high-concurrency commit wave node " + i + " exists");
+                }
+                else
+                {
+                    AssertFalse(rollbackResults[i].Success, providerName + " high-concurrency rollback wave " + i + " failed as expected");
+                    AssertTrue(rollbackResults[i].RolledBack, providerName + " high-concurrency rollback wave " + i + " reports rollback");
+                    AssertFalse(await client.Node.ExistsByGuid(tenant.GUID, rollbackSpecs[i].Node, cancellationToken).ConfigureAwait(false), providerName + " high-concurrency rollback wave node " + i + " absent");
+                }
+            }
+
+            expectedNodeCount += committedRollbackWave;
+            AssertEqual(expectedNodeCount, await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency final node count");
+            AssertEqual(expectedEdgeCount, await CountAsync(client.Edge.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency final edge count");
+            AssertEqual(expectedTagCount, await CountAsync(client.Tag.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " high-concurrency final tag count");
+
+            await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
+            AssertFalse(await client.Tenant.ExistsByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), providerName + " high-concurrency tenant cleanup");
+        }
+
+        private static async Task RunPostgresqlSerializableConflictClassification(LiteGraphClient client, CancellationToken cancellationToken)
+        {
+            string suffix = Guid.NewGuid().ToString("N");
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "PostgreSQL Serializable Conflict Tenant " + suffix }, cancellationToken).ConfigureAwait(false);
+            bool conflictObserved = false;
+
+            try
+            {
+                for (int attempt = 0; attempt < 3 && !conflictObserved; attempt++)
+                {
+                    Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "PostgreSQL Serializable Conflict Graph " + attempt + " " + suffix }, cancellationToken).ConfigureAwait(false);
+                    List<Node> anchors = new List<Node>();
+                    for (int i = 0; i < 4; i++)
+                    {
+                        anchors.Add(await client.Node.Create(new Node
+                        {
+                            TenantGUID = tenant.GUID,
+                            GraphGUID = graph.GUID,
+                            Name = "Serializable Conflict Anchor " + attempt + "-" + i
+                        }, cancellationToken).ConfigureAwait(false));
+                    }
+
+                    int writeCount = 64;
+                    var specs = Enumerable.Range(0, writeCount)
+                        .Select(index => new
+                        {
+                            Index = index,
+                            NodeA = Guid.NewGuid(),
+                            NodeB = Guid.NewGuid(),
+                            Edge = Guid.NewGuid(),
+                            Tag = Guid.NewGuid()
+                        })
+                        .ToArray();
+
+                    TaskCompletionSource<bool> gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    Task<TransactionResult>[] writes = specs.Select(async spec =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        return await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .WithIsolationLevel(TransactionIsolationLevelEnum.Serializable)
+                                .CreateNode(new Node { GUID = spec.NodeA, Name = "Serializable Conflict Node A " + attempt + "-" + spec.Index })
+                                .CreateNode(new Node { GUID = spec.NodeB, Name = "Serializable Conflict Node B " + attempt + "-" + spec.Index })
+                                .CreateEdge(new Edge { GUID = spec.Edge, Name = "Serializable Conflict Edge " + attempt + "-" + spec.Index, From = spec.NodeA, To = spec.NodeB })
+                                .CreateTag(new TagMetadata { GUID = spec.Tag, NodeGUID = spec.NodeA, Key = "serializable", Value = attempt + "-" + spec.Index })
+                                .Build(),
+                            cancellationToken).ConfigureAwait(false);
+                    }).ToArray();
+
+                    Task<int>[] readers = Enumerable.Range(0, 32).Select(async index =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        int observed = await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false);
+                        AssertTrue(observed >= anchors.Count, "Serializable conflict reader " + attempt + "-" + index + " saw seeded anchors");
+                        return observed;
+                    }).ToArray();
+
+                    gate.SetResult(true);
+                    await Task.WhenAll(writes.Cast<Task>().Concat(readers.Cast<Task>())).ConfigureAwait(false);
+
+                    TransactionResult[] results = await Task.WhenAll(writes).ConfigureAwait(false);
+                    List<TransactionResult> successes = results.Where(r => r.Success).ToList();
+                    List<TransactionResult> failures = results.Where(r => !r.Success).ToList();
+
+                    AssertTrue(successes.Count > 0, "PostgreSQL serializable conflict attempt " + attempt + " had committed transactions");
+
+                    foreach (TransactionResult success in successes)
+                    {
+                        AssertEqual("Committed", success.State, "PostgreSQL serializable success state");
+                        AssertTrue(success.IsolatedRepository, "PostgreSQL serializable success used isolated repository");
+                        AssertFalse(success.SerializedByGate, "PostgreSQL serializable success avoided serialized gate");
+                        AssertEqual("Serializable", success.IsolationLevel, "PostgreSQL serializable success isolation");
+                    }
+
+                    foreach (TransactionResult failure in failures)
+                    {
+                        AssertTrue(failure.RolledBack, "PostgreSQL serializable conflict rolled back");
+                        AssertTrue(failure.Retryable, "PostgreSQL serializable conflict marked retryable");
+                        AssertTrue(failure.ConcurrencyConflict, "PostgreSQL serializable conflict marked concurrency conflict");
+                        AssertTrue(String.Equals("40001", failure.ProviderErrorCode, StringComparison.Ordinal)
+                            || String.Equals("40P01", failure.ProviderErrorCode, StringComparison.Ordinal)
+                            || String.Equals("55P03", failure.ProviderErrorCode, StringComparison.Ordinal),
+                            "PostgreSQL serializable conflict provider code " + failure.ProviderErrorCode);
+                    }
+
+                    int expectedNodeCount = anchors.Count + successes.Count * 2;
+                    int expectedEdgeCount = successes.Count;
+                    int expectedTagCount = successes.Count;
+                    AssertEqual(expectedNodeCount, await CountAsync(client.Node.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), "PostgreSQL serializable final node count");
+                    AssertEqual(expectedEdgeCount, await CountAsync(client.Edge.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), "PostgreSQL serializable final edge count");
+                    AssertEqual(expectedTagCount, await CountAsync(client.Tag.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), "PostgreSQL serializable final tag count");
+
+                    conflictObserved = failures.Count > 0;
+                }
+
+                AssertTrue(conflictObserved, "PostgreSQL serializable pressure produced at least one retryable provider concurrency conflict");
+            }
+            finally
+            {
+                await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task RunProviderVectorSearchMutationConcurrency(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            const int dimensionality = 128;
+            string suffix = Guid.NewGuid().ToString("N");
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " Vector Concurrency Tenant " + suffix }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Vector Concurrency Graph " + suffix }, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                await client.Graph.EnableVectorIndexing(
+                    tenant.GUID,
+                    graph.GUID,
+                    new VectorIndexConfiguration
+                    {
+                        VectorIndexType = VectorIndexTypeEnum.HnswRam,
+                        VectorDimensionality = dimensionality,
+                        VectorIndexThreshold = 1,
+                        VectorIndexM = 8,
+                        VectorIndexEf = 16,
+                        VectorIndexEfConstruction = 32
+                    },
+                    cancellationToken).ConfigureAwait(false);
+
+                List<Node> stableNodes = new List<Node>();
+                for (int i = 0; i < 8; i++)
+                {
+                    Node node = await client.Node.Create(new Node
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = providerName + " Stable Vector Node " + i
+                    }, cancellationToken).ConfigureAwait(false);
+                    await client.Vector.Create(new VectorMetadata
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        NodeGUID = node.GUID,
+                        Model = "vector-concurrency",
+                        Dimensionality = dimensionality,
+                        Content = providerName + " stable vector " + i,
+                        Vectors = BuildDeterministicVector(i, dimensionality)
+                    }, cancellationToken).ConfigureAwait(false);
+                    stableNodes.Add(node);
+                }
+
+                List<(Node Node, VectorMetadata Vector)> updateTargets = new List<(Node Node, VectorMetadata Vector)>();
+                for (int i = 0; i < 4; i++)
+                {
+                    Node node = await client.Node.Create(new Node
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = providerName + " Update Vector Node " + i
+                    }, cancellationToken).ConfigureAwait(false);
+                    VectorMetadata vector = await client.Vector.Create(new VectorMetadata
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        NodeGUID = node.GUID,
+                        Model = "vector-concurrency",
+                        Dimensionality = dimensionality,
+                        Content = providerName + " update vector " + i,
+                        Vectors = BuildDeterministicVector(20 + i, dimensionality)
+                    }, cancellationToken).ConfigureAwait(false);
+                    updateTargets.Add((node, vector));
+                }
+
+                List<(Node Node, VectorMetadata Vector)> deleteTargets = new List<(Node Node, VectorMetadata Vector)>();
+                for (int i = 0; i < 4; i++)
+                {
+                    Node node = await client.Node.Create(new Node
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = providerName + " Delete Vector Node " + i
+                    }, cancellationToken).ConfigureAwait(false);
+                    VectorMetadata vector = await client.Vector.Create(new VectorMetadata
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        NodeGUID = node.GUID,
+                        Model = "vector-concurrency",
+                        Dimensionality = dimensionality,
+                        Content = providerName + " delete vector " + i,
+                        Vectors = BuildDeterministicVector(30 + i, dimensionality)
+                    }, cancellationToken).ConfigureAwait(false);
+                    deleteTargets.Add((node, vector));
+                }
+
+                List<Node> createTargets = new List<Node>();
+                for (int i = 0; i < 8; i++)
+                {
+                    createTargets.Add(await client.Node.Create(new Node
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = providerName + " Create Vector Node " + i
+                    }, cancellationToken).ConfigureAwait(false));
+                }
+
+                List<Node> rollbackTargets = new List<Node>();
+                for (int i = 0; i < 4; i++)
+                {
+                    rollbackTargets.Add(await client.Node.Create(new Node
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = providerName + " Rollback Vector Node " + i
+                    }, cancellationToken).ConfigureAwait(false));
+                }
+
+                VectorIndexStatistics initialStats = await client.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID, cancellationToken).ConfigureAwait(false);
+                AssertNotNull(initialStats, providerName + " vector concurrency initial stats");
+                AssertFalse(initialStats.IsDirty, providerName + " vector concurrency initial index clean");
+                AssertEqual(16, initialStats.VectorCount, providerName + " vector concurrency initial vector count");
+
+                TaskCompletionSource<bool> gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                Task<List<VectorSearchResult>>[] searchTasks = Enumerable.Range(0, 20).Select(async index =>
+                {
+                    await gate.Task.ConfigureAwait(false);
+                    List<VectorSearchResult> results = await SearchVectorsAsync(
+                        client,
+                        tenant.GUID,
+                        graph.GUID,
+                        BuildDeterministicVector(index % stableNodes.Count, dimensionality),
+                        VectorSearchTypeEnum.CosineSimilarity,
+                        3,
+                        cancellationToken).ConfigureAwait(false);
+
+                    AssertTrue(results.Count > 0, providerName + " concurrent vector search " + index + " returned results");
+                    foreach (VectorSearchResult result in results)
+                    {
+                        AssertNotNull(result.Node, providerName + " concurrent vector search " + index + " returned node result");
+                        AssertEqual(graph.GUID, result.Node.GraphGUID, providerName + " concurrent vector search " + index + " graph scope");
+                    }
+
+                    return results;
+                }).ToArray();
+
+                List<Task<TransactionResult>> mutations = new List<Task<TransactionResult>>();
+                for (int i = 0; i < createTargets.Count; i++)
+                {
+                    int index = i;
+                    mutations.Add(Task.Run(async () =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        return await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .CreateVector(new VectorMetadata
+                                {
+                                    GUID = Guid.NewGuid(),
+                                    NodeGUID = createTargets[index].GUID,
+                                    Model = "vector-concurrency",
+                                    Dimensionality = dimensionality,
+                                    Content = providerName + " concurrent create vector " + index,
+                                    Vectors = BuildDeterministicVector(40 + index, dimensionality)
+                                })
+                                .Build(),
+                            cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
+                }
+
+                for (int i = 0; i < updateTargets.Count; i++)
+                {
+                    int index = i;
+                    mutations.Add(Task.Run(async () =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        return await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .UpdateVector(new VectorMetadata
+                                {
+                                    GUID = updateTargets[index].Vector.GUID,
+                                    NodeGUID = updateTargets[index].Node.GUID,
+                                    Model = "vector-concurrency",
+                                    Dimensionality = dimensionality,
+                                    Content = providerName + " concurrent updated vector " + index,
+                                    Vectors = BuildDeterministicVector(50 + index, dimensionality)
+                                })
+                                .Build(),
+                            cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
+                }
+
+                for (int i = 0; i < deleteTargets.Count; i++)
+                {
+                    int index = i;
+                    mutations.Add(Task.Run(async () =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        return await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .DeleteVector(deleteTargets[index].Vector.GUID)
+                                .Build(),
+                            cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
+                }
+
+                for (int i = 0; i < rollbackTargets.Count; i++)
+                {
+                    int index = i;
+                    Guid vectorGuid = Guid.NewGuid();
+                    mutations.Add(Task.Run(async () =>
+                    {
+                        await gate.Task.ConfigureAwait(false);
+                        return await client.Transaction.Execute(
+                            tenant.GUID,
+                            graph.GUID,
+                            client.Transaction
+                                .CreateRequestBuilder()
+                                .CreateVector(new VectorMetadata
+                                {
+                                    GUID = vectorGuid,
+                                    NodeGUID = rollbackTargets[index].GUID,
+                                    Model = "vector-concurrency",
+                                    Dimensionality = dimensionality,
+                                    Content = providerName + " rollback vector " + index,
+                                    Vectors = BuildDeterministicVector(60 + index, dimensionality)
+                                })
+                                .CreateVector(new VectorMetadata
+                                {
+                                    GUID = vectorGuid,
+                                    NodeGUID = rollbackTargets[index].GUID,
+                                    Model = "vector-concurrency",
+                                    Dimensionality = dimensionality,
+                                    Content = providerName + " duplicate rollback vector " + index,
+                                    Vectors = BuildDeterministicVector(70 + index, dimensionality)
+                                })
+                                .Build(),
+                            cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
+                }
+
+                gate.SetResult(true);
+                await Task.WhenAll(searchTasks.Cast<Task>().Concat(mutations.Cast<Task>())).ConfigureAwait(false);
+
+                TransactionResult[] mutationResults = await Task.WhenAll(mutations).ConfigureAwait(false);
+                int expectedCommittedCreates = createTargets.Count;
+                int expectedCommittedUpdates = updateTargets.Count;
+                int expectedCommittedDeletes = deleteTargets.Count;
+                int expectedRollbacks = rollbackTargets.Count;
+
+                for (int i = 0; i < expectedCommittedCreates + expectedCommittedUpdates + expectedCommittedDeletes; i++)
+                {
+                    AssertTrue(mutationResults[i].Success, providerName + " vector mutation transaction " + i + " committed: " + mutationResults[i].Error);
+                    AssertTrue(mutationResults[i].IsolatedRepository, providerName + " vector mutation transaction " + i + " used isolated repository");
+                    AssertFalse(mutationResults[i].SerializedByGate, providerName + " vector mutation transaction " + i + " avoided serialized gate");
+                }
+
+                for (int i = expectedCommittedCreates + expectedCommittedUpdates + expectedCommittedDeletes; i < mutationResults.Length; i++)
+                {
+                    AssertFalse(mutationResults[i].Success, providerName + " vector rollback transaction " + i + " failed as expected");
+                    AssertTrue(mutationResults[i].RolledBack, providerName + " vector rollback transaction " + i + " rolled back");
+                }
+
+                foreach ((Node Node, VectorMetadata Vector) target in deleteTargets)
+                    AssertFalse(await client.Vector.ExistsByGuid(tenant.GUID, target.Vector.GUID, cancellationToken).ConfigureAwait(false), providerName + " deleted vector absent");
+
+                foreach ((Node Node, VectorMetadata Vector) target in updateTargets)
+                {
+                    VectorMetadata updated = await client.Vector.ReadByGuid(tenant.GUID, target.Vector.GUID, cancellationToken).ConfigureAwait(false);
+                    AssertTrue(updated.Content.StartsWith(providerName + " concurrent updated vector", StringComparison.Ordinal), providerName + " updated vector content persisted");
+                }
+
+                VectorIndexStatistics finalStats = await client.Graph.GetVectorIndexStatistics(tenant.GUID, graph.GUID, cancellationToken).ConfigureAwait(false);
+                AssertNotNull(finalStats, providerName + " vector concurrency final stats");
+                AssertFalse(finalStats.IsDirty, providerName + " vector concurrency final index clean");
+                AssertEqual(20, finalStats.VectorCount, providerName + " vector concurrency final vector count");
+                AssertEqual(20, await CountAsync(client.Vector.ReadAllInGraph(tenant.GUID, graph.GUID, token: cancellationToken), cancellationToken).ConfigureAwait(false), providerName + " vector concurrency persisted vector count");
+
+                List<VectorSearchResult> finalResults = await SearchVectorsAsync(
+                    client,
+                    tenant.GUID,
+                    graph.GUID,
+                    BuildDeterministicVector(0, dimensionality),
+                    VectorSearchTypeEnum.CosineSimilarity,
+                    3,
+                    cancellationToken).ConfigureAwait(false);
+                AssertTopNode(finalResults, stableNodes[0].GUID, providerName + " vector concurrency final stable search");
+
+                await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
+                AssertFalse(await client.Tenant.ExistsByGuid(tenant.GUID, cancellationToken).ConfigureAwait(false), providerName + " vector concurrency tenant cleanup");
+            }
+            catch
+            {
+                await client.Tenant.DeleteByGuid(tenant.GUID, true, cancellationToken).ConfigureAwait(false);
+                throw;
+            }
         }
 
         private static async Task<ProviderParitySnapshot> BuildProviderParitySnapshot(GraphRepositoryBase repo, string providerName, string suffix, CancellationToken cancellationToken)
@@ -1892,39 +3148,6 @@
         private static string ProviderSuiteSkipReason(string providerName, string connectionStringEnvironmentVariable)
         {
             return providerName + " provider tests require a dedicated test database. Set " + connectionStringEnvironmentVariable + " to run this suite.";
-        }
-
-        private static void AssertUnsupportedProvider(DatabaseTypeEnum type, string providerName)
-        {
-            using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
-            {
-                Type = type
-            }))
-            {
-                AssertTrue(repo is UnsupportedGraphRepository, providerName + " repository placeholder");
-
-                try
-                {
-                    repo.InitializeRepository();
-                    throw new InvalidOperationException(providerName + " placeholder should not initialize.");
-                }
-                catch (NotSupportedException e)
-                {
-                    AssertTrue(e.Message.Contains(providerName), providerName + " unsupported initialization names provider");
-                    AssertTrue(e.Message.Contains("InitializeRepository"), providerName + " unsupported initialization names operation");
-                }
-
-                try
-                {
-                    _ = repo.Graph;
-                    throw new InvalidOperationException(providerName + " placeholder should not expose graph methods.");
-                }
-                catch (NotSupportedException e)
-                {
-                    AssertTrue(e.Message.Contains(providerName), providerName + " unsupported operation names provider");
-                    AssertTrue(e.Message.Contains("Graph"), providerName + " unsupported operation names accessor");
-                }
-            }
         }
 
         private static async Task TestSqliteGraphTransactionCommitRollback(CancellationToken cancellationToken)

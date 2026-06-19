@@ -630,7 +630,7 @@ The current language profile does not yet include:
 - query chaining across multiple `MATCH`/`OPTIONAL MATCH` clauses
 - vector-index-aware planning beyond the current supplied-vector search path
 
-SQLite and PostgreSQL provider execution are covered by the storage/query layers in v6.0.0. MySQL and SQL Server remain future provider work.
+SQLite and PostgreSQL provider execution are covered by the storage/query layers.
 
 ## Practical Examples
 
