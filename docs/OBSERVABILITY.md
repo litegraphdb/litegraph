@@ -122,8 +122,8 @@ In Grafana, browse to the `LiteGraph` folder and open the provisioned LiteGraph 
 The bundled compose path uses:
 
 - [`docker/litegraph.json`](docker/litegraph.json), where `Observability.EnablePrometheus` is enabled and `MetricsPath` is `/metrics`
-- [`docker/prometheus.yml`](docker/prometheus.yml), where Prometheus scrapes `localhost:8701`
-- [`docker/grafana/provisioning/datasources/litegraph-prometheus.yml`](docker/grafana/provisioning/datasources/litegraph-prometheus.yml), where Grafana points to Prometheus
+- [`docker/prometheus.yaml`](../docker/prometheus.yaml), where Prometheus scrapes `localhost:8701`
+- [`docker/grafana/provisioning/datasources/litegraph-prometheus.yml`](../docker/grafana/provisioning/datasources/litegraph-prometheus.yml), where Grafana points to Prometheus
 - [`assets/grafana/litegraph-observability-dashboard.json`](assets/grafana/litegraph-observability-dashboard.json), the provisioned dashboard
 
 The manual example below assumes LiteGraph.Server is running locally on `http://localhost:8701` and that `Settings.Observability.EnablePrometheus` is `true`.
@@ -136,7 +136,7 @@ curl http://localhost:8701/metrics
 
 You should see Prometheus text output with metrics such as `litegraph_http_requests_total`.
 
-2. Create `prometheus.yml`:
+2. Create `prometheus.yaml`:
 
 ```yaml
 global:
@@ -159,11 +159,11 @@ services:
   prometheus:
     image: prom/prometheus:latest
     command:
-      - --config.file=/etc/prometheus/prometheus.yml
+      - --config.file=/etc/prometheus/prometheus.yaml
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
 
   grafana:
     image: grafana/grafana:latest

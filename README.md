@@ -52,7 +52,7 @@ See [Graph transactions](docs/TRANSACTIONS.md) and the [Upgrade guide](docs/UPGR
 
 The Docker Compose deployment in [`docker/compose.yaml`](docker/compose.yaml) starts PostgreSQL, a one-shot LiteGraph PostgreSQL init container, LiteGraph, LiteGraph MCP, LiteGraph UI, Prometheus, and Grafana OSS on the default Compose network with explicit host port mappings.
 
-Prometheus scrapes LiteGraph at `http://litegraph:8701/metrics` inside the Compose network using [`docker/prometheus.yml`](docker/prometheus.yml). Grafana connects to Prometheus at `http://prometheus:9090` and loads the LiteGraph dashboard from [`assets/grafana/litegraph-observability-dashboard.json`](assets/grafana/litegraph-observability-dashboard.json).
+Prometheus scrapes LiteGraph at `http://litegraph:8701/metrics` inside the Compose network using [`docker/prometheus.yaml`](docker/prometheus.yaml). Grafana connects to Prometheus at `http://prometheus:9090` and loads the LiteGraph dashboard from [`assets/grafana/litegraph-observability-dashboard.json`](assets/grafana/litegraph-observability-dashboard.json).
 
 The checked-in Docker deployment is PostgreSQL-backed by default so transaction scalability runs exercise the provider that can scale parallel writes. PostgreSQL listens inside Compose as `postgresql:5432`; for host access, Compose publishes it as `${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}:5432`. Override the sample database, user, password, schema, max connections, or command timeout with `LITEGRAPH_POSTGRESQL_DATABASE`, `LITEGRAPH_POSTGRESQL_USERNAME`, `LITEGRAPH_POSTGRESQL_PASSWORD`, `LITEGRAPH_POSTGRESQL_SCHEMA`, `LITEGRAPH_DB_MAX_CONNECTIONS`, and `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS`.
 
@@ -106,7 +106,7 @@ cd factory
 reset.bat         # Windows
 ```
 
-The script will prompt you to type `RESET` to confirm. This destroys runtime Docker data for the deployment, including the PostgreSQL, Grafana, and Prometheus volumes, vector index files under `docker/indexes/`, logs, backups, and local changes to the Docker deployment files. It then restores the seeded factory copies from [`docker/factory/`](docker/factory/), including `docker/compose.yaml`, `docker/prometheus.yml`, `docker/litegraph.json`, `docker/litegraph-mcp.json`, Grafana provisioning files, and the Grafana dashboard asset.
+The script will prompt you to type `RESET` to confirm. This destroys runtime Docker data for the deployment, including the PostgreSQL, Grafana, and Prometheus volumes, vector index files under `docker/indexes/`, logs, backups, and local changes to the Docker deployment files. It then restores the seeded factory copies from [`docker/factory/`](docker/factory/), including `docker/compose.yaml`, `docker/prometheus.yaml`, `docker/litegraph.json`, `docker/litegraph-mcp.json`, Grafana provisioning files, and the Grafana dashboard asset.
 
 After the reset completes, start the environment again:
 
@@ -119,7 +119,7 @@ Expected behavior after reset:
 
 - `docker/compose.yaml` defines the PostgreSQL-backed deployment with a fresh `postgresql-data` volume
 - `litegraph-postgresql-init` recreates schema, default login records, and starter graph records on first startup
-- `docker/compose.yaml`, `docker/prometheus.yml`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are restored to factory defaults
+- `docker/compose.yaml`, `docker/prometheus.yaml`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are restored to factory defaults
 - `docker/grafana/provisioning/` and `assets/grafana/litegraph-observability-dashboard.json` are restored to factory defaults
 - `docker/indexes/` is emptied and recreated
 - Grafana and Prometheus start with fresh volume data

@@ -29,7 +29,7 @@ echo   - Vector index files under docker\indexes\
 echo   - Grafana and Prometheus Docker volumes
 echo   - LiteGraph and LiteGraph MCP logs
 echo   - LiteGraph and LiteGraph MCP backups
-echo   - Docker configuration changes to compose.yaml and prometheus.yml
+echo   - Docker configuration changes to compose.yaml and prometheus.yaml
 echo   - Docker configuration changes to litegraph.json
 echo   - Docker configuration changes to litegraph-mcp.json
 echo   - Grafana provisioning and dashboard asset changes
@@ -72,7 +72,7 @@ copy /y "%FACTORY_DIR%litegraph.db-wal" "%DOCKER_DIR%litegraph.db-wal" >nul 2>nu
 copy /y "%FACTORY_DIR%litegraph.db-journal" "%DOCKER_DIR%litegraph.db-journal" >nul 2>nul
 if exist "%FACTORY_DIR%indexes" xcopy "%FACTORY_DIR%indexes\*" "%DOCKER_DIR%indexes\" /e /i /y >nul 2>nul
 copy /y "%FACTORY_DIR%compose.yaml" "%DOCKER_DIR%compose.yaml" >nul
-copy /y "%FACTORY_DIR%prometheus.yml" "%DOCKER_DIR%prometheus.yml" >nul
+copy /y "%FACTORY_DIR%prometheus.yaml" "%DOCKER_DIR%prometheus.yaml" >nul
 copy /y "%FACTORY_DIR%litegraph.json" "%DOCKER_DIR%litegraph.json" >nul
 copy /y "%FACTORY_DIR%litegraph-mcp.json" "%DOCKER_DIR%litegraph-mcp.json" >nul
 mkdir "%DOCKER_DIR%grafana\\provisioning\\datasources" 2>nul
