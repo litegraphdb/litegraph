@@ -25,6 +25,40 @@ services:
       retries: 10
 
   #
+  # LiteGraph PostgreSQL Initialization
+  # Creates the schema, tables, built-in roles, default login records, and
+  # starter graph data before the long-running server starts.
+  #
+
+  litegraph-postgresql-init:
+    container_name: 'litegraph-postgresql-init'
+    image: 'jchristn77/litegraph:v7.0.0'
+    stdin_open: true
+    tty: true
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    command:
+      - '--config=/app/litegraph.json'
+      - '--init-only'
+    restart: 'no'
+    environment:
+      LITEGRAPH_DB_TYPE: 'Postgresql'
+      LITEGRAPH_DB_HOST: 'postgresql'
+      LITEGRAPH_DB_PORT: '5432'
+      LITEGRAPH_DB_NAME: '${LITEGRAPH_POSTGRESQL_DATABASE:-litegraph}'
+      LITEGRAPH_DB_USERNAME: '${LITEGRAPH_POSTGRESQL_USERNAME:-litegraph}'
+      LITEGRAPH_DB_PASSWORD: '${LITEGRAPH_POSTGRESQL_PASSWORD:-litegraph}'
+      LITEGRAPH_DB_SCHEMA: '${LITEGRAPH_POSTGRESQL_SCHEMA:-litegraph}'
+      LITEGRAPH_DB_MAX_CONNECTIONS: '${LITEGRAPH_DB_MAX_CONNECTIONS:-32}'
+      LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS: '${LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS:-30}'
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./:/app/docker/
+      - ./logs/litegraph/:/app/logs/
+      - ./backups/litegraph/:/app/backups/
+
+  #
   # LiteGraph Server
   # See https://hub.docker.com/r/jchristn77/litegraph
   # and https://github.com/jchristn/LiteGraph
@@ -32,14 +66,14 @@ services:
 
   litegraph:
     container_name: 'litegraph'
-    image: 'jchristn77/litegraph:v6.0.0'
+    image: 'jchristn77/litegraph:v7.0.0'
     stdin_open: true
     tty: true
     ports:
       - '8701:8701'
     depends_on:
-      postgresql:
-        condition: service_healthy
+      litegraph-postgresql-init:
+        condition: service_completed_successfully
     environment:
       LITEGRAPH_DB_TYPE: 'Postgresql'
       LITEGRAPH_DB_HOST: 'postgresql'
@@ -71,7 +105,7 @@ services:
 
   litegraph-mcp:
     container_name: 'litegraph-mcp'
-    image: 'jchristn77/litegraph-mcp:v6.0.0'
+    image: 'jchristn77/litegraph-mcp:v7.0.0'
     stdin_open: true
     tty: true
     ports:
@@ -99,7 +133,7 @@ services:
 
   litegraph-ui:
     container_name: 'litegraph-ui'
-    image: 'jchristn77/litegraph-ui:v6.0.0'
+    image: 'jchristn77/litegraph-ui:v7.0.0'
     stdin_open: true
     tty: true
     ports:

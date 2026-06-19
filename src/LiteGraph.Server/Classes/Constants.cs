@@ -125,6 +125,16 @@ namespace LiteGraph.Server.Classes
         public static string TransactionMaxTimeoutEnvironmentVariable = "LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS";
 
         /// <summary>
+        /// Create built-in default tenant/user/credential/graph records on startup.
+        /// </summary>
+        public static string CreateDefaultRecordsEnvironmentVariable = "LITEGRAPH_CREATE_DEFAULT_RECORDS";
+
+        /// <summary>
+        /// Initialize storage and seed defaults, then exit without starting the REST listener.
+        /// </summary>
+        public static string InitOnlyEnvironmentVariable = "LITEGRAPH_INIT_ONLY";
+
+        /// <summary>
         /// Enable built-in OTLP exporter environment variable.
         /// </summary>
         public static string OtlpExporterEnableEnvironmentVariable = "LITEGRAPH_OTLP_ENABLE";

@@ -710,6 +710,16 @@
             if (transactionMaxTimeoutEnvField == null) throw new InvalidOperationException("Transaction max timeout environment variable constant was not found.");
             AssertEqual("LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS", transactionMaxTimeoutEnvField.GetValue(null) as string, "Transaction max timeout environment variable name");
 
+            FieldInfo? createDefaultRecordsEnvField = constantsType.GetField("CreateDefaultRecordsEnvironmentVariable", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            AssertNotNull(createDefaultRecordsEnvField, "Create default records environment variable constant exists");
+            if (createDefaultRecordsEnvField == null) throw new InvalidOperationException("Create default records environment variable constant was not found.");
+            AssertEqual("LITEGRAPH_CREATE_DEFAULT_RECORDS", createDefaultRecordsEnvField.GetValue(null) as string, "Create default records environment variable name");
+
+            FieldInfo? initOnlyEnvField = constantsType.GetField("InitOnlyEnvironmentVariable", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            AssertNotNull(initOnlyEnvField, "Init-only environment variable constant exists");
+            if (initOnlyEnvField == null) throw new InvalidOperationException("Init-only environment variable constant was not found.");
+            AssertEqual("LITEGRAPH_INIT_ONLY", initOnlyEnvField.GetValue(null) as string, "Init-only environment variable name");
+
             Type? handlerType = typeof(Settings).Assembly.GetType("LiteGraph.Server.API.REST.RestServiceHandler");
             AssertNotNull(handlerType, "REST service handler type exists");
             if (handlerType == null) throw new InvalidOperationException("REST service handler type was not found.");

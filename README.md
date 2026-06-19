@@ -10,12 +10,12 @@ LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RES
 
 Operational planning docs in this repository:
 
-- [Storage configuration](STORAGE.md)
-- [Native graph query language](DSL.md)
-- [Graph transactions](TRANSACTIONS.md)
-- [RBAC and scoped credentials](RBAC.md)
-- [Observability](OBSERVABILITY.md)
-- [Upgrade guide](UPGRADE.md)
+- [Storage configuration](docs/STORAGE.md)
+- [Native graph query language](docs/DSL.md)
+- [Graph transactions](docs/TRANSACTIONS.md)
+- [RBAC and scoped credentials](docs/RBAC.md)
+- [Observability](docs/OBSERVABILITY.md)
+- [Upgrade guide](docs/UPGRADE.md)
 
 ## Repository Structure
 
@@ -46,15 +46,17 @@ The `v7.0` branch adds isolated graph transaction execution so converted provide
 
 Transaction requests support provider isolation selection through `IsolationLevel`, and transaction responses now include `TransactionId`, validation-failure state, provider/isolation metadata, commit and rollback timing, retryability, concurrency-conflict classification, provider error codes, and flags showing whether execution used isolated transaction state or the legacy serialized fallback.
 
-See [Graph transactions](TRANSACTIONS.md) and the [Upgrade guide](UPGRADE.md) for provider caveats, rollback semantics, SDK behavior, and operational guidance.
+See [Graph transactions](docs/TRANSACTIONS.md) and the [Upgrade guide](docs/UPGRADE.md) for provider caveats, rollback semantics, SDK behavior, and operational guidance.
 
 ## Docker Compose Monitoring
 
-The Docker Compose deployment in [`docker/compose.yaml`](docker/compose.yaml) starts PostgreSQL, LiteGraph, LiteGraph MCP, LiteGraph UI, Prometheus, and Grafana OSS on the default Compose network with explicit host port mappings.
+The Docker Compose deployment in [`docker/compose.yaml`](docker/compose.yaml) starts PostgreSQL, a one-shot LiteGraph PostgreSQL init container, LiteGraph, LiteGraph MCP, LiteGraph UI, Prometheus, and Grafana OSS on the default Compose network with explicit host port mappings.
 
 Prometheus scrapes LiteGraph at `http://litegraph:8701/metrics` inside the Compose network using [`docker/prometheus.yml`](docker/prometheus.yml). Grafana connects to Prometheus at `http://prometheus:9090` and loads the LiteGraph dashboard from [`assets/grafana/litegraph-observability-dashboard.json`](assets/grafana/litegraph-observability-dashboard.json).
 
 The checked-in Docker deployment is PostgreSQL-backed by default so transaction scalability runs exercise the provider that can scale parallel writes. PostgreSQL listens inside Compose as `postgresql:5432`; for host access, Compose publishes it as `${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}:5432`. Override the sample database, user, password, schema, max connections, or command timeout with `LITEGRAPH_POSTGRESQL_DATABASE`, `LITEGRAPH_POSTGRESQL_USERNAME`, `LITEGRAPH_POSTGRESQL_PASSWORD`, `LITEGRAPH_POSTGRESQL_SCHEMA`, `LITEGRAPH_DB_MAX_CONNECTIONS`, and `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS`.
+
+On first run, `litegraph-postgresql-init` runs LiteGraph in `--init-only` mode. It creates the configured schema and tables, seeds built-in authorization roles, creates the default tenant, user, and credential, and creates a starter graph with nodes and edges when the default graph is empty. The main `litegraph` service waits for that init service to complete successfully before starting.
 
 SQLite remains available for local evaluation and correctness testing by changing `docker/litegraph.json` or setting `LITEGRAPH_DB_TYPE=Sqlite` and a SQLite filename. SQLite transaction requests remain bounded by SQLite file-level write locking even when LiteGraph uses isolated transaction state.
 
@@ -71,6 +73,12 @@ Default endpoints:
 - PostgreSQL: `localhost:15432` with sample `litegraph` / `litegraph`
 - Prometheus: `http://localhost:9090`
 - Grafana OSS: `http://localhost:3000` with `admin` / `admin`
+
+Default LiteGraph login:
+
+- Email: `default@user.com`
+- Password: `password`
+- Bearer token: `default`
 
 The Compose deployment publishes LiteGraph UI on host port `3001` and Grafana on host port `3000`.
 
@@ -104,6 +112,7 @@ docker compose up -d
 Expected behavior after reset:
 
 - `docker/compose.yaml` defines the PostgreSQL-backed deployment with a fresh `postgresql-data` volume
+- `litegraph-postgresql-init` recreates schema, default login records, and starter graph records on first startup
 - `docker/compose.yaml`, `docker/prometheus.yml`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are restored to factory defaults
 - `docker/grafana/provisioning/` and `assets/grafana/litegraph-observability-dashboard.json` are restored to factory defaults
 - `docker/indexes/` is emptied and recreated
@@ -121,7 +130,7 @@ LiteGraph can be controlled by Claude and other AI agents using natural language
 - **Conversational exploration** — interactively query and visualize your graph data
 - **Zero SDK knowledge required** — the agent handles the API calls
 
-Get started in minutes: **[Using Claude with LiteGraph](CLAUDE_MCP.md)**
+Get started in minutes: **[Using Claude with LiteGraph](docs/CLAUDE_MCP.md)**
 
 ## Bugs, Feedback, or Enhancement Requests
 
@@ -405,7 +414,7 @@ GraphStatistics graphStatistics = await client.Graph.GetStatistics(myTenantGuid,
 
 ## REST API and Client SDKs
 
-LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph.  Refer to `REST_API.md` and also the Postman collection in the root of this repository for details. For comprehensive API documentation, visit [litegraph.readme.io](https://litegraph.readme.io/).
+LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph. Refer to [REST_API.md](docs/REST_API.md) and also the Postman collection in the root of this repository for details. For comprehensive API documentation, visit [litegraph.readme.io](https://litegraph.readme.io/).
 
 ### Web Dashboard
 
@@ -465,7 +474,7 @@ Modify ./litegraph.json to change the REST listener hostname to make externally 
 
 ## Running in Docker
 
-A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v6.0.0`. Use `docker/compose.yaml` if you wish to run PostgreSQL-backed LiteGraph, the MCP server, LiteGraph UI, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.json` and `docker/litegraph-mcp.json` are configured for your deployment, and keep the PostgreSQL volume plus the `docker/` directory persisted so database state, vector index artifacts, logs, and backups are retained.
+A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v7.0.0`. Use `docker/compose.yaml` if you wish to run PostgreSQL-backed LiteGraph, the MCP server, LiteGraph UI, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.json` and `docker/litegraph-mcp.json` are configured for your deployment, and keep the PostgreSQL volume plus the `docker/` directory persisted so database state, vector index artifacts, logs, and backups are retained.
 
 ## MCP Server
 
@@ -553,7 +562,7 @@ Configuration can be overridden using environment variables:
 
 ### Running LiteGraph and MCP Server in Docker
 
-Docker images are available at `jchristn77/litegraph:v6.0.0` and `jchristn77/litegraph-mcp:v6.0.0`. Use the Docker Compose file in the `docker` directory:
+Docker images are available at `jchristn77/litegraph:v7.0.0` and `jchristn77/litegraph-mcp:v7.0.0`. Use the Docker Compose file in the `docker` directory:
 
 ```bash
 cd docker

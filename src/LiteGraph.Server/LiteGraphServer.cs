@@ -2,6 +2,7 @@ namespace LiteGraph.Server
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.IO;
     using System.Text;
     using System.Threading;
@@ -28,6 +29,7 @@ namespace LiteGraph.Server
         private static string _Header = "[LiteGraphServer] ";
         private static int _ProcessId = Environment.ProcessId;
         private static bool _CreateDefaultRecords = false;
+        private static bool _InitOnly = false;
 
         private static Settings _Settings = new Settings();
         private static LoggingModule _Logging = null;
@@ -63,6 +65,8 @@ namespace LiteGraph.Server
                 ParseArguments(args);
                 InitializeSettings();
                 await InitializeGlobals().ConfigureAwait(false);
+
+                if (_InitOnly) return;
 
                 if (!_ShutdownRequested)
                 {
@@ -105,6 +109,15 @@ namespace LiteGraph.Server
                     if (arg.StartsWith("--config="))
                     {
                         Constants.SettingsFile = arg.Substring(9);
+                    }
+                    else if (arg.Equals("--create-default-records", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _CreateDefaultRecords = true;
+                    }
+                    else if (arg.Equals("--init-only", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _InitOnly = true;
+                        _CreateDefaultRecords = true;
                     }
                 }
             }
@@ -468,6 +481,7 @@ namespace LiteGraph.Server
 
             ApplyDatabaseEnvironmentVariables();
             ApplyTransactionEnvironmentVariables();
+            ApplyInitializationEnvironmentVariables();
             ApplyObservabilityEnvironmentVariables();
 
             #endregion
@@ -542,6 +556,12 @@ namespace LiteGraph.Server
 
             #endregion
 
+            if (_InitOnly)
+            {
+                _Logging.Info(_Header + "initialization-only mode completed successfully");
+                return;
+            }
+
             #region Services
 
             _AuthenticationService = new AuthenticationService(
@@ -612,6 +632,32 @@ namespace LiteGraph.Server
             }
         }
 
+        private static void ApplyInitializationEnvironmentVariables()
+        {
+            string createDefaultRecords = Environment.GetEnvironmentVariable(Constants.CreateDefaultRecordsEnvironmentVariable);
+            if (!String.IsNullOrEmpty(createDefaultRecords))
+            {
+                if (TryParseBoolean(createDefaultRecords, out bool enabled))
+                    _CreateDefaultRecords = enabled;
+                else
+                    Console.WriteLine("Invalid default-record creation value detected in environment variable " + Constants.CreateDefaultRecordsEnvironmentVariable);
+            }
+
+            string initOnly = Environment.GetEnvironmentVariable(Constants.InitOnlyEnvironmentVariable);
+            if (!String.IsNullOrEmpty(initOnly))
+            {
+                if (TryParseBoolean(initOnly, out bool enabled))
+                {
+                    _InitOnly = enabled;
+                    if (enabled) _CreateDefaultRecords = true;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid initialization-only value detected in environment variable " + Constants.InitOnlyEnvironmentVariable);
+                }
+            }
+        }
+
         private static async Task CreateDefaultRecords()
         {
             #region Metadata-Records
@@ -657,6 +703,7 @@ namespace LiteGraph.Server
                 UserGUID = user.GUID,
                 Name = "Default credential",
                 BearerToken = "default",
+                Scopes = new List<string> { "admin" },
                 Active = true,
                 CreatedUtc = DateTime.UtcNow
             };
@@ -681,9 +728,127 @@ namespace LiteGraph.Server
                 Console.WriteLine("| Created graph      : " + graph.GUID + " " + graph.Name);
             }
 
+            int nodeCount = await _Repo.Node.GetRecordCount(tenant.GUID, graph.GUID, token: CancellationToken.None).ConfigureAwait(false);
+            int edgeCount = await _Repo.Edge.GetRecordCount(tenant.GUID, graph.GUID, token: CancellationToken.None).ConfigureAwait(false);
+            if (nodeCount < 1 || edgeCount < 1)
+            {
+                await CreateDefaultGraphRecords(tenant.GUID, graph.GUID).ConfigureAwait(false);
+            }
+
             #endregion
 
             Console.WriteLine("Finished creating default records");
+        }
+
+        private static async Task CreateDefaultGraphRecords(Guid tenantGuid, Guid graphGuid)
+        {
+            DateTime now = DateTime.UtcNow;
+            Guid serverGuid = Guid.Parse("10000000-0000-0000-0000-000000000001");
+            Guid storageGuid = Guid.Parse("10000000-0000-0000-0000-000000000002");
+            Guid dashboardGuid = Guid.Parse("10000000-0000-0000-0000-000000000003");
+
+            List<Node> nodes = new List<Node>
+            {
+                new Node
+                {
+                    GUID = serverGuid,
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    Name = "LiteGraph Server",
+                    Labels = new List<string> { "Service" },
+                    Tags = Tags(("role", "api"), ("state", "ready")),
+                    Data = new { description = "Default LiteGraph API service node." },
+                    CreatedUtc = now,
+                    LastUpdateUtc = now
+                },
+                new Node
+                {
+                    GUID = storageGuid,
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    Name = "PostgreSQL Storage",
+                    Labels = new List<string> { "Storage" },
+                    Tags = Tags(("provider", "postgresql"), ("state", "ready")),
+                    Data = new { description = "Default PostgreSQL storage node." },
+                    CreatedUtc = now,
+                    LastUpdateUtc = now
+                },
+                new Node
+                {
+                    GUID = dashboardGuid,
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    Name = "LiteGraph Dashboard",
+                    Labels = new List<string> { "Application" },
+                    Tags = Tags(("role", "dashboard"), ("state", "ready")),
+                    Data = new { description = "Default dashboard application node." },
+                    CreatedUtc = now,
+                    LastUpdateUtc = now
+                }
+            };
+
+            foreach (Node node in nodes)
+            {
+                if (!await _Repo.Node.ExistsByGuid(tenantGuid, node.GUID, CancellationToken.None).ConfigureAwait(false))
+                {
+                    await _Repo.Node.Create(node, CancellationToken.None).ConfigureAwait(false);
+                    Console.WriteLine("| Created node       : " + node.GUID + " " + node.Name);
+                }
+            }
+
+            List<Edge> edges = new List<Edge>
+            {
+                new Edge
+                {
+                    GUID = Guid.Parse("20000000-0000-0000-0000-000000000001"),
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    Name = "PERSISTS_TO",
+                    From = serverGuid,
+                    To = storageGuid,
+                    Cost = 1,
+                    Labels = new List<string> { "Storage" },
+                    Tags = Tags(("path", "database")),
+                    Data = new { description = "LiteGraph persists graph data to PostgreSQL." },
+                    CreatedUtc = now,
+                    LastUpdateUtc = now
+                },
+                new Edge
+                {
+                    GUID = Guid.Parse("20000000-0000-0000-0000-000000000002"),
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    Name = "MANAGES",
+                    From = dashboardGuid,
+                    To = serverGuid,
+                    Cost = 1,
+                    Labels = new List<string> { "Dashboard" },
+                    Tags = Tags(("path", "rest")),
+                    Data = new { description = "The dashboard manages LiteGraph through the REST API." },
+                    CreatedUtc = now,
+                    LastUpdateUtc = now
+                }
+            };
+
+            foreach (Edge edge in edges)
+            {
+                if (!await _Repo.Edge.ExistsByGuid(tenantGuid, edge.GUID, CancellationToken.None).ConfigureAwait(false))
+                {
+                    await _Repo.Edge.Create(edge, CancellationToken.None).ConfigureAwait(false);
+                    Console.WriteLine("| Created edge       : " + edge.GUID + " " + edge.Name);
+                }
+            }
+        }
+
+        private static NameValueCollection Tags(params (string Key, string Value)[] tags)
+        {
+            NameValueCollection ret = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
+            foreach ((string key, string value) in tags)
+            {
+                ret.Add(key, value);
+            }
+
+            return ret;
         }
 
         #endregion

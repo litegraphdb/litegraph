@@ -160,7 +160,7 @@ PostgreSQL supports:
 
 ### Docker Compose PostgreSQL Defaults
 
-The checked-in Docker deployment in `docker/compose.yaml` is PostgreSQL-backed by default. It starts a `postgresql` service and injects the matching LiteGraph settings into the server container with `LITEGRAPH_DB_*` environment variables.
+The checked-in Docker deployment in `docker/compose.yaml` is PostgreSQL-backed by default. It starts a `postgresql` service, runs a one-shot `litegraph-postgresql-init` service, and injects the matching LiteGraph settings into the init and server containers with `LITEGRAPH_DB_*` environment variables.
 
 Default local Docker values:
 
@@ -173,6 +173,13 @@ Default local Docker values:
 | Password | `litegraph` |
 | Schema | `litegraph` |
 | Data volume | `postgresql-data` |
+
+Startup order:
+
+1. `postgresql` starts and creates the configured database from `POSTGRES_DB` when the volume is new.
+2. `litegraph-postgresql-init` waits for PostgreSQL health, runs `LiteGraph.Server --init-only`, creates the configured schema and tables through the repository setup path, seeds built-in authorization roles, creates `default@user.com` / `password` and bearer token `default`, and creates a starter graph with nodes and edges when the default graph is empty.
+3. `litegraph` starts only after the init service exits successfully.
+4. MCP, dashboard, Prometheus, and Grafana wait on the long-running LiteGraph service.
 
 Override sample Docker values with:
 

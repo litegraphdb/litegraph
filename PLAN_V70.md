@@ -968,10 +968,11 @@ Correctness and coherency tests are release gates. Short performance-harness run
 
 - [x] Update MCP Docker settings if transaction options surface through MCP. Note: no MCP-side transaction setting is required; MCP forwards request-level transaction arguments and LiteGraph server Docker config owns transaction caps. 2026-06-18.
 
-- [x] Configure Docker deployment for PostgreSQL-backed LiteGraph. Note: `docker/compose.yaml` and `docker/factory/compose.yaml` now start PostgreSQL 17 with a persistent `postgresql-data` volume, readiness healthcheck, configurable host port/credentials, and LiteGraph `LITEGRAPH_DB_*` overrides. `docker/litegraph.json` and `docker/factory/litegraph.json` now default to `Type = Postgresql`; factory reset removes the PostgreSQL volume. `docker compose config` validates for both live and factory Compose files; live Docker startup validation remains tracked separately. 2026-06-18.
+- [x] Configure Docker deployment for PostgreSQL-backed LiteGraph. Note: `docker/compose.yaml` and `docker/factory/compose.yaml` now start PostgreSQL 17 with a persistent `postgresql-data` volume, readiness healthcheck, configurable host port/credentials, a one-shot `litegraph-postgresql-init` service, and LiteGraph `LITEGRAPH_DB_*` overrides. The init service runs `LiteGraph.Server --init-only` to create schema/tables, built-in roles, default login records, and starter graph nodes/edges before the long-running server starts. `docker/litegraph.json` and `docker/factory/litegraph.json` default to `Type = Postgresql`; factory reset removes the PostgreSQL volume. `docker compose config` validates for both live and factory Compose files, and a disposable SQLite `--init-only` smoke run confirms default login/starter graph seeding exits cleanly; live Docker image startup validation remains tracked separately. 2026-06-18.
   - [x] Add a PostgreSQL service to Compose or a dedicated PostgreSQL Compose override/profile.
   - [x] Add a persistent PostgreSQL data volume.
   - [x] Add a PostgreSQL healthcheck and require LiteGraph to wait for PostgreSQL readiness.
+  - [x] Add a one-shot LiteGraph PostgreSQL init service that completes before the REST server starts.
   - [x] Configure LiteGraph with `LiteGraph.Database.Type = Postgresql` or equivalent `LITEGRAPH_DB_*` environment variables.
   - [x] Provide default local-development credentials only in sample Docker files, with clear production override guidance.
   - [x] Set `LiteGraph.Database.MaxConnections`/`LITEGRAPH_DB_MAX_CONNECTIONS` consistently with PostgreSQL `max_connections` and transaction concurrency tests.
@@ -983,13 +984,13 @@ Correctness and coherency tests are release gates. Short performance-harness run
   - Add concurrent transaction smoke where practical.
   - Add PostgreSQL-backed Docker smoke validation.
 
-- [~] Confirm PostgreSQL compose setup supports enough connections. Note: Compose defaults LiteGraph pool size to 32 via `LITEGRAPH_DB_MAX_CONNECTIONS`, leaving headroom for PostgreSQL's default connection limit; Compose config validation passes, but live container validation is pending. 2026-06-18.
+- [~] Confirm PostgreSQL compose setup supports enough connections. Note: Compose defaults LiteGraph pool size to 32 via `LITEGRAPH_DB_MAX_CONNECTIONS`, leaving headroom for PostgreSQL's default connection limit; init and runtime services use the same pool setting and Compose config validation passes, but live container validation is pending. 2026-06-18.
   - Ensure `MaxConnections` aligns with transaction concurrency tests.
   - Confirm PostgreSQL container `max_connections` and LiteGraph pool limits leave headroom for migrations, healthchecks, and monitoring.
 
 - [x] Document SQLite caveat in Docker docs. Note: root README, storage docs, and upgrade docs now distinguish the application SQLite fallback from the PostgreSQL-backed Docker default and explain how to override Docker back to SQLite for local-only evaluation. 2026-06-18.
 
-- [~] Document Docker SQLite-to-PostgreSQL migration. Note: `README.md`, `docs/STORAGE.md`, and `docs/UPGRADE.md` document the PostgreSQL-backed Docker defaults and the high-level Docker SQLite-to-PostgreSQL migration path; a dedicated migration command/tool walkthrough and live validation remain pending. 2026-06-18.
+- [~] Document Docker SQLite-to-PostgreSQL migration. Note: `README.md`, `docs/STORAGE.md`, and `docs/UPGRADE.md` document the PostgreSQL-backed Docker defaults, init service, default login/starter graph seeding, and the high-level Docker SQLite-to-PostgreSQL migration path; a dedicated migration command/tool walkthrough and live validation remain pending. 2026-06-18.
   - Back up `docker/litegraph.db`, SQLite sidecar files, `docker/indexes/`, logs, and backups before migration.
   - Start PostgreSQL with an empty LiteGraph database/schema.
   - Run `StorageMigrationManager.MigrateAsync` or a supported migration CLI/tool from the Docker SQLite database to PostgreSQL.
