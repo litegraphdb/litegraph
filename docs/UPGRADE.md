@@ -1,6 +1,6 @@
-# LiteGraph Next Release Upgrade Guide
+# LiteGraph v7.0 Upgrade Guide
 
-This guide covers upgrades from existing SQLite-only or pre-RBAC LiteGraph deployments to the next release plan captured in `IMPROVEMENTS.md`.
+This guide covers upgrades from existing SQLite-only, pre-RBAC, or v6.x LiteGraph deployments to `v7.0.0`. It focuses on the storage, authorization, transaction, Docker, observability, and vector-index changes now merged into `main`.
 
 ## Before Upgrading
 

@@ -4,68 +4,77 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
+Current release: `v7.0.0`.
 
-LiteGraph can be run in-process (using `LiteGraphClient`) or as a standalone RESTful server (using `LiteGraph.Server`). For comprehensive documentation, visit [litegraph.readme.io](https://litegraph.readme.io/).
+LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
-Operational planning docs in this repository:
+The `v7.0.0` transaction-scaling work is now merged into `main`. Historical planning material lives under [`archive/`](archive/); the files in the repository root describe the current mainline release.
+
+## What Is Included
+
+- Core .NET graph library targeting `net8.0` and `net10.0`
+- SQLite provider for embedded, local, and test use
+- PostgreSQL provider for production deployments and parallel transaction write scaling
+- Native LiteGraph graph query language for reads, traversals, vector search, and graph mutations
+- Graph-scoped transactions for nodes, edges, labels, tags, and vectors
+- HNSW vector indexing through `HnswLite` `2.0.1`
+- REST server with bearer-token authentication, request history, RBAC, and OpenAPI/Postman assets
+- MCP server with HTTP, TCP, and WebSocket transports
+- Next.js/React dashboard
+- Official C#, Python, and JavaScript SDKs
+- Docker Compose deployment for PostgreSQL, LiteGraph, MCP, dashboard, Prometheus, and Grafana OSS
+
+## New In v7.0.0
+
+- Graph transactions now use transaction-local repository/session state for converted providers.
+- PostgreSQL transaction sessions use separate pooled connections, so parallel writes can scale according to PostgreSQL locking, isolation, and pool limits.
+- SQLite transaction sessions are isolated for correctness, but write throughput remains bounded by SQLite file locking.
+- Transaction requests support `IsolationLevel`, including PostgreSQL `ReadCommitted`, `RepeatableRead`, and `Serializable` where supported.
+- Transaction responses include lifecycle and diagnostic fields such as `TransactionId`, `State`, `ValidationFailure`, `Provider`, `IsolationLevel`, `IsolatedRepository`, `SerializedByGate`, queue wait, commit and rollback timing, retryability, conflict classification, and provider error code.
+- REST, MCP, C#, Python, and JavaScript transaction surfaces preserve diagnostic transaction result bodies for validation and rollback failures.
+- Request history, Prometheus metrics, OpenTelemetry activities, and the Grafana dashboard include transaction diagnostics.
+- File-backed HNSW vector index artifacts use the v7 format with `FormatVersion = 2` and `HnswLiteVersion = "2.0.1"`.
+- Docker Compose now defaults to PostgreSQL-backed LiteGraph with `v7.0.0` LiteGraph, MCP, and UI images plus a one-shot PostgreSQL initialization container.
+
+See [Graph transactions](docs/TRANSACTIONS.md), [Storage configuration](docs/STORAGE.md), and the [Upgrade guide](docs/UPGRADE.md) for provider caveats, migration guidance, rollback semantics, and operational details.
+
+## Repository Layout
+
+| Directory | Description |
+| --- | --- |
+| [`src/`](src/) | Core LiteGraph library, REST server, MCP server, console, samples, and tests |
+| [`dashboard/`](dashboard/) | Web dashboard UI built with Next.js and React |
+| [`sdk/csharp/`](sdk/csharp/) | C# REST SDK published as `LiteGraph.Sdk` |
+| [`sdk/python/`](sdk/python/) | Python REST SDK published as `litegraph-sdk` |
+| [`sdk/js/`](sdk/js/) | JavaScript/Node.js REST SDK published as `litegraphdb` |
+| [`docker/`](docker/) | PostgreSQL-backed Docker Compose deployment, MCP config, Prometheus, Grafana, smoke test, and factory reset assets |
+| [`docs/`](docs/) | Current operational and API documentation |
+| [`archive/`](archive/) | Historical implementation plans and performance notes |
+
+## Documentation
 
 - [Storage configuration](docs/STORAGE.md)
 - [Native graph query language](docs/DSL.md)
 - [Graph transactions](docs/TRANSACTIONS.md)
 - [RBAC and scoped credentials](docs/RBAC.md)
 - [Observability](docs/OBSERVABILITY.md)
+- [REST API](docs/REST_API.md)
 - [Upgrade guide](docs/UPGRADE.md)
+- [Using Claude with LiteGraph](docs/CLAUDE_MCP.md)
+- [Performance and scalability testing](PERF_SCALE_TESTING.md)
 
-## Repository Structure
+Published documentation is also available at [litegraph.readme.io](https://litegraph.readme.io/).
 
-This monorepo contains the LiteGraph database core, server, dashboard, and client SDKs:
+## Quick Start With Docker Compose
 
-| Directory | Description |
-|-----------|-------------|
-| [`src/`](src/) | Core LiteGraph library and server projects (.NET) |
-| [`dashboard/`](dashboard/) | Web-based dashboard UI (Next.js/React) |
-| [`sdk/csharp/`](sdk/csharp/) | C# SDK for REST API ([NuGet](https://www.nuget.org/packages/LiteGraph.Sdk/)) |
-| [`sdk/python/`](sdk/python/) | Python SDK for REST API ([PyPI](https://pypi.org/project/litegraph-sdk/)) |
-| [`sdk/js/`](sdk/js/) | JavaScript/Node.js SDK for REST API ([npm](https://www.npmjs.com/package/litegraphdb)) |
-| [`docker/`](docker/) | Docker Compose deployment for LiteGraph Server and MCP Server |
-
-## New in v6.0.0
-
-- Native LiteGraph query language for graph reads and mutations
-- Graph-scoped transactions for nodes, edges, tags, labels, and vectors
-- RBAC and scoped credentials for REST and MCP boundaries
-- Provider-neutral storage architecture with SQLite default and PostgreSQL production support
-- Prometheus metrics, OpenTelemetry instrumentation, request history integration, and a Grafana dashboard
-- LiteGraphConsole, an interactive `lg` shell for database files and endpoints
-- Dashboard improvements for authorization, request history, API exploration, and operational monitoring
-
-## v7.0 Transaction Scaling Work
-
-The `v7.0` branch adds isolated graph transaction execution so converted providers no longer need a shared per-repository safety gate for correctness. PostgreSQL transactions can use separate pooled connections for parallel write scaling, while SQLite remains correct under concurrent requests but is still bounded by SQLite file locking.
-
-Transaction requests support provider isolation selection through `IsolationLevel`, and transaction responses now include `TransactionId`, lifecycle state, validation-failure state, provider/isolation metadata, fallback queue wait, commit and rollback timing, retryability, concurrency-conflict classification, provider error codes, and flags showing whether execution used isolated transaction state or the legacy serialized fallback.
-
-See [Graph transactions](docs/TRANSACTIONS.md) and the [Upgrade guide](docs/UPGRADE.md) for provider caveats, rollback semantics, SDK behavior, and operational guidance.
-
-## Docker Compose Monitoring
-
-The Docker Compose deployment in [`docker/compose.yaml`](docker/compose.yaml) starts PostgreSQL, a one-shot LiteGraph PostgreSQL init container, LiteGraph, LiteGraph MCP, LiteGraph UI, Prometheus, and Grafana OSS on the default Compose network with explicit host port mappings.
-
-Prometheus scrapes LiteGraph at `http://litegraph:8701/metrics` inside the Compose network using [`docker/prometheus.yaml`](docker/prometheus.yaml). Grafana connects to Prometheus at `http://prometheus:9090` and loads the LiteGraph dashboard from [`assets/grafana/litegraph-observability-dashboard.json`](assets/grafana/litegraph-observability-dashboard.json).
-
-The checked-in Docker deployment is PostgreSQL-backed by default so transaction scalability runs exercise the provider that can scale parallel writes. PostgreSQL listens inside Compose as `postgresql:5432`; for host access, Compose publishes it as `${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}:5432`. Override the sample database, user, password, schema, max connections, or command timeout with `LITEGRAPH_POSTGRESQL_DATABASE`, `LITEGRAPH_POSTGRESQL_USERNAME`, `LITEGRAPH_POSTGRESQL_PASSWORD`, `LITEGRAPH_POSTGRESQL_SCHEMA`, `LITEGRAPH_DB_MAX_CONNECTIONS`, and `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS`.
-
-On first run, `litegraph-postgresql-init` runs LiteGraph in `--init-only` mode. It creates the configured schema and tables, seeds built-in authorization roles, creates the default tenant, user, and credential, and creates a starter graph with nodes and edges when the default graph is empty. The main `litegraph` service waits for that init service to complete successfully before starting.
-
-SQLite remains available for local evaluation and correctness testing by changing `docker/litegraph.json` or setting `LITEGRAPH_DB_TYPE=Sqlite` and a SQLite filename. SQLite transaction requests remain bounded by SQLite file-level write locking even when LiteGraph uses isolated transaction state.
+The checked-in Docker deployment starts PostgreSQL 17, runs LiteGraph schema/default-data initialization once, and then starts LiteGraph, LiteGraph MCP, the dashboard, Prometheus, and Grafana OSS.
 
 ```bash
 cd docker
 docker compose up -d
 ```
 
-After startup, run the checked-in smoke test from the Docker directory to verify Compose service state, REST authentication, metrics, MCP, UI, Prometheus, and Grafana endpoints:
+Run the smoke test from the Docker directory after startup:
 
 ```bat
 smoke.bat
@@ -73,511 +82,314 @@ smoke.bat
 
 Default endpoints:
 
-- LiteGraph REST: `http://localhost:8701`
-- LiteGraph MCP: `http://localhost:8702`
-- LiteGraph UI: `http://localhost:3001`
-- PostgreSQL: `localhost:15432` with sample `litegraph` / `litegraph`
-- Prometheus: `http://localhost:9090`
-- Grafana OSS: `http://localhost:3000` with `admin` / `admin`
+| Service | Endpoint |
+| --- | --- |
+| LiteGraph REST | `http://localhost:8701` |
+| LiteGraph MCP HTTP | `http://localhost:8702` |
+| LiteGraph MCP TCP | `localhost:8703` |
+| LiteGraph MCP WebSocket | `ws://localhost:8704/mcp` |
+| LiteGraph UI | `http://localhost:3001` |
+| PostgreSQL | `localhost:15432` |
+| Prometheus | `http://localhost:9090` |
+| Grafana OSS | `http://localhost:3000` |
 
-Default LiteGraph login:
+Default seeded LiteGraph records:
 
-- Email: `default@user.com`
-- Password: `password`
-- Bearer token: `default`
+| Item | Value |
+| --- | --- |
+| Tenant GUID | `00000000-0000-0000-0000-000000000000` |
+| Graph GUID | `00000000-0000-0000-0000-000000000000` |
+| User email | `default@user.com` |
+| User password | `password` |
+| Credential bearer token | `default` |
+| Server administrator bearer token | `litegraphadmin` |
 
-The Compose deployment publishes LiteGraph UI on host port `3001` and Grafana on host port `3000`.
+Default PostgreSQL values:
 
-Within the Docker deployment, `docker/litegraph-mcp.json` uses `0.0.0.0` for the TCP listener and wildcard hostnames for the HTTP and WebSocket listeners so the published host ports can accept traffic normally.
+| Setting | Value |
+| --- | --- |
+| Host port | `15432` |
+| Compose hostname | `postgresql` |
+| Database | `litegraph` |
+| Username | `litegraph` |
+| Password | `litegraph` |
+| Schema | `litegraph` |
 
-Open Grafana, sign in with the default credentials, and browse to the `LiteGraph` folder to open the provisioned LiteGraph observability dashboard. If a panel is empty, generate LiteGraph traffic and confirm the `litegraph` target is `UP` at `http://localhost:9090/targets`.
+Override the sample Docker PostgreSQL settings with `LITEGRAPH_POSTGRESQL_HOST_PORT`, `LITEGRAPH_POSTGRESQL_DATABASE`, `LITEGRAPH_POSTGRESQL_USERNAME`, `LITEGRAPH_POSTGRESQL_PASSWORD`, `LITEGRAPH_POSTGRESQL_SCHEMA`, `LITEGRAPH_DB_MAX_CONNECTIONS`, and `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS`.
 
-For production deployments, change the Grafana admin password and protect the unauthenticated `/metrics` endpoint at the network or reverse-proxy layer.
+SQLite remains available for local Docker experiments by changing [`docker/litegraph.json`](docker/litegraph.json) or setting `LITEGRAPH_DB_TYPE=Sqlite` with a SQLite filename. PostgreSQL is the default Compose provider because it is the provider that can scale parallel writes.
 
-## Factory Reset (Docker)
+## Docker Images
 
-To completely reset the LiteGraph Docker deployment to a clean factory state, use the factory reset script:
+The Compose deployment uses these `v7.0.0` images:
+
+- `jchristn77/litegraph:v7.0.0`
+- `jchristn77/litegraph-mcp:v7.0.0`
+- `jchristn77/litegraph-ui:v7.0.0`
+
+The LiteGraph service uses [`docker/litegraph.json`](docker/litegraph.json). The MCP service uses [`docker/litegraph-mcp.json`](docker/litegraph-mcp.json). Keep the PostgreSQL volume and the `docker/` directory persisted so database state, vector index artifacts, logs, and backups are retained.
+
+## Factory Reset
+
+To reset the Docker deployment to the checked-in factory state:
 
 ```bash
 cd docker
 docker compose down
 cd factory
-./reset.sh        # Linux/macOS
-reset.bat         # Windows
+./reset.sh
 ```
 
-The script will prompt you to type `RESET` to confirm. This destroys runtime Docker data for the deployment, including the PostgreSQL, Grafana, and Prometheus volumes, vector index files under `docker/indexes/`, logs, backups, and local changes to the Docker deployment files. It then restores the seeded factory copies from [`docker/factory/`](docker/factory/), including `docker/compose.yaml`, `docker/prometheus.yaml`, `docker/litegraph.json`, `docker/litegraph-mcp.json`, Grafana provisioning files, and the Grafana dashboard asset.
+On Windows:
 
-After the reset completes, start the environment again:
+```bat
+cd docker
+docker compose down
+cd factory
+reset.bat
+```
+
+The reset script asks you to type `RESET`, deletes runtime Docker data for the deployment, restores Compose/configuration/provisioning files from [`docker/factory/`](docker/factory/), empties `docker/indexes/`, and resets PostgreSQL, Prometheus, and Grafana volumes.
+
+## Embedded C# Quick Start
+
+Install the core package:
 
 ```bash
-cd docker
-docker compose up -d
+dotnet add package LiteGraph
 ```
 
-Expected behavior after reset:
-
-- `docker/compose.yaml` defines the PostgreSQL-backed deployment with a fresh `postgresql-data` volume
-- `litegraph-postgresql-init` recreates schema, default login records, and starter graph records on first startup
-- `docker/compose.yaml`, `docker/prometheus.yaml`, `docker/litegraph.json`, and `docker/litegraph-mcp.json` are restored to factory defaults
-- `docker/grafana/provisioning/` and `assets/grafana/litegraph-observability-dashboard.json` are restored to factory defaults
-- `docker/indexes/` is emptied and recreated
-- Grafana and Prometheus start with fresh volume data
-
-## AI Agent Integration
-
-LiteGraph can be controlled by Claude and other AI agents using natural language through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Instead of writing code, you can simply tell an AI assistant what you need — create graphs, add nodes and edges, run traversals, perform vector similarity searches, manage backups — and it executes the operations for you.
-
-**Why use AI agents with LiteGraph?**
-
-- **Natural language control** — describe your graph operations in plain English
-- **145+ MCP tools** — full database control without learning the API
-- **Multi-client support** — works with Claude Code, Claude Desktop, Cursor, and other MCP-compatible clients
-- **Conversational exploration** — interactively query and visualize your graph data
-- **Zero SDK knowledge required** — the agent handles the API calls
-
-Get started in minutes: **[Using Claude with LiteGraph](docs/CLAUDE_MCP.md)**
-
-## Bugs, Feedback, or Enhancement Requests
-
-Please feel free to start an issue or a discussion! For detailed documentation and guides, visit [litegraph.readme.io](https://litegraph.readme.io/).
-
-## Simple Example, Embedded
-
-Embedding LiteGraph into your application is simple and requires no configuration of users or credentials.  Refer to the ```Test``` project for a full example, or visit the [documentation](https://litegraph.readme.io/) for more comprehensive examples and guides.
+Use SQLite directly in-process:
 
 ```csharp
+using System.Collections.Generic;
 using LiteGraph;
+using LiteGraph.GraphRepositories.Sqlite;
 
-LiteGraphClient client = new LiteGraphClient(new SqliteRepository("litegraph.db"));
+using LiteGraphClient client = new LiteGraphClient(new SqliteGraphRepository("litegraph.db"));
 client.InitializeRepository();
 
-// Create a tenant
-TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "My tenant" });
-
-// Create a graph
-Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
-
-// Create nodes
-Node node1 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
-Node node2 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
-Node node3 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
-
-// Create edges
-Edge edge1 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
-Edge edge2 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
-
-// Find routes
-await foreach (RouteDetail route in client.Node.ReadRoutes(
-  SearchTypeEnum.DepthFirstSearch,
-  tenant.GUID,
-  graph.GUID,
-  node1.GUID,
-  node2.GUID))
+TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata
 {
-  Console.WriteLine(...);
-}
+    Name = "Example tenant"
+});
 
-// Export to GEXF file
-await client.ExportGraphToGexfFile(tenant.GUID, graph.GUID, "mygraph.gexf", false, false);
+Graph graph = await client.Graph.Create(new Graph
+{
+    TenantGUID = tenant.GUID,
+    Name = "Example graph"
+});
+
+Node ada = await client.Node.Create(new Node
+{
+    TenantGUID = tenant.GUID,
+    GraphGUID = graph.GUID,
+    Name = "Ada",
+    Labels = new List<string> { "Person" }
+});
+
+Node grace = await client.Node.Create(new Node
+{
+    TenantGUID = tenant.GUID,
+    GraphGUID = graph.GUID,
+    Name = "Grace",
+    Labels = new List<string> { "Person" }
+});
+
+await client.Edge.Create(new Edge
+{
+    TenantGUID = tenant.GUID,
+    GraphGUID = graph.GUID,
+    From = ada.GUID,
+    To = grace.GUID,
+    Name = "Worked with"
+});
+
+GraphQueryResult query = await client.Query.Execute(
+    tenant.GUID,
+    graph.GUID,
+    new GraphQueryRequest
+    {
+        Query = "MATCH (n:Person) RETURN n ORDER BY n.name ASC LIMIT 10"
+    });
+
+Console.WriteLine("Rows: " + query.RowCount);
 ```
 
-## Simple Example, In-Memory
-
-LiteGraph can be configured to run in-memory, with a specified database filename.  If the database exists, it will be fully loaded into memory, and then **must** later be `Flush()`ed out to disk when done.  If the database does not exist, it will be created.
+Use the provider-neutral factory when selecting storage from configuration:
 
 ```csharp
 using LiteGraph;
+using LiteGraph.GraphRepositories;
 
-LiteGraphClient client = new LiteGraphClient(new SqliteRepository("litegraph.db", true)); // true to run in-memory
+DatabaseSettings settings = new DatabaseSettings
+{
+    Type = DatabaseTypeEnum.Postgresql,
+    ConnectionString = "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
+};
+
+using GraphRepositoryBase repository = GraphRepositoryFactory.Create(settings);
+using LiteGraphClient client = new LiteGraphClient(repository);
+
+client.InitializeRepository();
+```
+
+Execute a graph-scoped transaction:
+
+```csharp
+TransactionRequest request = client.Transaction
+    .CreateRequestBuilder()
+    .WithIsolationLevel(TransactionIsolationLevelEnum.Default)
+    .CreateNode(new Node { Name = "Transaction node" })
+    .Build();
+
+TransactionResult result = await client.Transaction.Execute(
+    tenant.GUID,
+    graph.GUID,
+    request);
+
+Console.WriteLine(result.State + " " + result.TransactionId);
+```
+
+For in-memory SQLite, pass `true` to `SqliteGraphRepository` and call `Flush()` when you want to persist the in-memory database to disk:
+
+```csharp
+using LiteGraphClient client = new LiteGraphClient(new SqliteGraphRepository("litegraph.db", true));
 client.InitializeRepository();
 
-// Create a tenant
-TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "My tenant" });
+// Work with the graph...
 
-// Create a graph
-Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "This is my graph!" });
-
-// Create nodes
-Node node1 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node1" });
-Node node2 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node2" });
-Node node3 = await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "node3" });
-
-// Create edges
-Edge edge1 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node1.GUID, To = node2.GUID, Name = "Node 1 to node 2" });
-Edge edge2 = await client.Edge.Create(new Edge { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, From = node2.GUID, To = node3.GUID, Name = "Node 2 to node 3" });
-
-// Flush to disk
 client.Flush();
 ```
 
-## Working with Object Labels, Tags, and Data
+## Running The Server Locally
 
-The `Labels` property is a `List<string>` allowing you to attach labels to any `Graph`, `Node`, or `Edge`, i.e. `[ "mylabel" ]`.
+Run the REST server:
 
-The `Tags` property is a `NameValueCollection` allowing you to attach key-value pairs to any `Graph`, `Node`, or `Edge`, i.e. `{ "foo": "bar" }`.
-
-The `Data` property is an `object` and can be attached to any `Graph`, `Node`, or `Edge`.  `Data` supports any object serializable to JSON.  This value is retrieved when reading or searching objects, and filters can be created to retrieve only objects that have matches based on elements in the object stored in `Data`.  Refer to [ExpressionTree](https://github.com/jchristn/ExpressionTree/) for information on how to craft expressions.
-
-The `Vectors` property can be attached to any `Graph`, `Node`, or `Edge` object, and is a `List<VectorMetadata>`.  The embeddings within can be used for a variety of different vector searches (such as `CosineSimilarity`).
-
-All of these properties can be used in conjunction with one another when filtering for retrieval.
-
-### Storing and Searching Labels
-
-```csharp
-List<string> labels = new List<string>
-{
-  "test",
-  "label1"
-};
-
-await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Labels = labels });
-
-await foreach (Node node in client.Node.ReadMany(tenant.GUID, graph.GUID, labels: labels))
-{
-  Console.WriteLine(...);
-}
+```bash
+dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
 ```
 
-### Storing and Searching Tags
+By default the generated local server configuration listens on `http://localhost:8701` and uses SQLite unless you configure `LiteGraph.Database` or `LITEGRAPH_DB_*` environment variables. The Docker configuration listens on `0.0.0.0:8701` and uses PostgreSQL.
 
-```csharp
-NameValueCollection nvc = new NameValueCollection();
-nvc.Add("key", "value");
+Useful environment variables:
 
-await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Tags = nvc });
+| Variable | Purpose |
+| --- | --- |
+| `LITEGRAPH_DB_TYPE` | `Sqlite` or `Postgresql` |
+| `LITEGRAPH_DB_FILENAME` | SQLite database filename |
+| `LITEGRAPH_DB_CONNECTION_STRING` | Provider connection string |
+| `LITEGRAPH_DB_HOST` | PostgreSQL host |
+| `LITEGRAPH_DB_PORT` | PostgreSQL port |
+| `LITEGRAPH_DB_NAME` | PostgreSQL database |
+| `LITEGRAPH_DB_USERNAME` | PostgreSQL user |
+| `LITEGRAPH_DB_PASSWORD` | PostgreSQL password |
+| `LITEGRAPH_DB_SCHEMA` | PostgreSQL schema |
+| `LITEGRAPH_TRANSACTION_MAX_OPERATIONS` | REST transaction operation cap |
+| `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS` | REST transaction timeout cap |
 
-await foreach (Node node in client.Node.ReadMany(tenant.GUID, graph.GUID, tags: nvc))
-{
-  Console.WriteLine(...);
-}
+## MCP And AI Agents
+
+LiteGraph includes an MCP server so Claude, Claude Code, Cursor, and other MCP-compatible clients can create, query, and manage graphs through AI-agent tool calls.
+
+Start LiteGraph REST first, then start MCP:
+
+```bash
+dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
+dotnet run --project src/LiteGraph.McpServer/LiteGraph.McpServer.csproj
 ```
 
-### Storing and Searching Data
+Default local MCP listeners:
 
-```csharp
-using ExpressionTree;
+| Transport | Endpoint |
+| --- | --- |
+| HTTP | `http://localhost:8702/rpc` |
+| TCP | `localhost:8703` |
+| WebSocket | `ws://localhost:8704/mcp` |
 
-class Person
-{
-  public string Name { get; set; } = null;
-  public int Age { get; set; } = 0;
-  public string City { get; set; } = "San Jose";
-}
+MCP configuration can be overridden with:
 
-Person person1 = new Person { Name = "Joel", Age = 47, City = "San Jose" };
-await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = person1 });
+| Variable | Purpose |
+| --- | --- |
+| `LITEGRAPH_ENDPOINT` | LiteGraph REST endpoint |
+| `LITEGRAPH_API_KEY` | LiteGraph bearer token |
+| `MCP_HTTP_HOSTNAME` | HTTP hostname |
+| `MCP_HTTP_PORT` | HTTP port |
+| `MCP_TCP_ADDRESS` | TCP bind address |
+| `MCP_TCP_PORT` | TCP port |
+| `MCP_WS_HOSTNAME` | WebSocket hostname |
+| `MCP_WS_PORT` | WebSocket port |
 
-Expr expr = new Expr
-{
-  "Left": "City",
-  "Operator": "Equals",
-  "Right": "San Jose"
-};
+See [Using Claude with LiteGraph](docs/CLAUDE_MCP.md) for client setup.
 
-await foreach (Node node in client.Node.ReadMany(tenant.GUID, graph.GUID, nodeFilter: expr))
-{
-  Console.WriteLine(...);
-}
+## Dashboard
+
+The dashboard lives in [`dashboard/`](dashboard/) and is included in the Docker Compose deployment. For local dashboard development:
+
+```bash
+cd dashboard
+npm install
+npm run dev
 ```
 
-### Storing and Searching Vectors
+The dashboard includes graph management, node/edge/label/tag/vector screens, authorization management, request history, and an API Explorer with query and transaction examples.
 
-It is important to note that vectors have a dimensionality (number of array elements) and vector searches are only performed against graphs, nodes, and edges where the attached vector objects have a dimensionality consistent with the input.
+## Client SDKs
 
-Further, it is strongly recommended that you make extensive use of labels, tags, and expressions (data filters) when performing a vector search to reduce the number of records against which score, distance, or inner product calculations are performed. 
-
-`VectorSearchResult` objects have three properties used to weigh the similarity or distance of the result to the supplied query:
-- `Score` - a higher score indicates a greater degree of similarity to the query
-- `Distance` - a lower distance indicates a greater proximity to the query
-- `InnerProduct` - a higher inner product indicates a greater degree of similarity to the query
-
-When searching vectors, you can supply one of three requirements thresholds that must be met:
-- `MinimumScore` - only return results with this score or higher
-- `MaximumDistance` - only return results with distance less than the supplied value
-- `MinimumInnerProduct` - only return results with this inner product or higher
-
-Your requirements threshold should match with the `VectorSearchTypeEnum` you supply to the search.
-
-```csharp
-using ExpressionTree;
-
-class Person
-{
-  public string Name { get; set; } = null;
-  public int Age { get; set; } = 0;
-  public string City { get; set; } = "San Jose";
-}
-
-Person person1 = new Person { Name = "Joel", Age = 47, City = "San Jose" };
-
-VectorMetadata vectors = new VectorMetadata
-{
-  Model = "testmodel",
-  Dimensionality = 3,
-  Content = "testcontent",
-  Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
-};
-
-await client.Node.Create(new Node { TenantGUID = tenant.GUID, GraphGUID = graph.GUID, Name = "Joel", Data = person1, Vectors = new List<VectorMetadata> { vectors } });
-
-VectorSearchRequest req = new VectorSearchRequest
-{
-  TenantGUID = tenant.GUID,
-  GraphGUID = graph.GUID,
-  Domain = VectorSearchDomainEnum.Node,
-  SearchType = VectorSearchTypeEnum.CosineSimilarity,
-  Vectors = new List<float> { 0.1f, 0.2f, 0.3f },
-  TopK = 10,
-  MinimumScore = 0.1,
-  MaximumDistance = 100,
-  MinimumInnerProduct = 0.1
-};
-
-await foreach (VectorSearchResult result in client.Vector.Search(req))
-{
-  Console.WriteLine("Node " + result.Node.GUID + " score " + result.Score);
-}
-```
-
-### Enumeration Ordering
-
-A variety of `EnumerationOrderEnum` options are available when enumerating objects.
-
-- `CreatedAscending` - sort results in ascending order by creation timestamp
-- `CreatedDescending` - sort results in descending order by creation timestamp
-- `NameAscending` - sort results in ascending order by name
-- `NameDescending` - sort results in descending order by name
-- `GuidAscending` - sort results in ascending order by GUID
-- `GuidDescending` - sort results in descending order by GUID
-- `CostAscending` - for edges only, sort results in ascending order by cost
-- `CostDescending` - for edges only, sort results in descending order by cost
-- `MostConnected` - for nodes only, sort results in descending order by total edge count
-- `LeastConnected` - for nodes only, sort results in ascending order by total edge count
-
-To enumerate, use the enumeration API for the resource you wish.
-
-```csharp
-EnumerationRequest query = new EnumerationRequest
-{
-  TenantGUID = tenant.GUID,
-  Ordering = EnumerationOrderEnum.CreatedDescending,
-  IncludeData = true,
-  IncludeSubordinates = true,
-  MaxResults = 5,
-  ContinuationToken = null,         // set to the continuation token from the last results to paginate
-  Labels = new List<string>(),      // labels on which to match
-  Tags = new NameValueCollection(), // tags on which to match
-  Filter = null,                    // expression on which to match from data property
-};
-
-EnumerationResult<Node> result = await client.Node.Enumerate(query);
-// returns
-{
-    "Success": true,
-    "Timestamp": {
-        "Start": "2025-06-22T01:17:42.984885Z",
-        "End": "2025-06-22T01:17:43.066948Z",
-        "TotalMs": 82.06,
-        "Messages": {}
-    },
-    "MaxResults": 5,
-    "ContinuationToken": "ca10f6ca-f4c2-4040-adfe-9de3a81b9f55",
-    "EndOfResults": false,    // whether or not the end of the results has been reached
-    "TotalRecords": 17,       // total number of matching records
-    "RecordsRemaining": 12,   // records remaining should you enumerate again
-    "Objects": [
-        {
-            "TenantGUID": "00000000-0000-0000-0000-000000000000",
-            "GUID": "ebefc55b-6f74-4997-8c87-e95e40cb83d3",
-            "GraphGUID": "00000000-0000-0000-0000-000000000000",
-            "Name": "Active Directory",
-            "CreatedUtc": "2025-06-21T05:23:14.100128Z",
-            "LastUpdateUtc": "2025-06-21T05:23:14.100128Z",
-            "Labels": [],
-            "Tags": {},
-            "Data": {
-                "Name": "Active Directory"
-            },
-            "Vectors": []
-        }, ...
-    ]
-}
-```
-
-### Gathering Statistics
-
-Statistics are available both at the tenant level and at the graph level.
-
-```csharp
-Dictionary<Guid, TenantStatistics> allTenantsStats = await client.Tenant.GetStatistics();
-TenantStatistics tenantStatistics = await client.Tenant.GetStatistics(myTenantGuid);
-
-Dictionary<Guid, GraphStatistics> allGraphStatistics = await client.Graph.GetStatistics(myTenantGuid);
-GraphStatistics graphStatistics = await client.Graph.GetStatistics(myTenantGuid, myGraphGuid);
-```
-
-## REST API and Client SDKs
-
-LiteGraph includes a project called `LiteGraph.Server` which allows you to deploy a RESTful front-end for LiteGraph. Refer to [REST_API.md](docs/REST_API.md) and also the Postman collection in the root of this repository for details. For comprehensive API documentation, visit [litegraph.readme.io](https://litegraph.readme.io/).
-
-### Web Dashboard
-
-A web-based dashboard UI for managing your LiteGraph instances is included in this repository at [`dashboard/`](dashboard/). See the [dashboard README](dashboard/README.md) for setup instructions.
-
-### Client SDKs
-
-Official client SDKs are available to interact with the LiteGraph REST API:
+Official REST SDKs:
 
 | Language | Package | Directory |
-|----------|---------|-----------|
+| --- | --- | --- |
 | C# | [![NuGet](https://img.shields.io/nuget/v/LiteGraph.Sdk.svg)](https://www.nuget.org/packages/LiteGraph.Sdk/) | [`sdk/csharp/`](sdk/csharp/) |
 | Python | [![PyPI](https://img.shields.io/pypi/v/litegraph-sdk.svg)](https://pypi.org/project/litegraph-sdk/) | [`sdk/python/`](sdk/python/) |
 | JavaScript | [![npm](https://img.shields.io/npm/v/litegraphdb.svg)](https://www.npmjs.com/package/litegraphdb) | [`sdk/js/`](sdk/js/) |
 
-See the README in each SDK directory for installation and usage instructions.
+See [`sdk/README.md`](sdk/README.md) and each SDK directory for installation and usage details.
 
-By default, LiteGraph.Server listens on `http://localhost:8701` and is only accessible to `localhost`.  Modify the `litegraph.json` file to change settings including hostname and port.
+## Build And Test
 
-Listening on a specific hostname should not require elevated privileges.  However, listening on any hostname (i.e. using `*` or `0.0.0.0` will require elevated privileges).
-
-```csharp
-$ cd LiteGraph.Server/bin/Debug/net8.0
-$ dotnet LiteGraph.Server.dll
-
-  _ _ _                          _
- | (_) |_ ___ __ _ _ _ __ _ _ __| |_
- | | |  _/ -_) _` | '_/ _` | '_ \ ' \
- |_|_|\__\___\__, |_| \__,_| .__/_||_|
-             |___/         |_|
-
- LiteGraph Server
- (c)2025 Joel Christner
-
-Using settings file './litegraph.json'
-Settings file './litegraph.json' does not exist, creating
-Initializing logging
-| syslog://127.0.0.1:514
-2025-01-27 22:09:08 joel-laptop Debug [LiteGraphServer] logging initialized
-Creating default records in database litegraph.db
-| Created tenant     : 00000000-0000-0000-0000-000000000000
-| Created user       : 00000000-0000-0000-0000-000000000000 email: default@user.com pass: password
-| Created credential : 00000000-0000-0000-0000-000000000000 bearer token: default
-| Created graph      : 00000000-0000-0000-0000-000000000000 Default graph
-Finished creating default records
-2025-01-27 22:09:09 joel-laptop Debug [ServiceHandler] initialized service handler
-2025-01-27 22:09:09 joel-laptop Info [RestServiceHandler] starting REST server on http://localhost:8701/
-2025-01-27 22:09:09 joel-laptop Alert [RestServiceHandler]
-
-NOTICE
-------
-LiteGraph is configured to listen on localhost and will not be externally accessible.
-Modify ./litegraph.json to change the REST listener hostname to make externally accessible.
-
-2025-01-27 22:09:09 joel-laptop Info [LiteGraphServer] started at 01/27/2025 10:09:09 PM using process ID 56556
-```
-
-## Running in Docker
-
-A Docker image is available in [Docker Hub](https://hub.docker.com/r/jchristn77/litegraph) under `jchristn77/litegraph:v7.0.0`. Use `docker/compose.yaml` if you wish to run PostgreSQL-backed LiteGraph, the MCP server, LiteGraph UI, Prometheus, and Grafana OSS with Docker Compose. Ensure that `docker/litegraph.json` and `docker/litegraph-mcp.json` are configured for your deployment, and keep the PostgreSQL volume plus the `docker/` directory persisted so database state, vector index artifacts, logs, and backups are retained.
-
-## MCP Server
-
-LiteGraph includes an MCP (Model Context Protocol) server that enables AI assistants and LLMs to interact with your graph database. The MCP server exposes LiteGraph operations as tools that can be called by AI models, making it ideal for building knowledge graphs, RAG applications, and AI-powered data exploration.
-
-### What is MCP?
-
-The Model Context Protocol is a standard for connecting AI assistants to external tools and data sources. By running the LiteGraph MCP server, you can enable AI assistants (like Claude) to create, query, and manage graph data directly.
-
-### Available Operations
-
-The MCP server exposes a comprehensive set of tools organized by domain:
-
-- **Tenant operations**: Create, read, update, delete tenants
-- **Graph operations**: Manage graphs within tenants
-- **Node operations**: CRUD operations, traversal (parent/child/neighbor), route finding
-- **Edge operations**: Create and manage relationships between nodes
-- **Label operations**: Attach and query labels on graphs, nodes, and edges
-- **Tag operations**: Key-value metadata management
-- **Vector operations**: Vector storage and similarity search
-- **Batch operations**: Bulk create/delete operations
-- **Admin operations**: Backup, health checks, and system management
-
-### Running the MCP Server
-
-The MCP server connects to a running LiteGraph REST API server and exposes its functionality via MCP protocols.
-
-**Prerequisites**: You need a running LiteGraph.Server instance.
+Build the full .NET solution:
 
 ```bash
-# First, start the LiteGraph REST server
-dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
-
-# Then, start the MCP server (in a separate terminal)
-dotnet run --project src/LiteGraph.McpServer/LiteGraph.McpServer.csproj
+dotnet build src/LiteGraph.sln -c Debug
 ```
 
-On first run, a default `litegraph.json` configuration file will be created. Edit this file to configure the connection to your LiteGraph server:
+Run the default .NET test wrapper on Windows:
 
-```json
-{
-  "LiteGraph": {
-    "Endpoint": "http://localhost:8701",
-    "ApiKey": "litegraphadmin"
-  },
-  "Http": {
-    "Hostname": "localhost",
-    "Port": 8702
-  },
-  "Tcp": {
-    "Address": "localhost",
-    "Port": 8703
-  },
-  "WebSocket": {
-    "Hostname": "localhost",
-    "Port": 8704
-  }
-}
+```bat
+test.bat
 ```
 
-### Transport Protocols
-
-The MCP server supports three transport protocols simultaneously:
-
-| Protocol | Default Endpoint | Use Case |
-|----------|------------------|----------|
-| HTTP | `http://localhost:8702/rpc` | RESTful MCP calls |
-| TCP | `tcp://localhost:8703` | Direct socket connections |
-| WebSocket | `ws://localhost:8704/mcp` | Real-time bidirectional communication |
-
-### Environment Variables
-
-Configuration can be overridden using environment variables:
-
-| Variable | Description |
-|----------|-------------|
-| `LITEGRAPH_ENDPOINT` | LiteGraph server URL |
-| `LITEGRAPH_API_KEY` | API key for authentication |
-| `MCP_HTTP_HOSTNAME` | HTTP server hostname |
-| `MCP_HTTP_PORT` | HTTP server port |
-| `MCP_TCP_ADDRESS` | TCP server bind address |
-| `MCP_TCP_PORT` | TCP server port |
-| `MCP_WS_HOSTNAME` | WebSocket server hostname |
-| `MCP_WS_PORT` | WebSocket server port |
-
-### Running LiteGraph and MCP Server in Docker
-
-Docker images are available at `jchristn77/litegraph:v7.0.0` and `jchristn77/litegraph-mcp:v7.0.0`. Use the Docker Compose file in the `docker` directory:
+Run the transaction-concurrency gate:
 
 ```bash
-cd docker
-docker compose up
+dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
 ```
 
-The server uses `docker/litegraph.json`; the MCP server uses `docker/litegraph-mcp.json`. Within Compose, the MCP container targets LiteGraph at `http://litegraph:8701`, and LiteGraph targets PostgreSQL at `postgresql:5432`. The same Compose file also starts Prometheus on `http://localhost:9090` and Grafana OSS on `http://localhost:3000`.
+Run the PostgreSQL provider gate by setting a disposable test database connection string:
+
+```powershell
+$env:LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING = "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph;Maximum Pool Size=128;Timeout=15;Command Timeout=60"
+dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+```
+
+SDK and dashboard tests:
+
+```bash
+cd sdk/js
+npm test -- --runInBand
+
+cd ../python
+python -m pytest
+
+cd ../../dashboard
+npm test -- --runInBand
+```
 
 ## Version History
 
-Please refer to ```CHANGELOG.md``` for version history.
+See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 
+## Bugs, Feedback, Or Enhancement Requests
+
+Please start an issue or discussion in the repository. For detailed documentation and guides, visit [litegraph.readme.io](https://litegraph.readme.io/).
