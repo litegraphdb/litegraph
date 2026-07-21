@@ -1471,21 +1471,20 @@
                     transactionSpecs.Add((12 + i, false, Guid.Empty, Guid.Empty, Guid.Empty, rollbackNode, _McpSerializer.SerializeJson(request, false)));
                 }
 
-                using (HttpClient http = new HttpClient())
+                using (HttpClient http = CreateRestConcurrencyHttpClient())
                 {
-                    http.Timeout = TimeSpan.FromSeconds(30);
                     TaskCompletionSource<bool> gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                     Task<(int Status, string Body)>[] transactionTasks = transactionSpecs.Select(async spec =>
                     {
                         await gate.Task.ConfigureAwait(false);
-                        return await SendRestRequestAsync(http, HttpMethod.Post, transactionEndpoint, spec.Body, cancellationToken).ConfigureAwait(false);
+                        return await SendRestRequestAsync(http, HttpMethod.Post, transactionEndpoint, spec.Body, providerName + " REST transaction " + spec.Index, cancellationToken).ConfigureAwait(false);
                     }).ToArray();
 
                     Task<(int Status, string Body)>[] readerTasks = Enumerable.Range(0, 8).Select(async index =>
                     {
                         await gate.Task.ConfigureAwait(false);
-                        (int Status, string Body) response = await SendRestRequestAsync(http, HttpMethod.Get, nodesEndpoint, null, cancellationToken).ConfigureAwait(false);
+                        (int Status, string Body) response = await SendRestRequestAsync(http, HttpMethod.Get, nodesEndpoint, null, providerName + " REST concurrent reader " + index, cancellationToken).ConfigureAwait(false);
                         AssertEqual(200, response.Status, providerName + " REST concurrent reader " + index + " status");
                         List<Node> nodes = _McpSerializer.DeserializeJson<List<Node>>(response.Body);
                         AssertNotNull(nodes, providerName + " REST concurrent reader " + index + " nodes");
@@ -1557,22 +1556,46 @@
             }
         }
 
+        private static HttpClient CreateRestConcurrencyHttpClient()
+        {
+            SocketsHttpHandler handler = new SocketsHttpHandler
+            {
+                MaxConnectionsPerServer = 64,
+                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(5),
+                PooledConnectionLifetime = TimeSpan.FromSeconds(10)
+            };
+
+            return new HttpClient(handler, disposeHandler: true)
+            {
+                Timeout = TimeSpan.FromSeconds(60)
+            };
+        }
+
         private static async Task<(int Status, string Body)> SendRestRequestAsync(
             HttpClient http,
             HttpMethod method,
             string url,
             string? body,
+            string context,
             CancellationToken cancellationToken)
         {
             using (HttpRequestMessage request = new HttpRequestMessage(method, url))
             {
                 request.Headers.Add("Authorization", "Bearer litegraphadmin");
+                request.Headers.ConnectionClose = true;
                 if (body != null)
                     request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
-                using (HttpResponseMessage response = await http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                    using (HttpResponseMessage response = await http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+                    {
+                        return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                    }
+                }
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                {
+                    throw new InvalidOperationException(context + " failed while sending " + method + " " + url + ": " + ex.Message, ex);
                 }
             }
         }
