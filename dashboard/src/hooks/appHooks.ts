@@ -1,7 +1,7 @@
 import { tablePaginationConfig } from '@/constants/pagination';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { ThemeEnum } from '@/types/types';
-import { url } from 'inspector';
+import { configuredLiteGraphInstanceURL } from '@/constants/config';
 
 export const usePagination = () => {
   const [page, setPage] = useState(1);
@@ -29,6 +29,11 @@ export const useAppContext = () => {
 export const useCurrentlyHostedDomainAsServerUrl = () => {
   const [serverUrl, setServerUrl] = useState<string>('');
   useEffect(() => {
+    if (configuredLiteGraphInstanceURL) {
+      setServerUrl(configuredLiteGraphInstanceURL);
+      return;
+    }
+
     const currentlyHostedDomain = window.location.origin;
     const url = new URL(currentlyHostedDomain);
     url.port = '8701';
