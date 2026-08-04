@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AddEditEdge from '@/page/edges/components/AddEditEdge';
 import { renderWithRedux } from '../../../store/utils';
+import { EdgeType } from '@/types/types';
 
 // Mock the RTK Query hooks
 const mockCreateEdge = jest.fn();
@@ -62,7 +63,7 @@ jest.mock('@/components/node-selector/NodeSelector', () => ({
 jest.mock('@/components/inputs/label-input/LabelInput', () => ({
   __esModule: true,
   default: ({ name, readonly }: any) => (
-    <div data-testid="label-input" name={name}>
+    <div data-testid="label-input" {...({ name } as any)}>
       <input
         data-testid="labels-input"
         readOnly={readonly}
@@ -81,7 +82,7 @@ jest.mock('@/components/inputs/label-input/LabelInput', () => ({
 jest.mock('@/components/inputs/tags-input/TagsInput', () => ({
   __esModule: true,
   default: ({ name, readonly }: any) => (
-    <div data-testid="tags-input" name={name}>
+    <div data-testid="tags-input" {...({ name } as any)}>
       <input
         data-testid="tags-input-field"
         readOnly={readonly}
@@ -100,7 +101,7 @@ jest.mock('@/components/inputs/tags-input/TagsInput', () => ({
 jest.mock('@/components/inputs/vectors-input.tsx/VectorsInput', () => ({
   __esModule: true,
   default: ({ name, readonly }: any) => (
-    <div data-testid="vectors-input" name={name}>
+    <div data-testid="vectors-input" {...({ name } as any)}>
       <input
         data-testid="vectors-input-field"
         readOnly={readonly}
@@ -175,7 +176,7 @@ describe('AddEditEdge', () => {
       Vectors: ['old-vector'],
     };
 
-    renderWithRedux(<AddEditEdge {...defaultProps} edge={oldEdge} />);
+    renderWithRedux(<AddEditEdge {...defaultProps} edge={oldEdge as unknown as EdgeType} />);
 
     expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
   });
@@ -188,7 +189,7 @@ describe('AddEditEdge', () => {
       Cost: 10,
     };
 
-    renderWithRedux(<AddEditEdge {...defaultProps} edge={oldEdge} />);
+    renderWithRedux(<AddEditEdge {...defaultProps} edge={oldEdge as unknown as EdgeType} />);
 
     expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
   });
@@ -254,7 +255,7 @@ describe('AddEditEdge', () => {
       Vectors: [],
     };
 
-    renderWithRedux(<AddEditEdge {...defaultProps} edge={existingEdge} />);
+    renderWithRedux(<AddEditEdge {...defaultProps} edge={existingEdge as unknown as EdgeType} />);
 
     // Modify a field using the actual input element
     const costInput = screen.getByPlaceholderText('Enter edge cost');
@@ -285,7 +286,7 @@ describe('AddEditEdge', () => {
     };
 
     renderWithRedux(
-      <AddEditEdge {...defaultProps} edge={localEdge} updateLocalEdge={mockUpdateLocalEdge} />
+      <AddEditEdge {...defaultProps} edge={localEdge as unknown as EdgeType} updateLocalEdge={mockUpdateLocalEdge} />
     );
 
     // Modify a field using the actual input element
@@ -367,7 +368,7 @@ describe('AddEditEdge', () => {
       Vectors: ['vector1', 'vector2'],
     };
 
-    renderWithRedux(<AddEditEdge {...defaultProps} edge={complexEdge} />);
+    renderWithRedux(<AddEditEdge {...defaultProps} edge={complexEdge as unknown as EdgeType} />);
 
     expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
   });
@@ -380,7 +381,7 @@ describe('AddEditEdge', () => {
       To: 'node2',
     };
 
-    renderWithRedux(<AddEditEdge {...defaultProps} edge={minimalEdge} />);
+    renderWithRedux(<AddEditEdge {...defaultProps} edge={minimalEdge as unknown as EdgeType} />);
 
     expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
   });
@@ -398,7 +399,7 @@ describe('AddEditEdge', () => {
       Vectors: null,
     };
 
-    renderWithRedux(<AddEditEdge {...defaultProps} edge={nullEdge} />);
+    renderWithRedux(<AddEditEdge {...defaultProps} edge={nullEdge as unknown as EdgeType} />);
 
     expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
   });
@@ -428,7 +429,7 @@ describe('AddEditEdge', () => {
         Cost: 10,
       };
 
-      renderWithRedux(<AddEditEdge {...defaultProps} edge={editEdge} />);
+      renderWithRedux(<AddEditEdge {...defaultProps} edge={editEdge as unknown as EdgeType} />);
 
       expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
       expect(screen.getByText('Update')).toBeInTheDocument();
@@ -443,7 +444,7 @@ describe('AddEditEdge', () => {
         Cost: 10,
       };
 
-      renderWithRedux(<AddEditEdge {...defaultProps} edge={readonlyEdge} readonly={true} />);
+      renderWithRedux(<AddEditEdge {...defaultProps} edge={readonlyEdge as unknown as EdgeType} readonly={true} />);
 
       expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
     });
@@ -467,7 +468,7 @@ describe('AddEditEdge', () => {
         refetch: jest.fn(),
       });
 
-      renderWithRedux(<AddEditEdge {...defaultProps} edge={readonlyEdge} readonly={true} />);
+      renderWithRedux(<AddEditEdge {...defaultProps} edge={readonlyEdge as unknown as EdgeType} readonly={true} />);
 
       expect(screen.getByDisplayValue('readonly-edge-id')).toBeInTheDocument();
       expect(screen.getByText('Close')).toBeInTheDocument();
@@ -549,13 +550,13 @@ describe('AddEditEdge', () => {
       const apiEdge = { GUID: 'api-edge-id', Name: 'API Edge' };
 
       // Render first edge
-      const { unmount } = renderWithRedux(<AddEditEdge {...defaultProps} edge={apiEdge} />);
+      const { unmount } = renderWithRedux(<AddEditEdge {...defaultProps} edge={apiEdge as unknown as EdgeType} />);
       expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
 
       // Clean up and render second edge
       unmount();
       const localEdge = { GUID: 'local-edge-id', Name: 'Local Edge', isLocal: true };
-      renderWithRedux(<AddEditEdge {...defaultProps} edge={localEdge} />);
+      renderWithRedux(<AddEditEdge {...defaultProps} edge={localEdge as unknown as EdgeType} />);
       expect(screen.getByTestId('add-edit-edge-modal')).toBeInTheDocument();
     });
 
@@ -610,7 +611,7 @@ describe('AddEditEdge', () => {
 
       // Test edit mode
       const editEdge = { GUID: 'edit-edge-id', Name: 'Edit Edge' };
-      renderWithRedux(<AddEditEdge {...defaultProps} edge={editEdge} />);
+      renderWithRedux(<AddEditEdge {...defaultProps} edge={editEdge as unknown as EdgeType} />);
       expect(screen.getByText('Edit Edge')).toBeInTheDocument();
     });
   });

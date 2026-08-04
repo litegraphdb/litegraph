@@ -74,7 +74,7 @@ describe('DeleteEdge', () => {
   const mockDeleteEdgeById = jest.fn();
 
   beforeEach(() => {
-    mockUseDeleteEdgeMutation.mockReturnValue([mockDeleteEdgeById, { isLoading: false }]);
+    mockUseDeleteEdgeMutation.mockReturnValue([mockDeleteEdgeById, { isLoading: false }] as any);
     jest.clearAllMocks();
   });
 
@@ -415,7 +415,7 @@ describe('DeleteEdge', () => {
   });
 
   it('handles edge deletion with loading state', async () => {
-    mockUseDeleteEdgeMutation.mockReturnValue([mockDeleteEdgeById, { isLoading: true }]);
+    mockUseDeleteEdgeMutation.mockReturnValue([mockDeleteEdgeById, { isLoading: true }] as any);
 
     render(<DeleteEdge {...defaultProps} />);
 
@@ -424,7 +424,7 @@ describe('DeleteEdge', () => {
   });
 
   it('handles edge deletion with non-loading state', async () => {
-    mockUseDeleteEdgeMutation.mockReturnValue([mockDeleteEdgeById, { isLoading: false }]);
+    mockUseDeleteEdgeMutation.mockReturnValue([mockDeleteEdgeById, { isLoading: false }] as any);
 
     render(<DeleteEdge {...defaultProps} />);
 

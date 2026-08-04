@@ -481,7 +481,7 @@ describe('NodeSelector', () => {
           // Should show only one instance of the duplicate node
           const options = screen.getAllByRole('option');
           const duplicateOptions = options.filter(
-            (option) =>
+            (option: any) =>
               option.textContent === 'Local Node 1' || option.textContent === 'Duplicate Node'
           );
           expect(duplicateOptions).toHaveLength(1);
@@ -572,7 +572,7 @@ describe('NodeSelector', () => {
     });
 
     it('should handle search loading state', async () => {
-      let resolveMockSearch: (value: any) => void;
+      let resolveMockSearch: (value: any) => void = () => {};
       const searchPromise = new Promise((resolve) => {
         resolveMockSearch = resolve;
       });

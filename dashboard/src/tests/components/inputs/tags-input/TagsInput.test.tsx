@@ -97,11 +97,11 @@ describe('TagsInput', () => {
     const keyInputs = screen.getAllByDisplayValue(/key/);
     const valueInputs = screen.getAllByDisplayValue(/value/);
 
-    keyInputs.forEach((input) => {
+    keyInputs.forEach((input: any) => {
       expect(input).toHaveAttribute('readOnly');
     });
 
-    valueInputs.forEach((input) => {
+    valueInputs.forEach((input: any) => {
       expect(input).toHaveAttribute('readOnly');
     });
 
@@ -199,7 +199,7 @@ describe('TagsInput', () => {
     );
 
     const keyInputs = screen.getAllByPlaceholderText('Enter key');
-    keyInputs.forEach((input) => {
+    keyInputs.forEach((input: any) => {
       expect(input).toBeRequired();
     });
   });
@@ -212,7 +212,7 @@ describe('TagsInput', () => {
     );
 
     const valueInputs = screen.getAllByPlaceholderText('Enter value');
-    valueInputs.forEach((input) => {
+    valueInputs.forEach((input: any) => {
       expect(input).toBeRequired();
     });
   });
@@ -258,7 +258,7 @@ describe('TagsInput', () => {
   it('renders with custom className', () => {
     render(
       <MockForm>
-        <TagsInput {...defaultProps} className="custom-class" />
+        <TagsInput {...defaultProps} {...({ className: 'custom-class' } as any)} />
       </MockForm>
     );
 
@@ -324,11 +324,11 @@ describe('TagsInput', () => {
     const keyInputs = screen.getAllByDisplayValue(/key/);
     const valueInputs = screen.getAllByDisplayValue(/value/);
 
-    keyInputs.forEach((input) => {
+    keyInputs.forEach((input: any) => {
       expect(input).toHaveAttribute('readOnly');
     });
 
-    valueInputs.forEach((input) => {
+    valueInputs.forEach((input: any) => {
       expect(input).toHaveAttribute('readOnly');
     });
 

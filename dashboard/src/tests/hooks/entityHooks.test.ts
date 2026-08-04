@@ -280,7 +280,7 @@ describe('Entity Hooks', () => {
         isError: false,
       });
 
-      renderHook(() => useLazyLoadNodes('graph-123', mockOnDataLoaded));
+      renderHook(() => useLazyLoadNodes('graph-123', mockOnDataLoaded as any));
 
       // The callback should be available even if not called immediately
       expect(mockOnDataLoaded).toBeDefined();

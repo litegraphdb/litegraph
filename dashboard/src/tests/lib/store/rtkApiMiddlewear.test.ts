@@ -235,7 +235,7 @@ describe('rtkApiMiddlewear', () => {
   describe('rtkQueryErrorLogger', () => {
     it('should call errorHandler for rejected actions', () => {
       const mockNext = jest.fn();
-      const mockApi = {};
+      const mockApi: any = {};
       const rejectedAction = {
         type: 'api/endpoint/rejected',
         meta: { rejectedWithValue: true },
@@ -261,7 +261,7 @@ describe('rtkApiMiddlewear', () => {
 
     it('should not call errorHandler for non-rejected actions', () => {
       const mockNext = jest.fn();
-      const mockApi = {};
+      const mockApi: any = {};
       const normalAction = {
         type: 'api/endpoint/fulfilled',
         payload: { data: 'success' },
@@ -282,14 +282,14 @@ describe('rtkApiMiddlewear', () => {
 
     it('should pass through all actions to next middleware', () => {
       const mockNext = jest.fn();
-      const mockApi = {};
+      const mockApi: any = {};
       const action = { type: 'TEST_ACTION' };
 
       const middleware = rtkQueryErrorLogger(mockApi)(mockNext);
       const result = middleware(action);
 
       expect(mockNext).toHaveBeenCalledWith(action);
-      expect(result).toBe(mockNext.return);
+      expect(result).toBe((mockNext as any).return);
     });
   });
 });

@@ -123,7 +123,7 @@ describe('rootReducer', () => {
     });
 
     it('should pass through state correctly for non-logout actions', () => {
-      const initialState = {
+      const initialState: any = {
         liteGraph: { test: 'existing' },
         api: { api: 'existing' },
       };
@@ -142,7 +142,7 @@ describe('rootReducer', () => {
 
       expect(newState).toBeDefined();
       expect(newState.liteGraph).toBeDefined();
-      expect(newState.api).toBeDefined();
+      expect((newState as any).api).toBeDefined();
     });
   });
 });

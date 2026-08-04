@@ -73,7 +73,7 @@ describe('ErrorBoundary Component', () => {
 
   it('renders custom error component when provided', () => {
     const errorSpy = jest.spyOn(console, 'error');
-    const CustomErrorComponent = ({ errorMessage }: { errorMessage?: string }) => (
+    const CustomErrorComponent = (errorMessage?: string) => (
       <div data-testid="custom-error">Custom Error: {errorMessage || 'No message'}</div>
     );
 

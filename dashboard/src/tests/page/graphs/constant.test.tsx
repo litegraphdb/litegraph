@@ -3,11 +3,16 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { tableColumns } from '@/page/graphs/constant';
 import { GraphData } from '@/types/types';
+import type { ColumnType } from 'antd/es/table';
+
+const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<GraphData>[] =>
+  tableColumns(...args) as ColumnType<GraphData>[];
 
 const getColumnTitleText = (title: any): string => {
   if (!React.isValidElement(title)) return title;
-  const tooltipChild = title.props.children;
-  if (React.isValidElement(tooltipChild)) return tooltipChild.props.children;
+  const tooltipChild = (title as React.ReactElement<{ children?: any }>).props.children;
+  if (React.isValidElement(tooltipChild))
+    return (tooltipChild as React.ReactElement<{ children?: any }>).props.children;
   return tooltipChild;
 };
 
@@ -46,7 +51,7 @@ describe('Graphs Constants', () => {
   const mockHandleRebuildVectorIndex = jest.fn();
   const mockHandleDeleteVectorIndex = jest.fn();
 
-  const mockGraphData: GraphData = {
+  const mockGraphData = {
     GUID: 'graph-123',
     Name: 'Test Graph',
     Description: 'Test Description',
@@ -57,7 +62,7 @@ describe('Graphs Constants', () => {
     LastUpdateUtc: '2024-01-01T12:00:00Z',
     Score: 0.95,
     Distance: 0.1,
-  };
+  } as unknown as GraphData;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,7 +70,7 @@ describe('Graphs Constants', () => {
 
   describe('tableColumns function', () => {
     it('returns correct number of columns', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -81,7 +86,7 @@ describe('Graphs Constants', () => {
     });
 
     it('includes score and distance columns when hasScoreOrDistance is true', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -104,7 +109,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders name column correctly', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -123,7 +128,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders GUID column correctly', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -142,7 +147,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders labels column with filter', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -163,7 +168,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders labels column as a count badge', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -176,13 +181,13 @@ describe('Graphs Constants', () => {
       );
 
       const labelsColumn = columns.find((col) => col.key === 'labels');
-      render(labelsColumn?.render?.(mockGraphData.Labels, mockGraphData) as React.ReactElement);
+      render(labelsColumn?.render?.(mockGraphData.Labels, mockGraphData, 0) as React.ReactElement);
 
       expect(screen.getByTestId('tag')).toHaveTextContent('2 labels');
     });
 
     it('renders tags column with filter', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -203,7 +208,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders tags column as a count badge', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -216,13 +221,13 @@ describe('Graphs Constants', () => {
       );
 
       const tagsColumn = columns.find((col) => col.key === 'tags');
-      render(tagsColumn?.render?.(mockGraphData.Tags, mockGraphData) as React.ReactElement);
+      render(tagsColumn?.render?.(mockGraphData.Tags, mockGraphData, 0) as React.ReactElement);
 
       expect(screen.getByTestId('tag')).toHaveTextContent('2 tags');
     });
 
     it('renders vectors column correctly', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -241,7 +246,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders created UTC column with sorter', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -261,7 +266,7 @@ describe('Graphs Constants', () => {
     });
 
     it('renders actions column with all action items', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -280,7 +285,7 @@ describe('Graphs Constants', () => {
     });
 
     it('handles score column rendering correctly', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -300,7 +305,7 @@ describe('Graphs Constants', () => {
     });
 
     it('handles distance column rendering correctly', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,
@@ -320,7 +325,7 @@ describe('Graphs Constants', () => {
     });
 
     it('handles responsive properties correctly', () => {
-      const columns = tableColumns(
+      const columns = getColumns(
         mockHandleEdit,
         mockHandleDelete,
         mockHandleExportGexf,

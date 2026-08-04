@@ -62,7 +62,7 @@ describe('MenuItems', () => {
 
   beforeEach(() => {
     mockUseAppDynamicNavigation.mockReturnValue({
-      serializePath: mockSerializePath,
+      serializePath: mockSerializePath as unknown as (path?: string) => string,
       navigate: jest.fn(),
     });
     jest.clearAllMocks();

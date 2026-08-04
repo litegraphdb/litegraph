@@ -48,6 +48,7 @@ describe('EdgePage with Mock API', () => {
       type: 'default',
       x: 100,
       y: 200,
+      z: 0,
       vx: 0.5,
       vy: -0.3,
       isDragging: false,

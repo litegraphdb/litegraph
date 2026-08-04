@@ -3,7 +3,7 @@ import { getNodeNameByGUID, transformEdgeDataForTable } from '@/page/edges/utils
 import { EdgeType, NodeType } from '@/types/types';
 
 describe('Edge Utils', () => {
-  const mockNodes: NodeType[] = [
+  const mockNodes = [
     {
       GUID: 'node-1',
       Name: 'Node One',
@@ -37,9 +37,9 @@ describe('Edge Utils', () => {
       Data: {},
       Vectors: [],
     },
-  ];
+  ] as unknown as NodeType[];
 
-  const mockEdges: EdgeType[] = [
+  const mockEdges = [
     {
       GUID: 'edge-1',
       Name: 'Edge One',
@@ -64,7 +64,7 @@ describe('Edge Utils', () => {
       Vectors: [{ id: 'vec2', values: [4, 5, 6] }],
       CreatedUtc: '2023-01-02T00:00:00Z',
     },
-  ];
+  ] as unknown as EdgeType[];
 
   describe('getNodeNameByGUID', () => {
     it('returns node name when GUID exists', () => {
@@ -147,10 +147,10 @@ describe('Edge Utils', () => {
       expect(result).toHaveLength(2);
       expect(result[0].FromName).toBe('Node One');
       expect(result[0].ToName).toBe('Node Two');
-      expect(result[0].key).toBe('edge-1');
+      expect((result[0] as EdgeType & { key?: string }).key).toBe('edge-1');
       expect(result[1].FromName).toBe('Node Two');
       expect(result[1].ToName).toBe('Node Three');
-      expect(result[1].key).toBe('edge-2');
+      expect((result[1] as EdgeType & { key?: string }).key).toBe('edge-2');
     });
 
     it('preserves all original edge properties', () => {
@@ -282,7 +282,7 @@ describe('Edge Utils', () => {
       expect(result).toHaveLength(1);
       expect(result[0].FromName).toBe('Node One');
       expect(result[0].ToName).toBe('Node Two');
-      expect(result[0].key).toBe('edge-3');
+      expect((result[0] as EdgeType & { key?: string }).key).toBe('edge-3');
     });
 
     it('handles edges with null/undefined values', () => {

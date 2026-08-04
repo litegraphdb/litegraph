@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import Graph2DViewer from '@/components/base/graph/graph-2d/Graph2DViewer';
 import { useAppContext } from '@/hooks/appHooks';
 import { ThemeEnum } from '@/types/types';
+import type { NodeData, EdgeData } from '@/lib/graph/types';
 
 // Mock dependencies
 jest.mock('@/hooks/appHooks');
@@ -293,6 +294,7 @@ describe('Graph2DViewer', () => {
       type: 'circle',
       x: i * 10,
       y: i * 10,
+      z: 0,
       vx: 0,
       vy: 0,
     }));
@@ -393,7 +395,7 @@ describe('Graph2DViewer', () => {
     const { rerender } = render(<Graph2DViewer {...defaultProps} />);
 
     const newNodes = [
-      { id: 'node3', label: 'Node 3', type: 'triangle', x: 200, y: 200, vx: 0, vy: 0 },
+      { id: 'node3', label: 'Node 3', type: 'triangle', x: 200, y: 200, z: 0, vx: 0, vy: 0 },
     ];
     const newEdges = [
       {
@@ -470,7 +472,13 @@ describe('Graph2DViewer', () => {
       { id: 'edge2', source: 'node2', target: 'node3', label: 'Edge 2' },
     ];
 
-    rerender(<Graph2DViewer {...defaultProps} nodes={newNodes} edges={newEdges} />);
+    rerender(
+      <Graph2DViewer
+        {...defaultProps}
+        nodes={newNodes as unknown as NodeData[]}
+        edges={newEdges as unknown as EdgeData[]}
+      />
+    );
 
     expect(screen.getByTestId('sigma-container')).toBeInTheDocument();
   });

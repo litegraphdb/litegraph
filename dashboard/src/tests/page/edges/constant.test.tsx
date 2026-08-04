@@ -3,11 +3,16 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { tableColumns } from '@/page/edges/constant';
 import { EdgeType } from '@/types/types';
+import type { ColumnType } from 'antd/es/table';
+
+const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<EdgeType>[] =>
+  tableColumns(...args) as ColumnType<EdgeType>[];
 
 const getColumnTitleText = (title: any): string => {
   if (!React.isValidElement(title)) return title;
-  const tooltipChild = title.props.children;
-  if (React.isValidElement(tooltipChild)) return tooltipChild.props.children;
+  const tooltipChild = (title as React.ReactElement<{ children?: any }>).props.children;
+  if (React.isValidElement(tooltipChild))
+    return (tooltipChild as React.ReactElement<{ children?: any }>).props.children;
   return tooltipChild;
 };
 
@@ -68,14 +73,18 @@ jest.mock('lodash', () => ({
 describe('Edge Constants', () => {
   const mockEdge: EdgeType = {
     GUID: 'edge-1',
+    TenantGUID: 'tenant-1',
+    GraphGUID: 'graph-1',
     Name: 'Test Edge',
     From: 'node-1',
     To: 'node-2',
     Cost: 5,
+    Data: {},
     Labels: ['label1', 'label2'],
     Tags: { category: 'test', priority: 'high' },
     Vectors: [{ id: 'vec1', values: [1, 2, 3] }],
     CreatedUtc: '2023-01-01T00:00:00Z',
+    LastUpdateUtc: '2023-01-01T00:00:00Z',
     Score: 0.95,
     Distance: 0.1,
   };
@@ -91,18 +100,20 @@ describe('Edge Constants', () => {
 
   describe('Name column', () => {
     it('renders name correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const nameColumn = columns.find((col) => col.key === 'Name')!;
-      const { container } = render(nameColumn.render(mockEdge.Name, mockEdge));
+      const { container } = render(nameColumn.render!(mockEdge.Name, mockEdge, 0));
 
       expect(container).toHaveTextContent('Test Edge');
     });
 
     it('handles empty name', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const nameColumn = columns.find((col) => col.key === 'Name')!;
       const edgeWithEmptyName = { ...mockEdge, Name: '' };
-      const { container } = render(nameColumn.render(edgeWithEmptyName.Name, edgeWithEmptyName));
+      const { container } = render(
+        nameColumn.render!(edgeWithEmptyName.Name, edgeWithEmptyName, 0)
+      );
 
       expect(container).toHaveTextContent('');
     });
@@ -110,19 +121,19 @@ describe('Edge Constants', () => {
 
   describe('From column', () => {
     it('renders from node correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const fromColumn = columns.find((col) => col.key === 'FromName')!;
-      const { container } = render(fromColumn.render('Node One', mockEdge));
+      const { container } = render(fromColumn.render!('Node One', mockEdge, 0));
 
       expect(container).toHaveTextContent('Node One');
     });
 
     it('handles missing from node', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const fromColumn = columns.find((col) => col.key === 'FromName')!;
       const edgeWithMissingFrom = { ...mockEdge, FromName: undefined };
       const { container } = render(
-        fromColumn.render(edgeWithMissingFrom.FromName, edgeWithMissingFrom)
+        fromColumn.render!(edgeWithMissingFrom.FromName, edgeWithMissingFrom, 0)
       );
 
       expect(container).toHaveTextContent('');
@@ -131,18 +142,20 @@ describe('Edge Constants', () => {
 
   describe('To column', () => {
     it('renders to node correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const toColumn = columns.find((col) => col.key === 'ToName')!;
-      const { container } = render(toColumn.render('Node Two', mockEdge));
+      const { container } = render(toColumn.render!('Node Two', mockEdge, 0));
 
       expect(container).toHaveTextContent('Node Two');
     });
 
     it('handles missing to node', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const toColumn = columns.find((col) => col.key === 'ToName')!;
       const edgeWithMissingTo = { ...mockEdge, ToName: undefined };
-      const { container } = render(toColumn.render(edgeWithMissingTo.ToName, edgeWithMissingTo));
+      const { container } = render(
+        toColumn.render!(edgeWithMissingTo.ToName, edgeWithMissingTo, 0)
+      );
 
       expect(container).toHaveTextContent('');
     });
@@ -150,28 +163,28 @@ describe('Edge Constants', () => {
 
   describe('Cost column', () => {
     it('renders cost correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const costColumn = columns.find((col) => col.key === 'Cost')!;
-      const { container } = render(costColumn.render(mockEdge.Cost, mockEdge));
+      const { container } = render(costColumn.render!(mockEdge.Cost, mockEdge, 0));
 
       expect(container).toHaveTextContent('5');
     });
 
     it('handles zero cost', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const costColumn = columns.find((col) => col.key === 'Cost')!;
       const edgeWithZeroCost = { ...mockEdge, Cost: 0 };
-      const { container } = render(costColumn.render(edgeWithZeroCost.Cost, edgeWithZeroCost));
+      const { container } = render(costColumn.render!(edgeWithZeroCost.Cost, edgeWithZeroCost, 0));
 
       expect(container).toHaveTextContent('0');
     });
 
     it('handles negative cost', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const costColumn = columns.find((col) => col.key === 'Cost')!;
       const edgeWithNegativeCost = { ...mockEdge, Cost: -5 };
       const { container } = render(
-        costColumn.render(edgeWithNegativeCost.Cost, edgeWithNegativeCost)
+        costColumn.render!(edgeWithNegativeCost.Cost, edgeWithNegativeCost, 0)
       );
 
       expect(container).toHaveTextContent('-5');
@@ -180,39 +193,45 @@ describe('Edge Constants', () => {
 
   describe('Labels column', () => {
     it('renders labels correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const labelsColumn = columns.find((col) => col.key === 'Labels')!;
-      const { container } = render(labelsColumn.render(mockEdge.Labels, mockEdge));
+      const { container } = render(labelsColumn.render!(mockEdge.Labels, mockEdge, 0));
 
       expect(screen.getByTestId('tag')).toHaveTextContent('2 labels');
     });
 
     it('handles empty labels array', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const labelsColumn = columns.find((col) => col.key === 'Labels')!;
       const edgeWithEmptyLabels = { ...mockEdge, Labels: [] };
       const { container } = render(
-        labelsColumn.render(edgeWithEmptyLabels.Labels, edgeWithEmptyLabels)
+        labelsColumn.render!(edgeWithEmptyLabels.Labels, edgeWithEmptyLabels, 0)
       );
 
       expect(container).toHaveTextContent('0 labels');
     });
 
     it('handles undefined labels', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const labelsColumn = columns.find((col) => col.key === 'Labels')!;
       const edgeWithUndefinedLabels = { ...mockEdge, Labels: undefined };
       const { container } = render(
-        labelsColumn.render(edgeWithUndefinedLabels.Labels, edgeWithUndefinedLabels)
+        labelsColumn.render!(
+          edgeWithUndefinedLabels.Labels,
+          edgeWithUndefinedLabels as unknown as EdgeType,
+          0
+        )
       );
 
       expect(container).toHaveTextContent('0 labels');
     });
 
     it('has filter dropdown for labels', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const labelsColumn = columns.find((col) => col.key === 'Labels')!;
-      const filterDropdown = labelsColumn.filterDropdown;
+      const filterDropdown = labelsColumn.filterDropdown as
+        | ((props: any) => React.ReactNode)
+        | undefined;
 
       if (filterDropdown) {
         const { container } = render(filterDropdown({} as any));
@@ -223,37 +242,45 @@ describe('Edge Constants', () => {
 
   describe('Tags column', () => {
     it('renders tags correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const tagsColumn = columns.find((col) => col.key === 'Tags')!;
-      const { container } = render(tagsColumn.render(mockEdge.Tags, mockEdge));
+      const { container } = render(tagsColumn.render!(mockEdge.Tags, mockEdge, 0));
 
       expect(container).toHaveTextContent('2 tags');
     });
 
     it('handles empty tags object', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const tagsColumn = columns.find((col) => col.key === 'Tags')!;
       const edgeWithEmptyTags = { ...mockEdge, Tags: {} };
-      const { container } = render(tagsColumn.render(edgeWithEmptyTags.Tags, edgeWithEmptyTags));
+      const { container } = render(
+        tagsColumn.render!(edgeWithEmptyTags.Tags, edgeWithEmptyTags, 0)
+      );
 
       expect(container).toHaveTextContent('0 tags');
     });
 
     it('handles undefined tags', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const tagsColumn = columns.find((col) => col.key === 'Tags')!;
       const edgeWithUndefinedTags = { ...mockEdge, Tags: undefined };
       const { container } = render(
-        tagsColumn.render(edgeWithUndefinedTags.Tags, edgeWithUndefinedTags)
+        tagsColumn.render!(
+          edgeWithUndefinedTags.Tags,
+          edgeWithUndefinedTags as unknown as EdgeType,
+          0
+        )
       );
 
       expect(container).toHaveTextContent('0 tags');
     });
 
     it('has filter dropdown for tags', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const tagsColumn = columns.find((col) => col.key === 'Tags')!;
-      const filterDropdown = tagsColumn.filterDropdown;
+      const filterDropdown = tagsColumn.filterDropdown as
+        | ((props: any) => React.ReactNode)
+        | undefined;
 
       if (filterDropdown) {
         const { container } = render(filterDropdown({} as any));
@@ -264,37 +291,41 @@ describe('Edge Constants', () => {
 
   describe('Vectors column', () => {
     it('renders vectors count correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const vectorsColumn = columns.find((col) => col.key === 'Vectors')!;
-      const { container } = render(vectorsColumn.render(mockEdge.Vectors, mockEdge));
+      const { container } = render(vectorsColumn.render!(mockEdge.Vectors, mockEdge, 0));
 
       expect(container).toHaveTextContent('1 vector');
     });
 
     it('handles empty vectors array', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const vectorsColumn = columns.find((col) => col.key === 'Vectors')!;
       const edgeWithEmptyVectors = { ...mockEdge, Vectors: [] };
       const { container } = render(
-        vectorsColumn.render(edgeWithEmptyVectors.Vectors, edgeWithEmptyVectors)
+        vectorsColumn.render!(edgeWithEmptyVectors.Vectors, edgeWithEmptyVectors, 0)
       );
 
       expect(container).toHaveTextContent('None');
     });
 
     it('handles undefined vectors', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const vectorsColumn = columns.find((col) => col.key === 'Vectors')!;
       const edgeWithUndefinedVectors = { ...mockEdge, Vectors: undefined };
       const { container } = render(
-        vectorsColumn.render(edgeWithUndefinedVectors.Vectors, edgeWithUndefinedVectors)
+        vectorsColumn.render!(
+          edgeWithUndefinedVectors.Vectors,
+          edgeWithUndefinedVectors as unknown as EdgeType,
+          0
+        )
       );
 
       expect(container).toHaveTextContent('None');
     });
 
     it('handles multiple vectors', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const vectorsColumn = columns.find((col) => col.key === 'Vectors')!;
       const edgeWithMultipleVectors = {
         ...mockEdge,
@@ -304,7 +335,7 @@ describe('Edge Constants', () => {
         ],
       };
       const { container } = render(
-        vectorsColumn.render(edgeWithMultipleVectors.Vectors, edgeWithMultipleVectors)
+        vectorsColumn.render!(edgeWithMultipleVectors.Vectors, edgeWithMultipleVectors, 0)
       );
 
       expect(container).toHaveTextContent('2 vectors');
@@ -313,28 +344,32 @@ describe('Edge Constants', () => {
 
   describe('Created UTC column', () => {
     it('renders formatted date correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const createdUtcColumn = columns.find((col) => col.key === 'CreatedUtc')!;
-      const { container } = render(createdUtcColumn.render(mockEdge.CreatedUtc, mockEdge));
+      const { container } = render(createdUtcColumn.render!(mockEdge.CreatedUtc, mockEdge, 0));
 
       expect(container).toHaveTextContent('1st Jan 2023, 05:30');
     });
 
     it('handles missing date', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const createdUtcColumn = columns.find((col) => col.key === 'CreatedUtc')!;
       const edgeWithMissingDate = { ...mockEdge, CreatedUtc: undefined };
       const { container } = render(
-        createdUtcColumn.render(edgeWithMissingDate.CreatedUtc, edgeWithMissingDate)
+        createdUtcColumn.render!(
+          edgeWithMissingDate.CreatedUtc,
+          edgeWithMissingDate as unknown as EdgeType,
+          0
+        )
       );
 
       expect(container).toHaveTextContent('Invalid Date');
     });
 
     it('sorts dates correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const createdUtcColumn = columns.find((col) => col.key === 'CreatedUtc')!;
-      const sorter = createdUtcColumn.sorter;
+      const sorter = createdUtcColumn.sorter as ((a: EdgeType, b: EdgeType) => number) | undefined;
 
       if (sorter) {
         const edge1 = { ...mockEdge, CreatedUtc: '2023-01-01T00:00:00Z' };
@@ -349,7 +384,7 @@ describe('Edge Constants', () => {
 
   describe('Score and Distance columns (when hasScoreOrDistance is true)', () => {
     it('includes score column when hasScoreOrDistance is true', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const scoreColumn = columns.find((col) => col.key === 'Score');
 
       expect(scoreColumn).toBeDefined();
@@ -357,7 +392,7 @@ describe('Edge Constants', () => {
     });
 
     it('includes distance column when hasScoreOrDistance is true', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const distanceColumn = columns.find((col) => col.key === 'Distance');
 
       expect(distanceColumn).toBeDefined();
@@ -365,60 +400,60 @@ describe('Edge Constants', () => {
     });
 
     it('renders score correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const scoreColumn = columns.find((col) => col.key === 'Score')!;
-      const { container } = render(scoreColumn.render(mockEdge.Score, mockEdge));
+      const { container } = render(scoreColumn.render!(mockEdge.Score, mockEdge, 0));
 
       expect(container).toHaveTextContent('0.95');
     });
 
     it('renders distance correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const distanceColumn = columns.find((col) => col.key === 'Distance')!;
-      const { container } = render(distanceColumn.render(mockEdge.Distance, mockEdge));
+      const { container } = render(distanceColumn.render!(mockEdge.Distance, mockEdge, 0));
 
       expect(container).toHaveTextContent('0.1');
     });
 
     it('handles missing score', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const scoreColumn = columns.find((col) => col.key === 'Score')!;
       const edgeWithMissingScore = { ...mockEdge, Score: undefined };
       const { container } = render(
-        scoreColumn.render(edgeWithMissingScore.Score, edgeWithMissingScore)
+        scoreColumn.render!(edgeWithMissingScore.Score, edgeWithMissingScore, 0)
       );
 
       expect(container).toHaveTextContent('N/A');
     });
 
     it('handles missing distance', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const distanceColumn = columns.find((col) => col.key === 'Distance')!;
       const edgeWithMissingDistance = { ...mockEdge, Distance: undefined };
       const { container } = render(
-        distanceColumn.render(edgeWithMissingDistance.Distance, edgeWithMissingDistance)
+        distanceColumn.render!(edgeWithMissingDistance.Distance, edgeWithMissingDistance, 0)
       );
 
       expect(container).toHaveTextContent('N/A');
     });
 
     it('handles non-numeric score', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const scoreColumn = columns.find((col) => col.key === 'Score')!;
       const edgeWithNonNumericScore = { ...mockEdge, Score: 'invalid' as any };
       const { container } = render(
-        scoreColumn.render(edgeWithNonNumericScore.Score, edgeWithNonNumericScore)
+        scoreColumn.render!(edgeWithNonNumericScore.Score, edgeWithNonNumericScore, 0)
       );
 
       expect(container).toHaveTextContent('N/A');
     });
 
     it('handles non-numeric distance', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, true, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, true, false);
       const distanceColumn = columns.find((col) => col.key === 'Distance')!;
       const edgeWithNonNumericDistance = { ...mockEdge, Distance: 'invalid' as any };
       const { container } = render(
-        distanceColumn.render(edgeWithNonNumericDistance.Distance, edgeWithNonNumericDistance)
+        distanceColumn.render!(edgeWithNonNumericDistance.Distance, edgeWithNonNumericDistance, 0)
       );
 
       expect(container).toHaveTextContent('N/A');
@@ -427,27 +462,27 @@ describe('Edge Constants', () => {
 
   describe('Actions column', () => {
     it('renders actions dropdown correctly', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const actionsColumn = columns.find((col) => col.key === 'actions')!;
-      const { container } = render(actionsColumn.render(null, mockEdge));
+      const { container } = render(actionsColumn.render!(null, mockEdge, 0));
 
       // The actual component renders a button, not our mock dropdown
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
     it('calls handleEdit when edit is clicked', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const actionsColumn = columns.find((col) => col.key === 'actions')!;
-      render(actionsColumn.render(null, mockEdge));
+      render(actionsColumn.render!(null, mockEdge, 0));
 
       // Since we can't easily test the dropdown menu in this mock, just verify the button exists
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
     it('calls handleDelete when delete is clicked', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
       const actionsColumn = columns.find((col) => col.key === 'actions')!;
-      render(actionsColumn.render(null, mockEdge));
+      render(actionsColumn.render!(null, mockEdge, 0));
 
       // Since we can't easily test the dropdown menu in this mock, just verify the button exists
       expect(screen.getByRole('button')).toBeInTheDocument();
@@ -456,7 +491,7 @@ describe('Edge Constants', () => {
 
   describe('Column properties', () => {
     it('has correct column structure', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
 
       expect(columns).toHaveLength(10); // Actual column count
       expect(columns.map((column) => getColumnTitleText(column.title))).toEqual([
@@ -474,7 +509,7 @@ describe('Edge Constants', () => {
     });
 
     it('has correct responsive properties', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
 
       // GUID column should be responsive
       const guidColumn = columns.find((col) => col.key === 'GUID');
@@ -498,7 +533,7 @@ describe('Edge Constants', () => {
     });
 
     it('has correct widths', () => {
-      const columns = tableColumns(mockHandleEdit, mockHandleDelete, false, false);
+      const columns = getColumns(mockHandleEdit, mockHandleDelete, false, false);
 
       expect(columns[0].width).toBe(250); // Name
       expect(columns[1].width).toBe(350); // GUID

@@ -10,10 +10,10 @@ describe('Transformers', () => {
   describe('transformToGraphData', () => {
     it('should transform vector search results to graph data', () => {
       const mockData: VectorSearchResult[] = [
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData },
-        { Graph: { id: 'graph2', name: 'Graph 2' } as GraphData },
-        { Node: { id: 'node1', name: 'Node 1' } as NodeType }, // Should be filtered out
-        { Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType }, // Should be filtered out
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData },
+        { Graph: { id: 'graph2', name: 'Graph 2' } as unknown as GraphData },
+        { Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType }, // Should be filtered out
+        { Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType }, // Should be filtered out
       ];
 
       const result = transformToGraphData(mockData);
@@ -25,8 +25,8 @@ describe('Transformers', () => {
 
     it('should return empty array when no graph data exists', () => {
       const mockData: VectorSearchResult[] = [
-        { Node: { id: 'node1', name: 'Node 1' } as NodeType },
-        { Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType },
+        { Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType },
+        { Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType },
       ];
 
       const result = transformToGraphData(mockData);
@@ -44,9 +44,9 @@ describe('Transformers', () => {
 
     it('should handle mixed data with some items having no Graph property', () => {
       const mockData: VectorSearchResult[] = [
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData },
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData },
         { Score: 0.95, Distance: 0.1 }, // No Graph property
-        { Graph: { id: 'graph2', name: 'Graph 2' } as GraphData },
+        { Graph: { id: 'graph2', name: 'Graph 2' } as unknown as GraphData },
       ];
 
       const result = transformToGraphData(mockData);
@@ -61,17 +61,17 @@ describe('Transformers', () => {
     it('should transform vector search results to node data with score and distance', () => {
       const mockData: VectorSearchResult[] = [
         {
-          Node: { id: 'node1', name: 'Node 1' } as NodeType,
+          Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType,
           Score: 0.95,
           Distance: 0.1,
         },
         {
-          Node: { id: 'node2', name: 'Node 2' } as NodeType,
+          Node: { id: 'node2', name: 'Node 2' } as unknown as NodeType,
           Score: 0.87,
           Distance: 0.2,
         },
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData }, // Should be filtered out
-        { Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType }, // Should be filtered out
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData }, // Should be filtered out
+        { Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType }, // Should be filtered out
       ];
 
       const result = transformToNodeData(mockData);
@@ -93,8 +93,8 @@ describe('Transformers', () => {
 
     it('should return empty array when no node data exists', () => {
       const mockData: VectorSearchResult[] = [
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData },
-        { Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType },
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData },
+        { Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType },
       ];
 
       const result = transformToNodeData(mockData);
@@ -106,7 +106,7 @@ describe('Transformers', () => {
     it('should handle nodes without score or distance', () => {
       const mockData: VectorSearchResult[] = [
         {
-          Node: { id: 'node1', name: 'Node 1' } as NodeType,
+          Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType,
           // No Score or Distance
         },
       ];
@@ -137,7 +137,7 @@ describe('Transformers', () => {
             name: 'Node 1',
             type: 'Person',
             properties: { age: 30, city: 'NYC' },
-          } as NodeType,
+          } as unknown as NodeType,
           Score: 0.95,
           Distance: 0.1,
         },
@@ -160,10 +160,10 @@ describe('Transformers', () => {
   describe('transformToEdgeData', () => {
     it('should transform vector search results to edge data', () => {
       const mockData: VectorSearchResult[] = [
-        { Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType },
-        { Edge: { id: 'edge2', name: 'Edge 2' } as EdgeType },
-        { Node: { id: 'node1', name: 'Node 1' } as NodeType }, // Should be filtered out
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData }, // Should be filtered out
+        { Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType },
+        { Edge: { id: 'edge2', name: 'Edge 2' } as unknown as EdgeType },
+        { Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType }, // Should be filtered out
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData }, // Should be filtered out
       ];
 
       const result = transformToEdgeData(mockData);
@@ -175,8 +175,8 @@ describe('Transformers', () => {
 
     it('should return empty array when no edge data exists', () => {
       const mockData: VectorSearchResult[] = [
-        { Node: { id: 'node1', name: 'Node 1' } as NodeType },
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData },
+        { Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType },
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData },
       ];
 
       const result = transformToEdgeData(mockData);
@@ -202,7 +202,7 @@ describe('Transformers', () => {
             target: 'node2',
             type: 'KNOWS',
             properties: { since: 2020 },
-          } as EdgeType,
+          } as unknown as EdgeType,
         },
       ];
 
@@ -221,9 +221,9 @@ describe('Transformers', () => {
 
     it('should handle mixed data with some items having no Edge property', () => {
       const mockData: VectorSearchResult[] = [
-        { Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType },
+        { Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType },
         { Score: 0.95, Distance: 0.1 }, // No Edge property
-        { Edge: { id: 'edge2', name: 'Edge 2' } as EdgeType },
+        { Edge: { id: 'edge2', name: 'Edge 2' } as unknown as EdgeType },
       ];
 
       const result = transformToEdgeData(mockData);
@@ -239,7 +239,7 @@ describe('Transformers', () => {
       const mockData: VectorSearchResult[] = [
         null as any,
         undefined as any,
-        { Graph: { id: 'graph1', name: 'Graph 1' } as GraphData },
+        { Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData },
       ];
 
       // Filter out null/undefined values before processing
@@ -257,9 +257,9 @@ describe('Transformers', () => {
     it('should handle items with multiple properties (prioritize first found)', () => {
       const mockData: VectorSearchResult[] = [
         {
-          Graph: { id: 'graph1', name: 'Graph 1' } as GraphData,
-          Node: { id: 'node1', name: 'Node 1' } as NodeType,
-          Edge: { id: 'edge1', name: 'Edge 1' } as EdgeType,
+          Graph: { id: 'graph1', name: 'Graph 1' } as unknown as GraphData,
+          Node: { id: 'node1', name: 'Node 1' } as unknown as NodeType,
+          Edge: { id: 'edge1', name: 'Edge 1' } as unknown as EdgeType,
         },
       ];
 

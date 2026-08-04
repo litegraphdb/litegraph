@@ -14,11 +14,11 @@ jest.mock('@/lib/store/rootReducer', () => ({
     }
   }),
   apiMiddleWares: [
-    jest.fn((store) => (next) => (action) => {
+    jest.fn((store) => (next: any) => (action: any) => {
       // Mock middleware 1
       return next(action);
     }),
-    jest.fn((store) => (next) => (action) => {
+    jest.fn((store) => (next: any) => (action: any) => {
       // Mock middleware 2
       return next(action);
     }),

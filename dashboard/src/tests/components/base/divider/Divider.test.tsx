@@ -16,7 +16,7 @@ describe('LitegraphDivider Component', () => {
   });
 
   it('renders with orientation prop', () => {
-    render(<LitegraphDivider orientation="vertical" />);
+    render(<LitegraphDivider orientation={'vertical' as any} />);
     const divider = screen.getByRole('separator');
     // Note: antd Divider doesn't always apply orientation classes in tests
     expect(divider).toBeInTheDocument();

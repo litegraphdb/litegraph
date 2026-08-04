@@ -3,6 +3,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { tableColumns } from '@/page/nodes/constant';
 import { NodeType } from '@/types/types';
+import type { ColumnType } from 'antd/es/table';
+
+const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<NodeType>[] =>
+  tableColumns(...args) as ColumnType<NodeType>[];
 
 jest.mock('@/components/base/tag/Tag', () => {
   return function MockTag({ label }: { label: string }) {
@@ -21,26 +25,26 @@ describe('Node Constants', () => {
     Tags: { category: 'test', priority: 'high' },
     Vectors: [],
     CreatedUtc: '2023-01-01T00:00:00Z',
-  } as NodeType;
+  } as unknown as NodeType;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders labels column as a count badge', () => {
-    const columns = tableColumns(mockHandleEdit, mockHandleDelete, false);
+    const columns = getColumns(mockHandleEdit, mockHandleDelete, false);
     const labelsColumn = columns.find((col) => col.key === 'Labels')!;
 
-    render(labelsColumn.render?.(mockNode.Labels, mockNode) as React.ReactElement);
+    render(labelsColumn.render?.(mockNode.Labels, mockNode, 0) as React.ReactElement);
 
     expect(screen.getByTestId('tag')).toHaveTextContent('2 labels');
   });
 
   it('renders tags column as a count badge', () => {
-    const columns = tableColumns(mockHandleEdit, mockHandleDelete, false);
+    const columns = getColumns(mockHandleEdit, mockHandleDelete, false);
     const tagsColumn = columns.find((col) => col.key === 'Tags')!;
 
-    render(tagsColumn.render?.(mockNode.Tags, mockNode) as React.ReactElement);
+    render(tagsColumn.render?.(mockNode.Tags, mockNode, 0) as React.ReactElement);
 
     expect(screen.getByTestId('tag')).toHaveTextContent('2 tags');
   });

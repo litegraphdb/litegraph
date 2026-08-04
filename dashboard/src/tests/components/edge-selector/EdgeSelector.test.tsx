@@ -50,12 +50,8 @@ jest.mock('@/components/base/select/Select', () => {
   };
 });
 
-const mockUseSearchEdgesMutation = useSearchEdgesMutation as jest.MockedFunction<
-  typeof useSearchEdgesMutation
->;
-const mockUseGetEdgeByIdQuery = useGetEdgeByIdQuery as jest.MockedFunction<
-  typeof useGetEdgeByIdQuery
->;
+const mockUseSearchEdgesMutation = useSearchEdgesMutation as unknown as jest.Mock;
+const mockUseGetEdgeByIdQuery = useGetEdgeByIdQuery as unknown as jest.Mock;
 const mockUseSelectedGraph = useSelectedGraph as jest.MockedFunction<typeof useSelectedGraph>;
 
 // Mock Form wrapper component

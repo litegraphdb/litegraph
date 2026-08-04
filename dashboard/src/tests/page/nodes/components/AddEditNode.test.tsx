@@ -37,7 +37,7 @@ jest.mock('jsoneditor-react', () => ({
 jest.mock('@/components/inputs/label-input/LabelInput', () => ({
   __esModule: true,
   default: ({ name, readonly }: any) => (
-    <div data-testid="label-input" name={name}>
+    <div data-testid="label-input" {...({ name } as any)}>
       <input data-testid="labels-input" readOnly={readonly} />
     </div>
   ),
@@ -46,7 +46,7 @@ jest.mock('@/components/inputs/label-input/LabelInput', () => ({
 jest.mock('@/components/inputs/tags-input/TagsInput', () => ({
   __esModule: true,
   default: ({ name, readonly }: any) => (
-    <div data-testid="tags-input" name={name}>
+    <div data-testid="tags-input" {...({ name } as any)}>
       <input data-testid="tags-input-field" readOnly={readonly} />
     </div>
   ),
@@ -55,7 +55,7 @@ jest.mock('@/components/inputs/tags-input/TagsInput', () => ({
 jest.mock('@/components/inputs/vectors-input.tsx/VectorsInput', () => ({
   __esModule: true,
   default: ({ name, readonly }: any) => (
-    <div data-testid="vectors-input" name={name}>
+    <div data-testid="vectors-input" {...({ name } as any)}>
       <input data-testid="vectors-input-field" readOnly={readonly} />
     </div>
   ),
