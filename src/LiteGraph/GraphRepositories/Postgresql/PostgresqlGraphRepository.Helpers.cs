@@ -241,10 +241,31 @@
             if (settings.Port.HasValue) builder.Port = settings.Port.Value;
             if (!String.IsNullOrWhiteSpace(settings.Username)) builder.Username = settings.Username;
             if (!String.IsNullOrWhiteSpace(settings.Password)) builder.Password = settings.Password;
-            builder.MaxPoolSize = settings.MaxConnections;
-            builder.CommandTimeout = settings.CommandTimeoutSeconds;
+
+            HashSet<string> providedKeys = !String.IsNullOrWhiteSpace(settings.ConnectionString)
+                ? ExtractConnectionStringKeys(settings.ConnectionString)
+                : new HashSet<string>(StringComparer.Ordinal);
+
+            if (!providedKeys.Contains("maximumpoolsize") && !providedKeys.Contains("maxpoolsize"))
+                builder.MaxPoolSize = settings.MaxConnections;
+            if (!providedKeys.Contains("commandtimeout"))
+                builder.CommandTimeout = settings.CommandTimeoutSeconds;
+
             builder.Pooling = true;
             return builder;
+        }
+
+        private static HashSet<string> ExtractConnectionStringKeys(string connectionString)
+        {
+            HashSet<string> keys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string pair in connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                int separatorIndex = pair.IndexOf('=');
+                if (separatorIndex <= 0) continue;
+                string key = pair.Substring(0, separatorIndex).Trim().Replace(" ", String.Empty).ToLowerInvariant();
+                if (key.Length > 0) keys.Add(key);
+            }
+            return keys;
         }
 
         private static string NormalizeSchema(string schema)
