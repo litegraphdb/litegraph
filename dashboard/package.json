@@ -97,6 +97,7 @@
     },
     "js-yaml": "4.3.1",
     "lodash-es": "4.18.1",
+    "nanoid": "3.3.18",
     "preact": "10.26.10",
     "postcss": "$postcss",
     "qs": "6.15.2"
