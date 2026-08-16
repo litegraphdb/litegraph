@@ -168,7 +168,19 @@ namespace Test.Shared
             ("Enumeration.Tenants.Skip", "Enumeration.Tenants.Skip", TestEnumerationTenantsSkip),
             ("Enumeration.Tenants.ContinuationToken", "Enumeration.Tenants.ContinuationToken", TestEnumerationTenantsContinuationToken),
             ("Enumeration.Graphs.Paginated", "Enumeration.Graphs.Paginated", TestEnumerationGraphsPaginated),
-            ("Enumeration.Nodes.Paginated", "Enumeration.Nodes.Paginated", TestEnumerationNodesPaginated)
+            ("Enumeration.Nodes.Paginated", "Enumeration.Nodes.Paginated", TestEnumerationNodesPaginated),
+            ("Tenant.GetStatisticsAll", "Tenant.GetStatisticsAll", TestTenantGetStatisticsAll),
+            ("Negative.Tenant.CreateNull", "Negative.Tenant.CreateNull", TestNegativeTenantCreateNull),
+            ("Negative.Tenant.UpdateNull", "Negative.Tenant.UpdateNull", TestNegativeTenantUpdateNull),
+            ("Negative.Tenant.ReadNonExistent", "Negative.Tenant.ReadNonExistent", TestNegativeTenantReadNonExistent),
+            ("Negative.Tenant.DeleteWithDependents", "Negative.Tenant.DeleteWithDependents", TestNegativeTenantDeleteWithDependents),
+            ("Negative.Graph.ReadNonExistent", "Negative.Graph.ReadNonExistent", TestNegativeGraphReadNonExistent),
+            ("Negative.Node.CreateNull", "Negative.Node.CreateNull", TestNegativeNodeCreateNull),
+            ("Negative.Node.CreateInvalidGraph", "Negative.Node.CreateInvalidGraph", TestNegativeNodeCreateInvalidGraph),
+            ("Negative.Node.ReadNonExistent", "Negative.Node.ReadNonExistent", TestNegativeNodeReadNonExistent),
+            ("Negative.Edge.CreateNull", "Negative.Edge.CreateNull", TestNegativeEdgeCreateNull),
+            ("Negative.Edge.CreateInvalidGraph", "Negative.Edge.CreateInvalidGraph", TestNegativeEdgeCreateInvalidGraph),
+            ("Negative.Edge.ReadNonExistent", "Negative.Edge.ReadNonExistent", TestNegativeEdgeReadNonExistent)
         };
         private static readonly (string CaseId, string DisplayName, Func<Task> ExecuteAsync)[] _McpTestCases =
         {
@@ -6436,6 +6448,156 @@ namespace Test.Shared
         // Assertion Helpers
         // ========================================
 
+        // ========================================
+        // Positive and negative edge-case tests
+        // ========================================
+
+        private static async Task TestTenantGetStatisticsAll()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            Dictionary<Guid, TenantStatistics> stats = await _Client.Tenant.GetStatistics().ConfigureAwait(false);
+
+            AssertNotNull(stats, "All-tenant statistics");
+            AssertTrue(stats.ContainsKey(_TenantGuid), "Statistics include the created tenant");
+            AssertNotNull(stats[_TenantGuid], "Created tenant statistics entry");
+        }
+
+        private static async Task TestNegativeTenantCreateNull()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            await AssertThrowsAsync<ArgumentNullException>(
+                () => _Client.Tenant.Create(null!),
+                "Creating a null tenant").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeTenantUpdateNull()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            await AssertThrowsAsync<ArgumentNullException>(
+                () => _Client.Tenant.Update(null!),
+                "Updating a null tenant").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeTenantReadNonExistent()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            TenantMetadata? tenant = await _Client.Tenant.ReadByGuid(Guid.NewGuid()).ConfigureAwait(false);
+
+            AssertNull(tenant, "Reading a non-existent tenant returns null");
+        }
+
+        private static async Task TestNegativeTenantDeleteWithDependents()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            TenantMetadata tenant = await _Client.Tenant.Create(new TenantMetadata
+            {
+                Name = "Dependent Tenant"
+            }).ConfigureAwait(false);
+
+            try
+            {
+                await _Client.Graph.Create(new Graph
+                {
+                    TenantGUID = tenant.GUID,
+                    Name = "Dependent Graph"
+                }).ConfigureAwait(false);
+
+                await AssertThrowsAsync<InvalidOperationException>(
+                    () => _Client.Tenant.DeleteByGuid(tenant.GUID, false),
+                    "Deleting a tenant with dependents without force").ConfigureAwait(false);
+            }
+            finally
+            {
+                await _Client.Tenant.DeleteByGuid(tenant.GUID, true).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestNegativeGraphReadNonExistent()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            // Graph.ReadByGuid validates existence up front and throws (unlike Tenant/Node reads, which return null).
+            await AssertThrowsAsync<ArgumentException>(
+                () => _Client.Graph.ReadByGuid(_TenantGuid, Guid.NewGuid()),
+                "Reading a non-existent graph throws").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeNodeCreateNull()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            await AssertThrowsAsync<ArgumentNullException>(
+                () => _Client.Node.Create(null!),
+                "Creating a null node").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeNodeCreateInvalidGraph()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            Node node = new Node
+            {
+                TenantGUID = _TenantGuid,
+                GraphGUID = Guid.NewGuid(),
+                Name = "Orphan Node"
+            };
+
+            await AssertThrowsAsync<ArgumentException>(
+                () => _Client.Node.Create(node),
+                "Creating a node in a non-existent graph").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeNodeReadNonExistent()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            Node? node = await _Client.Node.ReadByGuid(_TenantGuid, _GraphGuid, Guid.NewGuid()).ConfigureAwait(false);
+
+            AssertNull(node, "Reading a non-existent node returns null");
+        }
+
+        private static async Task TestNegativeEdgeCreateNull()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            await AssertThrowsAsync<ArgumentNullException>(
+                () => _Client.Edge.Create(null!),
+                "Creating a null edge").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeEdgeCreateInvalidGraph()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            Edge edge = new Edge
+            {
+                TenantGUID = _TenantGuid,
+                GraphGUID = Guid.NewGuid(),
+                From = Guid.NewGuid(),
+                To = Guid.NewGuid(),
+                Name = "Orphan Edge",
+                Cost = 1
+            };
+
+            await AssertThrowsAsync<ArgumentException>(
+                () => _Client.Edge.Create(edge),
+                "Creating an edge in a non-existent graph").ConfigureAwait(false);
+        }
+
+        private static async Task TestNegativeEdgeReadNonExistent()
+        {
+            if (_Client == null) throw new InvalidOperationException("Client is null");
+
+            Edge? edge = await _Client.Edge.ReadByGuid(_TenantGuid, _GraphGuid, Guid.NewGuid()).ConfigureAwait(false);
+
+            AssertNull(edge, "Reading a non-existent edge returns null");
+        }
+
         private static void AssertTrue(bool condition, string message)
         {
             if (!condition)
@@ -6474,6 +6636,33 @@ namespace Test.Shared
             {
                 throw new Exception($"Assertion failed: {message} (expected '{expected}', got '{actual}')");
             }
+        }
+
+        private static void AssertNull(object? obj, string message)
+        {
+            if (obj != null)
+            {
+                throw new Exception($"Assertion failed: {message} (expected null, got '{obj}')");
+            }
+        }
+
+        private static async Task AssertThrowsAsync<TException>(Func<Task> action, string message)
+            where TException : Exception
+        {
+            try
+            {
+                await action().ConfigureAwait(false);
+            }
+            catch (TException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Assertion failed: {message} (expected {typeof(TException).Name}, got {ex.GetType().Name}: {ex.Message})");
+            }
+
+            throw new Exception($"Assertion failed: {message} (expected {typeof(TException).Name}, but no exception was thrown)");
         }
 
         #endregion

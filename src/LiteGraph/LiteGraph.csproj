@@ -28,17 +28,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Caching" Version="5.0.0" />
+		<PackageReference Include="Caching" Version="5.0.1" />
 		<PackageReference Include="ExpressionTree" Version="1.1.2" />
 		<PackageReference Include="HnswLite" Version="2.0.1" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.6" />
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.6" />
-		<PackageReference Include="Npgsql" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.11" />
+		<PackageReference Include="Npgsql" Version="10.0.3" />
 		<PackageReference Include="PrettyId" Version="2.0.1" />
-		<PackageReference Include="RestWrapper" Version="3.1.8" />
-		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
-		<PackageReference Include="SyslogLogging" Version="2.0.13" />
-		<PackageReference Include="System.Text.Json" Version="10.0.6" />
+		<PackageReference Include="RestWrapper" Version="3.2.0" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+		<PackageReference Include="SyslogLogging" Version="2.2.1" />
+		<PackageReference Include="System.Text.Json" Version="10.0.11" />
 		<PackageReference Include="Timestamps" Version="1.0.12" />
 		<PackageReference Include="WhatTimeIsIt" Version="1.0.2" />
 	</ItemGroup>
