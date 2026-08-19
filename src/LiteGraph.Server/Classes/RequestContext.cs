@@ -335,6 +335,26 @@
         public SearchRequest SearchRequest { get; set; } = null;
 
         /// <summary>
+        /// Subgraph extraction request.
+        /// </summary>
+        public SubgraphExtractionRequest SubgraphExtractionRequest { get; set; } = null;
+
+        /// <summary>
+        /// GUID collision strategy for JSONL import.  Default is Regenerate.
+        /// </summary>
+        public GraphImportGuidStrategyEnum ImportGuidStrategy { get; set; } = GraphImportGuidStrategyEnum.Regenerate;
+
+        /// <summary>
+        /// Error policy for JSONL import.  Default is Abort.
+        /// </summary>
+        public GraphImportErrorPolicyEnum ImportOnError { get; set; } = GraphImportErrorPolicyEnum.Abort;
+
+        /// <summary>
+        /// Batch size for JSONL import.  Default is 1000.
+        /// </summary>
+        public int ImportBatchSize { get; set; } = 1000;
+
+        /// <summary>
         /// Enumeration query.
         /// </summary>
         public EnumerationRequest EnumerationQuery { get; set; } = null;
@@ -635,6 +655,15 @@
                 if (_Url.QueryExists(Constants.FromGuidQuerystring)) FromGUID = Guid.Parse(_Url.GetQueryValue(Constants.FromGuidQuerystring));
                 if (_Url.QueryExists(Constants.ToGuidQuerystring)) ToGUID = Guid.Parse(_Url.GetQueryValue(Constants.ToGuidQuerystring));
                 if (_Url.QueryExists(Constants.GuidsQuerystring)) GUIDs = StringHelpers.StringToGuidList(_Url.GetQueryValue(Constants.GuidsQuerystring));
+
+                if (_Url.QueryExists(Constants.ImportGuidStrategyQuerystring))
+                    if (Enum.TryParse<GraphImportGuidStrategyEnum>(_Url.GetQueryValue(Constants.ImportGuidStrategyQuerystring), true, out GraphImportGuidStrategyEnum importGuidStrategy)) ImportGuidStrategy = importGuidStrategy;
+
+                if (_Url.QueryExists(Constants.ImportOnErrorQuerystring))
+                    if (Enum.TryParse<GraphImportErrorPolicyEnum>(_Url.GetQueryValue(Constants.ImportOnErrorQuerystring), true, out GraphImportErrorPolicyEnum importOnError)) ImportOnError = importOnError;
+
+                if (_Url.QueryExists(Constants.ImportBatchSizeQuerystring))
+                    if (int.TryParse(_Url.GetQueryValue(Constants.ImportBatchSizeQuerystring), out int importBatchSize) && importBatchSize > 0) ImportBatchSize = importBatchSize;
             }
         }
 

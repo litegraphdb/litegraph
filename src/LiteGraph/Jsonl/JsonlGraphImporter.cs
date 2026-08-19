@@ -75,7 +75,8 @@ namespace LiteGraph.Jsonl
 
             bool regenerate = request.GuidStrategy == GraphImportGuidStrategyEnum.Regenerate;
 
-            Guid targetGraphGuid;
+            Guid targetGraphGuid = Guid.Empty;
+            bool graphResolved = false;
             bool graphCreated = false;
             Graph fileGraph = null;
 
@@ -88,10 +89,7 @@ namespace LiteGraph.Jsonl
                 if (existingTarget == null)
                     throw new ArgumentException("Target graph with GUID '" + request.TargetGraphGUID.Value + "' was not found.");
                 targetGraphGuid = request.TargetGraphGUID.Value;
-            }
-            else
-            {
-                targetGraphGuid = Guid.Empty; // resolved lazily once graph metadata is known
+                graphResolved = true;
             }
 
             Dictionary<Guid, Guid> guidMap = result.GuidMap;
@@ -145,9 +143,10 @@ namespace LiteGraph.Jsonl
 
                         if (record.Type == JsonlRecordTypeEnum.Node)
                         {
-                            if (targetGraphGuid == Guid.Empty)
+                            if (!graphResolved)
                             {
                                 targetGraphGuid = await ResolveNewGraph(client, tenantGuid, request, fileGraph, regenerate, guidMap, token).ConfigureAwait(false);
+                                graphResolved = true;
                                 graphCreated = true;
                                 result.GraphsCreated++;
                             }
@@ -172,9 +171,10 @@ namespace LiteGraph.Jsonl
                 }
 
                 // For a create-new import with no node records at all, still create the (empty) graph.
-                if (targetGraphGuid == Guid.Empty && request.Mode == GraphImportModeEnum.CreateNew)
+                if (!graphResolved && request.Mode == GraphImportModeEnum.CreateNew)
                 {
                     targetGraphGuid = await ResolveNewGraph(client, tenantGuid, request, fileGraph, regenerate, guidMap, token).ConfigureAwait(false);
+                    graphResolved = true;
                     graphCreated = true;
                     result.GraphsCreated++;
                 }

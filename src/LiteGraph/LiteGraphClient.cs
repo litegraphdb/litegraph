@@ -500,6 +500,30 @@
         }
 
         /// <summary>
+        /// Export an already-extracted search result to a stream in JSONL format.
+        /// </summary>
+        /// <param name="result">Search result to export.</param>
+        /// <param name="stream">Destination stream.  The stream is left open.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the result or stream is null.</exception>
+        public async Task ExportSearchResultToJsonlStream(SearchResult result, Stream stream, CancellationToken token = default)
+        {
+            if (result == null) throw new ArgumentNullException(nameof(result));
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            JsonlExportMetadata metadata = new JsonlExportMetadata { Kind = "subgraph" };
+            if (result.Graphs != null && result.Graphs.Count > 0)
+            {
+                metadata.SourceTenantGUID = result.Graphs[0].TenantGUID;
+                metadata.SourceGraphGUID = result.Graphs[0].GUID;
+                metadata.SourceGraphName = result.Graphs[0].Name;
+            }
+
+            await _JsonlWriter.WriteSearchResult(result, metadata, stream, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Export an entire graph to a stream in JSONL format.  Runs in constant memory; suitable as a provider-agnostic backup.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

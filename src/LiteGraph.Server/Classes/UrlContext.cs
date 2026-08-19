@@ -337,6 +337,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}", out _UrlParameters)) return RequestTypeEnum.GraphRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/stats", out _UrlParameters)) return RequestTypeEnum.GraphStatistics;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/gexf", out _UrlParameters)) return RequestTypeEnum.GraphExport;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl", out _UrlParameters)) return RequestTypeEnum.GraphExportJsonl;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexConfig;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexStats;
@@ -462,6 +463,10 @@
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags", out _UrlParameters)) return RequestTypeEnum.TagEnumerate;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/vectors", out _UrlParameters)) return RequestTypeEnum.VectorEnumerate;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectors", out _UrlParameters)) return RequestTypeEnum.VectorEnumerate;
+
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/import/jsonl", out _UrlParameters)) return RequestTypeEnum.GraphImportJsonlNew;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/import/jsonl", out _UrlParameters)) return RequestTypeEnum.GraphImportJsonl;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl", out _UrlParameters)) return RequestTypeEnum.GraphExportSubgraphJsonl;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/first", out _UrlParameters)) return RequestTypeEnum.GraphReadFirst;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/search", out _UrlParameters)) return RequestTypeEnum.GraphSearch;
