@@ -27,6 +27,8 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 + "'" + Sanitizer.Sanitize(user.Email) + "',"
                 + "'" + Sanitizer.Sanitize(user.Password) + "',"
                 + (user.Active ? "1" : "0") + ","
+                + (user.IsSystemAdmin ? "1" : "0") + ","
+                + (user.IsTenantAdmin ? "1" : "0") + ","
                 + "'" + Sanitizer.Sanitize(user.CreatedUtc.ToString(TimestampFormat)) + "',"
                 + "'" + Sanitizer.Sanitize(user.LastUpdateUtc.ToString(TimestampFormat)) + "'"
                 + ") "
@@ -152,7 +154,9 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 + "lastname = '" + Sanitizer.Sanitize(user.LastName) + "',"
                 + "email = '" + Sanitizer.Sanitize(user.Email) + "',"
                 + "password = '" + Sanitizer.Sanitize(user.Password) + "',"
-                + "active = " + (user.Active ? "1" : "0") + " "
+                + "active = " + (user.Active ? "1" : "0") + ","
+                + "issystemadmin = " + (user.IsSystemAdmin ? "1" : "0") + ","
+                + "istenantadmin = " + (user.IsTenantAdmin ? "1" : "0") + " "
                 + "WHERE guid = '" + user.GUID + "' "
                 + "RETURNING *;";
         }

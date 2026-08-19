@@ -919,7 +919,7 @@ namespace LiteGraph.Server.API.REST
         private async Task BackupRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -938,7 +938,7 @@ namespace LiteGraph.Server.API.REST
         private async Task BackupReadAllRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -950,7 +950,7 @@ namespace LiteGraph.Server.API.REST
         private async Task BackupReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -962,7 +962,7 @@ namespace LiteGraph.Server.API.REST
         private async Task BackupExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -974,7 +974,7 @@ namespace LiteGraph.Server.API.REST
         private async Task BackupDeleteRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -986,7 +986,7 @@ namespace LiteGraph.Server.API.REST
         private async Task FlushRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1156,7 +1156,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantCreateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1175,7 +1175,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantReadManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1186,7 +1186,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1201,7 +1201,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1212,7 +1212,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantStatisticsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin && req.TenantGUID == null)
+            if (!req.Authentication.IsSystemAdmin && req.TenantGUID == null)
             {
                 await NotAdmin(ctx);
             }
@@ -1222,7 +1222,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1233,7 +1233,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantUpdateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1253,7 +1253,7 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantDeleteRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1268,7 +1268,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserCreateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1288,7 +1288,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserReadManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1299,7 +1299,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1314,7 +1314,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1325,7 +1325,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1336,7 +1336,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserUpdateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1357,7 +1357,7 @@ namespace LiteGraph.Server.API.REST
         private async Task UserDeleteRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1372,7 +1372,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialCreateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1392,7 +1392,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialReadManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1403,7 +1403,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1418,7 +1418,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1429,7 +1429,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1440,7 +1440,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialUpdateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1461,7 +1461,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialDeleteRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1472,7 +1472,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialReadByBearerTokenRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1483,7 +1483,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialDeleteAllInTenantRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -1494,7 +1494,7 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialDeleteByUserRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 await NotAdmin(ctx);
                 return;
@@ -2256,7 +2256,7 @@ namespace LiteGraph.Server.API.REST
         private async Task GraphStatisticsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsAdmin && req.TenantGUID == null)
+            if (!req.Authentication.IsSystemAdmin && req.TenantGUID == null)
             {
                 await NotAdmin(ctx);
             }
@@ -3418,7 +3418,7 @@ namespace LiteGraph.Server.API.REST
             activity.SetTag("litegraph.authorization.result", req.Authorization.Result.ToString());
             if (!String.IsNullOrEmpty(req.Authorization.Reason)) activity.SetTag("litegraph.authorization.reason", req.Authorization.Reason);
             if (!String.IsNullOrEmpty(req.Authorization.RequiredScope)) activity.SetTag("litegraph.authorization.required_scope", req.Authorization.RequiredScope);
-            activity.SetTag("litegraph.authentication.is_admin", req.Authentication.IsAdmin);
+            activity.SetTag("litegraph.authentication.is_admin", req.Authentication.IsSystemAdmin);
             activity.SetTag("litegraph.authentication.has_credential", req.Authentication.CredentialGUID != null);
         }
 
@@ -3541,7 +3541,7 @@ namespace LiteGraph.Server.API.REST
 
         private Guid? TenantScopeForRequestHistory(RequestContext req, NameValueCollection query)
         {
-            if (req.Authentication.IsAdmin)
+            if (req.Authentication.IsSystemAdmin)
             {
                 string q = query?["tenantGuid"];
                 if (!string.IsNullOrEmpty(q) && Guid.TryParse(q, out Guid tg)) return tg;
@@ -3735,7 +3735,7 @@ namespace LiteGraph.Server.API.REST
             RequestHistorySearchRequest search = BuildRequestHistorySearch(req);
 
             // Non-admins can only bulk-delete within their own tenant scope.
-            if (!req.Authentication.IsAdmin)
+            if (!req.Authentication.IsSystemAdmin)
             {
                 search.TenantGUID = req.Authentication.TenantGUID;
             }
@@ -3762,7 +3762,7 @@ namespace LiteGraph.Server.API.REST
 
         private bool CanViewRequestHistoryRow(RequestContext req, Guid? rowTenant)
         {
-            if (req.Authentication.IsAdmin) return true;
+            if (req.Authentication.IsSystemAdmin) return true;
             if (rowTenant == null) return false;
             return rowTenant.Value == req.Authentication.TenantGUID.GetValueOrDefault();
         }

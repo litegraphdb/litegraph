@@ -682,6 +682,8 @@
                 Email = GetDataRowStringValue(row, "email"),
                 Password = GetDataRowStringValue(row, "password"),
                 Active = (Convert.ToInt32(GetDataRowStringValue(row, "active")) > 0 ? true : false),
+                IsSystemAdmin = (Convert.ToInt32(GetDataRowStringValue(row, "issystemadmin")) > 0 ? true : false),
+                IsTenantAdmin = (Convert.ToInt32(GetDataRowStringValue(row, "istenantadmin")) > 0 ? true : false),
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };

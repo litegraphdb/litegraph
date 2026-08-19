@@ -44,6 +44,8 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 + "email VARCHAR(128), "
                 + "password VARCHAR(128), "
                 + "active INT, "
+                + "issystemadmin INT, "
+                + "istenantadmin INT, "
                 + "createdutc VARCHAR(64), "
                 + "lastupdateutc VARCHAR(64) "
                 + ");");

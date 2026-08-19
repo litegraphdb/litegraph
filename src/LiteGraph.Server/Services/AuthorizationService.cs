@@ -78,7 +78,16 @@ namespace LiteGraph.Server.Services
             if (req == null) throw new ArgumentNullException(nameof(req));
             token.ThrowIfCancellationRequested();
 
-            AuthorizationDecision tenantDecision = EvaluateTenantAccess(req.Authentication.IsAdmin, req.TenantGUID, req.Authentication.TenantGUID);
+            // System administrators (break-glass token or a user with the IsSystemAdmin flag) are server-wide superusers
+            // and bypass tenant and scope checks entirely.
+            if (req.Authentication.IsSystemAdmin)
+            {
+                await ResolveGraphGuidForAuthorization(req, token).ConfigureAwait(false);
+                ApplyDecision(req, AuthorizationDecision.Permit(RequiredScope(req), AuthorizationDecisionReason.Permitted));
+                return;
+            }
+
+            AuthorizationDecision tenantDecision = EvaluateTenantAccess(req.Authentication.IsSystemAdmin, req.TenantGUID, req.Authentication.TenantGUID);
             if (tenantDecision.Result != AuthorizationResultEnum.Permitted)
             {
                 _Logging.Warn(_Header + "attempt to access tenant " + req.TenantGUID + " from tenant " + req.Authentication.TenantGUID);
@@ -87,6 +96,16 @@ namespace LiteGraph.Server.Services
             }
 
             await ResolveGraphGuidForAuthorization(req, token).ConfigureAwait(false);
+
+            // Tenant administrators have full rights within their own tenant.
+            if (req.Authentication.IsTenantAdmin
+                && req.TenantGUID.HasValue
+                && req.Authentication.TenantGUID.HasValue
+                && req.TenantGUID.Value.Equals(req.Authentication.TenantGUID.Value))
+            {
+                ApplyDecision(req, AuthorizationDecision.Permit(RequiredScope(req), AuthorizationDecisionReason.Permitted));
+                return;
+            }
 
             AuthorizationDecision accessDecision = await EvaluateRequestAccess(req, RequiredScope(req), RequiredResourceType(req.RequestType), token).ConfigureAwait(false);
             if (accessDecision.Result != AuthorizationResultEnum.Permitted)

@@ -14556,6 +14556,20 @@
             Active.
             </summary>
         </member>
+        <member name="P:LiteGraph.UserMaster.IsSystemAdmin">
+            <summary>
+            Indicates whether the user is a system administrator.
+            A system administrator is a server-wide superuser whose requests bypass tenant and scope authorization checks.
+            Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.UserMaster.IsTenantAdmin">
+            <summary>
+            Indicates whether the user is a tenant administrator.
+            A tenant administrator has full rights within the user's own tenant (the tenant of this record).
+            Default is false.
+            </summary>
+        </member>
         <member name="P:LiteGraph.UserMaster.CreatedUtc">
             <summary>
             Creation time, in UTC.

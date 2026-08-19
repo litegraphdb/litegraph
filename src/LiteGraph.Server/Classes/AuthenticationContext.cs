@@ -70,6 +70,31 @@
         public bool IsAdmin { get; set; } = false;
 
         /// <summary>
+        /// Boolean indicating if the principal is a system administrator.
+        /// True when the break-glass administrator bearer token is used, or when the authenticated user record has the IsSystemAdmin flag set.
+        /// A system administrator is a server-wide superuser.
+        /// </summary>
+        public bool IsSystemAdmin
+        {
+            get
+            {
+                return IsAdmin || (User != null && User.IsSystemAdmin);
+            }
+        }
+
+        /// <summary>
+        /// Boolean indicating if the principal is a tenant administrator within their own tenant.
+        /// True when the authenticated user record has the IsTenantAdmin flag set.
+        /// </summary>
+        public bool IsTenantAdmin
+        {
+            get
+            {
+                return User != null && User.IsTenantAdmin;
+            }
+        }
+
+        /// <summary>
         /// Authentication result.
         /// </summary>
         public AuthenticationResultEnum Result { get; set; } = AuthenticationResultEnum.NotFound;

@@ -364,6 +364,7 @@ namespace Test.Shared
                     CreateRouteAuthenticationSuite(),
                     CreateImprovementFoundationSuite(),
                     CreateImportExportSuite(),
+                    CreateAccountsSuite(),
                     CreateVectorSearchSuite(),
                     CreateVectorIndexImplementationSuite(),
                     CreateVectorIndexSearchSuite()

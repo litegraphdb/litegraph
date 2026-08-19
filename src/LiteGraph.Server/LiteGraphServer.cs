@@ -687,13 +687,15 @@ namespace LiteGraph.Server
                 Email = "default@user.com",
                 Password = "password",
                 Active = true,
+                IsSystemAdmin = true,
+                IsTenantAdmin = true,
                 CreatedUtc = DateTime.UtcNow
             };
 
             if (!await _Repo.User.ExistsByGuid(tenant.GUID, user.GUID, CancellationToken.None).ConfigureAwait(false))
             {
                 user = await _Repo.User.Create(user, CancellationToken.None).ConfigureAwait(false);
-                Console.WriteLine("| Created user       : " + user.GUID + " email: " + user.Email + " pass: " + OperationalLogRedactor.RedactValue(user.Password));
+                Console.WriteLine("| Created user       : " + user.GUID + " email: " + user.Email + " pass: " + OperationalLogRedactor.RedactValue(user.Password) + " (system administrator)");
             }
 
             Credential cred = new Credential

@@ -92,6 +92,20 @@
         public bool Active { get; set; } = true;
 
         /// <summary>
+        /// Indicates whether the user is a system administrator.
+        /// A system administrator is a server-wide superuser whose requests bypass tenant and scope authorization checks.
+        /// Default is false.
+        /// </summary>
+        public bool IsSystemAdmin { get; set; } = false;
+
+        /// <summary>
+        /// Indicates whether the user is a tenant administrator.
+        /// A tenant administrator has full rights within the user's own tenant (the tenant of this record).
+        /// Default is false.
+        /// </summary>
+        public bool IsTenantAdmin { get; set; } = false;
+
+        /// <summary>
         /// Creation time, in UTC.
         /// </summary>
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
