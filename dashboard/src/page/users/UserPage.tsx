@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
@@ -17,6 +18,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const UserPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('users');
   const [selectedUser, setSelectedUser] = useState<UserMetadata | null>(null);
   const [isAddEditUserVisible, setIsAddEditUserVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -59,16 +62,16 @@ const UserPage = () => {
   return (
     <PageContainer
       id="users"
-      pageTitle="Users"
+      pageTitle={t('title')}
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new user">
+        <LitegraphTooltip title={t('createTooltip')}>
           <LitegraphButton
             type="link"
             icon={<PlusSquareOutlined />}
             onClick={handleCreateUser}
             weight={500}
           >
-            Create User
+            {t('createUser')}
           </LitegraphButton>
         </LitegraphTooltip>
       }

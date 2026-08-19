@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
@@ -17,6 +18,8 @@ import { tablePaginationConfig } from '@/constants/pagination';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 const CredentialPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('credentials');
   const [selectedCredential, setSelectedCredential] = useState<CredentialType | null>(null);
   const [isAddEditCredentialVisible, setIsAddEditCredentialVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -62,16 +65,16 @@ const CredentialPage = () => {
   return (
     <PageContainer
       id="credentials"
-      pageTitle="Credentials"
+      pageTitle={t('title')}
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new credential">
+        <LitegraphTooltip title={t('createTooltip')}>
           <LitegraphButton
             type="link"
             icon={<PlusSquareOutlined />}
             onClick={handleCreateCredential}
             weight={500}
           >
-            Create Credential
+            {t('createCredential')}
           </LitegraphButton>
         </LitegraphTooltip>
       }

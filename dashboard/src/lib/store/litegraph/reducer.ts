@@ -5,8 +5,10 @@ import {
   storeTenant,
   storeUser,
   storeAdminAccessKey,
+  storeLocale,
 } from './actions';
 import { TenantMetaData, Token, UserMetadata } from 'litegraphdb/dist/types/types';
+import { AppLocale, DEFAULT_LOCALE } from '@/i18n/locales';
 
 export type LiteGraphStore = {
   selectedGraph: string;
@@ -14,6 +16,7 @@ export type LiteGraphStore = {
   token: Token | null;
   adminAccessKey: string | null;
   user: UserMetadata | null;
+  locale: AppLocale;
 };
 
 export const initialState: LiteGraphStore = {
@@ -22,6 +25,7 @@ export const initialState: LiteGraphStore = {
   token: null,
   adminAccessKey: null,
   user: null,
+  locale: DEFAULT_LOCALE,
 };
 
 const liteGraphReducer = createReducer(
@@ -60,6 +64,13 @@ const liteGraphReducer = createReducer(
       storeAdminAccessKey,
       (state: typeof initialState, action: ReturnType<typeof storeAdminAccessKey>) => {
         state.adminAccessKey = action.payload;
+      }
+    );
+    // Store active UI locale
+    builder.addCase(
+      storeLocale,
+      (state: typeof initialState, action: ReturnType<typeof storeLocale>) => {
+        state.locale = action.payload;
       }
     );
   }

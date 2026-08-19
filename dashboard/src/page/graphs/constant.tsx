@@ -9,15 +9,17 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import { GraphData } from '@/types/types';
 import { TableProps, Dropdown, Button, Menu, Input } from 'antd';
 import { formatDateTime } from '@/utils/dateUtils';
-import { pluralize } from '@/utils/stringUtils';
 import { isNumber } from 'lodash';
-import { NONE } from '@/constants/uiLabels';
+import { NOT_AVAILABLE } from '@/constants/uiLabels';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import TableSearch from '@/components/table-search/TableSearch';
 import { onGUIDFilter, onLabelFilter, onNameFilter, onTagFilter } from '@/constants/table';
 import CountBadge from '@/components/base/count-badge/CountBadge';
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (record: GraphData) => void,
   handleDelete: (record: GraphData) => void,
   handleExportGexf: (record: GraphData) => void,
@@ -30,11 +32,11 @@ export const tableColumns = (
   handleViewJson?: (record: GraphData) => void
 ): TableProps<GraphData>['columns'] => [
   {
-    title: columnTooltip('Name', 'Graph display name'),
+    title: columnTooltip(t('columns.name'), t('columns.nameDesc')),
     dataIndex: 'Name',
     key: 'name',
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Name" />
+      <TableSearch {...props} placeholder={t('search.name')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Name),
     width: 350,
@@ -47,14 +49,14 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('GUID', 'Globally unique identifier'),
+    title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
     responsive: ['sm'],
 
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search GUID" />
+      <TableSearch {...props} placeholder={t('search.guid')} />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
     render: (GUID: string) => (
@@ -69,48 +71,53 @@ export const tableColumns = (
         }}
       >
         {GUID}
-        <CopyButton text={GUID} tooltipTitle="Copy GUID" />
+        <CopyButton text={GUID} tooltipTitle={t('copyGuid')} />
       </span>
     ),
   },
   {
-    title: columnTooltip('Labels', 'Classification labels assigned to this graph'),
+    title: columnTooltip(t('columns.labels'), t('columns.labelsDesc')),
     dataIndex: 'Labels' as keyof GraphData,
     key: 'labels',
     width: 350,
     responsive: ['sm'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Labels" />
+      <TableSearch {...props} placeholder={t('search.labels')} />
     ),
     onFilter: (value, record) => onLabelFilter(value, record.Labels),
-    render: (labels: any) => (
-      <CountBadge count={Array.isArray(labels) ? labels.length : 0} noun="label" />
-    ),
+    render: (labels: any) => {
+      const count = Array.isArray(labels) ? labels.length : 0;
+      return <CountBadge count={count} label={t('labelsCount', { count })} />;
+    },
   },
   {
-    title: columnTooltip('Tags', 'Key-value metadata tags'),
+    title: columnTooltip(t('columns.tags'), t('columns.tagsDesc')),
     dataIndex: 'Tags',
     key: 'tags',
     width: 350,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Tags" />
+      <TableSearch {...props} placeholder={t('search.tags')} />
     ),
     onFilter: (val, record) => onTagFilter(val, record.Tags),
     responsive: ['sm'],
-    render: (tags: any) => <CountBadge count={tags ? Object.keys(tags).length : 0} noun="tag" />,
+    render: (tags: any) => {
+      const count = tags ? Object.keys(tags).length : 0;
+      return <CountBadge count={count} label={t('tagsCount', { count })} />;
+    },
   },
   {
-    title: columnTooltip('Vectors', 'Vector embeddings associated with this graph'),
+    title: columnTooltip(t('columns.vectors'), t('columns.vectorsDesc')),
     dataIndex: 'Vectors',
     key: 'Vectors',
     width: 150,
     responsive: ['sm'],
-    render: (_: any, record: GraphData) => (
-      <div>{record?.Vectors?.length > 0 ? pluralize(record?.Vectors?.length, 'vector') : NONE}</div>
-    ),
+    render: (_: any, record: GraphData) => {
+      const count = record?.Vectors?.length || 0;
+      return <div>{t('vectorsCount', { count })}</div>;
+    },
   },
   {
-    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+    title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 350,
@@ -122,31 +129,31 @@ export const tableColumns = (
   ...(hasScoreOrDistance
     ? [
         {
-          title: columnTooltip('Score', 'Relevance score from search'),
+          title: columnTooltip(t('columns.score'), t('columns.scoreDesc')),
           dataIndex: 'Score',
           key: 'Score',
           width: 150,
           render: (score: number) => (
             <div>
-              <div>{isNumber(score) ? score : 'N/A'}</div>
+              <div>{isNumber(score) ? score : NOT_AVAILABLE}</div>
             </div>
           ),
         },
         {
-          title: columnTooltip('Distance', 'Vector distance from search query'),
+          title: columnTooltip(t('columns.distance'), t('columns.distanceDesc')),
           dataIndex: 'Distance',
           key: 'Distance',
           width: 150,
           render: (distance: number) => (
             <div>
-              <div>{isNumber(distance) ? distance : 'N/A'}</div>
+              <div>{isNumber(distance) ? distance : NOT_AVAILABLE}</div>
             </div>
           ),
         },
       ]
     : []),
   {
-    title: columnTooltip('Actions', 'Available operations'),
+    title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
     key: 'actions',
     responsive: ['sm'],
     render: (_: any, record: GraphData) => {
@@ -154,62 +161,62 @@ export const tableColumns = (
         {
           icon: <EditOutlined />,
           key: 'edit',
-          label: 'Edit',
+          label: t('rowActions.edit'),
           onClick: () => handleEdit(record),
         },
         {
           icon: <DeleteOutlined />,
           key: 'delete',
-          label: 'Delete',
+          label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
         {
           icon: <ExportOutlined />,
           key: 'export',
-          label: 'Export to GEXF',
+          label: t('rowActions.exportGexf'),
           onClick: () => handleExportGexf(record),
         },
         {
           icon: <SettingOutlined />,
           key: 'enable-vector-index',
-          label: 'Enable Vector Index',
+          label: t('rowActions.enableVectorIndex'),
           onClick: () => handleEnableVectorIndex(record),
         },
         {
           icon: <SettingOutlined />,
           key: 'read-vector-index-configuration',
-          label: 'Read Vector Index Configuration',
+          label: t('rowActions.readVectorIndexConfig'),
           onClick: () => handleReadVectorIndexConfig(record),
         },
         {
           icon: <SettingOutlined />,
           key: 'read-vector-index-statistics',
-          label: 'Read Vector Index Statistics',
+          label: t('rowActions.readVectorIndexStats'),
           onClick: () => handleReadVectorIndexStats(record),
         },
         {
           icon: <SettingOutlined />,
           key: 'rebuild-vector-index',
-          label: 'Rebuild Vector Index',
+          label: t('rowActions.rebuildVectorIndex'),
           onClick: () => handleRebuildVectorIndex(record),
         },
         {
           icon: <SettingOutlined />,
           key: 'delete-vector-index',
-          label: 'Delete Vector Index',
+          label: t('rowActions.deleteVectorIndex'),
           onClick: () => handleDeleteVectorIndex(record),
         },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
-          label: 'View JSON',
+          label: t('rowActions.viewJson'),
           onClick: () => handleViewJson?.(record),
         },
       ];
 
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions">
+          <LitegraphTooltip title={t('rowActions.menu')}>
             <Button type="text" icon={<MoreOutlined style={{ fontSize: '20px' }} />} />
           </LitegraphTooltip>
         </Dropdown>

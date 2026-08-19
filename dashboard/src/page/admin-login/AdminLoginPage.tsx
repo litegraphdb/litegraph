@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form, Input } from 'antd';
 import { localStorageKeys } from '@/constants/constant';
 import toast from 'react-hot-toast';
@@ -22,6 +23,7 @@ interface AdminLoginFormData {
 }
 
 const AdminLoginPage = () => {
+  const t = useTranslations('adminLogin');
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const [isServerValid, setIsServerValid] = useState(false);
@@ -44,7 +46,7 @@ const AdminLoginPage = () => {
   const handleSubmit = async (values: AdminLoginFormData) => {
     try {
       setAccessKey(values.accessKey);
-      const data = await getTenants('Login failed. Please try again.');
+      const data = await getTenants(t('loginFailed'));
       if (data) {
         localStorage.setItem(localStorageKeys.adminAccessKey, values.accessKey);
         localStorage.setItem(localStorageKeys.serverUrl, values.url);
@@ -52,7 +54,7 @@ const AdminLoginPage = () => {
         dispatch(storeTenant(data[0]));
       }
     } catch (error) {
-      toast.error('Login failed. Please try again.');
+      toast.error(t('loginFailed'));
     }
   };
   useEffect(() => {
@@ -75,41 +77,41 @@ const AdminLoginPage = () => {
         }}
       >
         <Form.Item
-          label="LiteGraph Server URL"
+          label={t('serverUrl')}
           name="url"
           rules={[
-            { required: true, message: 'Please enter the LiteGraph Server URL!' },
+            { required: true, message: t('serverUrlRequired') },
             {
               validator: (_, value) => {
                 if (!value) return Promise.resolve();
                 try {
                   const parsedUrl = new URL(value);
                   if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-                    return Promise.reject('Only HTTP or HTTPS URLs are allowed!');
+                    return Promise.reject(t('onlyHttp'));
                   }
                   return Promise.resolve();
                 } catch (err) {
-                  return Promise.reject('Please enter a valid URL!');
+                  return Promise.reject(t('validUrl'));
                 }
               },
             },
           ]}
         >
           <Input
-            placeholder="https://your-litegraph-server.com"
+            placeholder={t('serverUrlPlaceholder')}
             onBlur={handleValidateServerUrl}
             disabled={isValidating}
           />
         </Form.Item>
 
         <Form.Item
-          label="Access Key"
+          label={t('accessKey')}
           name="accessKey"
-          rules={[{ required: true, message: 'Please input your access key!' }]}
+          rules={[{ required: true, message: t('accessKeyRequired') }]}
         >
           <Input.Password
             key={isServerValid ? 'enabled' : 'disabled'}
-            placeholder="Enter your access key"
+            placeholder={t('accessKeyPlaceholder')}
             onPressEnter={() => form.submit()}
             disabled={!isServerValid}
             autoFocus
@@ -124,7 +126,7 @@ const AdminLoginPage = () => {
             loading={isLoading || isValidating}
             disabled={isLoading || isValidating}
           >
-            Login
+            {t('login')}
           </LitegraphButton>
         </Form.Item>
       </Form>

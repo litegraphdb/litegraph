@@ -3,6 +3,77 @@ import '@testing-library/jest-dom';
 // Mock the antd React 19 patch since tests mock antd without unstableSetRender
 jest.mock('@ant-design/v5-patch-for-react-19', () => ({}));
 
+// next-intl ships ESM only, and next/jest's transformIgnorePatterns prevent it
+// from being transformed here. Provide a faithful, lightweight mock backed by
+// the real message catalogs so components using `useTranslations` render real
+// (English by default, or provider-selected) translations in tests.
+jest.mock('next-intl', () => {
+  const React = require('react');
+  const catalogs = {
+    en: require('./messages/en.json'),
+    es: require('./messages/es.json'),
+  };
+
+  const IntlContext = React.createContext({ locale: 'en', messages: catalogs.en });
+
+  const resolve = (messages, namespace, key) => {
+    const path = (namespace ? `${namespace}.${key}` : key).split('.');
+    let node = messages;
+    for (const part of path) {
+      if (node && typeof node === 'object' && part in node) node = node[part];
+      else return undefined;
+    }
+    return typeof node === 'string' ? node : undefined;
+  };
+
+  const formatICU = (message, values = {}) => {
+    let out = message.replace(
+      /\{(\w+),\s*plural,\s*([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
+      (_, name, body) => {
+        const count = Number(values[name]);
+        const opts = {};
+        const optRe = /(=\d+|zero|one|two|few|many|other)\s*\{([^{}]*)\}/g;
+        let mm;
+        while ((mm = optRe.exec(body))) opts[mm[1]] = mm[2];
+        let choice = opts[`=${count}`];
+        if (choice === undefined) choice = opts[count === 1 ? 'one' : 'other'] ?? opts.other ?? '';
+        return choice.replace(/#/g, String(count));
+      }
+    );
+    out = out.replace(/\{(\w+)\}/g, (_, k) => (values[k] !== undefined ? String(values[k]) : `{${k}}`));
+    return out;
+  };
+
+  const makeT = (messages, namespace) => {
+    const t = (key, values) => {
+      const raw = resolve(messages, namespace, key);
+      if (raw === undefined) return namespace ? `${namespace}.${key}` : key;
+      return formatICU(raw, values);
+    };
+    t.rich = (key, values) => t(key, values);
+    t.markup = (key, values) => t(key, values);
+    t.raw = (key) => resolve(messages, namespace, key);
+    return t;
+  };
+
+  return {
+    __esModule: true,
+    NextIntlClientProvider: ({ locale = 'en', messages, children }) =>
+      React.createElement(
+        IntlContext.Provider,
+        { value: { locale, messages: messages || catalogs[locale] || catalogs.en } },
+        children
+      ),
+    useTranslations: (namespace) => {
+      const ctx = React.useContext(IntlContext);
+      return makeT(ctx.messages || catalogs.en, namespace);
+    },
+    useLocale: () => React.useContext(IntlContext).locale,
+    useMessages: () => React.useContext(IntlContext).messages,
+    createTranslator: ({ messages, namespace }) => makeT(messages || catalogs.en, namespace),
+  };
+});
+
 jest.mock('litegraphdb', () => {
   const mockData = require('./src/tests/pages/mockData');
 

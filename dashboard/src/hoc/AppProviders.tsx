@@ -1,16 +1,11 @@
 'use client';
 import '@ant-design/v5-patch-for-react-19';
-import { createCache, StyleProvider } from '@ant-design/cssinjs';
-import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { createCache } from '@ant-design/cssinjs';
 import { AppContext } from '@/hooks/appHooks';
 import React, { useState, useEffect, useMemo } from 'react';
 import { ThemeEnum } from '@/types/types';
-import { darkTheme, primaryTheme } from '@/theme/theme';
-import { ConfigProvider, Flex } from 'antd';
-import { AppstoreOutlined } from '@ant-design/icons';
-import AuthLayout from '@/components/layout/AuthLayout';
 import StoreProvider from '@/lib/store/StoreProvider';
-import { Toaster } from 'react-hot-toast';
+import LocalizedApp from '@/hoc/LocalizedApp';
 import { localStorageKeys } from '@/constants/constant';
 
 const AppProviders = ({ children }: { children: React.ReactNode }) => {
@@ -36,24 +31,9 @@ const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <StoreProvider>
       <AppContext.Provider value={{ theme, setTheme: handleThemeChange }}>
-        <StyleProvider cache={cache} hashPriority="high">
-          <AntdRegistry>
-            <ConfigProvider
-              theme={theme === ThemeEnum.LIGHT ? primaryTheme : darkTheme}
-              renderEmpty={() => (
-                <Flex vertical align="center" justify="center" gap={8} style={{ padding: '16px 0' }}>
-                  <AppstoreOutlined style={{ fontSize: 24, color: 'var(--ant-color-text-quaternary)' }} />
-                  <span style={{ color: 'var(--ant-color-text-quaternary)', fontSize: 13 }}>No data</span>
-                </Flex>
-              )}
-            >
-              <AuthLayout className={theme === ThemeEnum.DARK ? 'theme-dark-mode' : ''}>
-                {children}
-              </AuthLayout>
-              <Toaster />
-            </ConfigProvider>
-          </AntdRegistry>
-        </StyleProvider>
+        <LocalizedApp cache={cache} theme={theme}>
+          {children}
+        </LocalizedApp>
       </AppContext.Provider>
     </StoreProvider>
   );

@@ -17,7 +17,7 @@ jest.mock('@/lib/store/slice/slice', () => ({
 
 // Mock the validation function
 jest.mock('@/page/graphs/components/constant', () => ({
-  validateVectorIndexFile: jest.fn(),
+  makeValidateVectorIndexFile: jest.fn(() => jest.fn()),
 }));
 
 // Mock the message module

@@ -26,6 +26,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@messages": [
+        "../messages/index.ts"
+      ],
+      "@messages/*": [
+        "../messages/*"
       ]
     }
   },

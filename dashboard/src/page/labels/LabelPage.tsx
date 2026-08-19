@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import LitegraphTable from '@/components/base/table/Table';
 import LitegraphButton from '@/components/base/button/Button';
@@ -25,6 +26,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const LabelPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('labels');
   const selectedGraphRedux = useSelectedGraph();
   const { isGraphsLoading } = useLayoutContext();
   const { page, pageSize, skip, handlePageChange } = usePagination();
@@ -116,18 +119,18 @@ const LabelPage = () => {
   return (
     <PageContainer
       id="labels"
-      pageTitle="Labels"
+      pageTitle={t('title')}
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphTooltip title="Create a new label">
+            <LitegraphTooltip title={t('createTooltip')}>
               <LitegraphButton
                 type="link"
                 icon={<PlusSquareOutlined />}
                 onClick={handleCreateLabel}
                 weight={600}
               >
-                Create Label
+                {t('createLabel')}
               </LitegraphButton>
             </LitegraphTooltip>
           )}

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input, Empty, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import CopyButton from '@/components/base/copy-button/CopyButton';
@@ -23,6 +24,8 @@ const NodeSearchModal = ({
   graphId,
   onNodeSelect,
 }: NodeSearchModalProps) => {
+  const t = useTranslations('graphViewer');
+  const tCommon = useTranslations('common');
   const [searchValue, setSearchValue] = useState('');
   const [searchNodes, { isLoading, isError }] = useSearchNodesMutation();
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -68,22 +71,22 @@ const NodeSearchModal = ({
 
   const columns: ColumnType<Node>[] = [
     {
-      title: columnTooltip('Name', 'Node display name'),
+      title: columnTooltip(t('nodeSearch.columns.name'), t('nodeSearch.columns.nameTooltip')),
       dataIndex: 'Name',
       key: 'Name',
       render: (text: string) => text || '-',
     },
     {
-      title: columnTooltip('Labels', 'Classification labels'),
+      title: columnTooltip(t('nodeSearch.columns.labels'), t('nodeSearch.columns.labelsTooltip')),
       dataIndex: 'Labels',
       key: 'Labels',
       render: (labels: string[]) => (labels && labels.length > 0 ? labels.join(', ') : '-'),
     },
     {
-      title: columnTooltip('GUID', 'Globally unique identifier'),
+      title: columnTooltip(t('nodeSearch.columns.guid'), t('nodeSearch.columns.guidTooltip')),
       dataIndex: 'GUID',
       key: 'GUID',
-      render: (text: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{text}<CopyButton text={text} tooltipTitle="Copy GUID" /></span>,
+      render: (text: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{text}<CopyButton text={text} tooltipTitle={tCommon('copy.copyGuid')} /></span>,
     },
   ];
 
@@ -96,7 +99,7 @@ const NodeSearchModal = ({
 
   return (
     <LitegraphModal
-      title="Search Nodes"
+      title={t('nodeSearch.title')}
       open={isVisible}
       onCancel={() => setIsVisible(false)}
       footer={null}
@@ -105,7 +108,7 @@ const NodeSearchModal = ({
     >
       <div style={{ marginBottom: 16 }}>
         <Input.Search
-          placeholder="Search nodes by name..."
+          placeholder={t('nodeSearch.placeholder')}
           allowClear
           enterButton={<SearchOutlined />}
           size="large"
@@ -123,11 +126,11 @@ const NodeSearchModal = ({
       )}
 
       {!isLoading && isError && (
-        <Empty description="Failed to search nodes. Please try again." />
+        <Empty description={t('nodeSearch.searchFailed')} />
       )}
 
       {!isLoading && !isError && nodes.length === 0 && searchValue.trim() && (
-        <Empty description="No nodes found" />
+        <Empty description={t('nodeSearch.noNodesFound')} />
       )}
 
       {!isLoading && !isError && nodes.length > 0 && (
@@ -138,7 +141,7 @@ const NodeSearchModal = ({
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total) => `Total ${total} nodes`,
+            showTotal: (total) => t('nodeSearch.total', { count: total }),
           }}
           onRow={(record) => ({
             onClick: () => handleRowClick(record),
@@ -149,7 +152,7 @@ const NodeSearchModal = ({
       )}
 
       {!isLoading && !isError && !searchValue.trim() && (
-        <Empty description="Enter a search term to find nodes" />
+        <Empty description={t('nodeSearch.enterSearchTerm')} />
       )}
     </LitegraphModal>
   );

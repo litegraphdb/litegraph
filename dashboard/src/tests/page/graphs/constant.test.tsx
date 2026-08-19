@@ -4,9 +4,11 @@ import { render, screen } from '@testing-library/react';
 import { tableColumns } from '@/page/graphs/constant';
 import { GraphData } from '@/types/types';
 import type { ColumnType } from 'antd/es/table';
+import { getTranslator } from '@/i18n/getTranslator';
 
-const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<GraphData>[] =>
-  tableColumns(...args) as ColumnType<GraphData>[];
+const tGraphs = getTranslator('en', 'graphs') as any;
+const getColumns = (...args: any[]): ColumnType<GraphData>[] =>
+  (tableColumns as any)(tGraphs, ...args) as ColumnType<GraphData>[];
 
 const getColumnTitleText = (title: any): string => {
   if (!React.isValidElement(title)) return title;

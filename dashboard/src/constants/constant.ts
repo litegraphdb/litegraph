@@ -5,6 +5,7 @@ export const localStorageKeys = {
   user: 'user',
   serverUrl: 'serverUrl',
   theme: 'theme',
+  locale: 'locale',
 };
 
 export const dynamicSlugs = {

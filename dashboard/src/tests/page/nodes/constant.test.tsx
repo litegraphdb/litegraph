@@ -4,9 +4,11 @@ import { render, screen } from '@testing-library/react';
 import { tableColumns } from '@/page/nodes/constant';
 import { NodeType } from '@/types/types';
 import type { ColumnType } from 'antd/es/table';
+import { getTranslator } from '@/i18n/getTranslator';
 
-const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<NodeType>[] =>
-  tableColumns(...args) as ColumnType<NodeType>[];
+const tNodes = getTranslator('en', 'nodes') as any;
+const getColumns = (...args: any[]): ColumnType<NodeType>[] =>
+  (tableColumns as any)(tNodes, ...args) as ColumnType<NodeType>[];
 
 jest.mock('@/components/base/tag/Tag', () => {
   return function MockTag({ label }: { label: string }) {

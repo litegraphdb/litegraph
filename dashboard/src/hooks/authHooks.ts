@@ -13,6 +13,8 @@ import { useGetTokenDetailsMutation } from '@/lib/store/slice/slice';
 import toast from 'react-hot-toast';
 import { globalToastId } from '@/constants/config';
 import { localStorageKeys } from '@/constants/constant';
+import { useAppSelector } from '@/lib/store/hooks';
+import { getTranslator } from '@/i18n/getTranslator';
 
 export const useFetchUserDetails = () => {
   const dispatch = useAppDispatch();
@@ -55,6 +57,7 @@ export const useLogout = () => {
 
 export const useApiKeyToLogin = () => {
   const loginWithCredentials = useCredentialsToLogin();
+  const locale = useAppSelector((state) => state.liteGraph.locale);
   const [getTokenDetails] = useGetTokenDetailsMutation();
   const loginWithApiKey = async (apikey: string, endpoint: string) => {
     setAccessToken(apikey);
@@ -81,7 +84,7 @@ export const useApiKeyToLogin = () => {
           localStorage.setItem(localStorageKeys.user, JSON.stringify(tokenDetails.data.User));
         }
 
-        toast.success('Logged in successfully via SSO.', { id: globalToastId });
+        toast.success(getTranslator(locale, 'login')('loggedInSso'), { id: globalToastId });
         return { success: true, tenant: tokenDetails.data.Tenant };
       }
       return { success: false, tenant: null };

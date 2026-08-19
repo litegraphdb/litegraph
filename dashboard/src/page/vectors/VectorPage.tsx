@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import LitegraphTable from '@/components/base/table/Table';
 import LitegraphButton from '@/components/base/button/Button';
@@ -24,6 +25,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const VectorPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('vectors');
   // Redux state for the list of graphs
   const selectedGraphRedux = useSelectedGraph();
   const { isGraphsLoading } = useLayoutContext();
@@ -111,18 +114,18 @@ const VectorPage = () => {
   return (
     <PageContainer
       id="vectors"
-      pageTitle="Vectors"
+      pageTitle={t('title')}
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphTooltip title="Create a new vector">
+            <LitegraphTooltip title={t('createTooltip')}>
               <LitegraphButton
                 type="link"
                 icon={<PlusSquareOutlined />}
                 onClick={handleCreateVector}
                 weight={500}
               >
-                Create Vector
+                {t('createVector')}
               </LitegraphButton>
             </LitegraphTooltip>
           )}

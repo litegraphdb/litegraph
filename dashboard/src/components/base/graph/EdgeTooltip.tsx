@@ -1,5 +1,6 @@
 import { defaultEdgeTooltip } from './constant';
 import { GraphEdgeTooltip } from './types';
+import { useTranslations } from 'next-intl';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import LiteGraphSpace from '@/components/base/space/Space';
 import LiteGraphCard from '@/components/base/card/Card';
@@ -46,6 +47,8 @@ const EdgeToolTip = ({
   currentNodes,
   currentEdges,
 }: EdgeTooltipProps) => {
+  const t = useTranslations('graphViewer');
+  const tCommon = useTranslations('common');
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   // State for AddEditDeleteNode visibility and selected node
@@ -189,12 +192,12 @@ const EdgeToolTip = ({
         <LiteGraphCard
           title={
             <LitegraphText weight={600} fontSize={18}>
-              Edge Information
+              {t('edge.title')}
             </LitegraphText>
           }
           extra={
             <LitegraphFlex gap={10}>
-              <LitegraphTooltip title="Expand" placement="bottom">
+              <LitegraphTooltip title={t('edge.expand')} placement="bottom">
                 <ExpandOutlined
                   className="cursor-pointer"
                   onClick={() => {
@@ -218,13 +221,13 @@ const EdgeToolTip = ({
             <PageLoading withoutWhiteBG />
           ) : error ? (
             <FallBack retry={refetch}>
-              {error ? 'Something went wrong.' : "Can't view details at the moment."}
+              {error ? tCommon('states.somethingWentWrong') : tCommon('states.cantViewDetails')}
             </FallBack>
           ) : isAddingNewEdge ? (
             // Show Add Edge form
             <LitegraphFlex vertical>
               <LitegraphText>
-                <strong>Add New Edge</strong>
+                <strong>{t('edge.addNew')}</strong>
               </LitegraphText>
               <LitegraphButton
                 type="primary"
@@ -234,7 +237,7 @@ const EdgeToolTip = ({
                 }}
                 className="mt-2"
               >
-                Open Add Edge Form
+                {t('edge.openAddForm')}
               </LitegraphButton>
             </LitegraphFlex>
           ) : (
@@ -242,35 +245,35 @@ const EdgeToolTip = ({
             <LitegraphFlex vertical>
               <LitegraphFlex vertical className="card-details">
                 <LitegraphText data-testid="edge-guid">
-                  <strong>GUID: </strong>
+                  <strong>{t('edge.guid')}: </strong>
                   <span data-testid="edge-guid-value" style={{ fontFamily: 'monospace' }}>
                     {displayEdge?.GUID}
                   </span>{' '}
-                  <CopyButton text={displayEdge?.GUID || ''} tooltipTitle="Copy GUID" />
+                  <CopyButton text={displayEdge?.GUID || ''} tooltipTitle={tCommon('copy.copyGuid')} />
                 </LitegraphText>
                 <LitegraphText>
-                  <strong>Name: </strong>
+                  <strong>{t('edge.name')}: </strong>
                   {displayEdge?.Name}
                 </LitegraphText>
 
                 <LitegraphText>
-                  <strong>From: </strong>
+                  <strong>{t('edge.from')}: </strong>
                   {isNodesLoadingOrFetching ? <LoadingOutlined /> : fromNode?.Name}
                 </LitegraphText>
 
                 <LitegraphText>
-                  <strong>To: </strong>
+                  <strong>{t('edge.to')}: </strong>
                   {isNodesLoadingOrFetching ? <LoadingOutlined /> : toNode?.Name}
                 </LitegraphText>
 
                 <LitegraphText>
-                  <strong>Cost: </strong>
+                  <strong>{t('edge.cost')}: </strong>
                   {displayEdge?.Cost}
                 </LitegraphText>
 
                 <LitegraphText>
-                  <strong>Labels: </strong>
-                  {`${displayEdge?.Labels?.length ? displayEdge?.Labels?.join(', ') : 'None'}`}
+                  <strong>{t('edge.labels')}: </strong>
+                  {`${displayEdge?.Labels?.length ? displayEdge?.Labels?.join(', ') : tCommon('states.none')}`}
                 </LitegraphText>
 
                 {/* <LitegraphText>
@@ -279,7 +282,7 @@ const EdgeToolTip = ({
                 </LitegraphText> */}
 
                 <LitegraphText>
-                  <strong>Tags: </strong>
+                  <strong>{t('edge.tags')}: </strong>
                   {Object.keys(displayEdge?.Tags || {}).length > 0 ? (
                     <JsonEditorWithAce
                       key={JSON.stringify(
@@ -296,14 +299,14 @@ const EdgeToolTip = ({
                       enableTransform={false}
                     />
                   ) : (
-                    <LitegraphText>None</LitegraphText>
+                    <LitegraphText>{tCommon('states.none')}</LitegraphText>
                   )}
                 </LitegraphText>
               </LitegraphFlex>
 
               {/* Buttons */}
               <LitegraphFlex justify="space-between" gap={10} className="pt-3">
-                <LitegraphTooltip title={'Update Edge'} placement="bottom">
+                <LitegraphTooltip title={t('edge.updateTooltip')} placement="bottom">
                   <LitegraphButton
                     type="link"
                     onClick={() => {
@@ -311,10 +314,10 @@ const EdgeToolTip = ({
                       setIsAddEditEdgeVisible(true);
                     }}
                   >
-                    Update
+                    {tCommon('actions.update')}
                   </LitegraphButton>
                 </LitegraphTooltip>
-                <LitegraphTooltip title={'Delete Edge'} placement="bottom">
+                <LitegraphTooltip title={t('edge.deleteTooltip')} placement="bottom">
                   <LitegraphButton
                     type="link"
                     onClick={() => {
@@ -322,7 +325,7 @@ const EdgeToolTip = ({
                       setIsDeleteModelVisisble(true);
                     }}
                   >
-                    Delete
+                    {tCommon('actions.delete')}
                   </LitegraphButton>
                 </LitegraphTooltip>
               </LitegraphFlex>
@@ -359,8 +362,8 @@ const EdgeToolTip = ({
 
       {/* DeleteEdge Component On Delete*/}
       <DeleteEdge
-        title={`Are you sure you want to delete "${selectedEdge?.Name}|| ''" edge?`}
-        paragraphText={'This action will delete edge.'}
+        title={t('edge.deleteConfirmTitle', { name: selectedEdge?.Name || '' })}
+        paragraphText={t('edge.deleteConfirmText')}
         isDeleteModelVisisble={isDeleteModelVisisble}
         setIsDeleteModelVisisble={setIsDeleteModelVisisble}
         selectedEdge={selectedEdge}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Alert,
   Button,
@@ -200,6 +201,8 @@ const RoleModal = ({ open, role, saving, onCancel, onSave }: RoleModalProps) => 
 };
 
 const AuthorizationPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('authorization');
   const selectedTenant = useSelectedTenant();
   const tenantGuid = selectedTenant?.GUID || '';
   const adminAccessKey = useAppSelector((state: RootState) => state.liteGraph.adminAccessKey);
@@ -633,7 +636,7 @@ const AuthorizationPage = () => {
 
   if (!tenantGuid) {
     return (
-      <PageContainer id="authorization" pageTitle="Authorization">
+      <PageContainer id="authorization" pageTitle={t('title')}>
         <Alert type="info" showIcon message="Select a tenant to manage authorization." />
       </PageContainer>
     );
@@ -657,10 +660,10 @@ const AuthorizationPage = () => {
   return (
     <PageContainer
       id="authorization"
-      pageTitle="Authorization"
+      pageTitle={t('title')}
       pageTitleRightContent={
         <LitegraphTooltip
-          title={canManage ? 'Create a custom role' : 'Admin permission is required'}
+          title={canManage ? t('createTooltip') : t('adminRequired')}
         >
           <LitegraphButton
             type="link"
@@ -672,7 +675,7 @@ const AuthorizationPage = () => {
             disabled={!canManage || currentPermissionsLoading}
             weight={500}
           >
-            Create Role
+            {t('createRole')}
           </LitegraphButton>
         </LitegraphTooltip>
       }

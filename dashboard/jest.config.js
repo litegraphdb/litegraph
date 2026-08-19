@@ -8,6 +8,8 @@ const customJestConfig = {
   coverageProvider: 'v8',
   testEnvironment: './jest.environment.js',
   moduleNameMapper: {
+    '^@messages$': '<rootDir>/messages/index.ts',
+    '^@messages/(.*)$': '<rootDir>/messages/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^antd/es/(.*)$': '<rootDir>/node_modules/antd/lib/$1',
     uuid: require.resolve('uuid'),
@@ -17,7 +19,7 @@ const customJestConfig = {
     customExportConditions: [''],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!react-hot-toast|@react-sigma/core|graphology|sigma|msw|@mswjs|until-async)',
+    'node_modules/(?!react-hot-toast|@react-sigma/core|graphology|sigma|msw|@mswjs|until-async|next-intl|use-intl)',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',

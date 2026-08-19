@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
@@ -16,6 +17,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const TenantPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('tenants');
   const [selectedTenant, setSelectedTenant] = useState<TenantMetaData | null>(null);
   const [isAddEditTenantVisible, setIsAddEditTenantVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -51,16 +54,16 @@ const TenantPage = () => {
   return (
     <PageContainer
       id="tenants"
-      pageTitle="Tenants"
+      pageTitle={t('title')}
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new tenant">
+        <LitegraphTooltip title={t('createTooltip')}>
           <LitegraphButton
             type="link"
             icon={<PlusSquareOutlined />}
             onClick={handleCreateTenant}
             weight={500}
           >
-            Create Tenant
+            {t('createTenant')}
           </LitegraphButton>
         </LitegraphTooltip>
       }

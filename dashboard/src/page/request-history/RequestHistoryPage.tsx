@@ -1,5 +1,6 @@
 'use client';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert, Button, Dropdown, Input, Modal, Select, Space, Tag, Typography } from 'antd';
 import { CodeOutlined, DeleteOutlined, EyeOutlined, MoreOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -178,6 +179,8 @@ type Props = {
 };
 
 const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('requestHistory');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
   const [method, setMethod] = useState<string>('');
@@ -429,7 +432,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   }, [result]);
 
   return (
-    <PageContainer id="request-history" pageTitle="Request History">
+    <PageContainer id="request-history" pageTitle={t('title')}>
       <RequestHistoryChart
         tenantGuid={mode === 'tenant' ? tenantScope : undefined}
         refreshKey={refreshKey}

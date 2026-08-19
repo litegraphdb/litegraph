@@ -1,12 +1,13 @@
 'use client';
 import { Form, Tag } from 'antd';
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react';
 import LitegraphInput from '@/components/base/input/Input';
 import DataJsonEditor from '@/components/inputs/data-json-editor/DataJsonEditor';
 import { v4 } from 'uuid';
-import { validationRules } from './constant';
+import { makeValidationRules } from './constant';
 import { NodeType } from '@/types/types';
 import toast from 'react-hot-toast';
 import VectorsInput from '@/components/inputs/vectors-input.tsx/VectorsInput';
@@ -24,7 +25,6 @@ import {
 } from '@/lib/store/slice/slice';
 import { Node, NodeCreateRequest } from 'litegraphdb/dist/types/types';
 import PageLoading from '@/components/base/loading/PageLoading';
-import { getCreateEditViewModelTitle } from '@/utils/appUtils';
 import { tagsToFormList, toPlainJson, vectorsToFormList } from '@/utils/formValueUtils';
 import modalStyles from '@/page/common/entityViewModal.module.scss';
 
@@ -69,7 +69,10 @@ const AddEditNode = ({
   currentNodes,
   currentEdges,
 }: AddEditNodeProps) => {
+  const t = useTranslations('nodes');
+  const tCommon = useTranslations('common');
   const [form] = Form.useForm();
+  const validationRules = useMemo(() => makeValidationRules(t), [t]);
   const [formValid, setFormValid] = useState(false);
   const [uniqueKey, setUniqueKey] = useState(v4());
   const isReadonlyView = Boolean(readonly && nodeWithOldData?.GUID);
@@ -174,7 +177,7 @@ const AddEditNode = ({
               }
             }
 
-            toast.success('Update Node successfully');
+            toast.success(t('toast.updated'));
             setIsAddEditNodeVisible(false);
             onNodeUpdated && (await onNodeUpdated());
           } else {
@@ -212,7 +215,7 @@ const AddEditNode = ({
               Vectors: created?.Vectors ?? convertVectorsToAPIRecord(values.vectors) ?? [],
             });
           }
-          toast.success('Add Node successfully');
+          toast.success(t('toast.created'));
           setIsAddEditNodeVisible(false);
           onNodeUpdated && (await onNodeUpdated());
         } else {
@@ -222,7 +225,7 @@ const AddEditNode = ({
     } catch (error: unknown) {
       console.error('Error submitting form:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update node: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
@@ -277,16 +280,19 @@ const AddEditNode = ({
     : undefined;
   const readonlyLabels = node?.Labels || nodeWithOldData?.Labels || [];
 
+  const modalTitle =
+    isGraphLoading || isNodeLoading
+      ? t('modalTitle.loading')
+      : Boolean(readonly && !!nodeWithOldData)
+        ? t('modalTitle.view')
+        : nodeWithOldData
+          ? t('modalTitle.edit')
+          : t('modalTitle.create');
+
   return (
     <LitegraphModal
-      title={getCreateEditViewModelTitle(
-        'Node',
-        isGraphLoading || isNodeLoading,
-        !nodeWithOldData,
-        !!nodeWithOldData,
-        Boolean(readonly && !!nodeWithOldData)
-      )}
-      okText={nodeWithOldData?.GUID ? 'Update' : 'Create'}
+      title={modalTitle}
+      okText={nodeWithOldData?.GUID ? t('modalTitle.updateOk') : t('modalTitle.createOk')}
       open={isAddEditNodeVisible}
       onOk={handleSubmit}
       confirmLoading={isCreateLoading || isUpdateLoading}
@@ -296,7 +302,7 @@ const AddEditNode = ({
       }}
       width={isReadonlyView ? '95vw' : 800}
       centered={isReadonlyView}
-      cancelText={readonly ? 'Close' : 'Cancel'}
+      cancelText={readonly ? tCommon('actions.close') : tCommon('actions.cancel')}
       okButtonProps={{
         disabled: isGraphLoading || isNodeLoading || !formValid,
         'data-testid': 'add-node-submit-button',
@@ -329,9 +335,9 @@ const AddEditNode = ({
               data-testid="node-view-summary-grid"
             >
               <LitegraphFormItem
-                label="Graph"
+                label={t('form.graph')}
                 name="graphName"
-                tooltip="The graph this node belongs to"
+                tooltip={t('form.graphTooltip')}
               >
                 <LitegraphInput readOnly variant="borderless" />
               </LitegraphFormItem>
@@ -339,27 +345,27 @@ const AddEditNode = ({
               <LitegraphFormItem
                 label={
                   <LitegraphFlex align="center" gap={8}>
-                    <span>GUID</span>
+                    <span>{t('form.guid')}</span>
                     <CopyButton
                       getText={() => form.getFieldValue('guid') || ''}
-                      tooltipTitle="Copy GUID"
+                      tooltipTitle={tCommon('copy.copyGuid')}
                     />
                   </LitegraphFlex>
                 }
                 name="guid"
-                tooltip="Globally unique identifier for this node"
+                tooltip={t('form.guidTooltip')}
               >
                 <LitegraphInput readOnly variant="borderless" />
               </LitegraphFormItem>
 
               <LitegraphFormItem
-                label="Name"
+                label={t('form.name')}
                 name="name"
-                tooltip="Display name for the node"
+                tooltip={t('form.nameTooltip')}
                 rules={validationRules.name}
               >
                 <LitegraphInput
-                  placeholder="Enter node name"
+                  placeholder={t('form.namePlaceholder')}
                   data-testid="node-name-input"
                   readOnly={readonly}
                   variant={readonly ? 'borderless' : 'outlined'}
@@ -371,22 +377,22 @@ const AddEditNode = ({
               <LitegraphFlex gap={readonly ? 10 : 0} vertical={!readonly}>
                 <LitegraphFormItem
                   className="flex-1"
-                  label="Graph"
+                  label={t('form.graph')}
                   name="graphName"
-                  tooltip="The graph this node belongs to"
+                  tooltip={t('form.graphTooltip')}
                 >
                   <LitegraphInput readOnly variant="borderless" />
                 </LitegraphFormItem>
 
                 <LitegraphFormItem
                   className="flex-1"
-                  label="Name"
+                  label={t('form.name')}
                   name="name"
-                  tooltip="Display name for the node"
+                  tooltip={t('form.nameTooltip')}
                   rules={validationRules.name}
                 >
                   <LitegraphInput
-                    placeholder="Enter node name"
+                    placeholder={t('form.namePlaceholder')}
                     data-testid="node-name-input"
                     readOnly={readonly}
                     variant={readonly ? 'borderless' : 'outlined'}
@@ -396,15 +402,15 @@ const AddEditNode = ({
               <LabelInput
                 name="labels"
                 readonly={readonly}
-                tooltip="Labels associated with this node"
+                tooltip={t('form.labelsTooltip')}
               />
             </>
           )}
 
           {isReadonlyView && (
             <Form.Item
-              label="Labels"
-              tooltip="Labels associated with this node"
+              label={t('form.labels')}
+              tooltip={t('form.labelsTooltip')}
               className={modalStyles.fullSpan}
             >
               {readonlyLabels.length > 0 ? (
@@ -416,21 +422,21 @@ const AddEditNode = ({
                   ))}
                 </div>
               ) : (
-                <span className={modalStyles.emptyValue}>N/A</span>
+                <span className={modalStyles.emptyValue}>{tCommon('states.notAvailable')}</span>
               )}
             </Form.Item>
           )}
 
           <Form.Item
-            label="Tags"
-            tooltip="Key-value tags for this node"
+            label={t('form.tags')}
+            tooltip={t('form.tagsTooltip')}
             className={isReadonlyView ? modalStyles.fullSpan : undefined}
           >
             <TagsInput name="tags" readonly={readonly} />
           </Form.Item>
           <Form.Item
-            label="Vectors"
-            tooltip="Vector embeddings for this node"
+            label={t('form.vectors')}
+            tooltip={t('form.vectorsTooltip')}
             className={isReadonlyView ? modalStyles.fullSpan : undefined}
           >
             <VectorsInput name="vectors" readonly={readonly} />
@@ -438,14 +444,14 @@ const AddEditNode = ({
           <LitegraphFormItem
             className={isReadonlyView ? modalStyles.fullSpan : undefined}
             name="data"
-            tooltip="Arbitrary JSON data attached to this node"
+            tooltip={t('form.dataTooltip')}
             label={
               <LitegraphFlex align="center" gap={8}>
-                <span>Data</span>
+                <span>{t('form.data')}</span>
                 {readonly && (
                   <CopyButton
                     getText={() => JSON.stringify(form.getFieldValue('data') || {}, null, 2)}
-                    tooltipTitle="Copy Data"
+                    tooltipTitle={t('form.copyData')}
                   />
                 )}
               </LitegraphFlex>

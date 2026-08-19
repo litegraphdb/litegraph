@@ -40,6 +40,7 @@ export const createMockInitialState = (): RootState => ({
     token: null,
     adminAccessKey: 'adminAccessKey',
     user: null,
+    locale: 'en',
   },
 });
 

@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert, Button, Input, Select, Space, Tag, Typography, Tooltip, message } from 'antd';
 import { SendOutlined, ReloadOutlined, ClearOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
@@ -65,6 +66,8 @@ const saveHistory = (items: RecentRequest[]) => {
 };
 
 const ApiExplorerPage: React.FC = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('apiExplorer');
   const [operations, setOperations] = useState<ApiOperation[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [pathValues, setPathValues] = useState<Record<string, string>>({});
@@ -227,7 +230,7 @@ const ApiExplorerPage: React.FC = () => {
   }, [operations]);
 
   return (
-    <PageContainer id="api-explorer" pageTitle="API Explorer">
+    <PageContainer id="api-explorer" pageTitle={t('title')}>
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
@@ -250,7 +253,7 @@ const ApiExplorerPage: React.FC = () => {
                 loading={sending}
                 disabled={!selectedOperation}
               >
-                Send
+                {t('send')}
               </Button>
             </Space>
           </div>

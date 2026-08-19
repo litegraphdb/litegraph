@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
 import { tableColumns } from './constant';
 import { useGetGraphGexfContentByIdMutation } from '@/lib/store/slice/slice';
@@ -33,6 +34,8 @@ import DeleteVectorIndexModal from './components/DeleteVectorIndexModal';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const GraphPage = () => {
+  const t = useTranslations('graphs');
+  const tCommon = useTranslations('common');
   const { page, pageSize, skip, handlePageChange } = usePagination();
   const [searchParams, setSearchParams] = useState<EnumerateAndSearchRequest>({});
   const {
@@ -95,16 +98,16 @@ const GraphPage = () => {
       const res = await fetchGexfByGraphId({ graphId: graph.GUID });
       const gexfContent = res?.data;
       if (!gexfContent) {
-        throw new Error('No GEXF content received');
+        throw new Error(t('toast.noGexf'));
       }
 
       // Create a blob from the GEXF content
       const blob = new Blob([gexfContent], { type: 'application/xml' });
       saveAs(blob, `graph-${graph.GUID}.gexf`);
-      toast.success('Graph exported successfully');
+      toast.success(t('toast.exported'));
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export graph');
+      toast.error(t('toast.exportFailed'));
     }
   };
 
@@ -137,7 +140,7 @@ const GraphPage = () => {
     if (selectedGraph) {
       const res = await deleteGraphById(selectedGraph.GUID);
       if (res) {
-        toast.success('Delete Graph successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisisble(false);
         setSelectedGraph(null);
       }
@@ -153,7 +156,9 @@ const GraphPage = () => {
   if (graphError) {
     return (
       <FallBack retry={refetchGraphs}>
-        {graphError ? 'Something went wrong.' : "Can't view details at the moment."}
+        {graphError
+          ? tCommon('states.somethingWentWrong')
+          : tCommon('states.cantViewDetails')}
       </FallBack>
     );
   }
@@ -163,21 +168,21 @@ const GraphPage = () => {
       id="graphs"
       pageTitle={
         <LitegraphFlex align="center" gap={10}>
-          <LitegraphText>Graphs</LitegraphText>
-          <LitegraphTooltip title="Search and filter graphs">
+          <LitegraphText>{t('title')}</LitegraphText>
+          <LitegraphTooltip title={t('searchTooltip')}>
             <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
           </LitegraphTooltip>
         </LitegraphFlex>
       }
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new graph">
+        <LitegraphTooltip title={t('createTooltip')}>
           <LitegraphButton
             type="link"
             icon={<PlusSquareOutlined />}
             onClick={handleCreateGraph}
             weight={500}
           >
-            Create Graph
+            {t('createGraph')}
           </LitegraphButton>
         </LitegraphTooltip>
       }
@@ -192,7 +197,7 @@ const GraphPage = () => {
         >
           {!isGraphsLoading && (
             <AppliedFilter
-              entityName="graph(s)"
+              entityName={t('entityName')}
               searchParams={searchParams}
               totalRecords={data?.TotalRecords || 0}
               onClear={() => setSearchParams({})}
@@ -201,6 +206,7 @@ const GraphPage = () => {
         </LitegraphFlex>
         <LitegraphTable
           columns={tableColumns(
+            t,
             handleEdit,
             handleDelete,
             handleExportGexf,
@@ -238,7 +244,7 @@ const GraphPage = () => {
       />
 
       <LitegraphModal
-        title="Are you sure you want to delete this graph?"
+        title={t('deleteTitle')}
         centered
         open={isDeleteModelVisisble}
         onCancel={() => setIsDeleteModelVisisble(false)}
@@ -248,11 +254,11 @@ const GraphPage = () => {
             onClick={handleDeleteGraph}
             loading={isDeleteGraphLoading}
           >
-            Confirm
+            {tCommon('actions.confirm')}
           </LitegraphButton>
         }
       >
-        <LitegraphParagraph>This action will delete graph.</LitegraphParagraph>
+        <LitegraphParagraph>{t('deleteBody')}</LitegraphParagraph>
       </LitegraphModal>
       <SearchByTLDModal
         setIsSearchModalVisible={setShowSearchModal}
@@ -308,7 +314,7 @@ const GraphPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Graph JSON"
+        title={t('graphJson')}
       />
     </PageContainer>
   );

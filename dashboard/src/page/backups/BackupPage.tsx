@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
@@ -16,6 +17,8 @@ import { BackupMetaData } from 'litegraphdb/dist/types/types';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 const BackupPage = () => {
+  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
+  const t = useTranslations('backups');
   const [isDeleteBackupVisible, setIsDeleteBackupVisible] = useState(false);
   const [isAddEditBackupVisible, setIsAddEditBackupVisible] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupMetaData | null>(null);
@@ -57,16 +60,16 @@ const BackupPage = () => {
   return (
     <PageContainer
       id="backups"
-      pageTitle="Backups"
+      pageTitle={t('title')}
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new backup">
+        <LitegraphTooltip title={t('createTooltip')}>
           <LitegraphButton
             type="link"
             icon={<PlusSquareOutlined />}
             onClick={handleCreateBackup}
             weight={500}
           >
-            Create Backup
+            {t('createBackup')}
           </LitegraphButton>
         </LitegraphTooltip>
       }

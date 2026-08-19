@@ -1,26 +1,28 @@
-export const validationRules = {
-  Name: [{ required: true, message: 'Edge Name is required' }],
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
+export const makeValidationRules = (t: Translator) => ({
+  Name: [{ required: true, message: t('form.nameRequired') }],
   From: [
-    { required: true, message: 'From Node is required' },
+    { required: true, message: t('form.fromRequired') },
     ({ getFieldValue }: any) => ({
       validator(_: any, value: any) {
         if (value && value === getFieldValue('To')) {
-          return Promise.reject(new Error('From Node cannot be the same as To Node'));
+          return Promise.reject(new Error(t('form.fromSameAsTo')));
         }
         return Promise.resolve();
       },
     }),
   ],
   To: [
-    { required: true, message: 'To Node is required' },
+    { required: true, message: t('form.toRequired') },
     ({ getFieldValue }: any) => ({
       validator(_: any, value: any) {
         if (value && value === getFieldValue('From')) {
-          return Promise.reject(new Error('To Node cannot be the same as From Node'));
+          return Promise.reject(new Error(t('form.toSameAsFrom')));
         }
         return Promise.resolve();
       },
     }),
   ],
-  Cost: [{ required: true, message: 'Edge cost is required' }],
-};
+  Cost: [{ required: true, message: t('form.costRequired') }],
+});

@@ -1,5 +1,6 @@
 import { createAction } from '@reduxjs/toolkit';
 import { TenantMetaData, Token, UserMetadata } from 'litegraphdb/dist/types/types';
+import { AppLocale } from '@/i18n/locales';
 
 export const LitegraphAction = {
   STORE_SELECTED_GRAPH: 'STORE_SELECTED_GRAPH',
@@ -8,6 +9,7 @@ export const LitegraphAction = {
   STORE_USER: 'STORE_USER',
   LOG_OUT: 'LOG_OUT',
   STORE_ADMIN_ACCESS_KEY: 'STORE_ADMIN_ACCESS_KEY',
+  STORE_LOCALE: 'STORE_LOCALE',
 };
 
 export const storeSelectedGraph = createAction<{ graph: string }>(
@@ -20,3 +22,4 @@ export const logOut = createAction<string | undefined>(LitegraphAction.LOG_OUT);
 export const storeAdminAccessKey = createAction<string | null>(
   LitegraphAction.STORE_ADMIN_ACCESS_KEY
 );
+export const storeLocale = createAction<AppLocale>(LitegraphAction.STORE_LOCALE);
