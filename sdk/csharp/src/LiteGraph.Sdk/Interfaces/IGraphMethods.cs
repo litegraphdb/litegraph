@@ -230,6 +230,74 @@
             CancellationToken token = default);
 
         /// <summary>
+        /// Export an entire graph as JSONL.  Suitable as a provider-agnostic per-graph backup.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="includeData">True to include the data property of objects.</param>
+        /// <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>JSONL string.</returns>
+        Task<string> ExportGraphToJsonl(
+            Guid tenantGuid,
+            Guid graphGuid,
+            bool includeData = false,
+            bool includeSubordinates = false,
+            CancellationToken token = default);
+
+        /// <summary>
+        /// Export a filtered, directional subgraph as JSONL.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="request">Subgraph extraction request.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>JSONL string.</returns>
+        Task<string> ExportSubgraphToJsonl(
+            Guid tenantGuid,
+            Guid graphGuid,
+            SubgraphExtractionRequest request,
+            CancellationToken token = default);
+
+        /// <summary>
+        /// Import JSONL into an existing graph (merge).
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Target graph GUID.</param>
+        /// <param name="jsonl">JSONL content.</param>
+        /// <param name="guidStrategy">GUID collision strategy.  Default is Regenerate.</param>
+        /// <param name="onError">Error policy.  Default is Abort.</param>
+        /// <param name="batchSize">Batch size.  Minimum 1.  Default is 1000.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Import result.</returns>
+        Task<GraphImportResult> ImportGraphFromJsonl(
+            Guid tenantGuid,
+            Guid graphGuid,
+            string jsonl,
+            GraphImportGuidStrategyEnum guidStrategy = GraphImportGuidStrategyEnum.Regenerate,
+            GraphImportErrorPolicyEnum onError = GraphImportErrorPolicyEnum.Abort,
+            int batchSize = 1000,
+            CancellationToken token = default);
+
+        /// <summary>
+        /// Import JSONL as a new graph.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="jsonl">JSONL content.</param>
+        /// <param name="guidStrategy">GUID collision strategy.  Default is Regenerate.</param>
+        /// <param name="onError">Error policy.  Default is Abort.</param>
+        /// <param name="batchSize">Batch size.  Minimum 1.  Default is 1000.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Import result.</returns>
+        Task<GraphImportResult> ImportGraphAsNewFromJsonl(
+            Guid tenantGuid,
+            string jsonl,
+            GraphImportGuidStrategyEnum guidStrategy = GraphImportGuidStrategyEnum.Regenerate,
+            GraphImportErrorPolicyEnum onError = GraphImportErrorPolicyEnum.Abort,
+            int batchSize = 1000,
+            CancellationToken token = default);
+
+        /// <summary>
         /// Read all graphs in tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

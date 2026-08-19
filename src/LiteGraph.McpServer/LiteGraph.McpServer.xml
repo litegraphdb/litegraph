@@ -687,6 +687,32 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.SubgraphRegistrations">
+            <summary>
+            MCP tool registrations for subgraph JSONL import and export.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.SubgraphRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Register HTTP tools.
+            </summary>
+            <param name="server">MCP HTTP server.</param>
+            <param name="sdk">LiteGraph SDK.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.SubgraphRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Register TCP methods.
+            </summary>
+            <param name="server">MCP TCP server.</param>
+            <param name="sdk">LiteGraph SDK.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.SubgraphRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Register WebSocket methods.
+            </summary>
+            <param name="server">MCP WebSocket server.</param>
+            <param name="sdk">LiteGraph SDK.</param>
+        </member>
         <member name="T:LiteGraph.McpServer.Registrations.TagRegistrations">
             <summary>
             Registration methods for Tag operations.
