@@ -43,3 +43,31 @@ class Admin:
         """Flush in-memory database to disk."""
         client = get_client()
         return client.request("POST", "v1.0/flush")
+
+    @classmethod
+    def read_settings(cls):
+        """Read the server settings. Requires system administrator privileges."""
+        client = get_client()
+        return client.request("GET", "v1.0/settings")
+
+    @classmethod
+    def update_settings(cls, settings: dict):
+        """Update the server settings. Requires system administrator privileges.
+
+        Returns the update result: {Success, AppliedLive, RestartRequired, Message}.
+        """
+        client = get_client()
+        return client.request("PUT", "v1.0/settings", json=settings)
+
+    @classmethod
+    def restart_server(cls):
+        """Request a server restart so the container restart policy applies the new settings.
+
+        Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+        """
+        client = get_client()
+        try:
+            return client.request("POST", "v1.0/settings/restart", json={"confirm": True})
+        except Exception:
+            # The server may drop the connection as it exits; this is expected.
+            return None

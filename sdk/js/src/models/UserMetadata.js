@@ -25,6 +25,8 @@ export default class UserMetadata {
       Email = '',
       Password = '',
       Active = false,
+      IsSystemAdmin = false,
+      IsTenantAdmin = false,
       CreatedUtc = new Date().toISOString(),
       LastUpdateUtc = new Date().toISOString(),
     } = user;
@@ -36,6 +38,8 @@ export default class UserMetadata {
     this.Email = Email; // Email of the user
     this.Password = Password; // Password for the user
     this.Active = Active; // Indicates if the user is active
+    this.IsSystemAdmin = IsSystemAdmin; // Indicates if the user is a system administrator (server-wide superuser)
+    this.IsTenantAdmin = IsTenantAdmin; // Indicates if the user is a tenant administrator within their own tenant
     this.CreatedUtc = new Date(CreatedUtc); // Creation timestamp
     this.LastUpdateUtc = new Date(LastUpdateUtc); // Last update timestamp
   }

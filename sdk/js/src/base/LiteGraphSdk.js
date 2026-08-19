@@ -1914,6 +1914,46 @@ export default class LiteGraphSdk extends SdkBase {
     return await this.post(url, null, null, cancellationToken);
   }
 
+  /**
+   * Read the server settings. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} The server settings object.
+   */
+  async readSettings(cancellationToken) {
+    const url = `${this._endpoint}v1.0/settings`;
+    return await this.get(url, cancellationToken);
+  }
+
+  /**
+   * Update the server settings. Requires system administrator privileges.
+   * @param {Object} settings - The full settings object.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message }).
+   */
+  async updateSettings(settings, cancellationToken) {
+    if (!settings) {
+      GenericExceptionHandlers.ArgumentNullException('settings');
+    }
+    const url = `${this._endpoint}v1.0/settings`;
+    return await this.putUpdate(url, settings, null, cancellationToken);
+  }
+
+  /**
+   * Request a server restart. The server exits so the container restart policy applies the new settings.
+   * Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<void>}
+   */
+  async restartServer(cancellationToken) {
+    const url = `${this._endpoint}v1.0/settings/restart`;
+    try {
+      return await this.post(url, { confirm: true }, null, cancellationToken);
+    } catch (e) {
+      // The server may drop the connection as it exits; this is expected.
+      return undefined;
+    }
+  }
+
   //end region
 
   //region Vector Index Methods

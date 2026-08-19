@@ -12,6 +12,8 @@ class UserMasterModel(BaseModel):
     email: str = Field(default="", alias="Email")
     password: str = Field(default="", alias="Password")
     active: bool = Field(default=True, alias="Active")
+    is_system_admin: bool = Field(default=False, alias="IsSystemAdmin")
+    is_tenant_admin: bool = Field(default=False, alias="IsTenantAdmin")
     created_utc: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), alias="CreatedUtc")
     last_update_utc: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), alias="LastUpdateUtc")
 
