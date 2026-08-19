@@ -9,6 +9,15 @@ For client SDK libraries that wrap this API, see the [`sdk/`](sdk/) directory:
 
 ## Authentication
 
+### v8.0 Account Model
+
+As of v8.0 there is a single kind of account. Administrators are ordinary users carrying elevated flags, not a separate identity:
+
+- `IsSystemAdmin` — full access to every tenant and every request type. Equivalent to the legacy administrator bearer token, but attached to a real user record.
+- `IsTenantAdmin` — full management of the user's own tenant, including its users and credentials, but not tenant creation/deletion or server settings.
+
+A user with neither flag is a regular user, constrained by the roles and credential scopes described in `RBAC.md`. The administrator bearer token defined in `litegraph.json` remains as a break-glass credential and is treated as system-admin. Endpoints that read below say "administrator bearer token authentication" describe the pre-v8 requirement; under v8 the same endpoints are additionally reachable by a user whose flags or granted scopes permit the request — see `RBAC.md` for the full permission matrix.
+
 Users can authenticate API requests in one of three ways.
 
 ### Bearer Token
@@ -296,10 +305,14 @@ Import reconciles incoming GUIDs according to `guidstrategy`. `preserve` keeps o
     "Email": "default@user.com",
     "Password": "password",
     "Active": true,
+    "IsSystemAdmin": true,
+    "IsTenantAdmin": true,
     "CreatedUtc": "2024-12-27T22:09:09.446911Z",
     "LastUpdateUtc": "2024-12-27T22:09:09.446777Z"
 }
 ```
+
+`IsSystemAdmin` and `IsTenantAdmin` were added in v8.0 and default to `false`. The seeded default user shown above is a system administrator.
 
 ### Credential
 ```
@@ -753,11 +766,34 @@ The metrics route is registered only when observability and Prometheus are enabl
 
 ## Admin APIs
 
-Admin APIs require administrator bearer token authentication.
+Admin APIs require system-administrator authentication (the administrator bearer token, or a user with `IsSystemAdmin`).
 
 | API                              | Method | URL         |
 |----------------------------------|--------|-------------|
 | Flush in-memory database to disk | POST   | /v1.0/flush |
+
+## Settings APIs
+
+Introduced in v8.0. Settings APIs require system-administrator authentication. See `SETTINGS.md` for the field-by-field reference and which fields apply live versus require a restart.
+
+| API                | Method | URL                       |
+|--------------------|--------|---------------------------|
+| Read settings      | GET    | /v1.0/settings            |
+| Update settings    | PUT    | /v1.0/settings            |
+| Restart server     | POST   | /v1.0/settings/restart    |
+
+`GET /v1.0/settings` returns the effective server settings (secrets redacted). `PUT /v1.0/settings` persists the supplied settings to `litegraph.json`, hot-reloads fields that can apply live, and returns a `SettingsUpdateResult`:
+
+```
+{
+    "Success": true,
+    "AppliedLive": [ "RequestTimeoutSeconds" ],
+    "RestartRequired": [ "Rest.Port" ],
+    "Message": "Settings saved. 1 field applied live; 1 field requires a restart."
+}
+```
+
+`POST /v1.0/settings/restart` flushes pending state and exits the process so the container/orchestrator restarts it with the new configuration. In the checked-in Docker deployment the LiteGraph services run with `restart: unless-stopped`, so this brings the server back automatically.
 
 ## Backup APIs
 
@@ -773,7 +809,7 @@ Backup APIs require administrator bearer token authentication.
 
 ## Tenant APIs
 
-Tenant APIs require administrator bearer token authentication.
+Tenant create and delete require system-administrator authentication. Tenant read/exists and update are additionally available to a tenant-administrator of that tenant (`IsTenantAdmin`), and any authenticated user may read the tenants associated with their email via `GET /v1.0/token/tenants`.
 
 When specifying multiple GUIDs to retrieve, i.e. `?guids=...`, use a comma-separated list of values, i.e. `?guids=00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111`.
 
@@ -790,7 +826,9 @@ When specifying multiple GUIDs to retrieve, i.e. `?guids=...`, use a comma-separ
 
 ## User APIs
 
-User APIs require administrator bearer token authentication.
+User management (create, delete, list, cross-user read/update) requires system-administrator authentication or a tenant-administrator of the target tenant. A regular user may additionally read, check existence of, and update their own user record (self-service); they cannot list users or act on other users.
+
+The `UserMaster` object carries two v8.0 flags: `IsSystemAdmin` and `IsTenantAdmin` (both default `false`). Only a system-administrator may set `IsSystemAdmin`; a tenant-administrator may set `IsTenantAdmin` on users within their own tenant. Both flags are returned on user reads and are redacted-safe (they are not secrets).
 
 | API                | Method | URL                                  |
 |--------------------|--------|--------------------------------------|
@@ -804,7 +842,7 @@ User APIs require administrator bearer token authentication.
 
 ## Credential APIs
 
-Credential APIs require administrator bearer token authentication.
+Credential APIs require system-administrator authentication or a tenant-administrator of the target tenant.
 
 | API                  | Method | URL                                           |
 |----------------------|--------|-----------------------------------------------|

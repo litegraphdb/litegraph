@@ -16,6 +16,8 @@ The server is built on Voltaic and listens on three transports at once. All thre
 
 Hostnames and ports are configurable through `litegraph-mcp.json` or the `MCP_HTTP_*`, `MCP_TCP_*`, and `MCP_WS_*` environment variables. The LiteGraph endpoint and API key the server forwards to are set with `LITEGRAPH_ENDPOINT` and `LITEGRAPH_API_KEY`.
 
+As of v8.0 the MCP server also exposes a Prometheus `/metrics` endpoint (default port `8705`, set with `MCP_METRICS_HOSTNAME`/`MCP_METRICS_PORT`). It emits the same metric names as the REST server tagged with `component="mcp"`, plus `transport` and `tool` labels, so REST and MCP request rate, latency, and errors appear in one Grafana view. See `OBSERVABILITY.md`. Server settings are managed only through the REST `/v1.0/settings` endpoints (see `REST_API.md`); there is no MCP settings tool.
+
 ## Request And Response Envelope
 
 Every call is a JSON-RPC 2.0 request whose `method` is the tool name and whose `params` is the tool's argument object. The standard MCP discovery methods (`initialize`, `tools/list`) are also available for clients that enumerate tools before calling them.
@@ -104,7 +106,7 @@ Multi-tenant administration and authentication records.
 |------|---------|
 | `tenant/create`, `tenant/get`, `tenant/getmany`, `tenant/all`, `tenant/enumerate`, `tenant/update`, `tenant/delete`, `tenant/exists` | Tenant CRUD and listing |
 | `tenant/statistics`, `tenant/statisticsall` | Tenant statistics |
-| `user/create`, `user/get`, `user/getmany`, `user/all`, `user/enumerate`, `user/update`, `user/delete`, `user/exists` | User CRUD and listing |
+| `user/create`, `user/get`, `user/getmany`, `user/all`, `user/enumerate`, `user/update`, `user/delete`, `user/exists` | User CRUD and listing; the user object carries the v8.0 `isSystemAdmin`/`isTenantAdmin` flags |
 | `credential/create`, `credential/get`, `credential/getmany`, `credential/all`, `credential/enumerate`, `credential/update`, `credential/delete`, `credential/exists` | Credential CRUD and listing |
 | `credential/getbybearertoken`, `credential/deletebyuser`, `credential/deleteallintenant` | Credential lookup and scoped delete |
 
