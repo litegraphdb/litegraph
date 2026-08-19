@@ -1,4 +1,4 @@
-namespace LiteGraph.Server.API.REST
+﻿namespace LiteGraph.Server.API.REST
 {
     using System;
     using System.Collections.Generic;
@@ -1260,11 +1260,6 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantRead);
         }
 
@@ -1281,22 +1276,12 @@ namespace LiteGraph.Server.API.REST
         private async Task TenantExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantExists);
         }
 
         private async Task TenantUpdateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (String.IsNullOrEmpty(ctx.Request.DataAsString))
             {
@@ -1327,11 +1312,6 @@ namespace LiteGraph.Server.API.REST
         private async Task UserCreateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (String.IsNullOrEmpty(ctx.Request.DataAsString))
             {
@@ -1347,22 +1327,12 @@ namespace LiteGraph.Server.API.REST
         private async Task UserReadManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.UserReadMany);
         }
 
         private async Task UserEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
@@ -1373,33 +1343,18 @@ namespace LiteGraph.Server.API.REST
         private async Task UserReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.UserRead);
         }
 
         private async Task UserExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.UserExists);
         }
 
         private async Task UserUpdateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (String.IsNullOrEmpty(ctx.Request.DataAsString))
             {
@@ -1416,11 +1371,6 @@ namespace LiteGraph.Server.API.REST
         private async Task UserDeleteRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.UserDelete);
         }
 
@@ -1431,11 +1381,6 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialCreateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (String.IsNullOrEmpty(ctx.Request.DataAsString))
             {
@@ -1451,22 +1396,12 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialReadManyRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialReadMany);
         }
 
         private async Task CredentialEnumerateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (req.Data != null) req.EnumerationQuery = _Serializer.DeserializeJson<EnumerationRequest>(Encoding.UTF8.GetString(req.Data));
             else req.EnumerationQuery = BuildEnumerationQuery(req);
@@ -1477,33 +1412,18 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialRead);
         }
 
         private async Task CredentialExistsRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialExists);
         }
 
         private async Task CredentialUpdateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
 
             if (String.IsNullOrEmpty(ctx.Request.DataAsString))
             {
@@ -1520,11 +1440,6 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialDeleteRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialDelete);
         }
 
@@ -1542,22 +1457,12 @@ namespace LiteGraph.Server.API.REST
         private async Task CredentialDeleteAllInTenantRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialDeleteAllInTenant);
         }
 
         private async Task CredentialDeleteByUserRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            if (!req.Authentication.IsSystemAdmin)
-            {
-                await NotAdmin(ctx);
-                return;
-            }
             await WrappedRequestHandler(ctx, req, _ServiceHandler.CredentialDeleteByUser);
         }
 

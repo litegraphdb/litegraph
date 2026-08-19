@@ -198,6 +198,44 @@
 
         #endregion
 
+        #region Access-Helpers
+
+        private bool IsOwnTenant(RequestContext req)
+        {
+            return req.TenantGUID.HasValue
+                && req.Authentication.TenantGUID.HasValue
+                && req.TenantGUID.Value.Equals(req.Authentication.TenantGUID.Value);
+        }
+
+        private bool CanManageTenant(RequestContext req)
+        {
+            // System administrators anywhere; tenant administrators within their own tenant.
+            return req.Authentication.IsSystemAdmin || (req.Authentication.IsTenantAdmin && IsOwnTenant(req));
+        }
+
+        private bool CanManageAccounts(RequestContext req)
+        {
+            // Managing (create/update/delete/list) users and credentials within a tenant: system admins, or tenant admins in their own tenant.
+            return req.Authentication.IsSystemAdmin || (req.Authentication.IsTenantAdmin && IsOwnTenant(req));
+        }
+
+        private bool CanReadTenant(RequestContext req)
+        {
+            // Any authenticated member of a tenant may read that tenant.
+            return req.Authentication.IsSystemAdmin || IsOwnTenant(req);
+        }
+
+        private bool IsOwnUser(RequestContext req)
+        {
+            // Self-service: the target user record is the authenticated principal's own record.
+            return IsOwnTenant(req)
+                && req.UserGUID.HasValue
+                && req.Authentication.UserGUID.HasValue
+                && req.UserGUID.Value.Equals(req.Authentication.UserGUID.Value);
+        }
+
+        #endregion
+
         #region Tenant-Routes
 
         internal async Task<ResponseContext> TenantCreate(RequestContext req, CancellationToken token = default)
@@ -246,7 +284,7 @@
         internal async Task<ResponseContext> TenantRead(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanReadTenant(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             TenantMetadata obj = await _LiteGraph.Tenant.ReadByGuid(req.TenantGUID.Value, token).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -265,7 +303,7 @@
         internal async Task<ResponseContext> TenantExists(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanReadTenant(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (await _LiteGraph.Tenant.ExistsByGuid(req.TenantGUID.Value, token).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -274,7 +312,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Tenant == null) throw new ArgumentNullException(nameof(req.Tenant));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageTenant(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.Tenant.GUID = req.TenantGUID.Value;
             TenantMetadata obj = await _LiteGraph.Tenant.Update(req.Tenant, token).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -297,7 +335,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.User == null) throw new ArgumentNullException(nameof(req.User));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.User.TenantGUID = req.TenantGUID.Value;
             UserMaster obj = await _LiteGraph.User.Create(req.User, token).ConfigureAwait(false);
             return new ResponseContext(req, obj);
@@ -306,7 +344,7 @@
         internal async Task<ResponseContext> UserReadMany(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
             List<UserMaster> objs = new List<UserMaster>();
 
@@ -331,7 +369,7 @@
         internal async Task<ResponseContext> UserEnumerate(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             EnumerationResult<UserMaster> er = await _LiteGraph.User.Enumerate(req.EnumerationQuery, token).ConfigureAwait(false);
             return new ResponseContext(req, er);
@@ -340,7 +378,7 @@
         internal async Task<ResponseContext> UserRead(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req) && !IsOwnUser(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             UserMaster obj = await _LiteGraph.User.ReadByGuid(req.TenantGUID.Value, req.UserGUID.Value, token).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -349,7 +387,7 @@
         internal async Task<ResponseContext> UserExists(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req) && !IsOwnUser(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (await _LiteGraph.User.ExistsByGuid(req.TenantGUID.Value, req.UserGUID.Value, token).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -358,7 +396,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.User == null) throw new ArgumentNullException(nameof(req.User));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req) && !IsOwnUser(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.User.TenantGUID = req.TenantGUID.Value;
             UserMaster obj = await _LiteGraph.User.Update(req.User, token).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -368,7 +406,7 @@
         internal async Task<ResponseContext> UserDelete(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             await _LiteGraph.User.DeleteByGuid(req.TenantGUID.Value, req.UserGUID.Value, token).ConfigureAwait(false);
             return new ResponseContext(req);
         }
@@ -389,7 +427,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Credential == null) throw new ArgumentNullException(nameof(req.Credential));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.Credential.TenantGUID = req.TenantGUID.Value;
 
             if (!String.IsNullOrEmpty(req.Credential.BearerToken))
@@ -406,7 +444,7 @@
         internal async Task<ResponseContext> CredentialReadMany(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
             List<Credential> objs = new List<Credential>();
 
@@ -431,7 +469,7 @@
         internal async Task<ResponseContext> CredentialEnumerate(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
             EnumerationResult<Credential> er = await _LiteGraph.Credential.Enumerate(req.EnumerationQuery, token).ConfigureAwait(false);
             return new ResponseContext(req, er);
@@ -440,7 +478,7 @@
         internal async Task<ResponseContext> CredentialRead(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             Credential obj = await _LiteGraph.Credential.ReadByGuid(req.TenantGUID.Value, req.CredentialGUID.Value, token).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -449,7 +487,7 @@
         internal async Task<ResponseContext> CredentialExists(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (await _LiteGraph.Credential.ExistsByGuid(req.TenantGUID.Value, req.CredentialGUID.Value, token).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -458,7 +496,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.Credential == null) throw new ArgumentNullException(nameof(req.Credential));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.Credential.TenantGUID = req.TenantGUID.Value;
             Credential obj = await _LiteGraph.Credential.Update(req.Credential, token).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -468,7 +506,7 @@
         internal async Task<ResponseContext> CredentialDelete(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             await _LiteGraph.Credential.DeleteByGuid(req.TenantGUID.Value, req.CredentialGUID.Value, token).ConfigureAwait(false);
             return new ResponseContext(req);
         }

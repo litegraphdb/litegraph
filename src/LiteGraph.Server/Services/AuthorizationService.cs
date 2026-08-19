@@ -107,6 +107,21 @@ namespace LiteGraph.Server.Services
                 return;
             }
 
+            // v8 self-service: a user may read, check, or update their own user record even without an explicit RBAC role.
+            if ((req.RequestType == RequestTypeEnum.UserRead
+                    || req.RequestType == RequestTypeEnum.UserUpdate
+                    || req.RequestType == RequestTypeEnum.UserExists)
+                && req.UserGUID.HasValue
+                && req.Authentication.UserGUID.HasValue
+                && req.UserGUID.Value.Equals(req.Authentication.UserGUID.Value)
+                && req.TenantGUID.HasValue
+                && req.Authentication.TenantGUID.HasValue
+                && req.TenantGUID.Value.Equals(req.Authentication.TenantGUID.Value))
+            {
+                ApplyDecision(req, AuthorizationDecision.Permit(RequiredScope(req), AuthorizationDecisionReason.Permitted));
+                return;
+            }
+
             AuthorizationDecision accessDecision = await EvaluateRequestAccess(req, RequiredScope(req), RequiredResourceType(req.RequestType), token).ConfigureAwait(false);
             if (accessDecision.Result != AuthorizationResultEnum.Permitted)
             {
