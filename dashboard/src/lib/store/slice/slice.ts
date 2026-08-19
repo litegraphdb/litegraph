@@ -55,6 +55,16 @@ import {
   listUserRoleAssignments,
   updateAuthorizationRole,
 } from '@/lib/sdk/authorization';
+import {
+  ExportGraphJsonlOptions,
+  GraphImportResult,
+  ImportJsonlOptions,
+  SubgraphExtractionRequest,
+  exportGraphJsonl,
+  exportSubgraphJsonl,
+  importGraphAsNewJsonl,
+  importGraphJsonl,
+} from '@/lib/sdk/importExport';
 
 const enhancedSdk = sdkSlice.enhanceEndpoints({
   addTagTypes: [
@@ -647,6 +657,43 @@ const graphSlice = enhancedSdk.injectEndpoints({
     }),
 
     //endregion
+    //region Import/Export JSONL
+    exportGraphJsonl: build.mutation<
+      string,
+      { tenantGuid: string; graphGuid: string; options?: ExportGraphJsonlOptions }
+    >({
+      query: ({ tenantGuid, graphGuid, options }) => ({
+        callback: () => exportGraphJsonl(tenantGuid, graphGuid, options),
+      }),
+    }),
+    exportSubgraphJsonl: build.mutation<
+      string,
+      { tenantGuid: string; graphGuid: string; request: SubgraphExtractionRequest }
+    >({
+      query: ({ tenantGuid, graphGuid, request }) => ({
+        callback: () => exportSubgraphJsonl(tenantGuid, graphGuid, request),
+      }),
+    }),
+    importGraphJsonl: build.mutation<
+      GraphImportResult,
+      { tenantGuid: string; graphGuid: string; jsonl: string; options?: ImportJsonlOptions }
+    >({
+      query: ({ tenantGuid, graphGuid, jsonl, options }) => ({
+        callback: () => importGraphJsonl(tenantGuid, graphGuid, jsonl, options),
+      }),
+      invalidatesTags: [SliceTags.GRAPH, SliceTags.NODE, SliceTags.EDGE],
+    }),
+    importGraphAsNewJsonl: build.mutation<
+      GraphImportResult,
+      { tenantGuid: string; jsonl: string; options?: ImportJsonlOptions }
+    >({
+      query: ({ tenantGuid, jsonl, options }) => ({
+        callback: () => importGraphAsNewJsonl(tenantGuid, jsonl, options),
+      }),
+      invalidatesTags: [SliceTags.GRAPH],
+    }),
+
+    //endregion
     //region Authorization
     listAuthorizationRoles: build.query<
       AuthorizationSearchResult<AuthorizationRole>,
@@ -856,4 +903,8 @@ export const {
   useDeleteCredentialScopeAssignmentMutation,
   useGetUserEffectivePermissionsQuery,
   useGetCredentialEffectivePermissionsQuery,
+  useExportGraphJsonlMutation,
+  useExportSubgraphJsonlMutation,
+  useImportGraphJsonlMutation,
+  useImportGraphAsNewJsonlMutation,
 } = graphSlice;

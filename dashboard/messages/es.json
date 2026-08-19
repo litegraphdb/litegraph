@@ -337,11 +337,14 @@
       "direction": "Dirección",
       "includeData": "Incluir datos",
       "includeSubordinates": "Incluir subordinados",
-      "maxEdgeCost": "Costo máximo de arista"
+      "maxEdgeCost": "Costo máximo de arista",
+      "startNode": "Nodo inicial"
     },
     "guidStrategy": {
       "preserve": "Conservar",
-      "regenerate": "Regenerar"
+      "regenerate": "Regenerar",
+      "skip": "Omitir",
+      "overwrite": "Sobrescribir"
     },
     "onError": {
       "abort": "Abortar",
@@ -359,14 +362,49 @@
       "edgesCreated": "Aristas creadas",
       "edgesUpdated": "Aristas actualizadas",
       "edgesSkipped": "Aristas omitidas",
-      "warnings": "Advertencias"
+      "warnings": "Advertencias",
+      "title": "Resultado de la importación",
+      "graphsCreated": "Grafos creados",
+      "linesRead": "Líneas leídas",
+      "linesIgnored": "Líneas ignoradas",
+      "newGraphGuid": "GUID del nuevo grafo",
+      "noWarnings": "Sin advertencias."
     },
     "toast": {
       "importSuccess": "Importación completada correctamente",
       "importFailed": "La importación falló",
       "exportSuccess": "Exportación completada correctamente",
       "exportFailed": "La exportación falló"
-    }
+    },
+    "guidStrategyHelp": {
+      "preserve": "Conservar los GUID originales del archivo.",
+      "regenerate": "Asignar nuevos GUID a cada objeto importado.",
+      "skip": "Conservar los GUID originales y omitir los objetos que ya existen.",
+      "overwrite": "Conservar los GUID originales y sobrescribir los objetos que ya existen."
+    },
+    "onErrorHelp": {
+      "abort": "Detener la importación en el primer error.",
+      "skip": "Omitir las líneas que fallan y continuar la importación."
+    },
+    "startNodeHelp": "El subgrafo se extrae a partir de este nodo.",
+    "upload": {
+      "prompt": "Haz clic o arrastra un archivo JSONL a esta área",
+      "hint": "Solo se admiten archivos .jsonl exportados desde LiteGraph.",
+      "selected": "Archivo seleccionado"
+    },
+    "preview": {
+      "title": "Vista previa",
+      "headerLines": "Líneas de encabezado",
+      "nodes": "Nodos",
+      "edges": "Aristas",
+      "empty": "No se encontró contenido reconocible en este archivo."
+    },
+    "actions": {
+      "import": "Importar",
+      "export": "Exportar"
+    },
+    "exportSubgraphDisabled": "Selecciona un nodo para exportar su subgrafo.",
+    "copyGuid": "Copiar GUID"
   },
   "language": {
     "en": "English",

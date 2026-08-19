@@ -23,10 +23,11 @@ import LitegraphTooltip from '../tooltip/Tooltip';
 import ErrorBoundary from '@/hoc/ErrorBoundary';
 import { getLegendsForNodes } from './utils';
 import { MAX_NODES_TO_FETCH } from '@/constants/constant';
-import { ControlOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
+import { ControlOutlined, ExportOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import LitegraphButton from '../button/Button';
 import LitegraphDropdown from '../dropdown/Dropdown';
 import NodeSearchModal from './NodeSearchModal';
+import ExportSubgraphModal from './ExportSubgraphModal';
 import { Node } from 'litegraphdb/dist/types/types';
 import { EdgeData } from '@/lib/graph/types';
 import { NodeData } from '@/lib/graph/types';
@@ -57,6 +58,7 @@ const GraphViewer = ({
   controlsPortalTarget?: HTMLElement | null;
 }) => {
   const t = useTranslations('graphViewer');
+  const tImportExport = useTranslations('importExport');
   // Redux state for the list of graphs
   const [containerDivHeightAndWidth, setContainerDivHeightAndWidth] = useState<{
     height?: number;
@@ -77,6 +79,7 @@ const GraphViewer = ({
   const [expandedClusterIds, setExpandedClusterIds] = useState<Set<string>>(new Set());
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [isNodeSearchModalVisible, setIsNodeSearchModalVisible] = useState(false);
+  const [isExportSubgraphModalVisible, setIsExportSubgraphModalVisible] = useState(false);
   const selectedGraphRedux = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
   const ref = useRef<HTMLDivElement>(null);
   const {
@@ -300,6 +303,18 @@ const GraphViewer = ({
                 {t('controls.searchSubGraph')}
               </LitegraphButton>
             )}
+            <LitegraphButton
+              type="text"
+              icon={<ExportOutlined />}
+              className={styles.controlsActionButton}
+              disabled={!selectedNodeGuid}
+              onClick={() => {
+                setIsExportSubgraphModalVisible(true);
+                setIsControlsOpen(false);
+              }}
+            >
+              {tImportExport('exportSubgraph')}
+            </LitegraphButton>
             <div className={styles.controlsDivider} />
             <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
               <span>{t('controls.threeD')}</span>
@@ -578,6 +593,16 @@ const GraphViewer = ({
           setIsVisible={setIsNodeSearchModalVisible}
           graphId={selectedGraphRedux}
           onNodeSelect={handleNodeSelect}
+        />
+      )}
+
+      {/* Export Subgraph Modal */}
+      {selectedGraphRedux && selectedNodeGuid && (
+        <ExportSubgraphModal
+          isVisible={isExportSubgraphModalVisible}
+          setIsVisible={setIsExportSubgraphModalVisible}
+          graphGuid={selectedGraphRedux}
+          startNodeGuid={selectedNodeGuid}
         />
       )}
     </div>

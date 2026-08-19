@@ -337,11 +337,14 @@
       "direction": "Direction",
       "includeData": "Include data",
       "includeSubordinates": "Include subordinates",
-      "maxEdgeCost": "Maximum edge cost"
+      "maxEdgeCost": "Maximum edge cost",
+      "startNode": "Start node"
     },
     "guidStrategy": {
       "preserve": "Preserve",
-      "regenerate": "Regenerate"
+      "regenerate": "Regenerate",
+      "skip": "Skip",
+      "overwrite": "Overwrite"
     },
     "onError": {
       "abort": "Abort",
@@ -359,14 +362,49 @@
       "edgesCreated": "Edges created",
       "edgesUpdated": "Edges updated",
       "edgesSkipped": "Edges skipped",
-      "warnings": "Warnings"
+      "warnings": "Warnings",
+      "title": "Import result",
+      "graphsCreated": "Graphs created",
+      "linesRead": "Lines read",
+      "linesIgnored": "Lines ignored",
+      "newGraphGuid": "New graph GUID",
+      "noWarnings": "No warnings."
     },
     "toast": {
       "importSuccess": "Import completed successfully",
       "importFailed": "Import failed",
       "exportSuccess": "Export completed successfully",
       "exportFailed": "Export failed"
-    }
+    },
+    "guidStrategyHelp": {
+      "preserve": "Keep the original GUIDs from the file.",
+      "regenerate": "Assign new GUIDs to every imported object.",
+      "skip": "Keep original GUIDs and skip objects that already exist.",
+      "overwrite": "Keep original GUIDs and overwrite objects that already exist."
+    },
+    "onErrorHelp": {
+      "abort": "Stop the import on the first error.",
+      "skip": "Skip lines that fail and continue importing."
+    },
+    "startNodeHelp": "The subgraph is extracted starting from this node.",
+    "upload": {
+      "prompt": "Click or drag a JSONL file to this area",
+      "hint": "Only .jsonl files exported from LiteGraph are supported.",
+      "selected": "Selected file"
+    },
+    "preview": {
+      "title": "Preview",
+      "headerLines": "Header lines",
+      "nodes": "Nodes",
+      "edges": "Edges",
+      "empty": "No recognizable content found in this file."
+    },
+    "actions": {
+      "import": "Import",
+      "export": "Export"
+    },
+    "exportSubgraphDisabled": "Select a node to export its subgraph.",
+    "copyGuid": "Copy GUID"
   },
   "language": {
     "en": "English",

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EditOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
 import { DeleteOutlined } from '@ant-design/icons';
-import { ExportOutlined } from '@ant-design/icons';
+import { ExportOutlined, ImportOutlined } from '@ant-design/icons';
 import { SettingOutlined } from '@ant-design/icons';
 import CopyButton from '@/components/base/copy-button/CopyButton';
 import { columnTooltip } from '@/utils/tooltipUtils';
@@ -20,9 +20,12 @@ type Translator = (key: string, values?: Record<string, string | number>) => str
 
 export const tableColumns = (
   t: Translator,
+  tImportExport: Translator,
   handleEdit: (record: GraphData) => void,
   handleDelete: (record: GraphData) => void,
   handleExportGexf: (record: GraphData) => void,
+  handleExportJsonl: (record: GraphData) => void,
+  handleImportIntoGraph: (record: GraphData) => void,
   handleEnableVectorIndex: (record: GraphData) => void,
   handleReadVectorIndexConfig: (record: GraphData) => void,
   handleReadVectorIndexStats: (record: GraphData) => void,
@@ -175,6 +178,18 @@ export const tableColumns = (
           key: 'export',
           label: t('rowActions.exportGexf'),
           onClick: () => handleExportGexf(record),
+        },
+        {
+          icon: <ExportOutlined />,
+          key: 'export-jsonl',
+          label: tImportExport('exportJsonl'),
+          onClick: () => handleExportJsonl(record),
+        },
+        {
+          icon: <ImportOutlined />,
+          key: 'import-into-graph',
+          label: tImportExport('importIntoGraph'),
+          onClick: () => handleImportIntoGraph(record),
         },
         {
           icon: <SettingOutlined />,
