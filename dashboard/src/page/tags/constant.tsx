@@ -10,7 +10,10 @@ import { onGUIDFilter, onNameFilter } from '@/constants/table';
 import { columnTooltip } from '@/utils/tooltipUtils';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (record: TagType) => void,
   handleDelete: (record: TagType) => void,
   isNodesLoading: boolean,
@@ -18,13 +21,13 @@ export const tableColumns = (
   handleViewJson?: (record: TagType) => void
 ): TableProps<TagType>['columns'] => [
   {
-    title: columnTooltip('Key', 'Tag key identifier'),
+    title: columnTooltip(t('columns.key'), t('columns.keyDesc')),
     dataIndex: 'Key',
     key: 'Key',
     width: 200,
     responsive: ['md'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Key" />
+      <TableSearch {...props} placeholder={t('search.key')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Key),
     sorter: (a: TagType, b: TagType) => a.Key.localeCompare(b.Key),
@@ -35,10 +38,10 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('Value', 'Tag value'),
+    title: columnTooltip(t('columns.value'), t('columns.valueDesc')),
     dataIndex: 'Value',
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Value" />
+      <TableSearch {...props} placeholder={t('search.value')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Value),
     sorter: (a: TagType, b: TagType) => a.Value.localeCompare(b.Value),
@@ -52,26 +55,26 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('GUID', 'Globally unique identifier'),
+    title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
     responsive: ['md'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search GUID" />
+      <TableSearch {...props} placeholder={t('search.guid')} />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle={t('copyGuid')} /></span>,
   },
   {
-    title: columnTooltip('Node', 'Associated node name'),
+    title: columnTooltip(t('columns.node'), t('columns.nodeDesc')),
     dataIndex: 'NodeName',
     sorter: (a: TagType, b: TagType) => a.NodeName?.localeCompare(b.NodeName || '') || 0,
     key: 'NodeName',
     width: 200,
     responsive: ['md'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Node" />
+      <TableSearch {...props} placeholder={t('search.node')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.NodeName || ''),
     render: (NodeGUID: string) =>
@@ -84,13 +87,13 @@ export const tableColumns = (
       ),
   },
   {
-    title: columnTooltip('Edge', 'Associated edge name'),
+    title: columnTooltip(t('columns.edge'), t('columns.edgeDesc')),
     dataIndex: 'EdgeName',
     sorter: (a: TagType, b: TagType) => a.EdgeName?.localeCompare(b.EdgeName || '') || 0,
     key: 'EdgeName',
     width: 200,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Edge" />
+      <TableSearch {...props} placeholder={t('search.edge')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.EdgeName || ''),
     responsive: ['md'],
@@ -104,7 +107,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+    title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
     dataIndex: 'CreatedUtc',
     sorter: (a: TagType, b: TagType) =>
       new Date(a.CreatedUtc).getTime() - new Date(b.CreatedUtc).getTime(),
@@ -114,30 +117,30 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: columnTooltip('Actions', 'Available operations'),
+    title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
     key: 'actions',
     render: (_: any, record: TagType) => {
       const items = [
         {
           key: 'edit',
-          label: 'Edit',
+          label: t('rowActions.edit'),
           onClick: () => handleEdit(record),
         },
         {
           key: 'delete',
-          label: 'Delete',
+          label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
-          label: 'View JSON',
+          label: t('rowActions.viewJson'),
           onClick: () => handleViewJson?.(record),
         },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions">
+          <LitegraphTooltip title={t('rowActions.menu')}>
             <Button
               type="text"
               icon={<MoreOutlined style={{ fontSize: '20px' }} />}

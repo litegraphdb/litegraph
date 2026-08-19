@@ -7,6 +7,7 @@ import { useAppDynamicNavigation } from '@/hooks/hooks';
 import { ItemType } from 'antd/es/menu/interface';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 interface MenuItemsProps extends MenuProps {
   menuItems: MenuItemProps[];
@@ -16,6 +17,9 @@ interface MenuItemsProps extends MenuProps {
 const MenuItems = ({ menuItems, handleClickMenuItem, ...rest }: MenuItemsProps) => {
   const { serializePath } = useAppDynamicNavigation();
   const pathname = usePathname();
+  const t = useTranslations();
+  const translate = (key: string | undefined, fallback: string | undefined) =>
+    key ? t(key) : fallback;
 
   const selectedKeys = useMemo(() => {
     const find = (items: MenuItemProps[]): string[] => {
@@ -38,11 +42,13 @@ const MenuItems = ({ menuItems, handleClickMenuItem, ...rest }: MenuItemsProps) 
 
   const convertToMenuItems = (items: MenuItemProps[]): ItemType[] =>
     items.map((item: MenuItemProps) => {
+      const label = translate(item.labelKey, item.label);
+      const title = translate(item.titleKey, item.title) || label;
       if (item.children) {
         return {
           key: item.key,
           icon: item.icon,
-          label: item.label,
+          label,
           children: convertToMenuItems(item.children),
         };
       }
@@ -56,10 +62,10 @@ const MenuItems = ({ menuItems, handleClickMenuItem, ...rest }: MenuItemsProps) 
             style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}
             onClick={() => handleClickMenuItem && handleClickMenuItem(item)}
           >
-            {item.label}
+            {label}
           </Link>
         ),
-        title: item.title || item.label,
+        title,
       };
     });
 

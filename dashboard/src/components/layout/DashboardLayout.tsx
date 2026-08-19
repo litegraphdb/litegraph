@@ -1,15 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { GithubOutlined, LogoutOutlined, ReloadOutlined } from '@ant-design/icons';
+import { GithubOutlined, LogoutOutlined, ReloadOutlined, TranslationOutlined } from '@ant-design/icons';
 import { Button, Layout, Tag } from 'antd';
+import { useTranslations } from 'next-intl';
 import Navigation from '../navigation';
 import LitegraphText from '../base/typograpghy/Text';
 import { useLogout } from '@/hooks/authHooks';
-import { useAppDispatch } from '@/lib/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import styles from './dashboard.module.scss';
 import { MenuItemProps } from '../menu-item/types';
 import LitegraphSelect from '../base/select/Select';
 import { useSelectedGraph, useSelectedTenant } from '@/hooks/entityHooks';
-import { storeSelectedGraph, storeTenant } from '@/lib/store/litegraph/actions';
+import { storeSelectedGraph, storeTenant, storeLocale } from '@/lib/store/litegraph/actions';
+import { setStoredLocale } from '@/i18n/persistence';
+import { AppLocale, LOCALE_REGISTRY } from '@/i18n/locales';
 import { LayoutContext } from './context';
 import { setTenant } from '@/lib/sdk/litegraph.service';
 import { localStorageKeys } from '@/constants/constant';
@@ -47,7 +50,19 @@ const DashboardLayout = ({
   const [collapsed, setCollapsed] = useState(false);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const { theme } = useAppContext();
+  const t = useTranslations('header');
   const dispatch = useAppDispatch();
+  const locale = useAppSelector((state) => state.liteGraph.locale);
+  const languageOptions = LOCALE_REGISTRY.map((entry) => ({
+    value: entry.code,
+    label: entry.nativeName,
+  }));
+
+  const handleLocaleChange = (value: string | number | string[]) => {
+    const nextLocale = value as AppLocale;
+    setStoredLocale(nextLocale);
+    dispatch(storeLocale(nextLocale));
+  };
   const selectedGraphRedux = useSelectedGraph();
   const selectedTenantRedux = useSelectedTenant();
   const {
@@ -126,9 +141,11 @@ const DashboardLayout = ({
             <LitegraphFlex vertical justify="center">
               {useGraphsSelector && (
                 <LitegraphFlex align="center" gap={8}>
-                  <LitegraphTooltip title="Select the active graph"><span>Graph:</span></LitegraphTooltip>
+                  <LitegraphTooltip title={t('selectGraph')}>
+                    <span>{t('graphLabel')}</span>
+                  </LitegraphTooltip>
                   <LitegraphSelect
-                    placeholder="Select a graph"
+                    placeholder={t('selectAGraph')}
                     options={graphOptions}
                     value={selectedGraphRedux || undefined}
                     onChange={handleGraphSelect}
@@ -141,7 +158,9 @@ const DashboardLayout = ({
               )}
               {useTenantSelector && (
                 <LitegraphFlex align="center" gap={8}>
-                  <LitegraphTooltip title="Select the active tenant"><span>Tenant:</span></LitegraphTooltip>
+                  <LitegraphTooltip title={t('selectTenant')}>
+                    <span>{t('tenantLabel')}</span>
+                  </LitegraphTooltip>
                   {tenantsError ? (
                     <LitegraphText
                       fontSize={12}
@@ -149,12 +168,12 @@ const DashboardLayout = ({
                       style={{ color: 'red' }}
                       onClick={() => fetchTenantsList()}
                     >
-                      <ReloadOutlined /> Retry
+                      <ReloadOutlined /> {t('retry')}
                     </LitegraphText>
                   ) : (
                     <LitegraphSelect
                       loading={isTenantsLoading}
-                      placeholder="Select a tenant"
+                      placeholder={t('selectATenant')}
                       options={tenantOptions}
                       value={selectedTenantRedux?.GUID || undefined}
                       onChange={handleTenantSelect}
@@ -176,8 +195,21 @@ const DashboardLayout = ({
               justify="flex-end"
               data-testid="user-section"
             >
+              <LitegraphTooltip title={t('selectLanguage')}>
+                <LitegraphSelect
+                  aria-label={t('language')}
+                  value={locale}
+                  options={languageOptions}
+                  onChange={handleLocaleChange}
+                  data-testid="language-select"
+                  size="small"
+                  variant="borderless"
+                  suffixIcon={<TranslationOutlined />}
+                  style={{ width: 120 }}
+                />
+              </LitegraphTooltip>
               {serverHostDisplay && (
-                <LitegraphTooltip title="Connected LiteGraph server">
+                <LitegraphTooltip title={t('connectedServer')}>
                   <Tag
                     bordered={false}
                     style={{
@@ -192,29 +224,29 @@ const DashboardLayout = ({
                 </LitegraphTooltip>
               )}
               <LitegraphTooltip
-                title={`Switch to ${theme === ThemeEnum.DARK ? 'Light' : 'Dark'} mode`}
+                title={theme === ThemeEnum.DARK ? t('switchToLight') : t('switchToDark')}
               >
                 <ThemeModeSwitch />
               </LitegraphTooltip>
-              <LitegraphTooltip title="LiteGraph on GitHub">
+              <LitegraphTooltip title={t('github')}>
                 <a
                   className={styles.headerIconLink}
                   href="https://github.com/litegraphdb/litegraph"
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="LiteGraph GitHub repository"
+                  aria-label={t('githubAria')}
                 >
                   <GithubOutlined />
                 </a>
               </LitegraphTooltip>
               {!noProfile && <LoggedUserInfo />}
-              <LitegraphTooltip title="Sign out of the dashboard">
+              <LitegraphTooltip title={t('signOut')}>
                 <Button
                   type="text"
                   className={styles.headerIconButton}
                   icon={<LogoutOutlined />}
                   onClick={() => logOutFromSystem()}
-                  aria-label="Logout"
+                  aria-label={t('logoutAria')}
                 />
               </LitegraphTooltip>
             </LitegraphFlex>

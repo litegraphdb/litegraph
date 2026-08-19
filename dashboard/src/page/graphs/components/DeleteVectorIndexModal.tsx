@@ -1,5 +1,6 @@
 import React from 'react';
 import { message } from 'antd';
+import { useTranslations } from 'next-intl';
 import { useDeleteVectorIndexMutation } from '@/lib/store/slice/slice';
 import LitegraphButton from '@/components/base/button/Button';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -18,12 +19,14 @@ const DeleteVectorIndexModal: React.FC<DeleteVectorIndexModalProps> = ({
   graphId,
   onSuccess,
 }) => {
+  const t = useTranslations('vectorIndex');
+  const tCommon = useTranslations('common');
   const [deleteVectorIndex, { isLoading }] = useDeleteVectorIndexMutation();
 
   const handleDelete = async () => {
     try {
       await deleteVectorIndex(graphId).unwrap();
-      message.success('Vector index deleted successfully');
+      message.success(t('deleteSuccess'));
       setIsVisible(false);
       onSuccess?.();
     } catch (error) {
@@ -40,7 +43,7 @@ const DeleteVectorIndexModal: React.FC<DeleteVectorIndexModalProps> = ({
       const errorDescription =
         (error as any)?.data?.Description ||
         (error as any)?.Description ||
-        'Failed to delete vector index';
+        t('deleteFailed');
       message.error(errorDescription);
 
       // Close modal on error as well
@@ -55,19 +58,17 @@ const DeleteVectorIndexModal: React.FC<DeleteVectorIndexModalProps> = ({
 
   return (
     <LitegraphModal
-      title="Are you sure you want to delete the vector index?"
+      title={t('deleteConfirm')}
       centered
       open={isVisible}
       onCancel={handleCancel}
       footer={
         <LitegraphButton type="primary" danger onClick={handleDelete} loading={isLoading}>
-          Confirm
+          {tCommon('actions.confirm')}
         </LitegraphButton>
       }
     >
-      <LitegraphParagraph>
-        This action will delete the vector index for this graph.
-      </LitegraphParagraph>
+      <LitegraphParagraph>{t('deleteBody')}</LitegraphParagraph>
     </LitegraphModal>
   );
 };

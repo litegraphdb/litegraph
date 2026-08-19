@@ -1,4 +1,5 @@
 import React, { Dispatch, SetStateAction } from 'react';
+import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -28,6 +29,8 @@ const DeleteEdge = ({
   onEdgeDeleted,
   removeLocalEdge,
 }: DeleteEdgeProps) => {
+  const t = useTranslations('edges');
+  const tCommon = useTranslations('common');
   const [deleteEdgeById, { isLoading: isDeleteEdgeLoading }] = useDeleteEdgeMutation();
 
   const handleDeleteEdge = async () => {
@@ -36,7 +39,7 @@ const DeleteEdge = ({
         // Use local state update for graph viewer
         const edgeId = selectedEdge.GUID; // Handle both API edges (GUID) and local edges (id)
         removeLocalEdge(edgeId);
-        toast.success('Delete Edge successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisisble(false);
         setSelectedEdge(null);
         onEdgeDeleted && onEdgeDeleted();
@@ -47,7 +50,7 @@ const DeleteEdge = ({
           edgeId: selectedEdge.GUID,
         });
         if (res) {
-          toast.success('Delete Edge successfully');
+          toast.success(t('toast.deleted'));
           setIsDeleteModelVisisble(false);
           setSelectedEdge(null);
           onEdgeDeleted && onEdgeDeleted();
@@ -64,7 +67,7 @@ const DeleteEdge = ({
       onCancel={() => setIsDeleteModelVisisble(false)}
       footer={
         <LitegraphButton type="primary" onClick={handleDeleteEdge} loading={isDeleteEdgeLoading}>
-          Confirm
+          {tCommon('actions.confirm')}
         </LitegraphButton>
       }
     >

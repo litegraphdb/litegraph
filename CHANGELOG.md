@@ -2,6 +2,36 @@
 
 ## Current Version
 
+v7.1.0
+
+- Subgraph selection and interchange
+  - Added subgraph extraction from one or more start nodes with limits on depth, traversal direction, node and edge counts, edge cost, labels, tags, and expression filters over node and edge `Data`.
+  - Kept start nodes in the result even when they fail the node filters so a selection is never empty because of a filter on the seeds.
+  - Added streaming JSONL export for whole graphs and for extracted subgraphs over a chunked `application/x-ndjson` response.
+  - Added streaming JSONL import that merges into an existing graph or creates a new graph, with `preserve`, `regenerate`, `skip`, and `overwrite` GUID strategies, `abort`/`skip` error handling, and configurable node batch size.
+  - Added dangling-edge handling that imports bridging edges to nodes already in the target and drops unresolved edges with a warning.
+  - Made JSONL import streaming with node batching, buffered edge resolution through a GUID map, and compensating rollback on failure.
+  - Positioned whole-graph JSONL export as the portable, provider-agnostic per-graph backup complement to the binary `Admin.Backup`.
+
+- REST, MCP, SDKs, and dashboard
+  - Added REST endpoints for whole-graph JSONL export, subgraph JSONL export, JSONL merge import, and JSONL new-graph import.
+  - Added MCP tools `graph/exportjsonl`, `graph/exportsubgraphjsonl`, and `graph/importjsonl`.
+  - Added `ExtractSubgraph`, `ExportGraphToJsonlStream`/`File`, `ExportSubgraphToJsonlStream`/`File`, `RenderGraphAsJsonl`, `ImportGraphFromJsonlStream`, and `ImportGraphFromJsonl` to the client facade and SDKs.
+  - Added Postman items and REST documentation for the JSONL export and import endpoints.
+
+- Internationalization
+  - Externalized dashboard UI strings for localization.
+
+- Documentation
+  - Added the JSONL format, subgraph extraction request, and graph import result to the REST API reference.
+  - Added `docs/MCP_API.md` as the MCP API reference and linked it from the Claude/MCP guide.
+  - Documented JSONL export as a portable per-graph backup in the storage guide.
+
+- Validation
+  - Added coverage for subgraph extraction limits, JSONL round-trips across GUID strategies, dangling-edge resolution, malformed-line handling, and import rollback.
+
+## Previous Versions
+
 v7.0.0
 
 - Parallel graph transaction scaling
@@ -44,8 +74,6 @@ v7.0.0
 - Validation
   - Added CI coverage for .NET build/audit/package validation, SQLite and PostgreSQL transaction-concurrency gates, JavaScript SDK tests/package dry run, Python SDK tests/package build, and dashboard tests/build.
   - Added correctness coverage for deterministic, concurrent, randomized, soak, fault-injection, and API-surface transaction cases.
-
-## Previous Versions
 
 v6.0.3
 

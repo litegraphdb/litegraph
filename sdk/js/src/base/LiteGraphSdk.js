@@ -196,6 +196,95 @@ export default class LiteGraphSdk extends SdkBase {
     // return bytes ? new util.TextDecoder('utf-8').decode(bytes) : null;
     return bytes;
   }
+
+  /**
+   * Export an entire graph to JSONL format.
+   * @param {string} graphGuid - The GUID of the graph.
+   * @param {Object} [options] - Export options.
+   * @param {boolean} [options.includeData=false] - Include object data for graph, nodes, and edges.
+   * @param {boolean} [options.includeSubordinates=false] - Include subordinate labels, tags, and vectors.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<string>} - The JSONL data.
+   */
+  async exportGraphToJsonl(graphGuid, { includeData = false, includeSubordinates = false } = {}, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    const flags = [];
+    if (includeData) flags.push('incldata');
+    if (includeSubordinates) flags.push('inclsub');
+    const query = flags.length > 0 ? `?${flags.join('&')}` : '';
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/export/jsonl${query}`;
+    return await this.getDataInBytes(url, cancellationToken);
+  }
+
+  /**
+   * Export a subgraph to JSONL format using a subgraph extraction request.
+   * @param {string} graphGuid - The GUID of the graph.
+   * @param {Object} subgraphExtractionRequest - The subgraph extraction request.
+   * @param {string[]} subgraphExtractionRequest.StartNodeGUIDs - Starting node GUIDs for extraction.
+   * @param {number} [subgraphExtractionRequest.MaxDepth=2] - Maximum traversal depth.
+   * @param {string} [subgraphExtractionRequest.Direction=Both] - Traversal direction: Outbound, Inbound, or Both.
+   * @param {number} [subgraphExtractionRequest.MaxNodes=0] - Maximum number of nodes (0 = unlimited).
+   * @param {number} [subgraphExtractionRequest.MaxEdges=0] - Maximum number of edges (0 = unlimited).
+   * @param {boolean} [subgraphExtractionRequest.IncludeData] - Include object data.
+   * @param {boolean} [subgraphExtractionRequest.IncludeSubordinates] - Include subordinate labels, tags, and vectors.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<string>} - The JSONL data.
+   */
+  async exportSubgraphToJsonl(graphGuid, subgraphExtractionRequest, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    if (!subgraphExtractionRequest) {
+      GenericExceptionHandlers.ArgumentNullException('SubgraphExtractionRequest');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/export/jsonl`;
+    const json = JSON.stringify(subgraphExtractionRequest);
+    return await this.postForText(url, json, 'application/json', cancellationToken);
+  }
+
+  /**
+   * Import JSONL data into an existing graph.
+   * @param {string} graphGuid - The GUID of the graph.
+   * @param {string} jsonlString - The raw JSONL data to import.
+   * @param {Object} [options] - Import options.
+   * @param {string} [options.guidStrategy] - GUID handling strategy: preserve, regenerate, skip, or overwrite.
+   * @param {string} [options.onError] - Error handling behavior: abort or skip.
+   * @param {number} [options.batchSize] - Batch size for import operations (positive integer).
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<Object>} - The GraphImportResult.
+   */
+  async importGraphFromJsonl(graphGuid, jsonlString, { guidStrategy, onError, batchSize } = {}, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    if (!jsonlString) {
+      GenericExceptionHandlers.ArgumentNullException('JsonlString');
+    }
+    const query = buildQueryString({ guidstrategy: guidStrategy, onerror: onError, batchsize: batchSize });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/import/jsonl${query}`;
+    return await this.postRawForJson(url, jsonlString, 'application/x-ndjson', cancellationToken);
+  }
+
+  /**
+   * Import JSONL data as a new graph.
+   * @param {string} jsonlString - The raw JSONL data to import.
+   * @param {Object} [options] - Import options.
+   * @param {string} [options.guidStrategy] - GUID handling strategy: preserve, regenerate, skip, or overwrite.
+   * @param {string} [options.onError] - Error handling behavior: abort or skip.
+   * @param {number} [options.batchSize] - Batch size for import operations (positive integer).
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<Object>} - The GraphImportResult.
+   */
+  async importGraphAsNewFromJsonl(jsonlString, { guidStrategy, onError, batchSize } = {}, cancellationToken) {
+    if (!jsonlString) {
+      GenericExceptionHandlers.ArgumentNullException('JsonlString');
+    }
+    const query = buildQueryString({ guidstrategy: guidStrategy, onerror: onError, batchsize: batchSize });
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/import/jsonl${query}`;
+    return await this.postRawForJson(url, jsonlString, 'application/x-ndjson', cancellationToken);
+  }
   // endregion
 
   //region Batch

@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v7.0.0`.
+Current release: `v7.1.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -23,6 +23,27 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 - Next.js/React dashboard
 - Official C#, Python, and JavaScript SDKs
 - Docker Compose deployment for PostgreSQL, LiteGraph, MCP, dashboard, Prometheus, and Grafana OSS
+
+## New In v7.1.0
+
+- Subgraph selection. Pick one or more start nodes and walk outward with limits on depth, direction, node and edge counts, labels, tags, expression filters over `Data`, and edge cost. Start nodes always survive the node filters, so a selection never comes back empty by accident.
+- Streaming JSONL interchange. Graphs and subgraphs export as newline-delimited JSON over a chunked `application/x-ndjson` response, and import reads the body line by line. Neither side buffers the whole graph in memory.
+- Per-graph backup. A whole-graph JSONL export is provider-agnostic: a file written from SQLite imports into PostgreSQL and back, and a `preserve`-strategy import into an empty database restores the original GUIDs. It complements the binary `Admin.Backup` rather than replacing it.
+- Import GUID strategies. `preserve`, `regenerate` (default), `skip`, and `overwrite` control how incoming GUIDs reconcile with the store; imports batch nodes, buffer edges, and roll back on failure.
+- Reach for it from REST, the MCP tools `graph/exportjsonl`, `graph/exportsubgraphjsonl`, and `graph/importjsonl`, and the C#, Python, and JavaScript SDKs.
+- Dashboard internationalization. UI strings are externalized for localization.
+
+A JSONL file is just typed records, one per line, under an optional `#` comment header:
+
+```
+# litegraph-jsonl v1
+# kind: graph-backup
+{"Type":"Graph","Object":{"GUID":"00000000-0000-0000-0000-000000000000","Name":"Default graph"}}
+{"Type":"Node","Object":{"GUID":"11111111-1111-1111-1111-111111111111","Name":"Ada"}}
+{"Type":"Edge","Object":{"GUID":"22222222-2222-2222-2222-222222222222","From":"11111111-1111-1111-1111-111111111111","To":"33333333-3333-3333-3333-333333333333"}}
+```
+
+See [REST API](docs/REST_API.md) and [MCP API](docs/MCP_API.md) for the full contract.
 
 ## New In v7.0.0
 
@@ -59,6 +80,7 @@ See [Graph transactions](docs/TRANSACTIONS.md), [Storage configuration](docs/STO
 - [RBAC and scoped credentials](docs/RBAC.md)
 - [Observability](docs/OBSERVABILITY.md)
 - [REST API](docs/REST_API.md)
+- [MCP API](docs/MCP_API.md)
 - [Upgrade guide](docs/UPGRADE.md)
 - [Using Claude with LiteGraph](docs/CLAUDE_MCP.md)
 - [Performance and scalability testing](PERF_SCALE_TESTING.md)

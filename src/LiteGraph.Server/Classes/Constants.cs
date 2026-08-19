@@ -199,6 +199,11 @@ namespace LiteGraph.Server.Classes
         public static string JsonContentType = "application/json";
 
         /// <summary>
+        /// Content-type value for newline-delimited JSON (JSONL).
+        /// </summary>
+        public static string NdjsonContentType = "application/x-ndjson";
+
+        /// <summary>
         /// Content-type value for HTML.
         /// </summary>
         public static string HtmlContentType = "text/html";
@@ -371,6 +376,21 @@ namespace LiteGraph.Server.Classes
         /// MaxEdges querystring key.
         /// </summary>
         public static string MaxEdges = "maxEdges";
+
+        /// <summary>
+        /// Import GUID strategy querystring key.
+        /// </summary>
+        public static string ImportGuidStrategyQuerystring = "guidstrategy";
+
+        /// <summary>
+        /// Import error policy querystring key.
+        /// </summary>
+        public static string ImportOnErrorQuerystring = "onerror";
+
+        /// <summary>
+        /// Import batch size querystring key.
+        /// </summary>
+        public static string ImportBatchSizeQuerystring = "batchsize";
 
         #endregion
     }

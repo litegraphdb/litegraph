@@ -1,6 +1,6 @@
 # Using Claude with LiteGraph
 
-LiteGraph exposes 145+ MCP tools that let Claude create, query, and manage graph data conversationally. This guide gets you from zero to a working setup in minutes.
+LiteGraph exposes 185+ MCP tools that let Claude create, query, and manage graph data conversationally. This guide gets you from zero to a working setup in minutes. For the full tool catalog and request/response envelopes, see the [MCP API reference](MCP_API.md).
 
 ## Prerequisites
 
@@ -102,12 +102,12 @@ Navigate to the graph you created to see all five nodes and their edges visualiz
 
 ## What's Available
 
-145+ MCP tools are available across these categories:
+185+ MCP tools are available across these categories:
 
 | Category | Description |
 |----------|-------------|
 | `tenant/*` | Multi-tenant management |
-| `graph/*` | Graph CRUD, search, export (GEXF), vector indexing, graph transactions |
+| `graph/*` | Graph CRUD, search, export (GEXF and streaming JSONL), JSONL import, subgraph extraction, vector indexing, graph transactions |
 | `node/*` | Node CRUD, search, traversal, routing |
 | `edge/*` | Edge CRUD, search, traversal |
 | `label/*` | Label metadata on graphs, nodes, and edges |
@@ -119,6 +119,35 @@ Navigate to the graph you created to see all five nodes and their edges visualiz
 | `batch/*` | Batch existence checks |
 
 Run `claude --agent litegraph` and ask Claude what tools are available for a full listing.
+
+## Exporting And Importing JSONL
+
+Three tools move a graph as newline-delimited JSON. `graph/exportjsonl` renders a whole graph, `graph/exportsubgraphjsonl` renders a slice starting from one or more nodes, and `graph/importjsonl` reads a JSONL body back into an existing graph or a brand-new one. A round trip that copies a graph into a fresh one looks like this: export, then import the result with `regenerate` so the copy gets its own GUIDs.
+
+Export:
+
+```json
+{
+  "tenantGuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "graphGuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "includeData": true,
+  "includeSubordinates": true
+}
+```
+
+Feed the returned JSONL straight into the import tool. Omitting `graphGuid` creates a new graph instead of merging:
+
+```json
+{
+  "tenantGuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "guidStrategy": "regenerate",
+  "onError": "abort",
+  "batchSize": 1000,
+  "jsonl": "# litegraph-jsonl v1\n{\"Type\":\"Graph\",\"Object\":{\"Name\":\"Copy\"}}\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}"
+}
+```
+
+The import returns a `GraphImportResult` with per-type counters, the target graph GUID, and any warnings for dropped edges or skipped lines. The [MCP API reference](MCP_API.md) documents the input schemas in full.
 
 ## Graph Transactions
 

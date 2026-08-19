@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form, Input, InputRef } from 'antd';
 import styles from './login.module.scss';
 import LitegraphInput from '@/components/base/input/Input';
@@ -25,6 +26,7 @@ interface LoginFormData {
 }
 
 const LoginPage = () => {
+  const t = useTranslations('login');
   const emailInputRef = useRef<InputRef | null>(null);
   const passwordInputRef = useRef<InputRef | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -112,9 +114,9 @@ const LoginPage = () => {
       const values = await form.validateFields();
       const finalData: LoginFormData = { ...formData, ...values };
 
-      const selectedTenant = tenants?.find((t) => t.GUID === finalData.tenant);
+      const selectedTenant = tenants?.find((item) => item.GUID === finalData.tenant);
       if (!selectedTenant) {
-        toast.error('Tenant not found');
+        toast.error(t('tenantNotFound'));
         return;
       }
       const { data: token } = await generateToken({
@@ -152,38 +154,34 @@ const LoginPage = () => {
 
   return (
     <LoginLayout
-      footer={
-        <div className={styles.loginHelperText}>
-          Default credentials are default@user.com and password.
-        </div>
-      }
+      footer={<div className={styles.loginHelperText}>{t('defaultCredentials')}</div>}
     >
       <LitegraphFlex vertical gap={20}>
         <Form form={form} layout="vertical" initialValues={formData}>
           {/* Step 0: Server URL - always visible */}
           <Form.Item
-            label="LiteGraph Server URL"
+            label={t('serverUrl')}
             name="url"
             rules={[
-              { required: true, message: 'Please enter the LiteGraph Server URL!' },
+              { required: true, message: t('serverUrlRequired') },
               {
                 validator: (_, value) => {
                   if (!value) return Promise.resolve();
                   try {
                     const parsedUrl = new URL(value);
                     if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-                      return Promise.reject('Only HTTP or HTTPS URLs are allowed!');
+                      return Promise.reject(t('onlyHttp'));
                     }
                     return Promise.resolve();
                   } catch (err) {
-                    return Promise.reject('Please enter a valid URL!');
+                    return Promise.reject(t('validUrl'));
                   }
                 },
               },
             ]}
           >
             <LitegraphInput
-              placeholder="https://your-litegraph-server.com"
+              placeholder={t('serverUrlPlaceholder')}
               size="large"
               disabled={isValidatingConnectivity || currentStep > 0}
               data-testid="litegraph-input"
@@ -192,19 +190,19 @@ const LoginPage = () => {
 
           {/* Step 1: Email - visible once server is validated */}
           <Form.Item
-            label="Email"
+            label={t('email')}
             name="email"
             rules={
               currentStep >= 1
                 ? [
-                    { required: true, message: 'Please input your email!' },
-                    { type: 'email', message: 'Please enter a valid email!' },
+                    { required: true, message: t('emailRequired') },
+                    { type: 'email', message: t('validEmail') },
                   ]
                 : []
             }
           >
             <LitegraphInput
-              placeholder="Email"
+              placeholder={t('emailPlaceholder')}
               size="large"
               ref={emailInputRef}
               disabled={currentStep < 1 || currentStep > 1 || isLoadingTenant}
@@ -215,15 +213,13 @@ const LoginPage = () => {
           {showTenantSelect && (
             <Form.Item
               name="tenant"
-              label="Tenant"
-              rules={
-                currentStep >= 2 ? [{ required: true, message: 'Please select a tenant!' }] : []
-              }
+              label={t('tenant')}
+              rules={currentStep >= 2 ? [{ required: true, message: t('tenantRequired') }] : []}
             >
               <LitegraphSelect
                 loading={isLoadingTenant}
                 disabled={currentStep < 2 || currentStep > 2}
-                placeholder="Select tenant"
+                placeholder={t('selectTenant')}
                 options={tenantOptions}
                 size="large"
               />
@@ -232,14 +228,12 @@ const LoginPage = () => {
 
           {/* Step 3: Password - visible once tenant is determined */}
           <Form.Item
-            label="Password"
+            label={t('password')}
             name="password"
-            rules={
-              currentStep >= 3 ? [{ required: true, message: 'Please input your password!' }] : []
-            }
+            rules={currentStep >= 3 ? [{ required: true, message: t('passwordRequired') }] : []}
           >
             <Input.Password
-              placeholder="Password"
+              placeholder={t('passwordPlaceholder')}
               size="large"
               ref={passwordInputRef}
               disabled={currentStep < 3}
@@ -249,7 +243,7 @@ const LoginPage = () => {
           <div className={styles.loginButtonContainer}>
             {currentStep > 0 && (
               <LitegraphButton className={styles.cancelButton} onClick={handleCancel}>
-                Cancel
+                {t('cancel')}
               </LitegraphButton>
             )}
             <LitegraphButton
@@ -260,10 +254,10 @@ const LoginPage = () => {
               onClick={currentStep === 3 ? handleSubmit : handleNext}
             >
               {isLoadingTenant || isValidatingConnectivity
-                ? 'Loading...'
+                ? t('loading')
                 : currentStep === 3
-                  ? 'Login'
-                  : 'Next'}
+                  ? t('login')
+                  : t('next')}
             </LitegraphButton>
           </div>
         </Form>

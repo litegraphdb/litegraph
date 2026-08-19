@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form } from 'antd';
 import { TagType } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
@@ -26,6 +27,7 @@ const AddEditTag = ({
   selectedGraph,
   onTagUpdated,
 }: AddEditTagProps) => {
+  const t = useTranslations('tags');
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
   const [createTag, { isLoading: isCreateLoading }] = useCreateTagMutation();
@@ -77,12 +79,12 @@ const AddEditTag = ({
         const res = await updateTagById(updatedTag);
 
         if (res) {
-          toast.success('Tag updated successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditTagVisible(false);
           form.resetFields();
           onTagUpdated && (await onTagUpdated());
         } else {
-          toast.error('Failed to update tag - no response received');
+          toast.error(t('toast.updateFailedNoResponse'));
         }
       } else {
         // Create new tag
@@ -95,7 +97,7 @@ const AddEditTag = ({
         };
         const res = await createTag(newTag);
         if (res) {
-          toast.success('Tag created successfully');
+          toast.success(t('toast.created'));
           setIsAddEditTagVisible(false);
           form.resetFields();
           onTagUpdated && (await onTagUpdated());
@@ -104,13 +106,13 @@ const AddEditTag = ({
     } catch (error: unknown) {
       console.error('Failed to submit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update tag: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
   return (
     <LitegraphModal
-      title={tag ? 'Edit Tag' : 'Create Tag'}
+      title={tag ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditTagVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -127,33 +129,25 @@ const AddEditTag = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="Key"
+          label={t('form.key')}
           name="Key"
-          tooltip="Tag key identifier"
-          rules={[{ required: true, message: 'Please input tag key!' }]}
+          tooltip={t('form.keyTooltip')}
+          rules={[{ required: true, message: t('form.keyRequired') }]}
         >
-          <LitegraphInput placeholder="Enter tag key" />
+          <LitegraphInput placeholder={t('form.keyPlaceholder')} />
         </LitegraphFormItem>
 
         <LitegraphFormItem
-          label="Value"
+          label={t('form.value')}
           name="Value"
-          tooltip="Tag value"
-          rules={[{ required: true, message: 'Please input tag value!' }]}
+          tooltip={t('form.valueTooltip')}
+          rules={[{ required: true, message: t('form.valueRequired') }]}
         >
-          <LitegraphInput placeholder="Enter tag value" />
+          <LitegraphInput placeholder={t('form.valuePlaceholder')} />
         </LitegraphFormItem>
-        <NodeSelector name="NodeGUID" label="Node" tooltip="Node to associate with this tag" />
+        <NodeSelector name="NodeGUID" label={t('form.node')} tooltip={t('form.nodeTooltip')} />
 
-        {/* <LitegraphFormItem label="Node" name="NodeGUID">
-          <LitegraphSelect placeholder="Select Node" options={nodeOptions} allowClear />
-        </LitegraphFormItem> */}
-
-        <EdgeSelector name="EdgeGUID" label="Edge" tooltip="Edge to associate with this tag" />
-
-        {/* <LitegraphFormItem label="Edge" name="EdgeGUID">
-          <LitegraphSelect placeholder="Select Edge" options={edgeOptions} allowClear />
-        </LitegraphFormItem> */}
+        <EdgeSelector name="EdgeGUID" label={t('form.edge')} tooltip={t('form.edgeTooltip')} />
       </Form>
     </LitegraphModal>
   );

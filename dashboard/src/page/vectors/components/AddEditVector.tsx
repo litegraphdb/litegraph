@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form } from 'antd';
 import { VectorType } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
@@ -28,6 +29,7 @@ const AddEditVector = ({
   selectedGraph,
   onVectorUpdated,
 }: AddEditVectorProps) => {
+  const t = useTranslations('vectors');
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
   const [createVectors, { isLoading: isCreateLoading }] = useCreateVectorMutation();
@@ -87,7 +89,7 @@ const AddEditVector = ({
         const res = await updateVectorById(vectorToUpdate);
 
         if (res) {
-          toast.success('Vector updated successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditVectorVisible(false);
           form.resetFields();
           onVectorUpdated && (await onVectorUpdated());
@@ -108,7 +110,7 @@ const AddEditVector = ({
 
         const res = await createVectors(newVector);
         if (res) {
-          toast.success('Vector created successfully');
+          toast.success(t('toast.created'));
           setIsAddEditVectorVisible(false);
           form.resetFields();
           onVectorUpdated && (await onVectorUpdated());
@@ -119,13 +121,13 @@ const AddEditVector = ({
     } catch (error: unknown) {
       console.error('Failed to submit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update vector: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
   return (
     <LitegraphModal
-      title={vector ? 'Edit Vector' : 'Create Vector'}
+      title={vector ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditVectorVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -145,34 +147,34 @@ const AddEditVector = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="Model"
+          label={t('form.model')}
           name="Model"
-          tooltip="Name of the embedding model"
-          rules={[{ required: true, message: 'Please input Model!' }]}
+          tooltip={t('form.modelTooltip')}
+          rules={[{ required: true, message: t('form.modelRequired') }]}
         >
-          <LitegraphInput placeholder="Enter Model" />
+          <LitegraphInput placeholder={t('form.modelPlaceholder')} />
         </LitegraphFormItem>
         <LitegraphFormItem
-          label="Dimensionality"
+          label={t('form.dimensionality')}
           name="Dimensionality"
-          tooltip="Number of dimensions in the vector"
-          rules={[{ required: true, message: 'Please input Dimensionality!' }]}
+          tooltip={t('form.dimensionalityTooltip')}
+          rules={[{ required: true, message: t('form.dimensionalityRequired') }]}
         >
-          <LitegraphInput type="number" placeholder="Enter Dimensionality" />
+          <LitegraphInput type="number" placeholder={t('form.dimensionalityPlaceholder')} />
         </LitegraphFormItem>
         <LitegraphFormItem
-          label="Content"
+          label={t('form.content')}
           name="Content"
-          tooltip="Text content associated with the vector"
-          rules={[{ required: true, message: 'Please input Content!' }]}
+          tooltip={t('form.contentTooltip')}
+          rules={[{ required: true, message: t('form.contentRequired') }]}
         >
-          <LitegraphInput placeholder="Enter Content" />
+          <LitegraphInput placeholder={t('form.contentPlaceholder')} />
         </LitegraphFormItem>
         <LitegraphFormItem
-          label="Vectors"
+          label={t('form.vectors')}
           name="Vectors"
-          tooltip="Vector embedding values as JSON array"
-          rules={[{ required: true, message: 'Please input Vectors!' }]}
+          tooltip={t('form.vectorsTooltip')}
+          rules={[{ required: true, message: t('form.vectorsRequired') }]}
         >
           <JsonEditorWithAce
             key={uniqueKey}
@@ -186,15 +188,9 @@ const AddEditVector = ({
             data-testid="graph-data-input"
           />
         </LitegraphFormItem>
-        <NodeSelector name="NodeGUID" label="Node" tooltip="Node to associate with this vector" />
-        {/* <LitegraphFormItem label="Node" name="NodeGUID">
-          <LitegraphSelect placeholder="Select Node" options={nodeOptions} allowClear />
-        </LitegraphFormItem> */}
-        <EdgeSelector name="EdgeGUID" label="Edge" tooltip="Edge to associate with this vector" />
+        <NodeSelector name="NodeGUID" label={t('form.node')} tooltip={t('form.nodeTooltip')} />
 
-        {/* <LitegraphFormItem label="Edge" name="EdgeGUID">
-          <LitegraphSelect placeholder="Select Edge" options={edgeOptions} allowClear />
-        </LitegraphFormItem> */}
+        <EdgeSelector name="EdgeGUID" label={t('form.edge')} tooltip={t('form.edgeTooltip')} />
       </Form>
     </LitegraphModal>
   );

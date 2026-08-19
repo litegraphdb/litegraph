@@ -4,9 +4,8 @@ import CopyButton from '@/components/base/copy-button/CopyButton';
 import { Button, Dropdown, TableProps } from 'antd';
 import { NodeType } from '@/types/types';
 import { formatDateTime } from '@/utils/dateUtils';
-import { pluralize } from '@/utils/stringUtils';
 import { isNumber } from 'lodash';
-import { NONE } from '@/constants/uiLabels';
+import { NOT_AVAILABLE } from '@/constants/uiLabels';
 import TableSearch from '@/components/table-search/TableSearch';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { onGUIDFilter, onLabelFilter, onNameFilter, onTagFilter } from '@/constants/table';
@@ -14,19 +13,22 @@ import { columnTooltip } from '@/utils/tooltipUtils';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import CountBadge from '@/components/base/count-badge/CountBadge';
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (record: NodeType) => void,
   handleDelete: (record: NodeType) => void,
   hasScoreOrDistance: boolean,
   handleViewJson?: (record: NodeType) => void
 ): TableProps<NodeType>['columns'] => [
   {
-    title: columnTooltip('Name', 'Node display name'),
+    title: columnTooltip(t('columns.name'), t('columns.nameDesc')),
     dataIndex: 'Name' as keyof NodeType,
     key: 'Name',
     width: 250,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Name" />
+      <TableSearch {...props} placeholder={t('search.name')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Name),
     sorter: (a: NodeType, b: NodeType) => a.Name.localeCompare(b.Name),
@@ -37,12 +39,12 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('GUID', 'Globally unique identifier'),
+    title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
     dataIndex: 'GUID' as keyof NodeType,
     key: 'GUID',
     width: 350,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search GUID" />
+      <TableSearch {...props} placeholder={t('search.guid')} />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
     render: (GUID: string) => (
@@ -57,43 +59,50 @@ export const tableColumns = (
         }}
       >
         {GUID}
-        <CopyButton text={GUID} tooltipTitle="Copy GUID" />
+        <CopyButton text={GUID} tooltipTitle={t('copyGuid')} />
       </span>
     ),
   },
   {
-    title: columnTooltip('Labels', 'Classification labels assigned to this node'),
+    title: columnTooltip(t('columns.labels'), t('columns.labelsDesc')),
     dataIndex: 'Labels' as keyof NodeType,
     key: 'Labels',
     width: 150,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Labels" />
+      <TableSearch {...props} placeholder={t('search.labels')} />
     ),
     onFilter: (value, record) => onLabelFilter(value, record.Labels),
-    render: (label: string[]) => <CountBadge count={label?.length ?? 0} noun="label" />,
+    render: (label: string[]) => {
+      const count = label?.length ?? 0;
+      return <CountBadge count={count} label={t('labelsCount', { count })} />;
+    },
   },
   {
-    title: columnTooltip('Tags', 'Key-value metadata tags'),
+    title: columnTooltip(t('columns.tags'), t('columns.tagsDesc')),
     dataIndex: 'Tags' as keyof NodeType,
     key: 'Tags',
     width: 250,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Tags" />
+      <TableSearch {...props} placeholder={t('search.tags')} />
     ),
     onFilter: (val, record) => onTagFilter(val, record.Tags),
-    render: (tags: any) => <CountBadge count={Object.keys(tags || {}).length} noun="tag" />,
+    render: (tags: any) => {
+      const count = Object.keys(tags || {}).length;
+      return <CountBadge count={count} label={t('tagsCount', { count })} />;
+    },
   },
   {
-    title: columnTooltip('Vectors', 'Vector embeddings associated with this node'),
+    title: columnTooltip(t('columns.vectors'), t('columns.vectorsDesc')),
     dataIndex: 'Vectors',
     key: 'Vectors',
     width: 250,
-    render: (_: any, record: NodeType) => (
-      <div>{record?.Vectors?.length > 0 ? pluralize(record?.Vectors?.length, 'vector') : NONE}</div>
-    ),
+    render: (_: any, record: NodeType) => {
+      const count = record?.Vectors?.length || 0;
+      return <div>{t('vectorsCount', { count })}</div>;
+    },
   },
   {
-    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+    title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 250,
@@ -108,54 +117,54 @@ export const tableColumns = (
   ...(hasScoreOrDistance
     ? [
         {
-          title: columnTooltip('Score', 'Relevance score from search'),
+          title: columnTooltip(t('columns.score'), t('columns.scoreDesc')),
           dataIndex: 'Score' as keyof NodeType,
           key: 'Score',
           width: 150,
           render: (score: number) => (
             <div>
-              <div>{isNumber(score) ? score : 'N/A'}</div>
+              <div>{isNumber(score) ? score : NOT_AVAILABLE}</div>
             </div>
           ),
         },
         {
-          title: columnTooltip('Distance', 'Vector distance from search query'),
+          title: columnTooltip(t('columns.distance'), t('columns.distanceDesc')),
           dataIndex: 'Distance' as keyof NodeType,
           key: 'Distance',
           width: 150,
           render: (distance: number) => (
             <div>
-              <div>{isNumber(distance) ? distance : 'N/A'}</div>
+              <div>{isNumber(distance) ? distance : NOT_AVAILABLE}</div>
             </div>
           ),
         },
       ]
     : []),
   {
-    title: columnTooltip('Actions', 'Available operations'),
+    title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
     key: 'actions',
     render: (_: any, record: NodeType) => {
       const items = [
         {
           key: 'edit',
-          label: 'Edit',
+          label: t('rowActions.edit'),
           onClick: () => handleEdit(record),
         },
         {
           key: 'delete',
-          label: 'Delete',
+          label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
-          label: 'View JSON',
+          label: t('rowActions.viewJson'),
           onClick: () => handleViewJson?.(record),
         },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions">
+          <LitegraphTooltip title={t('rowActions.menu')}>
             <Button
               type="text"
               icon={<MoreOutlined style={{ fontSize: '20px' }} />}

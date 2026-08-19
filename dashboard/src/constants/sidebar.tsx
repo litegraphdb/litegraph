@@ -17,12 +17,17 @@ import {
 } from '@ant-design/icons';
 import { MenuItemProps } from '@/components/menu-item/types';
 
+// Nav item `label`/`title` hold the English source strings (used as fallbacks
+// and in unit tests); `labelKey`/`titleKey` reference the `nav.*` catalog and
+// are what actually render, translated at runtime in MenuItems.
 export const tenantDashboardRoutes: MenuItemProps[] = [
   {
     key: '/',
     icon: <HomeOutlined />,
     label: 'Home',
     title: 'Dashboard overview',
+    labelKey: 'nav.tenant.home',
+    titleKey: 'nav.tenant.homeTitle',
     path: paths.dashboardHome,
   },
   {
@@ -30,6 +35,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <ShareAltOutlined />,
     label: 'Graphs',
     title: 'Manage graph containers',
+    labelKey: 'nav.tenant.graphs',
+    titleKey: 'nav.tenant.graphsTitle',
     path: paths.graphs,
   },
 
@@ -38,6 +45,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <ApartmentOutlined />,
     label: 'Nodes',
     title: 'Manage graph nodes',
+    labelKey: 'nav.tenant.nodes',
+    titleKey: 'nav.tenant.nodesTitle',
     path: paths.nodes,
   },
   {
@@ -45,6 +54,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <BranchesOutlined />,
     label: 'Edges',
     title: 'Manage graph edges',
+    labelKey: 'nav.tenant.edges',
+    titleKey: 'nav.tenant.edgesTitle',
     path: paths.edges,
   },
   {
@@ -52,6 +63,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <TagOutlined />,
     label: 'Labels',
     title: 'Manage classification labels',
+    labelKey: 'nav.tenant.labels',
+    titleKey: 'nav.tenant.labelsTitle',
     path: paths.labels,
   },
   {
@@ -59,6 +72,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <TagsOutlined />,
     label: 'Tags',
     title: 'Manage key-value tags',
+    labelKey: 'nav.tenant.tags',
+    titleKey: 'nav.tenant.tagsTitle',
     path: paths.tags,
   },
   {
@@ -66,6 +81,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <RadarChartOutlined />,
     label: 'Vectors',
     title: 'Manage vector embeddings',
+    labelKey: 'nav.tenant.vectors',
+    titleKey: 'nav.tenant.vectorsTitle',
     path: paths.vectors,
   },
   {
@@ -73,6 +90,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <HistoryOutlined />,
     label: 'Requests',
     title: 'HTTP request history',
+    labelKey: 'nav.tenant.requests',
+    titleKey: 'nav.tenant.requestsTitle',
     path: paths.requestHistory,
   },
   {
@@ -80,6 +99,8 @@ export const tenantDashboardRoutes: MenuItemProps[] = [
     icon: <ApiOutlined />,
     label: 'API Explorer',
     title: 'Explore and invoke API endpoints',
+    labelKey: 'nav.tenant.apiExplorer',
+    titleKey: 'nav.tenant.apiExplorerTitle',
     path: paths.apiExplorer,
   },
 ];
@@ -90,6 +111,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <CrownOutlined />,
     label: 'Tenants',
     title: 'Manage tenants',
+    labelKey: 'nav.admin.tenants',
+    titleKey: 'nav.admin.tenantsTitle',
     path: paths.adminDashboard,
   },
   {
@@ -97,6 +120,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <TeamOutlined />,
     label: 'Users',
     title: 'Manage user accounts',
+    labelKey: 'nav.admin.users',
+    titleKey: 'nav.admin.usersTitle',
     path: paths.users,
   },
   {
@@ -104,6 +129,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <LockOutlined />,
     label: 'Credentials',
     title: 'Manage API credentials',
+    labelKey: 'nav.admin.credentials',
+    titleKey: 'nav.admin.credentialsTitle',
     path: paths.credentials,
   },
   {
@@ -111,6 +138,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <SafetyCertificateOutlined />,
     label: 'Authorization',
     title: 'Manage roles and credential scopes',
+    labelKey: 'nav.admin.authorization',
+    titleKey: 'nav.admin.authorizationTitle',
     path: paths.authorization,
   },
   {
@@ -118,6 +147,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <SaveOutlined />,
     label: 'Backups',
     title: 'Manage database backups',
+    labelKey: 'nav.admin.backups',
+    titleKey: 'nav.admin.backupsTitle',
     path: paths.backups,
   },
   {
@@ -125,6 +156,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <HistoryOutlined />,
     label: 'Requests',
     title: 'HTTP request history (all tenants)',
+    labelKey: 'nav.admin.requests',
+    titleKey: 'nav.admin.requestsTitle',
     path: paths.adminRequestHistory,
   },
   {
@@ -132,6 +165,8 @@ export const adminDashboardRoutes: MenuItemProps[] = [
     icon: <ApiOutlined />,
     label: 'API Explorer',
     title: 'Explore and invoke API endpoints',
+    labelKey: 'nav.admin.apiExplorer',
+    titleKey: 'nav.admin.apiExplorerTitle',
     path: paths.adminApiExplorer,
   },
 ];

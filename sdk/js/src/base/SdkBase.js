@@ -584,6 +584,113 @@ export default class SdkBase {
   }
 
   /**
+   * Submits a POST request and resolves with the raw response text.
+   * @param {string} url - The URL to post data to.
+   * @param {Object|string} data - The data to send in the POST request body.
+   * @param {string} contentType - The Content-Type header value for the request body.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @return {Promise<string>} Resolves with the raw response text.
+   * @throws {Error} Rejects if the URL is invalid or if the request fails.
+   */
+  postForText(url, data, contentType, cancellationToken) {
+    return new Promise((resolve, reject) => {
+      if (!url) return reject(new Error('URL cannot be null or empty.'));
+
+      const request = superagent
+        .post(url)
+        .set(this.defaultHeaders)
+        .set('Content-Type', contentType)
+        .buffer(true)
+        .send(data)
+        .timeout({ response: this._timeoutMs });
+      // If a cancelToken is provided, attach the abort method
+      if (cancellationToken) {
+        cancellationToken.abort = () => {
+          request.abort();
+          this.log(SeverityEnum.Debug, `Request aborted to ${url}.`);
+        };
+      }
+      request
+        .then((res) => {
+          this.log(SeverityEnum.Debug, `Success reported from ${url}: ${res.status}`);
+          if (res.text) {
+            resolve(res.text);
+          } else if (res.body && Buffer.isBuffer(res.body)) {
+            resolve(res.body.toString('utf-8'));
+          } else {
+            resolve(null);
+          }
+        })
+        .catch((err) => {
+          this.log(SeverityEnum.Warn, `Failed to retrieve object from ${url}: ${err.message}`);
+          const errorResponse = err?.response?.body || null;
+          if (errorResponse && errorResponse?.Error) {
+            const apiErrorResponse = new ApiErrorResponse(
+              errorResponse?.Error,
+              errorResponse?.Context,
+              errorResponse?.Message
+            );
+            reject(apiErrorResponse);
+          } else {
+            reject(err.message ? err.message : err);
+          }
+        });
+    });
+  }
+
+  /**
+   * Submits a POST request with a raw string body and resolves with the parsed JSON response object.
+   * @param {string} url - The URL to post data to.
+   * @param {string} data - The raw string body to send in the POST request.
+   * @param {string} contentType - The Content-Type header value for the request body.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @return {Promise<Object>} Resolves with the parsed JSON response object.
+   * @throws {Error} Rejects if the URL is invalid or if the request fails.
+   */
+  postRawForJson(url, data, contentType, cancellationToken) {
+    return new Promise((resolve, reject) => {
+      if (!url) return reject(new Error('URL cannot be null or empty.'));
+
+      const request = superagent
+        .post(url)
+        .set(this.defaultHeaders)
+        .set('Content-Type', contentType)
+        .send(data)
+        .timeout({ response: this._timeoutMs });
+      // If a cancelToken is provided, attach the abort method
+      if (cancellationToken) {
+        cancellationToken.abort = () => {
+          request.abort();
+          this.log(SeverityEnum.Debug, `Request aborted to ${url}.`);
+        };
+      }
+      request
+        .then((res) => {
+          this.log(SeverityEnum.Debug, `Success reported from ${url}: ${res.status}`);
+          if (res.text && res.text.length > 0) {
+            resolve(JSON.parse(res.text));
+          } else {
+            resolve(res.body || null);
+          }
+        })
+        .catch((err) => {
+          this.log(SeverityEnum.Warn, `Failed to retrieve object from ${url}: ${err.message}`);
+          const errorResponse = err?.response?.body || null;
+          if (errorResponse && errorResponse?.Error) {
+            const apiErrorResponse = new ApiErrorResponse(
+              errorResponse?.Error,
+              errorResponse?.Context,
+              errorResponse?.Message
+            );
+            reject(apiErrorResponse);
+          } else {
+            reject(err.message ? err.message : err);
+          }
+        });
+    });
+  }
+
+  /**
    * Sends a DELETE request to remove an object at a given URL.
    * @param {string} url - The URL of the object to delete.
    * @param {Object} obj - The object to be created.

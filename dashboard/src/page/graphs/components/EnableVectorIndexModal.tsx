@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Form, message } from 'antd';
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import LitegraphInput from '@/components/base/input/Input';
@@ -8,7 +9,7 @@ import {
   useEnableVectorIndexMutation,
   useReadVectorIndexConfigurationQuery,
 } from '@/lib/store/slice/slice';
-import { validateVectorIndexFile } from './constant';
+import { makeValidateVectorIndexFile } from './constant';
 import { VectorIndexData, EnableVectorIndexModalProps, VectorIndexType } from './types';
 import PageLoading from '@/components/base/loading/PageLoading';
 import LitegraphSelect from '@/components/base/select/Select';
@@ -20,6 +21,8 @@ const EnableVectorIndexModal = ({
   onSuccess,
   viewMode = false,
 }: EnableVectorIndexModalProps) => {
+  const t = useTranslations('vectorIndex');
+  const validateVectorIndexFile = makeValidateVectorIndexFile(t);
   const [form] = Form.useForm<VectorIndexData>();
   const [formValid, setFormValid] = useState(false);
   const [enableVectorIndex, { isLoading: isCreatingVectorIndex }] = useEnableVectorIndexMutation();
@@ -81,7 +84,7 @@ const EnableVectorIndexModal = ({
       setIsEnableVectorIndexModalVisible(false);
       form.resetFields();
       onSuccess();
-      message.success('Vector index enabled successfully');
+      message.success(t('enabledSuccess'));
     } catch (error) {
       console.error('Failed to enable vector index:', error);
     }
@@ -94,7 +97,7 @@ const EnableVectorIndexModal = ({
 
   return (
     <LitegraphModal
-      title={viewMode ? 'Vector Index Configuration' : 'Enable Vector Index'}
+      title={viewMode ? t('viewTitle') : t('enableTitle')}
       open={isEnableVectorIndexModalVisible}
       onOk={viewMode ? undefined : handleSubmit}
       onCancel={handleCancel}
@@ -116,17 +119,15 @@ const EnableVectorIndexModal = ({
           <Form form={form} style={{ display: 'none' }} />
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ color: '#d32f2f', fontSize: '16px', marginBottom: '12px' }}>
-              Failed to load vector index configuration
+              {t('loadConfigFailed')}
             </div>
             <div style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>
               {configError &&
                 ((configError as any)?.data?.Description ||
                   (configError as any)?.Description ||
-                  'Unable to retrieve configuration details')}
+                  t('unableToRetrieveConfig'))}
             </div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              The vector index may not be enabled or there was an issue accessing the configuration.
-            </div>
+            <div style={{ fontSize: '12px', color: '#999' }}>{t('configHint')}</div>
           </div>
         </>
       ) : !viewMode ? (
@@ -138,100 +139,100 @@ const EnableVectorIndexModal = ({
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <LitegraphFormItem
-              label="Vector Index Type"
+              label={t('type')}
               name="VectorIndexType"
-              tooltip="Type of vector index to use"
-              rules={[{ required: true, message: 'Please select Vector Index Type!' }]}
+              tooltip={t('typeTooltip')}
+              rules={[{ required: true, message: t('typeRequired') }]}
             >
               <LitegraphSelect
-                placeholder="Select Vector Index Type"
+                placeholder={t('selectType')}
                 options={[
-                  { label: 'HNSW (Sqlite)', value: VectorIndexType.HnswSqlite },
-                  { label: 'HNSW (RAM)', value: VectorIndexType.HnswRam },
-                  { label: 'None', value: VectorIndexType.None },
+                  { label: t('typeHnswSqlite'), value: VectorIndexType.HnswSqlite },
+                  { label: t('typeHnswRam'), value: VectorIndexType.HnswRam },
+                  { label: t('typeNone'), value: VectorIndexType.None },
                 ]}
                 variant="outlined"
               />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index File"
+              label={t('file')}
               name="VectorIndexFile"
-              tooltip="File path for the vector index"
+              tooltip={t('fileTooltip')}
               rules={[
-                { required: true, message: 'Please input Vector Index File!' },
+                { required: true, message: t('fileRequired') },
                 { validator: validateVectorIndexFile },
               ]}
-              extra={<small>File should end with .db and should not contain spaces</small>}
+              extra={<small>{t('fileHint')}</small>}
             >
               <LitegraphInput
-                placeholder="e.g., graph-00000000-0000-0000-0000-000000000000-hnsw.db"
+                placeholder={t('filePlaceholder')}
                 variant="outlined"
               />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index Threshold"
+              label={t('threshold')}
               name="VectorIndexThreshold"
-              tooltip="Minimum number of vectors before indexing"
+              tooltip={t('thresholdTooltip')}
             >
-              <LitegraphInput type="number" placeholder="Enter threshold" variant="outlined" />
+              <LitegraphInput type="number" placeholder={t('thresholdPlaceholder')} variant="outlined" />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Dimensionality"
+              label={t('dimensionality')}
               name="VectorDimensionality"
-              tooltip="Number of dimensions in the vectors"
-              rules={[{ required: true, message: 'Please input Vector Dimensionality!' }]}
+              tooltip={t('dimensionalityTooltip')}
+              rules={[{ required: true, message: t('dimensionalityRequired') }]}
             >
               <LitegraphInput
                 type="number"
-                placeholder="Enter dimensionality (e.g., 1536)"
+                placeholder={t('dimensionalityPlaceholder')}
                 min={1}
                 variant="outlined"
               />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index M"
+              label={t('m')}
               name="VectorIndexM"
-              tooltip="Maximum number of connections per node in the HNSW graph"
-              rules={[{ required: true, message: 'Please input Vector Index M!' }]}
-              extra={<small>Number of connections per layer in HNSW index</small>}
+              tooltip={t('mTooltip')}
+              rules={[{ required: true, message: t('mRequired') }]}
+              extra={<small>{t('mHint')}</small>}
             >
               <LitegraphInput
                 type="number"
-                placeholder="Enter M value (e.g., 16)"
+                placeholder={t('mPlaceholder')}
                 min={1}
                 variant="outlined"
               />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index Ef"
+              label={t('ef')}
               name="VectorIndexEf"
-              tooltip="Number of candidates to consider during search"
-              rules={[{ required: true, message: 'Please input Vector Index Ef!' }]}
-              extra={<small>Search parameter for HNSW index</small>}
+              tooltip={t('efTooltip')}
+              rules={[{ required: true, message: t('efRequired') }]}
+              extra={<small>{t('efHint')}</small>}
             >
               <LitegraphInput
                 type="number"
-                placeholder="Enter Ef value (e.g., 100)"
+                placeholder={t('efPlaceholder')}
                 min={1}
                 variant="outlined"
               />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index Ef Construction"
+              label={t('efConstruction')}
               name="VectorIndexEfConstruction"
-              tooltip="Number of candidates during index construction"
-              rules={[{ required: true, message: 'Please input Vector Index Ef Construction!' }]}
-              extra={<small>Construction parameter for HNSW index</small>}
+              tooltip={t('efConstructionTooltip')}
+              rules={[{ required: true, message: t('efConstructionRequired') }]}
+              extra={<small>{t('efConstructionHint')}</small>}
             >
               <LitegraphInput
                 type="number"
-                placeholder="Enter Ef Construction value (e.g., 200)"
+                placeholder={t('efConstructionPlaceholder')}
                 min={1}
                 variant="outlined"
               />
@@ -247,66 +248,66 @@ const EnableVectorIndexModal = ({
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <LitegraphFormItem
-              label="Vector Index Type"
+              label={t('type')}
               name="VectorIndexType"
-              tooltip="Type of vector index to use"
+              tooltip={t('typeTooltip')}
             >
               <LitegraphSelect
                 readonly
-                placeholder="Select Vector Index Type"
+                placeholder={t('selectType')}
                 options={[
-                  { label: 'HNSW (Sqlite)', value: VectorIndexType.HnswSqlite },
-                  { label: 'HNSW (RAM)', value: VectorIndexType.HnswRam },
-                  { label: 'None', value: VectorIndexType.None },
+                  { label: t('typeHnswSqlite'), value: VectorIndexType.HnswSqlite },
+                  { label: t('typeHnswRam'), value: VectorIndexType.HnswRam },
+                  { label: t('typeNone'), value: VectorIndexType.None },
                 ]}
                 variant="borderless"
               />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index File"
+              label={t('file')}
               name="VectorIndexFile"
-              tooltip="File path for the vector index"
+              tooltip={t('fileTooltip')}
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index Threshold"
+              label={t('threshold')}
               name="VectorIndexThreshold"
-              tooltip="Minimum number of vectors before indexing"
+              tooltip={t('thresholdTooltip')}
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Dimensionality"
+              label={t('dimensionality')}
               name="VectorDimensionality"
-              tooltip="Number of dimensions in the vectors"
+              tooltip={t('dimensionalityTooltip')}
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index M"
+              label={t('m')}
               name="VectorIndexM"
-              tooltip="Maximum number of connections per node in the HNSW graph"
+              tooltip={t('mTooltip')}
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index Ef"
+              label={t('ef')}
               name="VectorIndexEf"
-              tooltip="Number of candidates to consider during search"
+              tooltip={t('efTooltip')}
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>
 
             <LitegraphFormItem
-              label="Vector Index Ef Construction"
+              label={t('efConstruction')}
               name="VectorIndexEfConstruction"
-              tooltip="Number of candidates during index construction"
+              tooltip={t('efConstructionTooltip')}
             >
               <LitegraphInput variant="borderless" readOnly />
             </LitegraphFormItem>

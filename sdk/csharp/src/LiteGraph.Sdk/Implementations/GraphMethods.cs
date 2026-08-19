@@ -244,6 +244,88 @@
         }
 
         /// <inheritdoc />
+        public async Task<string> ExportGraphToJsonl(
+            Guid tenantGuid,
+            Guid graphGuid,
+            bool includeData = false,
+            bool includeSubordinates = false,
+            CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/export/jsonl";
+            if (includeData) url += "?incldata";
+            if (includeSubordinates) url += (includeData ? "&" : "?") + "inclsub";
+
+            byte[] bytes = await _Sdk.GetStreamingBytes(url, token).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0) return System.Text.Encoding.UTF8.GetString(bytes);
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<string> ExportSubgraphToJsonl(
+            Guid tenantGuid,
+            Guid graphGuid,
+            SubgraphExtractionRequest request,
+            CancellationToken token = default)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            request.TenantGUID = tenantGuid;
+            request.GraphGUID = graphGuid;
+
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/export/jsonl";
+
+            string json;
+            if (!Serializer.TrySerializeJson(request, false, out json)) throw new ArgumentException("Unable to serialize the subgraph extraction request.");
+            byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
+
+            byte[] bytes = await _Sdk.PostStreamingBytes(url, body, "application/json", token).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0) return System.Text.Encoding.UTF8.GetString(bytes);
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<GraphImportResult> ImportGraphFromJsonl(
+            Guid tenantGuid,
+            Guid graphGuid,
+            string jsonl,
+            GraphImportGuidStrategyEnum guidStrategy = GraphImportGuidStrategyEnum.Regenerate,
+            GraphImportErrorPolicyEnum onError = GraphImportErrorPolicyEnum.Abort,
+            int batchSize = 1000,
+            CancellationToken token = default)
+        {
+            if (jsonl == null) throw new ArgumentNullException(nameof(jsonl));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/import/jsonl"
+                + "?guidstrategy=" + guidStrategy.ToString().ToLower()
+                + "&onerror=" + onError.ToString().ToLower()
+                + "&batchsize=" + batchSize;
+
+            byte[] body = System.Text.Encoding.UTF8.GetBytes(jsonl);
+            byte[] bytes = await _Sdk.PostStreamingBytes(url, body, "application/x-ndjson", token).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0) return Serializer.DeserializeJson<GraphImportResult>(System.Text.Encoding.UTF8.GetString(bytes));
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<GraphImportResult> ImportGraphAsNewFromJsonl(
+            Guid tenantGuid,
+            string jsonl,
+            GraphImportGuidStrategyEnum guidStrategy = GraphImportGuidStrategyEnum.Regenerate,
+            GraphImportErrorPolicyEnum onError = GraphImportErrorPolicyEnum.Abort,
+            int batchSize = 1000,
+            CancellationToken token = default)
+        {
+            if (jsonl == null) throw new ArgumentNullException(nameof(jsonl));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/import/jsonl"
+                + "?guidstrategy=" + guidStrategy.ToString().ToLower()
+                + "&onerror=" + onError.ToString().ToLower()
+                + "&batchsize=" + batchSize;
+
+            byte[] body = System.Text.Encoding.UTF8.GetBytes(jsonl);
+            byte[] bytes = await _Sdk.PostStreamingBytes(url, body, "application/x-ndjson", token).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0) return Serializer.DeserializeJson<GraphImportResult>(System.Text.Encoding.UTF8.GetString(bytes));
+            return null;
+        }
+
+        /// <inheritdoc />
         public async Task<List<Graph>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/all";

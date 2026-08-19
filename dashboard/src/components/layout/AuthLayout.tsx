@@ -1,6 +1,7 @@
 import { localStorageKeys } from '@/constants/constant';
 import { useAppDispatch } from '@/lib/store/hooks';
 import { LiteGraphStore } from '@/lib/store/litegraph/reducer';
+import { DEFAULT_LOCALE } from '@/i18n/locales';
 import React, { useEffect, useState } from 'react';
 import PageLoading from '../base/loading/PageLoading';
 import { storeToken, storeTenant, storeAdminAccessKey } from '@/lib/store/litegraph/actions';
@@ -17,6 +18,7 @@ export const initializeAuthFromLocalStorage = (): LiteGraphStore | null => {
     token: null,
     user: null,
     adminAccessKey: null,
+    locale: DEFAULT_LOCALE,
   };
   try {
     const storage = window.localStorage;

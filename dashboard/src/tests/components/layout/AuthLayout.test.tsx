@@ -110,6 +110,7 @@ describe('AuthLayout', () => {
 
       expect(result).toEqual({
         selectedGraph: '',
+        locale: 'en',
         tenant: null,
         token: null,
         user: null,
@@ -131,6 +132,7 @@ describe('AuthLayout', () => {
 
       expect(result).toEqual({
         selectedGraph: '',
+        locale: 'en',
         tenant: null,
         token: mockToken,
         user: null,
@@ -148,6 +150,7 @@ describe('AuthLayout', () => {
 
       expect(result).toEqual({
         selectedGraph: '',
+        locale: 'en',
         tenant: mockTenant,
         token: null,
         user: null,
@@ -165,6 +168,7 @@ describe('AuthLayout', () => {
 
       expect(result).toEqual({
         selectedGraph: '',
+        locale: 'en',
         tenant: null,
         token: null,
         user: null,
@@ -192,6 +196,7 @@ describe('AuthLayout', () => {
 
       expect(result).toEqual({
         selectedGraph: '',
+        locale: 'en',
         tenant: mockTenant,
         token: mockToken,
         user: null,

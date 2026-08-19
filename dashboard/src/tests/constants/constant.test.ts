@@ -10,6 +10,7 @@ describe('Constants', () => {
         user: 'user',
         serverUrl: 'serverUrl',
         theme: 'theme',
+        locale: 'locale',
       });
     });
 

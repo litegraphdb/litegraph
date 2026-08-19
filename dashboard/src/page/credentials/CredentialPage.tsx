@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
@@ -17,6 +18,8 @@ import { tablePaginationConfig } from '@/constants/pagination';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 const CredentialPage = () => {
+  const t = useTranslations('credentials');
+  const tCommon = useTranslations('common');
   const [selectedCredential, setSelectedCredential] = useState<CredentialType | null>(null);
   const [isAddEditCredentialVisible, setIsAddEditCredentialVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -62,27 +65,27 @@ const CredentialPage = () => {
   return (
     <PageContainer
       id="credentials"
-      pageTitle="Credentials"
+      pageTitle={t('title')}
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new credential">
+        <LitegraphTooltip title={t('createTooltip')}>
           <LitegraphButton
             type="link"
             icon={<PlusSquareOutlined />}
             onClick={handleCreateCredential}
             weight={500}
           >
-            Create Credential
+            {t('createCredential')}
           </LitegraphButton>
         </LitegraphTooltip>
       }
     >
       {error && !isCredentialsLoading ? (
-        <FallBack retry={fetchCredentialsList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchCredentialsList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           hideHorizontalScroll
           loading={isCredentialsLoading || isUsersLoading}
-          columns={tableColumns(handleEditCredential, handleDeleteCredential, setJsonViewRecord)}
+          columns={tableColumns(t, handleEditCredential, handleDeleteCredential, setJsonViewRecord)}
           dataSource={credentialsListWithUsers}
           rowKey={'GUID'}
           onRowClick={handleEditCredential}
@@ -108,8 +111,8 @@ const CredentialPage = () => {
 
       {isDeleteModelVisible && selectedCredential && (
         <DeleteCredential
-          title={`Are you sure you want to delete "${selectedCredential.Name}" credential?`}
-          paragraphText={'This action will delete credential.'}
+          title={t('deleteTitle', { name: selectedCredential.Name })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedCredential={selectedCredential}
@@ -120,7 +123,7 @@ const CredentialPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Credential JSON"
+        title={t('credentialJson')}
       />
     </PageContainer>
   );

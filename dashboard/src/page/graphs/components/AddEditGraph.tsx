@@ -1,11 +1,11 @@
 'use client';
 import { Form } from 'antd';
+import { useTranslations } from 'next-intl';
 import { GraphData } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import { useEffect, useState } from 'react';
 import LitegraphInput from '@/components/base/input/Input';
-import { validationRules } from './constant';
 import DataJsonEditor from '@/components/inputs/data-json-editor/DataJsonEditor';
 import { v4 } from 'uuid';
 import toast from 'react-hot-toast';
@@ -20,7 +20,6 @@ import {
   useUpdateGraphMutation,
 } from '@/lib/store/slice/slice';
 import { GraphCreateRequest } from 'litegraphdb/dist/types/types';
-import { getCreateEditViewModelTitle } from '@/utils/appUtils';
 import PageLoading from '@/components/base/loading/PageLoading';
 import { cloneDeep } from 'lodash';
 import { vectorsToFormList } from '@/utils/formValueUtils';
@@ -48,6 +47,7 @@ const AddEditGraph = ({
   graph: graphWithOldData,
   onDone,
 }: AddEditGraphProps) => {
+  const t = useTranslations('graphs');
   const [form] = Form.useForm();
   const data = Form.useWatch('data', form);
   const [formValid, setFormValid] = useState(false);
@@ -101,7 +101,7 @@ const AddEditGraph = ({
             await refetchGraph();
           }
 
-          toast.success('Update Graph successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditGraphVisible(false);
           onDone?.();
         } else {
@@ -118,7 +118,7 @@ const AddEditGraph = ({
         };
         const res = await createGraph(data);
         if (res) {
-          toast.success('Add Graph successfully');
+          toast.success(t('toast.created'));
           setIsAddEditGraphVisible(false);
           onDone?.();
         } else {
@@ -128,7 +128,7 @@ const AddEditGraph = ({
     } catch (error: unknown) {
       console.error('Error submitting form:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update graph: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
     // Trigger initial validation
     form
@@ -165,13 +165,14 @@ const AddEditGraph = ({
 
   return (
     <LitegraphModal
-      title={getCreateEditViewModelTitle(
-        'Graph',
-        isGraphLoading,
-        !graphWithOldData,
-        !!graphWithOldData
-      )}
-      okText={graphWithOldData?.GUID ? 'Update' : 'Create'}
+      title={
+        isGraphLoading
+          ? t('modalTitle.loading')
+          : graphWithOldData
+            ? t('modalTitle.edit')
+            : t('modalTitle.create')
+      }
+      okText={graphWithOldData?.GUID ? t('modalTitle.updateOk') : t('modalTitle.createOk')}
       open={isAddEditGraphVisible}
       onOk={handleSubmit}
       confirmLoading={isCreateLoading || isUpdateLoading}
@@ -199,25 +200,21 @@ const AddEditGraph = ({
         >
           {/* Graph Name */}
           <LitegraphFormItem
-            label="Name"
+            label={t('form.name')}
             name="name"
-            tooltip="Display name for the graph"
-            rules={validationRules.name}
+            tooltip={t('form.nameTooltip')}
+            rules={[{ required: true, message: t('form.nameRequired') }]}
           >
-            <LitegraphInput placeholder="Enter graph name" data-testid="graph-name-input" />
+            <LitegraphInput placeholder={t('form.namePlaceholder')} data-testid="graph-name-input" />
           </LitegraphFormItem>
-          <LabelInput name="labels" tooltip="Labels associated with this graph" />
-          <Form.Item label="Tags" tooltip="Key-value tags for this graph">
+          <LabelInput name="labels" tooltip={t('form.labelsTooltip')} />
+          <Form.Item label={t('form.tags')} tooltip={t('form.tagsTooltip')}>
             <TagsInput name="tags" />
           </Form.Item>
-          <Form.Item label="Vectors" tooltip="Vector embeddings for this graph">
+          <Form.Item label={t('form.vectors')} tooltip={t('form.vectorsTooltip')}>
             <VectorsInput name="vectors" />
           </Form.Item>
-          <LitegraphFormItem
-            label="Data"
-            name="data"
-            tooltip="Arbitrary JSON data attached to this graph"
-          >
+          <LitegraphFormItem label={t('form.data')} name="data" tooltip={t('form.dataTooltip')}>
             <DataJsonEditor uniqueKey={uniqueKey} mode="code" />
           </LitegraphFormItem>
         </Form>

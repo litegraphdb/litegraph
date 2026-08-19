@@ -1,4 +1,5 @@
 import React, { Dispatch, SetStateAction } from 'react';
+import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -28,6 +29,8 @@ const DeleteNode = ({
   onNodeDeleted,
   removeLocalNode,
 }: DeleteNodeProps) => {
+  const t = useTranslations('nodes');
+  const tCommon = useTranslations('common');
   const [deleteNodeById, { isLoading: isDeleteNodeLoading }] = useDeleteNodeMutation();
 
   const handleDeleteNode = async () => {
@@ -35,7 +38,7 @@ const DeleteNode = ({
       if (removeLocalNode) {
         // Use local state update for graph viewer
         removeLocalNode(selectedNode.GUID);
-        toast.success('Delete Node successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedNode(null);
         onNodeDeleted && onNodeDeleted();
@@ -46,7 +49,7 @@ const DeleteNode = ({
           nodeId: selectedNode.GUID,
         });
         if (res) {
-          toast.success('Delete Node successfully');
+          toast.success(t('toast.deleted'));
           setIsDeleteModelVisible(false);
           setSelectedNode(null);
           onNodeDeleted && onNodeDeleted();
@@ -62,7 +65,7 @@ const DeleteNode = ({
       onCancel={() => setIsDeleteModelVisible(false)}
       footer={
         <LitegraphButton type="primary" onClick={handleDeleteNode} loading={isDeleteNodeLoading}>
-          Confirm
+          {tCommon('actions.confirm')}
         </LitegraphButton>
       }
       data-testid="delete-node-modal"

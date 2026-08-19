@@ -1,6 +1,7 @@
 'use client';
 import LiteGraphCard from '@/components/base/card/Card';
 import LiteGraphSpace from '@/components/base/space/Space';
+import { useTranslations } from 'next-intl';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { GraphNodeTooltip } from './types';
 import { CloseCircleFilled, ExpandOutlined } from '@ant-design/icons';
@@ -51,6 +52,8 @@ const NodeToolTip = ({
   currentNodes,
   currentEdges,
 }: NodeTooltipProps) => {
+  const t = useTranslations('graphViewer');
+  const tCommon = useTranslations('common');
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   // Find the current node data from local state first, fallback to API if not found
@@ -218,12 +221,12 @@ const NodeToolTip = ({
         <LiteGraphCard
           title={
             <LitegraphText weight={600} fontSize={18}>
-              Node Information
+              {t('node.title')}
             </LitegraphText>
           }
           extra={
             <LitegraphFlex gap={10}>
-              <LitegraphTooltip title="Expand" placement="bottom">
+              <LitegraphTooltip title={t('node.expand')} placement="bottom">
                 <ExpandOutlined
                   className="cursor-pointer"
                   onClick={() => {
@@ -247,13 +250,13 @@ const NodeToolTip = ({
             <PageLoading withoutWhiteBG />
           ) : error ? (
             <FallBack retry={refetch}>
-              {error ? 'Something went wrong.' : "Can't view details at the moment."}
+              {error ? tCommon('states.somethingWentWrong') : tCommon('states.cantViewDetails')}
             </FallBack>
           ) : isAddingNewNode ? (
             // Show Add Node form
             <LitegraphFlex vertical>
               <LitegraphText>
-                <strong>Add New Node</strong>
+                <strong>{t('node.addNew')}</strong>
               </LitegraphText>
               <LitegraphButton
                 type="primary"
@@ -263,7 +266,7 @@ const NodeToolTip = ({
                 }}
                 className="mt-2"
               >
-                Open Add Node Form
+                {t('node.openAddForm')}
               </LitegraphButton>
             </LitegraphFlex>
           ) : (
@@ -271,20 +274,20 @@ const NodeToolTip = ({
             <LitegraphFlex vertical>
               <LitegraphFlex vertical className="card-details">
                 <LitegraphText data-testid="node-guid">
-                  <strong>GUID: </strong>
+                  <strong>{t('node.guid')}: </strong>
                   <span data-testid="node-guid-value" style={{ fontFamily: 'monospace' }}>
                     {nodeWithTags?.GUID}
                   </span>{' '}
-                  <CopyButton text={nodeWithTags?.GUID || ''} tooltipTitle="Copy GUID" />
+                  <CopyButton text={nodeWithTags?.GUID || ''} tooltipTitle={tCommon('copy.copyGuid')} />
                 </LitegraphText>
                 <LitegraphText>
-                  <strong>Name: </strong>
+                  <strong>{t('node.name')}: </strong>
                   {nodeWithTags?.Name}
                 </LitegraphText>
 
                 <LitegraphText>
-                  <strong>Labels: </strong>
-                  {`${nodeWithTags?.Labels?.length ? nodeWithTags?.Labels?.join(', ') : 'None'}`}
+                  <strong>{t('node.labels')}: </strong>
+                  {`${nodeWithTags?.Labels?.length ? nodeWithTags?.Labels?.join(', ') : tCommon('states.none')}`}
                 </LitegraphText>
 
                 {/* <LitegraphText>
@@ -293,7 +296,7 @@ const NodeToolTip = ({
                 </LitegraphText> */}
 
                 <LitegraphText>
-                  <strong>Tags: </strong>
+                  <strong>{t('node.tags')}: </strong>
                   {(() => {
                     const tags = nodeWithTags?.Tags || {};
                     const tagKeys = Object.keys(tags);
@@ -310,7 +313,7 @@ const NodeToolTip = ({
                         enableTransform={false}
                       />
                     ) : (
-                      <LitegraphText>None</LitegraphText>
+                      <LitegraphText>{tCommon('states.none')}</LitegraphText>
                     );
                   })()}
                 </LitegraphText>
@@ -318,7 +321,7 @@ const NodeToolTip = ({
               </LitegraphFlex>
               {/* Buttons */}
               <LitegraphFlex className="pt-3" gap={10} justify="space-between">
-                <LitegraphTooltip title={'Update Node'} placement="bottom">
+                <LitegraphTooltip title={t('node.updateTooltip')} placement="bottom">
                   <LitegraphButton
                     type="link"
                     onClick={() => {
@@ -326,11 +329,11 @@ const NodeToolTip = ({
                       setIsAddEditNodeVisible(true);
                     }}
                   >
-                    Update
+                    {tCommon('actions.update')}
                   </LitegraphButton>
                 </LitegraphTooltip>
 
-                <LitegraphTooltip title={'Delete Node'} placement="bottom">
+                <LitegraphTooltip title={t('node.deleteTooltip')} placement="bottom">
                   <LitegraphButton
                     type="link"
                     onClick={() => {
@@ -338,18 +341,18 @@ const NodeToolTip = ({
                       setIsDeleteModelVisible(true);
                     }}
                   >
-                    Delete
+                    {tCommon('actions.delete')}
                   </LitegraphButton>
                 </LitegraphTooltip>
 
-                <LitegraphTooltip title={'Add Edge'} placement="bottom">
+                <LitegraphTooltip title={t('node.addEdgeTooltip')} placement="bottom">
                   <LitegraphButton
                     type="link"
                     onClick={() => {
                       setIsAddEditEdgeVisible(true);
                     }}
                   >
-                    Add Edge
+                    {t('node.addEdge')}
                   </LitegraphButton>
                 </LitegraphTooltip>
               </LitegraphFlex>
@@ -385,8 +388,8 @@ const NodeToolTip = ({
 
       {/* DeleteNode Component On Delete*/}
       <DeleteNode
-        title={`Are you sure you want to delete "${selectedNode?.Name}" node?`}
-        paragraphText={'This action will delete node.'}
+        title={t('node.deleteConfirmTitle', { name: selectedNode?.Name || '' })}
+        paragraphText={t('node.deleteConfirmText')}
         isDeleteModelVisible={isDeleteModelVisible}
         setIsDeleteModelVisible={setIsDeleteModelVisible}
         selectedNode={selectedNode}

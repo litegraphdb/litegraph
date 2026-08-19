@@ -13,6 +13,7 @@ import ConfirmationModal from './confirmation-modal/ConfirmationModal';
 import { useState } from 'react';
 import { useAppContext } from '@/hooks/appHooks';
 import { ThemeEnum } from '@/types/types';
+import { useTranslations } from 'next-intl';
 
 const { Sider } = Layout;
 
@@ -29,6 +30,7 @@ const Navigation = ({
 }) => {
   const [open, setOpen] = useState(false);
   const { theme } = useAppContext();
+  const t = useTranslations('sidebar');
   const { flushDBtoDisk, isLoading, error } = useFlushDBtoDisk();
   const onFlushDBtoDisk = async () => {
     const result = await flushDBtoDisk();
@@ -48,10 +50,10 @@ const Navigation = ({
     >
       <LitegraphFlex justify="center" gap={8} align="center" className={styles.logoContainer}>
         {collapsed ? (
-          <Image src={'/favicon.png'} alt="Litegraph logo" width={30} height={30} />
+          <Image src={'/favicon.png'} alt={t('logoAlt')} width={30} height={30} />
         ) : (
           <>
-            <Image src={'/favicon.png'} alt="Litegraph logo" width={30} height={30} />
+            <Image src={'/favicon.png'} alt={t('logoAlt')} width={30} height={30} />
             <LitegraphTitle level={4} className="mt-xs fade-in" weight={600}>
               LiteGraph
             </LitegraphTitle>
@@ -59,7 +61,7 @@ const Navigation = ({
         )}
       </LitegraphFlex>
       <LitegraphFlex justify="flex-end" className="pl-sm pr-sm pt-sm">
-        <LitegraphTooltip title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+        <LitegraphTooltip title={collapsed ? t('expand') : t('collapse')}>
           <Button
             type="text"
             size="small"
@@ -71,17 +73,17 @@ const Navigation = ({
       </LitegraphFlex>
       {isAdmin && (
         <LitegraphFlex className="mt mb-sm" gap={10} justify="center" align="center">
-          <LitegraphTooltip title="Flush the database to disk">
+          <LitegraphTooltip title={t('flushTitle')}>
             <Button type="default" icon={<DatabaseOutlined />} onClick={() => setOpen(true)}>
-              {collapsed ? '' : 'Flush to disk'}
+              {collapsed ? '' : t('flushToDisk')}
             </Button>
           </LitegraphTooltip>
         </LitegraphFlex>
       )}
       <MenuItems menuItems={menuItems} />
       <ConfirmationModal
-        title="Flush the database to disk"
-        content="Are you sure you want to flush the database to disk?"
+        title={t('flushTitle')}
+        content={t('flushConfirm')}
         onCancel={() => setOpen(false)}
         onConfirm={onFlushDBtoDisk}
         open={open}

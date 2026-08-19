@@ -1,0 +1,1375 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "Create",
+      "edit": "Edit",
+      "delete": "Delete",
+      "update": "Update",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "close": "Close",
+      "next": "Next",
+      "retry": "Retry",
+      "refresh": "Refresh",
+      "search": "Search",
+      "export": "Export",
+      "viewJson": "View JSON",
+      "login": "Login",
+      "logout": "Logout"
+    },
+    "states": {
+      "loading": "Loading...",
+      "redirecting": "Redirecting...",
+      "noData": "No data",
+      "none": "None",
+      "notAvailable": "N/A",
+      "somethingWentWrong": "Something went wrong.",
+      "cantViewDetails": "Can't view details at the moment."
+    },
+    "copy": {
+      "copyGuid": "Copy GUID",
+      "copy": "Copy",
+      "copied": "Copied"
+    }
+  },
+  "nav": {
+    "tenant": {
+      "home": "Home",
+      "homeTitle": "Dashboard overview",
+      "graphs": "Graphs",
+      "graphsTitle": "Manage graph containers",
+      "nodes": "Nodes",
+      "nodesTitle": "Manage graph nodes",
+      "edges": "Edges",
+      "edgesTitle": "Manage graph edges",
+      "labels": "Labels",
+      "labelsTitle": "Manage classification labels",
+      "tags": "Tags",
+      "tagsTitle": "Manage key-value tags",
+      "vectors": "Vectors",
+      "vectorsTitle": "Manage vector embeddings",
+      "requests": "Requests",
+      "requestsTitle": "HTTP request history",
+      "apiExplorer": "API Explorer",
+      "apiExplorerTitle": "Explore and invoke API endpoints"
+    },
+    "admin": {
+      "tenants": "Tenants",
+      "tenantsTitle": "Manage tenants",
+      "users": "Users",
+      "usersTitle": "Manage user accounts",
+      "credentials": "Credentials",
+      "credentialsTitle": "Manage API credentials",
+      "authorization": "Authorization",
+      "authorizationTitle": "Manage roles and credential scopes",
+      "backups": "Backups",
+      "backupsTitle": "Manage database backups",
+      "requests": "Requests",
+      "requestsTitle": "HTTP request history (all tenants)",
+      "apiExplorer": "API Explorer",
+      "apiExplorerTitle": "Explore and invoke API endpoints"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "LiteGraph logo",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "flushTitle": "Flush the database to disk",
+    "flushToDisk": "Flush to disk",
+    "flushConfirm": "Are you sure you want to flush the database to disk?"
+  },
+  "header": {
+    "graphLabel": "Graph:",
+    "selectGraph": "Select the active graph",
+    "selectAGraph": "Select a graph",
+    "tenantLabel": "Tenant:",
+    "selectTenant": "Select the active tenant",
+    "selectATenant": "Select a tenant",
+    "retry": "Retry",
+    "connectedServer": "Connected LiteGraph server",
+    "switchToLight": "Switch to Light mode",
+    "switchToDark": "Switch to Dark mode",
+    "github": "LiteGraph on GitHub",
+    "githubAria": "LiteGraph GitHub repository",
+    "signOut": "Sign out of the dashboard",
+    "logoutAria": "Logout",
+    "language": "Language",
+    "selectLanguage": "Select language"
+  },
+  "login": {
+    "serverUrl": "LiteGraph Server URL",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "Please enter the LiteGraph Server URL!",
+    "onlyHttp": "Only HTTP or HTTPS URLs are allowed!",
+    "validUrl": "Please enter a valid URL!",
+    "email": "Email",
+    "emailPlaceholder": "Email",
+    "emailRequired": "Please input your email!",
+    "validEmail": "Please enter a valid email!",
+    "tenant": "Tenant",
+    "selectTenant": "Select tenant",
+    "tenantRequired": "Please select a tenant!",
+    "password": "Password",
+    "passwordPlaceholder": "Password",
+    "passwordRequired": "Please input your password!",
+    "cancel": "Cancel",
+    "login": "Login",
+    "next": "Next",
+    "loading": "Loading...",
+    "defaultCredentials": "Default credentials are default@user.com and password.",
+    "tenantNotFound": "Tenant not found",
+    "loggedInSso": "Logged in successfully via SSO."
+  },
+  "adminLogin": {
+    "title": "Administrator Login",
+    "subtitle": "Sign in with your administrator access key.",
+    "serverUrl": "LiteGraph Server URL",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "Please enter the LiteGraph Server URL!",
+    "onlyHttp": "Only HTTP or HTTPS URLs are allowed!",
+    "validUrl": "Please enter a valid URL!",
+    "accessKey": "Access Key",
+    "accessKeyPlaceholder": "Enter your access key",
+    "accessKeyRequired": "Please input your access key!",
+    "cancel": "Cancel",
+    "login": "Login",
+    "next": "Next",
+    "loading": "Loading...",
+    "invalidAccessKey": "Invalid administrator access key.",
+    "loggedIn": "Logged in successfully.",
+    "loginFailed": "Login failed. Please try again."
+  },
+  "graphs": {
+    "title": "Graphs",
+    "searchTooltip": "Search and filter graphs",
+    "createTooltip": "Create a new graph",
+    "createGraph": "Create Graph",
+    "entityName": "graph(s)",
+    "copyGuid": "Copy GUID",
+    "labelsCount": "{count, plural, one {# label} other {# labels}}",
+    "tagsCount": "{count, plural, one {# tag} other {# tags}}",
+    "vectorsCount": "{count, plural, =0 {None} one {# vector} other {# vectors}}",
+    "deleteTitle": "Are you sure you want to delete this graph?",
+    "deleteBody": "This action will delete graph.",
+    "graphJson": "Graph JSON",
+    "columns": {
+      "name": "Name",
+      "nameDesc": "Graph display name",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "labels": "Labels",
+      "labelsDesc": "Classification labels assigned to this graph",
+      "tags": "Tags",
+      "tagsDesc": "Key-value metadata tags",
+      "vectors": "Vectors",
+      "vectorsDesc": "Vector embeddings associated with this graph",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "score": "Score",
+      "scoreDesc": "Relevance score from search",
+      "distance": "Distance",
+      "distanceDesc": "Vector distance from search query",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "name": "Search Name",
+      "guid": "Search GUID",
+      "labels": "Search Labels",
+      "tags": "Search Tags"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "exportGexf": "Export to GEXF",
+      "enableVectorIndex": "Enable Vector Index",
+      "readVectorIndexConfig": "Read Vector Index Configuration",
+      "readVectorIndexStats": "Read Vector Index Statistics",
+      "rebuildVectorIndex": "Rebuild Vector Index",
+      "deleteVectorIndex": "Delete Vector Index",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Enter graph name",
+      "nameTooltip": "Display name for the graph",
+      "labelsTooltip": "Labels associated with this graph",
+      "tags": "Tags",
+      "tagsTooltip": "Key-value tags for this graph",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector embeddings for this graph",
+      "data": "Data",
+      "dataTooltip": "Arbitrary JSON data attached to this graph",
+      "nameRequired": "Name is required"
+    },
+    "modalTitle": {
+      "create": "Create Graph",
+      "edit": "Edit Graph",
+      "view": "View Graph",
+      "loading": "Loading Graph...",
+      "createOk": "Create",
+      "updateOk": "Update"
+    },
+    "toast": {
+      "exported": "Graph exported successfully",
+      "exportFailed": "Failed to export graph",
+      "noGexf": "No GEXF content received",
+      "created": "Add Graph successfully",
+      "updated": "Update Graph successfully",
+      "deleted": "Delete Graph successfully",
+      "updateFailed": "Failed to update graph: {error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "Enable Vector Index",
+    "viewTitle": "Vector Index Configuration",
+    "statsTitle": "Vector Index Statistics",
+    "rebuildTitle": "Rebuild Vector Index",
+    "deleteTitle": "Delete Vector Index",
+    "type": "Vector Index Type",
+    "typeTooltip": "Type of vector index to use",
+    "selectType": "Select Vector Index Type",
+    "typeRequired": "Please select Vector Index Type!",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "None",
+    "file": "Vector Index File",
+    "fileTooltip": "File path for the vector index",
+    "fileRequired": "Please input Vector Index File!",
+    "filePlaceholder": "e.g., graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "File should end with .db and should not contain spaces",
+    "threshold": "Vector Index Threshold",
+    "thresholdTooltip": "Minimum number of vectors before indexing",
+    "thresholdPlaceholder": "Enter threshold",
+    "dimensionality": "Vector Dimensionality",
+    "dimensionalityTooltip": "Number of dimensions in the vectors",
+    "dimensionalityRequired": "Please input Vector Dimensionality!",
+    "dimensionalityPlaceholder": "Enter dimensionality (e.g., 1536)",
+    "m": "Vector Index M",
+    "mTooltip": "Maximum number of connections per node in the HNSW graph",
+    "mRequired": "Please input Vector Index M!",
+    "mPlaceholder": "Enter M value (e.g., 16)",
+    "mHint": "Number of connections per layer in HNSW index",
+    "ef": "Vector Index Ef",
+    "efTooltip": "Number of candidates to consider during search",
+    "efRequired": "Please input Vector Index Ef!",
+    "efPlaceholder": "Enter Ef value (e.g., 100)",
+    "efHint": "Search parameter for HNSW index",
+    "efConstruction": "Vector Index Ef Construction",
+    "efConstructionTooltip": "Number of candidates during index construction",
+    "efConstructionRequired": "Please input Vector Index Ef Construction!",
+    "efConstructionPlaceholder": "Enter Ef Construction value (e.g., 200)",
+    "efConstructionHint": "Construction parameter for HNSW index",
+    "enabledSuccess": "Vector index enabled successfully",
+    "loadConfigFailed": "Failed to load vector index configuration",
+    "unableToRetrieveConfig": "Unable to retrieve configuration details",
+    "configHint": "The vector index may not be enabled or there was an issue accessing the configuration.",
+    "fileValidationDb": "File should end with .db and should not contain spaces",
+    "fileNoSpaces": "Vector Index File should not contain spaces!",
+    "fileEndsDb": "Vector Index File should end with .db!",
+    "rebuildConfirm": "Are you sure you want to rebuild the vector index?",
+    "rebuildBody": "This action will rebuild the vector index for this graph. This process may take some time and will temporarily affect vector search performance.",
+    "rebuildSuccess": "Vector index rebuild started successfully",
+    "rebuildFailed": "Failed to rebuild vector index",
+    "deleteConfirm": "Are you sure you want to delete the vector index?",
+    "deleteBody": "This action will delete the vector index for this graph.",
+    "deleteSuccess": "Vector index deleted successfully",
+    "deleteFailed": "Failed to delete vector index",
+    "stats": {
+      "loadFailed": "Failed to load vector index statistics",
+      "unableToRetrieve": "Unable to retrieve statistics details",
+      "hint": "The vector index may not be enabled or there was an issue accessing the statistics.",
+      "noStats": "No vector index statistics available",
+      "noStatsHint": "This graph may not have a vector index enabled or the statistics are not accessible.",
+      "loaded": "Loaded",
+      "notLoaded": "Not Loaded",
+      "never": "Never",
+      "error": "Error",
+      "errorProcessing": "Error processing statistics data",
+      "label": {
+        "vectorCount": "Vector Count",
+        "dimensions": "Dimensions",
+        "indexType": "Index Type",
+        "m": "M Parameter",
+        "efConstruction": "EF Construction",
+        "defaultEf": "Default EF",
+        "indexFile": "Index File Path",
+        "indexFileSize": "Index File Size",
+        "estimatedMemory": "Estimated Memory Usage",
+        "lastRebuild": "Last Rebuild",
+        "status": "Status",
+        "distanceMetric": "Distance Metric"
+      },
+      "desc": {
+        "vectorCount": "Total number of vectors in the index",
+        "dimensions": "Dimensionality of the vectors",
+        "indexType": "Type of vector index algorithm",
+        "m": "Number of connections per element in the graph",
+        "efConstruction": "EF parameter used during index construction",
+        "defaultEf": "Default EF parameter for search queries",
+        "indexFile": "File path where the index is stored",
+        "indexFileSize": "Size of the index file on disk",
+        "estimatedMemory": "Estimated memory usage of the index",
+        "lastRebuild": "Timestamp of the last index rebuild",
+        "status": "Whether the index is currently loaded in memory",
+        "distanceMetric": "Distance metric used for similarity calculations"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "Export to JSONL",
+    "importIntoGraph": "Import into graph",
+    "importNewGraph": "Import (new graph)",
+    "exportSubgraph": "Export subgraph",
+    "modal": {
+      "importTitle": "Import into graph",
+      "importNewTitle": "Import into a new graph",
+      "exportTitle": "Export to JSONL",
+      "exportSubgraphTitle": "Export subgraph"
+    },
+    "fields": {
+      "guidStrategy": "GUID strategy",
+      "onError": "On error",
+      "maxDepth": "Maximum depth",
+      "direction": "Direction",
+      "includeData": "Include data",
+      "includeSubordinates": "Include subordinates",
+      "maxEdgeCost": "Maximum edge cost",
+      "startNode": "Start node"
+    },
+    "guidStrategy": {
+      "preserve": "Preserve",
+      "regenerate": "Regenerate",
+      "skip": "Skip",
+      "overwrite": "Overwrite"
+    },
+    "onError": {
+      "abort": "Abort",
+      "skip": "Skip"
+    },
+    "direction": {
+      "outbound": "Outbound",
+      "inbound": "Inbound",
+      "both": "Both"
+    },
+    "result": {
+      "nodesCreated": "Nodes created",
+      "nodesUpdated": "Nodes updated",
+      "nodesSkipped": "Nodes skipped",
+      "edgesCreated": "Edges created",
+      "edgesUpdated": "Edges updated",
+      "edgesSkipped": "Edges skipped",
+      "warnings": "Warnings",
+      "title": "Import result",
+      "graphsCreated": "Graphs created",
+      "linesRead": "Lines read",
+      "linesIgnored": "Lines ignored",
+      "newGraphGuid": "New graph GUID",
+      "noWarnings": "No warnings."
+    },
+    "toast": {
+      "importSuccess": "Import completed successfully",
+      "importFailed": "Import failed",
+      "exportSuccess": "Export completed successfully",
+      "exportFailed": "Export failed"
+    },
+    "guidStrategyHelp": {
+      "preserve": "Keep the original GUIDs from the file.",
+      "regenerate": "Assign new GUIDs to every imported object.",
+      "skip": "Keep original GUIDs and skip objects that already exist.",
+      "overwrite": "Keep original GUIDs and overwrite objects that already exist."
+    },
+    "onErrorHelp": {
+      "abort": "Stop the import on the first error.",
+      "skip": "Skip lines that fail and continue importing."
+    },
+    "startNodeHelp": "The subgraph is extracted starting from this node.",
+    "upload": {
+      "prompt": "Click or drag a JSONL file to this area",
+      "hint": "Only .jsonl files exported from LiteGraph are supported.",
+      "selected": "Selected file"
+    },
+    "preview": {
+      "title": "Preview",
+      "headerLines": "Header lines",
+      "nodes": "Nodes",
+      "edges": "Edges",
+      "empty": "No recognizable content found in this file."
+    },
+    "actions": {
+      "import": "Import",
+      "export": "Export"
+    },
+    "exportSubgraphDisabled": "Select a node to export its subgraph.",
+    "copyGuid": "Copy GUID"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "Edges",
+    "searchTooltip": "Search and filter edges",
+    "createTooltip": "Create a new edge",
+    "createEdge": "Create Edge",
+    "entityName": "edge(s)",
+    "edgeJson": "Edge JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" edge?",
+    "deleteBody": "This action will delete edge.",
+    "labelsCount": "{count, plural, one {# label} other {# labels}}",
+    "tagsCount": "{count, plural, one {# tag} other {# tags}}",
+    "vectorsCount": "{count, plural, =0 {None} one {# vector} other {# vectors}}",
+    "columns": {
+      "name": "Name",
+      "nameDesc": "Edge display name",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "from": "From",
+      "fromDesc": "Source node of this edge",
+      "to": "To",
+      "toDesc": "Target node of this edge",
+      "cost": "Cost",
+      "costDesc": "Edge traversal cost",
+      "labels": "Labels",
+      "labelsDesc": "Classification labels assigned to this edge",
+      "tags": "Tags",
+      "tagsDesc": "Key-value metadata tags",
+      "vectors": "Vectors",
+      "vectorsDesc": "Vector embeddings associated with this edge",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "score": "Score",
+      "scoreDesc": "Relevance score from search",
+      "distance": "Distance",
+      "distanceDesc": "Vector distance from search query",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "name": "Search Name",
+      "guid": "Search GUID",
+      "from": "Search From",
+      "to": "Search To",
+      "labels": "Search Labels",
+      "tags": "Search Tags"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "graph": "Graph",
+      "graphTooltip": "The graph this edge belongs to",
+      "guid": "GUID",
+      "guidTooltip": "Globally unique identifier for this edge",
+      "name": "Name",
+      "nameTooltip": "Display name for the edge",
+      "namePlaceholder": "Enter edge name",
+      "nameRequired": "Edge Name is required",
+      "cost": "Cost",
+      "costTooltip": "Traversal cost for this edge",
+      "costPlaceholder": "Enter edge cost",
+      "costRequired": "Edge cost is required",
+      "fromNode": "From Node",
+      "fromNodeTooltip": "Source node of the edge",
+      "fromRequired": "From Node is required",
+      "fromSameAsTo": "From Node cannot be the same as To Node",
+      "toNode": "To Node",
+      "toNodeTooltip": "Target node of the edge",
+      "toRequired": "To Node is required",
+      "toSameAsFrom": "To Node cannot be the same as From Node",
+      "labels": "Labels",
+      "labelsTooltip": "Labels associated with this edge",
+      "tags": "Tags",
+      "tagsTooltip": "Key-value tags for this edge",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector embeddings for this edge",
+      "data": "Data",
+      "dataTooltip": "Arbitrary JSON data attached to this edge",
+      "copyData": "Copy Data"
+    },
+    "modalTitle": {
+      "create": "Create Edge",
+      "edit": "Edit Edge",
+      "view": "View Edge",
+      "loading": "Loading Edge..."
+    },
+    "toast": {
+      "created": "Add Edge successfully",
+      "updated": "Update Edge successfully",
+      "deleted": "Delete Edge successfully",
+      "updateFailed": "Failed to update edge: {error}"
+    }
+  },
+  "home": {
+    "pageTitle": "Home",
+    "addNode": "Add Node",
+    "addEdge": "Add Edge"
+  },
+  "graphViewer": {
+    "loadingNodes": "Loading nodes...",
+    "loadingEdges": "Loading edges...",
+    "errorLoadingGraph": "Error loading graph",
+    "noNodes": "This graph has no nodes.",
+    "tooManyNodes": "Too many nodes exist to properly render the graph. Showing the first {count} nodes.",
+    "controls": {
+      "button": "Controls",
+      "clearSubGraph": "Clear Sub Graph",
+      "searchSubGraph": "Search Sub Graph",
+      "threeD": "3D",
+      "horizontalLayout": "Horizontal layout",
+      "depthAwareLayout": "Depth-aware layout",
+      "depthAwareTooltip": "Cycles and dense back-links are handled automatically so the depth layout stays readable.",
+      "collapseRelatedNodes": "Collapse related nodes",
+      "collapseRelatedTooltip": "Click grouped nodes to expand. Groups are inferred from labels, informative tag keys, and connection patterns.",
+      "dragByLabel": "Drag by label",
+      "showGraphLegend": "Show graph legend",
+      "showNodeName": "Show node name",
+      "collapseExpanded": "Collapse Expanded"
+    },
+    "node": {
+      "title": "Node Information",
+      "expand": "Expand",
+      "guid": "GUID",
+      "name": "Name",
+      "labels": "Labels",
+      "tags": "Tags",
+      "addNew": "Add New Node",
+      "openAddForm": "Open Add Node Form",
+      "updateTooltip": "Update Node",
+      "deleteTooltip": "Delete Node",
+      "addEdgeTooltip": "Add Edge",
+      "addEdge": "Add Edge",
+      "deleteConfirmTitle": "Are you sure you want to delete \"{name}\" node?",
+      "deleteConfirmText": "This action will delete node."
+    },
+    "edge": {
+      "title": "Edge Information",
+      "expand": "Expand",
+      "guid": "GUID",
+      "name": "Name",
+      "from": "From",
+      "to": "To",
+      "cost": "Cost",
+      "labels": "Labels",
+      "tags": "Tags",
+      "addNew": "Add New Edge",
+      "openAddForm": "Open Add Edge Form",
+      "updateTooltip": "Update Edge",
+      "deleteTooltip": "Delete Edge",
+      "deleteConfirmTitle": "Are you sure you want to delete \"{name}\" edge?",
+      "deleteConfirmText": "This action will delete edge."
+    },
+    "nodeSearch": {
+      "title": "Search Nodes",
+      "placeholder": "Search nodes by name...",
+      "searchFailed": "Failed to search nodes. Please try again.",
+      "noNodesFound": "No nodes found",
+      "enterSearchTerm": "Enter a search term to find nodes",
+      "total": "Total {count} nodes",
+      "columns": {
+        "name": "Name",
+        "nameTooltip": "Node display name",
+        "labels": "Labels",
+        "labelsTooltip": "Classification labels",
+        "guid": "GUID",
+        "guidTooltip": "Globally unique identifier"
+      }
+    }
+  },
+  "search": {
+    "tags": "Tags",
+    "tagsTooltip": "Filter by key-value tags",
+    "labelsTooltip": "Filter by classification labels",
+    "expression": "Expression",
+    "expressionTooltip": "Filter using expression syntax",
+    "example": "Example:",
+    "atLeastOneRequired": "At least one field is required."
+  },
+  "nodes": {
+    "title": "Nodes",
+    "searchTooltip": "Search and filter nodes",
+    "createTooltip": "Create a new node",
+    "createNode": "Create Node",
+    "entityName": "node(s)",
+    "copyGuid": "Copy GUID",
+    "labelsCount": "{count, plural, one {# label} other {# labels}}",
+    "tagsCount": "{count, plural, one {# tag} other {# tags}}",
+    "vectorsCount": "{count, plural, =0 {None} one {# vector} other {# vectors}}",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" node?",
+    "deleteBody": "This action will delete node.",
+    "nodeJson": "Node JSON",
+    "columns": {
+      "name": "Name",
+      "nameDesc": "Node display name",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "labels": "Labels",
+      "labelsDesc": "Classification labels assigned to this node",
+      "tags": "Tags",
+      "tagsDesc": "Key-value metadata tags",
+      "vectors": "Vectors",
+      "vectorsDesc": "Vector embeddings associated with this node",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "score": "Score",
+      "scoreDesc": "Relevance score from search",
+      "distance": "Distance",
+      "distanceDesc": "Vector distance from search query",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "name": "Search Name",
+      "guid": "Search GUID",
+      "labels": "Search Labels",
+      "tags": "Search Tags"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "graph": "Graph",
+      "graphTooltip": "The graph this node belongs to",
+      "guid": "GUID",
+      "guidTooltip": "Globally unique identifier for this node",
+      "name": "Name",
+      "namePlaceholder": "Enter node name",
+      "nameTooltip": "Display name for the node",
+      "nameRequired": "Node Name is required",
+      "labels": "Labels",
+      "labelsTooltip": "Labels associated with this node",
+      "tags": "Tags",
+      "tagsTooltip": "Key-value tags for this node",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector embeddings for this node",
+      "data": "Data",
+      "dataTooltip": "Arbitrary JSON data attached to this node",
+      "copyData": "Copy Data"
+    },
+    "modalTitle": {
+      "create": "Create Node",
+      "edit": "Edit Node",
+      "view": "View Node",
+      "loading": "Loading Node...",
+      "createOk": "Create",
+      "updateOk": "Update"
+    },
+    "toast": {
+      "created": "Add Node successfully",
+      "updated": "Update Node successfully",
+      "deleted": "Delete Node successfully",
+      "updateFailed": "Failed to update node: {error}"
+    }
+  },
+  "labels": {
+    "title": "Labels",
+    "createTooltip": "Create a new label",
+    "createLabel": "Create Label",
+    "copyGuid": "Copy GUID",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" label?",
+    "deleteBody": "This action will delete label.",
+    "labelJson": "Label JSON",
+    "columns": {
+      "label": "Label",
+      "labelDesc": "Label text value",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "node": "Node",
+      "nodeDesc": "Associated node name",
+      "edge": "Edge",
+      "edgeDesc": "Associated edge name",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "label": "Search Label",
+      "guid": "Search GUID",
+      "node": "Search Node",
+      "edge": "Search Edge"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "label": "Label",
+      "labelTooltip": "Label text value",
+      "labelRequired": "Please input Label label!",
+      "labelPlaceholder": "Enter label label",
+      "node": "Node",
+      "nodeTooltip": "Node to associate with this label",
+      "edge": "Edge",
+      "edgeTooltip": "Edge to associate with this label"
+    },
+    "modalTitle": {
+      "create": "Create Label",
+      "edit": "Edit Label"
+    },
+    "toast": {
+      "created": "Label created successfully",
+      "updated": "Label updated successfully",
+      "deleted": "Label deleted successfully",
+      "updateFailed": "Failed to update label: {error}",
+      "updateFailedNoResponse": "Failed to update label - no response received"
+    }
+  },
+  "tags": {
+    "title": "Tags",
+    "createTooltip": "Create a new tag",
+    "createTag": "Create Tag",
+    "copyGuid": "Copy GUID",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" tag?",
+    "deleteBody": "This action will delete tag.",
+    "tagJson": "Tag JSON",
+    "columns": {
+      "key": "Key",
+      "keyDesc": "Tag key identifier",
+      "value": "Value",
+      "valueDesc": "Tag value",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "node": "Node",
+      "nodeDesc": "Associated node name",
+      "edge": "Edge",
+      "edgeDesc": "Associated edge name",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "key": "Search Key",
+      "value": "Search Value",
+      "guid": "Search GUID",
+      "node": "Search Node",
+      "edge": "Search Edge"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "key": "Key",
+      "keyTooltip": "Tag key identifier",
+      "keyRequired": "Please input tag key!",
+      "keyPlaceholder": "Enter tag key",
+      "value": "Value",
+      "valueTooltip": "Tag value",
+      "valueRequired": "Please input tag value!",
+      "valuePlaceholder": "Enter tag value",
+      "node": "Node",
+      "nodeTooltip": "Node to associate with this tag",
+      "edge": "Edge",
+      "edgeTooltip": "Edge to associate with this tag"
+    },
+    "modalTitle": {
+      "create": "Create Tag",
+      "edit": "Edit Tag"
+    },
+    "toast": {
+      "created": "Tag created successfully",
+      "updated": "Tag updated successfully",
+      "deleted": "Tag deleted successfully",
+      "updateFailed": "Failed to update tag: {error}",
+      "updateFailedNoResponse": "Failed to update tag - no response received"
+    }
+  },
+  "vectors": {
+    "title": "Vectors",
+    "createTooltip": "Create a new vector",
+    "createVector": "Create Vector",
+    "copyGuid": "Copy GUID",
+    "deleteTitle": "Are you sure you want to delete this vector?",
+    "deleteBody": "This action will delete vector.",
+    "vectorJson": "Vector JSON",
+    "vectorsCount": "{count, plural, one {# vector} other {# vectors}}",
+    "columns": {
+      "model": "Model",
+      "modelDesc": "Vector model name",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "node": "Node",
+      "nodeDesc": "Associated node name",
+      "edge": "Edge",
+      "edgeDesc": "Associated edge name",
+      "dimensionality": "Dimensionality",
+      "dimensionalityDesc": "Number of vector dimensions",
+      "content": "Content",
+      "contentDesc": "Vector content text",
+      "vectors": "Vectors",
+      "vectorsDesc": "Vector embedding values",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "model": "Search Model",
+      "guid": "Search GUID",
+      "node": "Search Node",
+      "edge": "Search Edge",
+      "content": "Search Content"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "model": "Model",
+      "modelTooltip": "Name of the embedding model",
+      "modelRequired": "Please input Model!",
+      "modelPlaceholder": "Enter Model",
+      "dimensionality": "Dimensionality",
+      "dimensionalityTooltip": "Number of dimensions in the vector",
+      "dimensionalityRequired": "Please input Dimensionality!",
+      "dimensionalityPlaceholder": "Enter Dimensionality",
+      "content": "Content",
+      "contentTooltip": "Text content associated with the vector",
+      "contentRequired": "Please input Content!",
+      "contentPlaceholder": "Enter Content",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector embedding values as JSON array",
+      "vectorsRequired": "Please input Vectors!",
+      "node": "Node",
+      "nodeTooltip": "Node to associate with this vector",
+      "edge": "Edge",
+      "edgeTooltip": "Edge to associate with this vector"
+    },
+    "modalTitle": {
+      "create": "Create Vector",
+      "edit": "Edit Vector"
+    },
+    "toast": {
+      "created": "Vector created successfully",
+      "updated": "Vector updated successfully",
+      "deleted": "Vector deleted successfully",
+      "updateFailed": "Failed to update vector: {error}"
+    }
+  },
+  "requestHistory": {
+    "title": "Request History",
+    "columns": {
+      "time": "Time",
+      "method": "Method",
+      "path": "Path",
+      "status": "Status",
+      "transaction": "Transaction",
+      "duration": "Duration",
+      "size": "Size (req/resp)",
+      "tenant": "Tenant",
+      "actions": "Actions"
+    },
+    "transaction": {
+      "noId": "transaction"
+    },
+    "transactionState": {
+      "validation": "validation",
+      "committed": "committed",
+      "rolledBack": "rolled back",
+      "failed": "failed",
+      "transaction": "transaction"
+    },
+    "transactionTags": {
+      "retryable": "retryable",
+      "conflict": "conflict"
+    },
+    "rowActions": {
+      "view": "View",
+      "viewJson": "View JSON",
+      "delete": "Delete",
+      "menu": "Request actions"
+    },
+    "filters": {
+      "allStatuses": "All statuses",
+      "allOutcomes": "All outcomes",
+      "successful": "Successful",
+      "errors": "Errors",
+      "allRequests": "All requests",
+      "transactions": "Transactions",
+      "nonTransactions": "Non-transactions",
+      "allMethods": "All methods",
+      "transactionIdPlaceholder": "Transaction ID...",
+      "pathPlaceholder": "Path contains..."
+    },
+    "summary": {
+      "visibleRequests": "Visible requests:",
+      "visibleErrors": "Visible errors:",
+      "errorRate": "Error rate:",
+      "averageDuration": "Average duration:",
+      "p95Duration": "P95 duration:"
+    },
+    "telemetry": {
+      "title": "Operational telemetry",
+      "prometheus": "Prometheus metrics",
+      "openTelemetry": "OpenTelemetry setup",
+      "description": "Request history is for recent request inspection; metrics and traces are for aggregate monitoring."
+    },
+    "delete": {
+      "confirmTitle": "Delete request history entry?"
+    },
+    "toast": {
+      "loadFailed": "Unable to load request history",
+      "deleted": "Entry deleted",
+      "deleteFailed": "Unable to delete"
+    },
+    "entryJson": "Request History Entry JSON",
+    "chart": {
+      "title": "Requests over time",
+      "ranges": {
+        "hour": "Last Hour",
+        "day": "Last Day",
+        "week": "Last Week",
+        "month": "Last Month"
+      },
+      "total": "Total",
+      "success": "Success",
+      "failed": "Failed",
+      "tooltip": {
+        "success": "Success: {count}",
+        "failed": "Failed: {count}",
+        "total": "Total: {count}"
+      }
+    },
+    "detail": {
+      "title": "Request Detail",
+      "empty": "(empty)",
+      "copyId": "Copy ID",
+      "truncated": "[TRUNCATED]",
+      "entries": "{count} entries",
+      "loadFailed": "Unable to load request detail",
+      "fields": {
+        "id": "ID",
+        "method": "Method",
+        "status": "Status",
+        "duration": "Duration",
+        "time": "Time",
+        "sourceIp": "Source IP",
+        "tenant": "Tenant",
+        "requestSize": "Request Size",
+        "responseSize": "Response Size",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "Request Headers",
+        "requestBody": "Request Body",
+        "responseHeaders": "Response Headers",
+        "responseBody": "Response Body",
+        "transactionDiagnostics": "Transaction Diagnostics"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "API Explorer",
+    "send": "Send",
+    "request": {
+      "title": "Request",
+      "resetTooltip": "Reset body to template",
+      "selectOperation": "Select an operation...",
+      "copyUrl": "Copy URL",
+      "body": "Request body",
+      "recentRequests": "Recent Requests",
+      "clear": "Clear"
+    },
+    "params": {
+      "path": "Path parameters",
+      "query": "Query parameters"
+    },
+    "response": {
+      "title": "Response",
+      "transactionFailed": "Transaction failed",
+      "queryFailed": "Query failed",
+      "noResponse": "(no response yet)",
+      "status": "Status",
+      "contentType": "Content-Type",
+      "duration": "Duration",
+      "size": "Size",
+      "copyCode": "Copy code",
+      "selectOperationHint": "(select an operation)"
+    },
+    "tabs": {
+      "preview": "Preview",
+      "body": "Body",
+      "headers": "Headers",
+      "status": "Status",
+      "code": "Code"
+    },
+    "toast": {
+      "loadSpecFailed": "Unable to load OpenAPI spec",
+      "requestFailed": "Request failed: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} failed{indexText}: {error}.",
+      "defaultOperation": "operation",
+      "defaultObject": "object",
+      "guid": " ({guid})",
+      "indexText": " at index {index}",
+      "noError": "No error detail returned.",
+      "validation": " The transaction failed validation before starting.",
+      "rolledBack": " The transaction was rolled back.",
+      "transactionId": " Transaction {transactionId}.",
+      "state": " State: {state}.",
+      "provider": " Provider: {provider}.",
+      "providerError": " Provider error: {providerErrorCode}.",
+      "retryable": " The failure is marked retryable.",
+      "conflict": " Concurrency conflict detected.",
+      "queryErrorAt": "Query error at {location}: {description}",
+      "queryError": "Query error: {description}"
+    }
+  },
+  "credentials": {
+    "title": "Credentials",
+    "createTooltip": "Create a new credential",
+    "createCredential": "Create Credential",
+    "copyGuid": "Copy GUID",
+    "credentialJson": "Credential JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" credential?",
+    "deleteBody": "This action will delete credential.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "user": "User",
+      "userDesc": "Associated user name",
+      "name": "Name",
+      "nameDesc": "Credential display name",
+      "bearerToken": "Bearer Token",
+      "bearerTokenDesc": "Authentication bearer token",
+      "active": "Active",
+      "activeDesc": "Whether the credential is active",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "guid": "Search GUID",
+      "user": "Search User",
+      "name": "Search Name"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "userGuid": "User GUID",
+      "userGuidTooltip": "User this credential belongs to",
+      "userGuidRequired": "Please select user GUID!",
+      "userGuidPlaceholder": "Select user GUID",
+      "name": "Name",
+      "nameTooltip": "Display name for the credential",
+      "nameRequired": "Please input name!",
+      "namePlaceholder": "Enter name",
+      "bearerToken": "Bearer Token",
+      "bearerTokenTooltip": "Authentication bearer token",
+      "bearerTokenRequired": "Please input bearer token!",
+      "bearerTokenPlaceholder": "Enter bearer token",
+      "active": "Active",
+      "activeTooltip": "Whether the credential is active"
+    },
+    "modalTitle": {
+      "create": "Create Credential",
+      "edit": "Edit Credential"
+    },
+    "toast": {
+      "created": "Credential created successfully",
+      "updated": "Credential updated successfully",
+      "updateNoResponse": "Failed to update credential - no response received",
+      "deleted": "Credential deleted successfully",
+      "updateFailed": "Failed to update credential: {error}"
+    }
+  },
+  "authorization": {
+    "title": "Authorization",
+    "createTooltip": "Create a custom role",
+    "adminRequired": "Admin permission is required",
+    "createRole": "Create Role",
+    "roleJson": "Authorization Role JSON",
+    "tabs": {
+      "roles": "Roles",
+      "userRoles": "User Roles",
+      "credentialScopes": "Credential Scopes"
+    },
+    "sections": {
+      "effectiveUserPermissions": "Effective User Permissions",
+      "effectiveCredentialPermissions": "Effective Credential Permissions"
+    },
+    "states": {
+      "selectTenant": "Select a tenant to manage authorization.",
+      "adminWarning": "Admin permission is required to change roles or credential scopes."
+    },
+    "columns": {
+      "name": "Name",
+      "scope": "Scope",
+      "permissions": "Permissions",
+      "resources": "Resources",
+      "builtIn": "Built In",
+      "actions": "Actions",
+      "role": "Role",
+      "graph": "Graph",
+      "source": "Source"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "viewJson": "View JSON",
+      "delete": "Delete",
+      "revoke": "Revoke",
+      "menu": "Actions"
+    },
+    "labels": {
+      "builtIn": "Built in",
+      "custom": "Custom",
+      "immutable": "Immutable",
+      "directRole": "Direct role",
+      "directGrant": "Direct grant"
+    },
+    "confirm": {
+      "deleteRoleTitle": "Delete role?",
+      "deleteRoleBody": "Delete \"{name}\"?",
+      "revokeRole": "Revoke role?",
+      "revokeScope": "Revoke credential scope?"
+    },
+    "actions": {
+      "assignRole": "Assign Role",
+      "assignScope": "Assign Scope"
+    },
+    "modalTitle": {
+      "create": "Create Role",
+      "edit": "Edit Role"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "Description",
+      "descriptionPlaceholder": "Read-only audit access for selected graphs",
+      "defaultScope": "Default Scope",
+      "permissions": "Permissions",
+      "resourceTypes": "Resource Types",
+      "inheritsToGraphs": "Tenant Scope Inherits To Graphs",
+      "user": "User",
+      "selectUser": "Select user",
+      "role": "Role",
+      "selectRole": "Select role",
+      "scope": "Scope",
+      "graph": "Graph",
+      "selectGraph": "Select graph",
+      "graphRequiredAssignment": "Select graph for graph-scoped assignments.",
+      "credential": "Credential",
+      "selectCredential": "Select credential",
+      "optionalRole": "Optional role",
+      "directPermissions": "Direct Permissions",
+      "directResources": "Direct Resources",
+      "graphRequiredScope": "Select graph for graph-scoped scopes."
+    },
+    "permissions": {
+      "Read": "Read",
+      "Write": "Write",
+      "Delete": "Delete",
+      "Admin": "Admin"
+    },
+    "scopes": {
+      "Tenant": "Tenant",
+      "Graph": "Graph",
+      "tenantScope": "Tenant scope"
+    },
+    "resourceTypes": {
+      "Admin": "Admin",
+      "Graph": "Graph",
+      "Node": "Node",
+      "Edge": "Edge",
+      "Label": "Label",
+      "Tag": "Tag",
+      "Vector": "Vector",
+      "Query": "Query",
+      "Transaction": "Transaction"
+    }
+  },
+  "backups": {
+    "title": "Backups",
+    "createTooltip": "Create a new backup",
+    "createBackup": "Create Backup",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" backup?",
+    "deleteBody": "This action will delete backup.",
+    "columns": {
+      "filename": "Filename",
+      "filenameDesc": "Backup file name",
+      "size": "Size",
+      "sizeDesc": "Backup file size",
+      "sha256": "SHA256",
+      "sha256Desc": "SHA-256 hash of the backup file",
+      "createdUtc": "Create UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "filename": "Search Filename"
+    },
+    "rowActions": {
+      "download": "Download",
+      "delete": "Delete",
+      "menu": "Actions"
+    },
+    "form": {
+      "filename": "Filename",
+      "filenamePlaceholder": "Enter filename",
+      "filenameTooltip": "Name for the backup file",
+      "filenameRequired": "Please enter a filename"
+    },
+    "modalTitle": {
+      "create": "Add Backup",
+      "edit": "Edit Backup"
+    },
+    "toast": {
+      "created": "Backup created successfully",
+      "createFailed": "Failed to create backup",
+      "createFailedError": "Failed to create backup: {error}",
+      "deleted": "Backup deleted successfully",
+      "missingFilename": "Missing backup filename",
+      "unableToDownload": "Unable to download backup"
+    }
+  },
+  "tenants": {
+    "title": "Tenants",
+    "createTooltip": "Create a new tenant",
+    "createTenant": "Create Tenant",
+    "copyGuid": "Copy GUID",
+    "tenantJson": "Tenant JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" tenant?",
+    "deleteBody": "This action will delete tenant.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "name": "Name",
+      "nameDesc": "Tenant display name",
+      "active": "Active",
+      "activeDesc": "Whether the tenant is active",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "guid": "Search GUID",
+      "name": "Search Name"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "name": "Name",
+      "nameTooltip": "Display name for the tenant",
+      "nameRequired": "Please input Name!",
+      "namePlaceholder": "Enter Name",
+      "active": "Active",
+      "activeTooltip": "Whether the tenant is active"
+    },
+    "modalTitle": {
+      "create": "Create Tenant",
+      "edit": "Edit Tenant"
+    },
+    "toast": {
+      "created": "Tenant created successfully",
+      "updated": "Tenant updated successfully",
+      "updateNoResponse": "Failed to update tenant - no response received",
+      "deleted": "Tenant deleted successfully"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "createTooltip": "Create a new user",
+    "createUser": "Create User",
+    "copyGuid": "Copy GUID",
+    "userJson": "User JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" user?",
+    "deleteBody": "This action will delete user.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "firstName": "First Name",
+      "firstNameDesc": "User first name",
+      "lastName": "Last Name",
+      "lastNameDesc": "User last name",
+      "email": "Email",
+      "emailDesc": "User email address",
+      "password": "Password",
+      "passwordDesc": "User password (click eye to reveal)",
+      "active": "Active",
+      "activeDesc": "Whether the user account is active",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "search": {
+      "guid": "Search GUID",
+      "firstName": "Search First Name",
+      "lastName": "Search Last Name",
+      "email": "Search Email"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "firstName": "First Name",
+      "firstNameTooltip": "User's first name",
+      "firstNameRequired": "Please input First Name!",
+      "firstNamePlaceholder": "Enter First Name",
+      "lastName": "Last Name",
+      "lastNameTooltip": "User's last name",
+      "lastNameRequired": "Please input Last Name!",
+      "lastNamePlaceholder": "Enter Last Name",
+      "email": "Email",
+      "emailTooltip": "User's email address",
+      "emailRequired": "Please input your email!",
+      "emailInvalid": "Please enter a valid email!",
+      "emailPlaceholder": "Email",
+      "password": "Password",
+      "passwordTooltip": "Account password",
+      "passwordRequired": "Please input Password!",
+      "passwordPlaceholder": "Enter password",
+      "active": "Active",
+      "activeTooltip": "Whether the user account is active"
+    },
+    "modalTitle": {
+      "create": "Create User",
+      "edit": "Edit User"
+    },
+    "toast": {
+      "created": "User created successfully",
+      "updated": "User updated successfully",
+      "updateNoResponse": "Failed to update user - no response received",
+      "deleted": "User deleted successfully",
+      "updateFailed": "Failed to update user: {error}"
+    }
+  }
+}

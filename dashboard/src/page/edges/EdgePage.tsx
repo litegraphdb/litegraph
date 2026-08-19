@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAppSelector } from '@/lib/store/hooks';
 import { RootState } from '@/lib/store/store';
@@ -27,6 +28,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const EdgePage = () => {
+  const t = useTranslations('edges');
+  const tCommon = useTranslations('common');
   // Redux state for the list of graphs
   const [searchParams, setSearchParams] = useState<EnumerateAndSearchRequest>({});
   const selectedGraphRedux = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
@@ -73,7 +76,11 @@ const EdgePage = () => {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
 
-  const transformedEdgesList = transformEdgeDataForTable(edgesList?.Objects || [], nodesList || []);
+  const transformedEdgesList = transformEdgeDataForTable(
+    edgesList?.Objects || [],
+    nodesList || [],
+    tCommon
+  );
 
   const hasScoreOrDistance = useMemo(
     () => hasScoreOrDistanceInData(transformedEdgesList),
@@ -107,9 +114,9 @@ const EdgePage = () => {
       id="edges"
       pageTitle={
         <LitegraphFlex align="center" gap={10}>
-          <LitegraphText>Edges</LitegraphText>
+          <LitegraphText>{t('title')}</LitegraphText>
           {selectedGraphRedux && (
-            <LitegraphTooltip title="Search and filter edges">
+            <LitegraphTooltip title={t('searchTooltip')}>
               <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
             </LitegraphTooltip>
           )}
@@ -118,14 +125,14 @@ const EdgePage = () => {
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphTooltip title="Create a new edge">
+            <LitegraphTooltip title={t('createTooltip')}>
               <LitegraphButton
                 type="link"
                 icon={<PlusSquareOutlined />}
                 onClick={handleCreateEdge}
                 weight={500}
               >
-                Create Edge
+                {t('createEdge')}
               </LitegraphButton>
             </LitegraphTooltip>
           )}
@@ -133,7 +140,7 @@ const EdgePage = () => {
       }
     >
       {!!isEdgesError && !isEdgesLoading ? (
-        <FallBack retry={fetchEdgesList}>{'Something went wrong.'}</FallBack>
+        <FallBack retry={fetchEdgesList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <>
           <LitegraphFlex
@@ -145,7 +152,7 @@ const EdgePage = () => {
           >
             {!isEdgesLoading && (
               <AppliedFilter
-                entityName="edge(s)"
+                entityName={t('entityName')}
                 searchParams={searchParams}
                 totalRecords={edgesList?.TotalRecords || 0}
                 onClear={() => setSearchParams({})}
@@ -154,6 +161,8 @@ const EdgePage = () => {
           </LitegraphFlex>
           <LitegraphTable
             columns={tableColumns(
+              t,
+              tCommon,
               handleEditEdge,
               handleDelete,
               hasScoreOrDistance,
@@ -185,8 +194,8 @@ const EdgePage = () => {
       />
 
       <DeleteEdge
-        title={`Are you sure you want to delete "${selectedEdge?.Name}" edge?`}
-        paragraphText={'This action will delete edge.'}
+        title={t('deleteTitle', { name: selectedEdge?.Name || '' })}
+        paragraphText={t('deleteBody')}
         isDeleteModelVisisble={isDeleteModelVisisble}
         setIsDeleteModelVisisble={setIsDeleteModelVisisble}
         selectedEdge={selectedEdge}
@@ -201,7 +210,7 @@ const EdgePage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Edge JSON"
+        title={t('edgeJson')}
       />
     </PageContainer>
   );

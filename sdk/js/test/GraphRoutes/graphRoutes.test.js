@@ -4,6 +4,7 @@ import {
   searchGraphData,
   graphMockApiResponse,
   graphMockSearchApiResponse,
+  subgraphExtractionRequest,
 } from './mockData';
 import { api } from '../setupTest'; // Adjust paths as needed
 import { handlers } from './handlers';
@@ -115,6 +116,70 @@ describe('GraphRoute Tests', () => {
       const cancellationToken = {};
       await api.exportGraphToGexf(mockGraphGuid, cancellationToken);
       cancellationToken.abort();
+    });
+
+    test('should export a graph to JSONL format', async () => {
+      const response = await api.exportGraphToJsonl(mockGraphGuid, {
+        includeData: true,
+        includeSubordinates: true,
+      });
+      expect(response).toContain('# litegraph-jsonl');
+      expect(response).toContain('"Type":"Node"');
+    });
+
+    it('throws error when exporting to JSONL without a graph GUID', async () => {
+      try {
+        await api.exportGraphToJsonl();
+      } catch (err) {
+        expect(err instanceof Error).toBe(true);
+        expect(err.toString()).toBe('Error: ArgumentNullException: GraphGuid is null or empty');
+      }
+    });
+
+    test('should export a subgraph to JSONL format', async () => {
+      const response = await api.exportSubgraphToJsonl(mockGraphGuid, subgraphExtractionRequest);
+      expect(response).toContain('# litegraph-jsonl');
+      expect(response).toContain('"Type":"Edge"');
+    });
+
+    it('throws error when exporting a subgraph without a request', async () => {
+      try {
+        await api.exportSubgraphToJsonl(mockGraphGuid);
+      } catch (err) {
+        expect(err instanceof Error).toBe(true);
+        expect(err.toString()).toBe('Error: ArgumentNullException: SubgraphExtractionRequest is null or empty');
+      }
+    });
+
+    test('should import JSONL into an existing graph', async () => {
+      const jsonl = await api.exportGraphToJsonl(mockGraphGuid);
+      const response = await api.importGraphFromJsonl(mockGraphGuid, jsonl, {
+        guidStrategy: 'preserve',
+        onError: 'skip',
+        batchSize: 100,
+      });
+      expect(response.Success).toBe(true);
+      expect(response.GraphGUID).toBe(mockGraphGuid);
+      expect(response.NodesCreated).toBe(2);
+      expect(response.EdgesCreated).toBe(1);
+    });
+
+    test('should import JSONL as a new graph', async () => {
+      const jsonl = await api.exportGraphToJsonl(mockGraphGuid);
+      const response = await api.importGraphAsNewFromJsonl(jsonl, {
+        guidStrategy: 'regenerate',
+      });
+      expect(response.Success).toBe(true);
+      expect(response.GraphsCreated).toBe(1);
+    });
+
+    it('throws error when importing JSONL without data', async () => {
+      try {
+        await api.importGraphFromJsonl(mockGraphGuid);
+      } catch (err) {
+        expect(err instanceof Error).toBe(true);
+        expect(err.toString()).toBe('Error: ArgumentNullException: JsonlString is null or empty');
+      }
     });
   });
 });

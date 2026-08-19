@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Alert,
   Button,
@@ -94,11 +95,6 @@ const tags = (values?: string[]) => (
   </Space>
 );
 
-const guidLabel = (guid?: string | null) => {
-  if (!guid) return 'Tenant scope';
-  return guid;
-};
-
 const roleLabel = (role: AuthorizationRole) => {
   if (role.DisplayName && role.DisplayName !== role.Name) return `${role.DisplayName} (${role.Name})`;
   return role.Name;
@@ -113,6 +109,8 @@ type RoleModalProps = {
 };
 
 const RoleModal = ({ open, role, saving, onCancel, onSave }: RoleModalProps) => {
+  const t = useTranslations('authorization');
+  const tCommon = useTranslations('common');
   const [form] = Form.useForm();
 
   React.useEffect(() => {
@@ -153,43 +151,46 @@ const RoleModal = ({ open, role, saving, onCancel, onSave }: RoleModalProps) => 
 
   return (
     <Modal
-      title={role ? 'Edit Role' : 'Create Role'}
+      title={role ? t('modalTitle.edit') : t('modalTitle.create')}
       open={open}
       onCancel={onCancel}
       onOk={submit}
       confirmLoading={saving}
-      okText={role ? 'Update' : 'Create'}
+      okText={role ? tCommon('actions.update') : tCommon('actions.create')}
       destroyOnHidden
       maskClosable
     >
       <Form form={form} layout="vertical">
-        <Form.Item name="Name" label="Name" rules={[{ required: true }]}>
-          <Input placeholder="GraphAuditor" disabled={!!role} />
+        <Form.Item name="Name" label={t('form.name')} rules={[{ required: true }]}>
+          <Input placeholder={t('form.namePlaceholder')} disabled={!!role} />
         </Form.Item>
-        <Form.Item name="DisplayName" label="Display Name">
-          <Input placeholder="Graph Auditor" />
+        <Form.Item name="DisplayName" label={t('form.displayName')}>
+          <Input placeholder={t('form.displayNamePlaceholder')} />
         </Form.Item>
-        <Form.Item name="Description" label="Description">
-          <Input.TextArea rows={3} placeholder="Read-only audit access for selected graphs" />
+        <Form.Item name="Description" label={t('form.description')}>
+          <Input.TextArea rows={3} placeholder={t('form.descriptionPlaceholder')} />
         </Form.Item>
-        <Form.Item name="ResourceScope" label="Default Scope" rules={[{ required: true }]}>
-          <Select options={scopeOptions.map((value) => ({ label: value, value }))} />
+        <Form.Item name="ResourceScope" label={t('form.defaultScope')} rules={[{ required: true }]}>
+          <Select options={scopeOptions.map((value) => ({ label: t(`scopes.${value}`), value }))} />
         </Form.Item>
-        <Form.Item name="Permissions" label="Permissions" rules={[{ required: true }]}>
+        <Form.Item name="Permissions" label={t('form.permissions')} rules={[{ required: true }]}>
           <Select
             mode="multiple"
-            options={permissionOptions.map((value) => ({ label: value, value }))}
+            options={permissionOptions.map((value) => ({ label: t(`permissions.${value}`), value }))}
           />
         </Form.Item>
-        <Form.Item name="ResourceTypes" label="Resource Types" rules={[{ required: true }]}>
+        <Form.Item name="ResourceTypes" label={t('form.resourceTypes')} rules={[{ required: true }]}>
           <Select
             mode="multiple"
-            options={resourceTypeOptions.map((value) => ({ label: value, value }))}
+            options={resourceTypeOptions.map((value) => ({
+              label: t(`resourceTypes.${value}`),
+              value,
+            }))}
           />
         </Form.Item>
         <Form.Item
           name="InheritsToGraphs"
-          label="Tenant Scope Inherits To Graphs"
+          label={t('form.inheritsToGraphs')}
           valuePropName="checked"
         >
           <Switch />
@@ -200,6 +201,12 @@ const RoleModal = ({ open, role, saving, onCancel, onSave }: RoleModalProps) => 
 };
 
 const AuthorizationPage = () => {
+  const t = useTranslations('authorization');
+  const tCommon = useTranslations('common');
+  const guidLabel = (guid?: string | null) => {
+    if (!guid) return t('scopes.tenantScope');
+    return guid;
+  };
   const selectedTenant = useSelectedTenant();
   const tenantGuid = selectedTenant?.GUID || '';
   const adminAccessKey = useAppSelector((state: RootState) => state.liteGraph.adminAccessKey);
@@ -370,9 +377,9 @@ const AuthorizationPage = () => {
 
   const confirmDeleteRole = (role: AuthorizationRole) => {
     Modal.confirm({
-      title: 'Delete role?',
-      content: `Delete "${role.DisplayName || role.Name}"?`,
-      okText: 'Delete',
+      title: t('confirm.deleteRoleTitle'),
+      content: t('confirm.deleteRoleBody', { name: role.DisplayName || role.Name }),
+      okText: tCommon('actions.delete'),
       okButtonProps: { danger: true, loading: deletingRole },
       maskClosable: true,
       onOk: () => deleteRole({ tenantGuid, roleGuid: role.GUID }).unwrap(),
@@ -423,7 +430,7 @@ const AuthorizationPage = () => {
 
   const roleColumns: TableProps<AuthorizationRole>['columns'] = [
     {
-      title: 'Name',
+      title: t('columns.name'),
       dataIndex: 'Name',
       key: 'Name',
       render: (_: string, role) => (
@@ -434,41 +441,43 @@ const AuthorizationPage = () => {
       ),
     },
     {
-      title: 'Scope',
+      title: t('columns.scope'),
       dataIndex: 'ResourceScope',
       key: 'ResourceScope',
       width: 110,
     },
     {
-      title: 'Permissions',
+      title: t('columns.permissions'),
       dataIndex: 'Permissions',
       key: 'Permissions',
       render: tags,
     },
     {
-      title: 'Resources',
+      title: t('columns.resources'),
       dataIndex: 'ResourceTypes',
       key: 'ResourceTypes',
       render: tags,
     },
     {
-      title: 'Built In',
+      title: t('columns.builtIn'),
       dataIndex: 'BuiltIn',
       key: 'BuiltIn',
       width: 100,
-      render: (builtIn: boolean) => (builtIn ? <Tag color="blue">Built in</Tag> : <Tag>Custom</Tag>),
+      render: (builtIn: boolean) =>
+        builtIn ? <Tag color="blue">{t('labels.builtIn')}</Tag> : <Tag>{t('labels.custom')}</Tag>,
     },
     {
-      title: 'Actions',
+      title: t('columns.actions'),
       key: 'Actions',
       width: 150,
       render: (_, role) => {
-        if (role.BuiltIn) return <Typography.Text type="secondary">Immutable</Typography.Text>;
+        if (role.BuiltIn)
+          return <Typography.Text type="secondary">{t('labels.immutable')}</Typography.Text>;
 
         const items = [
           {
             key: 'edit',
-            label: 'Edit',
+            label: t('rowActions.edit'),
             icon: <EditOutlined />,
             disabled: !canManage,
             onClick: () => {
@@ -478,13 +487,13 @@ const AuthorizationPage = () => {
           },
           {
             key: 'view-json',
-            label: 'View JSON',
+            label: t('rowActions.viewJson'),
             icon: <CodeOutlined />,
             onClick: () => setJsonRole(role),
           },
           {
             key: 'delete',
-            label: 'Delete',
+            label: t('rowActions.delete'),
             icon: <DeleteOutlined />,
             danger: true,
             disabled: !canManage || deletingRole,
@@ -498,7 +507,7 @@ const AuthorizationPage = () => {
             onClick={(event) => event.stopPropagation()}
           >
             <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-              <LitegraphTooltip title="Actions">
+              <LitegraphTooltip title={t('rowActions.menu')}>
                 <Button
                   type="text"
                   role="authorization-role-action-menu"
@@ -514,26 +523,26 @@ const AuthorizationPage = () => {
 
   const assignmentColumns: TableProps<UserRoleAssignment>['columns'] = [
     {
-      title: 'Role',
+      title: t('columns.role'),
       dataIndex: 'RoleName',
       key: 'RoleName',
-      render: (value: string, record) => value || record.RoleGUID || 'Direct role',
+      render: (value: string, record) => value || record.RoleGUID || t('labels.directRole'),
     },
-    { title: 'Scope', dataIndex: 'ResourceScope', key: 'ResourceScope', width: 110 },
+    { title: t('columns.scope'), dataIndex: 'ResourceScope', key: 'ResourceScope', width: 110 },
     {
-      title: 'Graph',
+      title: t('columns.graph'),
       dataIndex: 'GraphGUID',
       key: 'GraphGUID',
       render: guidLabel,
     },
     {
-      title: 'Actions',
+      title: t('columns.actions'),
       key: 'Actions',
       width: 120,
       render: (_, assignment) => (
         <Popconfirm
-          title="Revoke role?"
-          okText="Revoke"
+          title={t('confirm.revokeRole')}
+          okText={t('rowActions.revoke')}
           onConfirm={() =>
             deleteUserRole({
               tenantGuid,
@@ -544,7 +553,7 @@ const AuthorizationPage = () => {
           disabled={!canManage}
         >
           <Button size="small" danger disabled={!canManage || deletingUserRole}>
-            Revoke
+            {t('rowActions.revoke')}
           </Button>
         </Popconfirm>
       ),
@@ -553,38 +562,38 @@ const AuthorizationPage = () => {
 
   const credentialScopeColumns: TableProps<CredentialScopeAssignment>['columns'] = [
     {
-      title: 'Role',
+      title: t('columns.role'),
       dataIndex: 'RoleName',
       key: 'RoleName',
-      render: (value: string, record) => value || record.RoleGUID || 'Direct grant',
+      render: (value: string, record) => value || record.RoleGUID || t('labels.directGrant'),
     },
-    { title: 'Scope', dataIndex: 'ResourceScope', key: 'ResourceScope', width: 110 },
+    { title: t('columns.scope'), dataIndex: 'ResourceScope', key: 'ResourceScope', width: 110 },
     {
-      title: 'Graph',
+      title: t('columns.graph'),
       dataIndex: 'GraphGUID',
       key: 'GraphGUID',
       render: guidLabel,
     },
     {
-      title: 'Permissions',
+      title: t('columns.permissions'),
       dataIndex: 'Permissions',
       key: 'Permissions',
       render: tags,
     },
     {
-      title: 'Resources',
+      title: t('columns.resources'),
       dataIndex: 'ResourceTypes',
       key: 'ResourceTypes',
       render: tags,
     },
     {
-      title: 'Actions',
+      title: t('columns.actions'),
       key: 'Actions',
       width: 120,
       render: (_, assignment) => (
         <Popconfirm
-          title="Revoke credential scope?"
-          okText="Revoke"
+          title={t('confirm.revokeScope')}
+          okText={t('rowActions.revoke')}
           onConfirm={() =>
             deleteCredentialScope({
               tenantGuid,
@@ -595,7 +604,7 @@ const AuthorizationPage = () => {
           disabled={!canManage}
         >
           <Button size="small" danger disabled={!canManage || deletingCredentialScope}>
-            Revoke
+            {t('rowActions.revoke')}
           </Button>
         </Popconfirm>
       ),
@@ -603,28 +612,28 @@ const AuthorizationPage = () => {
   ];
 
   const grantColumns: TableProps<AuthorizationEffectiveGrant>['columns'] = [
-    { title: 'Source', dataIndex: 'Source', key: 'Source' },
+    { title: t('columns.source'), dataIndex: 'Source', key: 'Source' },
     {
-      title: 'Role',
+      title: t('columns.role'),
       dataIndex: 'RoleName',
       key: 'RoleName',
-      render: (value: string, record) => value || record.RoleGUID || 'Direct grant',
+      render: (value: string, record) => value || record.RoleGUID || t('labels.directGrant'),
     },
-    { title: 'Scope', dataIndex: 'ResourceScope', key: 'ResourceScope', width: 110 },
+    { title: t('columns.scope'), dataIndex: 'ResourceScope', key: 'ResourceScope', width: 110 },
     {
-      title: 'Graph',
+      title: t('columns.graph'),
       dataIndex: 'GraphGUID',
       key: 'GraphGUID',
       render: guidLabel,
     },
     {
-      title: 'Permissions',
+      title: t('columns.permissions'),
       dataIndex: 'Permissions',
       key: 'Permissions',
       render: tags,
     },
     {
-      title: 'Resources',
+      title: t('columns.resources'),
       dataIndex: 'ResourceTypes',
       key: 'ResourceTypes',
       render: tags,
@@ -633,8 +642,8 @@ const AuthorizationPage = () => {
 
   if (!tenantGuid) {
     return (
-      <PageContainer id="authorization" pageTitle="Authorization">
-        <Alert type="info" showIcon message="Select a tenant to manage authorization." />
+      <PageContainer id="authorization" pageTitle={t('title')}>
+        <Alert type="info" showIcon message={t('states.selectTenant')} />
       </PageContainer>
     );
   }
@@ -657,10 +666,10 @@ const AuthorizationPage = () => {
   return (
     <PageContainer
       id="authorization"
-      pageTitle="Authorization"
+      pageTitle={t('title')}
       pageTitleRightContent={
         <LitegraphTooltip
-          title={canManage ? 'Create a custom role' : 'Admin permission is required'}
+          title={canManage ? t('createTooltip') : t('adminRequired')}
         >
           <LitegraphButton
             type="link"
@@ -672,7 +681,7 @@ const AuthorizationPage = () => {
             disabled={!canManage || currentPermissionsLoading}
             weight={500}
           >
-            Create Role
+            {t('createRole')}
           </LitegraphButton>
         </LitegraphTooltip>
       }
@@ -682,18 +691,18 @@ const AuthorizationPage = () => {
           style={{ marginBottom: 16 }}
           type="warning"
           showIcon
-          message="Admin permission is required to change roles or credential scopes."
+          message={t('states.adminWarning')}
         />
       )}
 
       {rolesError && !loading ? (
-        <FallBack retry={refetchRoles}>Unable to load authorization data.</FallBack>
+        <FallBack retry={refetchRoles}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <Tabs
           items={[
             {
               key: 'roles',
-              label: 'Roles',
+              label: t('tabs.roles'),
               children: (
                 <section style={sectionStyle}>
                   <LitegraphTable
@@ -709,7 +718,7 @@ const AuthorizationPage = () => {
             },
             {
               key: 'users',
-              label: 'User Roles',
+              label: t('tabs.userRoles'),
               forceRender: true,
               children: (
                 <section style={sectionStyle}>
@@ -719,7 +728,7 @@ const AuthorizationPage = () => {
                     style={formGridStyle}
                     initialValues={{ ResourceScope: 'Graph' }}
                   >
-                    <Form.Item name="UserGUID" label="User" rules={[{ required: true }]}>
+                    <Form.Item name="UserGUID" label={t('form.user')} rules={[{ required: true }]}>
                       <Select
                         showSearch
                         optionFilterProp="label"
@@ -727,29 +736,31 @@ const AuthorizationPage = () => {
                         options={userOptions}
                         value={effectiveUserGuid || undefined}
                         onChange={setSelectedUserGuid}
-                        placeholder="Select user"
+                        placeholder={t('form.selectUser')}
                       />
                     </Form.Item>
-                    <Form.Item name="RoleName" label="Role" rules={[{ required: true }]}>
+                    <Form.Item name="RoleName" label={t('form.role')} rules={[{ required: true }]}>
                       <Select
                         showSearch
                         optionFilterProp="label"
                         options={roleOptions}
-                        placeholder="Select role"
+                        placeholder={t('form.selectRole')}
                       />
                     </Form.Item>
-                    <Form.Item name="ResourceScope" label="Scope" rules={[{ required: true }]}>
-                      <Select options={scopeOptions.map((value) => ({ label: value, value }))} />
+                    <Form.Item name="ResourceScope" label={t('form.scope')} rules={[{ required: true }]}>
+                      <Select
+                        options={scopeOptions.map((value) => ({ label: t(`scopes.${value}`), value }))}
+                      />
                     </Form.Item>
                     <Form.Item shouldUpdate noStyle>
                       {() => (
                         <Form.Item
                           name="GraphGUID"
-                          label="Graph"
+                          label={t('form.graph')}
                           rules={[
                             {
                               required: userRoleForm.getFieldValue('ResourceScope') === 'Graph',
-                              message: 'Select graph for graph-scoped assignments.',
+                              message: t('form.graphRequiredAssignment'),
                             },
                           ]}
                         >
@@ -758,7 +769,7 @@ const AuthorizationPage = () => {
                             optionFilterProp="label"
                             loading={graphsLoading}
                             options={graphOptions}
-                            placeholder="Select graph"
+                            placeholder={t('form.selectGraph')}
                             disabled={userRoleForm.getFieldValue('ResourceScope') === 'Tenant'}
                             allowClear
                           />
@@ -772,7 +783,7 @@ const AuthorizationPage = () => {
                         disabled={!canManage}
                         loading={creatingUserRole}
                       >
-                        Assign Role
+                        {t('actions.assignRole')}
                       </Button>
                     </Form.Item>
                   </Form>
@@ -785,7 +796,7 @@ const AuthorizationPage = () => {
                     isRefreshing={authorizationRefreshing}
                   />
                   <Typography.Title level={5} style={{ marginTop: 24 }}>
-                    Effective User Permissions
+                    {t('sections.effectiveUserPermissions')}
                   </Typography.Title>
                   <LitegraphTable
                     rowKey="AssignmentGUID"
@@ -800,7 +811,7 @@ const AuthorizationPage = () => {
             },
             {
               key: 'credentials',
-              label: 'Credential Scopes',
+              label: t('tabs.credentialScopes'),
               forceRender: true,
               children: (
                 <section style={sectionStyle}>
@@ -812,7 +823,7 @@ const AuthorizationPage = () => {
                   >
                     <Form.Item
                       name="CredentialGUID"
-                      label="Credential"
+                      label={t('form.credential')}
                       rules={[{ required: true }]}
                     >
                       <Select
@@ -822,43 +833,51 @@ const AuthorizationPage = () => {
                         options={credentialOptions}
                         value={effectiveCredentialGuid || undefined}
                         onChange={setSelectedCredentialGuid}
-                        placeholder="Select credential"
+                        placeholder={t('form.selectCredential')}
                       />
                     </Form.Item>
-                    <Form.Item name="RoleName" label="Role">
+                    <Form.Item name="RoleName" label={t('form.role')}>
                       <Select
                         showSearch
                         optionFilterProp="label"
                         options={roleOptions}
-                        placeholder="Optional role"
+                        placeholder={t('form.optionalRole')}
                         allowClear
                       />
                     </Form.Item>
-                    <Form.Item name="Permissions" label="Direct Permissions">
+                    <Form.Item name="Permissions" label={t('form.directPermissions')}>
                       <Select
                         mode="multiple"
-                        options={permissionOptions.map((value) => ({ label: value, value }))}
+                        options={permissionOptions.map((value) => ({
+                          label: t(`permissions.${value}`),
+                          value,
+                        }))}
                       />
                     </Form.Item>
-                    <Form.Item name="ResourceTypes" label="Direct Resources">
+                    <Form.Item name="ResourceTypes" label={t('form.directResources')}>
                       <Select
                         mode="multiple"
-                        options={resourceTypeOptions.map((value) => ({ label: value, value }))}
+                        options={resourceTypeOptions.map((value) => ({
+                          label: t(`resourceTypes.${value}`),
+                          value,
+                        }))}
                       />
                     </Form.Item>
-                    <Form.Item name="ResourceScope" label="Scope" rules={[{ required: true }]}>
-                      <Select options={scopeOptions.map((value) => ({ label: value, value }))} />
+                    <Form.Item name="ResourceScope" label={t('form.scope')} rules={[{ required: true }]}>
+                      <Select
+                        options={scopeOptions.map((value) => ({ label: t(`scopes.${value}`), value }))}
+                      />
                     </Form.Item>
                     <Form.Item shouldUpdate noStyle>
                       {() => (
                         <Form.Item
                           name="GraphGUID"
-                          label="Graph"
+                          label={t('form.graph')}
                           rules={[
                             {
                               required:
                                 credentialScopeForm.getFieldValue('ResourceScope') === 'Graph',
-                              message: 'Select graph for graph-scoped scopes.',
+                              message: t('form.graphRequiredScope'),
                             },
                           ]}
                         >
@@ -867,7 +886,7 @@ const AuthorizationPage = () => {
                             optionFilterProp="label"
                             loading={graphsLoading}
                             options={graphOptions}
-                            placeholder="Select graph"
+                            placeholder={t('form.selectGraph')}
                             disabled={
                               credentialScopeForm.getFieldValue('ResourceScope') === 'Tenant'
                             }
@@ -897,7 +916,7 @@ const AuthorizationPage = () => {
                             disabled={!canManage || !hasGrant}
                             loading={creatingCredentialScope}
                           >
-                            Assign Scope
+                            {t('actions.assignScope')}
                           </Button>
                         );
                       }}
@@ -914,7 +933,7 @@ const AuthorizationPage = () => {
                     isRefreshing={authorizationRefreshing}
                   />
                   <Typography.Title level={5} style={{ marginTop: 24 }}>
-                    Effective Credential Permissions
+                    {t('sections.effectiveCredentialPermissions')}
                   </Typography.Title>
                   <LitegraphTable
                     rowKey="AssignmentGUID"
@@ -944,7 +963,7 @@ const AuthorizationPage = () => {
         open={!!jsonRole}
         onClose={() => setJsonRole(null)}
         data={jsonRole}
-        title="Authorization Role JSON"
+        title={t('roleJson')}
       />
     </PageContainer>
   );

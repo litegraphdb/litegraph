@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { TagType } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -24,13 +25,15 @@ const DeleteTag = ({
   setSelectedTag,
   onTagDeleted,
 }: DeleteTagProps) => {
+  const t = useTranslations('tags');
+  const tCommon = useTranslations('common');
   const [deleteTagById, { isLoading }] = useDeleteTagMutation();
 
   const handleDelete = async () => {
     if (selectedTag) {
       const res = await deleteTagById(selectedTag.GUID);
       if (res) {
-        toast.success('Tag deleted successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedTag(null);
         onTagDeleted && onTagDeleted();
@@ -49,7 +52,7 @@ const DeleteTag = ({
         setSelectedTag(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
       data-testid="delete-tag-modal"
     >

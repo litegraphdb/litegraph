@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAppSelector } from '@/lib/store/hooks';
 import { RootState } from '@/lib/store/store';
@@ -26,6 +27,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const NodePage = () => {
+  const t = useTranslations('nodes');
+  const tCommon = useTranslations('common');
   // Redux state for the list of graphs
   const selectedGraphRedux = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -96,9 +99,9 @@ const NodePage = () => {
       id="nodes"
       pageTitle={
         <LitegraphFlex align="center" gap={10}>
-          <LitegraphText>Nodes</LitegraphText>
+          <LitegraphText>{t('title')}</LitegraphText>
           {selectedGraphRedux && (
-            <LitegraphTooltip title="Search and filter nodes">
+            <LitegraphTooltip title={t('searchTooltip')}>
               <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
             </LitegraphTooltip>
           )}
@@ -106,21 +109,21 @@ const NodePage = () => {
       }
       pageTitleRightContent={
         selectedGraphRedux ? (
-          <LitegraphTooltip title="Create a new node">
+          <LitegraphTooltip title={t('createTooltip')}>
             <LitegraphButton
               type="link"
               icon={<PlusSquareOutlined />}
               onClick={handleCreateNode}
               weight={500}
             >
-              Create Node
+              {t('createNode')}
             </LitegraphButton>
           </LitegraphTooltip>
         ) : undefined
       }
     >
       {isNodesError && !isNodesLoading ? (
-        <FallBack retry={fetchNodesList}>{'Something went wrong.'}</FallBack>
+        <FallBack retry={fetchNodesList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <>
           <LitegraphFlex
@@ -134,7 +137,7 @@ const NodePage = () => {
               <AppliedFilter
                 searchParams={searchParams}
                 totalRecords={nodesList?.TotalRecords || 0}
-                entityName="node(s)"
+                entityName={t('entityName')}
                 onClear={() => setSearchParams({})}
               />
             )}
@@ -142,8 +145,8 @@ const NodePage = () => {
           <LitegraphTable
             columns={
               hasScoreOrDistance
-                ? tableColumns(handleEditNode, handleDelete, true, setJsonViewRecord)
-                : tableColumns(handleEditNode, handleDelete, false, setJsonViewRecord)
+                ? tableColumns(t, handleEditNode, handleDelete, true, setJsonViewRecord)
+                : tableColumns(t, handleEditNode, handleDelete, false, setJsonViewRecord)
             }
             dataSource={dataSource}
             loading={isNodesLoading}
@@ -170,8 +173,8 @@ const NodePage = () => {
       />
 
       <DeleteNode
-        title={`Are you sure you want to delete "${selectedNode?.Name}" node?`}
-        paragraphText={'This action will delete node.'}
+        title={t('deleteTitle', { name: selectedNode?.Name ?? '' })}
+        paragraphText={t('deleteBody')}
         isDeleteModelVisible={isDeleteModelVisible}
         setIsDeleteModelVisible={setIsDeleteModelVisible}
         selectedNode={selectedNode}
@@ -186,7 +189,7 @@ const NodePage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Node JSON"
+        title={t('nodeJson')}
       />
     </PageContainer>
   );

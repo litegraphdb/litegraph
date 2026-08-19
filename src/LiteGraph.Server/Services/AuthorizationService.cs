@@ -393,6 +393,8 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.GraphDeleteAllInTenant:
                 case RequestTypeEnum.GraphTransaction:
                 case RequestTypeEnum.GraphUpdate:
+                case RequestTypeEnum.GraphImportJsonl:
+                case RequestTypeEnum.GraphImportJsonlNew:
                 case RequestTypeEnum.GraphVectorIndexDisable:
                 case RequestTypeEnum.GraphVectorIndexEnable:
                 case RequestTypeEnum.GraphVectorIndexRebuild:
@@ -537,6 +539,10 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.GraphExistence:
                 case RequestTypeEnum.GraphStatistics:
                 case RequestTypeEnum.GraphSearch:
+                case RequestTypeEnum.GraphExportJsonl:
+                case RequestTypeEnum.GraphExportSubgraphJsonl:
+                case RequestTypeEnum.GraphImportJsonl:
+                case RequestTypeEnum.GraphImportJsonlNew:
                 case RequestTypeEnum.GraphVectorIndexDisable:
                 case RequestTypeEnum.GraphVectorIndexEnable:
                 case RequestTypeEnum.GraphVectorIndexRebuild:

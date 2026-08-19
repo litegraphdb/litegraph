@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form } from 'antd';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
@@ -25,6 +26,7 @@ const AddEditLabel = ({
   selectedGraph,
   onLabelUpdated,
 }: AddEditLabelProps) => {
+  const t = useTranslations('labels');
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
   const [createLabels, { isLoading: isCreateLoading }] = useCreateLabelMutation();
@@ -74,12 +76,12 @@ const AddEditLabel = ({
         const res = await updateLabelById(updatedLabel);
 
         if (res) {
-          toast.success('Label updated successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditLabelVisible(false);
           form.resetFields();
           onLabelUpdated && (await onLabelUpdated());
         } else {
-          toast.error('Failed to update label - no response received');
+          toast.error(t('toast.updateFailedNoResponse'));
         }
       } else {
         // Create new label
@@ -91,7 +93,7 @@ const AddEditLabel = ({
         };
         const res = await createLabels(newLabel);
         if (res) {
-          toast.success('Label created successfully');
+          toast.success(t('toast.created'));
           setIsAddEditLabelVisible(false);
           form.resetFields();
           onLabelUpdated && (await onLabelUpdated());
@@ -100,13 +102,13 @@ const AddEditLabel = ({
     } catch (error: unknown) {
       console.error('Failed to submit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update label: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
   return (
     <LitegraphModal
-      title={label ? 'Edit Label' : 'Create Label'}
+      title={label ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditLabelVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -123,25 +125,17 @@ const AddEditLabel = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="Label"
+          label={t('form.label')}
           name="Label"
-          tooltip="Label text value"
-          rules={[{ required: true, message: 'Please input Label label!' }]}
+          tooltip={t('form.labelTooltip')}
+          rules={[{ required: true, message: t('form.labelRequired') }]}
         >
-          <LitegraphInput placeholder="Enter label label" />
+          <LitegraphInput placeholder={t('form.labelPlaceholder')} />
         </LitegraphFormItem>
 
-        <NodeSelector name="NodeGUID" label="Node" tooltip="Node to associate with this label" />
+        <NodeSelector name="NodeGUID" label={t('form.node')} tooltip={t('form.nodeTooltip')} />
 
-        {/* <LitegraphFormItem label="Node" name="NodeGUID">
-          <LitegraphSelect placeholder="Select Node" options={nodeOptions} allowClear />
-        </LitegraphFormItem> */}
-
-        <EdgeSelector name="EdgeGUID" label="Edge" tooltip="Edge to associate with this label" />
-
-        {/* <LitegraphFormItem label="Edge" name="EdgeGUID">
-          <LitegraphSelect placeholder="Select Edge" options={edgeOptions} allowClear />
-        </LitegraphFormItem> */}
+        <EdgeSelector name="EdgeGUID" label={t('form.edge')} tooltip={t('form.edgeTooltip')} />
       </Form>
     </LitegraphModal>
   );

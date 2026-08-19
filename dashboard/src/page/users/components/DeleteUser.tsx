@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
 import toast from 'react-hot-toast';
@@ -26,13 +27,15 @@ const DeleteUser = ({
 
   onUserDeleted,
 }: DeleteUserProps) => {
+  const t = useTranslations('users');
+  const tCommon = useTranslations('common');
   const [deleteUserById, { isLoading }] = useDeleteUserMutation();
 
   const handleDelete = async () => {
     if (selectedUser) {
       const res = await deleteUserById(selectedUser.GUID);
       if (res) {
-        toast.success('User deleted successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedUser(null);
         onUserDeleted && onUserDeleted();
@@ -51,7 +54,7 @@ const DeleteUser = ({
         setSelectedUser(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
     >
       <LitegraphParagraph>{paragraphText}</LitegraphParagraph>

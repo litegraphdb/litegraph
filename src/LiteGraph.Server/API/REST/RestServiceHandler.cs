@@ -392,6 +392,10 @@ namespace LiteGraph.Server.API.REST
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/subgraph", GraphSubgraphRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Get subgraph from node", "Graphs"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/subgraph/stats", GraphSubgraphStatisticsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Get subgraph statistics", "Graphs"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/gexf", GraphGexfExportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Export graph as GEXF", "Graphs"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl", GraphJsonlExportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Export graph as JSONL", "Graphs"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl", GraphSubgraphJsonlExportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Export subgraph as JSONL", "Graphs"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/import/jsonl", GraphJsonlImportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Import JSONL into a graph", "Graphs"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/import/jsonl", GraphJsonlImportNewRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Import JSONL as a new graph", "Graphs"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", GraphEnableVectorIndexRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Enable vector indexing", "VectorIndex"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", GraphGetVectorIndexConfigRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Get vector index configuration", "VectorIndex"));
@@ -2354,6 +2358,202 @@ namespace LiteGraph.Server.API.REST
             catch (Exception e)
             {
                 _Logging.Warn(_Header + "GEXF export error:" + Environment.NewLine + e.ToString());
+                ctx.Response.StatusCode = 500;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
+            }
+        }
+
+        private async Task GraphJsonlExportRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+
+            try
+            {
+                Graph graph = await _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, false, false, timeoutCts.Token).ConfigureAwait(false);
+                if (graph == null)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound)));
+                    return;
+                }
+
+                ctx.Response.ContentType = Constants.NdjsonContentType;
+                ctx.Response.ChunkedTransfer = true;
+
+                using (ChunkedResponseStream stream = new ChunkedResponseStream(ctx.Response, timeoutCts.Token))
+                {
+                    await _LiteGraph.ExportGraphToJsonlStream(req.TenantGUID.Value, req.GraphGUID.Value, req.IncludeData, req.IncludeSubordinates, stream, timeoutCts.Token).ConfigureAwait(false);
+                }
+
+                await ctx.Response.SendChunk(Array.Empty<byte>(), true, timeoutCts.Token).ConfigureAwait(false);
+            }
+            catch (ArgumentException ae)
+            {
+                if (!ctx.Response.ResponseSent)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, ae.Message)));
+                }
+            }
+            catch (OperationCanceledException oce)
+            {
+                await SendRequestTimeout(ctx, "JSONL export", oce).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "JSONL export error:" + Environment.NewLine + e.ToString());
+                if (!ctx.Response.ResponseSent)
+                {
+                    ctx.Response.StatusCode = 500;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
+                }
+            }
+        }
+
+        private async Task GraphSubgraphJsonlExportRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+
+            SubgraphExtractionRequest sreq;
+            try
+            {
+                if (!String.IsNullOrEmpty(ctx.Request.DataAsString))
+                    sreq = _Serializer.DeserializeJson<SubgraphExtractionRequest>(ctx.Request.DataAsString);
+                else
+                    sreq = new SubgraphExtractionRequest();
+                sreq.TenantGUID = req.TenantGUID.Value;
+                sreq.GraphGUID = req.GraphGUID.Value;
+            }
+            catch (Exception de)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, de.Message)));
+                return;
+            }
+
+            SearchResult result;
+            try
+            {
+                result = await _LiteGraph.ExtractSubgraph(sreq, timeoutCts.Token).ConfigureAwait(false);
+            }
+            catch (ArgumentException ae)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message)));
+                return;
+            }
+            catch (OperationCanceledException oce)
+            {
+                await SendRequestTimeout(ctx, "subgraph JSONL export", oce).ConfigureAwait(false);
+                return;
+            }
+
+            try
+            {
+                ctx.Response.ContentType = Constants.NdjsonContentType;
+                ctx.Response.ChunkedTransfer = true;
+
+                using (ChunkedResponseStream stream = new ChunkedResponseStream(ctx.Response, timeoutCts.Token))
+                {
+                    await _LiteGraph.ExportSearchResultToJsonlStream(result, stream, timeoutCts.Token).ConfigureAwait(false);
+                }
+
+                await ctx.Response.SendChunk(Array.Empty<byte>(), true, timeoutCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException oce)
+            {
+                await SendRequestTimeout(ctx, "subgraph JSONL export", oce).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "subgraph JSONL export error:" + Environment.NewLine + e.ToString());
+                if (!ctx.Response.ResponseSent)
+                {
+                    ctx.Response.StatusCode = 500;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));
+                }
+            }
+        }
+
+        private async Task GraphJsonlImportRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            GraphImportRequest importRequest = new GraphImportRequest
+            {
+                Mode = GraphImportModeEnum.MergeIntoExisting,
+                TargetGraphGUID = req.GraphGUID.Value,
+                GuidStrategy = req.ImportGuidStrategy,
+                OnError = req.ImportOnError,
+                BatchSize = req.ImportBatchSize
+            };
+            await ExecuteJsonlImport(ctx, req, importRequest).ConfigureAwait(false);
+        }
+
+        private async Task GraphJsonlImportNewRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            GraphImportRequest importRequest = new GraphImportRequest
+            {
+                Mode = GraphImportModeEnum.CreateNew,
+                GuidStrategy = req.ImportGuidStrategy,
+                OnError = req.ImportOnError,
+                BatchSize = req.ImportBatchSize
+            };
+            await ExecuteJsonlImport(ctx, req, importRequest).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteJsonlImport(HttpContextBase ctx, RequestContext req, GraphImportRequest importRequest)
+        {
+            using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+
+            try
+            {
+                // Watson buffers the request body during the pre-routing/history pipeline, so DataAsBytes is the
+                // reliable source; the streaming importer still processes it incrementally (body + one batch in memory).
+                byte[] bodyBytes = ctx.Request.DataAsBytes ?? Array.Empty<byte>();
+                using (MemoryStream body = new MemoryStream(bodyBytes))
+                {
+                    GraphImportResult result = await _LiteGraph.ImportGraphFromJsonlStream(req.TenantGUID.Value, body, importRequest, timeoutCts.Token).ConfigureAwait(false);
+
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(result));
+                }
+            }
+            catch (JsonlFormatException jfe)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, jfe.Message)));
+            }
+            catch (InvalidOperationException ioe)
+            {
+                ctx.Response.StatusCode = 409;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.Conflict, null, ioe.Message)));
+            }
+            catch (ArgumentException ae)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ae.Message)));
+            }
+            catch (OperationCanceledException oce)
+            {
+                await SendRequestTimeout(ctx, "JSONL import", oce).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "JSONL import error:" + Environment.NewLine + e.ToString());
                 ctx.Response.StatusCode = 500;
                 ctx.Response.ContentType = Constants.JsonContentType;
                 await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message)));

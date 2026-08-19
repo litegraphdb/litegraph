@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form, Switch, Input } from 'antd';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
@@ -21,6 +22,7 @@ const AddEditUser = ({
   user,
   onUserUpdated,
 }: AddEditUserProps) => {
+  const t = useTranslations('users');
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
   const [createUser, { isLoading: isCreateLoading }] = useCreateUserMutation();
@@ -69,12 +71,12 @@ const AddEditUser = ({
         const res = await updateUserById(updatedUser);
 
         if (res) {
-          toast.success('User updated successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditUserVisible(false);
           form.resetFields();
           onUserUpdated && onUserUpdated();
         } else {
-          toast.error('Failed to update user - no response received');
+          toast.error(t('toast.updateNoResponse'));
         }
       } else {
         // Create new user
@@ -87,7 +89,7 @@ const AddEditUser = ({
         };
         const res = await createUser(newUser);
         if (res) {
-          toast.success('User created successfully');
+          toast.success(t('toast.created'));
           setIsAddEditUserVisible(false);
           form.resetFields();
           onUserUpdated && onUserUpdated();
@@ -96,13 +98,13 @@ const AddEditUser = ({
     } catch (error: unknown) {
       console.error('Failed to submit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update user: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
   return (
     <LitegraphModal
-      title={user ? 'Edit User' : 'Create User'}
+      title={user ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditUserVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -119,45 +121,50 @@ const AddEditUser = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="First Name"
+          label={t('form.firstName')}
           name="FirstName"
-          tooltip="User's first name"
-          rules={[{ required: true, message: 'Please input First Name!' }]}
+          tooltip={t('form.firstNameTooltip')}
+          rules={[{ required: true, message: t('form.firstNameRequired') }]}
         >
-          <LitegraphInput placeholder="Enter First Name" />
+          <LitegraphInput placeholder={t('form.firstNamePlaceholder')} />
         </LitegraphFormItem>
 
         <LitegraphFormItem
-          label="Last Name"
+          label={t('form.lastName')}
           name="LastName"
-          tooltip="User's last name"
-          rules={[{ required: true, message: 'Please input Last Name!' }]}
+          tooltip={t('form.lastNameTooltip')}
+          rules={[{ required: true, message: t('form.lastNameRequired') }]}
         >
-          <LitegraphInput placeholder="Enter Last Name" />
+          <LitegraphInput placeholder={t('form.lastNamePlaceholder')} />
         </LitegraphFormItem>
 
         <LitegraphFormItem
-          label="Email"
+          label={t('form.email')}
           name="Email"
-          tooltip="User's email address"
+          tooltip={t('form.emailTooltip')}
           rules={[
-            { required: true, message: 'Please input your email!' },
-            { type: 'email', message: 'Please enter a valid email!' },
+            { required: true, message: t('form.emailRequired') },
+            { type: 'email', message: t('form.emailInvalid') },
           ]}
         >
-          <LitegraphInput placeholder="Email" size="large" autoComplete="off" />
+          <LitegraphInput placeholder={t('form.emailPlaceholder')} size="large" autoComplete="off" />
         </LitegraphFormItem>
 
         <LitegraphFormItem
-          label="Password"
+          label={t('form.password')}
           name="Password"
-          tooltip="Account password"
-          rules={[{ required: true, message: 'Please input Password!' }]}
+          tooltip={t('form.passwordTooltip')}
+          rules={[{ required: true, message: t('form.passwordRequired') }]}
         >
-          <Input.Password placeholder="Enter password" autoComplete="new-password" />
+          <Input.Password placeholder={t('form.passwordPlaceholder')} autoComplete="new-password" />
         </LitegraphFormItem>
 
-        <LitegraphFormItem label="Active" name="Active" tooltip="Whether the user account is active" valuePropName="checked">
+        <LitegraphFormItem
+          label={t('form.active')}
+          name="Active"
+          tooltip={t('form.activeTooltip')}
+          valuePropName="checked"
+        >
           <Switch data-testid="active-switch" />
         </LitegraphFormItem>
       </Form>

@@ -1,5 +1,6 @@
 'use client';
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { createPortal } from 'react-dom';
 import Graph2DViewer from './graph-2d/Graph2DViewer';
 import '@react-sigma/core/lib/react-sigma.min.css';
@@ -22,10 +23,11 @@ import LitegraphTooltip from '../tooltip/Tooltip';
 import ErrorBoundary from '@/hoc/ErrorBoundary';
 import { getLegendsForNodes } from './utils';
 import { MAX_NODES_TO_FETCH } from '@/constants/constant';
-import { ControlOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
+import { ControlOutlined, ExportOutlined, RedoOutlined, SearchOutlined } from '@ant-design/icons';
 import LitegraphButton from '../button/Button';
 import LitegraphDropdown from '../dropdown/Dropdown';
 import NodeSearchModal from './NodeSearchModal';
+import ExportSubgraphModal from './ExportSubgraphModal';
 import { Node } from 'litegraphdb/dist/types/types';
 import { EdgeData } from '@/lib/graph/types';
 import { NodeData } from '@/lib/graph/types';
@@ -55,6 +57,8 @@ const GraphViewer = ({
   onRefetchReady?: (refetch: () => void) => void;
   controlsPortalTarget?: HTMLElement | null;
 }) => {
+  const t = useTranslations('graphViewer');
+  const tImportExport = useTranslations('importExport');
   // Redux state for the list of graphs
   const [containerDivHeightAndWidth, setContainerDivHeightAndWidth] = useState<{
     height?: number;
@@ -75,6 +79,7 @@ const GraphViewer = ({
   const [expandedClusterIds, setExpandedClusterIds] = useState<Set<string>>(new Set());
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [isNodeSearchModalVisible, setIsNodeSearchModalVisible] = useState(false);
+  const [isExportSubgraphModalVisible, setIsExportSubgraphModalVisible] = useState(false);
   const selectedGraphRedux = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
   const ref = useRef<HTMLDivElement>(null);
   const {
@@ -246,7 +251,7 @@ const GraphViewer = ({
       <ProgressBar
         loaded={nodes.length}
         total={Math.min(nodesFirstResult?.TotalRecords || 0, MAX_NODES_TO_FETCH)}
-        label="Loading nodes..."
+        label={t('loadingNodes')}
       />
     </div>
   ) : isEdgesLoading ? (
@@ -254,7 +259,7 @@ const GraphViewer = ({
       <ProgressBar
         loaded={rawEdges.length}
         total={edgesFirstResult?.TotalRecords || 0}
-        label="Loading edges..."
+        label={t('loadingEdges')}
       />
     </div>
   ) : null;
@@ -283,7 +288,7 @@ const GraphViewer = ({
                   setIsControlsOpen(false);
                 }}
               >
-                Clear Sub Graph
+                {t('controls.clearSubGraph')}
               </LitegraphButton>
             ) : (
               <LitegraphButton
@@ -295,12 +300,24 @@ const GraphViewer = ({
                   setIsControlsOpen(false);
                 }}
               >
-                Search Sub Graph
+                {t('controls.searchSubGraph')}
               </LitegraphButton>
             )}
+            <LitegraphButton
+              type="text"
+              icon={<ExportOutlined />}
+              className={styles.controlsActionButton}
+              disabled={!selectedNodeGuid}
+              onClick={() => {
+                setIsExportSubgraphModalVisible(true);
+                setIsControlsOpen(false);
+              }}
+            >
+              {tImportExport('exportSubgraph')}
+            </LitegraphButton>
             <div className={styles.controlsDivider} />
             <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
-              <span>3D</span>
+              <span>{t('controls.threeD')}</span>
               <Switch
                 disabled={isNodesLoading || isEdgesLoading}
                 checked={show3d}
@@ -312,7 +329,7 @@ const GraphViewer = ({
             {!show3d && (
               <>
                 <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
-                  <span>Horizontal layout</span>
+                  <span>{t('controls.horizontalLayout')}</span>
                   <Switch
                     size="small"
                     checked={showGraphHorizontal}
@@ -321,13 +338,9 @@ const GraphViewer = ({
                 </LitegraphFlex>
                 <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
                   <LitegraphTooltip
-                    title={
-                      isCyclic
-                        ? 'Cycles and dense back-links are handled automatically so the depth layout stays readable.'
-                        : ''
-                    }
+                    title={isCyclic ? t('controls.depthAwareTooltip') : ''}
                   >
-                    <span>Depth-aware layout</span>
+                    <span>{t('controls.depthAwareLayout')}</span>
                   </LitegraphTooltip>
                   <Switch
                     size="small"
@@ -341,8 +354,8 @@ const GraphViewer = ({
                     justify="space-between"
                     className={styles.controlRow}
                   >
-                    <LitegraphTooltip title="Click grouped nodes to expand. Groups are inferred from labels, informative tag keys, and connection patterns.">
-                      <span>Collapse related nodes</span>
+                    <LitegraphTooltip title={t('controls.collapseRelatedTooltip')}>
+                      <span>{t('controls.collapseRelatedNodes')}</span>
                     </LitegraphTooltip>
                     <Switch
                       size="small"
@@ -352,7 +365,7 @@ const GraphViewer = ({
                   </LitegraphFlex>
                 )}
                 <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
-                  <span>Drag by label</span>
+                  <span>{t('controls.dragByLabel')}</span>
                   <Switch
                     size="small"
                     checked={groupDragging}
@@ -362,7 +375,7 @@ const GraphViewer = ({
               </>
             )}
             <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
-              <span>Show graph legend</span>
+              <span>{t('controls.showGraphLegend')}</span>
               <Switch
                 size="small"
                 checked={showGraphLegend}
@@ -370,7 +383,7 @@ const GraphViewer = ({
               />
             </LitegraphFlex>
             <LitegraphFlex align="center" justify="space-between" className={styles.controlRow}>
-              <span>Show node name</span>
+              <span>{t('controls.showNodeName')}</span>
               <Switch
                 size="small"
                 checked={showLabel}
@@ -391,7 +404,7 @@ const GraphViewer = ({
                       setIsControlsOpen(false);
                     }}
                   >
-                    Collapse Expanded
+                    {t('controls.collapseExpanded')}
                   </LitegraphButton>
                 </>
               )}
@@ -400,7 +413,7 @@ const GraphViewer = ({
       )}
     >
       <LitegraphButton type="link" icon={<ControlOutlined />} weight={600}>
-        Controls
+        {t('controls.button')}
       </LitegraphButton>
     </LitegraphDropdown>
   ) : null;
@@ -435,13 +448,13 @@ const GraphViewer = ({
           <>
             {isError ? (
               <FallBack className={styles.emptyState} type={FallBackEnums.ERROR} retry={refetch}>
-                Error loading graph
+                {t('errorLoadingGraph')}
               </FallBack>
             ) : (isLoading && nodes.length === 0) || isSubGraphLoading ? (
               <PageLoading />
             ) : !nodes.length && !isLoading ? (
               <FallBack className={styles.emptyState} type={FallBackEnums.EMPTY}>
-                This graph has no nodes.
+                {t('noNodes')}
               </FallBack>
             ) : (
               <>
@@ -466,12 +479,7 @@ const GraphViewer = ({
                       setShowMoreThanSupportedNodesWarning(false);
                     }}
                     className={styles.moreThanSupportedNodes}
-                    description={
-                      <>
-                        Too many nodes exist to properly render the graph. Showing the first{' '}
-                        {MAX_NODES_TO_FETCH} nodes.
-                      </>
-                    }
+                    description={t('tooManyNodes', { count: MAX_NODES_TO_FETCH })}
                   />
                 )}
                 {show3d ? (
@@ -585,6 +593,16 @@ const GraphViewer = ({
           setIsVisible={setIsNodeSearchModalVisible}
           graphId={selectedGraphRedux}
           onNodeSelect={handleNodeSelect}
+        />
+      )}
+
+      {/* Export Subgraph Modal */}
+      {selectedGraphRedux && selectedNodeGuid && (
+        <ExportSubgraphModal
+          isVisible={isExportSubgraphModalVisible}
+          setIsVisible={setIsExportSubgraphModalVisible}
+          graphGuid={selectedGraphRedux}
+          startNodeGuid={selectedNodeGuid}
         />
       )}
     </div>

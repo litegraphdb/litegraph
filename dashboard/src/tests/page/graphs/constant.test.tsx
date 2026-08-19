@@ -4,9 +4,26 @@ import { render, screen } from '@testing-library/react';
 import { tableColumns } from '@/page/graphs/constant';
 import { GraphData } from '@/types/types';
 import type { ColumnType } from 'antd/es/table';
+import { getTranslator } from '@/i18n/getTranslator';
 
-const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<GraphData>[] =>
-  tableColumns(...args) as ColumnType<GraphData>[];
+const tGraphs = getTranslator('en', 'graphs') as any;
+const tImportExport = getTranslator('en', 'importExport') as any;
+// Existing call sites pass handlers positionally starting at handleEdit. The
+// JSONL export/import handlers were inserted after handleExportGexf, so inject
+// two stub handlers there to keep the remaining positional args aligned.
+const getColumns = (...args: any[]): ColumnType<GraphData>[] => {
+  const [edit, del, exportGexf, ...rest] = args;
+  return (tableColumns as any)(
+    tGraphs,
+    tImportExport,
+    edit,
+    del,
+    exportGexf,
+    jest.fn(),
+    jest.fn(),
+    ...rest
+  ) as ColumnType<GraphData>[];
+};
 
 const getColumnTitleText = (title: any): string => {
   if (!React.isValidElement(title)) return title;

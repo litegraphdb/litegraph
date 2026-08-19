@@ -10,7 +10,10 @@ import { FilterDropdownProps } from 'antd/es/table/interface';
 import { onGUIDFilter, onNameFilter } from '@/constants/table';
 import TableSearch from '@/components/table-search/TableSearch';
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (record: VectorType) => void,
   handleDelete: (record: VectorType) => void,
   isNodesLoading: boolean,
@@ -18,13 +21,13 @@ export const tableColumns = (
   handleViewJson?: (record: VectorType) => void
 ): TableProps<VectorType>['columns'] => [
   {
-    title: columnTooltip('Model', 'Vector model name'),
+    title: columnTooltip(t('columns.model'), t('columns.modelDesc')),
     dataIndex: 'Model',
     sorter: (a: VectorType, b: VectorType) => a.Model.localeCompare(b.Model),
     key: 'Model',
     width: 250,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Model" />
+      <TableSearch {...props} placeholder={t('search.model')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Model),
     responsive: ['md'],
@@ -35,26 +38,26 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('GUID', 'Globally unique identifier'),
+    title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
     responsive: ['md'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search GUID" />
+      <TableSearch {...props} placeholder={t('search.guid')} />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle={t('copyGuid')} /></span>,
   },
   {
-    title: columnTooltip('Node', 'Associated node name'),
+    title: columnTooltip(t('columns.node'), t('columns.nodeDesc')),
     dataIndex: 'NodeName',
     sorter: (a: VectorType, b: VectorType) => a.NodeName?.localeCompare(b.NodeName || '') || 0,
     key: 'NodeName',
     width: 200,
     responsive: ['md'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Node" />
+      <TableSearch {...props} placeholder={t('search.node')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.NodeName || ''),
     render: (NodeGUID: string) =>
@@ -67,14 +70,14 @@ export const tableColumns = (
       ),
   },
   {
-    title: columnTooltip('Edge', 'Associated edge name'),
+    title: columnTooltip(t('columns.edge'), t('columns.edgeDesc')),
     dataIndex: 'EdgeName',
     sorter: (a: VectorType, b: VectorType) => a.EdgeName?.localeCompare(b.EdgeName || '') || 0,
     key: 'EdgeName',
     width: 200,
     responsive: ['md'],
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Edge" />
+      <TableSearch {...props} placeholder={t('search.edge')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.EdgeName || ''),
     render: (EdgeName: string) =>
@@ -88,7 +91,7 @@ export const tableColumns = (
   },
 
   {
-    title: columnTooltip('Dimensionality', 'Number of vector dimensions'),
+    title: columnTooltip(t('columns.dimensionality'), t('columns.dimensionalityDesc')),
     dataIndex: 'Dimensionality',
     sorter: (a: VectorType, b: VectorType) => a.Dimensionality - b.Dimensionality,
     key: 'Dimensionality',
@@ -101,12 +104,12 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('Content', 'Vector content text'),
+    title: columnTooltip(t('columns.content'), t('columns.contentDesc')),
     dataIndex: 'Content',
     sorter: (a: VectorType, b: VectorType) => a.Content.localeCompare(b.Content),
     key: 'Content',
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Content" />
+      <TableSearch {...props} placeholder={t('search.content')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Content),
     width: 200,
@@ -118,7 +121,7 @@ export const tableColumns = (
     ),
   },
   {
-    title: columnTooltip('Vectors', 'Vector embedding values'),
+    title: columnTooltip(t('columns.vectors'), t('columns.vectorsDesc')),
     dataIndex: 'Vectors',
     sorter: (a: VectorType, b: VectorType) => a.Vectors.length - b.Vectors.length,
     key: 'Vectors',
@@ -126,12 +129,12 @@ export const tableColumns = (
     responsive: ['md'],
     render: (_: any, record: VectorType) => (
       <LitegraphTooltip title={record.Vectors.join(', ')}>
-        <div>{record.Vectors.length} vectors</div>
+        <div>{t('vectorsCount', { count: record.Vectors.length })}</div>
       </LitegraphTooltip>
     ),
   },
   {
-    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+    title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
     dataIndex: 'CreatedUtc',
     sorter: (a: VectorType, b: VectorType) =>
       new Date(a.CreatedUtc).getTime() - new Date(b.CreatedUtc).getTime(),
@@ -141,30 +144,30 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: columnTooltip('Actions', 'Available operations'),
+    title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
     key: 'actions',
     render: (_: any, record: VectorType) => {
       const items = [
         {
           key: 'edit',
-          label: 'Edit',
+          label: t('rowActions.edit'),
           onClick: () => handleEdit(record),
         },
         {
           key: 'delete',
-          label: 'Delete',
+          label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
-          label: 'View JSON',
+          label: t('rowActions.viewJson'),
           onClick: () => handleViewJson?.(record),
         },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions">
+          <LitegraphTooltip title={t('rowActions.menu')}>
             <Button
               type="text"
               icon={<MoreOutlined style={{ fontSize: '20px' }} />}

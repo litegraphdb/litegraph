@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
 import toast from 'react-hot-toast';
@@ -28,6 +29,8 @@ const DeleteBackup = ({
 
   onBackupDeleted,
 }: DeleteBackupProps) => {
+  const t = useTranslations('backups');
+  const tCommon = useTranslations('common');
   const [deleteBackupByFilename, { isLoading }] = useDeleteBackupMutation();
 
   const handleDelete = async () => {
@@ -35,7 +38,7 @@ const DeleteBackup = ({
       const res = await deleteBackupByFilename(selectedBackup.Filename);
 
       if (res) {
-        toast.success('Backup deleted successfully', { id: globalToastId });
+        toast.success(t('toast.deleted'), { id: globalToastId });
         setIsDeleteModelVisible(false);
         setSelectedBackup(null);
 
@@ -55,7 +58,7 @@ const DeleteBackup = ({
         setSelectedBackup(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
     >
       <LitegraphParagraph>{paragraphText}</LitegraphParagraph>

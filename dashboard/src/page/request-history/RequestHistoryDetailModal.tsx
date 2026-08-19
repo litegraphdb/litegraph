@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal, Collapse, Typography, Tag, Space, Descriptions } from 'antd';
 import { toast } from 'react-hot-toast';
 import { globalToastId } from '@/constants/config';
@@ -19,9 +20,9 @@ type Props = {
 };
 
 const statusColor = (code: number): string => {
-  if (code >= 200 && code < 300) return 'green';
-  if (code >= 300 && code < 400) return 'blue';
-  if (code >= 400 && code < 500) return 'gold';
+  if (code < 300 && code >= 200) return 'green';
+  if (code < 400 && code >= 300) return 'blue';
+  if (code < 500 && code >= 400) return 'gold';
   return 'red';
 };
 
@@ -50,13 +51,15 @@ const noWrapValueStyle: React.CSSProperties = {
   overflowX: 'auto',
 };
 
-const CodeBlock: React.FC<{ text: string; empty?: string }> = ({ text, empty = '(empty)' }) => {
+const CodeBlock: React.FC<{ text: string; empty?: string }> = ({ text, empty }) => {
+  const t = useTranslations('requestHistory');
+  const tCommon = useTranslations('common');
   return (
     <div style={{ position: 'relative' }}>
       <CopyButton
         text={text || ''}
-        tooltipTitle="Copy"
-        label="Copy"
+        tooltipTitle={tCommon('copy.copy')}
+        label={tCommon('copy.copy')}
         size="small"
         type="default"
         style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
@@ -79,13 +82,15 @@ const CodeBlock: React.FC<{ text: string; empty?: string }> = ({ text, empty = '
           color: 'var(--ant-color-text)',
         }}
       >
-        {text || empty}
+        {text || empty || t('detail.empty')}
       </pre>
     </div>
   );
 };
 
 const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) => {
+  const t = useTranslations('requestHistory');
+  const tCommon = useTranslations('common');
   const [detail, setDetail] = useState<RequestHistoryDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -107,7 +112,7 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
         if (!cancelled) {
           setDetail(null);
           setLoading(false);
-          toast.error('Unable to load request detail', { id: globalToastId });
+          toast.error(t('detail.loadFailed'), { id: globalToastId });
         }
       });
     return () => {
@@ -119,7 +124,7 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
 
   return (
     <Modal
-      title="Request Detail"
+      title={t('detail.title')}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -134,39 +139,39 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
         style={{ marginBottom: 16 }}
         styles={{ label: { whiteSpace: 'nowrap' } }}
       >
-        <Descriptions.Item label="ID" span={2}>
+        <Descriptions.Item label={t('detail.fields.id')} span={2}>
           <Space size={4}>
             <Text code>{entry.GUID}</Text>
-            <CopyButton text={entry.GUID} tooltipTitle="Copy ID" />
+            <CopyButton text={entry.GUID} tooltipTitle={t('detail.copyId')} />
           </Space>
         </Descriptions.Item>
-        <Descriptions.Item label="Method">{entry.Method}</Descriptions.Item>
-        <Descriptions.Item label="Status">
+        <Descriptions.Item label={t('detail.fields.method')}>{entry.Method}</Descriptions.Item>
+        <Descriptions.Item label={t('detail.fields.status')}>
           <Tag color={statusColor(entry.StatusCode)}>{entry.StatusCode}</Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="Duration">
+        <Descriptions.Item label={t('detail.fields.duration')}>
           {entry.ProcessingTimeMs.toFixed(2)} ms
         </Descriptions.Item>
-        <Descriptions.Item label="Time" contentStyle={noWrapValueStyle}>
+        <Descriptions.Item label={t('detail.fields.time')} contentStyle={noWrapValueStyle}>
           <span data-testid="request-detail-time" style={noWrapValueStyle}>
             {new Date(entry.CreatedUtc).toLocaleString()}
           </span>
         </Descriptions.Item>
-        <Descriptions.Item label="Source IP" contentStyle={noWrapValueStyle}>
+        <Descriptions.Item label={t('detail.fields.sourceIp')} contentStyle={noWrapValueStyle}>
           <span data-testid="request-detail-source-ip" style={noWrapValueStyle}>
             {entry.SourceIp || '-'}
           </span>
         </Descriptions.Item>
-        <Descriptions.Item label="Tenant">
+        <Descriptions.Item label={t('detail.fields.tenant')}>
           {entry.TenantGUID ? <Text code>{entry.TenantGUID}</Text> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label="Request Size">
+        <Descriptions.Item label={t('detail.fields.requestSize')}>
           {formatBytes(entry.RequestBodyLength)}
         </Descriptions.Item>
-        <Descriptions.Item label="Response Size">
+        <Descriptions.Item label={t('detail.fields.responseSize')}>
           {formatBytes(entry.ResponseBodyLength)}
         </Descriptions.Item>
-        <Descriptions.Item label="URL" span={2}>
+        <Descriptions.Item label={t('detail.fields.url')} span={2}>
           <Text code style={{ wordBreak: 'break-all' }}>
             {entry.Url}
           </Text>
@@ -179,10 +184,10 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             key: 'req-headers',
             label: (
               <Space>
-                <span>Request Headers</span>
+                <span>{t('detail.sections.requestHeaders')}</span>
                 {detail?.RequestHeaders && (
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {Object.keys(detail.RequestHeaders).length} entries
+                    {t('detail.entries', { count: Object.keys(detail.RequestHeaders).length })}
                   </Text>
                 )}
               </Space>
@@ -190,7 +195,7 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             children: (
               <CodeBlock
                 text={headersAsText(detail?.RequestHeaders)}
-                empty={loading ? 'Loading...' : '(empty)'}
+                empty={loading ? tCommon('states.loading') : t('detail.empty')}
               />
             ),
           },
@@ -198,11 +203,11 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             key: 'req-body',
             label: (
               <Space>
-                <span>Request Body</span>
+                <span>{t('detail.sections.requestBody')}</span>
                 {entry.RequestBodyLength > 0 && (
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     {formatBytes(entry.RequestBodyLength)}
-                    {entry.RequestBodyTruncated ? ' [TRUNCATED]' : ''}
+                    {entry.RequestBodyTruncated ? ` ${t('detail.truncated')}` : ''}
                   </Text>
                 )}
               </Space>
@@ -210,7 +215,7 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             children: (
               <CodeBlock
                 text={prettyJson(detail?.RequestBody)}
-                empty={loading ? 'Loading...' : '(empty)'}
+                empty={loading ? tCommon('states.loading') : t('detail.empty')}
               />
             ),
           },
@@ -218,10 +223,10 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             key: 'resp-headers',
             label: (
               <Space>
-                <span>Response Headers</span>
+                <span>{t('detail.sections.responseHeaders')}</span>
                 {detail?.ResponseHeaders && (
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {Object.keys(detail.ResponseHeaders).length} entries
+                    {t('detail.entries', { count: Object.keys(detail.ResponseHeaders).length })}
                   </Text>
                 )}
               </Space>
@@ -229,7 +234,7 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             children: (
               <CodeBlock
                 text={headersAsText(detail?.ResponseHeaders)}
-                empty={loading ? 'Loading...' : '(empty)'}
+                empty={loading ? tCommon('states.loading') : t('detail.empty')}
               />
             ),
           },
@@ -237,11 +242,11 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             key: 'resp-body',
             label: (
               <Space>
-                <span>Response Body</span>
+                <span>{t('detail.sections.responseBody')}</span>
                 {entry.ResponseBodyLength > 0 && (
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     {formatBytes(entry.ResponseBodyLength)}
-                    {entry.ResponseBodyTruncated ? ' [TRUNCATED]' : ''}
+                    {entry.ResponseBodyTruncated ? ` ${t('detail.truncated')}` : ''}
                   </Text>
                 )}
               </Space>
@@ -249,7 +254,7 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             children: (
               <CodeBlock
                 text={prettyJson(detail?.ResponseBody)}
-                empty={loading ? 'Loading...' : '(empty)'}
+                empty={loading ? tCommon('states.loading') : t('detail.empty')}
               />
             ),
           },
@@ -257,13 +262,13 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
             ? [
                 {
                   key: 'transaction-diagnostics',
-                  label: 'Transaction Diagnostics',
+                  label: t('detail.sections.transactionDiagnostics'),
                   children: (
                     <CodeBlock
                       text={prettyJson(
                         detail?.TransactionDiagnosticsJson || entry.TransactionDiagnosticsJson
                       )}
-                      empty={loading ? 'Loading...' : '(empty)'}
+                      empty={loading ? tCommon('states.loading') : t('detail.empty')}
                     />
                   ),
                 },

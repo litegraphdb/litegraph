@@ -1,5 +1,6 @@
 'use client';
 import { useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form } from 'antd';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LabelInput from '../inputs/label-input/LabelInput';
@@ -25,6 +26,8 @@ const SearchModal = ({
   onSearch,
   onClose,
 }: SearchModalProps) => {
+  const t = useTranslations('search');
+  const tCommon = useTranslations('common');
   const [form] = Form.useForm<SearchData>();
   const uniqueKey = useRef(v4());
 
@@ -48,7 +51,7 @@ const SearchModal = ({
     <LitegraphModal
       destroyOnClose={false}
       forceRender
-      title="Search"
+      title={tCommon('actions.search')}
       centered
       open={isSearchModalVisible}
       onCancel={() => {
@@ -56,7 +59,7 @@ const SearchModal = ({
         onClose?.();
       }}
       onOk={handleSearch}
-      okText="Search"
+      okText={tCommon('actions.search')}
     >
       {!isSearchModalVisible ? (
         <Form form={form} style={{ display: 'none' }} />
@@ -68,23 +71,23 @@ const SearchModal = ({
           layout="vertical"
           onFinish={handleSearch}
         >
-          <LabelInput name="labels" tooltip="Filter by classification labels" />
+          <LabelInput name="labels" tooltip={t('labelsTooltip')} />
           <Form.Item
-            label="Tags"
-            tooltip="Filter by key-value tags"
-            rules={[{ validator: validateAtLeastOne(form) }]}
+            label={t('tags')}
+            tooltip={t('tagsTooltip')}
+            rules={[{ validator: validateAtLeastOne(form, t) }]}
           >
             <TagsInput name="tags" />
           </Form.Item>
           <LitegraphFormItem
-            label="Expression"
+            label={t('expression')}
             name="expr"
-            tooltip="Filter using expression syntax"
-            rules={[{ validator: validateAtLeastOne(form) }]}
+            tooltip={t('expressionTooltip')}
+            rules={[{ validator: validateAtLeastOne(form, t) }]}
             extra={
               <>
                 <LitegraphText color={LightGraphTheme.subHeadingColor}>
-                  Example:{' '}
+                  {t('example')}{' '}
                   {`
               {
                 "Left": "Key",

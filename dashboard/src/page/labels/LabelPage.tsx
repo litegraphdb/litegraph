@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import LitegraphTable from '@/components/base/table/Table';
 import LitegraphButton from '@/components/base/button/Button';
@@ -25,6 +26,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const LabelPage = () => {
+  const t = useTranslations('labels');
+  const tCommon = useTranslations('common');
   const selectedGraphRedux = useSelectedGraph();
   const { isGraphsLoading } = useLayoutContext();
   const { page, pageSize, skip, handlePageChange } = usePagination();
@@ -116,18 +119,18 @@ const LabelPage = () => {
   return (
     <PageContainer
       id="labels"
-      pageTitle="Labels"
+      pageTitle={t('title')}
       pageTitleRightContent={
         <>
           {selectedGraphRedux && (
-            <LitegraphTooltip title="Create a new label">
+            <LitegraphTooltip title={t('createTooltip')}>
               <LitegraphButton
                 type="link"
                 icon={<PlusSquareOutlined />}
                 onClick={handleCreateLabel}
                 weight={600}
               >
-                Create Label
+                {t('createLabel')}
               </LitegraphButton>
             </LitegraphTooltip>
           )}
@@ -135,11 +138,12 @@ const LabelPage = () => {
       }
     >
       {isLabelsError && !isLabelsLoading ? (
-        <FallBack retry={fetchLabelsAndNodesAndEdges}>Something went wrong.</FallBack>
+        <FallBack retry={fetchLabelsAndNodesAndEdges}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           loading={isLabelsLoading || isGraphsLoading}
           columns={tableColumns(
+            t,
             handleEditLabel,
             handleDelete,
             isNodesLoading,
@@ -173,8 +177,8 @@ const LabelPage = () => {
 
       {isDeleteModelVisible && selectedLabel && (
         <DeleteLabel
-          title={`Are you sure you want to delete "${selectedLabel.Label}" label?`}
-          paragraphText={'This action will delete label.'}
+          title={t('deleteTitle', { name: selectedLabel.Label ?? '' })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedLabel={selectedLabel}
@@ -186,7 +190,7 @@ const LabelPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Label JSON"
+        title={t('labelJson')}
       />
     </PageContainer>
   );

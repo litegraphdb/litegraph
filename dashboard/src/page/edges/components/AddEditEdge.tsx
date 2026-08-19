@@ -1,12 +1,13 @@
 'use client';
 import { Form, Tag } from 'antd';
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import LitegraphInput from '@/components/base/input/Input';
 import DataJsonEditor from '@/components/inputs/data-json-editor/DataJsonEditor';
 import { v4 } from 'uuid';
-import { validationRules } from './constant';
+import { makeValidationRules } from './constant';
 import { EdgeType } from '@/types/types';
 import toast from 'react-hot-toast';
 import LabelInput from '@/components/inputs/label-input/LabelInput';
@@ -23,7 +24,6 @@ import {
   useUpdateEdgeMutation,
 } from '@/lib/store/slice/slice';
 import { Edge, EdgeCreateRequest } from 'litegraphdb/dist/types/types';
-import { getCreateEditViewModelTitle } from '@/utils/appUtils';
 import PageLoading from '@/components/base/loading/PageLoading';
 import NodeSelector from '@/components/node-selector/NodeSelector';
 import { useWatch } from 'antd/es/form/Form';
@@ -74,6 +74,9 @@ const AddEditEdge = ({
   currentNodes,
   currentEdges,
 }: AddEditEdgeProps) => {
+  const t = useTranslations('edges');
+  const tCommon = useTranslations('common');
+  const validationRules = makeValidationRules(t);
   const [form] = Form.useForm();
   const formValue = useWatch('from', form);
   // Get current GUID from form value
@@ -222,7 +225,7 @@ const AddEditEdge = ({
             Vectors: convertVectorsToAPIRecord(values.vectors),
           };
           updateLocalEdge(updatedEdgeData);
-          toast.success('Update Edge successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditEdgeVisible(false);
           onEdgeUpdated && (await onEdgeUpdated());
         } else {
@@ -268,7 +271,7 @@ const AddEditEdge = ({
               await refetchEdge();
             }
 
-            toast.success('Update Edge successfully');
+            toast.success(t('toast.updated'));
             setIsAddEditEdgeVisible(false);
             onEdgeUpdated && (await onEdgeUpdated());
           } else {
@@ -316,7 +319,7 @@ const AddEditEdge = ({
               Vectors: created?.Vectors ?? convertVectorsToAPIRecord(values.vectors) ?? [],
             });
           }
-          toast.success('Add Edge successfully');
+          toast.success(t('toast.created'));
           setIsAddEditEdgeVisible(false);
           onEdgeUpdated && (await onEdgeUpdated());
         } else {
@@ -326,20 +329,22 @@ const AddEditEdge = ({
     } catch (error: unknown) {
       console.error('Error submitting form:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update edge: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
   return (
     <LitegraphModal
-      title={getCreateEditViewModelTitle(
-        'Edge',
-        isEdgeLoading,
-        !edgeWithOldData?.GUID,
-        !!edgeWithOldData?.GUID,
-        Boolean(readonly && !!edgeWithOldData?.GUID)
-      )}
-      okText={edgeWithOldData?.GUID ? 'Update' : 'Create'}
+      title={
+        isEdgeLoading
+          ? t('modalTitle.loading')
+          : readonly && edgeWithOldData?.GUID
+            ? t('modalTitle.view')
+            : edgeWithOldData?.GUID
+              ? t('modalTitle.edit')
+              : t('modalTitle.create')
+      }
+      okText={edgeWithOldData?.GUID ? tCommon('actions.update') : tCommon('actions.create')}
       open={isAddEditEdgeVisible}
       onOk={handleSubmit}
       loading={isEdgeLoading}
@@ -350,7 +355,7 @@ const AddEditEdge = ({
       }}
       width={isReadonlyView ? '95vw' : 800}
       centered={isReadonlyView}
-      cancelText={readonly ? 'Close' : 'Cancel'}
+      cancelText={readonly ? tCommon('actions.close') : tCommon('actions.cancel')}
       okButtonProps={{ disabled: isEdgeLoading || !formValid, hidden: readonly }}
       styles={readonlyModalBodyStyles}
       data-testid="add-edit-edge-modal"
@@ -382,9 +387,9 @@ const AddEditEdge = ({
               data-testid="edge-view-summary-grid"
             >
               <LitegraphFormItem
-                label="Graph"
+                label={t('form.graph')}
                 name="graphName"
-                tooltip="The graph this edge belongs to"
+                tooltip={t('form.graphTooltip')}
               >
                 <LitegraphInput readOnly variant="borderless" />
               </LitegraphFormItem>
@@ -392,27 +397,27 @@ const AddEditEdge = ({
               <LitegraphFormItem
                 label={
                   <LitegraphFlex align="center" gap={8}>
-                    <span>GUID</span>
+                    <span>{t('form.guid')}</span>
                     <CopyButton
                       getText={() => form.getFieldValue('guid') || ''}
-                      tooltipTitle="Copy GUID"
+                      tooltipTitle={tCommon('copy.copyGuid')}
                     />
                   </LitegraphFlex>
                 }
                 name="guid"
-                tooltip="Globally unique identifier for this edge"
+                tooltip={t('form.guidTooltip')}
               >
                 <LitegraphInput readOnly variant="borderless" />
               </LitegraphFormItem>
 
               <LitegraphFormItem
-                label="Name"
+                label={t('form.name')}
                 name="name"
-                tooltip="Display name for the edge"
+                tooltip={t('form.nameTooltip')}
                 rules={validationRules.Name}
               >
                 <LitegraphInput
-                  placeholder="Enter edge name"
+                  placeholder={t('form.namePlaceholder')}
                   data-testid="edge-name-input"
                   readOnly={readonly}
                   variant={readonly ? 'borderless' : 'outlined'}
@@ -420,15 +425,15 @@ const AddEditEdge = ({
               </LitegraphFormItem>
 
               <LitegraphFormItem
-                label="Cost"
+                label={t('form.cost')}
                 name="cost"
-                tooltip="Traversal cost for this edge"
+                tooltip={t('form.costTooltip')}
                 rules={validationRules.Cost}
               >
                 <LitegraphInput
                   readOnly={readonly}
                   variant={readonly ? 'borderless' : 'outlined'}
-                  placeholder="Enter edge cost"
+                  placeholder={t('form.costPlaceholder')}
                   type="number"
                   onChange={(e) => {
                     const value = parseFloat(e.target.value);
@@ -440,16 +445,16 @@ const AddEditEdge = ({
               <NodeSelector
                 name="from"
                 readonly={readonly}
-                label="From Node"
-                tooltip="Source node of the edge"
+                label={t('form.fromNode')}
+                tooltip={t('form.fromNodeTooltip')}
                 rules={validationRules.From}
                 localNodes={currentNodes}
               />
               <NodeSelector
                 name="to"
                 readonly={readonly}
-                label="To Node"
-                tooltip="Target node of the edge"
+                label={t('form.toNode')}
+                tooltip={t('form.toNodeTooltip')}
                 rules={validationRules.To}
                 localNodes={currentNodes}
               />
@@ -459,21 +464,21 @@ const AddEditEdge = ({
               <LitegraphFlex vertical={!readonly} gap={readonly ? 10 : 0}>
                 <LitegraphFormItem
                   className="flex-1"
-                  label="Graph"
+                  label={t('form.graph')}
                   name="graphName"
-                  tooltip="The graph this edge belongs to"
+                  tooltip={t('form.graphTooltip')}
                 >
                   <LitegraphInput readOnly variant="borderless" />
                 </LitegraphFormItem>
                 <LitegraphFormItem
                   className="flex-1"
-                  label="Name"
+                  label={t('form.name')}
                   name="name"
-                  tooltip="Display name for the edge"
+                  tooltip={t('form.nameTooltip')}
                   rules={validationRules.Name}
                 >
                   <LitegraphInput
-                    placeholder="Enter edge name"
+                    placeholder={t('form.namePlaceholder')}
                     data-testid="edge-name-input"
                     readOnly={readonly}
                     variant={readonly ? 'borderless' : 'outlined'}
@@ -485,8 +490,8 @@ const AddEditEdge = ({
                   name="from"
                   readonly={readonly}
                   className="flex-1"
-                  label="From Node"
-                  tooltip="Source node of the edge"
+                  label={t('form.fromNode')}
+                  tooltip={t('form.fromNodeTooltip')}
                   rules={validationRules.From}
                   localNodes={currentNodes}
                 />
@@ -494,8 +499,8 @@ const AddEditEdge = ({
                   name="to"
                   readonly={readonly}
                   className="flex-1"
-                  label="To Node"
-                  tooltip="Target node of the edge"
+                  label={t('form.toNode')}
+                  tooltip={t('form.toNodeTooltip')}
                   rules={validationRules.To}
                   localNodes={currentNodes}
                 />
@@ -503,15 +508,15 @@ const AddEditEdge = ({
               <LitegraphFlex gap={10}>
                 <LitegraphFormItem
                   className="flex-1"
-                  label="Cost"
+                  label={t('form.cost')}
                   name="cost"
-                  tooltip="Traversal cost for this edge"
+                  tooltip={t('form.costTooltip')}
                   rules={validationRules.Cost}
                 >
                   <LitegraphInput
                     readOnly={readonly}
                     variant={readonly ? 'borderless' : 'outlined'}
-                    placeholder="Enter edge cost"
+                    placeholder={t('form.costPlaceholder')}
                     type="number"
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
@@ -523,7 +528,7 @@ const AddEditEdge = ({
                   name="labels"
                   className="flex-1"
                   readonly={readonly}
-                  tooltip="Labels associated with this edge"
+                  tooltip={t('form.labelsTooltip')}
                 />
               </LitegraphFlex>
             </>
@@ -531,8 +536,8 @@ const AddEditEdge = ({
 
           {isReadonlyView && (
             <Form.Item
-              label="Labels"
-              tooltip="Labels associated with this edge"
+              label={t('form.labels')}
+              tooltip={t('form.labelsTooltip')}
               className={modalStyles.fullSpan}
             >
               {readonlyLabels.length > 0 ? (
@@ -544,21 +549,21 @@ const AddEditEdge = ({
                   ))}
                 </div>
               ) : (
-                <span className={modalStyles.emptyValue}>N/A</span>
+                <span className={modalStyles.emptyValue}>{tCommon('states.notAvailable')}</span>
               )}
             </Form.Item>
           )}
 
           <Form.Item
-            label="Tags"
-            tooltip="Key-value tags for this edge"
+            label={t('form.tags')}
+            tooltip={t('form.tagsTooltip')}
             className={isReadonlyView ? modalStyles.fullSpan : undefined}
           >
             <TagsInput name="tags" readonly={readonly} />
           </Form.Item>
           <Form.Item
-            label="Vectors"
-            tooltip="Vector embeddings for this edge"
+            label={t('form.vectors')}
+            tooltip={t('form.vectorsTooltip')}
             className={isReadonlyView ? modalStyles.fullSpan : undefined}
           >
             <VectorsInput name="vectors" readonly={readonly} />
@@ -566,14 +571,14 @@ const AddEditEdge = ({
           <LitegraphFormItem
             className={isReadonlyView ? modalStyles.fullSpan : undefined}
             name="data"
-            tooltip="Arbitrary JSON data attached to this edge"
+            tooltip={t('form.dataTooltip')}
             label={
               <LitegraphFlex align="center" gap={8}>
-                <span>Data</span>
+                <span>{t('form.data')}</span>
                 {readonly && (
                   <CopyButton
                     getText={() => JSON.stringify(form.getFieldValue('data') || {}, null, 2)}
-                    tooltipTitle="Copy Data"
+                    tooltipTitle={t('form.copyData')}
                   />
                 )}
               </LitegraphFlex>

@@ -62,6 +62,13 @@ jest.mock('@/lib/store/StoreProvider', () => {
   };
 });
 
+// LocalizedApp reads locale from redux; the store is mocked out above, so stub
+// the typed redux hooks to a stable default locale.
+jest.mock('@/lib/store/hooks', () => ({
+  useAppDispatch: () => jest.fn(),
+  useAppSelector: () => 'en',
+}));
+
 jest.mock('react-hot-toast', () => ({
   Toaster: () => <div data-testid="toaster" />,
 }));

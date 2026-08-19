@@ -4,9 +4,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { tableColumns } from '@/page/edges/constant';
 import { EdgeType } from '@/types/types';
 import type { ColumnType } from 'antd/es/table';
+import { getTranslator } from '@/i18n/getTranslator';
 
-const getColumns = (...args: Parameters<typeof tableColumns>): ColumnType<EdgeType>[] =>
-  tableColumns(...args) as ColumnType<EdgeType>[];
+const tEdges = getTranslator('en', 'edges') as any;
+const tCommon = getTranslator('en', 'common') as any;
+const getColumns = (...args: any[]): ColumnType<EdgeType>[] =>
+  (tableColumns as any)(tEdges, tCommon, ...args) as ColumnType<EdgeType>[];
 
 const getColumnTitleText = (title: any): string => {
   if (!React.isValidElement(title)) return title;

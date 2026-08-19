@@ -52,3 +52,37 @@ export const graphGEXFData = {
 };
 
 export const graphGEXFMockApiResponse = Object.values(graphGEXFData);
+
+export const graphJsonlData = `# litegraph-jsonl v1.0
+{"Type":"Graph","Object":{"GUID":"01010101-0101-0101-0101-010101010101","Name":"Sample Graph"}}
+{"Type":"Node","Object":{"GUID":"11111111-1111-1111-1111-111111111111","GraphGUID":"01010101-0101-0101-0101-010101010101","Name":"Node A"}}
+{"Type":"Node","Object":{"GUID":"22222222-2222-2222-2222-222222222222","GraphGUID":"01010101-0101-0101-0101-010101010101","Name":"Node B"}}
+{"Type":"Edge","Object":{"GUID":"33333333-3333-3333-3333-333333333333","GraphGUID":"01010101-0101-0101-0101-010101010101","From":"11111111-1111-1111-1111-111111111111","To":"22222222-2222-2222-2222-222222222222"}}
+`;
+
+export const subgraphExtractionRequest = {
+    TenantGUID: 'default',
+    GraphGUID: mockGraphGuid,
+    StartNodeGUIDs: ['11111111-1111-1111-1111-111111111111'],
+    MaxDepth: 2,
+    Direction: 'Both',
+    IncludeData: true,
+    IncludeSubordinates: false,
+};
+
+export const graphImportResult = {
+    Success: true,
+    TenantGUID: 'default',
+    GraphGUID: mockGraphGuid,
+    GraphsCreated: 1,
+    NodesCreated: 2,
+    NodesUpdated: 0,
+    NodesSkipped: 0,
+    EdgesCreated: 1,
+    EdgesUpdated: 0,
+    EdgesSkipped: 0,
+    LinesRead: 4,
+    LinesIgnored: 1,
+    Warnings: [],
+    GuidMap: {},
+};

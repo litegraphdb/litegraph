@@ -10,7 +10,10 @@ import { LabelMetadataForTable } from './types';
 import { columnTooltip } from '@/utils/tooltipUtils';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (record: LabelMetadataForTable) => void,
   handleDelete: (record: LabelMetadataForTable) => void,
   isNodesLoading: boolean,
@@ -18,12 +21,12 @@ export const tableColumns = (
   handleViewJson?: (record: LabelMetadataForTable) => void
 ): TableProps<LabelMetadataForTable>['columns'] => [
   {
-    title: columnTooltip('Label', 'Label text value'),
+    title: columnTooltip(t('columns.label'), t('columns.labelDesc')),
     dataIndex: 'Label',
     key: 'Label',
     width: 250,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Label" />
+      <TableSearch {...props} placeholder={t('search.label')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Label),
     sorter: (a: LabelMetadataForTable, b: LabelMetadataForTable) => a.Label.localeCompare(b.Label),
@@ -35,23 +38,23 @@ export const tableColumns = (
   },
 
   {
-    title: columnTooltip('GUID', 'Globally unique identifier'),
+    title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
     dataIndex: 'GUID',
     key: 'GUID',
     width: 350,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search GUID" />
+      <TableSearch {...props} placeholder={t('search.guid')} />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
-    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle="Copy GUID" /></span>,
+    render: (GUID: string) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{GUID}<CopyButton text={GUID} tooltipTitle={t('copyGuid')} /></span>,
   },
   {
-    title: columnTooltip('Node', 'Associated node name'),
+    title: columnTooltip(t('columns.node'), t('columns.nodeDesc')),
     dataIndex: 'NodeName',
     key: 'NodeName',
     width: 200,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Node" />
+      <TableSearch {...props} placeholder={t('search.node')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.NodeName || ''),
     sorter: (a: LabelMetadataForTable, b: LabelMetadataForTable) =>
@@ -66,12 +69,12 @@ export const tableColumns = (
       ),
   },
   {
-    title: columnTooltip('Edge', 'Associated edge name'),
+    title: columnTooltip(t('columns.edge'), t('columns.edgeDesc')),
     dataIndex: 'EdgeName',
     key: 'EdgeName',
     width: 200,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Edge" />
+      <TableSearch {...props} placeholder={t('search.edge')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.EdgeName || ''),
     sorter: (a: LabelMetadataForTable, b: LabelMetadataForTable) =>
@@ -86,7 +89,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+    title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
     dataIndex: 'CreatedUtc',
     key: 'CreatedUtc',
     width: 200,
@@ -95,30 +98,30 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: columnTooltip('Actions', 'Available operations'),
+    title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
     key: 'actions',
     render: (_: any, record: LabelMetadataForTable) => {
       const items = [
         {
           key: 'edit',
-          label: 'Edit',
+          label: t('rowActions.edit'),
           onClick: () => handleEdit(record),
         },
         {
           key: 'delete',
-          label: 'Delete',
+          label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
-          label: 'View JSON',
+          label: t('rowActions.viewJson'),
           onClick: () => handleViewJson?.(record),
         },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions">
+          <LitegraphTooltip title={t('rowActions.menu')}>
             <Button
               role="label-action-menu"
               type="text"

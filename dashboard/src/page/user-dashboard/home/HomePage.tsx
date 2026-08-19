@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import FallBack from '@/components/base/fallback/FallBack';
 import { defaultEdgeTooltip, defaultNodeTooltip } from '@/components/base/graph/constant';
 import { GraphEdgeTooltip, GraphNodeTooltip } from '@/components/base/graph/types';
@@ -18,6 +19,8 @@ const GraphViewer = dynamic(() => import('@/components/base/graph/GraphViewer'),
 });
 
 const HomePage = () => {
+  const t = useTranslations('home');
+  const tCommon = useTranslations('common');
   const selectedGraphRedux = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
   const [nodeTooltip, setNodeTooltip] = useState<GraphNodeTooltip>(defaultNodeTooltip);
   const [edgeTooltip, setEdgeTooltip] = useState<GraphEdgeTooltip>(defaultEdgeTooltip);
@@ -43,7 +46,7 @@ const HomePage = () => {
   if (graphError) {
     return (
       <FallBack retry={refetchGraphs}>
-        {graphError ? 'Something went wrong.' : "Can't view details at the moment."}
+        {graphError ? tCommon('states.somethingWentWrong') : tCommon('states.cantViewDetails')}
       </FallBack>
     );
   }
@@ -52,7 +55,7 @@ const HomePage = () => {
     <PageContainer
       id="homepage"
       className="pb-0"
-      pageTitle={'Home'}
+      pageTitle={t('pageTitle')}
       pageTitleRightContent={
         Boolean(selectedGraphRedux) ? (
           <LitegraphFlex gap={4}>
@@ -63,7 +66,7 @@ const HomePage = () => {
               weight={600}
               disabled={!refetchReady}
             >
-              Refresh
+              {tCommon('actions.refresh')}
             </LitegraphButton>
 
             <div ref={setControlsPortalTarget} style={{ display: 'flex' }} />
@@ -74,7 +77,7 @@ const HomePage = () => {
               onClick={() => setIsAddEditNodeVisible(true)}
               weight={600}
             >
-              Add Node
+              {t('addNode')}
             </LitegraphButton>
 
             <LitegraphButton
@@ -83,7 +86,7 @@ const HomePage = () => {
               onClick={() => setIsAddEditEdgeVisible(true)}
               weight={600}
             >
-              Add Edge
+              {t('addEdge')}
             </LitegraphButton>
           </LitegraphFlex>
         ) : undefined

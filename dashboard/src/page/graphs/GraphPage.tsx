@@ -1,8 +1,13 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
+import { useTranslations } from 'next-intl';
+import { ImportOutlined, PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
 import { tableColumns } from './constant';
-import { useGetGraphGexfContentByIdMutation } from '@/lib/store/slice/slice';
+import {
+  useExportGraphJsonlMutation,
+  useGetGraphGexfContentByIdMutation,
+} from '@/lib/store/slice/slice';
+import { useCurrentTenant } from '@/hooks/entityHooks';
 import { GraphData } from '@/types/types';
 import toast from 'react-hot-toast';
 import FallBack from '@/components/base/fallback/FallBack';
@@ -31,8 +36,13 @@ import VectorIndexStatsModal from './components/VectorIndexStatsModal';
 import RebuildVectorIndexModal from './components/RebuildVectorIndexModal';
 import DeleteVectorIndexModal from './components/DeleteVectorIndexModal';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
+import ImportJsonlModal from './components/ImportJsonlModal';
 
 const GraphPage = () => {
+  const t = useTranslations('graphs');
+  const tCommon = useTranslations('common');
+  const tImportExport = useTranslations('importExport');
+  const tenant = useCurrentTenant();
   const { page, pageSize, skip, handlePageChange } = usePagination();
   const [searchParams, setSearchParams] = useState<EnumerateAndSearchRequest>({});
   const {
@@ -63,8 +73,12 @@ const GraphPage = () => {
     useState<boolean>(false);
   const [selectedGraph, setSelectedGraph] = useState<GraphData | null>(null);
   const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
+  const [importModalVisible, setImportModalVisible] = useState<boolean>(false);
+  const [importMode, setImportMode] = useState<'merge' | 'createNew'>('createNew');
+  const [importTargetGraphGuid, setImportTargetGraphGuid] = useState<string | undefined>(undefined);
   const [fetchGexfByGraphId, { isLoading: isFetchGexfByGraphIdLoading }] =
     useGetGraphGexfContentByIdMutation();
+  const [exportGraphJsonl] = useExportGraphJsonlMutation();
 
   const [deleteGraphById, { isLoading: isDeleteGraphLoading }] = useDeleteGraphMutation();
 
@@ -95,17 +109,52 @@ const GraphPage = () => {
       const res = await fetchGexfByGraphId({ graphId: graph.GUID });
       const gexfContent = res?.data;
       if (!gexfContent) {
-        throw new Error('No GEXF content received');
+        throw new Error(t('toast.noGexf'));
       }
 
       // Create a blob from the GEXF content
       const blob = new Blob([gexfContent], { type: 'application/xml' });
       saveAs(blob, `graph-${graph.GUID}.gexf`);
-      toast.success('Graph exported successfully');
+      toast.success(t('toast.exported'));
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export graph');
+      toast.error(t('toast.exportFailed'));
     }
+  };
+
+  const handleExportJsonl = async (graph: GraphData) => {
+    try {
+      if (!tenant?.GUID) {
+        throw new Error(tImportExport('toast.exportFailed'));
+      }
+      const jsonl = await exportGraphJsonl({
+        tenantGuid: tenant.GUID,
+        graphGuid: graph.GUID,
+        options: { includeData: true, includeSubordinates: true },
+      }).unwrap();
+      const blob = new Blob([jsonl], { type: 'application/x-ndjson' });
+      saveAs(blob, `graph-${graph.GUID}.jsonl`);
+      toast.success(tImportExport('toast.exportSuccess'));
+    } catch (error) {
+      console.error('Export JSONL error:', error);
+      const message =
+        (error as any)?.data?.message ||
+        (error as any)?.message ||
+        tImportExport('toast.exportFailed');
+      toast.error(message);
+    }
+  };
+
+  const handleImportIntoGraph = (graph: GraphData) => {
+    setImportMode('merge');
+    setImportTargetGraphGuid(graph.GUID);
+    setImportModalVisible(true);
+  };
+
+  const handleImportNewGraph = () => {
+    setImportMode('createNew');
+    setImportTargetGraphGuid(undefined);
+    setImportModalVisible(true);
   };
 
   const handleEnableVectorIndex = async (graph: GraphData) => {
@@ -137,7 +186,7 @@ const GraphPage = () => {
     if (selectedGraph) {
       const res = await deleteGraphById(selectedGraph.GUID);
       if (res) {
-        toast.success('Delete Graph successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisisble(false);
         setSelectedGraph(null);
       }
@@ -153,7 +202,9 @@ const GraphPage = () => {
   if (graphError) {
     return (
       <FallBack retry={refetchGraphs}>
-        {graphError ? 'Something went wrong.' : "Can't view details at the moment."}
+        {graphError
+          ? tCommon('states.somethingWentWrong')
+          : tCommon('states.cantViewDetails')}
       </FallBack>
     );
   }
@@ -163,23 +214,33 @@ const GraphPage = () => {
       id="graphs"
       pageTitle={
         <LitegraphFlex align="center" gap={10}>
-          <LitegraphText>Graphs</LitegraphText>
-          <LitegraphTooltip title="Search and filter graphs">
+          <LitegraphText>{t('title')}</LitegraphText>
+          <LitegraphTooltip title={t('searchTooltip')}>
             <SearchOutlined className="cursor-pointer" onClick={() => setShowSearchModal(true)} />
           </LitegraphTooltip>
         </LitegraphFlex>
       }
       pageTitleRightContent={
-        <LitegraphTooltip title="Create a new graph">
+        <LitegraphFlex gap={4} align="center">
           <LitegraphButton
             type="link"
-            icon={<PlusSquareOutlined />}
-            onClick={handleCreateGraph}
+            icon={<ImportOutlined />}
+            onClick={handleImportNewGraph}
             weight={500}
           >
-            Create Graph
+            {tImportExport('importNewGraph')}
           </LitegraphButton>
-        </LitegraphTooltip>
+          <LitegraphTooltip title={t('createTooltip')}>
+            <LitegraphButton
+              type="link"
+              icon={<PlusSquareOutlined />}
+              onClick={handleCreateGraph}
+              weight={500}
+            >
+              {t('createGraph')}
+            </LitegraphButton>
+          </LitegraphTooltip>
+        </LitegraphFlex>
       }
     >
       <>
@@ -192,7 +253,7 @@ const GraphPage = () => {
         >
           {!isGraphsLoading && (
             <AppliedFilter
-              entityName="graph(s)"
+              entityName={t('entityName')}
               searchParams={searchParams}
               totalRecords={data?.TotalRecords || 0}
               onClear={() => setSearchParams({})}
@@ -201,9 +262,13 @@ const GraphPage = () => {
         </LitegraphFlex>
         <LitegraphTable
           columns={tableColumns(
+            t,
+            tImportExport,
             handleEdit,
             handleDelete,
             handleExportGexf,
+            handleExportJsonl,
+            handleImportIntoGraph,
             handleEnableVectorIndex,
             handleReadVectorIndexConfig,
             handleReadVectorIndexStats,
@@ -238,7 +303,7 @@ const GraphPage = () => {
       />
 
       <LitegraphModal
-        title="Are you sure you want to delete this graph?"
+        title={t('deleteTitle')}
         centered
         open={isDeleteModelVisisble}
         onCancel={() => setIsDeleteModelVisisble(false)}
@@ -248,11 +313,11 @@ const GraphPage = () => {
             onClick={handleDeleteGraph}
             loading={isDeleteGraphLoading}
           >
-            Confirm
+            {tCommon('actions.confirm')}
           </LitegraphButton>
         }
       >
-        <LitegraphParagraph>This action will delete graph.</LitegraphParagraph>
+        <LitegraphParagraph>{t('deleteBody')}</LitegraphParagraph>
       </LitegraphModal>
       <SearchByTLDModal
         setIsSearchModalVisible={setShowSearchModal}
@@ -308,7 +373,16 @@ const GraphPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Graph JSON"
+        title={t('graphJson')}
+      />
+      <ImportJsonlModal
+        isVisible={importModalVisible}
+        setIsVisible={setImportModalVisible}
+        mode={importMode}
+        targetGraphGuid={importTargetGraphGuid}
+        onSuccess={() => {
+          refetchGraphs();
+        }}
       />
     </PageContainer>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { message } from 'antd';
+import { useTranslations } from 'next-intl';
 import { useRebuildVectorIndexMutation } from '@/lib/store/slice/slice';
 import LitegraphButton from '@/components/base/button/Button';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -18,12 +19,14 @@ const RebuildVectorIndexModal: React.FC<RebuildVectorIndexModalProps> = ({
   graphId,
   onSuccess,
 }) => {
+  const t = useTranslations('vectorIndex');
+  const tCommon = useTranslations('common');
   const [rebuildVectorIndex, { isLoading }] = useRebuildVectorIndexMutation();
 
   const handleRebuild = async () => {
     try {
       await rebuildVectorIndex(graphId).unwrap();
-      message.success('Vector index rebuild started successfully');
+      message.success(t('rebuildSuccess'));
       setIsVisible(false);
       onSuccess?.();
     } catch (error) {
@@ -40,7 +43,7 @@ const RebuildVectorIndexModal: React.FC<RebuildVectorIndexModalProps> = ({
       const errorDescription =
         (error as any)?.data?.Description ||
         (error as any)?.Description ||
-        'Failed to rebuild vector index';
+        t('rebuildFailed');
       message.error(errorDescription);
 
       // Close modal on error as well
@@ -55,20 +58,17 @@ const RebuildVectorIndexModal: React.FC<RebuildVectorIndexModalProps> = ({
 
   return (
     <LitegraphModal
-      title="Are you sure you want to rebuild the vector index?"
+      title={t('rebuildConfirm')}
       centered
       open={isVisible}
       onCancel={handleCancel}
       footer={
         <LitegraphButton type="primary" onClick={handleRebuild} loading={isLoading}>
-          Confirm
+          {tCommon('actions.confirm')}
         </LitegraphButton>
       }
     >
-      <LitegraphParagraph>
-        This action will rebuild the vector index for this graph. This process may take some time
-        and will temporarily affect vector search performance.
-      </LitegraphParagraph>
+      <LitegraphParagraph>{t('rebuildBody')}</LitegraphParagraph>
     </LitegraphModal>
   );
 };

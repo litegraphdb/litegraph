@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button, Dropdown, TableProps } from 'antd';
 import {
   MoreOutlined,
@@ -38,6 +39,7 @@ const monoValueStyle = {
 } as const;
 
 const PasswordCell = ({ password }: { password: string }) => {
+  const t = useTranslations('users');
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => {
@@ -47,7 +49,7 @@ const PasswordCell = ({ password }: { password: string }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span>{isVisible ? password : '*'.repeat(8)}</span>
-      <LitegraphTooltip title={isVisible ? 'Hide password' : 'Show password'}>
+      <LitegraphTooltip title={isVisible ? t('password.hide') : t('password.show')}>
         <Button
           type="text"
           size="small"
@@ -60,76 +62,79 @@ const PasswordCell = ({ password }: { password: string }) => {
   );
 };
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (user: UserMetadata) => void,
   handleDelete: (user: UserMetadata) => void,
   handleViewJson?: (record: UserMetadata) => void
 ): TableProps<UserMetadata>['columns'] => {
   return [
     {
-      title: columnTooltip('GUID', 'Globally unique identifier'),
+      title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
       dataIndex: 'GUID',
       key: 'GUID',
       width: 220,
       ellipsis: true,
       filterDropdown: (props: FilterDropdownProps) => (
-        <TableSearch {...props} placeholder="Search GUID" />
+        <TableSearch {...props} placeholder={t('search.guid')} />
       ),
       onFilter: (value, record) => onGUIDFilter(value, record.GUID),
       render: (GUID: string) => (
         <span style={monoCellStyle} title={GUID}>
           <span style={monoValueStyle}>{GUID}</span>
-          <CopyButton text={GUID} tooltipTitle="Copy GUID" />
+          <CopyButton text={GUID} tooltipTitle={t('copyGuid')} />
         </span>
       ),
     },
     {
-      title: columnTooltip('First Name', 'User first name'),
+      title: columnTooltip(t('columns.firstName'), t('columns.firstNameDesc')),
       dataIndex: 'FirstName',
       key: 'FirstName',
       width: 120,
       ellipsis: true,
       filterDropdown: (props: FilterDropdownProps) => (
-        <TableSearch {...props} placeholder="Search First Name" />
+        <TableSearch {...props} placeholder={t('search.firstName')} />
       ),
       onFilter: (value, record) => onNameFilter(value, record.FirstName),
       sorter: (a: UserMetadata, b: UserMetadata) => a.FirstName.localeCompare(b.FirstName),
       render: (FirstName: string) => <div>{FirstName}</div>,
     },
     {
-      title: columnTooltip('Last Name', 'User last name'),
+      title: columnTooltip(t('columns.lastName'), t('columns.lastNameDesc')),
       dataIndex: 'LastName',
       key: 'LastName',
       width: 120,
       ellipsis: true,
       filterDropdown: (props: FilterDropdownProps) => (
-        <TableSearch {...props} placeholder="Search Last Name" />
+        <TableSearch {...props} placeholder={t('search.lastName')} />
       ),
       onFilter: (value, record) => onNameFilter(value, record.LastName),
       sorter: (a: UserMetadata, b: UserMetadata) => a.LastName.localeCompare(b.LastName),
       render: (LastName: string) => <div>{LastName}</div>,
     },
     {
-      title: columnTooltip('Email', 'User email address'),
+      title: columnTooltip(t('columns.email'), t('columns.emailDesc')),
       dataIndex: 'Email',
       key: 'Email',
       width: 170,
       ellipsis: true,
       filterDropdown: (props: FilterDropdownProps) => (
-        <TableSearch {...props} placeholder="Search Email" />
+        <TableSearch {...props} placeholder={t('search.email')} />
       ),
       onFilter: (value, record) => onNameFilter(value, record.Email),
       render: (Email: string) => <div>{Email}</div>,
     },
     {
-      title: columnTooltip('Password', 'User password (click eye to reveal)'),
+      title: columnTooltip(t('columns.password'), t('columns.passwordDesc')),
       dataIndex: 'Password',
       key: 'Password',
       width: 100,
       render: (Password: string, record: UserMetadata) => <PasswordCell password={Password} />,
     },
     {
-      title: columnTooltip('Active', 'Whether the user account is active'),
+      title: columnTooltip(t('columns.active'), t('columns.activeDesc')),
       dataIndex: 'Active',
       key: 'Active',
       width: 70,
@@ -142,7 +147,7 @@ export const tableColumns = (
         ),
     },
     {
-      title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+      title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
       dataIndex: 'CreatedUtc',
       key: 'CreatedUtc',
       width: 150,
@@ -152,31 +157,31 @@ export const tableColumns = (
       render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
     },
     {
-      title: columnTooltip('Actions', 'Available operations'),
+      title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
       key: 'actions',
       width: 70,
       render: (_: any, record: UserMetadata) => {
         const items = [
           {
             key: 'edit',
-            label: 'Edit',
+            label: t('rowActions.edit'),
             onClick: () => handleEdit(record),
           },
           {
             key: 'delete',
-            label: 'Delete',
+            label: t('rowActions.delete'),
             onClick: () => handleDelete(record),
           },
           {
             icon: <CodeOutlined />,
             key: 'view-json',
-            label: 'View JSON',
+            label: t('rowActions.viewJson'),
             onClick: () => handleViewJson?.(record),
           },
         ];
         return (
           <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-            <LitegraphTooltip title="Actions">
+            <LitegraphTooltip title={t('rowActions.menu')}>
               <Button
                 role="user-action-menu"
                 type="text"
