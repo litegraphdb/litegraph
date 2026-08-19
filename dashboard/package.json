@@ -1,6 +1,6 @@
 {
   "name": "litegraph-ui",
-  "version": "7.1.0",
+  "version": "8.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
