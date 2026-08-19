@@ -2,13 +2,13 @@
   "CreatedUtc": "2025-11-24T10:13:33.307268Z",
   "CreatedBy": "Setup",
   "DeploymentType": "Private",
-  "SoftwareVersion": "v7.0.0",
+  "SoftwareVersion": "v7.1.0",
   "Node": {
     "GUID": "d2ebf75d-ec51-4836-b831-6555bff66ef7",
     "Name": "LiteGraph Model Context Protocol Server",
     "Hostname": "localhost",
     "InstanceType": "McpServer",
-    "LastStartUtc": "2026-05-20T00:05:17.845620Z",
+    "LastStartUtc": "2026-08-04T22:09:29.548910Z",
     "CreatedUtc": "2025-11-24T10:13:33.309647Z"
   },
   "Logging": {

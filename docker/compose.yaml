@@ -32,7 +32,7 @@ services:
 
   litegraph-postgresql-init:
     container_name: 'litegraph-postgresql-init'
-    image: 'jchristn77/litegraph:v7.0.0'
+    image: 'jchristn77/litegraph:v7.1.0'
     stdin_open: true
     tty: true
     depends_on:
@@ -66,7 +66,7 @@ services:
 
   litegraph:
     container_name: 'litegraph'
-    image: 'jchristn77/litegraph:v7.0.0'
+    image: 'jchristn77/litegraph:v7.1.0'
     stdin_open: true
     tty: true
     ports:
@@ -105,7 +105,7 @@ services:
 
   litegraph-mcp:
     container_name: 'litegraph-mcp'
-    image: 'jchristn77/litegraph-mcp:v7.0.0'
+    image: 'jchristn77/litegraph-mcp:v7.1.0'
     stdin_open: true
     tty: true
     ports:
@@ -133,7 +133,7 @@ services:
 
   litegraph-ui:
     container_name: 'litegraph-ui'
-    image: 'jchristn77/litegraph-ui:v7.0.0'
+    image: 'jchristn77/litegraph-ui:v7.1.0'
     stdin_open: true
     tty: true
     ports:
