@@ -155,10 +155,22 @@ console.log(result.Success, result.State, result.TransactionId, result.DurationM
 |--------|-------------|------------|---------|----------|
 | `readAllUsers` | Retrieves all users. | `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata[]>` | `GET /v1.0/tenants/{tenantGuid}/users` |
 | `readUser` | Retrieves a specific user by GUID. | `userGuid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `GET /v1.0/tenants/{tenantGuid}/users/{userGuid}` |
-| `createUser` | Creates a new user. | `user` (Object) - User object with FirstName, LastName, Active, Email, Password <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/users` |
+| `createUser` | Creates a new user. | `user` (Object) - User object with FirstName, LastName, Active, Email, Password, and (v8.0) optional IsSystemAdmin, IsTenantAdmin <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/users` |
 | `existsUser` | Checks if a user exists by GUID. | `guid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/users/{guid}` |
-| `updateUser` | Updates an existing user. | `user` (Object) - User object with FirstName, LastName, Active, Email, Password <br> `guid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/users/{guid}` |
+| `updateUser` | Updates an existing user. | `user` (Object) - User object with FirstName, LastName, Active, Email, Password, and (v8.0) optional IsSystemAdmin, IsTenantAdmin <br> `guid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/users/{guid}` |
 | `deleteUser` | Deletes a user by GUID. | `guid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `DELETE /v1.0/tenants/{tenantGuid}/users/{guid}` |
+
+As of v8.0, a `UserMetadata` object carries `IsSystemAdmin` and `IsTenantAdmin` boolean flags (both default `false`). Administrators are ordinary users with these flags set — there is no separate administrator identity.
+
+### Settings Operations (v8.0)
+
+Requires system-administrator authentication.
+
+| Method | Description | Parameters | Returns | Endpoint |
+|--------|-------------|------------|---------|----------|
+| `readSettings` | Reads the effective server settings (secrets redacted). | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `GET /v1.0/settings` |
+| `updateSettings` | Persists server settings; hot-reloads live fields. | `settings` (Object) - Settings object <br> `cancellationToken` (optional) - `AbortController` | `Promise<SettingsUpdateResult>` | `PUT /v1.0/settings` |
+| `restartServer` | Flushes and exits the process so the orchestrator restarts it. | `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `POST /v1.0/settings/restart` |
 
 
 

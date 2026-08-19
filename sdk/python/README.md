@@ -152,6 +152,26 @@ Bulk create helpers accept `return_mode="full"` or `return_mode="minimal"`. Omit
 | Delete User               | DELETE | `v1.0/tenants/{tenant_guid}/users/{user_id}` | Delete user details    |
 | List Users                | GET    | `v1.0/tenants/{tenant_guid}/users` | List all users           |
 
+As of v8.0 a `UserMaster` object carries `IsSystemAdmin` and `IsTenantAdmin` boolean flags (both default `False`). Administrators are ordinary users with these flags set — there is no separate administrator identity.
+
+### Settings Operations (v8.0)
+
+Requires system-administrator authentication.
+
+| Operation        | Method | Endpoint                  | Description                                              |
+| ---------------- | ------ | ------------------------- | ------------------------------------------------------- |
+| Read Settings    | GET    | `v1.0/settings`           | Read effective server settings (secrets redacted)       |
+| Update Settings  | PUT    | `v1.0/settings`           | Persist settings; hot-reloads live fields               |
+| Restart Server   | POST   | `v1.0/settings/restart`   | Flush and exit so the orchestrator restarts the process |
+
+```python
+from litegraph_sdk import Admin
+
+current = Admin.read_settings()
+result = Admin.update_settings({"RequestTimeoutSeconds": 30})
+Admin.restart_server()
+```
+
 ### Credential Operations
 
 | Operation                | Method | Endpoint                           | Description                |

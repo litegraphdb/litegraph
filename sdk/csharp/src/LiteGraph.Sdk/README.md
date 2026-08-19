@@ -10,6 +10,12 @@ LiteGraph is a lightweight graph database with both relational and vector suppor
 
 For more information, visit the [LiteGraph repository](https://github.com/litegraphdb/litegraph) or the [documentation](https://litegraph.readme.io/).
 
+## New in v8.0
+
+- Unified account model: `UserMaster` carries `IsSystemAdmin` and `IsTenantAdmin` flags; administrators are ordinary users with these flags set.
+- Server settings management via `Admin.ReadSettings`, `Admin.UpdateSettings` (returns `SettingsUpdateResult`), and `Admin.RestartServer`.
+- Updated SDK, test, and Postman collections accordingly.
+
 ## New in v3.1.x
 
 - Added support for labels on graphs, nodes, edges (string list)
