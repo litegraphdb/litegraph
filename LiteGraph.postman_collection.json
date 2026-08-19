@@ -1698,7 +1698,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"FirstName\": \"Another\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"another@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true\r\n}",
+									"raw": "{\r\n    \"FirstName\": \"Another\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"another@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true,\r\n    \"IsSystemAdmin\": false,\r\n    \"IsTenantAdmin\": false\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1735,7 +1735,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"FirstName\": \"Again Updated\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"anotherbbb@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true\r\n}",
+									"raw": "{\r\n    \"FirstName\": \"Again Updated\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"anotherbbb@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true,\r\n    \"IsSystemAdmin\": false,\r\n    \"IsTenantAdmin\": false\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -4044,7 +4044,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"FirstName\": \"Another\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"another@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true\r\n}",
+									"raw": "{\r\n    \"FirstName\": \"Another\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"another@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true,\r\n    \"IsSystemAdmin\": false,\r\n    \"IsTenantAdmin\": false\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -4081,7 +4081,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"FirstName\": \"Again Updated\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"anotherbbb@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true\r\n}",
+									"raw": "{\r\n    \"FirstName\": \"Again Updated\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"anotherbbb@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true,\r\n    \"IsSystemAdmin\": false,\r\n    \"IsTenantAdmin\": false\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -7140,7 +7140,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"FirstName\": \"Another\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"another@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true\r\n}",
+									"raw": "{\r\n    \"FirstName\": \"Another\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"another@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true,\r\n    \"IsSystemAdmin\": false,\r\n    \"IsTenantAdmin\": false\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -7177,7 +7177,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"FirstName\": \"Again Updated\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"anotherbbb@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true\r\n}",
+									"raw": "{\r\n    \"FirstName\": \"Again Updated\",\r\n    \"LastName\": \"User\",\r\n    \"Email\": \"anotherbbb@user.com\",\r\n    \"Password\": \"password\",\r\n    \"Active\": true,\r\n    \"IsSystemAdmin\": false,\r\n    \"IsTenantAdmin\": false\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -12338,6 +12338,102 @@
 									"path": [
 										"v1.0",
 										"flush"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Settings",
+					"item": [
+						{
+							"name": "Read settings",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/settings",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update settings",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"RequestTimeoutSeconds\": 30\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/settings",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Restart server",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/settings/restart",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"settings",
+										"restart"
 									]
 								}
 							},
