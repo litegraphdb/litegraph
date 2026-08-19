@@ -5915,6 +5915,41 @@
                 Graph readGraph = _McpSerializer.DeserializeJson<Graph>(graphReadBody);
                 AssertEqual(graphA.GUID, readGraph.GUID, "MCP read-scoped credential can read allowed graph");
 
+                string jsonlExportBody = await _McpClient.CallAsync<string>("graph/exportjsonl", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    graphGuid = graphA.GUID.ToString(),
+                    includeData = true,
+                    includeSubordinates = true
+                }).ConfigureAwait(false);
+                AssertTrue(jsonlExportBody.Contains("# litegraph-jsonl"), "MCP graph/exportjsonl returns a JSONL header");
+                AssertTrue(jsonlExportBody.Contains("\"Type\":\"Node\""), "MCP graph/exportjsonl includes node records");
+
+                string subgraphJsonlBody = await _McpClient.CallAsync<string>("graph/exportsubgraphjsonl", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    graphGuid = graphA.GUID.ToString(),
+                    request = _McpSerializer.SerializeJson(new SubgraphExtractionRequest
+                    {
+                        StartNodeGUIDs = new List<Guid> { nodeA.GUID },
+                        MaxDepth = 1,
+                        Direction = GraphTraversalDirectionEnum.Both,
+                        IncludeData = true,
+                        IncludeSubordinates = true
+                    })
+                }).ConfigureAwait(false);
+                AssertTrue(subgraphJsonlBody.Contains("\"Type\":\"Node\""), "MCP graph/exportsubgraphjsonl includes node records");
+
+                // Import is a write; a read-scoped credential must be denied, and the tool must surface that as a non-success result.
+                string jsonlImportBody = await _McpClient.CallAsync<string>("graph/importjsonl", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    jsonl = jsonlExportBody,
+                    guidStrategy = "regenerate"
+                }).ConfigureAwait(false);
+                GraphImportResult jsonlImport = _McpSerializer.DeserializeJson<GraphImportResult>(jsonlImportBody);
+                AssertFalse(jsonlImport.Success, "MCP graph/importjsonl is denied for a read-scoped credential");
+
                 string batchExistenceBody = await _McpClient.CallAsync<string>("batch/existence", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
