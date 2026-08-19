@@ -1,9 +1,11 @@
 param(
     [string] $RestBase = "http://localhost:8701",
     [string] $McpBase = "http://localhost:8702",
+    [string] $McpMetricsBase = "http://localhost:8705",
     [string] $UiBase = "http://localhost:3001",
     [string] $PrometheusBase = "http://localhost:9090",
     [string] $GrafanaBase = "http://localhost:3000",
+    [string] $LokiBase = "http://localhost:3100",
     [string] $AdminBearerToken = "litegraphadmin",
     [int] $TimeoutSeconds = 10
 )
@@ -47,9 +49,12 @@ try {
     Invoke-SmokeRequest -Name "REST root" -Uri $RestBase | Out-Null
     Invoke-SmokeRequest -Name "REST metrics" -Uri "$RestBase/metrics" | Out-Null
     Invoke-SmokeRequest -Name "REST tenants auth" -Uri "$RestBase/v1.0/tenants" -Headers @{ Authorization = "Bearer $AdminBearerToken" } | Out-Null
+    Invoke-SmokeRequest -Name "REST settings (system admin)" -Uri "$RestBase/v1.0/settings" -Headers @{ Authorization = "Bearer $AdminBearerToken" } | Out-Null
     Invoke-SmokeRequest -Name "MCP root" -Uri $McpBase | Out-Null
+    Invoke-SmokeRequest -Name "MCP metrics" -Uri "$McpMetricsBase/metrics" | Out-Null
     Invoke-SmokeRequest -Name "UI root" -Uri $UiBase | Out-Null
     Invoke-SmokeRequest -Name "Prometheus ready" -Uri "$PrometheusBase/-/ready" | Out-Null
+    Invoke-SmokeRequest -Name "Loki ready" -Uri "$LokiBase/ready" | Out-Null
     Invoke-SmokeRequest -Name "Grafana health" -Uri "$GrafanaBase/api/health" | Out-Null
 
     Write-Host ""
