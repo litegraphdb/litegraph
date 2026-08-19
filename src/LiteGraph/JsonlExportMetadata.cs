@@ -46,7 +46,7 @@ namespace LiteGraph
         public string SelectionSummary { get; set; } = null;
 
         /// <summary>
-        /// Generator identifier, for example "LiteGraph 7.1.0".
+        /// Generator identifier, for example "LiteGraph 8.0.0".
         /// </summary>
         public string Generator { get; set; } = "LiteGraph";
 

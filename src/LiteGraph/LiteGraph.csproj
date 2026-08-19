@@ -4,7 +4,7 @@
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<Version>8.0.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v7.0.0 release with explicit transaction sessions, parallel transaction scaling, transaction diagnostics, PostgreSQL Docker defaults, and HnswLite 2.0.1 vector index support.</PackageReleaseNotes>
+		<PackageReleaseNotes>v8.0.0 breaking release: unified account model (IsSystemAdmin/IsTenantAdmin flags replace the separate administrator identity), JSONL subgraph import/export with streaming, full REST and MCP Prometheus instrumentation with Loki/Alloy log shipping, server settings API, and dashboard internationalization.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>

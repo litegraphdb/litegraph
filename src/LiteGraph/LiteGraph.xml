@@ -10851,7 +10851,7 @@
         </member>
         <member name="P:LiteGraph.JsonlExportMetadata.Generator">
             <summary>
-            Generator identifier, for example "LiteGraph 7.1.0".
+            Generator identifier, for example "LiteGraph 8.0.0".
             </summary>
         </member>
         <member name="M:LiteGraph.JsonlExportMetadata.#ctor">
