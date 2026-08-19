@@ -94,6 +94,40 @@
             await _Sdk.PostRaw(url, null, "application/octet-stream", token).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
+        public async Task<string> ReadSettings(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/settings";
+            byte[] bytes = await _Sdk.Get(url, token).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0) return Encoding.UTF8.GetString(bytes);
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<SettingsUpdateResult> UpdateSettings(string settingsJson, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(settingsJson)) throw new ArgumentNullException(nameof(settingsJson));
+            string url = _Sdk.Endpoint + "v1.0/settings";
+            byte[] body = Encoding.UTF8.GetBytes(settingsJson);
+            byte[] bytes = await _Sdk.PutStreamingBytes(url, body, "application/json", token).ConfigureAwait(false);
+            if (bytes != null && bytes.Length > 0) return Serializer.DeserializeJson<SettingsUpdateResult>(Encoding.UTF8.GetString(bytes));
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task RestartServer(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/settings/restart";
+            try
+            {
+                await _Sdk.PostStreamingBytes(url, Encoding.UTF8.GetBytes("{\"confirm\":true}"), "application/json", token).ConfigureAwait(false);
+            }
+            catch
+            {
+                // The server may drop the connection as it exits; this is expected.
+            }
+        }
+
         #endregion
 
         #region Private-Methods

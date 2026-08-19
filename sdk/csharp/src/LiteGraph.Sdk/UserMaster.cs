@@ -47,6 +47,16 @@
         public bool Active { get; set; } = true;
 
         /// <summary>
+        /// Indicates whether the user is a system administrator (server-wide superuser).  Default is false.
+        /// </summary>
+        public bool IsSystemAdmin { get; set; } = false;
+
+        /// <summary>
+        /// Indicates whether the user is a tenant administrator within their own tenant.  Default is false.
+        /// </summary>
+        public bool IsTenantAdmin { get; set; } = false;
+
+        /// <summary>
         /// Creation time, in UTC.
         /// </summary>
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;

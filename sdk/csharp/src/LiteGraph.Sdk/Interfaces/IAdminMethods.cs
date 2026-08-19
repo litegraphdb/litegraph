@@ -58,5 +58,27 @@
         /// </summary>
         /// <param name="token">Cancellation token.</param>
         Task FlushDatabase(CancellationToken token = default);
+
+        /// <summary>
+        /// Read the server settings as a JSON string.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Server settings as a JSON string.</returns>
+        Task<string> ReadSettings(CancellationToken token = default);
+
+        /// <summary>
+        /// Update the server settings.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="settingsJson">Full settings object as a JSON string.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Settings update result describing which sections applied live and which require a restart.</returns>
+        Task<SettingsUpdateResult> UpdateSettings(string settingsJson, CancellationToken token = default);
+
+        /// <summary>
+        /// Request a server restart.  The server exits its process so the container restart policy applies the new settings.
+        /// Requires system administrator privileges.  The call returns best-effort; the connection may drop as the server exits.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        Task RestartServer(CancellationToken token = default);
     }
 }

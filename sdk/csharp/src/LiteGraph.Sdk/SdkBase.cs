@@ -770,6 +770,35 @@
             }
         }
 
+        /// <summary>
+        /// Issue a PUT with a raw body and return the raw response body bytes.
+        /// </summary>
+        /// <param name="url">URL.</param>
+        /// <param name="bytes">Request body bytes.</param>
+        /// <param name="contentType">Request content type.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Response body bytes on success; null otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        public async Task<byte[]> PutStreamingBytes(string url, byte[] bytes, string contentType = "application/octet-stream", CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
+            if (bytes == null) bytes = Array.Empty<byte>();
+
+            using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, url))
+            {
+                if (!String.IsNullOrEmpty(BearerToken)) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", BearerToken);
+                req.Content = new ByteArrayContent(bytes);
+                req.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                using (HttpResponseMessage resp = await _StreamingHttpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
+                {
+                    byte[] body = await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                    if (!resp.IsSuccessStatusCode)
+                        Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + (int)resp.StatusCode);
+                    return body;
+                }
+            }
+        }
+
         #region Private-Methods
 
         private static async Task<byte[]> ReadAllBytes(RestResponse resp, CancellationToken token)
