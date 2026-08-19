@@ -344,11 +344,11 @@
             _McpWebsocketServer = new McpWebsocketsServer(_Settings.WebSocket.Hostname, _Settings.WebSocket.Port, "/mcp", includeDefaultMethods: true);
 
             _McpHttpServer.ServerName = "LiteGraph.McpServer";
-            _McpHttpServer.ServerVersion = "7.0.0";
+            _McpHttpServer.ServerVersion = "7.1.0";
             _McpTcpServer.ServerName = "LiteGraph.McpServer";
-            _McpTcpServer.ServerVersion = "7.0.0";
+            _McpTcpServer.ServerVersion = "7.1.0";
             _McpWebsocketServer.ServerName = "LiteGraph.McpServer";
-            _McpWebsocketServer.ServerVersion = "7.0.0";
+            _McpWebsocketServer.ServerVersion = "7.1.0";
 
             _McpHttpServer.ClientConnected += ClientConnected;
             _McpHttpServer.ClientDisconnected += ClientDisconnected;
