@@ -4,6 +4,31 @@ LiteGraph authorization for this release is enforced at REST and MCP boundaries.
 
 This document describes the currently implemented scoped credential behavior and the remaining RBAC limits.
 
+## v8.0 Account Flags And The Permission Matrix
+
+v8.0 replaced the administrator-versus-user split with two capability flags on the user record: `IsSystemAdmin` and `IsTenantAdmin`. They overlay the credential-scope and role RBAC described below rather than replacing it.
+
+- **System administrator** — a user with `IsSystemAdmin`, or a request carrying the break-glass administrator bearer token. Bypasses tenant and scope checks everywhere. A server-wide superuser.
+- **Tenant administrator** — a user with `IsTenantAdmin`. Full rights within the tenant of their own record; nothing outside it.
+- **Regular user** — no flags. Governed by the role and credential-scope RBAC, plus the self-service rules below.
+
+The server enforces the matrix; the dashboard mirrors it so navigation and controls match. Enforcement is verified end to end.
+
+| Operation | System admin | Tenant admin (own tenant) | Regular user |
+|---|---|---|---|
+| Read own tenant | allow | allow | allow |
+| Update own tenant | allow | allow | deny |
+| Create / delete tenant, list all tenants | allow | deny | deny |
+| Create / update / delete users in a tenant | allow | allow (own tenant) | deny |
+| List users in a tenant | allow | allow (own tenant) | deny |
+| Read / update **own** user record | allow | allow | allow |
+| Read / update **another** user's record | allow | allow (own tenant) | deny |
+| Manage credentials in a tenant | allow | allow (own tenant) | deny |
+| Graph / node / edge / label / tag / vector data in a tenant | allow | allow (own tenant) | per role and credential scope |
+| Backup, flush, settings, restart | allow | deny | deny |
+
+Denied requests return `401` when authentication is missing or rejected, and an authorization failure with a reason (for example `AdminRequired`) when the principal is authenticated but not permitted. A tenant administrator or regular user attempting to reach another tenant is stopped at the tenant boundary before scope evaluation.
+
 ## Current Authorization Boundary
 
 REST requests authenticate through one of these mechanisms:

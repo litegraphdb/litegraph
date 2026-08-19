@@ -2,6 +2,43 @@
 
 ## Current Version
 
+v8.0.0
+
+**Breaking change.** v8.0 replaces the separate administrator and user split with a single account model, unifies the two logins and two dashboards into one, and finishes the observability story. Existing v7 databases are not upgraded in place — see the upgrade notes below.
+
+- Accounts and authentication
+  - Replaced the administrator-versus-user split with a single account model: users carry `IsSystemAdmin` (server-wide superuser) and `IsTenantAdmin` (full rights within their own tenant) flags. The same email may exist in multiple tenants as independent records.
+  - Unified the login: server URL, email, a tenant picker only when the email belongs to more than one tenant, then password. Removed the separate administrator login.
+  - Kept the static administrator bearer token as a break-glass and bootstrap credential; it authenticates as a system administrator.
+  - Seeded the default user as a system administrator on a fresh database.
+
+- Authorization
+  - Overlaid the flags on the existing role and credential-scope RBAC: system administrators bypass tenant and scope checks; tenant administrators have full rights within their own tenant; everyone else is governed by RBAC.
+  - Restricted regular users to reading their own tenant and reading and updating only their own user record; confined user and credential management to tenant administrators and system administrators; kept tenant lifecycle, backup, flush, and settings as system-administrator-only.
+
+- Dashboard
+  - Collapsed the administrator and tenant dashboards into one, organized under a HOME / DATA / METADATA / MANAGE / SECURE / ADMINISTER hierarchy.
+  - Gated every section and control through one declarative capability map so the navigation, route guards, and buttons agree.
+  - Added a form-based Settings page that edits `litegraph.json`, shows which changes apply live versus require a restart, and offers a Restart Server control.
+
+- Settings API
+  - Added `GET`/`PUT /v1.0/settings` and `POST /v1.0/settings/restart` for system administrators; live settings apply immediately, the rest are written and applied on restart, and the restart exits the process so the container restart policy brings it back.
+
+- Observability
+  - Instrumented every REST route and every MCP tool with a shared Prometheus metric scheme distinguished by a `component` label, added an MCP `/metrics` endpoint, and expanded the Grafana dashboards.
+  - Added a Loki and Grafana Alloy log pipeline over syslog so LiteGraph logs are searchable and time-correlated in Grafana. Upgraded SyslogLogging to 2.2.2.
+
+- Docker
+  - Added Loki and Alloy services, a Loki datasource, a second Prometheus scrape target for MCP, and `restart: unless-stopped` on the LiteGraph services so the settings restart applies.
+
+- Upgrade
+  - v8 is a clean break: stand up a fresh v8 deployment and move data with the v7.1 JSONL export/import. Users, credentials, and roles are re-created in v8.
+
+- Validation
+  - Added account-flag round-trip coverage on both providers and validated the full authorization matrix (system administrator, tenant administrator, and regular user) live, plus settings read/update/restart and the observability metric surface.
+
+## Previous Versions
+
 v7.1.0
 
 - Subgraph selection and interchange

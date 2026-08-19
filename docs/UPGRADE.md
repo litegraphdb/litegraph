@@ -1,3 +1,22 @@
+# LiteGraph Upgrade Guide
+
+## Upgrading To v8.0 (Breaking)
+
+v8.0 changes the account model and the schema, so it is a clean break rather than an in-place migration. Plan for a fresh v8 deployment and move data across with the JSONL interchange that shipped in v7.1.
+
+**What changed.** The administrator-versus-user split is gone. Accounts are ordinary user records with `IsSystemAdmin` and `IsTenantAdmin` flags; the old static administrator token survives only as a break-glass credential. The users table gains the two flag columns, and the login flow is unified (server URL, email, tenant if more than one, password). Because the schema and the account model both change, v7 databases are not read by v8.
+
+**How to move.** Stand up a fresh v8 deployment (the `docker compose` stack seeds a default tenant and a system-administrator user). For each graph you want to carry over, export it from v7 as JSONL and import it into v8:
+
+1. On the v7 server, `GET /v1.0/tenants/{tenant}/graphs/{graph}/export/jsonl?incldata&inclsub` and save the stream.
+2. On the v8 server, `POST /v1.0/tenants/{tenant}/graphs/import/jsonl` (new graph) or `POST /v1.0/tenants/{tenant}/graphs/{graph}/import/jsonl` (merge) with the saved JSONL.
+
+Graph data, labels, tags, vectors, and edges come across. Users, credentials, and roles are re-created in v8 — recreate the accounts you need and set the `IsSystemAdmin`/`IsTenantAdmin` flags as appropriate. The dashboard, REST, MCP, and SDKs all move to the single account model at the same time.
+
+**Docker.** The v8 compose adds Loki and Grafana Alloy for logs and gives the LiteGraph services `restart: unless-stopped` so the Settings restart control can bring the server back with new configuration. Bump image tags to `v8.0.0`.
+
+---
+
 # LiteGraph v7.0 Upgrade Guide
 
 This guide covers upgrades from existing SQLite-only, pre-RBAC, or v6.x LiteGraph deployments to `v7.0.0`. It focuses on the storage, authorization, transaction, Docker, observability, and vector-index changes now merged into `main`.

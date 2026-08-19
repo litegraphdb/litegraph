@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v7.1.0`.
+Current release: `v8.0.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -23,6 +23,16 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 - Next.js/React dashboard
 - Official C#, Python, and JavaScript SDKs
 - Docker Compose deployment for PostgreSQL, LiteGraph, MCP, dashboard, Prometheus, and Grafana OSS
+
+## New In v8.0.0
+
+v8.0 is a breaking release. It removes the split between administrators and users, and with it the second login and the second dashboard.
+
+- One account model. A user is a system administrator or a tenant administrator through `IsSystemAdmin` and `IsTenantAdmin` flags on their record, not a separate kind of login. A system administrator is a server-wide superuser; a tenant administrator runs their own tenant; everyone else is governed by the existing role and credential-scope RBAC and can read their own tenant and edit only their own account. The static administrator token stays as a break-glass credential.
+- One login, one dashboard. Sign in with the server URL, your email, a tenant if your email belongs to more than one, and your password. The dashboard is a single hierarchy — HOME, DATA, METADATA, MANAGE, SECURE, ADMINISTER — and one capability map decides what each person sees and can change, so the navigation and the buttons never disagree.
+- A settings editor. System administrators edit `litegraph.json` from a form. Changes that are safe apply live; the rest are written to disk and take effect on a restart you can trigger from the same page, which exits the process so the container brings it back with the new configuration.
+- Everything is measured. Every REST route and every MCP tool reports to Prometheus under one metric scheme, split by a `component` label, and logs flow into Grafana through Loki and Grafana Alloy — so a spike and the log line that explains it sit side by side.
+- Clean-break upgrade. v8 starts fresh; move data from a v7 deployment with the v7.1 JSONL export and import.
 
 ## New In v7.1.0
 

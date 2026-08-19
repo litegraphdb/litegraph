@@ -1,5 +1,26 @@
 # LiteGraph Observability
 
+## v8.0 — REST And MCP Metrics, And Logs In Grafana
+
+v8.0 closed the remaining gaps: every REST route and every MCP tool is measured, and logs reach Grafana.
+
+**Unified metrics.** REST and MCP emit the same metric names, distinguished by a `component` label (`rest` or `mcp`), so a Grafana panel treats them as one system:
+
+- `litegraph_http_requests_total` — counter. REST labels: `component`, `route`, `method`, `status_class`. MCP labels: `component`, `transport` (`http`/`tcp`/`ws`), `tool`, `status_class`.
+- `litegraph_http_request_duration_ms` — histogram, same labels.
+- `litegraph_http_request_errors_total` — counter, incremented on error responses.
+- `litegraph_http_requests_in_flight` — gauge, by `component` (and `transport` for MCP).
+
+The REST `route` label is a low-cardinality template name derived from the request type (for example `graph.export.jsonl`), not the raw path, so per-GUID cardinality never leaks in. Because the label is derived from the request-type enumeration, a new route is instrumented by construction; a startup assertion fails if any request type maps to a missing or duplicate label.
+
+**Scrape targets.** The REST server exposes `/metrics` on `8701`; the MCP server exposes its own `/metrics` on `8705` (configurable via `MCP_METRICS_HOSTNAME`/`MCP_METRICS_PORT`). Prometheus scrapes both.
+
+**Logs into Grafana.** LiteGraph ships structured syslog to Grafana Alloy, which stamps `component=rest` (received on `:1514`) or `component=mcp` (received on `:2514`) and forwards to Loki. Grafana carries both a Prometheus and a Loki datasource. In Grafana Explore, query `{service=~"litegraph.*"}` and filter by `component` and severity; a logged error lines up in time with the metric error spike. SyslogLogging is `2.2.2`.
+
+**Dashboards.** The provisioned Grafana dashboards cover request rate, latency, and errors per REST route and per MCP tool (unified via `component`), in-flight requests, the storage and transaction panels retained from v7, and a Loki logs panel filtered by `component` and severity.
+
+---
+
 LiteGraph exposes production observability through Prometheus-compatible metrics and OpenTelemetry-compatible .NET instrumentation hooks.
 
 The current implementation provides:
