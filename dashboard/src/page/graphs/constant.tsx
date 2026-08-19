@@ -173,6 +173,7 @@ export const tableColumns = (
           label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
+        { type: 'divider' as const, key: 'divider-interchange' },
         {
           icon: <ExportOutlined />,
           key: 'export',
@@ -191,6 +192,7 @@ export const tableColumns = (
           label: tImportExport('importIntoGraph'),
           onClick: () => handleImportIntoGraph(record),
         },
+        { type: 'divider' as const, key: 'divider-vector-index' },
         {
           icon: <SettingOutlined />,
           key: 'enable-vector-index',
@@ -221,6 +223,7 @@ export const tableColumns = (
           label: t('rowActions.deleteVectorIndex'),
           onClick: () => handleDeleteVectorIndex(record),
         },
+        { type: 'divider' as const, key: 'divider-view' },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
