@@ -62,8 +62,12 @@ namespace LiteGraph.Server.Services
         private readonly ConcurrentDictionary<string, StorageBackendMetric> _StorageBackendMetrics = new ConcurrentDictionary<string, StorageBackendMetric>(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<string, StorageConnectionPoolMetric> _StorageConnectionPoolMetrics = new ConcurrentDictionary<string, StorageConnectionPoolMetric>(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<string, EntityCountMetric> _EntityCountMetrics = new ConcurrentDictionary<string, EntityCountMetric>(StringComparer.Ordinal);
+        private const string _RestComponent = "rest";
         private readonly Counter<long> _HttpRequestsCounter;
+        private readonly Counter<long> _HttpRequestErrorsCounter;
         private readonly Histogram<double> _HttpRequestDurationMs;
+        private readonly ObservableGauge<long> _HttpRequestsInFlightGauge;
+        private long _ActiveHttpRequests = 0;
         private readonly Counter<long> _GraphQueryCounter;
         private readonly Histogram<double> _GraphQueryDurationMs;
         private readonly Counter<long> _VectorSearchCounter;
@@ -103,7 +107,9 @@ namespace LiteGraph.Server.Services
             ActivitySource = new ActivitySource(_Settings.ServiceName);
             Meter = new Meter(_Settings.ServiceName);
             _HttpRequestsCounter = Meter.CreateCounter<long>("litegraph.http.requests", "requests", "Total HTTP requests processed by LiteGraph.");
+            _HttpRequestErrorsCounter = Meter.CreateCounter<long>("litegraph.http.request.errors", "errors", "Total HTTP requests that resulted in an error status code (>= 400).");
             _HttpRequestDurationMs = Meter.CreateHistogram<double>("litegraph.http.request.duration", "ms", "HTTP request duration in milliseconds.");
+            _HttpRequestsInFlightGauge = Meter.CreateObservableGauge<long>("litegraph.http.requests.in_flight", ObserveActiveHttpRequests, "requests", "Currently in-flight HTTP requests.");
             _GraphQueryCounter = Meter.CreateCounter<long>("litegraph.graph.queries", "queries", "Total native graph queries processed by LiteGraph.");
             _GraphQueryDurationMs = Meter.CreateHistogram<double>("litegraph.graph.query.duration", "ms", "Native graph query duration in milliseconds.");
             _VectorSearchCounter = Meter.CreateCounter<long>("litegraph.vector.searches", "searches", "Total vector searches processed by LiteGraph.");
@@ -124,6 +130,7 @@ namespace LiteGraph.Server.Services
             _StorageConnectionPoolMaxGauge = Meter.CreateObservableGauge<long>("litegraph.storage.connection.pool.max", ObserveStorageConnectionPoolMax, "connections", "Configured maximum storage connection pool size.");
             _StorageCommandTimeoutGauge = Meter.CreateObservableGauge<long>("litegraph.storage.command.timeout", ObserveStorageCommandTimeouts, "s", "Configured storage command timeout in seconds.");
             _EntityCountGauge = Meter.CreateObservableGauge<long>("litegraph.entity.count", ObserveEntityCounts, "entities", "Latest observed LiteGraph entity counts from statistics endpoints.");
+            AssertRouteLabelsComplete();
             InitializeOpenTelemetryExporters();
             LiteGraphTelemetry.RepositoryOperationRecorded += HandleRepositoryOperationRecorded;
         }
@@ -176,36 +183,84 @@ namespace LiteGraph.Server.Services
         }
 
         /// <summary>
-        /// Record a completed HTTP request.
+        /// Record a completed HTTP request, labeled by a low-cardinality route template derived from the request type.
         /// </summary>
         /// <param name="method">HTTP method.</param>
-        /// <param name="path">Request path.</param>
+        /// <param name="requestType">Resolved request type used to derive the low-cardinality route-template label.</param>
         /// <param name="statusCode">HTTP status code.</param>
         /// <param name="durationMs">Duration in milliseconds.</param>
-        public void RecordHttpRequest(string method, string path, int statusCode, double durationMs)
+        public void RecordHttpRequest(string method, RequestTypeEnum requestType, int statusCode, double durationMs)
         {
             if (!_Settings.Enable) return;
 
-            method = NormalizeLabel(method);
-            path = NormalizePath(path);
-            string status = statusCode.ToString(CultureInfo.InvariantCulture);
-            string key = method + "\n" + path + "\n" + status;
+            method = NormalizeLabel(method).ToUpperInvariant();
+            string route = RouteLabel(requestType);
+            string statusClass = StatusClass(statusCode);
+            bool isError = statusCode >= 400;
+            string key = _RestComponent + "\n" + route + "\n" + method + "\n" + statusClass;
 
-            RequestMetric metric = _RequestMetrics.GetOrAdd(key, _ => new RequestMetric(method, path, statusCode));
-            metric.Record(durationMs);
+            RequestMetric metric = _RequestMetrics.GetOrAdd(key, _ => new RequestMetric(_RestComponent, route, method, statusClass));
+            metric.Record(durationMs, isError);
 
             if (_Settings.EnableOpenTelemetry)
             {
                 KeyValuePair<string, object>[] tags =
                 {
+                    new KeyValuePair<string, object>("component", _RestComponent),
+                    new KeyValuePair<string, object>("route", route),
                     new KeyValuePair<string, object>("http.request.method", method),
-                    new KeyValuePair<string, object>("url.path", path),
-                    new KeyValuePair<string, object>("http.response.status_code", statusCode)
+                    new KeyValuePair<string, object>("status_class", statusClass)
                 };
 
                 _HttpRequestsCounter.Add(1, tags);
                 _HttpRequestDurationMs.Record(durationMs, tags);
+                if (isError) _HttpRequestErrorsCounter.Add(1, tags);
             }
+        }
+
+        /// <summary>
+        /// Increment the in-flight HTTP request gauge. Pair every call with <see cref="DecrementHttpInFlight"/>.
+        /// </summary>
+        public void IncrementHttpInFlight()
+        {
+            if (!_Settings.Enable) return;
+            Interlocked.Increment(ref _ActiveHttpRequests);
+        }
+
+        /// <summary>
+        /// Decrement the in-flight HTTP request gauge.
+        /// </summary>
+        public void DecrementHttpInFlight()
+        {
+            if (!_Settings.Enable) return;
+            Interlocked.Decrement(ref _ActiveHttpRequests);
+        }
+
+        /// <summary>
+        /// Derive the low-cardinality route-template label for a request type (e.g. <c>graph.export.jsonl</c>).
+        /// </summary>
+        /// <param name="requestType">Request type.</param>
+        /// <returns>Dotted, lower-case route label. Never null or empty.</returns>
+        public static string RouteLabel(RequestTypeEnum requestType)
+        {
+            string name = requestType.ToString();
+            if (String.IsNullOrEmpty(name)) return "unknown";
+
+            StringBuilder sb = new StringBuilder(name.Length + 8);
+            for (int i = 0; i < name.Length; i++)
+            {
+                char c = name[i];
+                if (Char.IsUpper(c) && sb.Length > 0)
+                {
+                    bool prevLower = Char.IsLower(name[i - 1]) || Char.IsDigit(name[i - 1]);
+                    bool nextLower = i + 1 < name.Length && Char.IsLower(name[i + 1]);
+                    if (prevLower || nextLower) sb.Append('.');
+                }
+
+                sb.Append(Char.ToLowerInvariant(c));
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>
@@ -592,6 +647,23 @@ namespace LiteGraph.Server.Services
                 sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
             }
 
+            sb.AppendLine("# HELP litegraph_http_request_errors_total Total HTTP requests that resulted in an error status code (>= 400).");
+            sb.AppendLine("# TYPE litegraph_http_request_errors_total counter");
+            foreach (RequestMetric metric in _RequestMetrics.Values)
+            {
+                sb.Append("litegraph_http_request_errors_total");
+                AppendLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.ErrorCount.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_http_requests_in_flight Currently in-flight HTTP requests.");
+            sb.AppendLine("# TYPE litegraph_http_requests_in_flight gauge");
+            sb.Append("litegraph_http_requests_in_flight{component=\"");
+            sb.Append(EscapeLabel(_RestComponent));
+            sb.Append("\"} ");
+            sb.AppendLine(Interlocked.Read(ref _ActiveHttpRequests).ToString(CultureInfo.InvariantCulture));
+
             sb.AppendLine("# HELP litegraph_graph_queries_total Total native graph queries processed by LiteGraph.");
             sb.AppendLine("# TYPE litegraph_graph_queries_total counter");
             foreach (GraphQueryMetric metric in _GraphQueryMetrics.Values)
@@ -858,12 +930,33 @@ namespace LiteGraph.Server.Services
             return value.Trim();
         }
 
-        private static string NormalizePath(string value)
+        private static string StatusClass(int statusCode)
         {
-            if (String.IsNullOrEmpty(value)) return "/";
-            int queryIndex = value.IndexOf('?');
-            if (queryIndex >= 0) value = value.Substring(0, queryIndex);
-            return value.Trim();
+            if (statusCode < 100 || statusCode > 599) return "unknown";
+            return (statusCode / 100).ToString(CultureInfo.InvariantCulture) + "xx";
+        }
+
+        private static void AssertRouteLabelsComplete()
+        {
+            HashSet<string> labels = new HashSet<string>(StringComparer.Ordinal);
+            foreach (RequestTypeEnum requestType in (RequestTypeEnum[])Enum.GetValues(typeof(RequestTypeEnum)))
+            {
+                string label = RouteLabel(requestType);
+                if (String.IsNullOrWhiteSpace(label))
+                    throw new InvalidOperationException("Request type '" + requestType + "' does not map to a metric route label.");
+                if (!labels.Add(label))
+                    throw new InvalidOperationException("Request type '" + requestType + "' produced a duplicate metric route label '" + label + "'.");
+            }
+        }
+
+        private IEnumerable<Measurement<long>> ObserveActiveHttpRequests()
+        {
+            KeyValuePair<string, object>[] tags =
+            {
+                new KeyValuePair<string, object>("component", _RestComponent)
+            };
+
+            yield return new Measurement<long>(Interlocked.Read(ref _ActiveHttpRequests), tags);
         }
 
         private static string EscapeLabel(string value)
@@ -927,23 +1020,27 @@ namespace LiteGraph.Server.Services
 
         private static void AppendLabels(StringBuilder sb, RequestMetric metric)
         {
-            sb.Append("{method=\"");
+            sb.Append("{component=\"");
+            sb.Append(EscapeLabel(metric.Component));
+            sb.Append("\",route=\"");
+            sb.Append(EscapeLabel(metric.Route));
+            sb.Append("\",method=\"");
             sb.Append(EscapeLabel(metric.Method));
-            sb.Append("\",path=\"");
-            sb.Append(EscapeLabel(metric.Path));
-            sb.Append("\",status_code=\"");
-            sb.Append(metric.StatusCode.ToString(CultureInfo.InvariantCulture));
+            sb.Append("\",status_class=\"");
+            sb.Append(EscapeLabel(metric.StatusClass));
             sb.Append("\"}");
         }
 
         private static void AppendLabels(StringBuilder sb, RequestMetric metric, string le)
         {
-            sb.Append("{method=\"");
+            sb.Append("{component=\"");
+            sb.Append(EscapeLabel(metric.Component));
+            sb.Append("\",route=\"");
+            sb.Append(EscapeLabel(metric.Route));
+            sb.Append("\",method=\"");
             sb.Append(EscapeLabel(metric.Method));
-            sb.Append("\",path=\"");
-            sb.Append(EscapeLabel(metric.Path));
-            sb.Append("\",status_code=\"");
-            sb.Append(metric.StatusCode.ToString(CultureInfo.InvariantCulture));
+            sb.Append("\",status_class=\"");
+            sb.Append(EscapeLabel(metric.StatusClass));
             sb.Append("\",le=\"");
             sb.Append(EscapeLabel(le));
             sb.Append("\"}");
@@ -1108,27 +1205,31 @@ namespace LiteGraph.Server.Services
         {
             private readonly object _Lock = new object();
 
+            internal string Component { get; }
+            internal string Route { get; }
             internal string Method { get; }
-            internal string Path { get; }
-            internal int StatusCode { get; }
+            internal string StatusClass { get; }
             internal long Count { get; private set; }
+            internal long ErrorCount { get; private set; }
             internal double DurationSumMs { get; private set; }
             private readonly long[] _BucketCounts = new long[_HttpRequestDurationBucketsMs.Length];
 
-            internal RequestMetric(string method, string path, int statusCode)
+            internal RequestMetric(string component, string route, string method, string statusClass)
             {
+                Component = component;
+                Route = route;
                 Method = method;
-                Path = path;
-                StatusCode = statusCode;
+                StatusClass = statusClass;
             }
 
-            internal void Record(double durationMs)
+            internal void Record(double durationMs, bool isError)
             {
                 if (durationMs < 0) durationMs = 0;
 
                 lock (_Lock)
                 {
                     Count++;
+                    if (isError) ErrorCount++;
                     DurationSumMs += durationMs;
                     for (int i = 0; i < _HttpRequestDurationBucketsMs.Length; i++)
                     {

@@ -2,6 +2,7 @@ namespace LiteGraph
 {
     using System;
     using System.Collections.Generic;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Logging settings.
@@ -90,7 +91,9 @@ namespace LiteGraph
 
         /// <summary>
         /// Method to invoke to send log messages.
+        /// This is a runtime callback and is never serialized.
         /// </summary>
+        [JsonIgnore]
         public Action<SeverityEnum, string> Logger { get; set; } = null;
 
         /// <summary>

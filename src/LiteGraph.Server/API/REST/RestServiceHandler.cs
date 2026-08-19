@@ -219,6 +219,9 @@ namespace LiteGraph.Server.API.REST
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/backups/{backupFilename}", BackupDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Delete backup", "Admin"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/flush", FlushRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Flush database to disk", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/settings", SettingsReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read server settings", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/settings", SettingsUpdateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Update server settings", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server", "Admin"));
 
             #endregion
 
@@ -535,6 +538,7 @@ namespace LiteGraph.Server.API.REST
         {
             RequestContext req = null;
 
+            _Observability.IncrementHttpInFlight();
             ctx.Response.Headers.Add(Constants.HostnameHeader, _Hostname);
             ctx.Response.ContentType = Constants.JsonContentType;
 
@@ -680,9 +684,10 @@ namespace LiteGraph.Server.API.REST
 
             _Observability.RecordHttpRequest(
                 ctx.Request.Method.ToString(),
-                OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithoutQuery),
+                req?.RequestType ?? RequestTypeEnum.Unknown,
                 ctx.Response.StatusCode,
                 ctx.Timestamp.TotalMs ?? 0);
+            _Observability.DecrementHttpInFlight();
 
             CaptureRequestHistory(ctx);
             StopRequestActivity(ctx);
@@ -993,6 +998,60 @@ namespace LiteGraph.Server.API.REST
             }
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.FlushDatabase);
+        }
+
+        private async Task SettingsReadRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.SettingsRead);
+        }
+
+        private async Task SettingsUpdateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            try
+            {
+                req.Settings = _Serializer.DeserializeJson<Settings>(ctx.Request.DataAsString);
+            }
+            catch (Exception e)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, e.Message)));
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.SettingsUpdate);
+        }
+
+        private async Task SettingsRestartRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.SettingsRestart);
         }
 
         #endregion

@@ -32,6 +32,7 @@
 
         private static LiteGraphMcpServerSettings _Settings = new LiteGraphMcpServerSettings();
         private static LoggingModule _Logging = null!;
+        private static Services.McpObservabilityService? _Observability = null;
         private static LiteGraphSdk? _McpSdk = null;
         private static McpHttpServer? _McpHttpServer = null;
         private static McpTcpServer? _McpTcpServer = null;
@@ -88,6 +89,8 @@
             while (!waitHandleSignal);
 
             _Logging.Info(_Header + "stopping at " + DateTime.UtcNow);
+
+            _Observability?.Dispose();
         }
 
         #endregion
@@ -237,6 +240,32 @@
                 }
             }
 
+            string? metricsHostname = Environment.GetEnvironmentVariable(Constants.McpMetricsHostnameEnvironmentVariable);
+            if (!String.IsNullOrEmpty(metricsHostname)) _Settings.Observability.Hostname = metricsHostname;
+
+            string? metricsPort = Environment.GetEnvironmentVariable(Constants.McpMetricsPortEnvironmentVariable);
+            if (!String.IsNullOrEmpty(metricsPort))
+            {
+                if (Int32.TryParse(metricsPort, out int val))
+                {
+                    if (val >= 0 && val <= 65535) _Settings.Observability.Port = val;
+                }
+            }
+
+            string? syslogHostname = Environment.GetEnvironmentVariable(Constants.SyslogHostnameEnvironmentVariable);
+            string? syslogPort = Environment.GetEnvironmentVariable(Constants.SyslogPortEnvironmentVariable);
+            if (!String.IsNullOrEmpty(syslogHostname))
+            {
+                int syslogPortValue = 514;
+                if (!String.IsNullOrEmpty(syslogPort) && Int32.TryParse(syslogPort, out int parsedSyslogPort))
+                {
+                    if (parsedSyslogPort > 0 && parsedSyslogPort <= 65535) syslogPortValue = parsedSyslogPort;
+                }
+
+                if (_Settings.Logging.Servers == null) _Settings.Logging.Servers = new System.Collections.Generic.List<LoggingServerSettings>();
+                _Settings.Logging.Servers.Add(new LoggingServerSettings { Hostname = syslogHostname, Port = syslogPortValue });
+            }
+
             #endregion
 
             #region Logging
@@ -329,6 +358,30 @@
 
             #endregion
 
+            #region Observability
+
+            if (_Settings.Observability != null && _Settings.Observability.Enable)
+            {
+                Services.McpObservabilityService observability = new Services.McpObservabilityService(_Settings.Observability);
+                _Observability = observability;
+
+                if (_Settings.Observability.EnablePrometheus)
+                {
+                    try
+                    {
+                        observability.Start();
+                        _Logging!.Info(_Header + "MCP metrics endpoint listening on "
+                            + _Settings.Observability.Hostname + ":" + _Settings.Observability.Port + _Settings.Observability.MetricsPath);
+                    }
+                    catch (Exception e)
+                    {
+                        _Logging!.Warn(_Header + "unable to start MCP metrics endpoint: " + e.Message);
+                    }
+                }
+            }
+
+            #endregion
+
             #region MCP-Server
 
             Console.WriteLine(
@@ -389,11 +442,56 @@
         private static void ClientRequestReceived(object? sender, JsonRpcRequestEventArgs e)
         {
             _Logging.Debug(_Header + "client session " + e.Client.SessionId + " request " + e.Method);
+            _Observability?.IncrementInFlight(TransportLabel(e.Client));
         }
 
         private static void ClientResponseSent(object? sender, JsonRpcResponseEventArgs e)
         {
             _Logging.Debug(_Header + "client session " + e.Client.SessionId + " request " + e.Method + " completed (" + e.Duration.TotalMilliseconds + "ms)");
+
+            if (_Observability != null)
+            {
+                string transport = TransportLabel(e.Client);
+                _Observability.DecrementInFlight(transport);
+                _Observability.RecordToolCall(transport, ToolLabel(e), e.IsError, e.Duration.TotalMilliseconds);
+            }
+        }
+
+        private static string TransportLabel(ClientConnection? client)
+        {
+            if (client == null) return "unknown";
+
+            switch (client.Type)
+            {
+                case ClientConnectionTypeEnum.Http:
+                    return "http";
+                case ClientConnectionTypeEnum.Tcp:
+                    return "tcp";
+                case ClientConnectionTypeEnum.Websockets:
+                    return "ws";
+                case ClientConnectionTypeEnum.Stdio:
+                    return "stdio";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private static string ToolLabel(JsonRpcResponseEventArgs e)
+        {
+            string method = e.Method;
+            if (String.IsNullOrEmpty(method)) return "unknown";
+
+            if (String.Equals(method, "tools/call", StringComparison.OrdinalIgnoreCase)
+                && e.Request?.Params is JsonElement parameters
+                && parameters.ValueKind == JsonValueKind.Object
+                && parameters.TryGetProperty("name", out JsonElement nameElement)
+                && nameElement.ValueKind == JsonValueKind.String)
+            {
+                string? name = nameElement.GetString();
+                if (!String.IsNullOrEmpty(name)) return name;
+            }
+
+            return method;
         }
 
         private static void RegisterMcpTools()

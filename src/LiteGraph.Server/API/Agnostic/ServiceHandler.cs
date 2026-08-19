@@ -129,6 +129,73 @@
             return new ResponseContext(req);
         }
 
+        internal Task<ResponseContext> SettingsRead(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsSystemAdmin) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed));
+
+            return Task.FromResult(new ResponseContext(req, _Settings));
+        }
+
+        internal Task<ResponseContext> SettingsUpdate(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsSystemAdmin) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed));
+            if (req.Settings == null) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "A settings object is required."));
+
+            SettingsUpdateResult result = new SettingsUpdateResult();
+
+            try
+            {
+                // Persist the full settings object to disk. Property setters on Settings already validate ranges/nulls,
+                // so an invalid payload will have failed to deserialize before reaching here.
+                System.IO.File.WriteAllBytes(Constants.SettingsFile, System.Text.Encoding.UTF8.GetBytes(_Serializer.SerializeJson(req.Settings, true)));
+
+                // Apply live the settings that the running request pipeline reads on every request.
+                _Settings.RequestTimeoutSeconds = req.Settings.RequestTimeoutSeconds;
+                result.AppliedLive.Add("RequestTimeoutSeconds");
+
+                // Everything else is captured by long-lived services at startup and requires a restart to take effect.
+                result.RestartRequired.Add("Logging");
+                result.RestartRequired.Add("Rest");
+                result.RestartRequired.Add("LiteGraph");
+                result.RestartRequired.Add("Storage");
+                result.RestartRequired.Add("Observability");
+                result.RestartRequired.Add("Encryption");
+                result.RestartRequired.Add("Caching");
+                result.RestartRequired.Add("RequestHistory");
+
+                result.Success = true;
+                result.Message = "Settings saved. Restart the server to apply the settings marked as restart-required.";
+                _Logging.Info(_Header + "server settings updated by system administrator " + req.Authentication.UserGUID);
+                return Task.FromResult(new ResponseContext(req, result));
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "settings update failure:" + Environment.NewLine + e.ToString());
+                return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.InternalError, null, e.Message));
+            }
+        }
+
+        internal Task<ResponseContext> SettingsRestart(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsSystemAdmin) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed));
+
+            _Logging.Warn(_Header + "server restart requested by system administrator " + req.Authentication.UserGUID + "; process will exit so the container restart policy applies the new settings.");
+
+            // Flush and schedule a clean process exit shortly after the response is sent, so the container's
+            // restart policy (unless-stopped) brings the server back with the updated litegraph.json.
+            _ = Task.Run(async () =>
+            {
+                try { _LiteGraph.Flush(); } catch { }
+                await Task.Delay(500).ConfigureAwait(false);
+                Environment.Exit(0);
+            });
+
+            return Task.FromResult(new ResponseContext(req, new { restarting = true }));
+        }
+
         #endregion
 
         #region Tenant-Routes

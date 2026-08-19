@@ -716,6 +716,9 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.CredentialScopeAssignmentUpdate:
                 case RequestTypeEnum.UserEffectivePermissionsRead:
                 case RequestTypeEnum.CredentialEffectivePermissionsRead:
+                case RequestTypeEnum.SettingsRead:
+                case RequestTypeEnum.SettingsUpdate:
+                case RequestTypeEnum.SettingsRestart:
                     return true;
                 default:
                     return false;

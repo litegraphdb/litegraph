@@ -11759,6 +11759,7 @@
         <member name="P:LiteGraph.LoggingSettings.Logger">
             <summary>
             Method to invoke to send log messages.
+            This is a runtime callback and is never serialized.
             </summary>
         </member>
         <member name="P:LiteGraph.LoggingSettings.LogQueries">

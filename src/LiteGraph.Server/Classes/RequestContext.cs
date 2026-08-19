@@ -340,6 +340,11 @@
         public SubgraphExtractionRequest SubgraphExtractionRequest { get; set; } = null;
 
         /// <summary>
+        /// Server settings object, populated on a settings update request.
+        /// </summary>
+        public Settings Settings { get; set; } = null;
+
+        /// <summary>
         /// GUID collision strategy for JSONL import.  Default is Regenerate.
         /// </summary>
         public GraphImportGuidStrategyEnum ImportGuidStrategy { get; set; } = GraphImportGuidStrategyEnum.Regenerate;

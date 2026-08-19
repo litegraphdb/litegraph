@@ -88,6 +88,26 @@ namespace LiteGraph.McpServer.Classes
         /// </summary>
         public static string ConsoleLoggingEnvironmentVariable = "MCP_CONSOLE_LOGGING";
 
+        /// <summary>
+        /// Environment variable for the Prometheus metrics listener hostname.
+        /// </summary>
+        public static string McpMetricsHostnameEnvironmentVariable = "MCP_METRICS_HOSTNAME";
+
+        /// <summary>
+        /// Environment variable for the Prometheus metrics listener port.
+        /// </summary>
+        public static string McpMetricsPortEnvironmentVariable = "MCP_METRICS_PORT";
+
+        /// <summary>
+        /// Environment variable for the first syslog server hostname (log routing to Alloy/Loki).
+        /// </summary>
+        public static string SyslogHostnameEnvironmentVariable = "MCP_SYSLOG_HOSTNAME";
+
+        /// <summary>
+        /// Environment variable for the first syslog server port (log routing to Alloy/Loki).
+        /// </summary>
+        public static string SyslogPortEnvironmentVariable = "MCP_SYSLOG_PORT";
+
         #endregion
     }
 }

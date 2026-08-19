@@ -108,6 +108,8 @@ namespace Test.Shared
                     { "MCP_TCP_PORT", environment.McpTcpPort.ToString() },
                     { "MCP_WS_HOSTNAME", "127.0.0.1" },
                     { "MCP_WS_PORT", environment.McpWebSocketPort.ToString() },
+                    { "MCP_METRICS_HOSTNAME", "127.0.0.1" },
+                    { "MCP_METRICS_PORT", environment.McpMetricsPort.ToString() },
                     { "MCP_CONSOLE_LOGGING", "1" }
                 });
 
@@ -121,6 +123,7 @@ namespace Test.Shared
             int mcpHttpPort = ReserveAvailablePort(reservedPorts);
             int mcpTcpPort = ReserveAvailablePort(reservedPorts);
             int mcpWebSocketPort = ReserveAvailablePort(reservedPorts);
+            int mcpMetricsPort = ReserveAvailablePort(reservedPorts);
 
             string artifactDirectory = Path.Combine(
                 Path.GetTempPath(),
@@ -150,7 +153,8 @@ namespace Test.Shared
                 LiteGraphPort = liteGraphPort,
                 McpHttpPort = mcpHttpPort,
                 McpTcpPort = mcpTcpPort,
-                McpWebSocketPort = mcpWebSocketPort
+                McpWebSocketPort = mcpWebSocketPort,
+                McpMetricsPort = mcpMetricsPort
             };
         }
 
@@ -503,6 +507,7 @@ namespace Test.Shared
             public int McpHttpPort { get; init; }
             public int McpTcpPort { get; init; }
             public int McpWebSocketPort { get; init; }
+            public int McpMetricsPort { get; init; }
             public ManagedProcess? LiteGraphProcess { get; set; }
             public ManagedProcess? McpProcess { get; set; }
 
@@ -514,6 +519,11 @@ namespace Test.Shared
             public string McpHttpEndpoint
             {
                 get { return "http://127.0.0.1:" + McpHttpPort; }
+            }
+
+            public string McpMetricsEndpoint
+            {
+                get { return "http://127.0.0.1:" + McpMetricsPort; }
             }
         }
 

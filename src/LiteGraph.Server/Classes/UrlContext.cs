@@ -276,6 +276,7 @@
                     if (matcher.Match("/", out _UrlParameters)) return RequestTypeEnum.Root;
                     if (matcher.Match("/favicon.ico", out _UrlParameters)) return RequestTypeEnum.Favicon;
 
+                    if (matcher.Match("/v1.0/settings", out _UrlParameters)) return RequestTypeEnum.SettingsRead;
                     if (matcher.Match("/v1.0/backups", out _UrlParameters)) return RequestTypeEnum.BackupReadAll;
                     if (matcher.Match("/v1.0/backups/{backupFilename}", out _UrlParameters)) return RequestTypeEnum.BackupRead;
 
@@ -401,6 +402,7 @@
                 {
                     #region PUT
 
+                    if (matcher.Match("/v1.0/settings", out _UrlParameters)) return RequestTypeEnum.SettingsUpdate;
                     if (matcher.Match("/v1.0/tenants", out _UrlParameters)) return RequestTypeEnum.TenantCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}", out _UrlParameters)) return RequestTypeEnum.TenantUpdate;
 
@@ -450,6 +452,8 @@
                     #region POST
 
                     if (matcher.Match("/v1.0/backup", out _UrlParameters)) return RequestTypeEnum.Backup;
+
+                    if (matcher.Match("/v1.0/settings/restart", out _UrlParameters)) return RequestTypeEnum.SettingsRestart;
 
                     if (matcher.Match("/v1.0/flush", out _UrlParameters)) return RequestTypeEnum.FlushDatabase;
 

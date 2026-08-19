@@ -13682,7 +13682,7 @@
 
             using (ObservabilityService observability = new ObservabilityService(new ObservabilitySettings()))
             {
-                observability.RecordHttpRequest("GET", "/v1.0/tenants", 200, 12.5);
+                observability.RecordHttpRequest("GET", RequestTypeEnum.TenantReadAll, 200, 12.5);
                 observability.RecordGraphQuery(false, true, 3.5);
                 observability.RecordVectorSearch("Node", true, 3, 2.5);
                 observability.RecordGraphTransaction(false, true, 2, 4.5);
@@ -13716,12 +13716,16 @@
                 observability.RecordEntityCount("tenant", "nodes", 7);
                 string metrics = observability.RenderPrometheus();
                 AssertTrue(metrics.Contains("litegraph_http_requests_total"), "Prometheus request metric exists");
+                AssertTrue(metrics.Contains("component=\"rest\""), "Prometheus component label exists");
+                AssertTrue(metrics.Contains("route=\"tenant.read.all\""), "Prometheus route label exists");
                 AssertTrue(metrics.Contains("method=\"GET\""), "Prometheus method label exists");
-                AssertTrue(metrics.Contains("status_code=\"200\""), "Prometheus status code label exists");
+                AssertTrue(metrics.Contains("status_class=\"2xx\""), "Prometheus status class label exists");
+                AssertTrue(metrics.Contains("litegraph_http_request_errors_total"), "Prometheus request error counter exists");
+                AssertTrue(metrics.Contains("litegraph_http_requests_in_flight{component=\"rest\"}"), "Prometheus request in-flight gauge exists");
                 AssertTrue(metrics.Contains("# TYPE litegraph_http_request_duration_ms histogram"), "Prometheus request duration histogram type exists");
-                AssertTrue(metrics.Contains("litegraph_http_request_duration_ms_bucket{method=\"GET\",path=\"/v1.0/tenants\",status_code=\"200\",le=\"10\"} 0"), "Prometheus request duration lower bucket exists");
-                AssertTrue(metrics.Contains("litegraph_http_request_duration_ms_bucket{method=\"GET\",path=\"/v1.0/tenants\",status_code=\"200\",le=\"25\"} 1"), "Prometheus request duration matching bucket exists");
-                AssertTrue(metrics.Contains("litegraph_http_request_duration_ms_bucket{method=\"GET\",path=\"/v1.0/tenants\",status_code=\"200\",le=\"+Inf\"} 1"), "Prometheus request duration infinity bucket exists");
+                AssertTrue(metrics.Contains("litegraph_http_request_duration_ms_bucket{component=\"rest\",route=\"tenant.read.all\",method=\"GET\",status_class=\"2xx\",le=\"10\"} 0"), "Prometheus request duration lower bucket exists");
+                AssertTrue(metrics.Contains("litegraph_http_request_duration_ms_bucket{component=\"rest\",route=\"tenant.read.all\",method=\"GET\",status_class=\"2xx\",le=\"25\"} 1"), "Prometheus request duration matching bucket exists");
+                AssertTrue(metrics.Contains("litegraph_http_request_duration_ms_bucket{component=\"rest\",route=\"tenant.read.all\",method=\"GET\",status_class=\"2xx\",le=\"+Inf\"} 1"), "Prometheus request duration infinity bucket exists");
                 AssertTrue(metrics.Contains("litegraph_graph_queries_total"), "Prometheus graph query metric exists");
                 AssertTrue(metrics.Contains("litegraph_vector_searches_total"), "Prometheus vector search metric exists");
                 AssertTrue(metrics.Contains("litegraph_vector_search_results_total"), "Prometheus vector search result metric exists");

@@ -365,6 +365,7 @@ namespace Test.Shared
                     CreateImprovementFoundationSuite(),
                     CreateImportExportSuite(),
                     CreateAccountsSuite(),
+                    CreateObservabilitySuite(),
                     CreateVectorSearchSuite(),
                     CreateVectorIndexImplementationSuite(),
                     CreateVectorIndexSearchSuite()

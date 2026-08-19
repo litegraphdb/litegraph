@@ -35,6 +35,15 @@
     "Hostname": "*",
     "Port": 8704
   },
+  "Observability": {
+    "Enable": true,
+    "EnablePrometheus": true,
+    "EnableOpenTelemetry": true,
+    "Hostname": "*",
+    "Port": 8705,
+    "MetricsPath": "/metrics",
+    "ServiceName": "LiteGraph.McpServer"
+  },
   "Storage": {
     "BackupsDirectory": "./backups/",
     "TempDirectory": "./temp/"

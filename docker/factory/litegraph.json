@@ -5,8 +5,8 @@
     "Enable": true,
     "Servers": [
       {
-        "Hostname": "127.0.0.1",
-        "Port": 514
+        "Hostname": "alloy",
+        "Port": 1514
       }
     ],
     "LogDirectory": "./logs/",

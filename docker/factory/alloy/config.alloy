@@ -1,0 +1,84 @@
+// Grafana Alloy configuration for LiteGraph.
+//
+// LiteGraph's SyslogLogging emits RFC3164 messages over UDP. The REST server and the
+// MCP server are pointed at two distinct UDP listeners so each stream can be stamped
+// with a stable component label (rest / mcp) without parsing message bodies. Both
+// streams are forwarded to Loki, where the Grafana dashboards filter by component and
+// severity. The LiteGraph console and file log sinks remain intact and independent.
+
+// ---------------------------------------------------------------------------
+// LiteGraph REST server syslog (component = rest)
+// ---------------------------------------------------------------------------
+
+loki.source.syslog "litegraph_rest" {
+  listener {
+    address               = "0.0.0.0:1514"
+    protocol              = "udp"
+    syslog_format         = "rfc3164"
+    label_structured_data = true
+    labels                = {
+      component = "rest",
+      service   = "litegraph",
+    }
+  }
+
+  forward_to    = [loki.process.litegraph.receiver]
+  relabel_rules = loki.relabel.litegraph_syslog.rules
+}
+
+// ---------------------------------------------------------------------------
+// LiteGraph MCP server syslog (component = mcp)
+// ---------------------------------------------------------------------------
+
+loki.source.syslog "litegraph_mcp" {
+  listener {
+    address               = "0.0.0.0:2514"
+    protocol              = "udp"
+    syslog_format         = "rfc3164"
+    label_structured_data = true
+    labels                = {
+      component = "mcp",
+      service   = "litegraph-mcp",
+    }
+  }
+
+  forward_to    = [loki.process.litegraph.receiver]
+  relabel_rules = loki.relabel.litegraph_syslog.rules
+}
+
+// ---------------------------------------------------------------------------
+// Promote useful syslog metadata to Loki labels.
+// ---------------------------------------------------------------------------
+
+loki.relabel "litegraph_syslog" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__syslog_message_severity"]
+    target_label  = "severity"
+  }
+
+  rule {
+    source_labels = ["__syslog_message_hostname"]
+    target_label  = "hostname"
+  }
+
+  rule {
+    source_labels = ["__syslog_message_app_name"]
+    target_label  = "app"
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Forward to Loki.
+// ---------------------------------------------------------------------------
+
+loki.process "litegraph" {
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

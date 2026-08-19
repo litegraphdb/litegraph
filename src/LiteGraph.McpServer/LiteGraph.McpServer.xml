@@ -79,6 +79,26 @@
             Environment variable for console logging.
             </summary>
         </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpMetricsHostnameEnvironmentVariable">
+            <summary>
+            Environment variable for the Prometheus metrics listener hostname.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.McpMetricsPortEnvironmentVariable">
+            <summary>
+            Environment variable for the Prometheus metrics listener port.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.SyslogHostnameEnvironmentVariable">
+            <summary>
+            Environment variable for the first syslog server hostname (log routing to Alloy/Loki).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.McpServer.Classes.Constants.SyslogPortEnvironmentVariable">
+            <summary>
+            Environment variable for the first syslog server port (log routing to Alloy/Loki).
+            </summary>
+        </member>
         <member name="T:LiteGraph.McpServer.Classes.DebugSettings">
             <summary>
             Debug settings.
@@ -222,6 +242,11 @@
         <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.WebSocket">
             <summary>
             WebSocket server settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Observability">
+            <summary>
+            Observability settings.
             </summary>
         </member>
         <member name="P:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings.Storage">
@@ -372,6 +397,52 @@
         <member name="M:LiteGraph.McpServer.Classes.NodeSettings.#ctor">
             <summary>
             Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.NodeSettings"/> class.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.McpServer.Classes.ObservabilitySettings">
+            <summary>
+            Observability settings for the MCP server. Exposes a Prometheus scrape endpoint on its own port
+            because the underlying MCP transport does not support arbitrary content routes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.Enable">
+            <summary>
+            Enable observability instrumentation.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.EnablePrometheus">
+            <summary>
+            Enable the Prometheus scrape endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.EnableOpenTelemetry">
+            <summary>
+            Enable OpenTelemetry-compatible Meter instruments.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.Hostname">
+            <summary>
+            Hostname the Prometheus metrics listener binds to. Use "*" or "+" to bind all interfaces.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.Port">
+            <summary>
+            Port the Prometheus metrics listener binds to. Minimum 0, maximum 65535.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.MetricsPath">
+            <summary>
+            Prometheus metrics endpoint path.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Classes.ObservabilitySettings.ServiceName">
+            <summary>
+            Service name used by OpenTelemetry-compatible instruments.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.ObservabilitySettings.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:LiteGraph.McpServer.Classes.ObservabilitySettings"/> class.
             </summary>
         </member>
         <member name="T:LiteGraph.McpServer.Classes.StorageSettings">
@@ -868,6 +939,63 @@
             </summary>
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="T:LiteGraph.McpServer.Services.McpObservabilityService">
+            <summary>
+            MCP server metrics instrumentation. Emits the same metric names and label conventions as the REST
+            server (distinguished by a <c>component="mcp"</c> label) plus <c>transport</c> and <c>tool</c> labels,
+            and exposes a Prometheus scrape endpoint on its own port. Thread-safe.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.McpServer.Services.McpObservabilityService.Meter">
+            <summary>
+            OpenTelemetry-compatible meter.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.#ctor(LiteGraph.McpServer.Classes.ObservabilitySettings)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="settings">Observability settings. Cannot be null.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when settings is null.</exception>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.Start">
+            <summary>
+            Start the Prometheus scrape endpoint on the configured hostname and port.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when the listener cannot be started.</exception>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.RecordToolCall(System.String,System.String,System.Boolean,System.Double)">
+            <summary>
+            Record a completed MCP tool call.
+            </summary>
+            <param name="transport">Transport label (http, tcp, ws, stdio).</param>
+            <param name="tool">Tool name.</param>
+            <param name="isError">Whether the call resulted in an error.</param>
+            <param name="durationMs">Duration in milliseconds.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.IncrementInFlight(System.String)">
+            <summary>
+            Increment the in-flight gauge for a transport. Pair every call with <see cref="M:LiteGraph.McpServer.Services.McpObservabilityService.DecrementInFlight(System.String)"/>.
+            </summary>
+            <param name="transport">Transport label (http, tcp, ws, stdio).</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.DecrementInFlight(System.String)">
+            <summary>
+            Decrement the in-flight gauge for a transport.
+            </summary>
+            <param name="transport">Transport label (http, tcp, ws, stdio).</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.RenderPrometheus">
+            <summary>
+            Render metrics using the Prometheus text exposition format.
+            </summary>
+            <returns>Prometheus metrics text.</returns>
+        </member>
+        <member name="M:LiteGraph.McpServer.Services.McpObservabilityService.Dispose">
+            <summary>
+            Dispose resources.
+            </summary>
         </member>
     </members>
 </doc>

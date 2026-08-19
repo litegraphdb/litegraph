@@ -970,7 +970,22 @@
         /// GetRoutes
         /// </summary>
         [EnumMember(Value = "GetRoutes")]
-        GetRoutes
+        GetRoutes,
+        /// <summary>
+        /// SettingsRead
+        /// </summary>
+        [EnumMember(Value = "SettingsRead")]
+        SettingsRead,
+        /// <summary>
+        /// SettingsUpdate
+        /// </summary>
+        [EnumMember(Value = "SettingsUpdate")]
+        SettingsUpdate,
+        /// <summary>
+        /// SettingsRestart
+        /// </summary>
+        [EnumMember(Value = "SettingsRestart")]
+        SettingsRestart
 
         #endregion
     }

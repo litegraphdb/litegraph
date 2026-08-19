@@ -60,6 +60,11 @@ namespace LiteGraph.McpServer.Classes
         public WebSocketServerSettings WebSocket { get; set; } = new WebSocketServerSettings();
 
         /// <summary>
+        /// Observability settings.
+        /// </summary>
+        public ObservabilitySettings Observability { get; set; } = new ObservabilitySettings();
+
+        /// <summary>
         /// Storage settings.
         /// </summary>
         public StorageSettings Storage { get; set; } = new StorageSettings();

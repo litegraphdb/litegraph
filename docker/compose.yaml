@@ -114,9 +114,17 @@ services:
       - '8702:8702'
       - '8703:8703'
       - '8704:8704'
+      - '8705:8705'
     depends_on:
       litegraph:
         condition: service_healthy
+    environment:
+      # Expose the MCP Prometheus metrics endpoint on all interfaces (scraped at 8705).
+      MCP_METRICS_HOSTNAME: '*'
+      MCP_METRICS_PORT: '8705'
+      # Route MCP structured syslog to Grafana Alloy (component="mcp" listener).
+      MCP_SYSLOG_HOSTNAME: 'alloy'
+      MCP_SYSLOG_PORT: '2514'
     volumes:
       - ./litegraph-mcp.json:/app/litegraph.json
       - ./logs/litegraph-mcp/:/app/logs/
@@ -178,6 +186,53 @@ services:
   # Preconfigured with Prometheus and the LiteGraph dashboard.
   #
 
+  #
+  # Grafana Loki
+  # Stores LiteGraph server and MCP logs forwarded by Grafana Alloy.
+  #
+
+  loki:
+    container_name: 'litegraph-loki'
+    image: 'grafana/loki:3.3.0'
+    stdin_open: true
+    tty: true
+    ports:
+      - '3100:3100'
+    command:
+      - '-config.file=/etc/loki/config.yaml'
+    volumes:
+      - ./loki/config.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+
+  #
+  # Grafana Alloy
+  # Receives LiteGraph server and MCP structured syslog (UDP) and forwards it to Loki.
+  #
+
+  alloy:
+    container_name: 'litegraph-alloy'
+    image: 'grafana/alloy:v1.5.0'
+    stdin_open: true
+    tty: true
+    ports:
+      - '12345:12345'
+    depends_on:
+      loki:
+        condition: service_started
+    command:
+      - 'run'
+      - '--server.http.listen-addr=0.0.0.0:12345'
+      - '--storage.path=/var/lib/alloy/data'
+      - '/etc/alloy/config.alloy'
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+
+  #
+  # Grafana OSS
+  # Preconfigured with Prometheus, Loki, and the LiteGraph dashboard.
+  #
+
   grafana:
     container_name: 'litegraph-grafana'
     image: 'grafana/grafana-oss:latest'
@@ -187,6 +242,8 @@ services:
       - '3000:3000'
     depends_on:
       prometheus:
+        condition: service_started
+      loki:
         condition: service_started
     environment:
       GF_SECURITY_ADMIN_USER: 'admin'
@@ -202,4 +259,6 @@ volumes:
   postgresql-data:
   prometheus-data:
   grafana-storage:
+  loki-data:
+  alloy-data:
 
