@@ -358,6 +358,7 @@ dist/
 # Local diagnostics and generated test databases
 .codex-temp/
 test-automated-*.db
+test-importexport-*.db
 
 # Local Docker deployment runtime artifacts
 docker/logs/

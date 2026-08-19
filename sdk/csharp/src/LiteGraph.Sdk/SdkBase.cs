@@ -1,7 +1,9 @@
 ﻿namespace LiteGraph.Sdk
 {
     using System;
+    using System.IO;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Threading;
     using RestWrapper;
@@ -100,6 +102,7 @@
         private string _Endpoint = null;
         private string _BearerToken = null;
         private int _TimeoutMs = 300000;
+        private static readonly HttpClient _StreamingHttpClient = new HttpClient() { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
 
         #endregion
 
@@ -405,7 +408,7 @@
                         if (resp.StatusCode >= 200 && resp.StatusCode <= 299)
                         {
                             Log(SeverityEnum.Debug, "success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
-                            return resp.DataAsBytes;
+                            return await ReadAllBytes(resp, token).ConfigureAwait(false);
                         }
                         else
                         {
@@ -693,7 +696,7 @@
                         if (resp.StatusCode >= 200 && resp.StatusCode <= 299)
                         {
                             Log(SeverityEnum.Debug, "success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
-                            return resp.DataAsBytes;
+                            return await ReadAllBytes(resp, token).ConfigureAwait(false);
                         }
                         else
                         {
@@ -712,7 +715,85 @@
 
         #endregion
 
+        /// <summary>
+        /// Issue a GET and return the raw response body bytes, correctly reassembling chunked (streamed) responses.
+        /// </summary>
+        /// <param name="url">URL.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Response body bytes on success; null otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        public async Task<byte[]> GetStreamingBytes(string url, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
+
+            using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, url))
+            {
+                if (!String.IsNullOrEmpty(BearerToken)) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", BearerToken);
+                using (HttpResponseMessage resp = await _StreamingHttpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
+                {
+                    if (!resp.IsSuccessStatusCode)
+                    {
+                        Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + (int)resp.StatusCode);
+                        return null;
+                    }
+                    return await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Issue a POST with a raw body and return the raw response body bytes, correctly reassembling chunked responses.
+        /// </summary>
+        /// <param name="url">URL.</param>
+        /// <param name="bytes">Request body bytes.</param>
+        /// <param name="contentType">Request content type.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Response body bytes on success; null otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        public async Task<byte[]> PostStreamingBytes(string url, byte[] bytes, string contentType = "application/octet-stream", CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
+            if (bytes == null) bytes = Array.Empty<byte>();
+
+            using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, url))
+            {
+                if (!String.IsNullOrEmpty(BearerToken)) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", BearerToken);
+                req.Content = new ByteArrayContent(bytes);
+                req.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                using (HttpResponseMessage resp = await _StreamingHttpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
+                {
+                    byte[] body = await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                    if (!resp.IsSuccessStatusCode)
+                        Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + (int)resp.StatusCode);
+                    return body;
+                }
+            }
+        }
+
         #region Private-Methods
+
+        private static async Task<byte[]> ReadAllBytes(RestResponse resp, CancellationToken token)
+        {
+            if (resp == null) return null;
+
+            if (resp.ChunkedTransferEncoding)
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    while (true)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        ChunkData chunk = await resp.ReadChunkAsync(token).ConfigureAwait(false);
+                        if (chunk == null) break;
+                        if (chunk.Data != null && chunk.Data.Length > 0) ms.Write(chunk.Data, 0, chunk.Data.Length);
+                        if (chunk.IsFinal) break;
+                    }
+                    return ms.ToArray();
+                }
+            }
+
+            return resp.DataAsBytes;
+        }
 
         #endregion
     }

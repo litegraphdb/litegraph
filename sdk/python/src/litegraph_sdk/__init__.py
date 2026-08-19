@@ -18,6 +18,10 @@ from .models.authorization import (
 )
 from .models.edge import EdgeModel
 from .models.expression import ExprModel
+from .models.import_export import (
+    GraphImportResultModel,
+    SubgraphExtractionRequestModel,
+)
 from .models.node import NodeModel
 from .models.query import GraphQueryRequestModel, GraphQueryResultModel
 from .models.route_detail import RouteDetailModel

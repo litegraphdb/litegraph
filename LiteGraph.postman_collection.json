@@ -306,6 +306,180 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Export as JSONL",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/export/jsonl?incldata&inclsub",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "incldata",
+											"value": null
+										},
+										{
+											"key": "inclsub",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export subgraph as JSONL",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"StartNodeGUIDs\": [ \"00000000-0000-0000-0000-000000000000\" ],\r\n    \"MaxDepth\": 2,\r\n    \"Direction\": \"Both\",\r\n    \"MaxNodes\": 0,\r\n    \"MaxEdges\": 0,\r\n    \"IncludeData\": true,\r\n    \"IncludeSubordinates\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/export/jsonl",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (merge)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/{{graph}}/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"graphs",
+										"{{graph}}",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (new graph)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Graph\",\"Object\":{\"Name\":\"Imported graph\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/graphs/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"graphs",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -2284,6 +2458,188 @@
 										{
 											"key": "incldata",
 											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export as JSONL",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/jsonl?incldata&inclsub",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "incldata",
+											"value": null
+										},
+										{
+											"key": "inclsub",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export subgraph as JSONL",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"StartNodeGUIDs\": [ \"00000000-0000-0000-0000-000000000000\" ],\r\n    \"MaxDepth\": 2,\r\n    \"Direction\": \"Both\",\r\n    \"MaxNodes\": 0,\r\n    \"MaxEdges\": 0,\r\n    \"IncludeData\": true,\r\n    \"IncludeSubordinates\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/jsonl",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (merge)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (new graph)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Graph\",\"Object\":{\"Name\":\"Imported graph\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
 										}
 									]
 								}
@@ -4896,6 +5252,188 @@
 										{
 											"key": "incldata",
 											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export as JSONL",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/jsonl?incldata&inclsub",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "incldata",
+											"value": null
+										},
+										{
+											"key": "inclsub",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export subgraph as JSONL",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"StartNodeGUIDs\": [ \"00000000-0000-0000-0000-000000000000\" ],\r\n    \"MaxDepth\": 2,\r\n    \"Direction\": \"Both\",\r\n    \"MaxNodes\": 0,\r\n    \"MaxEdges\": 0,\r\n    \"IncludeData\": true,\r\n    \"IncludeSubordinates\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/jsonl",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (merge)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (new graph)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Graph\",\"Object\":{\"Name\":\"Imported graph\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
 										}
 									]
 								}
@@ -9605,6 +10143,188 @@
 										{
 											"key": "incldata",
 											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export as JSONL",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/jsonl?incldata&inclsub",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "incldata",
+											"value": null
+										},
+										{
+											"key": "inclsub",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Export subgraph as JSONL",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"StartNodeGUIDs\": [ \"00000000-0000-0000-0000-000000000000\" ],\r\n    \"MaxDepth\": 2,\r\n    \"Direction\": \"Both\",\r\n    \"MaxNodes\": 0,\r\n    \"MaxEdges\": 0,\r\n    \"IncludeData\": true,\r\n    \"IncludeSubordinates\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/jsonl",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"jsonl"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (merge)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Import JSONL (new graph)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/x-ndjson",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "# litegraph-jsonl v1\r\n{\"Type\":\"Graph\",\"Object\":{\"Name\":\"Imported graph\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"11111111-1111-1111-1111-111111111111\",\"Name\":\"Ada\"}}\r\n{\"Type\":\"Node\",\"Object\":{\"GUID\":\"33333333-3333-3333-3333-333333333333\",\"Name\":\"Grace\"}}\r\n{\"Type\":\"Edge\",\"Object\":{\"GUID\":\"22222222-2222-2222-2222-222222222222\",\"From\":\"11111111-1111-1111-1111-111111111111\",\"To\":\"33333333-3333-3333-3333-333333333333\"}}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"import",
+										"jsonl"
+									],
+									"query": [
+										{
+											"key": "guidstrategy",
+											"value": "regenerate"
+										},
+										{
+											"key": "onerror",
+											"value": "abort"
+										},
+										{
+											"key": "batchsize",
+											"value": "1000"
 										}
 									]
 								}

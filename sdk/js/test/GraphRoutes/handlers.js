@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { mockGraphGuid, graphData, searchGraphData, graphGEXFData, graphMockApiResponse, graphMockSearchApiResponse } from './mockData';
+import { mockGraphGuid, graphData, searchGraphData, graphGEXFData, graphMockApiResponse, graphMockSearchApiResponse, graphJsonlData, graphImportResult } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
 
 export const handlers = [
@@ -29,5 +29,17 @@ export const handlers = [
     }),
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/export/gexf`, ({ request, params, cookies }) => {
         return HttpResponse.json(graphGEXFData[mockGraphGuid]);
+    }),
+    http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/export/jsonl`, ({ request, params, cookies }) => {
+        return HttpResponse.text(graphJsonlData, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }),
+    http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/export/jsonl`, ({ request, params, cookies }) => {
+        return HttpResponse.text(graphJsonlData, { headers: { 'Content-Type': 'application/x-ndjson' } });
+    }),
+    http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/import/jsonl`, ({ request, params, cookies }) => {
+        return HttpResponse.json(graphImportResult);
+    }),
+    http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/import/jsonl`, ({ request, params, cookies }) => {
+        return HttpResponse.json(graphImportResult);
     }),
 ];

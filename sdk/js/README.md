@@ -239,6 +239,10 @@ console.log(result.Success, result.State, result.TransactionId, result.DurationM
 | `updateGraph` | Updates an existing graph. | `graph` (Object) - Graph object with GUID, name, metadata <br> `cancellationToken` (optional) - `AbortController` | `Promise<Graph>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graph.GUID}` |
 | `deleteGraph` | Deletes a graph by GUID. | `guid` (string) - Graph GUID <br> `force` (boolean) - Force recursive deletion of edges and nodes (optional) <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/graphs/{guid}?force=true` |
 | `exportGraphToGexf` | Exports a graph to GEXF format. | `guid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<string>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{guid}/export/gexf` |
+| `exportGraphToJsonl` | Exports an entire graph to JSONL format. | `graphGuid` (string) - Graph GUID <br> `options.includeData` (boolean) - Include object data (optional) <br> `options.includeSubordinates` (boolean) - Include labels, tags, vectors (optional) <br> `cancellationToken` (optional) - `AbortController` | `Promise<string>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl?incldata&inclsub` |
+| `exportSubgraphToJsonl` | Exports a subgraph to JSONL using a subgraph extraction request. | `graphGuid` (string) - Graph GUID <br> `subgraphExtractionRequest` (Object) - Extraction request <br> `cancellationToken` (optional) - `AbortController` | `Promise<string>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl` |
+| `importGraphFromJsonl` | Imports JSONL data into an existing graph. | `graphGuid` (string) - Graph GUID <br> `jsonlString` (string) - Raw JSONL data <br> `options.guidStrategy` (string) - `preserve`, `regenerate`, `skip`, or `overwrite` (optional) <br> `options.onError` (string) - `abort` or `skip` (optional) <br> `options.batchSize` (number) - Batch size (optional) <br> `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/import/jsonl` |
+| `importGraphAsNewFromJsonl` | Imports JSONL data as a new graph. | `jsonlString` (string) - Raw JSONL data <br> `options.guidStrategy` (string) - `preserve`, `regenerate`, `skip`, or `overwrite` (optional) <br> `options.onError` (string) - `abort` or `skip` (optional) <br> `options.batchSize` (number) - Batch size (optional) <br> `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `POST /v1.0/tenants/{tenantGuid}/graphs/import/jsonl` |
 
 
 
@@ -354,6 +358,31 @@ api.deleteGraph('graph-guid')
 // Export to GEXF
 api.exportGraphToGexf('graph-guid')
     .then(gexfData => console.log(gexfData))
+    .catch(err => console.error(err));
+
+// Export an entire graph to JSONL
+api.exportGraphToJsonl('graph-guid', { includeData: true, includeSubordinates: true })
+    .then(jsonl => console.log(jsonl))
+    .catch(err => console.error(err));
+
+// Export a subgraph to JSONL
+api.exportSubgraphToJsonl('graph-guid', {
+    StartNodeGUIDs: ['node-guid'],
+    MaxDepth: 2,
+    Direction: 'Both',
+    IncludeData: true,
+})
+    .then(jsonl => console.log(jsonl))
+    .catch(err => console.error(err));
+
+// Import JSONL into an existing graph
+api.importGraphFromJsonl('graph-guid', jsonlString, { guidStrategy: 'preserve', onError: 'skip', batchSize: 100 })
+    .then(result => console.log(result))
+    .catch(err => console.error(err));
+
+// Import JSONL as a new graph
+api.importGraphAsNewFromJsonl(jsonlString, { guidStrategy: 'regenerate' })
+    .then(result => console.log(result))
     .catch(err => console.error(err));
 
 // Check if Graph Exists

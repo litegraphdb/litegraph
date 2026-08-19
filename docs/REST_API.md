@@ -92,7 +92,92 @@ Response:
 }
 ```
 
-### Enumeration Query
+### Subgraph Extraction Request
+
+Body for `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl`. The traversal starts at one or more nodes and walks edges outward, honoring the depth, count, label, tag, filter, and cost limits below. Start nodes are always included in the output even when they fail the node filters, so a selection never comes back empty because of an over-tight filter on the seeds themselves.
+
+```
+{
+    "TenantGUID": "00000000-0000-0000-0000-000000000000",
+    "GraphGUID": "00000000-0000-0000-0000-000000000000",
+    "StartNodeGUIDs": [ "11111111-1111-1111-1111-111111111111" ],
+    "MaxDepth": 2,
+    "Direction": "Both",
+    "MaxNodes": 0,
+    "MaxEdges": 0,
+    "EdgeLabels": [ ],
+    "EdgeTags": { },
+    "EdgeFilter": { },
+    "MaxEdgeCost": null,
+    "NodeLabels": [ ],
+    "NodeTags": { },
+    "NodeFilter": { },
+    "IncludeData": false,
+    "IncludeSubordinates": false
+}
+```
+
+| Field | Type | Default | Notes |
+|-------|------|---------|-------|
+| `StartNodeGUIDs` | array of GUID | required | At least one seed node; the traversal fails with `400` if empty or a GUID is not in the graph |
+| `MaxDepth` | int | `2` | Edge hops from the seeds; `0` returns the start nodes plus edges among them |
+| `Direction` | string | `Both` | `Outbound`, `Inbound`, or `Both` |
+| `MaxNodes` | int | `0` | Node cap; `0` is unlimited |
+| `MaxEdges` | int | `0` | Edge cap; `0` is unlimited |
+| `EdgeLabels` | array of string | `[]` | Edges must carry one of these labels to be traversed |
+| `EdgeTags` | object | `{}` | Edge tag key/value constraints |
+| `EdgeFilter` | expression | `{}` | Expression filter over edge `Data` |
+| `MaxEdgeCost` | int or null | `null` | Edges above this cost are not traversed |
+| `NodeLabels` | array of string | `[]` | Non-seed nodes must carry one of these labels |
+| `NodeTags` | object | `{}` | Node tag key/value constraints |
+| `NodeFilter` | expression | `{}` | Expression filter over node `Data` |
+| `IncludeData` | bool | `false` | Emit the `Data` object on each record |
+| `IncludeSubordinates` | bool | `false` | Emit labels, tags, and vectors on each record |
+
+### Graph Import Result
+
+Returned by both `import/jsonl` endpoints. Counters report exactly what happened per record type, `Warnings` collects non-fatal problems such as dropped dangling edges and skipped malformed lines, and `GuidMap` maps each original GUID to its replacement (populated only under the `regenerate` strategy).
+
+```
+{
+    "Success": true,
+    "TenantGUID": "00000000-0000-0000-0000-000000000000",
+    "GraphGUID": "9de1f1a2-4b8c-4f7a-9a1b-2c3d4e5f6a7b",
+    "GraphsCreated": 1,
+    "NodesCreated": 128,
+    "NodesUpdated": 0,
+    "NodesSkipped": 0,
+    "EdgesCreated": 205,
+    "EdgesUpdated": 0,
+    "EdgesSkipped": 0,
+    "LinesRead": 334,
+    "LinesIgnored": 6,
+    "Warnings": [ ],
+    "GuidMap": { }
+}
+```
+
+For a merge into an existing graph, `GraphGUID` is the target graph; for an import that creates a new graph, it is the GUID of the graph that was created.
+
+### JSONL Format
+
+The interchange format is UTF-8 text with one JSON value per line, terminated by `\n`. A line beginning with `#` is a comment and is ignored on import, so exporters can prepend a metadata header without breaking round-trips. Every non-comment line is a typed envelope: `{"Type":"Node"|"Edge"|"Graph","Object":{...}}`, where `Object` is the same JSON shape the REST API returns for that entity. The writer emits the graph record first, then node records, then edge records, but the importer does not depend on that order.
+
+A whole-graph export carries the `graph-backup` kind; a subgraph export carries the `subgraph` kind. A typical header looks like this:
+
+```
+# litegraph-jsonl v1
+# kind: graph-backup
+# exported-utc: 2026-08-19T17:22:34.986575Z
+# source-tenant: 00000000-0000-0000-0000-000000000000
+# source-graph: 00000000-0000-0000-0000-000000000000 (name: "Default graph")
+# generator: LiteGraph
+{"Type":"Graph","Object":{"GUID":"00000000-0000-0000-0000-000000000000","Name":"Default graph"}}
+{"Type":"Node","Object":{"GUID":"11111111-1111-1111-1111-111111111111","Name":"Ada"}}
+{"Type":"Edge","Object":{"GUID":"22222222-2222-2222-2222-222222222222","From":"11111111-1111-1111-1111-111111111111","To":"33333333-3333-3333-3333-333333333333"}}
+```
+
+Import reconciles incoming GUIDs according to `guidstrategy`. `preserve` keeps original GUIDs and errors on any collision, which suits a restore into a fresh database because node and edge GUIDs are globally unique in the store. `regenerate` assigns fresh GUIDs everywhere, remaps every reference through the `GuidMap`, and cannot collide, so it is the default for merging one graph into another. `skip` leaves existing records untouched and imports only what is new. `overwrite` updates existing records in place and creates the rest. When a file references a node that already exists in the target graph but is not present in the file, the bridging edge still imports; an edge whose endpoint resolves to neither the file nor the store is dropped with a warning. Imports stream through node batches and a buffered edge pass, and a failure triggers compensating rollback of the records written so far.
 ```
 {
     "Ordering": "CreatedDescending",
@@ -859,6 +944,10 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | Exists               | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]                         |
 | Search               | POST   | /v1.0/tenants/[guid]/graphs/search                         |
 | Render as GEXF       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/gexf?incldata    |
+| Export as JSONL      | GET    | /v1.0/tenants/[guid]/graphs/[guid]/export/jsonl?incldata&inclsub |
+| Export subgraph JSONL | POST  | /v1.0/tenants/[guid]/graphs/[guid]/export/jsonl            |
+| Import JSONL (merge) | POST   | /v1.0/tenants/[guid]/graphs/[guid]/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000 |
+| Import JSONL (new graph) | POST | /v1.0/tenants/[guid]/graphs/import/jsonl?guidstrategy=regenerate&onerror=abort&batchsize=1000 |
 | Batch existence      | POST   | /v1.0/tenants/[guid]/graphs/[guid]/existence               |
 | Native query         | POST   | /v1.0/tenants/[guid]/graphs/[guid]/query                   |
 | Graph transaction    | POST   | /v1.0/tenants/[guid]/graphs/[guid]/transaction             |
@@ -866,6 +955,16 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | Node subgraph stats  | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/subgraph/stats |
 
 Native graph query and graph transaction endpoints are graph scoped. They cannot cross tenants or graphs.
+
+The four JSONL endpoints move a graph (or a slice of one) as newline-delimited JSON. Export needs read scope; import needs write scope. Both directions stream: exports send a chunked `application/x-ndjson` body so the server never buffers the whole graph in memory, and imports read the request body line by line. `GET .../export/jsonl` renders an entire graph and doubles as a provider-agnostic per-graph backup; `incldata` and `inclsub` are valueless flags that pull in the `Data` object and subordinate labels, tags, and vectors. `POST .../export/jsonl` takes a `SubgraphExtractionRequest` body and streams only the traversed subgraph. The `.../import/jsonl` endpoints accept a raw JSONL body and return a `GraphImportResult`; the graph-scoped form merges into an existing graph, and the tenant-scoped `graphs/import/jsonl` form creates a new graph. A missing graph returns `404`; a malformed request or JSONL line under `onerror=abort` returns `400`; a GUID collision under the `preserve` strategy returns `409`.
+
+Import query parameters:
+
+| Parameter | Values | Default | Meaning |
+|-----------|--------|---------|---------|
+| `guidstrategy` | `preserve`, `regenerate`, `skip`, `overwrite` | `regenerate` | How incoming GUIDs are reconciled against the store |
+| `onerror` | `abort`, `skip` | `abort` | Whether a bad line stops the import or is counted and skipped |
+| `batchsize` | positive integer | `1000` | Nodes buffered per insert batch |
 
 ## Graph Vector Index APIs
 

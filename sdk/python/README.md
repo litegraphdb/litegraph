@@ -333,6 +333,44 @@ Graph.delete(graph_guid="graph-guid")
 # Export to GEXF
 gexf_data = Graph.export_gexf(graph_guid="graph-guid")
 
+# Export a graph to JSONL (application/x-ndjson) text
+jsonl_data = Graph.export_jsonl(
+    graph_guid="graph-guid",
+    include_data=True,
+    include_subordinates=True,
+)
+
+# Export a subgraph to JSONL, starting from one or more nodes
+from litegraph_sdk import SubgraphExtractionRequestModel
+
+subgraph_request = SubgraphExtractionRequestModel(
+    start_node_guids=["node-guid-1"],
+    max_depth=2,
+    direction="Both",          # "Outbound" | "Inbound" | "Both"
+    include_data=True,
+    include_subordinates=True,
+)
+subgraph_jsonl = Graph.export_subgraph_jsonl(
+    graph_guid="graph-guid",
+    request=subgraph_request,   # a dict is also accepted
+)
+
+# Import JSONL, merging into an existing graph
+import_result = Graph.import_jsonl(
+    graph_guid="graph-guid",
+    jsonl=jsonl_data,
+    guid_strategy="preserve",   # preserve | regenerate | skip | overwrite
+    on_error="abort",           # abort | skip
+    batch_size=100,
+)
+print(import_result["Success"], import_result["NodesCreated"])
+
+# Import JSONL as a brand new graph (no graph GUID)
+new_graph_result = Graph.import_jsonl_as_new(
+    jsonl=jsonl_data,
+    guid_strategy="regenerate",
+)
+
 # Check if Graph Exists
 exists = Graph.exists(graph_guid="graph-guid")
 

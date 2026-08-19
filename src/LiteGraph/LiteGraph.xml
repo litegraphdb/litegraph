@@ -11414,6 +11414,16 @@
             <returns>Task.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the request or stream is null.</exception>
         </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExportSearchResultToJsonlStream(LiteGraph.SearchResult,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Export an already-extracted search result to a stream in JSONL format.
+            </summary>
+            <param name="result">Search result to export.</param>
+            <param name="stream">Destination stream.  The stream is left open.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the result or stream is null.</exception>
+        </member>
         <member name="M:LiteGraph.LiteGraphClient.ExportGraphToJsonlStream(System.Guid,System.Guid,System.Boolean,System.Boolean,System.IO.Stream,System.Threading.CancellationToken)">
             <summary>
             Export an entire graph to a stream in JSONL format.  Runs in constant memory; suitable as a provider-agnostic backup.

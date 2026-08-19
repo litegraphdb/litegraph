@@ -255,7 +255,7 @@
             if (includeData) url += "?incldata";
             if (includeSubordinates) url += (includeData ? "&" : "?") + "inclsub";
 
-            byte[] bytes = await _Sdk.Get(url, token).ConfigureAwait(false);
+            byte[] bytes = await _Sdk.GetStreamingBytes(url, token).ConfigureAwait(false);
             if (bytes != null && bytes.Length > 0) return System.Text.Encoding.UTF8.GetString(bytes);
             return null;
         }
@@ -277,7 +277,7 @@
             if (!Serializer.TrySerializeJson(request, false, out json)) throw new ArgumentException("Unable to serialize the subgraph extraction request.");
             byte[] body = System.Text.Encoding.UTF8.GetBytes(json);
 
-            byte[] bytes = await _Sdk.PostRaw(url, body, "application/json", token).ConfigureAwait(false);
+            byte[] bytes = await _Sdk.PostStreamingBytes(url, body, "application/json", token).ConfigureAwait(false);
             if (bytes != null && bytes.Length > 0) return System.Text.Encoding.UTF8.GetString(bytes);
             return null;
         }
@@ -299,7 +299,7 @@
                 + "&batchsize=" + batchSize;
 
             byte[] body = System.Text.Encoding.UTF8.GetBytes(jsonl);
-            byte[] bytes = await _Sdk.PostRaw(url, body, "application/x-ndjson", token).ConfigureAwait(false);
+            byte[] bytes = await _Sdk.PostStreamingBytes(url, body, "application/x-ndjson", token).ConfigureAwait(false);
             if (bytes != null && bytes.Length > 0) return Serializer.DeserializeJson<GraphImportResult>(System.Text.Encoding.UTF8.GetString(bytes));
             return null;
         }
@@ -320,7 +320,7 @@
                 + "&batchsize=" + batchSize;
 
             byte[] body = System.Text.Encoding.UTF8.GetBytes(jsonl);
-            byte[] bytes = await _Sdk.PostRaw(url, body, "application/x-ndjson", token).ConfigureAwait(false);
+            byte[] bytes = await _Sdk.PostStreamingBytes(url, body, "application/x-ndjson", token).ConfigureAwait(false);
             if (bytes != null && bytes.Length > 0) return Serializer.DeserializeJson<GraphImportResult>(System.Text.Encoding.UTF8.GetString(bytes));
             return null;
         }

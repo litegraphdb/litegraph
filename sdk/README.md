@@ -2,7 +2,7 @@
 
 This directory contains official client SDKs for interacting with the LiteGraph REST API.
 
-Current release: v7.0.0.
+Current release: v7.1.0.
 
 ## Available SDKs
 
@@ -66,6 +66,7 @@ All SDKs provide:
 - Authorization roles, scoped credentials, and effective-permission inspection
 - Request history access where supported
 - GEXF export support
+- Subgraph extraction and streaming JSONL export/import for whole-graph interchange and portable per-graph backup
 - Bulk create response mode selection for full or minimal responses
 - Error handling and retry mechanisms
 

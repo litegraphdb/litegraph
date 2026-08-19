@@ -595,6 +595,202 @@
             Instantiate the object.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.GraphImportErrorPolicyEnum">
+            <summary>
+            Policy governing how the importer reacts to a malformed or unrecognized JSONL line.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportErrorPolicyEnum.Abort">
+            <summary>
+            Abort the entire import on the first bad line, rolling back any staged writes.  This is the default.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportErrorPolicyEnum.Skip">
+            <summary>
+            Skip bad lines, collect them as warnings, and import the remaining well-formed records.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphImportGuidStrategyEnum">
+            <summary>
+            Strategy used to resolve GUID collisions during a JSONL import.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportGuidStrategyEnum.Preserve">
+            <summary>
+            Keep the original GUIDs from the file.  A collision with an existing record is an error.
+            This is the default for creating a new graph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportGuidStrategyEnum.Regenerate">
+            <summary>
+            Assign fresh GUIDs to every imported graph, node, and edge, remapping all references.
+            This is the default for merging into an existing graph and can never collide.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportGuidStrategyEnum.Skip">
+            <summary>
+            Leave records whose GUIDs already exist in the target untouched and import the remainder.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportGuidStrategyEnum.Overwrite">
+            <summary>
+            Update records whose GUIDs already exist in the target in place, and create the remainder.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphImportModeEnum">
+            <summary>
+            Mode governing how a JSONL import is applied to the target tenant.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportModeEnum.CreateNew">
+            <summary>
+            Create a brand-new graph populated from the imported records.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphImportModeEnum.MergeIntoExisting">
+            <summary>
+            Merge the imported records into an existing target graph.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphImportRequest">
+            <summary>
+            Options that accompany a JSONL import body and govern how records are applied.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.Mode">
+            <summary>
+            Import mode.  Default is CreateNew.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.GuidStrategy">
+            <summary>
+            GUID collision strategy.  Default is Preserve, which suits creating a new graph.
+            For merging into an existing graph, Regenerate is recommended.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.OnError">
+            <summary>
+            Policy applied when a malformed or unrecognized line is encountered.  Default is Abort.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.TargetGraphGUID">
+            <summary>
+            Target graph GUID.  Required when Mode is MergeIntoExisting; ignored when Mode is CreateNew.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.NewGraph">
+            <summary>
+            Graph metadata to use when creating a new graph.  When null, the file's graph record is used,
+            falling back to a minimal default.  Ignored when Mode is MergeIntoExisting.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.IncludeVectors">
+            <summary>
+            True to import vectors carried on nodes and edges.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.ReturnMode">
+            <summary>
+            Bulk create response shape used for imported nodes and edges.  Default is Minimal for import throughput.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.BatchSize">
+            <summary>
+            Number of nodes or edges written per bulk create call while streaming.  Default is 1000.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportRequest.SingleTransaction">
+            <summary>
+            True to write the entire import within a single transaction.  Default is true.
+            For backup-scale restores that exceed a single transaction, the importer may commit in
+            batches and report the downgrade as a warning.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphImportRequest.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphImportResult">
+            <summary>
+            Outcome of a JSONL import operation.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.Success">
+            <summary>
+            True if the import completed successfully.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.TenantGUID">
+            <summary>
+            Tenant GUID into which records were imported.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.GraphGUID">
+            <summary>
+            GUID of the target graph, or the newly created graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.GraphsCreated">
+            <summary>
+            Number of graphs created.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.NodesCreated">
+            <summary>
+            Number of nodes created.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.NodesUpdated">
+            <summary>
+            Number of nodes updated.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.NodesSkipped">
+            <summary>
+            Number of nodes skipped.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.EdgesCreated">
+            <summary>
+            Number of edges created.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.EdgesUpdated">
+            <summary>
+            Number of edges updated.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.EdgesSkipped">
+            <summary>
+            Number of edges skipped.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.LinesRead">
+            <summary>
+            Total number of record lines read from the input.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.LinesIgnored">
+            <summary>
+            Number of comment or blank lines ignored.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.Warnings">
+            <summary>
+            Warnings raised during the import, including dropped dangling edges and skipped malformed lines.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphImportResult.GuidMap">
+            <summary>
+            Mapping of original GUIDs to newly assigned GUIDs.  Populated only when the GUID strategy is Regenerate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphImportResult.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.GraphStatistics">
             <summary>
             Graph statistics.
@@ -920,6 +1116,26 @@
             </summary>
             <returns>Transaction request.</returns>
         </member>
+        <member name="T:LiteGraph.Sdk.GraphTraversalDirectionEnum">
+            <summary>
+            Direction in which to traverse edges when extracting a subgraph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphTraversalDirectionEnum.Outbound">
+            <summary>
+            Follow edges that originate from the current frontier node (from-node to to-node).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphTraversalDirectionEnum.Inbound">
+            <summary>
+            Follow edges that terminate at the current frontier node (to-node from from-node).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphTraversalDirectionEnum.Both">
+            <summary>
+            Follow edges in either direction.  This is the default.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -1156,6 +1372,18 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ExportGraphToGexf(System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ExportGraphToJsonl(System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ExportSubgraphToJsonl(System.Guid,System.Guid,LiteGraph.Sdk.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ImportGraphFromJsonl(System.Guid,System.Guid,System.String,LiteGraph.Sdk.GraphImportGuidStrategyEnum,LiteGraph.Sdk.GraphImportErrorPolicyEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ImportGraphAsNewFromJsonl(System.Guid,System.String,LiteGraph.Sdk.GraphImportGuidStrategyEnum,LiteGraph.Sdk.GraphImportErrorPolicyEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2187,6 +2415,52 @@
             <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
             <param name="token">Cancellation token.</param>
             <returns>GEXF XML string.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ExportGraphToJsonl(System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Export an entire graph as JSONL.  Suitable as a provider-agnostic per-graph backup.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>JSONL string.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ExportSubgraphToJsonl(System.Guid,System.Guid,LiteGraph.Sdk.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Export a filtered, directional subgraph as JSONL.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>JSONL string.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ImportGraphFromJsonl(System.Guid,System.Guid,System.String,LiteGraph.Sdk.GraphImportGuidStrategyEnum,LiteGraph.Sdk.GraphImportErrorPolicyEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Import JSONL into an existing graph (merge).
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Target graph GUID.</param>
+            <param name="jsonl">JSONL content.</param>
+            <param name="guidStrategy">GUID collision strategy.  Default is Regenerate.</param>
+            <param name="onError">Error policy.  Default is Abort.</param>
+            <param name="batchSize">Batch size.  Minimum 1.  Default is 1000.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Import result.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ImportGraphAsNewFromJsonl(System.Guid,System.String,LiteGraph.Sdk.GraphImportGuidStrategyEnum,LiteGraph.Sdk.GraphImportErrorPolicyEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Import JSONL as a new graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="jsonl">JSONL content.</param>
+            <param name="guidStrategy">GUID collision strategy.  Default is Regenerate.</param>
+            <param name="onError">Error policy.  Default is Abort.</param>
+            <param name="batchSize">Batch size.  Minimum 1.  Default is 1000.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Import result.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3726,6 +4000,26 @@
             <param name="token">Cancellation token.</param>
             <returns>Bytes.</returns>
         </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.GetStreamingBytes(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Issue a GET and return the raw response body bytes, correctly reassembling chunked (streamed) responses.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Response body bytes on success; null otherwise.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.PostStreamingBytes(System.String,System.Byte[],System.String,System.Threading.CancellationToken)">
+            <summary>
+            Issue a POST with a raw body and return the raw response body bytes, correctly reassembling chunked responses.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="bytes">Request body bytes.</param>
+            <param name="contentType">Request content type.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Response body bytes on success; null otherwise.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        </member>
         <member name="T:LiteGraph.Sdk.SearchRequest">
             <summary>
             Search request.
@@ -4051,6 +4345,104 @@
         <member name="F:LiteGraph.Sdk.SeverityEnum.Emergency">
             <summary>
             Emergency messages.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.SubgraphExtractionRequest">
+            <summary>
+            Request describing a filtered, directional subgraph to extract from a graph.
+            The walk begins at one or more start nodes and proceeds breadth-first up to a maximum depth,
+            following edges in the configured direction and honoring the supplied edge and node filters.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.GraphGUID">
+            <summary>
+            Graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.StartNodeGUIDs">
+            <summary>
+            GUIDs of the start nodes from which the walk begins.  At least one is required.
+            Start nodes are always included in the result even if they do not satisfy the node filters.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.MaxDepth">
+            <summary>
+            Maximum traversal depth from the start nodes.
+            Default is 2.  Minimum is 0, where 0 returns only the start nodes and the edges among them.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.Direction">
+            <summary>
+            Direction in which edges are followed.  Default is Both.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.MaxNodes">
+            <summary>
+            Maximum number of nodes to include.  Default is 0 (unlimited).  Minimum is 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.MaxEdges">
+            <summary>
+            Maximum number of edges to include.  Default is 0 (unlimited).  Minimum is 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.EdgeLabels">
+            <summary>
+            Labels an edge must carry to be traversed and included.  Null or empty applies no label filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.EdgeTags">
+            <summary>
+            Tags an edge must carry to be traversed and included.  Null applies no tag filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.EdgeFilter">
+            <summary>
+            Expression filter applied to an edge's data object to decide traversal and inclusion.  Null applies no filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.MaxEdgeCost">
+            <summary>
+            Maximum cost an edge may have to be traversed.  Null applies no cost limit.  Minimum is 0.
+            An edge whose cost exceeds this value is not traversed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.NodeLabels">
+            <summary>
+            Labels a neighbor node must carry to be included and expanded.  Null or empty applies no label filter.
+            Start nodes are exempt from this filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.NodeTags">
+            <summary>
+            Tags a neighbor node must carry to be included and expanded.  Null applies no tag filter.
+            Start nodes are exempt from this filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.NodeFilter">
+            <summary>
+            Expression filter applied to a neighbor node's data object to decide inclusion and expansion.  Null applies no filter.
+            Start nodes are exempt from this filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.IncludeData">
+            <summary>
+            True to include the data property of included graphs, nodes, and edges.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SubgraphExtractionRequest.IncludeSubordinates">
+            <summary>
+            True to include subordinate properties (labels, tags, vectors) of included objects.  Default is false.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.SubgraphExtractionRequest.#ctor">
+            <summary>
+            Instantiate the object.
             </summary>
         </member>
         <member name="T:LiteGraph.Sdk.TagMetadata">

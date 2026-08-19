@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Union
 
 from pydantic import BaseModel
 
@@ -13,11 +13,19 @@ from ..mixins import (
     SearchableAPIResource,
     UpdatableAPIResource,
 )
+from ..enums.severity_enum import Severity_Enum
+from ..exceptions import SdkException, TENANT_REQUIRED_ERROR
 from ..models.existence_request import ExistenceRequestModel
 from ..models.existence_result import ExistenceResultModel
 from ..models.graphs import GraphModel
+from ..models.import_export import SubgraphExtractionRequestModel
 from ..models.search_graphs import SearchRequestGraph, SearchResultGraph
+from ..sdk_logging import log_error
 from ..utils.url_helper import _get_url
+
+NDJSON_CONTENT_TYPE = {"Content-Type": "application/x-ndjson"}
+_GUID_STRATEGIES = {"preserve", "regenerate", "skip", "overwrite"}
+_ON_ERROR_MODES = {"abort", "skip"}
 
 
 class Graph(
@@ -151,3 +159,182 @@ class Graph(
         client = get_client()
         url = f"v1.0/tenants/{client.tenant_guid}/graphs/{graph_guid}/nodes/{node_guid}/subgraph"
         return client.request("GET", url)
+
+    @classmethod
+    def _decode_jsonl(cls, response) -> str:
+        """Decode a raw JSONL (application/x-ndjson) response body into text."""
+        if isinstance(response, str):
+            return response
+        try:
+            return response.decode("utf-8")
+        except Exception as e:
+            log_error(
+                Severity_Enum.Error.value, f"Error decoding JSONL response: {response}"
+            )
+            raise SdkException("Error decoding JSONL response") from e
+
+    @classmethod
+    def export_jsonl(
+        cls,
+        graph_guid: str,
+        include_data: bool = False,
+        include_subordinates: bool = False,
+    ) -> str:
+        """
+        Export a graph to JSONL (application/x-ndjson) format.
+
+        Args:
+            graph_guid (str): The GUID of the graph to export.
+            include_data (bool): Include the ``Data`` property of each object.
+            include_subordinates (bool): Include subordinate labels, tags, and vectors.
+
+        Returns:
+            str: The exported graph as JSONL text.
+        """
+        client = get_client()
+        if client.tenant_guid is None:
+            raise ValueError(TENANT_REQUIRED_ERROR)
+
+        params = {}
+        if include_data:
+            params["incldata"] = None
+        if include_subordinates:
+            params["inclsub"] = None
+
+        url = _get_url(cls, client.tenant_guid, graph_guid, "export", "jsonl", **params)
+        response = client.request("GET", url)
+        return cls._decode_jsonl(response)
+
+    @classmethod
+    def export_subgraph_jsonl(
+        cls,
+        graph_guid: str,
+        request: Union[dict, SubgraphExtractionRequestModel],
+    ) -> str:
+        """
+        Export a subgraph to JSONL (application/x-ndjson) format.
+
+        Args:
+            graph_guid (str): The GUID of the graph to export from.
+            request (dict | SubgraphExtractionRequestModel): The subgraph
+                extraction request describing the traversal.
+
+        Returns:
+            str: The exported subgraph as JSONL text.
+        """
+        if request is None:
+            raise ValueError("Request cannot be None")
+
+        client = get_client()
+        if client.tenant_guid is None:
+            raise ValueError(TENANT_REQUIRED_ERROR)
+
+        if isinstance(request, SubgraphExtractionRequestModel):
+            data = request.model_dump(mode="json", by_alias=True)
+        elif isinstance(request, dict):
+            data = SubgraphExtractionRequestModel(**request).model_dump(
+                mode="json", by_alias=True
+            )
+        else:
+            raise TypeError(
+                "Request must be a dict or SubgraphExtractionRequestModel instance"
+            )
+
+        url = _get_url(cls, client.tenant_guid, graph_guid, "export", "jsonl")
+        response = client.request("POST", url, json=data)
+        return cls._decode_jsonl(response)
+
+    @classmethod
+    def _import_query_params(
+        cls,
+        guid_strategy: str = None,
+        on_error: str = None,
+        batch_size: int = None,
+    ) -> dict:
+        """Validate and build the query parameters for a JSONL import."""
+        params = {}
+        if guid_strategy is not None:
+            if guid_strategy not in _GUID_STRATEGIES:
+                raise ValueError(
+                    f"guid_strategy must be one of {sorted(_GUID_STRATEGIES)}"
+                )
+            params["guidstrategy"] = guid_strategy
+        if on_error is not None:
+            if on_error not in _ON_ERROR_MODES:
+                raise ValueError(f"on_error must be one of {sorted(_ON_ERROR_MODES)}")
+            params["onerror"] = on_error
+        if batch_size is not None:
+            if not isinstance(batch_size, int) or batch_size <= 0:
+                raise ValueError("batch_size must be a positive integer")
+            params["batchsize"] = batch_size
+        return params
+
+    @classmethod
+    def import_jsonl(
+        cls,
+        graph_guid: str,
+        jsonl: str,
+        guid_strategy: str = None,
+        on_error: str = None,
+        batch_size: int = None,
+    ) -> dict:
+        """
+        Import JSONL (application/x-ndjson) content, merging into an existing graph.
+
+        Args:
+            graph_guid (str): The GUID of the graph to merge into.
+            jsonl (str): The raw JSONL content to import.
+            guid_strategy (str, optional): One of ``preserve``, ``regenerate``,
+                ``skip``, or ``overwrite``.
+            on_error (str, optional): One of ``abort`` or ``skip``.
+            batch_size (int, optional): Positive batch size for the import.
+
+        Returns:
+            dict: The GraphImportResult returned by the server.
+        """
+        if jsonl is None:
+            raise ValueError("JSONL content cannot be None")
+
+        client = get_client()
+        if client.tenant_guid is None:
+            raise ValueError(TENANT_REQUIRED_ERROR)
+
+        params = cls._import_query_params(guid_strategy, on_error, batch_size)
+        url = _get_url(cls, client.tenant_guid, graph_guid, "import", "jsonl", **params)
+        return client.request(
+            "POST", url, content=jsonl, headers=NDJSON_CONTENT_TYPE
+        )
+
+    @classmethod
+    def import_jsonl_as_new(
+        cls,
+        jsonl: str,
+        guid_strategy: str = None,
+        on_error: str = None,
+        batch_size: int = None,
+    ) -> dict:
+        """
+        Import JSONL (application/x-ndjson) content as a new graph.
+
+        Args:
+            jsonl (str): The raw JSONL content to import.
+            guid_strategy (str, optional): One of ``preserve``, ``regenerate``,
+                ``skip``, or ``overwrite``.
+            on_error (str, optional): One of ``abort`` or ``skip``.
+            batch_size (int, optional): Positive batch size for the import.
+
+        Returns:
+            dict: The GraphImportResult returned by the server.
+        """
+        if jsonl is None:
+            raise ValueError("JSONL content cannot be None")
+
+        client = get_client()
+        if client.tenant_guid is None:
+            raise ValueError(TENANT_REQUIRED_ERROR)
+
+        params = cls._import_query_params(guid_strategy, on_error, batch_size)
+        url = _get_url(cls, client.tenant_guid, "import", "jsonl", **params)
+        return client.request(
+            "POST", url, content=jsonl, headers=NDJSON_CONTENT_TYPE
+        )
