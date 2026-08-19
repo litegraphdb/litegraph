@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form, Switch, Select } from 'antd';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
@@ -22,6 +23,7 @@ const AddEditTenant = ({
   tenant,
   onTenantUpdated,
 }: AddEditTenantProps) => {
+  const t = useTranslations('tenants');
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
@@ -65,12 +67,12 @@ const AddEditTenant = ({
         const res = await updateTenantById(updatedTenant);
 
         if (res) {
-          toast.success('Tenant updated successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditTenantVisible(false);
           form.resetFields();
           onTenantUpdated && onTenantUpdated();
         } else {
-          toast.error('Failed to update tenant - no response received');
+          toast.error(t('toast.updateNoResponse'));
         }
       } else {
         // Create new tenant
@@ -80,7 +82,7 @@ const AddEditTenant = ({
         };
         const res = await createTenants(newTenant);
         if (res) {
-          toast.success('Tenant created successfully');
+          toast.success(t('toast.created'));
           setIsAddEditTenantVisible(false);
           form.resetFields();
           onTenantUpdated && onTenantUpdated();
@@ -91,7 +93,7 @@ const AddEditTenant = ({
 
   return (
     <LitegraphModal
-      title={tenant ? 'Edit Tenant' : 'Create Tenant'}
+      title={tenant ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditTenantVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -107,15 +109,20 @@ const AddEditTenant = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="Name"
+          label={t('form.name')}
           name="Name"
-          tooltip="Display name for the tenant"
-          rules={[{ required: true, message: 'Please input Name!' }]}
+          tooltip={t('form.nameTooltip')}
+          rules={[{ required: true, message: t('form.nameRequired') }]}
         >
-          <LitegraphInput placeholder="Enter Name" />
+          <LitegraphInput placeholder={t('form.namePlaceholder')} />
         </LitegraphFormItem>
 
-        <LitegraphFormItem label="Active" name="Active" tooltip="Whether the tenant is active" valuePropName="checked">
+        <LitegraphFormItem
+          label={t('form.active')}
+          name="Active"
+          tooltip={t('form.activeTooltip')}
+          valuePropName="checked"
+        >
           <Switch />
         </LitegraphFormItem>
       </Form>

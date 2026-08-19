@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
 import toast from 'react-hot-toast';
@@ -26,13 +27,15 @@ const DeleteLabel = ({
 
   onLabelDeleted,
 }: DeleteLabelProps) => {
+  const t = useTranslations('labels');
+  const tCommon = useTranslations('common');
   const [deleteLabelById, { isLoading }] = useDeleteLabelMutation();
 
   const handleDelete = async () => {
     if (selectedLabel) {
       const res = await deleteLabelById(selectedLabel.GUID);
       if (res) {
-        toast.success('Label deleted successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedLabel(null);
         onLabelDeleted && onLabelDeleted();
@@ -51,7 +54,7 @@ const DeleteLabel = ({
         setSelectedLabel(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
       data-testid="delete-label-modal"
     >

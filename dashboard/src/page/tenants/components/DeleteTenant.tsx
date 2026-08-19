@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
 import toast from 'react-hot-toast';
@@ -26,13 +27,15 @@ const DeleteTenant = ({
 
   onTenantDeleted,
 }: DeleteTenantProps) => {
+  const t = useTranslations('tenants');
+  const tCommon = useTranslations('common');
   const [deleteTenantById, { isLoading }] = useDeleteTenantMutation();
 
   const handleDelete = async () => {
     if (selectedTenant) {
       const res = await deleteTenantById(selectedTenant.GUID);
       if (res) {
-        toast.success('Tenant deleted successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedTenant(null);
         onTenantDeleted && onTenantDeleted();
@@ -51,7 +54,7 @@ const DeleteTenant = ({
         setSelectedTenant(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
       data-testid="delete-tenant-modal"
     >

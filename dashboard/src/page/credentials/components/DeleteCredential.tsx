@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { CredentialType } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -26,13 +27,15 @@ const DeleteCredential = ({
 
   onCredentialDeleted,
 }: DeleteCredentialProps) => {
+  const t = useTranslations('credentials');
+  const tCommon = useTranslations('common');
   const [deleteCredentialById, { isLoading }] = useDeleteCredentialMutation();
 
   const handleDelete = async () => {
     if (selectedCredential) {
       const res = await deleteCredentialById(selectedCredential.GUID);
       if (res) {
-        toast.success('Credential deleted successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedCredential(null);
 
@@ -52,7 +55,7 @@ const DeleteCredential = ({
         setSelectedCredential(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
       data-testid="delete-credential-modal"
     >

@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ReloadOutlined } from '@ant-design/icons';
 import {
   getRequestHistorySummary,
@@ -12,7 +13,6 @@ export type TimeRange = 'hour' | 'day' | 'week' | 'month';
 
 type RangeConfig = {
   value: TimeRange;
-  label: string;
   interval: 'minute' | '15minute' | 'hour' | '6hour';
   stepMs: number;
   bucketCount: number;
@@ -23,7 +23,6 @@ type RangeConfig = {
 const TIME_RANGES: RangeConfig[] = [
   {
     value: 'hour',
-    label: 'Last Hour',
     interval: 'minute',
     stepMs: 60_000,
     bucketCount: 60,
@@ -33,7 +32,6 @@ const TIME_RANGES: RangeConfig[] = [
   },
   {
     value: 'day',
-    label: 'Last Day',
     interval: '15minute',
     stepMs: 15 * 60_000,
     bucketCount: 96,
@@ -43,7 +41,6 @@ const TIME_RANGES: RangeConfig[] = [
   },
   {
     value: 'week',
-    label: 'Last Week',
     interval: 'hour',
     stepMs: 60 * 60_000,
     bucketCount: 168,
@@ -52,7 +49,6 @@ const TIME_RANGES: RangeConfig[] = [
   },
   {
     value: 'month',
-    label: 'Last Month',
     interval: '6hour',
     stepMs: 6 * 60 * 60_000,
     bucketCount: 120,
@@ -114,6 +110,8 @@ const BAR_AREA_HEIGHT = CHART_HEIGHT - PAD_TOP - PAD_BOTTOM;
 const BAR_AREA_WIDTH = CHART_WIDTH - PAD_LEFT - PAD_RIGHT;
 
 const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
+  const t = useTranslations('requestHistory');
+  const tCommon = useTranslations('common');
   const [range, setRange] = useState<TimeRange>('day');
   const [summary, setSummary] = useState<RequestHistorySummary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -200,7 +198,7 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.headerRow}>
-        <div className={styles.headerTitle}>Requests over time</div>
+        <div className={styles.headerTitle}>{t('chart.title')}</div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div className={styles.timeTabs} role="tablist">
             {TIME_RANGES.map((r) => (
@@ -212,7 +210,7 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
                 aria-selected={range === r.value}
                 role="tab"
               >
-                {r.label}
+                {t(`chart.ranges.${r.value}`)}
               </button>
             ))}
           </div>
@@ -220,8 +218,8 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
             type="button"
             className={styles.refreshBtn}
             onClick={() => setLocalRefresh((n) => n + 1)}
-            aria-label="Refresh"
-            title="Refresh"
+            aria-label={tCommon('actions.refresh')}
+            title={tCommon('actions.refresh')}
           >
             <ReloadOutlined spin={loading} />
           </button>
@@ -230,17 +228,17 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
 
       <div className={styles.statsRow}>
         <div className={styles.statItem}>
-          <span className={styles.statLabel}>Total</span>
+          <span className={styles.statLabel}>{t('chart.total')}</span>
           <span className={styles.statValue}>{stats.total.toLocaleString()}</span>
         </div>
         <div className={styles.statItem}>
-          <span className={styles.statLabel}>Success</span>
+          <span className={styles.statLabel}>{t('chart.success')}</span>
           <span className={`${styles.statValue} ${styles.statValueSuccess}`}>
             {stats.success.toLocaleString()}
           </span>
         </div>
         <div className={styles.statItem}>
-          <span className={styles.statLabel}>Failed</span>
+          <span className={styles.statLabel}>{t('chart.failed')}</span>
           <span className={`${styles.statValue} ${styles.statValueFailure}`}>
             {stats.failure.toLocaleString()}
           </span>
@@ -351,12 +349,16 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
               {new Date(tooltipBucket.TimestampUtc).toLocaleString()}
             </div>
             <div className={styles.tooltipSuccess}>
-              Success: {tooltipBucket.SuccessCount}
+              {t('chart.tooltip.success', { count: tooltipBucket.SuccessCount })}
             </div>
             <div className={styles.tooltipFailure}>
-              Failed: {tooltipBucket.FailureCount}
+              {t('chart.tooltip.failed', { count: tooltipBucket.FailureCount })}
             </div>
-            <div>Total: {tooltipBucket.SuccessCount + tooltipBucket.FailureCount}</div>
+            <div>
+              {t('chart.tooltip.total', {
+                count: tooltipBucket.SuccessCount + tooltipBucket.FailureCount,
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -367,11 +369,11 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
             className={styles.legendSwatch}
             style={{ background: 'var(--ant-color-primary)' }}
           />
-          <span>Success</span>
+          <span>{t('chart.success')}</span>
         </div>
         <div className={styles.legendItem}>
           <span className={styles.legendSwatch} style={{ background: '#ef4444' }} />
-          <span>Failed</span>
+          <span>{t('chart.failed')}</span>
         </div>
       </div>
     </div>

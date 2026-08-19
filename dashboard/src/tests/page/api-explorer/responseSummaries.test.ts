@@ -1,8 +1,15 @@
 import { getQueryErrorSummary, getTransactionFailureSummary } from '@/page/api-explorer/responseSummaries';
+import { getTranslator } from '@/i18n/getTranslator';
+
+const t = getTranslator('en', 'apiExplorer') as unknown as (
+  key: string,
+  values?: Record<string, string | number>
+) => string;
 
 describe('API Explorer response summaries', () => {
   it('summarizes failed graph transaction responses', () => {
-    const summary = getTransactionFailureSummary({
+    const summary = getTransactionFailureSummary(
+      {
       Success: false,
       TransactionId: 'tx-1',
       State: 'RolledBack',
@@ -24,7 +31,9 @@ describe('API Explorer response summaries', () => {
           Error: 'duplicate node',
         },
       ],
-    });
+      },
+      t
+    );
 
     expect(summary).toContain('Create Node');
     expect(summary).toContain('node-1');
@@ -40,34 +49,40 @@ describe('API Explorer response summaries', () => {
   });
 
   it('ignores successful responses', () => {
-    expect(getTransactionFailureSummary({ Success: true })).toBeNull();
+    expect(getTransactionFailureSummary({ Success: true }, t)).toBeNull();
   });
 
   it('summarizes transaction validation failures', () => {
-    const summary = getTransactionFailureSummary({
-      Success: false,
-      RolledBack: false,
-      ValidationFailure: true,
-      FailedOperationIndex: 0,
-      Error: 'Transaction operation 0 requires a payload.',
-      Operations: [{ Index: 0, OperationType: 'Create', ObjectType: 'Node', Success: false }],
-    });
+    const summary = getTransactionFailureSummary(
+      {
+        Success: false,
+        RolledBack: false,
+        ValidationFailure: true,
+        FailedOperationIndex: 0,
+        Error: 'Transaction operation 0 requires a payload.',
+        Operations: [{ Index: 0, OperationType: 'Create', ObjectType: 'Node', Success: false }],
+      },
+      t
+    );
 
     expect(summary).toContain('failed validation before starting');
     expect(summary).not.toContain('rolled back');
   });
 
   it('summarizes graph query line and column errors', () => {
-    const summary = getQueryErrorSummary({
-      Error: 'BadRequest',
-      Description: "WHERE operator expected at line 2, column 14.",
-    });
+    const summary = getQueryErrorSummary(
+      {
+        Error: 'BadRequest',
+        Description: 'WHERE operator expected at line 2, column 14.',
+      },
+      t
+    );
 
     expect(summary).toContain('line 2, column 14');
     expect(summary).toContain('WHERE operator expected');
   });
 
   it('ignores non-query errors', () => {
-    expect(getQueryErrorSummary({ Error: 'NotFound', Description: 'Graph not found.' })).toBeNull();
+    expect(getQueryErrorSummary({ Error: 'NotFound', Description: 'Graph not found.' }, t)).toBeNull();
   });
 });

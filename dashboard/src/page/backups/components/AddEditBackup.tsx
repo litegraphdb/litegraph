@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form } from 'antd';
 import { globalToastId } from '@/constants/config';
 import LitegraphFormItem from '@/components/base/form/FormItem';
@@ -24,6 +25,7 @@ const AddEditBackup = ({
   backup,
   onBackupUpdated,
 }: AddEditBackupProps) => {
+  const t = useTranslations('backups');
   const [form] = Form.useForm<BackupMetaDataCreateRequest>();
   const [formValid, setFormValid] = useState(false);
   const [createBackupService, { isLoading: createBackupLoading }] = useCreateBackupMutation();
@@ -48,20 +50,20 @@ const AddEditBackup = ({
         setIsAddEditBackupVisible(false);
         form.resetFields();
         onBackupUpdated && onBackupUpdated();
-        toast.success('Backup created successfully', { id: globalToastId });
+        toast.success(t('toast.created'), { id: globalToastId });
       } else {
-        toast.error('Failed to create backup', { id: globalToastId });
+        toast.error(t('toast.createFailed'), { id: globalToastId });
       }
     } catch (error: unknown) {
       console.error('Failed to submit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to create backup: ${errorMessage}`, { id: globalToastId });
+      toast.error(t('toast.createFailedError', { error: errorMessage }), { id: globalToastId });
     }
   };
 
   return (
     <LitegraphModal
-      title={backup ? 'Edit Backup' : 'Add Backup'}
+      title={backup ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditBackupVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -77,12 +79,12 @@ const AddEditBackup = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="Filename"
+          label={t('form.filename')}
           name="Filename"
-          tooltip="Name for the backup file"
-          rules={[{ required: true, message: 'Please enter a filename' }]}
+          tooltip={t('form.filenameTooltip')}
+          rules={[{ required: true, message: t('form.filenameRequired') }]}
         >
-          <LitegraphInput placeholder="Enter filename" data-testid="filename-input" />
+          <LitegraphInput placeholder={t('form.filenamePlaceholder')} data-testid="filename-input" />
         </LitegraphFormItem>
       </Form>
     </LitegraphModal>

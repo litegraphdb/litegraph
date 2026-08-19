@@ -61,39 +61,7 @@ const statBubbleStyle: React.CSSProperties = {
   marginLeft: 4,
 };
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: '200', label: '200' },
-  { value: '201', label: '201' },
-  { value: '204', label: '204' },
-  { value: '400', label: '400' },
-  { value: '401', label: '401' },
-  { value: '403', label: '403' },
-  { value: '404', label: '404' },
-  { value: '500', label: '500' },
-];
-
-const OUTCOME_OPTIONS = [
-  { value: '', label: 'All outcomes' },
-  { value: 'true', label: 'Successful' },
-  { value: 'false', label: 'Errors' },
-];
-
-const TRANSACTION_OPTIONS = [
-  { value: '', label: 'All requests' },
-  { value: 'true', label: 'Transactions' },
-  { value: 'false', label: 'Non-transactions' },
-];
-
-const METHOD_OPTIONS = [
-  { value: '', label: 'All methods' },
-  'GET',
-  'POST',
-  'PUT',
-  'DELETE',
-  'HEAD',
-  'PATCH',
-].map((m) => (typeof m === 'string' ? { value: m, label: m } : m));
+const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH'];
 
 type TransactionDiagnostics = {
   TransactionId?: string;
@@ -126,21 +94,21 @@ const parseTransactionDiagnostics = (
 
 const transactionState = (
   diagnostics: TransactionDiagnostics
-): { label: string; color: string } => {
-  if (diagnostics.ValidationFailure) return { label: 'validation', color: 'orange' };
-  if (diagnostics.State === 'Committed') return { label: 'committed', color: 'green' };
-  if (diagnostics.State === 'RolledBack') return { label: 'rolled back', color: 'red' };
-  if (diagnostics.State === 'Faulted') return { label: 'failed', color: 'red' };
-  if (diagnostics.RolledBack) return { label: 'rolled back', color: 'red' };
-  if (diagnostics.Success === true) return { label: 'committed', color: 'green' };
-  if (diagnostics.Success === false) return { label: 'failed', color: 'red' };
-  return { label: 'transaction', color: 'blue' };
+): { labelKey: string; color: string } => {
+  if (diagnostics.ValidationFailure) return { labelKey: 'validation', color: 'orange' };
+  if (diagnostics.State === 'Committed') return { labelKey: 'committed', color: 'green' };
+  if (diagnostics.State === 'RolledBack') return { labelKey: 'rolledBack', color: 'red' };
+  if (diagnostics.State === 'Faulted') return { labelKey: 'failed', color: 'red' };
+  if (diagnostics.RolledBack) return { labelKey: 'rolledBack', color: 'red' };
+  if (diagnostics.Success === true) return { labelKey: 'committed', color: 'green' };
+  if (diagnostics.Success === false) return { labelKey: 'failed', color: 'red' };
+  return { labelKey: 'transaction', color: 'blue' };
 };
 
 const statusColor = (code: number): string => {
-  if (code >= 200 && code < 300) return 'green';
-  if (code >= 300 && code < 400) return 'blue';
-  if (code >= 400 && code < 500) return 'gold';
+  if (code < 300 && code >= 200) return 'green';
+  if (code < 400 && code >= 300) return 'blue';
+  if (code < 500 && code >= 400) return 'gold';
   return 'red';
 };
 
@@ -179,8 +147,8 @@ type Props = {
 };
 
 const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('requestHistory');
+  const tCommon = useTranslations('common');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(25);
   const [method, setMethod] = useState<string>('');
@@ -196,6 +164,47 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const [jsonViewRecord, setJsonViewRecord] = useState<RequestHistoryEntry | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const metricsEndpointUrl = useMemo(() => getMetricsEndpointUrl(), []);
+
+  const statusOptions = useMemo(
+    () => [
+      { value: '', label: t('filters.allStatuses') },
+      { value: '200', label: '200' },
+      { value: '201', label: '201' },
+      { value: '204', label: '204' },
+      { value: '400', label: '400' },
+      { value: '401', label: '401' },
+      { value: '403', label: '403' },
+      { value: '404', label: '404' },
+      { value: '500', label: '500' },
+    ],
+    [t]
+  );
+
+  const outcomeOptions = useMemo(
+    () => [
+      { value: '', label: t('filters.allOutcomes') },
+      { value: 'true', label: t('filters.successful') },
+      { value: 'false', label: t('filters.errors') },
+    ],
+    [t]
+  );
+
+  const transactionOptions = useMemo(
+    () => [
+      { value: '', label: t('filters.allRequests') },
+      { value: 'true', label: t('filters.transactions') },
+      { value: 'false', label: t('filters.nonTransactions') },
+    ],
+    [t]
+  );
+
+  const methodOptions = useMemo(
+    () => [
+      { value: '', label: t('filters.allMethods') },
+      ...HTTP_METHODS.map((m) => ({ value: m, label: m })),
+    ],
+    [t]
+  );
 
   const fetchList = useCallback(() => {
     setLoading(true);
@@ -215,7 +224,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
       .then((data) => setResult(data))
       .catch(() => {
         setResult(null);
-        toast.error('Unable to load request history', { id: globalToastId });
+        toast.error(t('toast.loadFailed'), { id: globalToastId });
       })
       .finally(() => setLoading(false));
   }, [
@@ -239,10 +248,10 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const onDelete = async (id: string) => {
     try {
       await deleteRequestHistory(id);
-      toast.success('Entry deleted', { id: globalToastId });
+      toast.success(t('toast.deleted'), { id: globalToastId });
       setRefreshKey((n) => n + 1);
     } catch {
-      toast.error('Unable to delete', { id: globalToastId });
+      toast.error(t('toast.deleteFailed'), { id: globalToastId });
     }
   };
 
@@ -253,10 +262,10 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
 
   const confirmDelete = (entry: RequestHistoryEntry) => {
     Modal.confirm({
-      title: 'Delete request history entry?',
+      title: t('delete.confirmTitle'),
       content: entry.Path,
-      okText: 'Delete',
-      cancelText: 'Cancel',
+      okText: tCommon('actions.delete'),
+      cancelText: tCommon('actions.cancel'),
       okButtonProps: { danger: true },
       maskClosable: true,
       onOk: () => onDelete(entry.GUID),
@@ -266,7 +275,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const columns: ColumnsType<RequestHistoryEntry> = useMemo(
     () => [
       {
-        title: 'Time',
+        title: t('columns.time'),
         dataIndex: 'CreatedUtc',
         width: 170,
         onHeaderCell: () => ({ style: noWrapStyle }),
@@ -277,7 +286,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         ),
       },
       {
-        title: 'Method',
+        title: t('columns.method'),
         dataIndex: 'Method',
         width: 80,
         onHeaderCell: () => ({ style: noWrapStyle }),
@@ -288,19 +297,19 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         ),
       },
       {
-        title: 'Path',
+        title: t('columns.path'),
         dataIndex: 'Path',
         ellipsis: true,
         render: (v: string) => <Text code>{v}</Text>,
       },
       {
-        title: 'Status',
+        title: t('columns.status'),
         dataIndex: 'StatusCode',
         width: 80,
         render: (v: number) => <Tag color={statusColor(v)}>{v}</Tag>,
       },
       {
-        title: 'Transaction',
+        title: t('columns.transaction'),
         dataIndex: 'TransactionDiagnosticsJson',
         width: 190,
         render: (v?: string | null) => {
@@ -310,7 +319,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
           const state = transactionState(diagnostics);
           const shortId = diagnostics.TransactionId
             ? diagnostics.TransactionId.substring(0, 8)
-            : 'transaction';
+            : t('transaction.noId');
 
           return (
             <Space direction="vertical" size={2}>
@@ -323,7 +332,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
                   style={noWrapStyle}
                   data-testid="request-history-transaction-state"
                 >
-                  {state.label}
+                  {t(`transactionState.${state.labelKey}`)}
                 </Tag>
                 {diagnostics.IsolationLevel && (
                   <Tag style={noWrapStyle}>{diagnostics.IsolationLevel}</Tag>
@@ -332,21 +341,25 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
                 {diagnostics.ProviderErrorCode && (
                   <Tag style={noWrapStyle}>{diagnostics.ProviderErrorCode}</Tag>
                 )}
-                {diagnostics.Retryable && <Tag color="purple">retryable</Tag>}
-                {diagnostics.ConcurrencyConflict && <Tag color="red">conflict</Tag>}
+                {diagnostics.Retryable && (
+                  <Tag color="purple">{t('transactionTags.retryable')}</Tag>
+                )}
+                {diagnostics.ConcurrencyConflict && (
+                  <Tag color="red">{t('transactionTags.conflict')}</Tag>
+                )}
               </Space>
             </Space>
           );
         },
       },
       {
-        title: 'Duration',
+        title: t('columns.duration'),
         dataIndex: 'ProcessingTimeMs',
         width: 100,
         render: (v: number) => `${v.toFixed(1)} ms`,
       },
       {
-        title: 'Size (req/resp)',
+        title: t('columns.size'),
         width: 140,
         render: (_: unknown, r: RequestHistoryEntry) =>
           `${r.RequestBodyLength} / ${r.ResponseBodyLength} B`,
@@ -354,7 +367,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
       ...(mode === 'admin'
         ? [
             {
-              title: 'Tenant',
+              title: t('columns.tenant'),
               dataIndex: 'TenantGUID',
               width: 160,
               render: (v?: string | null) =>
@@ -369,26 +382,26 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
           ]
         : []),
       {
-        title: 'Actions',
+        title: t('columns.actions'),
         width: 90,
         fixed: 'right' as const,
         render: (_: unknown, r: RequestHistoryEntry) => {
           const items = [
             {
               key: 'view',
-              label: 'View',
+              label: t('rowActions.view'),
               icon: <EyeOutlined />,
               onClick: () => onView(r),
             },
             {
               key: 'view-json',
-              label: 'View JSON',
+              label: t('rowActions.viewJson'),
               icon: <CodeOutlined />,
               onClick: () => setJsonViewRecord(r),
             },
             {
               key: 'delete',
-              label: 'Delete',
+              label: t('rowActions.delete'),
               icon: <DeleteOutlined />,
               danger: true,
               onClick: () => confirmDelete(r),
@@ -401,7 +414,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
                 <Button
                   size="small"
                   type="text"
-                  aria-label="Request actions"
+                  aria-label={t('rowActions.menu')}
                   icon={<MoreOutlined style={{ fontSize: 18 }} />}
                 />
               </Dropdown>
@@ -410,7 +423,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         },
       },
     ],
-    [mode]
+    [mode, t]
   );
 
   const visibleStats = useMemo(() => {
@@ -442,23 +455,20 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         type="info"
         showIcon
         style={{ marginBottom: 12 }}
-        message="Operational telemetry"
+        message={t('telemetry.title')}
         description={
           <Space size="middle" wrap>
             <Typography.Link href={metricsEndpointUrl} target="_blank" rel="noreferrer">
-              Prometheus metrics
+              {t('telemetry.prometheus')}
             </Typography.Link>
             <Typography.Link
               href="https://opentelemetry.io/docs/"
               target="_blank"
               rel="noreferrer"
             >
-              OpenTelemetry setup
+              {t('telemetry.openTelemetry')}
             </Typography.Link>
-            <Text type="secondary">
-              Request history is for recent request inspection; metrics and traces are for
-              aggregate monitoring.
-            </Text>
+            <Text type="secondary">{t('telemetry.description')}</Text>
           </Space>
         }
       />
@@ -469,20 +479,23 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
           style={summaryStatsStyle}
         >
           <Text>
-            Visible requests: <StatValue>{visibleStats.total.toLocaleString()}</StatValue>
+            {t('summary.visibleRequests')}{' '}
+            <StatValue>{visibleStats.total.toLocaleString()}</StatValue>
           </Text>
           <Text>
-            Visible errors: <StatValue>{visibleStats.failures.toLocaleString()}</StatValue>
+            {t('summary.visibleErrors')}{' '}
+            <StatValue>{visibleStats.failures.toLocaleString()}</StatValue>
           </Text>
           <Text>
-            Error rate: <StatValue>{visibleStats.errorRate.toFixed(1)}%</StatValue>
+            {t('summary.errorRate')} <StatValue>{visibleStats.errorRate.toFixed(1)}%</StatValue>
           </Text>
           <Text>
-            Average duration:{' '}
+            {t('summary.averageDuration')}{' '}
             <StatValue>{visibleStats.averageDuration.toFixed(1)} ms</StatValue>
           </Text>
           <Text>
-            P95 duration: <StatValue>{visibleStats.p95Duration.toFixed(1)} ms</StatValue>
+            {t('summary.p95Duration')}{' '}
+            <StatValue>{visibleStats.p95Duration.toFixed(1)} ms</StatValue>
           </Text>
         </div>
 
@@ -494,7 +507,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
               setMethod(v);
               setPage(0);
             }}
-            options={METHOD_OPTIONS}
+            options={methodOptions}
           />
           <Select
             style={{ width: 140 }}
@@ -503,7 +516,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
               setStatusCode(v);
               setPage(0);
             }}
-            options={STATUS_OPTIONS}
+            options={statusOptions}
           />
           <Select
             style={{ width: 150 }}
@@ -512,7 +525,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
               setOutcome(v);
               setPage(0);
             }}
-            options={OUTCOME_OPTIONS}
+            options={outcomeOptions}
           />
           <Select
             style={{ width: 170 }}
@@ -521,10 +534,10 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
               setTransactionFilter(v);
               setPage(0);
             }}
-            options={TRANSACTION_OPTIONS}
+            options={transactionOptions}
           />
           <Input
-            placeholder="Transaction ID..."
+            placeholder={t('filters.transactionIdPlaceholder')}
             value={transactionId}
             onChange={(e) => setTransactionId(e.target.value)}
             onPressEnter={() => setPage(0)}
@@ -532,7 +545,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
             allowClear
           />
           <Input
-            placeholder="Path contains..."
+            placeholder={t('filters.pathPlaceholder')}
             value={path}
             onChange={(e) => setPath(e.target.value)}
             onPressEnter={() => setPage(0)}
@@ -586,7 +599,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Request History Entry JSON"
+        title={t('entryJson')}
       />
     </PageContainer>
   );

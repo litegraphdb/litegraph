@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form, Switch, Select } from 'antd';
 import { CredentialType } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
@@ -28,6 +29,7 @@ const AddEditCredential = ({
   credential,
   onCredentialUpdated,
 }: AddEditCredentialProps) => {
+  const t = useTranslations('credentials');
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const [formValid, setFormValid] = useState(false);
@@ -78,12 +80,12 @@ const AddEditCredential = ({
         const res = await updateCredentialById(updatedCredential);
 
         if (res) {
-          toast.success('Credential updated successfully');
+          toast.success(t('toast.updated'));
           setIsAddEditCredentialVisible(false);
           form.resetFields();
           onCredentialUpdated && onCredentialUpdated();
         } else {
-          toast.error('Failed to update credential - no response received');
+          toast.error(t('toast.updateNoResponse'));
         }
       } else {
         // Create new credential
@@ -95,7 +97,7 @@ const AddEditCredential = ({
         };
         const res = await createCredentialService(newCredential);
         if (res) {
-          toast.success('Credential created successfully');
+          toast.success(t('toast.created'));
           setIsAddEditCredentialVisible(false);
           form.resetFields();
           onCredentialUpdated && onCredentialUpdated();
@@ -104,13 +106,13 @@ const AddEditCredential = ({
     } catch (error: unknown) {
       console.error('Failed to submit:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to update credential: ${errorMessage}`);
+      toast.error(t('toast.updateFailed', { error: errorMessage }));
     }
   };
 
   return (
     <LitegraphModal
-      title={credential ? 'Edit Credential' : 'Create Credential'}
+      title={credential ? t('modalTitle.edit') : t('modalTitle.create')}
       open={isAddEditCredentialVisible}
       onOk={handleSubmit}
       onCancel={() => {
@@ -127,13 +129,13 @@ const AddEditCredential = ({
         onValuesChange={(_, allValues) => setFormValues(allValues)}
       >
         <LitegraphFormItem
-          label="User GUID"
+          label={t('form.userGuid')}
           name="UserGUID"
-          tooltip="User this credential belongs to"
-          rules={[{ required: true, message: 'Please select user GUID!' }]}
+          tooltip={t('form.userGuidTooltip')}
+          rules={[{ required: true, message: t('form.userGuidRequired') }]}
         >
           <Select
-            placeholder="Select user GUID"
+            placeholder={t('form.userGuidPlaceholder')}
             options={userOptions}
             loading={isUsersLoading}
             disabled={!!credential}
@@ -142,24 +144,29 @@ const AddEditCredential = ({
         </LitegraphFormItem>
 
         <LitegraphFormItem
-          label="Name"
+          label={t('form.name')}
           name="Name"
-          tooltip="Display name for the credential"
-          rules={[{ required: true, message: 'Please input name!' }]}
+          tooltip={t('form.nameTooltip')}
+          rules={[{ required: true, message: t('form.nameRequired') }]}
         >
-          <LitegraphInput placeholder="Enter name" data-testid="name-input" />
+          <LitegraphInput placeholder={t('form.namePlaceholder')} data-testid="name-input" />
         </LitegraphFormItem>
 
         <LitegraphFormItem
-          label="Bearer Token"
+          label={t('form.bearerToken')}
           name="BearerToken"
-          tooltip="Authentication bearer token"
-          rules={[{ required: true, message: 'Please input bearer token!' }]}
+          tooltip={t('form.bearerTokenTooltip')}
+          rules={[{ required: true, message: t('form.bearerTokenRequired') }]}
         >
-          <LitegraphInput placeholder="Enter bearer token" disabled={!!credential} />
+          <LitegraphInput placeholder={t('form.bearerTokenPlaceholder')} disabled={!!credential} />
         </LitegraphFormItem>
 
-        <LitegraphFormItem label="Active" name="Active" tooltip="Whether the credential is active" valuePropName="checked">
+        <LitegraphFormItem
+          label={t('form.active')}
+          name="Active"
+          tooltip={t('form.activeTooltip')}
+          valuePropName="checked"
+        >
           <Switch data-testid="active-switch" />
         </LitegraphFormItem>
       </Form>

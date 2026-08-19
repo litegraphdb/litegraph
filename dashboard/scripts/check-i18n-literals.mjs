@@ -31,6 +31,16 @@ const ENFORCED_DIRS = [
   'page/login',
   'page/admin-login',
   'page/user-dashboard/home',
+  'page/labels',
+  'page/tags',
+  'page/vectors',
+  'page/credentials',
+  'page/tenants',
+  'page/users',
+  'page/backups',
+  'page/request-history',
+  'page/api-explorer',
+  'page/authorization',
 ];
 const ENFORCED_FILES = ['components/layout/DashboardLayout.tsx', 'components/navigation.tsx'];
 

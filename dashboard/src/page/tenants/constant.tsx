@@ -35,16 +35,19 @@ const monoValueStyle = {
   whiteSpace: 'nowrap',
 } as const;
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 export const tableColumns = (
+  t: Translator,
   handleEdit: (tenant: TenantMetaData) => void,
   handleDelete: (tenant: TenantMetaData) => void,
   handleViewJson?: (record: TenantMetaData) => void
 ): TableProps<TenantMetaData>['columns'] => [
   {
-    title: columnTooltip('GUID', 'Globally unique identifier'),
+    title: columnTooltip(t('columns.guid'), t('columns.guidDesc')),
     dataIndex: 'GUID',
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search GUID" />
+      <TableSearch {...props} placeholder={t('search.guid')} />
     ),
     onFilter: (value, record) => onGUIDFilter(value, record.GUID),
     key: 'GUID',
@@ -53,18 +56,18 @@ export const tableColumns = (
     render: (GUID: string) => (
       <span style={monoCellStyle} title={GUID}>
         <span style={monoValueStyle}>{GUID}</span>
-        <CopyButton text={GUID} tooltipTitle="Copy GUID" />
+        <CopyButton text={GUID} tooltipTitle={t('copyGuid')} />
       </span>
     ),
   },
   {
-    title: columnTooltip('Name', 'Tenant display name'),
+    title: columnTooltip(t('columns.name'), t('columns.nameDesc')),
     dataIndex: 'Name',
     key: 'Name',
     width: 220,
     ellipsis: true,
     filterDropdown: (props: FilterDropdownProps) => (
-      <TableSearch {...props} placeholder="Search Name" />
+      <TableSearch {...props} placeholder={t('search.name')} />
     ),
     onFilter: (value, record) => onNameFilter(value, record.Name),
     sorter: (a: TenantMetaData, b: TenantMetaData) => a.Name.localeCompare(b.Name),
@@ -72,7 +75,7 @@ export const tableColumns = (
   },
 
   {
-    title: columnTooltip('Active', 'Whether the tenant is active'),
+    title: columnTooltip(t('columns.active'), t('columns.activeDesc')),
     dataIndex: 'Active',
     key: 'Active',
     width: 80,
@@ -85,7 +88,7 @@ export const tableColumns = (
       ),
   },
   {
-    title: columnTooltip('Created UTC', 'Date and time of creation in UTC'),
+    title: columnTooltip(t('columns.createdUtc'), t('columns.createdUtcDesc')),
     dataIndex: 'CreatedUtc',
     sorter: (a: TenantMetaData, b: TenantMetaData) =>
       new Date(a.CreatedUtc).getTime() - new Date(b.CreatedUtc).getTime(),
@@ -95,31 +98,31 @@ export const tableColumns = (
     render: (CreatedUtc: string) => <div>{formatDateTime(CreatedUtc)}</div>,
   },
   {
-    title: columnTooltip('Actions', 'Available operations'),
+    title: columnTooltip(t('columns.actions'), t('columns.actionsDesc')),
     key: 'actions',
     width: 70,
     render: (_: any, record: TenantMetaData) => {
       const items = [
         {
           key: 'edit',
-          label: 'Edit',
+          label: t('rowActions.edit'),
           onClick: () => handleEdit(record),
         },
         {
           key: 'delete',
-          label: 'Delete',
+          label: t('rowActions.delete'),
           onClick: () => handleDelete(record),
         },
         {
           icon: <CodeOutlined />,
           key: 'view-json',
-          label: 'View JSON',
+          label: t('rowActions.viewJson'),
           onClick: () => handleViewJson?.(record),
         },
       ];
       return (
         <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
-          <LitegraphTooltip title="Actions">
+          <LitegraphTooltip title={t('rowActions.menu')}>
             <Button
               type="text"
               role="tenant-action-menu"

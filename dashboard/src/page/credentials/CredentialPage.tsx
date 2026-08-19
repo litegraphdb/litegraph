@@ -18,8 +18,8 @@ import { tablePaginationConfig } from '@/constants/pagination';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 const CredentialPage = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('credentials');
+  const tCommon = useTranslations('common');
   const [selectedCredential, setSelectedCredential] = useState<CredentialType | null>(null);
   const [isAddEditCredentialVisible, setIsAddEditCredentialVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -80,12 +80,12 @@ const CredentialPage = () => {
       }
     >
       {error && !isCredentialsLoading ? (
-        <FallBack retry={fetchCredentialsList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchCredentialsList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           hideHorizontalScroll
           loading={isCredentialsLoading || isUsersLoading}
-          columns={tableColumns(handleEditCredential, handleDeleteCredential, setJsonViewRecord)}
+          columns={tableColumns(t, handleEditCredential, handleDeleteCredential, setJsonViewRecord)}
           dataSource={credentialsListWithUsers}
           rowKey={'GUID'}
           onRowClick={handleEditCredential}
@@ -111,8 +111,8 @@ const CredentialPage = () => {
 
       {isDeleteModelVisible && selectedCredential && (
         <DeleteCredential
-          title={`Are you sure you want to delete "${selectedCredential.Name}" credential?`}
-          paragraphText={'This action will delete credential.'}
+          title={t('deleteTitle', { name: selectedCredential.Name })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedCredential={selectedCredential}
@@ -123,7 +123,7 @@ const CredentialPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Credential JSON"
+        title={t('credentialJson')}
       />
     </PageContainer>
   );

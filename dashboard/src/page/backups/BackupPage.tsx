@@ -17,8 +17,8 @@ import { BackupMetaData } from 'litegraphdb/dist/types/types';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 
 const BackupPage = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('backups');
+  const tCommon = useTranslations('common');
   const [isDeleteBackupVisible, setIsDeleteBackupVisible] = useState(false);
   const [isAddEditBackupVisible, setIsAddEditBackupVisible] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupMetaData | null>(null);
@@ -43,7 +43,7 @@ const BackupPage = () => {
 
   const handleDownload = async (backup: BackupMetaData) => {
     if (!backup.Filename) {
-      toast.error('Missing backup filename', { id: globalToastId });
+      toast.error(t('toast.missingFilename'), { id: globalToastId });
       return;
     }
     const { data } = await fetchBackupByFilename(backup.Filename);
@@ -53,7 +53,7 @@ const BackupPage = () => {
         : `${backup.Filename}.litegraph.db`;
       downloadBase64File(data.Data, downloadFilename);
     } else {
-      toast.error('Unable to download backup', { id: globalToastId });
+      toast.error(t('toast.unableToDownload'), { id: globalToastId });
     }
   };
 
@@ -75,12 +75,12 @@ const BackupPage = () => {
       }
     >
       {error && !isBackupsLoading ? (
-        <FallBack retry={fetchBackupsList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchBackupsList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           hideHorizontalScroll
           loading={isBackupsLoading || isDownloading}
-          columns={tableColumns(handleDeleteBackup, handleDownload, isDownloading)}
+          columns={tableColumns(t, handleDeleteBackup, handleDownload, isDownloading)}
           dataSource={backupsList}
           rowKey={'Filename'}
           onRefresh={fetchBackupsList}
@@ -98,8 +98,8 @@ const BackupPage = () => {
 
       {isDeleteBackupVisible && selectedBackup && (
         <DeleteBackup
-          title={`Are you sure you want to delete "${selectedBackup.Filename}" backup?`}
-          paragraphText={'This action will delete backup.'}
+          title={t('deleteTitle', { name: selectedBackup.Filename })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteBackupVisible}
           setIsDeleteModelVisible={setIsDeleteBackupVisible}
           selectedBackup={selectedBackup}

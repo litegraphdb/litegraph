@@ -1,4 +1,5 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { VectorType } from '@/types/types';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphParagraph from '@/components/base/typograpghy/Paragraph';
@@ -24,13 +25,15 @@ const DeleteVector = ({
   setSelectedVector,
   onVectorDeleted,
 }: DeleteVectorProps) => {
+  const t = useTranslations('vectors');
+  const tCommon = useTranslations('common');
   const [deleteVectorById, { isLoading }] = useDeleteVectorMutation();
 
   const handleDelete = async () => {
     if (selectedVector) {
       const res = await deleteVectorById(selectedVector.GUID);
       if (res) {
-        toast.success('Vector deleted successfully');
+        toast.success(t('toast.deleted'));
         setIsDeleteModelVisible(false);
         setSelectedVector(null);
         onVectorDeleted && onVectorDeleted();
@@ -49,7 +52,7 @@ const DeleteVector = ({
         setSelectedVector(null);
       }}
       confirmLoading={isLoading}
-      okText="Delete"
+      okText={tCommon('actions.delete')}
       okButtonProps={{ danger: true }}
       data-testid="delete-vector-modal"
     >

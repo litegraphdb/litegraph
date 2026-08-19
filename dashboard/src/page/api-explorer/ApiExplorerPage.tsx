@@ -66,8 +66,8 @@ const saveHistory = (items: RecentRequest[]) => {
 };
 
 const ApiExplorerPage: React.FC = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('apiExplorer');
+  const tCommon = useTranslations('common');
   const [operations, setOperations] = useState<ApiOperation[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [pathValues, setPathValues] = useState<Record<string, string>>({});
@@ -89,8 +89,9 @@ const ApiExplorerPage: React.FC = () => {
         setOperations(flattenOpenApi(data));
       })
       .catch(() => {
-        message.error('Unable to load OpenAPI spec');
+        message.error(t('toast.loadSpecFailed'));
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedOperation = useMemo(
@@ -187,7 +188,7 @@ const ApiExplorerPage: React.FC = () => {
       setHistory(next);
       saveHistory(next);
     } catch (e) {
-      message.error('Request failed: ' + (e instanceof Error ? e.message : String(e)));
+      message.error(t('toast.requestFailed', { error: e instanceof Error ? e.message : String(e) }));
     } finally {
       setSending(false);
     }
@@ -213,11 +214,13 @@ const ApiExplorerPage: React.FC = () => {
   }, [response]);
 
   const transactionFailure = useMemo(() => {
-    return response?.json ? getTransactionFailureSummary(response.json) : null;
+    return response?.json ? getTransactionFailureSummary(response.json, t) : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   const queryError = useMemo(() => {
-    return response?.json ? getQueryErrorSummary(response.json) : null;
+    return response?.json ? getQueryErrorSummary(response.json, t) : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   const grouped = useMemo(() => {
@@ -234,10 +237,10 @@ const ApiExplorerPage: React.FC = () => {
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>Request</span>
+            <span className={styles.cardTitle}>{t('request.title')}</span>
             <Space>
               {selectedOperation && (
-                <Tooltip title="Reset body to template">
+                <Tooltip title={t('request.resetTooltip')}>
                   <Button
                     size="small"
                     icon={<ReloadOutlined />}
@@ -260,7 +263,7 @@ const ApiExplorerPage: React.FC = () => {
           <div className={styles.cardBody}>
             <Select
               showSearch
-              placeholder="Select an operation..."
+              placeholder={t('request.selectOperation')}
               value={selectedId}
               onChange={(v) => setSelectedId(v)}
               style={{ width: '100%' }}
@@ -289,7 +292,7 @@ const ApiExplorerPage: React.FC = () => {
                   </Text>
                   <CopyButton
                     text={computedUrl || selectedOperation.path}
-                    tooltipTitle="Copy URL"
+                    tooltipTitle={t('request.copyUrl')}
                   />
                 </div>
 
@@ -305,7 +308,7 @@ const ApiExplorerPage: React.FC = () => {
                       strong
                       style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
                     >
-                      Path parameters
+                      {t('params.path')}
                     </Text>
                     <div className={styles.paramGrid}>
                       {selectedOperation.parameters
@@ -330,7 +333,7 @@ const ApiExplorerPage: React.FC = () => {
                       strong
                       style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
                     >
-                      Query parameters
+                      {t('params.query')}
                     </Text>
                     <div className={styles.paramGrid}>
                       {selectedOperation.parameters
@@ -355,7 +358,7 @@ const ApiExplorerPage: React.FC = () => {
                       strong
                       style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
                     >
-                      Request body
+                      {t('request.body')}
                     </Text>
                     <Input.TextArea
                       value={body}
@@ -378,7 +381,7 @@ const ApiExplorerPage: React.FC = () => {
                     strong
                     style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
                   >
-                    Recent Requests
+                    {t('request.recentRequests')}
                   </Text>
                   <Button
                     size="small"
@@ -389,7 +392,7 @@ const ApiExplorerPage: React.FC = () => {
                       saveHistory([]);
                     }}
                   >
-                    Clear
+                    {t('request.clear')}
                   </Button>
                 </Space>
                 <div className={styles.recentList}>
@@ -430,7 +433,7 @@ const ApiExplorerPage: React.FC = () => {
 
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.cardTitle}>Response</span>
+            <span className={styles.cardTitle}>{t('response.title')}</span>
             {response && (
               <Tag color={response.status < 400 ? 'green' : 'red'}>
                 {response.status} {response.statusText}
@@ -438,14 +441,14 @@ const ApiExplorerPage: React.FC = () => {
             )}
           </div>
           <div className={styles.tabBar}>
-            {RESPONSE_TABS.map((t) => (
+            {RESPONSE_TABS.map((tabKey) => (
               <button
-                key={t}
+                key={tabKey}
                 type="button"
-                className={`${styles.tab} ${activeTab === t ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab(t)}
+                className={`${styles.tab} ${activeTab === tabKey ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab(tabKey)}
               >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
+                {t(`tabs.${tabKey}`)}
               </button>
             ))}
           </div>
@@ -454,47 +457,54 @@ const ApiExplorerPage: React.FC = () => {
               <Alert
                 type="error"
                 showIcon
-                message="Transaction failed"
+                message={t('response.transactionFailed')}
                 description={transactionFailure}
               />
             )}
             {queryError && (
-              <Alert type="error" showIcon message="Query failed" description={queryError} />
+              <Alert
+                type="error"
+                showIcon
+                message={t('response.queryFailed')}
+                description={queryError}
+              />
             )}
             {activeTab === 'preview' && (
-              <pre className={styles.codeBlock}>{previewText || '(no response yet)'}</pre>
+              <pre className={styles.codeBlock}>{previewText || t('response.noResponse')}</pre>
             )}
             {activeTab === 'body' && (
-              <pre className={styles.codeBlock}>{response?.text || '(no response yet)'}</pre>
+              <pre className={styles.codeBlock}>{response?.text || t('response.noResponse')}</pre>
             )}
             {activeTab === 'headers' && (
               <pre className={styles.codeBlock}>
-                {response ? JSON.stringify(response.headers, null, 2) : '(no response yet)'}
+                {response ? JSON.stringify(response.headers, null, 2) : t('response.noResponse')}
               </pre>
             )}
             {activeTab === 'status' && response && (
               <div className={styles.statusGrid}>
                 <div className={styles.statusCard}>
-                  <div className={styles.statusCardLabel}>Status</div>
+                  <div className={styles.statusCardLabel}>{t('response.status')}</div>
                   <div className={styles.statusCardValue}>
                     {response.status} {response.statusText}
                   </div>
                 </div>
                 <div className={styles.statusCard}>
-                  <div className={styles.statusCardLabel}>Content-Type</div>
+                  <div className={styles.statusCardLabel}>{t('response.contentType')}</div>
                   <div className={styles.statusCardValue}>{response.contentType || '-'}</div>
                 </div>
                 <div className={styles.statusCard}>
-                  <div className={styles.statusCardLabel}>Duration</div>
+                  <div className={styles.statusCardLabel}>{t('response.duration')}</div>
                   <div className={styles.statusCardValue}>{response.durationMs.toFixed(1)} ms</div>
                 </div>
                 <div className={styles.statusCard}>
-                  <div className={styles.statusCardLabel}>Size</div>
+                  <div className={styles.statusCardLabel}>{t('response.size')}</div>
                   <div className={styles.statusCardValue}>{response.text.length} B</div>
                 </div>
               </div>
             )}
-            {activeTab === 'status' && !response && <Text type="secondary">(no response yet)</Text>}
+            {activeTab === 'status' && !response && (
+              <Text type="secondary">{t('response.noResponse')}</Text>
+            )}
             {activeTab === 'code' && (
               <>
                 <Space style={{ marginBottom: 8 }}>
@@ -510,13 +520,15 @@ const ApiExplorerPage: React.FC = () => {
                   ))}
                   <CopyButton
                     text={codeSnippet}
-                    tooltipTitle="Copy code"
-                    label="Copy"
+                    tooltipTitle={t('response.copyCode')}
+                    label={tCommon('copy.copy')}
                     size="small"
                     type="default"
                   />
                 </Space>
-                <pre className={styles.codeBlock}>{codeSnippet || '(select an operation)'}</pre>
+                <pre className={styles.codeBlock}>
+                  {codeSnippet || t('response.selectOperationHint')}
+                </pre>
               </>
             )}
           </div>

@@ -18,8 +18,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const UserPage = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('users');
+  const tCommon = useTranslations('common');
   const [selectedUser, setSelectedUser] = useState<UserMetadata | null>(null);
   const [isAddEditUserVisible, setIsAddEditUserVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -77,12 +77,12 @@ const UserPage = () => {
       }
     >
       {error && !isUsersLoading ? (
-        <FallBack retry={fetchUsersList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchUsersList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           hideHorizontalScroll
           loading={isUsersLoading}
-          columns={tableColumns(handleEditUser, handleDeleteUser, setJsonViewRecord)}
+          columns={tableColumns(t, handleEditUser, handleDeleteUser, setJsonViewRecord)}
           dataSource={usersList}
           rowKey={'GUID'}
           onRowClick={handleEditUser}
@@ -108,8 +108,8 @@ const UserPage = () => {
 
       {isDeleteModelVisible && selectedUser && (
         <DeleteUser
-          title={`Are you sure you want to delete "${selectedUser.FirstName}" user?`}
-          paragraphText={'This action will delete user.'}
+          title={t('deleteTitle', { name: selectedUser.FirstName })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedUser={selectedUser}
@@ -120,7 +120,7 @@ const UserPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="User JSON"
+        title={t('userJson')}
       />
     </PageContainer>
   );

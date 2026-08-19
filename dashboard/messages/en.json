@@ -673,49 +673,703 @@
   "labels": {
     "title": "Labels",
     "createTooltip": "Create a new label",
-    "createLabel": "Create Label"
+    "createLabel": "Create Label",
+    "copyGuid": "Copy GUID",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" label?",
+    "deleteBody": "This action will delete label.",
+    "labelJson": "Label JSON",
+    "columns": {
+      "label": "Label",
+      "labelDesc": "Label text value",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "node": "Node",
+      "nodeDesc": "Associated node name",
+      "edge": "Edge",
+      "edgeDesc": "Associated edge name",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "label": "Search Label",
+      "guid": "Search GUID",
+      "node": "Search Node",
+      "edge": "Search Edge"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "label": "Label",
+      "labelTooltip": "Label text value",
+      "labelRequired": "Please input Label label!",
+      "labelPlaceholder": "Enter label label",
+      "node": "Node",
+      "nodeTooltip": "Node to associate with this label",
+      "edge": "Edge",
+      "edgeTooltip": "Edge to associate with this label"
+    },
+    "modalTitle": {
+      "create": "Create Label",
+      "edit": "Edit Label"
+    },
+    "toast": {
+      "created": "Label created successfully",
+      "updated": "Label updated successfully",
+      "deleted": "Label deleted successfully",
+      "updateFailed": "Failed to update label: {error}",
+      "updateFailedNoResponse": "Failed to update label - no response received"
+    }
   },
   "tags": {
     "title": "Tags",
     "createTooltip": "Create a new tag",
-    "createTag": "Create Tag"
+    "createTag": "Create Tag",
+    "copyGuid": "Copy GUID",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" tag?",
+    "deleteBody": "This action will delete tag.",
+    "tagJson": "Tag JSON",
+    "columns": {
+      "key": "Key",
+      "keyDesc": "Tag key identifier",
+      "value": "Value",
+      "valueDesc": "Tag value",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "node": "Node",
+      "nodeDesc": "Associated node name",
+      "edge": "Edge",
+      "edgeDesc": "Associated edge name",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "key": "Search Key",
+      "value": "Search Value",
+      "guid": "Search GUID",
+      "node": "Search Node",
+      "edge": "Search Edge"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "key": "Key",
+      "keyTooltip": "Tag key identifier",
+      "keyRequired": "Please input tag key!",
+      "keyPlaceholder": "Enter tag key",
+      "value": "Value",
+      "valueTooltip": "Tag value",
+      "valueRequired": "Please input tag value!",
+      "valuePlaceholder": "Enter tag value",
+      "node": "Node",
+      "nodeTooltip": "Node to associate with this tag",
+      "edge": "Edge",
+      "edgeTooltip": "Edge to associate with this tag"
+    },
+    "modalTitle": {
+      "create": "Create Tag",
+      "edit": "Edit Tag"
+    },
+    "toast": {
+      "created": "Tag created successfully",
+      "updated": "Tag updated successfully",
+      "deleted": "Tag deleted successfully",
+      "updateFailed": "Failed to update tag: {error}",
+      "updateFailedNoResponse": "Failed to update tag - no response received"
+    }
   },
   "vectors": {
     "title": "Vectors",
     "createTooltip": "Create a new vector",
-    "createVector": "Create Vector"
+    "createVector": "Create Vector",
+    "copyGuid": "Copy GUID",
+    "deleteTitle": "Are you sure you want to delete this vector?",
+    "deleteBody": "This action will delete vector.",
+    "vectorJson": "Vector JSON",
+    "vectorsCount": "{count, plural, one {# vector} other {# vectors}}",
+    "columns": {
+      "model": "Model",
+      "modelDesc": "Vector model name",
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "node": "Node",
+      "nodeDesc": "Associated node name",
+      "edge": "Edge",
+      "edgeDesc": "Associated edge name",
+      "dimensionality": "Dimensionality",
+      "dimensionalityDesc": "Number of vector dimensions",
+      "content": "Content",
+      "contentDesc": "Vector content text",
+      "vectors": "Vectors",
+      "vectorsDesc": "Vector embedding values",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "model": "Search Model",
+      "guid": "Search GUID",
+      "node": "Search Node",
+      "edge": "Search Edge",
+      "content": "Search Content"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "model": "Model",
+      "modelTooltip": "Name of the embedding model",
+      "modelRequired": "Please input Model!",
+      "modelPlaceholder": "Enter Model",
+      "dimensionality": "Dimensionality",
+      "dimensionalityTooltip": "Number of dimensions in the vector",
+      "dimensionalityRequired": "Please input Dimensionality!",
+      "dimensionalityPlaceholder": "Enter Dimensionality",
+      "content": "Content",
+      "contentTooltip": "Text content associated with the vector",
+      "contentRequired": "Please input Content!",
+      "contentPlaceholder": "Enter Content",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector embedding values as JSON array",
+      "vectorsRequired": "Please input Vectors!",
+      "node": "Node",
+      "nodeTooltip": "Node to associate with this vector",
+      "edge": "Edge",
+      "edgeTooltip": "Edge to associate with this vector"
+    },
+    "modalTitle": {
+      "create": "Create Vector",
+      "edit": "Edit Vector"
+    },
+    "toast": {
+      "created": "Vector created successfully",
+      "updated": "Vector updated successfully",
+      "deleted": "Vector deleted successfully",
+      "updateFailed": "Failed to update vector: {error}"
+    }
   },
   "requestHistory": {
-    "title": "Request History"
+    "title": "Request History",
+    "columns": {
+      "time": "Time",
+      "method": "Method",
+      "path": "Path",
+      "status": "Status",
+      "transaction": "Transaction",
+      "duration": "Duration",
+      "size": "Size (req/resp)",
+      "tenant": "Tenant",
+      "actions": "Actions"
+    },
+    "transaction": {
+      "noId": "transaction"
+    },
+    "transactionState": {
+      "validation": "validation",
+      "committed": "committed",
+      "rolledBack": "rolled back",
+      "failed": "failed",
+      "transaction": "transaction"
+    },
+    "transactionTags": {
+      "retryable": "retryable",
+      "conflict": "conflict"
+    },
+    "rowActions": {
+      "view": "View",
+      "viewJson": "View JSON",
+      "delete": "Delete",
+      "menu": "Request actions"
+    },
+    "filters": {
+      "allStatuses": "All statuses",
+      "allOutcomes": "All outcomes",
+      "successful": "Successful",
+      "errors": "Errors",
+      "allRequests": "All requests",
+      "transactions": "Transactions",
+      "nonTransactions": "Non-transactions",
+      "allMethods": "All methods",
+      "transactionIdPlaceholder": "Transaction ID...",
+      "pathPlaceholder": "Path contains..."
+    },
+    "summary": {
+      "visibleRequests": "Visible requests:",
+      "visibleErrors": "Visible errors:",
+      "errorRate": "Error rate:",
+      "averageDuration": "Average duration:",
+      "p95Duration": "P95 duration:"
+    },
+    "telemetry": {
+      "title": "Operational telemetry",
+      "prometheus": "Prometheus metrics",
+      "openTelemetry": "OpenTelemetry setup",
+      "description": "Request history is for recent request inspection; metrics and traces are for aggregate monitoring."
+    },
+    "delete": {
+      "confirmTitle": "Delete request history entry?"
+    },
+    "toast": {
+      "loadFailed": "Unable to load request history",
+      "deleted": "Entry deleted",
+      "deleteFailed": "Unable to delete"
+    },
+    "entryJson": "Request History Entry JSON",
+    "chart": {
+      "title": "Requests over time",
+      "ranges": {
+        "hour": "Last Hour",
+        "day": "Last Day",
+        "week": "Last Week",
+        "month": "Last Month"
+      },
+      "total": "Total",
+      "success": "Success",
+      "failed": "Failed",
+      "tooltip": {
+        "success": "Success: {count}",
+        "failed": "Failed: {count}",
+        "total": "Total: {count}"
+      }
+    },
+    "detail": {
+      "title": "Request Detail",
+      "empty": "(empty)",
+      "copyId": "Copy ID",
+      "truncated": "[TRUNCATED]",
+      "entries": "{count} entries",
+      "loadFailed": "Unable to load request detail",
+      "fields": {
+        "id": "ID",
+        "method": "Method",
+        "status": "Status",
+        "duration": "Duration",
+        "time": "Time",
+        "sourceIp": "Source IP",
+        "tenant": "Tenant",
+        "requestSize": "Request Size",
+        "responseSize": "Response Size",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "Request Headers",
+        "requestBody": "Request Body",
+        "responseHeaders": "Response Headers",
+        "responseBody": "Response Body",
+        "transactionDiagnostics": "Transaction Diagnostics"
+      }
+    }
   },
   "apiExplorer": {
     "title": "API Explorer",
-    "send": "Send"
+    "send": "Send",
+    "request": {
+      "title": "Request",
+      "resetTooltip": "Reset body to template",
+      "selectOperation": "Select an operation...",
+      "copyUrl": "Copy URL",
+      "body": "Request body",
+      "recentRequests": "Recent Requests",
+      "clear": "Clear"
+    },
+    "params": {
+      "path": "Path parameters",
+      "query": "Query parameters"
+    },
+    "response": {
+      "title": "Response",
+      "transactionFailed": "Transaction failed",
+      "queryFailed": "Query failed",
+      "noResponse": "(no response yet)",
+      "status": "Status",
+      "contentType": "Content-Type",
+      "duration": "Duration",
+      "size": "Size",
+      "copyCode": "Copy code",
+      "selectOperationHint": "(select an operation)"
+    },
+    "tabs": {
+      "preview": "Preview",
+      "body": "Body",
+      "headers": "Headers",
+      "status": "Status",
+      "code": "Code"
+    },
+    "toast": {
+      "loadSpecFailed": "Unable to load OpenAPI spec",
+      "requestFailed": "Request failed: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} failed{indexText}: {error}.",
+      "defaultOperation": "operation",
+      "defaultObject": "object",
+      "guid": " ({guid})",
+      "indexText": " at index {index}",
+      "noError": "No error detail returned.",
+      "validation": " The transaction failed validation before starting.",
+      "rolledBack": " The transaction was rolled back.",
+      "transactionId": " Transaction {transactionId}.",
+      "state": " State: {state}.",
+      "provider": " Provider: {provider}.",
+      "providerError": " Provider error: {providerErrorCode}.",
+      "retryable": " The failure is marked retryable.",
+      "conflict": " Concurrency conflict detected.",
+      "queryErrorAt": "Query error at {location}: {description}",
+      "queryError": "Query error: {description}"
+    }
   },
   "credentials": {
     "title": "Credentials",
     "createTooltip": "Create a new credential",
-    "createCredential": "Create Credential"
+    "createCredential": "Create Credential",
+    "copyGuid": "Copy GUID",
+    "credentialJson": "Credential JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" credential?",
+    "deleteBody": "This action will delete credential.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "user": "User",
+      "userDesc": "Associated user name",
+      "name": "Name",
+      "nameDesc": "Credential display name",
+      "bearerToken": "Bearer Token",
+      "bearerTokenDesc": "Authentication bearer token",
+      "active": "Active",
+      "activeDesc": "Whether the credential is active",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "guid": "Search GUID",
+      "user": "Search User",
+      "name": "Search Name"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "userGuid": "User GUID",
+      "userGuidTooltip": "User this credential belongs to",
+      "userGuidRequired": "Please select user GUID!",
+      "userGuidPlaceholder": "Select user GUID",
+      "name": "Name",
+      "nameTooltip": "Display name for the credential",
+      "nameRequired": "Please input name!",
+      "namePlaceholder": "Enter name",
+      "bearerToken": "Bearer Token",
+      "bearerTokenTooltip": "Authentication bearer token",
+      "bearerTokenRequired": "Please input bearer token!",
+      "bearerTokenPlaceholder": "Enter bearer token",
+      "active": "Active",
+      "activeTooltip": "Whether the credential is active"
+    },
+    "modalTitle": {
+      "create": "Create Credential",
+      "edit": "Edit Credential"
+    },
+    "toast": {
+      "created": "Credential created successfully",
+      "updated": "Credential updated successfully",
+      "updateNoResponse": "Failed to update credential - no response received",
+      "deleted": "Credential deleted successfully",
+      "updateFailed": "Failed to update credential: {error}"
+    }
   },
   "authorization": {
     "title": "Authorization",
     "createTooltip": "Create a custom role",
     "adminRequired": "Admin permission is required",
-    "createRole": "Create Role"
+    "createRole": "Create Role",
+    "roleJson": "Authorization Role JSON",
+    "tabs": {
+      "roles": "Roles",
+      "userRoles": "User Roles",
+      "credentialScopes": "Credential Scopes"
+    },
+    "sections": {
+      "effectiveUserPermissions": "Effective User Permissions",
+      "effectiveCredentialPermissions": "Effective Credential Permissions"
+    },
+    "states": {
+      "selectTenant": "Select a tenant to manage authorization.",
+      "adminWarning": "Admin permission is required to change roles or credential scopes."
+    },
+    "columns": {
+      "name": "Name",
+      "scope": "Scope",
+      "permissions": "Permissions",
+      "resources": "Resources",
+      "builtIn": "Built In",
+      "actions": "Actions",
+      "role": "Role",
+      "graph": "Graph",
+      "source": "Source"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "viewJson": "View JSON",
+      "delete": "Delete",
+      "revoke": "Revoke",
+      "menu": "Actions"
+    },
+    "labels": {
+      "builtIn": "Built in",
+      "custom": "Custom",
+      "immutable": "Immutable",
+      "directRole": "Direct role",
+      "directGrant": "Direct grant"
+    },
+    "confirm": {
+      "deleteRoleTitle": "Delete role?",
+      "deleteRoleBody": "Delete \"{name}\"?",
+      "revokeRole": "Revoke role?",
+      "revokeScope": "Revoke credential scope?"
+    },
+    "actions": {
+      "assignRole": "Assign Role",
+      "assignScope": "Assign Scope"
+    },
+    "modalTitle": {
+      "create": "Create Role",
+      "edit": "Edit Role"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "Description",
+      "descriptionPlaceholder": "Read-only audit access for selected graphs",
+      "defaultScope": "Default Scope",
+      "permissions": "Permissions",
+      "resourceTypes": "Resource Types",
+      "inheritsToGraphs": "Tenant Scope Inherits To Graphs",
+      "user": "User",
+      "selectUser": "Select user",
+      "role": "Role",
+      "selectRole": "Select role",
+      "scope": "Scope",
+      "graph": "Graph",
+      "selectGraph": "Select graph",
+      "graphRequiredAssignment": "Select graph for graph-scoped assignments.",
+      "credential": "Credential",
+      "selectCredential": "Select credential",
+      "optionalRole": "Optional role",
+      "directPermissions": "Direct Permissions",
+      "directResources": "Direct Resources",
+      "graphRequiredScope": "Select graph for graph-scoped scopes."
+    },
+    "permissions": {
+      "Read": "Read",
+      "Write": "Write",
+      "Delete": "Delete",
+      "Admin": "Admin"
+    },
+    "scopes": {
+      "Tenant": "Tenant",
+      "Graph": "Graph",
+      "tenantScope": "Tenant scope"
+    },
+    "resourceTypes": {
+      "Admin": "Admin",
+      "Graph": "Graph",
+      "Node": "Node",
+      "Edge": "Edge",
+      "Label": "Label",
+      "Tag": "Tag",
+      "Vector": "Vector",
+      "Query": "Query",
+      "Transaction": "Transaction"
+    }
   },
   "backups": {
     "title": "Backups",
     "createTooltip": "Create a new backup",
-    "createBackup": "Create Backup"
+    "createBackup": "Create Backup",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" backup?",
+    "deleteBody": "This action will delete backup.",
+    "columns": {
+      "filename": "Filename",
+      "filenameDesc": "Backup file name",
+      "size": "Size",
+      "sizeDesc": "Backup file size",
+      "sha256": "SHA256",
+      "sha256Desc": "SHA-256 hash of the backup file",
+      "createdUtc": "Create UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "filename": "Search Filename"
+    },
+    "rowActions": {
+      "download": "Download",
+      "delete": "Delete",
+      "menu": "Actions"
+    },
+    "form": {
+      "filename": "Filename",
+      "filenamePlaceholder": "Enter filename",
+      "filenameTooltip": "Name for the backup file",
+      "filenameRequired": "Please enter a filename"
+    },
+    "modalTitle": {
+      "create": "Add Backup",
+      "edit": "Edit Backup"
+    },
+    "toast": {
+      "created": "Backup created successfully",
+      "createFailed": "Failed to create backup",
+      "createFailedError": "Failed to create backup: {error}",
+      "deleted": "Backup deleted successfully",
+      "missingFilename": "Missing backup filename",
+      "unableToDownload": "Unable to download backup"
+    }
   },
   "tenants": {
     "title": "Tenants",
     "createTooltip": "Create a new tenant",
-    "createTenant": "Create Tenant"
+    "createTenant": "Create Tenant",
+    "copyGuid": "Copy GUID",
+    "tenantJson": "Tenant JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" tenant?",
+    "deleteBody": "This action will delete tenant.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "name": "Name",
+      "nameDesc": "Tenant display name",
+      "active": "Active",
+      "activeDesc": "Whether the tenant is active",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "search": {
+      "guid": "Search GUID",
+      "name": "Search Name"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "name": "Name",
+      "nameTooltip": "Display name for the tenant",
+      "nameRequired": "Please input Name!",
+      "namePlaceholder": "Enter Name",
+      "active": "Active",
+      "activeTooltip": "Whether the tenant is active"
+    },
+    "modalTitle": {
+      "create": "Create Tenant",
+      "edit": "Edit Tenant"
+    },
+    "toast": {
+      "created": "Tenant created successfully",
+      "updated": "Tenant updated successfully",
+      "updateNoResponse": "Failed to update tenant - no response received",
+      "deleted": "Tenant deleted successfully"
+    }
   },
   "users": {
     "title": "Users",
     "createTooltip": "Create a new user",
-    "createUser": "Create User"
+    "createUser": "Create User",
+    "copyGuid": "Copy GUID",
+    "userJson": "User JSON",
+    "deleteTitle": "Are you sure you want to delete \"{name}\" user?",
+    "deleteBody": "This action will delete user.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Globally unique identifier",
+      "firstName": "First Name",
+      "firstNameDesc": "User first name",
+      "lastName": "Last Name",
+      "lastNameDesc": "User last name",
+      "email": "Email",
+      "emailDesc": "User email address",
+      "password": "Password",
+      "passwordDesc": "User password (click eye to reveal)",
+      "active": "Active",
+      "activeDesc": "Whether the user account is active",
+      "createdUtc": "Created UTC",
+      "createdUtcDesc": "Date and time of creation in UTC",
+      "actions": "Actions",
+      "actionsDesc": "Available operations"
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "search": {
+      "guid": "Search GUID",
+      "firstName": "Search First Name",
+      "lastName": "Search Last Name",
+      "email": "Search Email"
+    },
+    "rowActions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewJson": "View JSON",
+      "menu": "Actions"
+    },
+    "form": {
+      "firstName": "First Name",
+      "firstNameTooltip": "User's first name",
+      "firstNameRequired": "Please input First Name!",
+      "firstNamePlaceholder": "Enter First Name",
+      "lastName": "Last Name",
+      "lastNameTooltip": "User's last name",
+      "lastNameRequired": "Please input Last Name!",
+      "lastNamePlaceholder": "Enter Last Name",
+      "email": "Email",
+      "emailTooltip": "User's email address",
+      "emailRequired": "Please input your email!",
+      "emailInvalid": "Please enter a valid email!",
+      "emailPlaceholder": "Email",
+      "password": "Password",
+      "passwordTooltip": "Account password",
+      "passwordRequired": "Please input Password!",
+      "passwordPlaceholder": "Enter password",
+      "active": "Active",
+      "activeTooltip": "Whether the user account is active"
+    },
+    "modalTitle": {
+      "create": "Create User",
+      "edit": "Edit User"
+    },
+    "toast": {
+      "created": "User created successfully",
+      "updated": "User updated successfully",
+      "updateNoResponse": "Failed to update user - no response received",
+      "deleted": "User deleted successfully",
+      "updateFailed": "Failed to update user: {error}"
+    }
   }
 }

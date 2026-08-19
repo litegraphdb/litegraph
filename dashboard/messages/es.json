@@ -673,49 +673,703 @@
   "labels": {
     "title": "Etiquetas",
     "createTooltip": "Crear una nueva etiqueta",
-    "createLabel": "Crear etiqueta"
+    "createLabel": "Crear etiqueta",
+    "copyGuid": "Copiar GUID",
+    "deleteTitle": "¿Está seguro de que desea eliminar la etiqueta \"{name}\"?",
+    "deleteBody": "Esta acción eliminará la etiqueta.",
+    "labelJson": "JSON de la etiqueta",
+    "columns": {
+      "label": "Etiqueta",
+      "labelDesc": "Valor de texto de la etiqueta",
+      "guid": "GUID",
+      "guidDesc": "Identificador único global",
+      "node": "Nodo",
+      "nodeDesc": "Nombre del nodo asociado",
+      "edge": "Arista",
+      "edgeDesc": "Nombre de la arista asociada",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "search": {
+      "label": "Buscar etiqueta",
+      "guid": "Buscar GUID",
+      "node": "Buscar nodo",
+      "edge": "Buscar arista"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewJson": "Ver JSON",
+      "menu": "Acciones"
+    },
+    "form": {
+      "label": "Etiqueta",
+      "labelTooltip": "Valor de texto de la etiqueta",
+      "labelRequired": "¡Ingrese la etiqueta!",
+      "labelPlaceholder": "Ingrese la etiqueta",
+      "node": "Nodo",
+      "nodeTooltip": "Nodo para asociar con esta etiqueta",
+      "edge": "Arista",
+      "edgeTooltip": "Arista para asociar con esta etiqueta"
+    },
+    "modalTitle": {
+      "create": "Crear etiqueta",
+      "edit": "Editar etiqueta"
+    },
+    "toast": {
+      "created": "Etiqueta creada correctamente",
+      "updated": "Etiqueta actualizada correctamente",
+      "deleted": "Etiqueta eliminada correctamente",
+      "updateFailed": "No se pudo actualizar la etiqueta: {error}",
+      "updateFailedNoResponse": "No se pudo actualizar la etiqueta: no se recibió respuesta"
+    }
   },
   "tags": {
     "title": "Marcadores",
     "createTooltip": "Crear un nuevo marcador",
-    "createTag": "Crear marcador"
+    "createTag": "Crear marcador",
+    "copyGuid": "Copiar GUID",
+    "deleteTitle": "¿Está seguro de que desea eliminar el marcador \"{name}\"?",
+    "deleteBody": "Esta acción eliminará el marcador.",
+    "tagJson": "JSON del marcador",
+    "columns": {
+      "key": "Clave",
+      "keyDesc": "Identificador de clave del marcador",
+      "value": "Valor",
+      "valueDesc": "Valor del marcador",
+      "guid": "GUID",
+      "guidDesc": "Identificador único global",
+      "node": "Nodo",
+      "nodeDesc": "Nombre del nodo asociado",
+      "edge": "Arista",
+      "edgeDesc": "Nombre de la arista asociada",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "search": {
+      "key": "Buscar clave",
+      "value": "Buscar valor",
+      "guid": "Buscar GUID",
+      "node": "Buscar nodo",
+      "edge": "Buscar arista"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewJson": "Ver JSON",
+      "menu": "Acciones"
+    },
+    "form": {
+      "key": "Clave",
+      "keyTooltip": "Identificador de clave del marcador",
+      "keyRequired": "¡Ingrese la clave del marcador!",
+      "keyPlaceholder": "Ingrese la clave del marcador",
+      "value": "Valor",
+      "valueTooltip": "Valor del marcador",
+      "valueRequired": "¡Ingrese el valor del marcador!",
+      "valuePlaceholder": "Ingrese el valor del marcador",
+      "node": "Nodo",
+      "nodeTooltip": "Nodo para asociar con este marcador",
+      "edge": "Arista",
+      "edgeTooltip": "Arista para asociar con este marcador"
+    },
+    "modalTitle": {
+      "create": "Crear marcador",
+      "edit": "Editar marcador"
+    },
+    "toast": {
+      "created": "Marcador creado correctamente",
+      "updated": "Marcador actualizado correctamente",
+      "deleted": "Marcador eliminado correctamente",
+      "updateFailed": "No se pudo actualizar el marcador: {error}",
+      "updateFailedNoResponse": "No se pudo actualizar el marcador: no se recibió respuesta"
+    }
   },
   "vectors": {
     "title": "Vectores",
     "createTooltip": "Crear un nuevo vector",
-    "createVector": "Crear vector"
+    "createVector": "Crear vector",
+    "copyGuid": "Copiar GUID",
+    "deleteTitle": "¿Está seguro de que desea eliminar este vector?",
+    "deleteBody": "Esta acción eliminará el vector.",
+    "vectorJson": "JSON del vector",
+    "vectorsCount": "{count, plural, one {# vector} other {# vectores}}",
+    "columns": {
+      "model": "Modelo",
+      "modelDesc": "Nombre del modelo del vector",
+      "guid": "GUID",
+      "guidDesc": "Identificador único global",
+      "node": "Nodo",
+      "nodeDesc": "Nombre del nodo asociado",
+      "edge": "Arista",
+      "edgeDesc": "Nombre de la arista asociada",
+      "dimensionality": "Dimensionalidad",
+      "dimensionalityDesc": "Número de dimensiones del vector",
+      "content": "Contenido",
+      "contentDesc": "Texto del contenido del vector",
+      "vectors": "Vectores",
+      "vectorsDesc": "Valores de incrustación vectorial",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "search": {
+      "model": "Buscar modelo",
+      "guid": "Buscar GUID",
+      "node": "Buscar nodo",
+      "edge": "Buscar arista",
+      "content": "Buscar contenido"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewJson": "Ver JSON",
+      "menu": "Acciones"
+    },
+    "form": {
+      "model": "Modelo",
+      "modelTooltip": "Nombre del modelo de incrustación",
+      "modelRequired": "¡Ingrese el modelo!",
+      "modelPlaceholder": "Ingrese el modelo",
+      "dimensionality": "Dimensionalidad",
+      "dimensionalityTooltip": "Número de dimensiones del vector",
+      "dimensionalityRequired": "¡Ingrese la dimensionalidad!",
+      "dimensionalityPlaceholder": "Ingrese la dimensionalidad",
+      "content": "Contenido",
+      "contentTooltip": "Texto asociado al vector",
+      "contentRequired": "¡Ingrese el contenido!",
+      "contentPlaceholder": "Ingrese el contenido",
+      "vectors": "Vectores",
+      "vectorsTooltip": "Valores de incrustación vectorial como arreglo JSON",
+      "vectorsRequired": "¡Ingrese los vectores!",
+      "node": "Nodo",
+      "nodeTooltip": "Nodo para asociar con este vector",
+      "edge": "Arista",
+      "edgeTooltip": "Arista para asociar con este vector"
+    },
+    "modalTitle": {
+      "create": "Crear vector",
+      "edit": "Editar vector"
+    },
+    "toast": {
+      "created": "Vector creado correctamente",
+      "updated": "Vector actualizado correctamente",
+      "deleted": "Vector eliminado correctamente",
+      "updateFailed": "No se pudo actualizar el vector: {error}"
+    }
   },
   "requestHistory": {
-    "title": "Historial de solicitudes"
+    "title": "Historial de solicitudes",
+    "columns": {
+      "time": "Hora",
+      "method": "Método",
+      "path": "Ruta",
+      "status": "Estado",
+      "transaction": "Transacción",
+      "duration": "Duración",
+      "size": "Tamaño (sol./resp.)",
+      "tenant": "Inquilino",
+      "actions": "Acciones"
+    },
+    "transaction": {
+      "noId": "transacción"
+    },
+    "transactionState": {
+      "validation": "validación",
+      "committed": "confirmada",
+      "rolledBack": "revertida",
+      "failed": "fallida",
+      "transaction": "transacción"
+    },
+    "transactionTags": {
+      "retryable": "reintentable",
+      "conflict": "conflicto"
+    },
+    "rowActions": {
+      "view": "Ver",
+      "viewJson": "Ver JSON",
+      "delete": "Eliminar",
+      "menu": "Acciones de solicitud"
+    },
+    "filters": {
+      "allStatuses": "Todos los estados",
+      "allOutcomes": "Todos los resultados",
+      "successful": "Exitosas",
+      "errors": "Errores",
+      "allRequests": "Todas las solicitudes",
+      "transactions": "Transacciones",
+      "nonTransactions": "Sin transacción",
+      "allMethods": "Todos los métodos",
+      "transactionIdPlaceholder": "ID de transacción...",
+      "pathPlaceholder": "La ruta contiene..."
+    },
+    "summary": {
+      "visibleRequests": "Solicitudes visibles:",
+      "visibleErrors": "Errores visibles:",
+      "errorRate": "Tasa de error:",
+      "averageDuration": "Duración promedio:",
+      "p95Duration": "Duración P95:"
+    },
+    "telemetry": {
+      "title": "Telemetría operativa",
+      "prometheus": "Métricas de Prometheus",
+      "openTelemetry": "Configuración de OpenTelemetry",
+      "description": "El historial de solicitudes sirve para inspeccionar solicitudes recientes; las métricas y trazas sirven para la supervisión agregada."
+    },
+    "delete": {
+      "confirmTitle": "¿Eliminar la entrada del historial de solicitudes?"
+    },
+    "toast": {
+      "loadFailed": "No se pudo cargar el historial de solicitudes",
+      "deleted": "Entrada eliminada",
+      "deleteFailed": "No se pudo eliminar"
+    },
+    "entryJson": "JSON de la entrada del historial de solicitudes",
+    "chart": {
+      "title": "Solicitudes a lo largo del tiempo",
+      "ranges": {
+        "hour": "Última hora",
+        "day": "Último día",
+        "week": "Última semana",
+        "month": "Último mes"
+      },
+      "total": "Total",
+      "success": "Correctas",
+      "failed": "Fallidas",
+      "tooltip": {
+        "success": "Correctas: {count}",
+        "failed": "Fallidas: {count}",
+        "total": "Total: {count}"
+      }
+    },
+    "detail": {
+      "title": "Detalle de la solicitud",
+      "empty": "(vacío)",
+      "copyId": "Copiar ID",
+      "truncated": "[TRUNCADO]",
+      "entries": "{count} entradas",
+      "loadFailed": "No se pudo cargar el detalle de la solicitud",
+      "fields": {
+        "id": "ID",
+        "method": "Método",
+        "status": "Estado",
+        "duration": "Duración",
+        "time": "Hora",
+        "sourceIp": "IP de origen",
+        "tenant": "Inquilino",
+        "requestSize": "Tamaño de la solicitud",
+        "responseSize": "Tamaño de la respuesta",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "Encabezados de la solicitud",
+        "requestBody": "Cuerpo de la solicitud",
+        "responseHeaders": "Encabezados de la respuesta",
+        "responseBody": "Cuerpo de la respuesta",
+        "transactionDiagnostics": "Diagnóstico de la transacción"
+      }
+    }
   },
   "apiExplorer": {
     "title": "Explorador de API",
-    "send": "Enviar"
+    "send": "Enviar",
+    "request": {
+      "title": "Solicitud",
+      "resetTooltip": "Restablecer el cuerpo a la plantilla",
+      "selectOperation": "Seleccione una operación...",
+      "copyUrl": "Copiar URL",
+      "body": "Cuerpo de la solicitud",
+      "recentRequests": "Solicitudes recientes",
+      "clear": "Borrar"
+    },
+    "params": {
+      "path": "Parámetros de ruta",
+      "query": "Parámetros de consulta"
+    },
+    "response": {
+      "title": "Respuesta",
+      "transactionFailed": "La transacción falló",
+      "queryFailed": "La consulta falló",
+      "noResponse": "(aún no hay respuesta)",
+      "status": "Estado",
+      "contentType": "Content-Type",
+      "duration": "Duración",
+      "size": "Tamaño",
+      "copyCode": "Copiar código",
+      "selectOperationHint": "(seleccione una operación)"
+    },
+    "tabs": {
+      "preview": "Vista previa",
+      "body": "Cuerpo",
+      "headers": "Encabezados",
+      "status": "Estado",
+      "code": "Código"
+    },
+    "toast": {
+      "loadSpecFailed": "No se pudo cargar la especificación OpenAPI",
+      "requestFailed": "La solicitud falló: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} falló{indexText}: {error}.",
+      "defaultOperation": "operación",
+      "defaultObject": "objeto",
+      "guid": " ({guid})",
+      "indexText": " en el índice {index}",
+      "noError": "No se devolvió ningún detalle del error.",
+      "validation": " La transacción no superó la validación antes de comenzar.",
+      "rolledBack": " La transacción se revirtió.",
+      "transactionId": " Transacción {transactionId}.",
+      "state": " Estado: {state}.",
+      "provider": " Proveedor: {provider}.",
+      "providerError": " Error del proveedor: {providerErrorCode}.",
+      "retryable": " El fallo está marcado como reintentable.",
+      "conflict": " Se detectó un conflicto de concurrencia.",
+      "queryErrorAt": "Error de consulta en {location}: {description}",
+      "queryError": "Error de consulta: {description}"
+    }
   },
   "credentials": {
     "title": "Credenciales",
     "createTooltip": "Crear una nueva credencial",
-    "createCredential": "Crear credencial"
+    "createCredential": "Crear credencial",
+    "copyGuid": "Copiar GUID",
+    "credentialJson": "JSON de la credencial",
+    "deleteTitle": "¿Está seguro de que desea eliminar la credencial \"{name}\"?",
+    "deleteBody": "Esta acción eliminará la credencial.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Identificador único global",
+      "user": "Usuario",
+      "userDesc": "Nombre del usuario asociado",
+      "name": "Nombre",
+      "nameDesc": "Nombre visible de la credencial",
+      "bearerToken": "Token de portador",
+      "bearerTokenDesc": "Token de portador de autenticación",
+      "active": "Activa",
+      "activeDesc": "Si la credencial está activa",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "search": {
+      "guid": "Buscar GUID",
+      "user": "Buscar usuario",
+      "name": "Buscar nombre"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewJson": "Ver JSON",
+      "menu": "Acciones"
+    },
+    "form": {
+      "userGuid": "GUID de usuario",
+      "userGuidTooltip": "Usuario al que pertenece esta credencial",
+      "userGuidRequired": "¡Seleccione el GUID de usuario!",
+      "userGuidPlaceholder": "Seleccione el GUID de usuario",
+      "name": "Nombre",
+      "nameTooltip": "Nombre visible de la credencial",
+      "nameRequired": "¡Ingrese el nombre!",
+      "namePlaceholder": "Ingrese el nombre",
+      "bearerToken": "Token de portador",
+      "bearerTokenTooltip": "Token de portador de autenticación",
+      "bearerTokenRequired": "¡Ingrese el token de portador!",
+      "bearerTokenPlaceholder": "Ingrese el token de portador",
+      "active": "Activa",
+      "activeTooltip": "Si la credencial está activa"
+    },
+    "modalTitle": {
+      "create": "Crear credencial",
+      "edit": "Editar credencial"
+    },
+    "toast": {
+      "created": "Credencial creada correctamente",
+      "updated": "Credencial actualizada correctamente",
+      "updateNoResponse": "No se pudo actualizar la credencial: no se recibió respuesta",
+      "deleted": "Credencial eliminada correctamente",
+      "updateFailed": "No se pudo actualizar la credencial: {error}"
+    }
   },
   "authorization": {
     "title": "Autorización",
     "createTooltip": "Crear un rol personalizado",
     "adminRequired": "Se requiere permiso de administrador",
-    "createRole": "Crear rol"
+    "createRole": "Crear rol",
+    "roleJson": "JSON del rol de autorización",
+    "tabs": {
+      "roles": "Roles",
+      "userRoles": "Roles de usuario",
+      "credentialScopes": "Ámbitos de credenciales"
+    },
+    "sections": {
+      "effectiveUserPermissions": "Permisos efectivos del usuario",
+      "effectiveCredentialPermissions": "Permisos efectivos de la credencial"
+    },
+    "states": {
+      "selectTenant": "Seleccione un inquilino para administrar la autorización.",
+      "adminWarning": "Se requiere permiso de administrador para cambiar roles o ámbitos de credenciales."
+    },
+    "columns": {
+      "name": "Nombre",
+      "scope": "Ámbito",
+      "permissions": "Permisos",
+      "resources": "Recursos",
+      "builtIn": "Integrado",
+      "actions": "Acciones",
+      "role": "Rol",
+      "graph": "Grafo",
+      "source": "Origen"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "viewJson": "Ver JSON",
+      "delete": "Eliminar",
+      "revoke": "Revocar",
+      "menu": "Acciones"
+    },
+    "labels": {
+      "builtIn": "Integrado",
+      "custom": "Personalizado",
+      "immutable": "Inmutable",
+      "directRole": "Rol directo",
+      "directGrant": "Concesión directa"
+    },
+    "confirm": {
+      "deleteRoleTitle": "¿Eliminar rol?",
+      "deleteRoleBody": "¿Eliminar \"{name}\"?",
+      "revokeRole": "¿Revocar rol?",
+      "revokeScope": "¿Revocar ámbito de credencial?"
+    },
+    "actions": {
+      "assignRole": "Asignar rol",
+      "assignScope": "Asignar ámbito"
+    },
+    "modalTitle": {
+      "create": "Crear rol",
+      "edit": "Editar rol"
+    },
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "Nombre visible",
+      "displayNamePlaceholder": "Auditor de grafos",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Acceso de auditoría de solo lectura para los grafos seleccionados",
+      "defaultScope": "Ámbito predeterminado",
+      "permissions": "Permisos",
+      "resourceTypes": "Tipos de recurso",
+      "inheritsToGraphs": "El ámbito de inquilino se hereda a los grafos",
+      "user": "Usuario",
+      "selectUser": "Seleccione un usuario",
+      "role": "Rol",
+      "selectRole": "Seleccione un rol",
+      "scope": "Ámbito",
+      "graph": "Grafo",
+      "selectGraph": "Seleccione un grafo",
+      "graphRequiredAssignment": "Seleccione un grafo para las asignaciones con ámbito de grafo.",
+      "credential": "Credencial",
+      "selectCredential": "Seleccione una credencial",
+      "optionalRole": "Rol opcional",
+      "directPermissions": "Permisos directos",
+      "directResources": "Recursos directos",
+      "graphRequiredScope": "Seleccione un grafo para los ámbitos con ámbito de grafo."
+    },
+    "permissions": {
+      "Read": "Lectura",
+      "Write": "Escritura",
+      "Delete": "Eliminación",
+      "Admin": "Administración"
+    },
+    "scopes": {
+      "Tenant": "Inquilino",
+      "Graph": "Grafo",
+      "tenantScope": "Ámbito de inquilino"
+    },
+    "resourceTypes": {
+      "Admin": "Administración",
+      "Graph": "Grafo",
+      "Node": "Nodo",
+      "Edge": "Arista",
+      "Label": "Etiqueta",
+      "Tag": "Marcador",
+      "Vector": "Vector",
+      "Query": "Consulta",
+      "Transaction": "Transacción"
+    }
   },
   "backups": {
     "title": "Copias de seguridad",
     "createTooltip": "Crear una nueva copia de seguridad",
-    "createBackup": "Crear copia de seguridad"
+    "createBackup": "Crear copia de seguridad",
+    "deleteTitle": "¿Está seguro de que desea eliminar la copia de seguridad \"{name}\"?",
+    "deleteBody": "Esta acción eliminará la copia de seguridad.",
+    "columns": {
+      "filename": "Nombre de archivo",
+      "filenameDesc": "Nombre del archivo de copia de seguridad",
+      "size": "Tamaño",
+      "sizeDesc": "Tamaño del archivo de copia de seguridad",
+      "sha256": "SHA256",
+      "sha256Desc": "Hash SHA-256 del archivo de copia de seguridad",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "search": {
+      "filename": "Buscar nombre de archivo"
+    },
+    "rowActions": {
+      "download": "Descargar",
+      "delete": "Eliminar",
+      "menu": "Acciones"
+    },
+    "form": {
+      "filename": "Nombre de archivo",
+      "filenamePlaceholder": "Ingrese el nombre de archivo",
+      "filenameTooltip": "Nombre del archivo de copia de seguridad",
+      "filenameRequired": "Ingrese un nombre de archivo"
+    },
+    "modalTitle": {
+      "create": "Agregar copia de seguridad",
+      "edit": "Editar copia de seguridad"
+    },
+    "toast": {
+      "created": "Copia de seguridad creada correctamente",
+      "createFailed": "No se pudo crear la copia de seguridad",
+      "createFailedError": "No se pudo crear la copia de seguridad: {error}",
+      "deleted": "Copia de seguridad eliminada correctamente",
+      "missingFilename": "Falta el nombre del archivo de copia de seguridad",
+      "unableToDownload": "No se pudo descargar la copia de seguridad"
+    }
   },
   "tenants": {
     "title": "Inquilinos",
     "createTooltip": "Crear un nuevo inquilino",
-    "createTenant": "Crear inquilino"
+    "createTenant": "Crear inquilino",
+    "copyGuid": "Copiar GUID",
+    "tenantJson": "JSON del inquilino",
+    "deleteTitle": "¿Está seguro de que desea eliminar el inquilino \"{name}\"?",
+    "deleteBody": "Esta acción eliminará el inquilino.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Identificador único global",
+      "name": "Nombre",
+      "nameDesc": "Nombre visible del inquilino",
+      "active": "Activo",
+      "activeDesc": "Si el inquilino está activo",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "search": {
+      "guid": "Buscar GUID",
+      "name": "Buscar nombre"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewJson": "Ver JSON",
+      "menu": "Acciones"
+    },
+    "form": {
+      "name": "Nombre",
+      "nameTooltip": "Nombre visible del inquilino",
+      "nameRequired": "¡Ingrese el nombre!",
+      "namePlaceholder": "Ingrese el nombre",
+      "active": "Activo",
+      "activeTooltip": "Si el inquilino está activo"
+    },
+    "modalTitle": {
+      "create": "Crear inquilino",
+      "edit": "Editar inquilino"
+    },
+    "toast": {
+      "created": "Inquilino creado correctamente",
+      "updated": "Inquilino actualizado correctamente",
+      "updateNoResponse": "No se pudo actualizar el inquilino: no se recibió respuesta",
+      "deleted": "Inquilino eliminado correctamente"
+    }
   },
   "users": {
     "title": "Usuarios",
     "createTooltip": "Crear un nuevo usuario",
-    "createUser": "Crear usuario"
+    "createUser": "Crear usuario",
+    "copyGuid": "Copiar GUID",
+    "userJson": "JSON del usuario",
+    "deleteTitle": "¿Está seguro de que desea eliminar el usuario \"{name}\"?",
+    "deleteBody": "Esta acción eliminará el usuario.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Identificador único global",
+      "firstName": "Nombre",
+      "firstNameDesc": "Nombre del usuario",
+      "lastName": "Apellido",
+      "lastNameDesc": "Apellido del usuario",
+      "email": "Correo electrónico",
+      "emailDesc": "Dirección de correo electrónico del usuario",
+      "password": "Contraseña",
+      "passwordDesc": "Contraseña del usuario (haga clic en el ojo para revelar)",
+      "active": "Activo",
+      "activeDesc": "Si la cuenta de usuario está activa",
+      "createdUtc": "Creado (UTC)",
+      "createdUtcDesc": "Fecha y hora de creación en UTC",
+      "actions": "Acciones",
+      "actionsDesc": "Operaciones disponibles"
+    },
+    "password": {
+      "show": "Mostrar contraseña",
+      "hide": "Ocultar contraseña"
+    },
+    "search": {
+      "guid": "Buscar GUID",
+      "firstName": "Buscar nombre",
+      "lastName": "Buscar apellido",
+      "email": "Buscar correo electrónico"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewJson": "Ver JSON",
+      "menu": "Acciones"
+    },
+    "form": {
+      "firstName": "Nombre",
+      "firstNameTooltip": "Nombre del usuario",
+      "firstNameRequired": "¡Ingrese el nombre!",
+      "firstNamePlaceholder": "Ingrese el nombre",
+      "lastName": "Apellido",
+      "lastNameTooltip": "Apellido del usuario",
+      "lastNameRequired": "¡Ingrese el apellido!",
+      "lastNamePlaceholder": "Ingrese el apellido",
+      "email": "Correo electrónico",
+      "emailTooltip": "Dirección de correo electrónico del usuario",
+      "emailRequired": "¡Ingrese su correo electrónico!",
+      "emailInvalid": "¡Ingrese un correo electrónico válido!",
+      "emailPlaceholder": "Correo electrónico",
+      "password": "Contraseña",
+      "passwordTooltip": "Contraseña de la cuenta",
+      "passwordRequired": "¡Ingrese la contraseña!",
+      "passwordPlaceholder": "Ingrese la contraseña",
+      "active": "Activo",
+      "activeTooltip": "Si la cuenta de usuario está activa"
+    },
+    "modalTitle": {
+      "create": "Crear usuario",
+      "edit": "Editar usuario"
+    },
+    "toast": {
+      "created": "Usuario creado correctamente",
+      "updated": "Usuario actualizado correctamente",
+      "updateNoResponse": "No se pudo actualizar el usuario: no se recibió respuesta",
+      "deleted": "Usuario eliminado correctamente",
+      "updateFailed": "No se pudo actualizar el usuario: {error}"
+    }
   }
 }

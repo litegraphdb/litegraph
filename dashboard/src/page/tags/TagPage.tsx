@@ -26,8 +26,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const TagPage = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('tags');
+  const tCommon = useTranslations('common');
   // Redux state for the list of graphs
   const selectedGraphRedux = useSelectedGraph();
   const { isGraphsLoading } = useLayoutContext();
@@ -128,11 +128,12 @@ const TagPage = () => {
       }
     >
       {isTagsError && !isTagsLoading ? (
-        <FallBack retry={fetchTagsList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchTagsList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           loading={isGraphsLoading || isTagsLoading}
           columns={tableColumns(
+            t,
             handleEditTag,
             handleDelete,
             isNodesLoading,
@@ -169,8 +170,8 @@ const TagPage = () => {
 
       {isDeleteModelVisible && selectedTag && (
         <DeleteTag
-          title={`Are you sure you want to delete "${selectedTag.Key}" tag?`}
-          paragraphText={'This action will delete tag.'}
+          title={t('deleteTitle', { name: selectedTag.Key ?? '' })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedTag={selectedTag}
@@ -182,7 +183,7 @@ const TagPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Tag JSON"
+        title={t('tagJson')}
       />
     </PageContainer>
   );

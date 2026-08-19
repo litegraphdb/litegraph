@@ -25,8 +25,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const VectorPage = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('vectors');
+  const tCommon = useTranslations('common');
   // Redux state for the list of graphs
   const selectedGraphRedux = useSelectedGraph();
   const { isGraphsLoading } = useLayoutContext();
@@ -133,11 +133,12 @@ const VectorPage = () => {
       }
     >
       {isVectorsError && !isVectorsLoading ? (
-        <FallBack retry={fetchVectorsList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchVectorsList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           loading={isGraphsLoading || isVectorsLoading}
           columns={tableColumns(
+            t,
             handleEditVector,
             handleDelete,
             isNodesLoading,
@@ -174,8 +175,8 @@ const VectorPage = () => {
 
       {isDeleteModelVisible && selectedVector && (
         <DeleteVector
-          title={`Are you sure you want to delete this vector?`}
-          paragraphText={'This action will delete vector.'}
+          title={t('deleteTitle')}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedVector={selectedVector}
@@ -187,7 +188,7 @@ const VectorPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Vector JSON"
+        title={t('vectorJson')}
       />
     </PageContainer>
   );

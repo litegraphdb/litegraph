@@ -17,8 +17,8 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 
 const TenantPage = () => {
-  // TODO(i18n): page not yet fully migrated — only title and primary actions are localized.
   const t = useTranslations('tenants');
+  const tCommon = useTranslations('common');
   const [selectedTenant, setSelectedTenant] = useState<TenantMetaData | null>(null);
   const [isAddEditTenantVisible, setIsAddEditTenantVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
@@ -69,12 +69,12 @@ const TenantPage = () => {
       }
     >
       {error && !isTenantsLoading ? (
-        <FallBack retry={fetchTenantsList}>Something went wrong.</FallBack>
+        <FallBack retry={fetchTenantsList}>{tCommon('states.somethingWentWrong')}</FallBack>
       ) : (
         <LitegraphTable
           hideHorizontalScroll
           loading={isTenantsLoading}
-          columns={tableColumns(handleEditTenant, handleDeleteTenant, setJsonViewRecord)}
+          columns={tableColumns(t, handleEditTenant, handleDeleteTenant, setJsonViewRecord)}
           dataSource={tenantsList}
           rowKey={'GUID'}
           onRowClick={handleEditTenant}
@@ -100,8 +100,8 @@ const TenantPage = () => {
 
       {isDeleteModelVisible && selectedTenant && (
         <DeleteTenant
-          title={`Are you sure you want to delete "${selectedTenant.Name}" tenant?`}
-          paragraphText={'This action will delete tenant.'}
+          title={t('deleteTitle', { name: selectedTenant.Name })}
+          paragraphText={t('deleteBody')}
           isDeleteModelVisible={isDeleteModelVisible}
           setIsDeleteModelVisible={setIsDeleteModelVisible}
           selectedTenant={selectedTenant}
@@ -112,7 +112,7 @@ const TenantPage = () => {
         open={!!jsonViewRecord}
         onClose={() => setJsonViewRecord(null)}
         data={jsonViewRecord}
-        title="Tenant JSON"
+        title={t('tenantJson')}
       />
     </PageContainer>
   );
