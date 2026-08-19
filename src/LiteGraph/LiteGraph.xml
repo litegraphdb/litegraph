@@ -4741,6 +4741,202 @@
             Instantiate the object.
             </summary>
         </member>
+        <member name="T:LiteGraph.GraphImportErrorPolicyEnum">
+            <summary>
+            Policy governing how the importer reacts to a malformed or unrecognized JSONL line.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportErrorPolicyEnum.Abort">
+            <summary>
+            Abort the entire import on the first bad line, rolling back any staged writes.  This is the default.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportErrorPolicyEnum.Skip">
+            <summary>
+            Skip bad lines, collect them as warnings, and import the remaining well-formed records.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.GraphImportGuidStrategyEnum">
+            <summary>
+            Strategy used to resolve GUID collisions during a JSONL import.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportGuidStrategyEnum.Preserve">
+            <summary>
+            Keep the original GUIDs from the file.  A collision with an existing record is an error.
+            This is the default for creating a new graph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportGuidStrategyEnum.Regenerate">
+            <summary>
+            Assign fresh GUIDs to every imported graph, node, and edge, remapping all references.
+            This is the default for merging into an existing graph and can never collide.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportGuidStrategyEnum.Skip">
+            <summary>
+            Leave records whose GUIDs already exist in the target untouched and import the remainder.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportGuidStrategyEnum.Overwrite">
+            <summary>
+            Update records whose GUIDs already exist in the target in place, and create the remainder.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.GraphImportModeEnum">
+            <summary>
+            Mode governing how a JSONL import is applied to the target tenant.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportModeEnum.CreateNew">
+            <summary>
+            Create a brand-new graph populated from the imported records.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphImportModeEnum.MergeIntoExisting">
+            <summary>
+            Merge the imported records into an existing target graph.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.GraphImportRequest">
+            <summary>
+            Options that accompany a JSONL import body and govern how records are applied.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.Mode">
+            <summary>
+            Import mode.  Default is CreateNew.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.GuidStrategy">
+            <summary>
+            GUID collision strategy.  Default is Preserve, which suits creating a new graph.
+            For merging into an existing graph, Regenerate is recommended.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.OnError">
+            <summary>
+            Policy applied when a malformed or unrecognized line is encountered.  Default is Abort.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.TargetGraphGUID">
+            <summary>
+            Target graph GUID.  Required when Mode is MergeIntoExisting; ignored when Mode is CreateNew.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.NewGraph">
+            <summary>
+            Graph metadata to use when creating a new graph.  When null, the file's graph record is used,
+            falling back to a minimal default.  Ignored when Mode is MergeIntoExisting.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.IncludeVectors">
+            <summary>
+            True to import vectors carried on nodes and edges.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.ReturnMode">
+            <summary>
+            Bulk create response shape used for imported nodes and edges.  Default is Minimal for import throughput.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.BatchSize">
+            <summary>
+            Number of nodes or edges written per bulk create call while streaming.  Default is 1000.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportRequest.SingleTransaction">
+            <summary>
+            True to write the entire import within a single transaction.  Default is true.
+            For backup-scale restores that exceed a single transaction, the importer may commit in
+            batches and report the downgrade as a warning.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphImportRequest.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.GraphImportResult">
+            <summary>
+            Outcome of a JSONL import operation.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.Success">
+            <summary>
+            True if the import completed successfully.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.TenantGUID">
+            <summary>
+            Tenant GUID into which records were imported.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.GraphGUID">
+            <summary>
+            GUID of the target graph, or the newly created graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.GraphsCreated">
+            <summary>
+            Number of graphs created.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.NodesCreated">
+            <summary>
+            Number of nodes created.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.NodesUpdated">
+            <summary>
+            Number of nodes updated.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.NodesSkipped">
+            <summary>
+            Number of nodes skipped.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.EdgesCreated">
+            <summary>
+            Number of edges created.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.EdgesUpdated">
+            <summary>
+            Number of edges updated.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.EdgesSkipped">
+            <summary>
+            Number of edges skipped.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.LinesRead">
+            <summary>
+            Total number of record lines read from the input.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.LinesIgnored">
+            <summary>
+            Number of comment or blank lines ignored.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.Warnings">
+            <summary>
+            Warnings raised during the import, including dropped dangling edges and skipped malformed lines.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphImportResult.GuidMap">
+            <summary>
+            Mapping of original GUIDs to newly assigned GUIDs.  Populated only when the GUID strategy is Regenerate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphImportResult.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
         <member name="T:LiteGraph.GraphQueryRequest">
             <summary>
             Native LiteGraph graph query request.
@@ -9636,6 +9832,26 @@
             </summary>
             <returns>Value task.</returns>
         </member>
+        <member name="T:LiteGraph.GraphTraversalDirectionEnum">
+            <summary>
+            Direction in which to traverse edges when extracting a subgraph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphTraversalDirectionEnum.Outbound">
+            <summary>
+            Follow edges that originate from the current frontier node (from-node to to-node).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphTraversalDirectionEnum.Inbound">
+            <summary>
+            Follow edges that terminate at the current frontier node (to-node from from-node).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphTraversalDirectionEnum.Both">
+            <summary>
+            Follow edges in either direction.  This is the default.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Helpers.FileHelpers">
             <summary>
             File helpers.
@@ -10592,6 +10808,339 @@
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
+        <member name="T:LiteGraph.JsonlExportMetadata">
+            <summary>
+            Metadata rendered into the leading comment lines of a JSONL export.
+            Comment lines begin with '#' and are ignored on import.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.FormatVersion">
+            <summary>
+            JSONL format version string.  Default is "v1".
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.Kind">
+            <summary>
+            Kind of export, for example "subgraph" or "graph-backup".
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.ExportedUtc">
+            <summary>
+            Timestamp of the export, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SourceTenantGUID">
+            <summary>
+            Source tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SourceGraphGUID">
+            <summary>
+            Source graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SourceGraphName">
+            <summary>
+            Source graph name, if known.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SelectionSummary">
+            <summary>
+            Human-readable summary of the selection criteria, if this export was a filtered subgraph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.Generator">
+            <summary>
+            Generator identifier, for example "LiteGraph 7.1.0".
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlExportMetadata.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.JsonlFormatException">
+            <summary>
+            Exception raised when a JSONL record line cannot be parsed or has an unrecognized type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlFormatException.LineNumber">
+            <summary>
+            One-based line number of the offending line within the input.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlFormatException.Line">
+            <summary>
+            The offending line content.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlFormatException.#ctor(System.Int64,System.String,System.String,System.Exception)">
+            <summary>
+            Instantiate the object.
+            </summary>
+            <param name="lineNumber">One-based line number.</param>
+            <param name="line">Offending line content.</param>
+            <param name="message">Message.</param>
+            <param name="inner">Inner exception.</param>
+        </member>
+        <member name="T:LiteGraph.JsonlRecord">
+            <summary>
+            A single JSONL record line: a type discriminator paired with a graph, node, or edge payload.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlRecord.Type">
+            <summary>
+            Record type discriminator.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlRecord.Object">
+            <summary>
+            Record payload.  On write this is a Graph, Node, or Edge instance; on read it is the deserialized JSON payload.
+            Use AsGraph, AsNode, or AsEdge to obtain a strongly-typed instance.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.ForGraph(LiteGraph.Graph)">
+            <summary>
+            Create a record wrapping a graph.
+            </summary>
+            <param name="graph">Graph.</param>
+            <returns>Record.</returns>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.ForNode(LiteGraph.Node)">
+            <summary>
+            Create a record wrapping a node.
+            </summary>
+            <param name="node">Node.</param>
+            <returns>Record.</returns>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.ForEdge(LiteGraph.Edge)">
+            <summary>
+            Create a record wrapping an edge.
+            </summary>
+            <param name="edge">Edge.</param>
+            <returns>Record.</returns>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.AsGraph(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Materialize the payload as a graph.
+            </summary>
+            <param name="serializer">Serializer used to convert the payload.</param>
+            <returns>Graph, or null if the payload is null.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.AsNode(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Materialize the payload as a node.
+            </summary>
+            <param name="serializer">Serializer used to convert the payload.</param>
+            <returns>Node, or null if the payload is null.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.AsEdge(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Materialize the payload as an edge.
+            </summary>
+            <param name="serializer">Serializer used to convert the payload.</param>
+            <returns>Edge, or null if the payload is null.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
+        </member>
+        <member name="T:LiteGraph.JsonlRecordTypeEnum">
+            <summary>
+            Type discriminator for a single JSONL record line.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.JsonlRecordTypeEnum.Graph">
+            <summary>
+            The record payload is a graph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.JsonlRecordTypeEnum.Node">
+            <summary>
+            The record payload is a node.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.JsonlRecordTypeEnum.Edge">
+            <summary>
+            The record payload is an edge.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Jsonl.JsonlGraphImporter">
+            <summary>
+            Imports LiteGraph JSONL into a new or existing graph.
+            Nodes are streamed and written in batches while edges are buffered until all nodes are known, so that
+            endpoint validity and GUID remapping can be enforced.  On failure, records created during the import are
+            removed on a best-effort basis (compensating rollback); records updated under the Overwrite strategy are
+            not restored.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphImporter.#ctor(LiteGraph.Jsonl.JsonlGraphReader)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="reader">Reader.  When null, a default reader is used.</param>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphImporter.Import(LiteGraph.LiteGraphClient,System.Guid,System.IO.Stream,LiteGraph.GraphImportRequest,System.Threading.CancellationToken)">
+            <summary>
+            Import JSONL from a stream into a new or existing graph.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Target tenant GUID.  All imported records are stamped with this tenant.</param>
+            <param name="jsonl">Source JSONL stream.</param>
+            <param name="request">Import request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Import result.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when client, stream, or request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the request is inconsistent with its mode, or the target graph does not exist.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown on a GUID collision under the Preserve strategy.</exception>
+            <exception cref="T:LiteGraph.JsonlFormatException">Thrown on a malformed line when the error policy is Abort.</exception>
+        </member>
+        <member name="T:LiteGraph.Jsonl.JsonlGraphReader">
+            <summary>
+            Reads the LiteGraph JSONL interchange format from a stream or string.
+            The reader streams line by line and never buffers the whole input.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphReader.#ctor(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="serializer">Serializer.  When null, a default serializer is used.</param>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphReader.ParseLine(System.String,System.Int64)">
+            <summary>
+            Parse a single line into a record.  Comment lines (beginning with '#') and blank lines return null.
+            </summary>
+            <param name="line">Line content.</param>
+            <param name="lineNumber">One-based line number, used for error reporting.</param>
+            <returns>Record, or null if the line is a comment or blank.</returns>
+            <exception cref="T:LiteGraph.JsonlFormatException">Thrown when the line is not a valid record.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphReader.ReadAsync(System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Read records from a stream, skipping comment and blank lines.
+            </summary>
+            <param name="stream">Source stream.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of records.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the stream is null.</exception>
+            <exception cref="T:LiteGraph.JsonlFormatException">Thrown when a record line is malformed.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphReader.Read(System.String)">
+            <summary>
+            Read records from a string, skipping comment and blank lines.
+            </summary>
+            <param name="content">JSONL content.</param>
+            <returns>Enumerable of records.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when content is null.</exception>
+            <exception cref="T:LiteGraph.JsonlFormatException">Thrown when a record line is malformed.</exception>
+        </member>
+        <member name="T:LiteGraph.Jsonl.JsonlGraphWriter">
+            <summary>
+            Writes graphs, nodes, and edges to the LiteGraph JSONL interchange format.
+            The writer streams line by line and never materializes the whole document, so it is safe for
+            graphs too large to hold in memory.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.#ctor(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="serializer">Serializer.  When null, a default serializer is used.</param>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.WriteRecords(System.Collections.Generic.IAsyncEnumerable{LiteGraph.JsonlRecord},LiteGraph.JsonlExportMetadata,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Write a stream of JSONL records to a stream.
+            </summary>
+            <param name="records">Records to write.</param>
+            <param name="metadata">Export metadata rendered as leading comment lines.  May be null.</param>
+            <param name="stream">Destination stream.  The stream is left open.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when records or stream is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.WriteSearchResult(LiteGraph.SearchResult,LiteGraph.JsonlExportMetadata,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Write a materialized search result to a stream.
+            </summary>
+            <param name="result">Search result.</param>
+            <param name="metadata">Export metadata.  May be null.</param>
+            <param name="stream">Destination stream.  The stream is left open.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when result or stream is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.WriteGraph(LiteGraph.LiteGraphClient,System.Guid,System.Guid,LiteGraph.JsonlExportMetadata,System.Boolean,System.Boolean,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Stream an entire graph to a stream as JSONL: the graph record, then all node records, then all edge records.
+            This is the provider-agnostic whole-graph backup path and runs in constant memory.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="metadata">Export metadata.  May be null; when null a default is generated.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="stream">Destination stream.  The stream is left open.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when client or stream is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph does not exist.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.WriteSearchResultToFile(LiteGraph.SearchResult,LiteGraph.JsonlExportMetadata,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Write a materialized search result to a file.
+            </summary>
+            <param name="result">Search result.</param>
+            <param name="metadata">Export metadata.  May be null.</param>
+            <param name="filename">Destination filename.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when result or filename is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.WriteGraphToFile(LiteGraph.LiteGraphClient,System.Guid,System.Guid,LiteGraph.JsonlExportMetadata,System.Boolean,System.Boolean,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Stream an entire graph to a file as JSONL.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="metadata">Export metadata.  May be null.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="filename">Destination filename.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when client or filename is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.Render(LiteGraph.SearchResult,LiteGraph.JsonlExportMetadata,System.Threading.CancellationToken)">
+            <summary>
+            Render a materialized search result to a JSONL string.  Not for large graphs; use the streaming methods instead.
+            </summary>
+            <param name="result">Search result.</param>
+            <param name="metadata">Export metadata.  May be null.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>JSONL string.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when result is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Jsonl.JsonlGraphWriter.RenderGraph(LiteGraph.LiteGraphClient,System.Guid,System.Guid,LiteGraph.JsonlExportMetadata,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Render an entire graph to a JSONL string.  Not for large graphs; use the streaming methods instead.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="metadata">Export metadata.  May be null.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>JSONL string.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when client is null.</exception>
+        </member>
         <member name="T:LiteGraph.LabelMetadata">
             <summary>
             Label metadata.
@@ -10832,6 +11381,112 @@
             <param name="includeSubordinates">True to include subordinates (labels, tags, vectors).</param>
             <param name="token">Cancellation token.</param>
             <returns>GEXF string.</returns>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExtractSubgraph(LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Extract a filtered, directional subgraph as a materialized search result.
+            </summary>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Search result.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExtractSubgraph(System.Guid,System.Guid,System.Guid,System.Int32,LiteGraph.GraphTraversalDirectionEnum,System.Threading.CancellationToken)">
+            <summary>
+            Extract a filtered subgraph from a single start node as a materialized search result.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="startNodeGuid">Start node GUID.</param>
+            <param name="maxDepth">Maximum traversal depth.  Default is 2.  Minimum is 0.</param>
+            <param name="direction">Traversal direction.  Default is Both.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Search result.</returns>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExportSubgraphToJsonlStream(LiteGraph.SubgraphExtractionRequest,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Export a filtered subgraph to a stream in JSONL format.
+            </summary>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="stream">Destination stream.  The stream is left open.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request or stream is null.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExportGraphToJsonlStream(System.Guid,System.Guid,System.Boolean,System.Boolean,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Export an entire graph to a stream in JSONL format.  Runs in constant memory; suitable as a provider-agnostic backup.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="stream">Destination stream.  The stream is left open.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the stream is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph does not exist.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExportSubgraphToJsonlFile(LiteGraph.SubgraphExtractionRequest,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Export a filtered subgraph to a file in JSONL format.
+            </summary>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="filename">Destination filename.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request or filename is null.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ExportGraphToJsonlFile(System.Guid,System.Guid,System.String,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Export an entire graph to a file in JSONL format.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="filename">Destination filename.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the filename is null.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.RenderGraphAsJsonl(System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Render an entire graph as a JSONL string.  Not for large graphs; use the streaming methods instead.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="includeData">True to include the data property of objects.</param>
+            <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>JSONL string.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when the graph does not exist.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ImportGraphFromJsonlStream(System.Guid,System.IO.Stream,LiteGraph.GraphImportRequest,System.Threading.CancellationToken)">
+            <summary>
+            Import JSONL from a stream into a new or existing graph.
+            </summary>
+            <param name="tenantGuid">Target tenant GUID.</param>
+            <param name="jsonl">Source JSONL stream.</param>
+            <param name="request">Import request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Import result.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the stream or request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the request is inconsistent with its mode, or the target graph does not exist.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown on a GUID collision under the Preserve strategy.</exception>
+            <exception cref="T:LiteGraph.JsonlFormatException">Thrown on a malformed line when the error policy is Abort.</exception>
+        </member>
+        <member name="M:LiteGraph.LiteGraphClient.ImportGraphFromJsonl(System.Guid,System.String,LiteGraph.GraphImportRequest,System.Threading.CancellationToken)">
+            <summary>
+            Import JSONL from a string into a new or existing graph.
+            </summary>
+            <param name="tenantGuid">Target tenant GUID.</param>
+            <param name="jsonl">Source JSONL content.</param>
+            <param name="request">Import request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Import result.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the content or request is null.</exception>
         </member>
         <member name="M:LiteGraph.LiteGraphClient.Flush">
             <summary>
@@ -12857,6 +13512,138 @@
             <summary>
             True if no verification differences were found.
             </summary>
+        </member>
+        <member name="T:LiteGraph.SubgraphExtractionRequest">
+            <summary>
+            Request describing a filtered, directional subgraph to extract from a graph.
+            The walk begins at one or more start nodes and proceeds breadth-first up to a maximum depth,
+            following edges in the configured direction and honoring the supplied edge and node filters.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.GraphGUID">
+            <summary>
+            Graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.StartNodeGUIDs">
+            <summary>
+            GUIDs of the start nodes from which the walk begins.  At least one is required.
+            Start nodes are always included in the result even if they do not satisfy the node filters.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.MaxDepth">
+            <summary>
+            Maximum traversal depth from the start nodes.
+            Default is 2.  Minimum is 0, where 0 returns only the start nodes and the edges among them.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.Direction">
+            <summary>
+            Direction in which edges are followed.  Default is Both.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.MaxNodes">
+            <summary>
+            Maximum number of nodes to include.  Default is 0 (unlimited).  Minimum is 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.MaxEdges">
+            <summary>
+            Maximum number of edges to include.  Default is 0 (unlimited).  Minimum is 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.EdgeLabels">
+            <summary>
+            Labels an edge must carry to be traversed and included.  Null or empty applies no label filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.EdgeTags">
+            <summary>
+            Tags an edge must carry to be traversed and included.  Null applies no tag filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.EdgeFilter">
+            <summary>
+            Expression filter applied to an edge's data object to decide traversal and inclusion.  Null applies no filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.MaxEdgeCost">
+            <summary>
+            Maximum cost an edge may have to be traversed.  Null applies no cost limit.  Minimum is 0.
+            An edge whose cost exceeds this value is not traversed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.NodeLabels">
+            <summary>
+            Labels a neighbor node must carry to be included and expanded.  Null or empty applies no label filter.
+            Start nodes are exempt from this filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.NodeTags">
+            <summary>
+            Tags a neighbor node must carry to be included and expanded.  Null applies no tag filter.
+            Start nodes are exempt from this filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.NodeFilter">
+            <summary>
+            Expression filter applied to a neighbor node's data object to decide inclusion and expansion.  Null applies no filter.
+            Start nodes are exempt from this filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.IncludeData">
+            <summary>
+            True to include the data property of included graphs, nodes, and edges.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.SubgraphExtractionRequest.IncludeSubordinates">
+            <summary>
+            True to include subordinate properties (labels, tags, vectors) of included objects.  Default is false.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.SubgraphExtractionRequest.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Subgraph.SubgraphExtractor">
+            <summary>
+            Extracts a filtered, directional subgraph from a graph using a bounded breadth-first walk.
+            The walk composes the client's filter-aware traversal primitives so that all sanitization and
+            validation remain on the existing repository path.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.Extract(LiteGraph.LiteGraphClient,LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Extract a subgraph as a materialized search result.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Search result containing the source graph metadata, the included nodes, and the retained edges.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the client or request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
+        </member>
+        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.ExtractAsRecords(LiteGraph.LiteGraphClient,LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Extract a subgraph as a stream of JSONL records: the source graph record, then node records, then edge records.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of JSONL records.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the client or request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
         </member>
         <member name="T:LiteGraph.SyslogServer">
             <summary>

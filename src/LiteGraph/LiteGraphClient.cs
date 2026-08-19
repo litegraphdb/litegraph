@@ -5,12 +5,15 @@
     using System.Collections.Specialized;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.IO;
     using Caching;
     using LiteGraph.Client.Implementations;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.Gexf;
     using LiteGraph.GraphRepositories;
+    using LiteGraph.Jsonl;
     using LiteGraph.Serialization;
+    using LiteGraph.Subgraph;
 
     /// <summary>
     /// LiteGraph client.
@@ -174,6 +177,10 @@
         private GraphRepositoryBase _Repo = null;
         private bool _DisposeRepository = false;
         private GexfWriter _Gexf = new GexfWriter();
+        private SubgraphExtractor _SubgraphExtractor = new SubgraphExtractor();
+        private JsonlGraphWriter _JsonlWriter = new JsonlGraphWriter();
+        private JsonlGraphReader _JsonlReader = new JsonlGraphReader();
+        private JsonlGraphImporter _JsonlImporter = new JsonlGraphImporter();
 
         private LRUCache<Guid, TenantMetadata> _TenantCache = null;
         private LRUCache<Guid, Graph> _GraphCache = null;
@@ -430,6 +437,176 @@
         }
 
         /// <summary>
+        /// Extract a filtered, directional subgraph as a materialized search result.
+        /// </summary>
+        /// <param name="request">Subgraph extraction request.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Search result.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the request is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
+        public async Task<SearchResult> ExtractSubgraph(SubgraphExtractionRequest request, CancellationToken token = default)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            return await _SubgraphExtractor.Extract(this, request, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Extract a filtered subgraph from a single start node as a materialized search result.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="startNodeGuid">Start node GUID.</param>
+        /// <param name="maxDepth">Maximum traversal depth.  Default is 2.  Minimum is 0.</param>
+        /// <param name="direction">Traversal direction.  Default is Both.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Search result.</returns>
+        public async Task<SearchResult> ExtractSubgraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid startNodeGuid,
+            int maxDepth = 2,
+            GraphTraversalDirectionEnum direction = GraphTraversalDirectionEnum.Both,
+            CancellationToken token = default)
+        {
+            SubgraphExtractionRequest request = new SubgraphExtractionRequest
+            {
+                TenantGUID = tenantGuid,
+                GraphGUID = graphGuid,
+                StartNodeGUIDs = new List<Guid> { startNodeGuid },
+                MaxDepth = maxDepth,
+                Direction = direction,
+                IncludeData = true,
+                IncludeSubordinates = true
+            };
+            return await _SubgraphExtractor.Extract(this, request, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Export a filtered subgraph to a stream in JSONL format.
+        /// </summary>
+        /// <param name="request">Subgraph extraction request.</param>
+        /// <param name="stream">Destination stream.  The stream is left open.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the request or stream is null.</exception>
+        public async Task ExportSubgraphToJsonlStream(SubgraphExtractionRequest request, Stream stream, CancellationToken token = default)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+            SearchResult result = await _SubgraphExtractor.Extract(this, request, token).ConfigureAwait(false);
+            JsonlExportMetadata metadata = BuildSubgraphMetadata(request, result);
+            await _JsonlWriter.WriteSearchResult(result, metadata, stream, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Export an entire graph to a stream in JSONL format.  Runs in constant memory; suitable as a provider-agnostic backup.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="includeData">True to include the data property of objects.</param>
+        /// <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+        /// <param name="stream">Destination stream.  The stream is left open.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the stream is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the graph does not exist.</exception>
+        public async Task ExportGraphToJsonlStream(Guid tenantGuid, Guid graphGuid, bool includeData, bool includeSubordinates, Stream stream, CancellationToken token = default)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            await _JsonlWriter.WriteGraph(this, tenantGuid, graphGuid, null, includeData, includeSubordinates, stream, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Export a filtered subgraph to a file in JSONL format.
+        /// </summary>
+        /// <param name="request">Subgraph extraction request.</param>
+        /// <param name="filename">Destination filename.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the request or filename is null.</exception>
+        public async Task ExportSubgraphToJsonlFile(SubgraphExtractionRequest request, string filename, CancellationToken token = default)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+
+            SearchResult result = await _SubgraphExtractor.Extract(this, request, token).ConfigureAwait(false);
+            JsonlExportMetadata metadata = BuildSubgraphMetadata(request, result);
+            await _JsonlWriter.WriteSearchResultToFile(result, metadata, filename, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Export an entire graph to a file in JSONL format.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="filename">Destination filename.</param>
+        /// <param name="includeData">True to include the data property of objects.</param>
+        /// <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the filename is null.</exception>
+        public async Task ExportGraphToJsonlFile(Guid tenantGuid, Guid graphGuid, string filename, bool includeData, bool includeSubordinates, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
+            await _JsonlWriter.WriteGraphToFile(this, tenantGuid, graphGuid, null, includeData, includeSubordinates, filename, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Render an entire graph as a JSONL string.  Not for large graphs; use the streaming methods instead.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="includeData">True to include the data property of objects.</param>
+        /// <param name="includeSubordinates">True to include labels, tags, and vectors.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>JSONL string.</returns>
+        /// <exception cref="ArgumentException">Thrown when the graph does not exist.</exception>
+        public async Task<string> RenderGraphAsJsonl(Guid tenantGuid, Guid graphGuid, bool includeData, bool includeSubordinates, CancellationToken token = default)
+        {
+            return await _JsonlWriter.RenderGraph(this, tenantGuid, graphGuid, null, includeData, includeSubordinates, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Import JSONL from a stream into a new or existing graph.
+        /// </summary>
+        /// <param name="tenantGuid">Target tenant GUID.</param>
+        /// <param name="jsonl">Source JSONL stream.</param>
+        /// <param name="request">Import request.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Import result.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the stream or request is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the request is inconsistent with its mode, or the target graph does not exist.</exception>
+        /// <exception cref="InvalidOperationException">Thrown on a GUID collision under the Preserve strategy.</exception>
+        /// <exception cref="JsonlFormatException">Thrown on a malformed line when the error policy is Abort.</exception>
+        public async Task<GraphImportResult> ImportGraphFromJsonlStream(Guid tenantGuid, Stream jsonl, GraphImportRequest request, CancellationToken token = default)
+        {
+            if (jsonl == null) throw new ArgumentNullException(nameof(jsonl));
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            return await _JsonlImporter.Import(this, tenantGuid, jsonl, request, token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Import JSONL from a string into a new or existing graph.
+        /// </summary>
+        /// <param name="tenantGuid">Target tenant GUID.</param>
+        /// <param name="jsonl">Source JSONL content.</param>
+        /// <param name="request">Import request.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Import result.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the content or request is null.</exception>
+        public async Task<GraphImportResult> ImportGraphFromJsonl(Guid tenantGuid, string jsonl, GraphImportRequest request, CancellationToken token = default)
+        {
+            if (jsonl == null) throw new ArgumentNullException(nameof(jsonl));
+            if (request == null) throw new ArgumentNullException(nameof(request));
+
+            using (MemoryStream ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(jsonl)))
+            {
+                return await _JsonlImporter.Import(this, tenantGuid, ms, request, token).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Flush the database to disk.  Only useful when using an in-memory LiteGraph instance.
         /// </summary>
         public void Flush()
@@ -521,6 +698,33 @@
         #endregion
 
         #region Private-Methods
+
+        private JsonlExportMetadata BuildSubgraphMetadata(SubgraphExtractionRequest request, SearchResult result)
+        {
+            string graphName = null;
+            if (result != null && result.Graphs != null && result.Graphs.Count > 0) graphName = result.Graphs[0].Name;
+
+            int graphCount = (result?.Graphs != null) ? result.Graphs.Count : 0;
+            int nodeCount = (result?.Nodes != null) ? result.Nodes.Count : 0;
+            int edgeCount = (result?.Edges != null) ? result.Edges.Count : 0;
+
+            string selection =
+                "start=" + String.Join("|", request.StartNodeGUIDs) +
+                ",depth=" + request.MaxDepth +
+                ",direction=" + request.Direction +
+                ",maxNodes=" + request.MaxNodes +
+                ",maxEdges=" + request.MaxEdges +
+                ",counts(graphs=" + graphCount + ",nodes=" + nodeCount + ",edges=" + edgeCount + ")";
+
+            return new JsonlExportMetadata
+            {
+                Kind = "subgraph",
+                SourceTenantGUID = request.TenantGUID,
+                SourceGraphGUID = request.GraphGUID,
+                SourceGraphName = graphName,
+                SelectionSummary = selection
+            };
+        }
 
         private void TenantCacheAdd(TenantMetadata obj)
         {
