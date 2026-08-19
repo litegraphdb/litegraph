@@ -363,6 +363,7 @@ namespace Test.Shared
                     CreateMcpExecutionSuite(),
                     CreateRouteAuthenticationSuite(),
                     CreateImprovementFoundationSuite(),
+                    CreateImportExportSuite(),
                     CreateVectorSearchSuite(),
                     CreateVectorIndexImplementationSuite(),
                     CreateVectorIndexSearchSuite()
