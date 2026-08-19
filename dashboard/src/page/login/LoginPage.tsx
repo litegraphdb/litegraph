@@ -6,16 +6,28 @@ import styles from './login.module.scss';
 import LitegraphInput from '@/components/base/input/Input';
 import LitegraphSelect from '@/components/base/select/Select';
 import LitegraphButton from '@/components/base/button/Button';
+import LitegraphText from '@/components/base/typograpghy/Text';
 import { LightGraphTheme } from '@/theme/theme';
-import { setEndpoint, useValidateConnectivity } from '@/lib/sdk/litegraph.service';
-import { TenantMetaData } from 'litegraphdb/dist/types/types';
+import {
+  setAccessKey,
+  setEndpoint,
+  useGetTenants,
+  useValidateConnectivity,
+} from '@/lib/sdk/litegraph.service';
+import { TenantMetaData, Token } from 'litegraphdb/dist/types/types';
 import toast from 'react-hot-toast';
-import { useCredentialsToLogin } from '@/hooks/authHooks';
+import {
+  useAdminCredentialsToLogin,
+  useCredentialsToLogin,
+} from '@/hooks/authHooks';
 import { localStorageKeys } from '@/constants/constant';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import { useGenerateTokenMutation, useGetTenantsForEmailMutation } from '@/lib/store/slice/slice';
 import LoginLayout from '@/components/layout/LoginLayout';
 import { useCurrentlyHostedDomainAsServerUrl } from '@/hooks/appHooks';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { storeTenant, storeUser } from '@/lib/store/litegraph/actions';
+import { FlaggedUser } from '@/types/types';
 
 interface LoginFormData {
   url: string;
@@ -33,13 +45,21 @@ const LoginPage = () => {
   const [formData, setFormData] = useState<Partial<LoginFormData>>({});
   const [isServerValid, setIsServerValid] = useState<boolean>(false);
   const [form] = Form.useForm();
+  const dispatch = useAppDispatch();
   const [generateToken, { isLoading: isGeneratingToken }] = useGenerateTokenMutation();
   const loginWithCredentials = useCredentialsToLogin();
+  const loginWithAdminCredentials = useAdminCredentialsToLogin();
   const [getTenantsForEmail, { isLoading: isLoadingTenant }] = useGetTenantsForEmailMutation();
   const [tenants, setTenants] = useState<TenantMetaData[]>([]);
   const [showTenantSelect, setShowTenantSelect] = useState<boolean>(false);
   const { validateConnectivity, isLoading: isValidatingConnectivity } = useValidateConnectivity();
   const serverUrl = useCurrentlyHostedDomainAsServerUrl();
+
+  // Break-glass ("advanced") admin bearer token affordance — clearly separated
+  // from the primary email/password flow and never required.
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const [accessKey, setAccessKeyValue] = useState<string>('');
+  const { getTenants, isLoading: isValidatingKey } = useGetTenants();
 
   const tenantOptions =
     tenants?.map((tenant) => ({
@@ -47,9 +67,16 @@ const LoginPage = () => {
       value: tenant.GUID,
     })) || [];
 
+  const stepFields: Record<number, string[]> = {
+    0: ['url'],
+    1: ['email'],
+    2: ['tenant'],
+  };
+
   const handleNext = async () => {
     try {
-      const values = await form.validateFields();
+      // Validate only the current step's field; later-step fields are not yet filled.
+      const values = await form.validateFields(stepFields[currentStep] || []);
       setFormData((prev) => ({ ...prev, ...values }));
       switch (currentStep) {
         case 0:
@@ -111,7 +138,7 @@ const LoginPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const values = await form.validateFields();
+      const values = await form.validateFields(['password']);
       const finalData: LoginFormData = { ...formData, ...values };
 
       const selectedTenant = tenants?.find((item) => item.GUID === finalData.tenant);
@@ -119,19 +146,60 @@ const LoginPage = () => {
         toast.error(t('tenantNotFound'));
         return;
       }
-      const { data: token } = await generateToken({
+      const { data: token, error } = await generateToken({
         email: finalData.email,
         password: finalData.password,
         tenantId: finalData.tenant,
       });
+      if (error || !token) {
+        toast.error(t('invalidCredentials'));
+        return;
+      }
       if (token && selectedTenant) {
+        // Session carries the user (with capability flags), the active tenant,
+        // and the token. Flags drive what renders next.
+        const sessionUser = (token as Token).User as FlaggedUser | undefined;
         localStorage.setItem(localStorageKeys.token, JSON.stringify(token));
         localStorage.setItem(localStorageKeys.tenant, JSON.stringify(selectedTenant));
         localStorage.setItem(localStorageKeys.serverUrl, finalData.url);
+        if (sessionUser) {
+          localStorage.setItem(localStorageKeys.user, JSON.stringify(sessionUser));
+          dispatch(storeUser(sessionUser));
+        }
         loginWithCredentials(token, selectedTenant);
       }
     } catch (error) {
       console.error('Validation failed:', error);
+    }
+  };
+
+  const handleBreakGlassLogin = async () => {
+    const url = form.getFieldValue('url');
+    if (!url) {
+      toast.error(t('serverUrlRequired'));
+      return;
+    }
+    if (!accessKey) {
+      toast.error(t('advancedTokenRequired'));
+      return;
+    }
+    setEndpoint(url);
+    setAccessKey(accessKey);
+    try {
+      const result = await getTenants();
+      if (result) {
+        localStorage.setItem(localStorageKeys.adminAccessKey, accessKey);
+        localStorage.setItem(localStorageKeys.serverUrl, url);
+        if (result[0]) {
+          localStorage.setItem(localStorageKeys.tenant, JSON.stringify(result[0]));
+          dispatch(storeTenant(result[0]));
+        }
+        loginWithAdminCredentials(accessKey);
+      } else {
+        toast.error(t('advancedTokenInvalid'));
+      }
+    } catch (err) {
+      toast.error(t('advancedTokenInvalid'));
     }
   };
 
@@ -153,11 +221,14 @@ const LoginPage = () => {
   }, [currentStep]);
 
   return (
-    <LoginLayout
-      footer={<div className={styles.loginHelperText}>{t('defaultCredentials')}</div>}
-    >
+    <LoginLayout footer={<div className={styles.loginHelperText}>{t('defaultCredentials')}</div>}>
       <LitegraphFlex vertical gap={20}>
-        <Form form={form} layout="vertical" initialValues={formData}>
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={formData}
+          onFinish={() => (currentStep === 3 ? handleSubmit() : handleNext())}
+        >
           {/* Step 0: Server URL - always visible */}
           <Form.Item
             label={t('serverUrl')}
@@ -248,7 +319,6 @@ const LoginPage = () => {
             )}
             <LitegraphButton
               type="primary"
-              htmlType={'submit'}
               loading={isGeneratingToken || isLoadingTenant || isValidatingConnectivity}
               className={styles.loginButton}
               onClick={currentStep === 3 ? handleSubmit : handleNext}
@@ -271,6 +341,39 @@ const LoginPage = () => {
               }}
             />
           ))}
+        </div>
+
+        {/* Advanced: break-glass admin bearer token (optional, never required). */}
+        <div className={styles.advancedSection}>
+          <LitegraphButton
+            type="link"
+            size="small"
+            onClick={() => setShowAdvanced((prev) => !prev)}
+            data-testid="advanced-toggle"
+          >
+            {showAdvanced ? t('advancedHide') : t('advancedToggle')}
+          </LitegraphButton>
+          {showAdvanced && (
+            <LitegraphFlex vertical gap={8}>
+              <LitegraphText fontSize={12} className="ant-color-text-secondary">
+                {t('advancedHelp')}
+              </LitegraphText>
+              <Input.Password
+                placeholder={t('advancedTokenPlaceholder')}
+                value={accessKey}
+                onChange={(e) => setAccessKeyValue(e.target.value)}
+                size="large"
+                data-testid="break-glass-input"
+              />
+              <LitegraphButton
+                onClick={handleBreakGlassLogin}
+                loading={isValidatingKey}
+                data-testid="break-glass-login"
+              >
+                {t('advancedLogin')}
+              </LitegraphButton>
+            </LitegraphFlex>
+          )}
         </div>
       </LitegraphFlex>
     </LoginLayout>

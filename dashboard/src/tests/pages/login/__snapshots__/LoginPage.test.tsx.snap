@@ -23,7 +23,7 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
       style="padding: 16px 24px;"
     >
       <img
-        alt="Litegraph Logo"
+        alt="LiteGraph logo"
         height="40"
         src="/favicon.png"
       />
@@ -119,15 +119,6 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
             />
           </g>
         </svg>
-        <a
-          href="/login/admin"
-        >
-          <span
-            class="ant-typography css-dev-only-do-not-override-mncuj7"
-          >
-            Login as Administrator
-          </span>
-        </a>
       </div>
     </div>
     <div
@@ -137,12 +128,12 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
         class="ant-typography headingCommonStyles css-dev-only-do-not-override-mncuj7"
         style="font-weight: 600; font-size: 22px;"
       >
-        Login
+        Sign in
       </h1>
       <div
         class="ant-typography loginDescription css-dev-only-do-not-override-mncuj7"
       >
-        Please enter your email and password to login
+        Enter your server, email, and password to continue.
       </div>
     </div>
     <div
@@ -308,7 +299,7 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
           >
             <button
               class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-primary ant-btn-color-primary ant-btn-variant-solid loginButton"
-              type="submit"
+              type="button"
             >
               <span>
                 Next
@@ -335,6 +326,19 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
             class="stepIndicator"
             style="background-color: rgb(217, 217, 217);"
           />
+        </div>
+        <div
+          class="advancedSection"
+        >
+          <button
+            class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-link ant-btn-color-link ant-btn-variant-link ant-btn-sm"
+            data-testid="advanced-toggle"
+            type="button"
+          >
+            <span>
+              Advanced sign-in options
+            </span>
+          </button>
         </div>
       </div>
     </div>

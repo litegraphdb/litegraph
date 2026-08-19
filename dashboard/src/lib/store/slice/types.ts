@@ -16,5 +16,6 @@ export enum SliceTags {
   TENANT = 'tenant',
   BACKUP = 'backup',
   AUTHORIZATION = 'authorization',
+  SETTINGS = 'settings',
   RESET = 'reset',
 }

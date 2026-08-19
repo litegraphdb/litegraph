@@ -14,159 +14,260 @@ import {
   HistoryOutlined,
   ApiOutlined,
   SafetyCertificateOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { MenuItemProps } from '@/components/menu-item/types';
+import {
+  CapabilityResource,
+  NavSectionId,
+  Principal,
+  can,
+  canViewSection,
+} from '@/lib/authz/capabilities';
 
-// Nav item `label`/`title` hold the English source strings (used as fallbacks
-// and in unit tests); `labelKey`/`titleKey` reference the `nav.*` catalog and
-// are what actually render, translated at runtime in MenuItems.
-export const tenantDashboardRoutes: MenuItemProps[] = [
+/**
+ * A single navigation entry. `label`/`title` hold the English source strings
+ * (fallbacks + used in unit tests); `labelKey`/`titleKey` reference the catalog
+ * and are what actually render, translated at runtime in MenuItems. `resource`
+ * ties the item to the capability map for permission gating.
+ */
+export interface NavItem extends MenuItemProps {
+  resource: CapabilityResource;
+}
+
+/** A grouped navigation section with an `nav.section.*` header key. */
+export interface NavSection {
+  id: NavSectionId;
+  labelKey: string;
+  label: string;
+  items: NavItem[];
+}
+
+/**
+ * The single, consolidated, grouped navigation for the v8.0 dashboard. Section
+ * headers are `nav.section.*` keys. DATA / METADATA / MANAGE are tenant-scoped
+ * (their paths embed the active tenant); SECURE / ADMINISTER are server-level.
+ */
+export const dashboardNavSections: NavSection[] = [
   {
-    key: '/',
-    icon: <HomeOutlined />,
+    id: 'home',
+    labelKey: 'nav.section.home',
     label: 'Home',
-    title: 'Dashboard overview',
-    labelKey: 'nav.tenant.home',
-    titleKey: 'nav.tenant.homeTitle',
-    path: paths.dashboardHome,
+    items: [
+      {
+        key: '/',
+        resource: 'home',
+        icon: <HomeOutlined />,
+        label: 'Home',
+        title: 'Dashboard overview',
+        labelKey: 'nav.item.home',
+        titleKey: 'nav.item.homeTitle',
+        path: paths.dashboardHome,
+      },
+    ],
   },
   {
-    key: '/graphs',
-    icon: <ShareAltOutlined />,
-    label: 'Graphs',
-    title: 'Manage graph containers',
-    labelKey: 'nav.tenant.graphs',
-    titleKey: 'nav.tenant.graphsTitle',
-    path: paths.graphs,
-  },
-
-  {
-    key: '/nodes',
-    icon: <ApartmentOutlined />,
-    label: 'Nodes',
-    title: 'Manage graph nodes',
-    labelKey: 'nav.tenant.nodes',
-    titleKey: 'nav.tenant.nodesTitle',
-    path: paths.nodes,
-  },
-  {
-    key: '/edges',
-    icon: <BranchesOutlined />,
-    label: 'Edges',
-    title: 'Manage graph edges',
-    labelKey: 'nav.tenant.edges',
-    titleKey: 'nav.tenant.edgesTitle',
-    path: paths.edges,
-  },
-  {
-    key: '/labels',
-    icon: <TagOutlined />,
-    label: 'Labels',
-    title: 'Manage classification labels',
-    labelKey: 'nav.tenant.labels',
-    titleKey: 'nav.tenant.labelsTitle',
-    path: paths.labels,
-  },
-  {
-    key: '/tags',
-    icon: <TagsOutlined />,
-    label: 'Tags',
-    title: 'Manage key-value tags',
-    labelKey: 'nav.tenant.tags',
-    titleKey: 'nav.tenant.tagsTitle',
-    path: paths.tags,
+    id: 'data',
+    labelKey: 'nav.section.data',
+    label: 'Data',
+    items: [
+      {
+        key: '/graphs',
+        resource: 'graphs',
+        icon: <ShareAltOutlined />,
+        label: 'Graphs',
+        title: 'Manage graph containers',
+        labelKey: 'nav.item.graphs',
+        titleKey: 'nav.item.graphsTitle',
+        path: paths.graphs,
+      },
+      {
+        key: '/nodes',
+        resource: 'nodes',
+        icon: <ApartmentOutlined />,
+        label: 'Nodes',
+        title: 'Manage graph nodes',
+        labelKey: 'nav.item.nodes',
+        titleKey: 'nav.item.nodesTitle',
+        path: paths.nodes,
+      },
+      {
+        key: '/edges',
+        resource: 'edges',
+        icon: <BranchesOutlined />,
+        label: 'Edges',
+        title: 'Manage graph edges',
+        labelKey: 'nav.item.edges',
+        titleKey: 'nav.item.edgesTitle',
+        path: paths.edges,
+      },
+    ],
   },
   {
-    key: '/vectors',
-    icon: <RadarChartOutlined />,
-    label: 'Vectors',
-    title: 'Manage vector embeddings',
-    labelKey: 'nav.tenant.vectors',
-    titleKey: 'nav.tenant.vectorsTitle',
-    path: paths.vectors,
+    id: 'metadata',
+    labelKey: 'nav.section.metadata',
+    label: 'Metadata',
+    items: [
+      {
+        key: '/labels',
+        resource: 'labels',
+        icon: <TagOutlined />,
+        label: 'Labels',
+        title: 'Manage classification labels',
+        labelKey: 'nav.item.labels',
+        titleKey: 'nav.item.labelsTitle',
+        path: paths.labels,
+      },
+      {
+        key: '/tags',
+        resource: 'tags',
+        icon: <TagsOutlined />,
+        label: 'Tags',
+        title: 'Manage key-value tags',
+        labelKey: 'nav.item.tags',
+        titleKey: 'nav.item.tagsTitle',
+        path: paths.tags,
+      },
+      {
+        key: '/vectors',
+        resource: 'vectors',
+        icon: <RadarChartOutlined />,
+        label: 'Vectors',
+        title: 'Manage vector embeddings',
+        labelKey: 'nav.item.vectors',
+        titleKey: 'nav.item.vectorsTitle',
+        path: paths.vectors,
+      },
+    ],
   },
   {
-    key: '/request-history',
-    icon: <HistoryOutlined />,
-    label: 'Requests',
-    title: 'HTTP request history',
-    labelKey: 'nav.tenant.requests',
-    titleKey: 'nav.tenant.requestsTitle',
-    path: paths.requestHistory,
+    id: 'manage',
+    labelKey: 'nav.section.manage',
+    label: 'Manage',
+    items: [
+      {
+        key: '/request-history',
+        resource: 'requests',
+        icon: <HistoryOutlined />,
+        label: 'API Requests',
+        title: 'HTTP request history',
+        labelKey: 'nav.item.requests',
+        titleKey: 'nav.item.requestsTitle',
+        path: paths.requestHistory,
+      },
+      {
+        key: '/api-explorer',
+        resource: 'apiExplorer',
+        icon: <ApiOutlined />,
+        label: 'API Explorer',
+        title: 'Explore and invoke API endpoints',
+        labelKey: 'nav.item.apiExplorer',
+        titleKey: 'nav.item.apiExplorerTitle',
+        path: paths.apiExplorer,
+      },
+    ],
   },
   {
-    key: '/api-explorer',
-    icon: <ApiOutlined />,
-    label: 'API Explorer',
-    title: 'Explore and invoke API endpoints',
-    labelKey: 'nav.tenant.apiExplorer',
-    titleKey: 'nav.tenant.apiExplorerTitle',
-    path: paths.apiExplorer,
+    id: 'secure',
+    labelKey: 'nav.section.secure',
+    label: 'Secure',
+    items: [
+      {
+        key: '/tenants',
+        resource: 'tenants',
+        icon: <CrownOutlined />,
+        label: 'Tenants',
+        title: 'Manage tenants',
+        labelKey: 'nav.item.tenants',
+        titleKey: 'nav.item.tenantsTitle',
+        path: paths.tenants,
+      },
+      {
+        key: '/users',
+        resource: 'users',
+        icon: <TeamOutlined />,
+        label: 'Users',
+        title: 'Manage user accounts',
+        labelKey: 'nav.item.users',
+        titleKey: 'nav.item.usersTitle',
+        path: paths.users,
+      },
+      {
+        key: '/credentials',
+        resource: 'credentials',
+        icon: <LockOutlined />,
+        label: 'Credentials',
+        title: 'Manage API credentials',
+        labelKey: 'nav.item.credentials',
+        titleKey: 'nav.item.credentialsTitle',
+        path: paths.credentials,
+      },
+      {
+        key: '/authorization',
+        resource: 'authorization',
+        icon: <SafetyCertificateOutlined />,
+        label: 'Authorization',
+        title: 'Manage roles and credential scopes',
+        labelKey: 'nav.item.authorization',
+        titleKey: 'nav.item.authorizationTitle',
+        path: paths.authorization,
+      },
+    ],
+  },
+  {
+    id: 'administer',
+    labelKey: 'nav.section.administer',
+    label: 'Administer',
+    items: [
+      {
+        key: '/backups',
+        resource: 'backups',
+        icon: <SaveOutlined />,
+        label: 'Backup',
+        title: 'Manage database backups',
+        labelKey: 'nav.item.backups',
+        titleKey: 'nav.item.backupsTitle',
+        path: paths.backups,
+      },
+      {
+        key: '/settings',
+        resource: 'settings',
+        icon: <SettingOutlined />,
+        label: 'Settings',
+        title: 'Server configuration',
+        labelKey: 'nav.item.settings',
+        titleKey: 'nav.item.settingsTitle',
+        path: paths.settings,
+      },
+    ],
   },
 ];
 
-export const adminDashboardRoutes: MenuItemProps[] = [
-  {
-    key: '/',
-    icon: <CrownOutlined />,
-    label: 'Tenants',
-    title: 'Manage tenants',
-    labelKey: 'nav.admin.tenants',
-    titleKey: 'nav.admin.tenantsTitle',
-    path: paths.adminDashboard,
-  },
-  {
-    key: '/users',
-    icon: <TeamOutlined />,
-    label: 'Users',
-    title: 'Manage user accounts',
-    labelKey: 'nav.admin.users',
-    titleKey: 'nav.admin.usersTitle',
-    path: paths.users,
-  },
-  {
-    key: '/credentials',
-    icon: <LockOutlined />,
-    label: 'Credentials',
-    title: 'Manage API credentials',
-    labelKey: 'nav.admin.credentials',
-    titleKey: 'nav.admin.credentialsTitle',
-    path: paths.credentials,
-  },
-  {
-    key: '/authorization',
-    icon: <SafetyCertificateOutlined />,
-    label: 'Authorization',
-    title: 'Manage roles and credential scopes',
-    labelKey: 'nav.admin.authorization',
-    titleKey: 'nav.admin.authorizationTitle',
-    path: paths.authorization,
-  },
-  {
-    key: '/backups',
-    icon: <SaveOutlined />,
-    label: 'Backups',
-    title: 'Manage database backups',
-    labelKey: 'nav.admin.backups',
-    titleKey: 'nav.admin.backupsTitle',
-    path: paths.backups,
-  },
-  {
-    key: '/request-history',
-    icon: <HistoryOutlined />,
-    label: 'Requests',
-    title: 'HTTP request history (all tenants)',
-    labelKey: 'nav.admin.requests',
-    titleKey: 'nav.admin.requestsTitle',
-    path: paths.adminRequestHistory,
-  },
-  {
-    key: '/api-explorer',
-    icon: <ApiOutlined />,
-    label: 'API Explorer',
-    title: 'Explore and invoke API endpoints',
-    labelKey: 'nav.admin.apiExplorer',
-    titleKey: 'nav.admin.apiExplorerTitle',
-    path: paths.adminApiExplorer,
-  },
-];
+/**
+ * Produce the visible, permission-filtered grouped nav for a principal. Empty
+ * sections (and sections the principal cannot view) are dropped; within a
+ * section, only viewable items are kept. Consumed by the sidebar so navigation,
+ * route guards, and controls all read from one capability map.
+ */
+export const buildNavForPrincipal = (
+  principal: Principal | null | undefined
+): NavSection[] => {
+  if (!principal) return [];
+  return dashboardNavSections
+    .filter((section) => canViewSection(principal, section.id))
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => can(principal, 'view', item.resource)),
+    }))
+    .filter((section) => section.items.length > 0);
+};
+
+/** Convert visible sections into antd Menu group items for MenuItems. */
+export const navSectionsToMenuItems = (sections: NavSection[]): MenuItemProps[] =>
+  sections.map((section) => ({
+    key: `section:${section.id}`,
+    type: 'group',
+    label: section.label,
+    labelKey: section.labelKey,
+    children: section.items,
+  }));

@@ -29,7 +29,7 @@ const ENFORCED_DIRS = [
   'page/nodes',
   'page/edges',
   'page/login',
-  'page/admin-login',
+  'page/settings',
   'page/user-dashboard/home',
   'page/labels',
   'page/tags',
@@ -42,7 +42,12 @@ const ENFORCED_DIRS = [
   'page/api-explorer',
   'page/authorization',
 ];
-const ENFORCED_FILES = ['components/layout/DashboardLayout.tsx', 'components/navigation.tsx'];
+const ENFORCED_FILES = [
+  'components/layout/DashboardLayout.tsx',
+  'components/layout/LoginLayout.tsx',
+  'components/navigation.tsx',
+  'components/route-guard/CapabilityRouteGuard.tsx',
+];
 
 // JSX attributes whose string values are user-facing.
 const UI_ATTRS = [

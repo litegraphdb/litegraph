@@ -19,14 +19,17 @@ import { useEffect, useState } from 'react';
 
 export const withAuth = (WrappedComponent: React.ElementType) => {
   const WithAuth = (props: any) => {
-    const token = useAppSelector((state: RootState) => state.liteGraph.token);
+    const auth = useAppSelector((state: RootState) => state.liteGraph);
     const [hasValidAuth, setHasValidAuth] = useState<boolean | null>(null);
     const [fetchTokenDetails, { isLoading: isFetchUserDetailsLoading }] =
       useGetTokenDetailsMutation();
     const logout = useLogout();
     const dispatch = useAppDispatch();
 
+    const token = auth?.token;
     const authToken = token?.Token;
+    // Break-glass admin bearer token: an "advanced" session with no user record.
+    const breakGlassKey = auth?.adminAccessKey;
 
     useEffect(() => {
       if (authToken) {
@@ -38,6 +41,10 @@ export const withAuth = (WrappedComponent: React.ElementType) => {
             setHasValidAuth(false);
           }
         });
+      } else if (breakGlassKey) {
+        // Break-glass principal is superuser-equivalent; no user record to load.
+        setAccessKey(breakGlassKey);
+        setHasValidAuth(true);
       } else {
         logout();
       }
@@ -85,7 +92,7 @@ export const withAdminAuth = (WrappedComponent: React.ElementType) => {
     ) : hasValidAuth ? (
       <WrappedComponent {...props} />
     ) : (
-      <LogoutFallBack message={logoutMessage} logoutPath={paths.adminLogin} />
+      <LogoutFallBack message={logoutMessage} logoutPath={paths.login} />
     );
   };
   return WithAuth;
@@ -107,7 +114,7 @@ export const forGuest = (WrappedComponent: React.ElementType) => {
       if (adminAccessKey) {
         setAccessKey(adminAccessKey);
         tenant?.GUID && setTenant(tenant.GUID);
-        router.push(serializePath(paths.adminDashboard));
+        router.push(serializePath(paths.tenants));
       }
       //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [adminAccessKey, token, tenant]);

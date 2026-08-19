@@ -7,7 +7,9 @@ import LitegraphFormItem from '@/components/base/form/FormItem';
 import LitegraphInput from '@/components/base/input/Input';
 import toast from 'react-hot-toast';
 import { useCreateUserMutation, useUpdateUserMutation } from '@/lib/store/slice/slice';
-import { UserMetadata, UserMetadataCreateRequest } from 'litegraphdb/dist/types/types';
+import { UserMetadata } from 'litegraphdb/dist/types/types';
+import { FlaggedUser, FlaggedUserWriteRequest } from '@/types/types';
+import { usePrincipal } from '@/hooks/permissionHooks';
 
 interface AddEditUserProps {
   isAddEditUserVisible: boolean;
@@ -27,6 +29,11 @@ const AddEditUser = ({
   const [formValid, setFormValid] = useState(false);
   const [createUser, { isLoading: isCreateLoading }] = useCreateUserMutation();
   const [updateUserById, { isLoading: isUpdateLoading }] = useUpdateUserMutation();
+  const principal = usePrincipal();
+  // Capability flags are only settable by a principal permitted to grant them.
+  const canSetSystemAdmin = principal.isSystemAdmin || principal.isBreakGlass;
+  const canSetTenantAdmin = canSetSystemAdmin || principal.isTenantAdmin;
+  const flaggedUser = user as FlaggedUser | null;
 
   // Add form validation watcher
   const [formValues, setFormValues] = useState({});
@@ -45,19 +52,21 @@ const AddEditUser = ({
         Email: user.Email,
         Password: user.Password,
         Active: user.Active,
+        IsSystemAdmin: Boolean(flaggedUser?.IsSystemAdmin),
+        IsTenantAdmin: Boolean(flaggedUser?.IsTenantAdmin),
       });
     } else {
       form.resetFields();
-      form.setFieldsValue({ Active: true });
+      form.setFieldsValue({ Active: true, IsSystemAdmin: false, IsTenantAdmin: false });
     }
-  }, [user, form]);
+  }, [user, form, flaggedUser]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       if (user) {
         // Update existing user
-        const updatedUser: UserMetadata = {
+        const updatedUser: FlaggedUser = {
           GUID: user.GUID,
           FirstName: values.FirstName,
           LastName: values.LastName,
@@ -66,9 +75,15 @@ const AddEditUser = ({
           Active: values.Active,
           CreatedUtc: user.CreatedUtc,
           LastUpdateUtc: new Date().toISOString(),
+          IsSystemAdmin: canSetSystemAdmin
+            ? Boolean(values.IsSystemAdmin)
+            : Boolean(flaggedUser?.IsSystemAdmin),
+          IsTenantAdmin: canSetTenantAdmin
+            ? Boolean(values.IsTenantAdmin)
+            : Boolean(flaggedUser?.IsTenantAdmin),
         };
 
-        const res = await updateUserById(updatedUser);
+        const res = await updateUserById(updatedUser as UserMetadata);
 
         if (res) {
           toast.success(t('toast.updated'));
@@ -80,14 +95,16 @@ const AddEditUser = ({
         }
       } else {
         // Create new user
-        const newUser: UserMetadataCreateRequest = {
+        const newUser: FlaggedUserWriteRequest = {
           FirstName: values.FirstName,
           LastName: values.LastName,
           Email: values.Email,
           Password: values.Password,
           Active: values.Active,
+          IsSystemAdmin: canSetSystemAdmin ? Boolean(values.IsSystemAdmin) : false,
+          IsTenantAdmin: canSetTenantAdmin ? Boolean(values.IsTenantAdmin) : false,
         };
-        const res = await createUser(newUser);
+        const res = await createUser(newUser as any);
         if (res) {
           toast.success(t('toast.created'));
           setIsAddEditUserVisible(false);
@@ -167,6 +184,28 @@ const AddEditUser = ({
         >
           <Switch data-testid="active-switch" />
         </LitegraphFormItem>
+
+        {canSetTenantAdmin && (
+          <LitegraphFormItem
+            label={t('form.tenantAdmin')}
+            name="IsTenantAdmin"
+            tooltip={t('form.tenantAdminTooltip')}
+            valuePropName="checked"
+          >
+            <Switch data-testid="tenant-admin-switch" />
+          </LitegraphFormItem>
+        )}
+
+        {canSetSystemAdmin && (
+          <LitegraphFormItem
+            label={t('form.systemAdmin')}
+            name="IsSystemAdmin"
+            tooltip={t('form.systemAdminTooltip')}
+            valuePropName="checked"
+          >
+            <Switch data-testid="system-admin-switch" />
+          </LitegraphFormItem>
+        )}
       </Form>
     </LitegraphModal>
   );

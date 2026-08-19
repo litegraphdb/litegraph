@@ -65,6 +65,13 @@ import {
   importGraphAsNewJsonl,
   importGraphJsonl,
 } from '@/lib/sdk/importExport';
+import {
+  ServerSettings,
+  SettingsUpdateResult,
+  getServerSettings,
+  restartServer,
+  updateServerSettings,
+} from '@/lib/sdk/settings';
 
 const enhancedSdk = sdkSlice.enhanceEndpoints({
   addTagTypes: [
@@ -79,6 +86,7 @@ const enhancedSdk = sdkSlice.enhanceEndpoints({
     SliceTags.CREDENTIAL,
     SliceTags.BACKUP,
     SliceTags.AUTHORIZATION,
+    SliceTags.SETTINGS,
     SliceTags.RESET,
   ],
 });
@@ -804,6 +812,25 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       providesTags: [SliceTags.AUTHORIZATION],
     }),
+    //endregion
+    //region Settings
+    getServerSettings: build.query<ServerSettings, void>({
+      query: () => ({
+        callback: () => getServerSettings(),
+      }),
+      providesTags: [SliceTags.SETTINGS],
+    }),
+    updateServerSettings: build.mutation<SettingsUpdateResult, ServerSettings>({
+      query: (settings: ServerSettings) => ({
+        callback: () => updateServerSettings(settings),
+      }),
+      invalidatesTags: [SliceTags.SETTINGS],
+    }),
+    restartServer: build.mutation<{ Success?: boolean; Message?: string }, void>({
+      query: () => ({
+        callback: () => restartServer(),
+      }),
+    }),
     getCredentialEffectivePermissions: build.query<
       AuthorizationEffectivePermissionsResult,
       { tenantGuid: string; credentialGuid: string; graphGuid?: string }
@@ -907,4 +934,7 @@ export const {
   useExportSubgraphJsonlMutation,
   useImportGraphJsonlMutation,
   useImportGraphAsNewJsonlMutation,
+  useGetServerSettingsQuery,
+  useUpdateServerSettingsMutation,
+  useRestartServerMutation,
 } = graphSlice;

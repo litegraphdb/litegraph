@@ -34,44 +34,6 @@
       "copied": "Copied"
     }
   },
-  "nav": {
-    "tenant": {
-      "home": "Home",
-      "homeTitle": "Dashboard overview",
-      "graphs": "Graphs",
-      "graphsTitle": "Manage graph containers",
-      "nodes": "Nodes",
-      "nodesTitle": "Manage graph nodes",
-      "edges": "Edges",
-      "edgesTitle": "Manage graph edges",
-      "labels": "Labels",
-      "labelsTitle": "Manage classification labels",
-      "tags": "Tags",
-      "tagsTitle": "Manage key-value tags",
-      "vectors": "Vectors",
-      "vectorsTitle": "Manage vector embeddings",
-      "requests": "Requests",
-      "requestsTitle": "HTTP request history",
-      "apiExplorer": "API Explorer",
-      "apiExplorerTitle": "Explore and invoke API endpoints"
-    },
-    "admin": {
-      "tenants": "Tenants",
-      "tenantsTitle": "Manage tenants",
-      "users": "Users",
-      "usersTitle": "Manage user accounts",
-      "credentials": "Credentials",
-      "credentialsTitle": "Manage API credentials",
-      "authorization": "Authorization",
-      "authorizationTitle": "Manage roles and credential scopes",
-      "backups": "Backups",
-      "backupsTitle": "Manage database backups",
-      "requests": "Requests",
-      "requestsTitle": "HTTP request history (all tenants)",
-      "apiExplorer": "API Explorer",
-      "apiExplorerTitle": "Explore and invoke API endpoints"
-    }
-  },
   "sidebar": {
     "logoAlt": "LiteGraph logo",
     "expand": "Expand sidebar",
@@ -120,26 +82,18 @@
     "loading": "Loading...",
     "defaultCredentials": "Default credentials are default@user.com and password.",
     "tenantNotFound": "Tenant not found",
-    "loggedInSso": "Logged in successfully via SSO."
-  },
-  "adminLogin": {
-    "title": "Administrator Login",
-    "subtitle": "Sign in with your administrator access key.",
-    "serverUrl": "LiteGraph Server URL",
-    "serverUrlPlaceholder": "https://your-litegraph-server.com",
-    "serverUrlRequired": "Please enter the LiteGraph Server URL!",
-    "onlyHttp": "Only HTTP or HTTPS URLs are allowed!",
-    "validUrl": "Please enter a valid URL!",
-    "accessKey": "Access Key",
-    "accessKeyPlaceholder": "Enter your access key",
-    "accessKeyRequired": "Please input your access key!",
-    "cancel": "Cancel",
-    "login": "Login",
-    "next": "Next",
-    "loading": "Loading...",
-    "invalidAccessKey": "Invalid administrator access key.",
-    "loggedIn": "Logged in successfully.",
-    "loginFailed": "Login failed. Please try again."
+    "loggedInSso": "Logged in successfully via SSO.",
+    "heading": "Sign in",
+    "subheading": "Enter your server, email, and password to continue.",
+    "logoAlt": "LiteGraph logo",
+    "invalidCredentials": "Incorrect email or password.",
+    "advancedToggle": "Advanced sign-in options",
+    "advancedHide": "Hide advanced options",
+    "advancedHelp": "Sign in with the server's break-glass administrator token. For recovery and bootstrap only.",
+    "advancedTokenPlaceholder": "Administrator bearer token",
+    "advancedTokenRequired": "Please enter the administrator token.",
+    "advancedTokenInvalid": "The administrator token was not accepted.",
+    "advancedLogin": "Sign in with token"
   },
   "graphs": {
     "title": "Graphs",
@@ -1358,7 +1312,11 @@
       "passwordRequired": "Please input Password!",
       "passwordPlaceholder": "Enter password",
       "active": "Active",
-      "activeTooltip": "Whether the user account is active"
+      "activeTooltip": "Whether the user account is active",
+      "tenantAdmin": "Tenant Administrator",
+      "tenantAdminTooltip": "Grants full rights within this tenant.",
+      "systemAdmin": "System Administrator",
+      "systemAdminTooltip": "Grants server-wide superuser rights across all tenants."
     },
     "modalTitle": {
       "create": "Create User",
@@ -1370,6 +1328,138 @@
       "updateNoResponse": "Failed to update user - no response received",
       "deleted": "User deleted successfully",
       "updateFailed": "Failed to update user: {error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "Home",
+      "data": "Data",
+      "metadata": "Metadata",
+      "manage": "Manage",
+      "secure": "Secure",
+      "administer": "Administer"
+    },
+    "item": {
+      "home": "Home",
+      "homeTitle": "Dashboard overview",
+      "graphs": "Graphs",
+      "graphsTitle": "Manage graph containers",
+      "nodes": "Nodes",
+      "nodesTitle": "Manage graph nodes",
+      "edges": "Edges",
+      "edgesTitle": "Manage graph edges",
+      "labels": "Labels",
+      "labelsTitle": "Manage classification labels",
+      "tags": "Tags",
+      "tagsTitle": "Manage key-value tags",
+      "vectors": "Vectors",
+      "vectorsTitle": "Manage vector embeddings",
+      "requests": "API Requests",
+      "requestsTitle": "HTTP request history",
+      "apiExplorer": "API Explorer",
+      "apiExplorerTitle": "Explore and invoke API endpoints",
+      "tenants": "Tenants",
+      "tenantsTitle": "Manage tenants",
+      "users": "Users",
+      "usersTitle": "Manage user accounts",
+      "credentials": "Credentials",
+      "credentialsTitle": "Manage API credentials",
+      "authorization": "Authorization",
+      "authorizationTitle": "Manage roles and credential scopes",
+      "backups": "Backup",
+      "backupsTitle": "Manage database backups",
+      "settings": "Settings",
+      "settingsTitle": "Server configuration"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "Access denied",
+      "subtitle": "You do not have permission to view this page.",
+      "backHome": "Go to Home"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Edit the server configuration. Some changes apply immediately; others require a restart.",
+    "loading": "Loading settings…",
+    "loadError": "Unable to load server settings.",
+    "reconnecting": "Restarting the server and reconnecting…",
+    "sections": {
+      "general": "General",
+      "logging": "Logging",
+      "caching": "Caching",
+      "requestHistory": "Request History",
+      "observability": "Observability",
+      "debug": "Debug",
+      "rest": "REST Server",
+      "database": "Database",
+      "security": "Security"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "Request timeout (seconds)",
+      "loggingEnable": "Enable logging",
+      "consoleLogging": "Console logging",
+      "minimumSeverity": "Minimum severity",
+      "logDirectory": "Log directory",
+      "logFilename": "Log filename",
+      "logQueries": "Log queries",
+      "logResults": "Log results",
+      "cachingEnable": "Enable caching",
+      "cacheCapacity": "Cache capacity",
+      "cacheEvictCount": "Eviction count",
+      "requestHistoryEnable": "Enable request history",
+      "maxRequestBodyBytes": "Max request body (bytes)",
+      "maxResponseBodyBytes": "Max response body (bytes)",
+      "retentionDays": "Retention (days)",
+      "purgeIntervalMinutes": "Purge interval (minutes)",
+      "observabilityEnable": "Enable observability",
+      "enablePrometheus": "Enable Prometheus",
+      "enableOpenTelemetry": "Enable OpenTelemetry",
+      "enableOtlpExporter": "Enable OTLP exporter",
+      "otlpEndpoint": "OTLP endpoint",
+      "metricsPath": "Metrics path",
+      "debugAuthentication": "Debug authentication",
+      "debugExceptions": "Debug exceptions",
+      "debugRequests": "Debug requests",
+      "debugDatabaseQueries": "Debug database queries",
+      "restHostname": "Hostname",
+      "restPort": "Port",
+      "restSslEnable": "Enable SSL",
+      "databaseType": "Database type",
+      "databaseHostname": "Hostname",
+      "databasePort": "Port",
+      "databaseName": "Database name",
+      "databaseUsername": "Username",
+      "databasePassword": "Password",
+      "databaseMaxConnections": "Max connections",
+      "adminBearerToken": "Admin bearer token",
+      "encryptionKey": "Encryption key",
+      "encryptionIv": "Encryption IV"
+    },
+    "status": {
+      "appliedLive": "Applied live",
+      "restartRequired": "Restart required",
+      "liveHint": "Applies live",
+      "restartHint": "Needs restart",
+      "liveHintTooltip": "Changes to this section take effect immediately when saved.",
+      "restartHintTooltip": "Changes to this section take effect only after a server restart."
+    },
+    "actions": {
+      "save": "Save",
+      "discard": "Discard changes",
+      "restart": "Restart Server"
+    },
+    "restartModal": {
+      "title": "Restart server?",
+      "body": "The server will exit and the container will restart with the saved settings. Active connections will be interrupted briefly."
+    },
+    "toast": {
+      "saved": "Settings saved.",
+      "saveFailed": "Unable to save settings.",
+      "restartFailed": "Unable to restart the server.",
+      "reconnected": "Server is back online.",
+      "reconnectTimeout": "The server did not come back in time. Please check its status."
     }
   }
 }

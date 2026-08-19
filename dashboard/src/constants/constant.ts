@@ -14,6 +14,8 @@ export const dynamicSlugs = {
 export const paths = {
   login: `/login`,
   sso: `/sso`,
+  // Tenant-scoped surfaces (DATA / METADATA / MANAGE) — bound to the active
+  // tenant chosen in the header selector.
   dashboardHome: `/dashboard/${dynamicSlugs.tenantId}`,
   graphs: `/dashboard/${dynamicSlugs.tenantId}/graphs`,
   nodes: `/dashboard/${dynamicSlugs.tenantId}/nodes`,
@@ -21,17 +23,16 @@ export const paths = {
   tags: `/dashboard/${dynamicSlugs.tenantId}/tags`,
   vectors: `/dashboard/${dynamicSlugs.tenantId}/vectors`,
   labels: `/dashboard/${dynamicSlugs.tenantId}/labels`,
-  adminLogin: `/login/admin`,
-  adminDashboard: `/admin/dashboard`,
-  credentials: `/admin/dashboard/credentials`,
-  authorization: `/admin/dashboard/authorization`,
-  users: `/admin/dashboard/users`,
-  tenants: `/admin/dashboard/tenants`,
-  backups: `/admin/dashboard/backups`,
-  adminRequestHistory: `/admin/dashboard/request-history`,
-  adminApiExplorer: `/admin/dashboard/api-explorer`,
   requestHistory: `/dashboard/${dynamicSlugs.tenantId}/request-history`,
   apiExplorer: `/dashboard/${dynamicSlugs.tenantId}/api-explorer`,
+  // Server-level surfaces (SECURE / ADMINISTER) — one consolidated dashboard,
+  // permission-filtered, not bound to a single tenant path segment.
+  tenants: `/dashboard/tenants`,
+  users: `/dashboard/users`,
+  credentials: `/dashboard/credentials`,
+  authorization: `/dashboard/authorization`,
+  backups: `/dashboard/backups`,
+  settings: `/dashboard/settings`,
 };
 
 export const keepUnusedDataFor = 900; //15mins

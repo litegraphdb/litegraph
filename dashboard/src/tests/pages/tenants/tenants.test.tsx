@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import TenantPage from '@/app/admin/dashboard/tenants/page';
+import TenantPage from '@/page/tenants/TenantPage';
 import { createMockInitialState } from '../../store/mockStore';
 import { mockTenantData } from '../mockData';
 import { handlers } from './handler';

@@ -34,44 +34,6 @@
       "copied": "Copiado"
     }
   },
-  "nav": {
-    "tenant": {
-      "home": "Inicio",
-      "homeTitle": "Resumen del panel",
-      "graphs": "Grafos",
-      "graphsTitle": "Administrar contenedores de grafos",
-      "nodes": "Nodos",
-      "nodesTitle": "Administrar nodos del grafo",
-      "edges": "Aristas",
-      "edgesTitle": "Administrar aristas del grafo",
-      "labels": "Etiquetas",
-      "labelsTitle": "Administrar etiquetas de clasificación",
-      "tags": "Marcadores",
-      "tagsTitle": "Administrar marcadores clave-valor",
-      "vectors": "Vectores",
-      "vectorsTitle": "Administrar incrustaciones vectoriales",
-      "requests": "Solicitudes",
-      "requestsTitle": "Historial de solicitudes HTTP",
-      "apiExplorer": "Explorador de API",
-      "apiExplorerTitle": "Explorar e invocar puntos de conexión de la API"
-    },
-    "admin": {
-      "tenants": "Inquilinos",
-      "tenantsTitle": "Administrar inquilinos",
-      "users": "Usuarios",
-      "usersTitle": "Administrar cuentas de usuario",
-      "credentials": "Credenciales",
-      "credentialsTitle": "Administrar credenciales de la API",
-      "authorization": "Autorización",
-      "authorizationTitle": "Administrar roles y ámbitos de credenciales",
-      "backups": "Copias de seguridad",
-      "backupsTitle": "Administrar copias de seguridad de la base de datos",
-      "requests": "Solicitudes",
-      "requestsTitle": "Historial de solicitudes HTTP (todos los inquilinos)",
-      "apiExplorer": "Explorador de API",
-      "apiExplorerTitle": "Explorar e invocar puntos de conexión de la API"
-    }
-  },
   "sidebar": {
     "logoAlt": "Logotipo de LiteGraph",
     "expand": "Expandir barra lateral",
@@ -120,26 +82,18 @@
     "loading": "Cargando...",
     "defaultCredentials": "Las credenciales predeterminadas son default@user.com y password.",
     "tenantNotFound": "Inquilino no encontrado",
-    "loggedInSso": "Sesión iniciada correctamente mediante SSO."
-  },
-  "adminLogin": {
-    "title": "Inicio de sesión de administrador",
-    "subtitle": "Inicie sesión con su clave de acceso de administrador.",
-    "serverUrl": "URL del servidor LiteGraph",
-    "serverUrlPlaceholder": "https://tu-servidor-litegraph.com",
-    "serverUrlRequired": "¡Ingrese la URL del servidor LiteGraph!",
-    "onlyHttp": "¡Solo se permiten URLs HTTP o HTTPS!",
-    "validUrl": "¡Ingrese una URL válida!",
-    "accessKey": "Clave de acceso",
-    "accessKeyPlaceholder": "Ingrese su clave de acceso",
-    "accessKeyRequired": "¡Ingrese su clave de acceso!",
-    "cancel": "Cancelar",
-    "login": "Iniciar sesión",
-    "next": "Siguiente",
-    "loading": "Cargando...",
-    "invalidAccessKey": "Clave de acceso de administrador no válida.",
-    "loggedIn": "Sesión iniciada correctamente.",
-    "loginFailed": "Error al iniciar sesión. Inténtalo de nuevo."
+    "loggedInSso": "Sesión iniciada correctamente mediante SSO.",
+    "heading": "Iniciar sesión",
+    "subheading": "Introduce el servidor, el correo y la contraseña para continuar.",
+    "logoAlt": "Logotipo de LiteGraph",
+    "invalidCredentials": "Correo electrónico o contraseña incorrectos.",
+    "advancedToggle": "Opciones avanzadas de inicio de sesión",
+    "advancedHide": "Ocultar opciones avanzadas",
+    "advancedHelp": "Inicia sesión con el token de administrador de emergencia del servidor. Solo para recuperación y arranque inicial.",
+    "advancedTokenPlaceholder": "Token de portador de administrador",
+    "advancedTokenRequired": "Introduce el token de administrador.",
+    "advancedTokenInvalid": "No se aceptó el token de administrador.",
+    "advancedLogin": "Iniciar sesión con token"
   },
   "graphs": {
     "title": "Grafos",
@@ -1358,7 +1312,11 @@
       "passwordRequired": "¡Ingrese la contraseña!",
       "passwordPlaceholder": "Ingrese la contraseña",
       "active": "Activo",
-      "activeTooltip": "Si la cuenta de usuario está activa"
+      "activeTooltip": "Si la cuenta de usuario está activa",
+      "tenantAdmin": "Administrador del inquilino",
+      "tenantAdminTooltip": "Otorga todos los derechos dentro de este inquilino.",
+      "systemAdmin": "Administrador del sistema",
+      "systemAdminTooltip": "Otorga derechos de superusuario en todo el servidor y en todos los inquilinos."
     },
     "modalTitle": {
       "create": "Crear usuario",
@@ -1370,6 +1328,138 @@
       "updateNoResponse": "No se pudo actualizar el usuario: no se recibió respuesta",
       "deleted": "Usuario eliminado correctamente",
       "updateFailed": "No se pudo actualizar el usuario: {error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "Inicio",
+      "data": "Datos",
+      "metadata": "Metadatos",
+      "manage": "Gestionar",
+      "secure": "Seguridad",
+      "administer": "Administrar"
+    },
+    "item": {
+      "home": "Inicio",
+      "homeTitle": "Resumen del panel",
+      "graphs": "Grafos",
+      "graphsTitle": "Gestionar contenedores de grafos",
+      "nodes": "Nodos",
+      "nodesTitle": "Gestionar nodos del grafo",
+      "edges": "Aristas",
+      "edgesTitle": "Gestionar aristas del grafo",
+      "labels": "Etiquetas",
+      "labelsTitle": "Gestionar etiquetas de clasificación",
+      "tags": "Marcadores",
+      "tagsTitle": "Gestionar marcadores clave-valor",
+      "vectors": "Vectores",
+      "vectorsTitle": "Gestionar incrustaciones vectoriales",
+      "requests": "Solicitudes API",
+      "requestsTitle": "Historial de solicitudes HTTP",
+      "apiExplorer": "Explorador de API",
+      "apiExplorerTitle": "Explorar e invocar endpoints de la API",
+      "tenants": "Inquilinos",
+      "tenantsTitle": "Gestionar inquilinos",
+      "users": "Usuarios",
+      "usersTitle": "Gestionar cuentas de usuario",
+      "credentials": "Credenciales",
+      "credentialsTitle": "Gestionar credenciales de API",
+      "authorization": "Autorización",
+      "authorizationTitle": "Gestionar roles y ámbitos de credenciales",
+      "backups": "Copia de seguridad",
+      "backupsTitle": "Gestionar copias de seguridad de la base de datos",
+      "settings": "Configuración",
+      "settingsTitle": "Configuración del servidor"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "Acceso denegado",
+      "subtitle": "No tienes permiso para ver esta página.",
+      "backHome": "Ir al inicio"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Edita la configuración del servidor. Algunos cambios se aplican de inmediato; otros requieren reiniciar.",
+    "loading": "Cargando la configuración…",
+    "loadError": "No se pudo cargar la configuración del servidor.",
+    "reconnecting": "Reiniciando el servidor y volviendo a conectar…",
+    "sections": {
+      "general": "General",
+      "logging": "Registro",
+      "caching": "Caché",
+      "requestHistory": "Historial de solicitudes",
+      "observability": "Observabilidad",
+      "debug": "Depuración",
+      "rest": "Servidor REST",
+      "database": "Base de datos",
+      "security": "Seguridad"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "Tiempo de espera de solicitud (segundos)",
+      "loggingEnable": "Habilitar registro",
+      "consoleLogging": "Registro en consola",
+      "minimumSeverity": "Severidad mínima",
+      "logDirectory": "Directorio de registros",
+      "logFilename": "Nombre del archivo de registro",
+      "logQueries": "Registrar consultas",
+      "logResults": "Registrar resultados",
+      "cachingEnable": "Habilitar caché",
+      "cacheCapacity": "Capacidad de la caché",
+      "cacheEvictCount": "Cantidad de expulsión",
+      "requestHistoryEnable": "Habilitar historial de solicitudes",
+      "maxRequestBodyBytes": "Cuerpo máx. de solicitud (bytes)",
+      "maxResponseBodyBytes": "Cuerpo máx. de respuesta (bytes)",
+      "retentionDays": "Retención (días)",
+      "purgeIntervalMinutes": "Intervalo de purga (minutos)",
+      "observabilityEnable": "Habilitar observabilidad",
+      "enablePrometheus": "Habilitar Prometheus",
+      "enableOpenTelemetry": "Habilitar OpenTelemetry",
+      "enableOtlpExporter": "Habilitar exportador OTLP",
+      "otlpEndpoint": "Endpoint OTLP",
+      "metricsPath": "Ruta de métricas",
+      "debugAuthentication": "Depurar autenticación",
+      "debugExceptions": "Depurar excepciones",
+      "debugRequests": "Depurar solicitudes",
+      "debugDatabaseQueries": "Depurar consultas de base de datos",
+      "restHostname": "Nombre de host",
+      "restPort": "Puerto",
+      "restSslEnable": "Habilitar SSL",
+      "databaseType": "Tipo de base de datos",
+      "databaseHostname": "Nombre de host",
+      "databasePort": "Puerto",
+      "databaseName": "Nombre de la base de datos",
+      "databaseUsername": "Usuario",
+      "databasePassword": "Contraseña",
+      "databaseMaxConnections": "Conexiones máximas",
+      "adminBearerToken": "Token de administrador",
+      "encryptionKey": "Clave de cifrado",
+      "encryptionIv": "IV de cifrado"
+    },
+    "status": {
+      "appliedLive": "Aplicado en vivo",
+      "restartRequired": "Requiere reinicio",
+      "liveHint": "Se aplica en vivo",
+      "restartHint": "Requiere reinicio",
+      "liveHintTooltip": "Los cambios en esta sección se aplican de inmediato al guardar.",
+      "restartHintTooltip": "Los cambios en esta sección solo se aplican tras reiniciar el servidor."
+    },
+    "actions": {
+      "save": "Guardar",
+      "discard": "Descartar cambios",
+      "restart": "Reiniciar servidor"
+    },
+    "restartModal": {
+      "title": "¿Reiniciar el servidor?",
+      "body": "El servidor se cerrará y el contenedor se reiniciará con la configuración guardada. Las conexiones activas se interrumpirán brevemente."
+    },
+    "toast": {
+      "saved": "Configuración guardada.",
+      "saveFailed": "No se pudo guardar la configuración.",
+      "restartFailed": "No se pudo reiniciar el servidor.",
+      "reconnected": "El servidor está de nuevo en línea.",
+      "reconnectTimeout": "El servidor no volvió a tiempo. Comprueba su estado."
     }
   }
 }

@@ -18,7 +18,12 @@ const server = getServer([...commonHandlers, ...handlers]);
 
 jest.mock('@/lib/sdk/litegraph.service', () => ({
   setEndpoint: jest.fn().mockResolvedValue(true),
-  useValidateConnectivity: jest.fn().mockResolvedValue(true),
+  setAccessKey: jest.fn(),
+  useValidateConnectivity: jest.fn(() => ({
+    validateConnectivity: jest.fn().mockResolvedValue(true),
+    isLoading: false,
+  })),
+  useGetTenants: jest.fn(() => ({ getTenants: jest.fn().mockResolvedValue([]), isLoading: false })),
 }));
 
 // jest.mock('@/hooks/authHooks', () => ({

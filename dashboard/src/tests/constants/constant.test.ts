@@ -37,12 +37,11 @@ describe('Constants', () => {
       expect(paths).toHaveProperty('tags');
       expect(paths).toHaveProperty('vectors');
       expect(paths).toHaveProperty('labels');
-      expect(paths).toHaveProperty('adminLogin');
-      expect(paths).toHaveProperty('adminDashboard');
       expect(paths).toHaveProperty('credentials');
       expect(paths).toHaveProperty('users');
       expect(paths).toHaveProperty('tenants');
       expect(paths).toHaveProperty('backups');
+      expect(paths).toHaveProperty('settings');
     });
 
     it('should use dynamic slug in dashboard paths', () => {
@@ -57,12 +56,11 @@ describe('Constants', () => {
 
     it('should have correct path values', () => {
       expect(paths.login).toBe('/login');
-      expect(paths.adminLogin).toBe('/login/admin');
-      expect(paths.adminDashboard).toBe('/admin/dashboard');
-      expect(paths.credentials).toBe('/admin/dashboard/credentials');
-      expect(paths.users).toBe('/admin/dashboard/users');
-      expect(paths.tenants).toBe('/admin/dashboard/tenants');
-      expect(paths.backups).toBe('/admin/dashboard/backups');
+      expect(paths.credentials).toBe('/dashboard/credentials');
+      expect(paths.users).toBe('/dashboard/users');
+      expect(paths.tenants).toBe('/dashboard/tenants');
+      expect(paths.backups).toBe('/dashboard/backups');
+      expect(paths.settings).toBe('/dashboard/settings');
     });
   });
 

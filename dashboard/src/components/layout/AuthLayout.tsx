@@ -4,7 +4,7 @@ import { LiteGraphStore } from '@/lib/store/litegraph/reducer';
 import { DEFAULT_LOCALE } from '@/i18n/locales';
 import React, { useEffect, useState } from 'react';
 import PageLoading from '../base/loading/PageLoading';
-import { storeToken, storeTenant, storeAdminAccessKey } from '@/lib/store/litegraph/actions';
+import { storeToken, storeTenant, storeAdminAccessKey, storeUser } from '@/lib/store/litegraph/actions';
 import { setAccessKey, setAccessToken, setEndpoint, setTenant } from '@/lib/sdk/litegraph.service';
 
 export const initializeAuthFromLocalStorage = (): LiteGraphStore | null => {
@@ -24,6 +24,7 @@ export const initializeAuthFromLocalStorage = (): LiteGraphStore | null => {
     const storage = window.localStorage;
     const token = storage.getItem(localStorageKeys.token);
     const tenant = storage.getItem(localStorageKeys.tenant);
+    const user = storage.getItem(localStorageKeys.user);
     const adminAccessKey = storage.getItem(localStorageKeys.adminAccessKey);
     const url = storage.getItem(localStorageKeys.serverUrl);
 
@@ -32,6 +33,9 @@ export const initializeAuthFromLocalStorage = (): LiteGraphStore | null => {
     }
     if (tenant) {
       auth.tenant = JSON.parse(tenant);
+    }
+    if (user) {
+      auth.user = JSON.parse(user);
     }
     if (adminAccessKey) {
       auth.adminAccessKey = adminAccessKey;
@@ -63,6 +67,9 @@ const AuthLayout = ({
     if (localStorageAuth?.tenant) {
       dispatch(storeTenant(localStorageAuth.tenant));
       setTenant(localStorageAuth.tenant?.GUID);
+    }
+    if (localStorageAuth?.user) {
+      dispatch(storeUser(localStorageAuth.user));
     }
     if (localStorageAuth?.adminAccessKey) {
       dispatch(storeAdminAccessKey(localStorageAuth.adminAccessKey));

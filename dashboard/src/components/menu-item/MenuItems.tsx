@@ -44,6 +44,14 @@ const MenuItems = ({ menuItems, handleClickMenuItem, ...rest }: MenuItemsProps) 
     items.map((item: MenuItemProps) => {
       const label = translate(item.labelKey, item.label);
       const title = translate(item.titleKey, item.title) || label;
+      if (item.type === 'group') {
+        return {
+          key: item.key,
+          type: 'group',
+          label,
+          children: item.children ? convertToMenuItems(item.children) : [],
+        };
+      }
       if (item.children) {
         return {
           key: item.key,

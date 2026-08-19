@@ -24,6 +24,7 @@ import sdkSlice from '@/lib/store/rtk/rtkSdkInstance';
 import { SliceTags } from '@/lib/store/slice/types';
 import { TenantMetaData } from 'litegraphdb/dist/types/types';
 import { useAppContext } from '@/hooks/appHooks';
+import { usePathname, useRouter } from 'next/navigation';
 import { ThemeEnum } from '@/types/types';
 import LitegraphTooltip from '../base/tooltip/Tooltip';
 import ThemeModeSwitch from '../theme-mode-switch/ThemeModeSwitch';
@@ -52,6 +53,8 @@ const DashboardLayout = ({
   const { theme } = useAppContext();
   const t = useTranslations('header');
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
   const locale = useAppSelector((state) => state.liteGraph.locale);
   const languageOptions = LOCALE_REGISTRY.map((entry) => ({
     value: entry.code,
@@ -117,10 +120,16 @@ const DashboardLayout = ({
     if (!useTenantSelector) return;
     const tenant = tenantsList.find((tenant: TenantMetaData) => tenant.GUID === tenantId);
     if (tenant) {
+      const previousGuid = selectedTenantRedux?.GUID;
       localStorage.setItem(localStorageKeys.tenant, JSON.stringify(tenant));
       setTenant(tenant.GUID);
       dispatch(storeTenant(tenant));
       dispatch(sdkSlice.util.invalidateTags([SliceTags.USER, SliceTags.CREDENTIAL] as any));
+      // On a tenant-scoped page, switch the active tenant in the URL too so the
+      // page re-renders against the newly selected tenant.
+      if (previousGuid && tenant.GUID !== previousGuid && pathname?.includes(`/dashboard/${previousGuid}`)) {
+        router.push(pathname.replace(`/dashboard/${previousGuid}`, `/dashboard/${tenant.GUID}`));
+      }
     }
   };
 

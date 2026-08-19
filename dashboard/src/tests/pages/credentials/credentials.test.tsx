@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import CredentialPage from '@/app/admin/dashboard/credentials/page';
+import CredentialPage from '@/page/credentials/CredentialPage';
 import { createMockInitialState } from '../../store/mockStore';
 import { mockCredentialData, mockUserData } from '../mockData';
 import { commonHandlers } from '@/tests/handler';

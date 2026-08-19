@@ -1,23 +1,20 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import ThemeModeSwitch from '@/components/theme-mode-switch/ThemeModeSwitch';
 import classNames from 'classnames';
-import Link from 'next/link';
 import LitegraphTitle from '../base/typograpghy/Title';
 import LitegraphParagraph from '../base/typograpghy/Paragraph';
-import { paths } from '@/constants/constant';
 import styles from './login-layout.module.scss';
-import LitegraphText from '../base/typograpghy/Text';
 
 const LoginLayout = ({
   children,
-  isAdmin,
   footer,
 }: {
   children: React.ReactNode;
-  isAdmin?: boolean;
   footer?: React.ReactNode;
 }) => {
+  const t = useTranslations('login');
   return (
     <LitegraphFlex className={styles.userLoginPage} vertical gap={20}>
       <LitegraphFlex
@@ -26,28 +23,17 @@ const LoginLayout = ({
         justify="space-between"
         style={{ padding: '16px 24px' }}
       >
-        <img src="/favicon.png" alt="Litegraph Logo" height={40} />
+        <img src="/favicon.png" alt={t('logoAlt')} height={40} />
         <LitegraphFlex align="center" gap={10}>
           <ThemeModeSwitch />
-          {isAdmin ? (
-            <Link href={paths.login}>
-              <LitegraphText>Login as User</LitegraphText>
-            </Link>
-          ) : (
-            <Link href={paths.adminLogin}>
-              <LitegraphText>Login as Administrator</LitegraphText>
-            </Link>
-          )}
         </LitegraphFlex>
       </LitegraphFlex>
       <div className={styles.loginTitle}>
         <LitegraphTitle fontSize={22} weight={600}>
-          {isAdmin ? 'Admin Login' : 'Login'}
+          {t('heading')}
         </LitegraphTitle>
         <LitegraphParagraph className={styles.loginDescription}>
-          {isAdmin
-            ? 'Please enter your access key to login'
-            : 'Please enter your email and password to login'}
+          {t('subheading')}
         </LitegraphParagraph>
       </div>
       <div className={styles.loginBox}>{children}</div>
