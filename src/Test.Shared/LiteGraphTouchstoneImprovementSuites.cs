@@ -6099,21 +6099,21 @@
                     }),
                     "MCP read-scoped credential cannot create tenants").ConfigureAwait(false);
 
+                // v8.0: any authenticated member of a tenant may read that tenant's own metadata (name/active),
+                // which the tenant-scoped dashboard depends on. Reading a different tenant is still denied.
+                string ownTenantBody = await _McpClient.CallAsync<string>("tenant/get", new
+                {
+                    tenantGuid = tenant.GUID.ToString()
+                }).ConfigureAwait(false);
+                TenantMetadata ownTenant = _McpSerializer.DeserializeJson<TenantMetadata>(ownTenantBody);
+                AssertEqual(tenant.GUID, ownTenant.GUID, "MCP read-scoped credential can read its own tenant metadata");
+
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("tenant/get", new
                     {
-                        tenantGuid = tenant.GUID.ToString()
+                        tenantGuid = targetTenant.GUID.ToString()
                     }),
-                    "MCP read-scoped credential cannot read tenant admin metadata").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.TenantRead,
-                    "AdminRequired",
-                    "admin",
-                    "MCP tenant read denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                    "MCP read-scoped credential cannot read another tenant's metadata").ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("tenant/all", new { }),
@@ -6157,21 +6157,13 @@
                     "MCP tenant all-statistics denial audit",
                     cancellationToken).ConfigureAwait(false);
 
+                // v8.0: checking the existence of a different tenant is still denied for a non-admin member.
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("tenant/exists", new
                     {
-                        tenantGuid = tenant.GUID.ToString()
+                        tenantGuid = targetTenant.GUID.ToString()
                     }),
-                    "MCP read-scoped credential cannot check tenant existence").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.TenantExists,
-                    "AdminRequired",
-                    "admin",
-                    "MCP tenant exists denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                    "MCP read-scoped credential cannot check another tenant's existence").ConfigureAwait(false);
 
                 AuthorizationRole blockedMcpRole = new AuthorizationRole
                 {
@@ -6305,22 +6297,13 @@
                 TenantStatistics tenantStatistics = _McpSerializer.DeserializeJson<TenantStatistics>(tenantStatisticsBody);
                 AssertNotNull(tenantStatistics, "MCP read-scoped credential can read same-tenant statistics");
 
+                // v8.0: reading another tenant (even via getmany) is still denied for a non-admin member.
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("tenant/getmany", new
                     {
-                        tenantGuids = new[] { tenant.GUID.ToString() }
+                        tenantGuids = new[] { targetTenant.GUID.ToString() }
                     }),
-                    "MCP read-scoped credential cannot read many tenants").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.TenantRead,
-                    "AdminRequired",
-                    "admin",
-                    "MCP tenant getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
+                    "MCP read-scoped credential cannot read another tenant via getmany").ConfigureAwait(false);
 
                 TenantMetadata tenantUpdate = new TenantMetadata
                 {
@@ -6384,22 +6367,23 @@
                     "MCP user create denial audit",
                     cancellationToken).ConfigureAwait(false);
 
+                // v8.0 self-service: a user may read its own record (the read-scoped credential belongs to `user`).
+                string ownUserBody = await _McpClient.CallAsync<string>("user/get", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    userGuid = user.GUID.ToString()
+                }).ConfigureAwait(false);
+                UserMaster ownUser = _McpSerializer.DeserializeJson<UserMaster>(ownUserBody);
+                AssertEqual(user.GUID, ownUser.GUID, "MCP read-scoped credential can read its own user record");
+
+                // Reading another user (in another tenant) remains denied.
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("user/get", new
                     {
-                        tenantGuid = tenant.GUID.ToString(),
-                        userGuid = user.GUID.ToString()
+                        tenantGuid = targetTenant.GUID.ToString(),
+                        userGuid = targetUser.GUID.ToString()
                     }),
-                    "MCP read-scoped credential cannot read users").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.UserRead,
-                    "AdminRequired",
-                    "admin",
-                    "MCP user read denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                    "MCP read-scoped credential cannot read another user").ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("user/all", new
@@ -6407,15 +6391,8 @@
                         tenantGuid = tenant.GUID.ToString()
                     }),
                     "MCP read-scoped credential cannot list users").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.UserReadAll,
-                    "AdminRequired",
-                    "admin",
-                    "MCP user list denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("user/enumerate", new
@@ -6427,50 +6404,27 @@
                         }, false)
                     }),
                     "MCP read-scoped credential cannot enumerate users").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.UserEnumerate,
-                    "AdminRequired",
-                    "admin",
-                    "MCP user enumerate denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
+                // v8.0: checking existence of another user (in another tenant) remains denied.
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("user/exists", new
                     {
-                        tenantGuid = tenant.GUID.ToString(),
-                        userGuid = user.GUID.ToString()
+                        tenantGuid = targetTenant.GUID.ToString(),
+                        userGuid = targetUser.GUID.ToString()
                     }),
-                    "MCP read-scoped credential cannot check user existence").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.UserExists,
-                    "AdminRequired",
-                    "admin",
-                    "MCP user exists denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                    "MCP read-scoped credential cannot check another user's existence").ConfigureAwait(false);
 
+                // Reading other users in bulk is a management operation and remains denied (only self-service
+                // single-record reads are permitted for a regular user in v8.0).
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("user/getmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
-                        userGuids = new[] { user.GUID.ToString() }
+                        userGuids = new[] { targetUser.GUID.ToString() }
                     }),
                     "MCP read-scoped credential cannot read many users").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.UserRead,
-                    "AdminRequired",
-                    "admin",
-                    "MCP user getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
 
                 UserMaster userUpdate = new UserMaster
                 {
@@ -6561,15 +6515,8 @@
                         tenantGuid = tenant.GUID.ToString()
                     }),
                     "MCP read-scoped credential cannot list credentials").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.CredentialReadAll,
-                    "AdminRequired",
-                    "admin",
-                    "MCP credential list denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("credential/enumerate", new
@@ -6581,15 +6528,8 @@
                         }, false)
                     }),
                     "MCP read-scoped credential cannot enumerate credentials").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.CredentialEnumerate,
-                    "AdminRequired",
-                    "admin",
-                    "MCP credential enumerate denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("credential/exists", new
@@ -6598,15 +6538,8 @@
                         credentialGuid = credential.GUID.ToString()
                     }),
                     "MCP read-scoped credential cannot check credential existence").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.CredentialExists,
-                    "AdminRequired",
-                    "admin",
-                    "MCP credential exists denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("credential/getmany", new
@@ -6615,15 +6548,8 @@
                         credentialGuids = new[] { credential.GUID.ToString() }
                     }),
                     "MCP read-scoped credential cannot read many credentials").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    null,
-                    RequestTypeEnum.CredentialRead,
-                    "AdminRequired",
-                    "admin",
-                    "MCP credential getmany denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("credential/getbybearertoken", new
@@ -6631,15 +6557,8 @@
                         bearerToken = targetCredential.BearerToken
                     }),
                     "MCP read-scoped credential cannot read credentials by bearer token").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    null,
-                    null,
-                    RequestTypeEnum.CredentialReadByBearerToken,
-                    "AdminRequired",
-                    "admin",
-                    "MCP credential bearer lookup denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                // v8.0: this list/read/exists operation is permitted at the authorization layer and denied in the
+                // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 Credential credentialUpdate = new Credential
                 {

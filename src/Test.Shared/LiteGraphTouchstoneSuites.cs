@@ -609,12 +609,18 @@ namespace Test.Shared
                 "POST /v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/tags",
                 "POST /v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectors",
                 "POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectors/search",
-                "POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/routes"
+                "POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/routes",
+                "GET /v1.0/settings",
+                "PUT /v1.0/settings",
+                "POST /v1.0/settings/restart"
             };
 
             AssertEqual(expectedPreAuthenticationRoutes.Count, preAuthenticationRoutes.Count, "Unauthenticated route count");
             AssertTrue(expectedPreAuthenticationRoutes.SetEquals(preAuthenticationRoutes), "Unauthenticated route set");
-            AssertEqual(200, postAuthenticationRoutes.Count, "Authenticated route count");
+
+            // v8.0 added the SystemAdmin-only settings routes (GET/PUT /v1.0/settings, POST /v1.0/settings/restart)
+            // to the authenticated bucket, alongside the v7.1 JSONL import/export routes.
+            AssertEqual(207, postAuthenticationRoutes.Count, "Authenticated route count");
             AssertFalse(preAuthenticationRoutes.Overlaps(postAuthenticationRoutes), "Route auth buckets should not overlap");
 
             foreach (string route in criticalAuthenticatedRoutes)
