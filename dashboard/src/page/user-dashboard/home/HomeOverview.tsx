@@ -40,9 +40,19 @@ const KpiCard = ({
   value?: number;
   loading?: boolean;
 }) => (
-  <Card size="small" style={{ flex: '1 1 150px', minWidth: 140 }} data-testid="home-kpi">
-    <Statistic title={label} value={value ?? 0} loading={loading} />
-    <LitegraphText fontSize={11} style={{ color: 'var(--ant-color-text-tertiary)' }}>
+  <Card
+    size="small"
+    style={{ flex: '1 1 150px', minWidth: 140 }}
+    styles={{ body: { padding: '6px 12px' } }}
+    data-testid="home-kpi"
+  >
+    <Statistic
+      title={label}
+      value={value ?? 0}
+      loading={loading}
+      valueStyle={{ fontSize: 18, lineHeight: 1.15 }}
+    />
+    <LitegraphText fontSize={11} style={{ color: 'var(--ant-color-text-tertiary)', lineHeight: 1.1 }}>
       {scope}
     </LitegraphText>
   </Card>
@@ -139,9 +149,6 @@ const HomeOverview = () => {
           <KpiCard key={kpi.label} label={kpi.label} scope={kpi.scope} value={kpi.value} loading={kpi.loading} />
         ))}
       </LitegraphFlex>
-      <LitegraphText fontSize={13} weight={600} style={{ display: 'block', marginBottom: 8 }}>
-        {t('cta.heading')}
-      </LitegraphText>
       <LitegraphFlex gap={12} wrap="wrap">
         {ctas.map((cta) => (
           <CtaCard key={cta.title} href={cta.href || '#'} icon={cta.icon} title={cta.title} description={cta.description} />
