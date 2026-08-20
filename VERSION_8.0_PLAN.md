@@ -22,7 +22,7 @@ Running summary of where each section stands. Per-section checkboxes below remai
 | 5 | SDK updates (C#/JS/Python) | **Done** (code + READMEs) | Flags on user models; `ReadSettings/UpdateSettings/RestartServer` in all three SDKs; READMEs updated. |
 | 6–9 | MCP verify, docs, Postman, docker/factory | **Done** | Docs updated (RBAC, OBSERVABILITY, UPGRADE, REST_API, MCP_API, SETTINGS); Postman user flags + Settings folder (JSON validated); compose/factory + smoke probes. |
 | 10 | Automated RBAC/settings/self-service tests | **Done** | `LiteGraphTouchstoneAuthorizationSuites` — 6/6 green over a live REST server. |
-| 11 | Release closeout | **In progress** | Solution builds clean (0 warnings); full SQLite regression running; version sweep done. **Remaining for the maintainer:** PostgreSQL regression leg (`LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING`), live `docker compose up` acceptance for Loki/Grafana + restart flow, rendered dashboard walkthrough in both locales, and opening the PR. |
+| 11 | Release closeout | **Done** (pending PR) | Clean build (0 warnings); full regression green on **both** providers (667 passed / 0 failed / 0 skipped with PostgreSQL enabled); version sweep done. Live `docker compose up` acceptance passed: all 8 services healthy, REST + MCP `/metrics` (component rest/mcp, route/tool labels), settings read (200 auth / 401 no-auth), Prometheus scraping both targets, Loki receiving REST+MCP logs via Alloy, Grafana Loki+Prometheus datasources provisioned, UI up. Fixed a Loki severity-label bug (SyslogLogging PRI vs RFC5424) in the Alloy config. **Remaining for the maintainer:** rendered dashboard walkthrough in both locales, and opening the PR. |
 
 ---
 
