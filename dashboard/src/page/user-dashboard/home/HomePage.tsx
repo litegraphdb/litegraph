@@ -13,6 +13,7 @@ import LitegraphFlex from '@/components/base/flex/Flex';
 import { PlusSquareOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useAppSelector } from '@/lib/store/hooks';
 import { RootState } from '@/lib/store/store';
+import HomeOverview from './HomeOverview';
 
 const GraphViewer = dynamic(() => import('@/components/base/graph/GraphViewer'), {
   ssr: false,
@@ -92,6 +93,7 @@ const HomePage = () => {
         ) : undefined
       }
     >
+      <HomeOverview />
       <div data-testid="graph-viewer">
         <GraphViewer
           isAddEditNodeVisible={isAddEditNodeVisible}

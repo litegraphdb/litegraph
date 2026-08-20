@@ -7,6 +7,14 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider, Flex } from 'antd';
 import enUS from 'antd/locale/en_US';
 import esES from 'antd/locale/es_ES';
+import ptBR from 'antd/locale/pt_BR';
+import frFR from 'antd/locale/fr_FR';
+import deDE from 'antd/locale/de_DE';
+import itIT from 'antd/locale/it_IT';
+import jaJP from 'antd/locale/ja_JP';
+import faIR from 'antd/locale/fa_IR';
+import zhHK from 'antd/locale/zh_HK';
+import zhCN from 'antd/locale/zh_CN';
 import type { Locale } from 'antd/es/locale';
 import { AppstoreOutlined } from '@ant-design/icons';
 import { NextIntlClientProvider } from 'next-intl';
@@ -24,6 +32,14 @@ import { getTranslator } from '@/i18n/getTranslator';
 const antdLocaleByCode: Record<string, Locale> = {
   en: enUS,
   es: esES,
+  pt: ptBR,
+  fr: frFR,
+  de: deDE,
+  it: itIT,
+  ja: jaJP,
+  fa: faIR,
+  yue: zhHK,
+  zh: zhCN,
 };
 
 /**

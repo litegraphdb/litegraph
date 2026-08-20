@@ -1,0 +1,1465 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "作成",
+      "edit": "編集",
+      "delete": "削除",
+      "update": "更新",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "confirm": "確認",
+      "close": "閉じる",
+      "next": "次へ",
+      "retry": "再試行",
+      "refresh": "更新",
+      "search": "検索",
+      "export": "エクスポート",
+      "viewJson": "JSONを表示",
+      "login": "ログイン",
+      "logout": "ログアウト"
+    },
+    "states": {
+      "loading": "読み込み中...",
+      "redirecting": "リダイレクト中...",
+      "noData": "データなし",
+      "none": "なし",
+      "notAvailable": "該当なし",
+      "somethingWentWrong": "問題が発生しました。",
+      "cantViewDetails": "現在、詳細を表示できません。"
+    },
+    "copy": {
+      "copyGuid": "GUIDをコピー",
+      "copy": "コピー",
+      "copied": "コピーしました"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "LiteGraph ロゴ",
+    "expand": "サイドバーを展開",
+    "collapse": "サイドバーを折りたたむ",
+    "flushTitle": "データベースをディスクにフラッシュ",
+    "flushToDisk": "ディスクにフラッシュ",
+    "flushConfirm": "データベースをディスクにフラッシュしてもよろしいですか？"
+  },
+  "header": {
+    "graphLabel": "グラフ:",
+    "selectGraph": "アクティブなグラフを選択",
+    "selectAGraph": "グラフを選択",
+    "tenantLabel": "テナント:",
+    "selectTenant": "アクティブなテナントを選択",
+    "selectATenant": "テナントを選択",
+    "retry": "再試行",
+    "connectedServer": "接続中の LiteGraph サーバー",
+    "switchToLight": "ライトモードに切り替え",
+    "switchToDark": "ダークモードに切り替え",
+    "github": "GitHub 上の LiteGraph",
+    "githubAria": "LiteGraph GitHub リポジトリ",
+    "signOut": "ダッシュボードからサインアウト",
+    "logoutAria": "ログアウト",
+    "language": "言語",
+    "selectLanguage": "言語を選択"
+  },
+  "login": {
+    "serverUrl": "LiteGraph サーバー URL",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "LiteGraph サーバー URL を入力してください。",
+    "onlyHttp": "HTTP または HTTPS の URL のみ使用できます。",
+    "validUrl": "有効な URL を入力してください。",
+    "email": "メールアドレス",
+    "emailPlaceholder": "メールアドレス",
+    "emailRequired": "メールアドレスを入力してください。",
+    "validEmail": "有効なメールアドレスを入力してください。",
+    "tenant": "テナント",
+    "selectTenant": "テナントを選択",
+    "tenantRequired": "テナントを選択してください。",
+    "password": "パスワード",
+    "passwordPlaceholder": "パスワード",
+    "passwordRequired": "パスワードを入力してください。",
+    "cancel": "キャンセル",
+    "login": "ログイン",
+    "next": "次へ",
+    "loading": "読み込み中...",
+    "defaultCredentials": "デフォルトの認証情報は default@user.com とパスワードです。",
+    "tenantNotFound": "テナントが見つかりません",
+    "loggedInSso": "SSO で正常にログインしました。",
+    "heading": "サインイン",
+    "subheading": "続行するには、サーバー、メールアドレス、パスワードを入力してください。",
+    "logoAlt": "LiteGraph ロゴ",
+    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+    "advancedToggle": "詳細なサインインオプション",
+    "advancedHide": "詳細オプションを非表示",
+    "advancedHelp": "サーバーの緊急用管理者トークンでサインインします。リカバリーおよびブートストラップ専用です。",
+    "advancedTokenPlaceholder": "管理者ベアラートークン",
+    "advancedTokenRequired": "管理者トークンを入力してください。",
+    "advancedTokenInvalid": "管理者トークンが受け付けられませんでした。",
+    "advancedLogin": "トークンでサインイン"
+  },
+  "graphs": {
+    "title": "グラフ",
+    "searchTooltip": "グラフを検索・フィルター",
+    "createTooltip": "新しいグラフを作成",
+    "createGraph": "グラフを作成",
+    "entityName": "グラフ",
+    "copyGuid": "GUIDをコピー",
+    "labelsCount": "{count, plural, one {# ラベル} other {# ラベル}}",
+    "tagsCount": "{count, plural, one {# タグ} other {# タグ}}",
+    "vectorsCount": "{count, plural, =0 {なし} one {# ベクトル} other {# ベクトル}}",
+    "deleteTitle": "このグラフを削除してもよろしいですか？",
+    "deleteBody": "この操作によりグラフが削除されます。",
+    "graphJson": "グラフ JSON",
+    "columns": {
+      "name": "名前",
+      "nameDesc": "グラフの表示名",
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "labels": "ラベル",
+      "labelsDesc": "このグラフに割り当てられた分類ラベル",
+      "tags": "タグ",
+      "tagsDesc": "キーと値のメタデータタグ",
+      "vectors": "ベクトル",
+      "vectorsDesc": "このグラフに関連付けられたベクトル埋め込み",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "score": "スコア",
+      "scoreDesc": "検索による関連度スコア",
+      "distance": "距離",
+      "distanceDesc": "検索クエリからのベクトル距離",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "name": "名前で検索",
+      "guid": "GUIDで検索",
+      "labels": "ラベルで検索",
+      "tags": "タグで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "exportGexf": "GEXF にエクスポート",
+      "enableVectorIndex": "ベクトルインデックスを有効化",
+      "readVectorIndexConfig": "ベクトルインデックス構成を読み込む",
+      "readVectorIndexStats": "ベクトルインデックス統計を読み込む",
+      "rebuildVectorIndex": "ベクトルインデックスを再構築",
+      "deleteVectorIndex": "ベクトルインデックスを削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "name": "名前",
+      "namePlaceholder": "グラフ名を入力",
+      "nameTooltip": "グラフの表示名",
+      "labelsTooltip": "このグラフに関連付けられたラベル",
+      "tags": "タグ",
+      "tagsTooltip": "このグラフのキーと値のタグ",
+      "vectors": "ベクトル",
+      "vectorsTooltip": "このグラフのベクトル埋め込み",
+      "data": "データ",
+      "dataTooltip": "このグラフに付加された任意の JSON データ",
+      "nameRequired": "名前は必須です"
+    },
+    "modalTitle": {
+      "create": "グラフを作成",
+      "edit": "グラフを編集",
+      "view": "グラフを表示",
+      "loading": "グラフを読み込み中...",
+      "createOk": "作成",
+      "updateOk": "更新"
+    },
+    "toast": {
+      "exported": "グラフを正常にエクスポートしました",
+      "exportFailed": "グラフのエクスポートに失敗しました",
+      "noGexf": "GEXF コンテンツを受信できませんでした",
+      "created": "グラフを正常に追加しました",
+      "updated": "グラフを正常に更新しました",
+      "deleted": "グラフを正常に削除しました",
+      "updateFailed": "グラフの更新に失敗しました: {error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "ベクトルインデックスを有効化",
+    "viewTitle": "ベクトルインデックス構成",
+    "statsTitle": "ベクトルインデックス統計",
+    "rebuildTitle": "ベクトルインデックスを再構築",
+    "deleteTitle": "ベクトルインデックスを削除",
+    "type": "ベクトルインデックスの種類",
+    "typeTooltip": "使用するベクトルインデックスの種類",
+    "selectType": "ベクトルインデックスの種類を選択",
+    "typeRequired": "ベクトルインデックスの種類を選択してください。",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "なし",
+    "file": "ベクトルインデックスファイル",
+    "fileTooltip": "ベクトルインデックスのファイルパス",
+    "fileRequired": "ベクトルインデックスファイルを入力してください。",
+    "filePlaceholder": "例: graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "ファイル名は .db で終わり、スペースを含めないでください",
+    "threshold": "ベクトルインデックスしきい値",
+    "thresholdTooltip": "インデックス化を行う前の最小ベクトル数",
+    "thresholdPlaceholder": "しきい値を入力",
+    "dimensionality": "ベクトルの次元数",
+    "dimensionalityTooltip": "ベクトルの次元数",
+    "dimensionalityRequired": "ベクトルの次元数を入力してください。",
+    "dimensionalityPlaceholder": "次元数を入力 (例: 1536)",
+    "m": "ベクトルインデックス M",
+    "mTooltip": "HNSW グラフにおけるノードあたりの最大接続数",
+    "mRequired": "ベクトルインデックス M を入力してください。",
+    "mPlaceholder": "M 値を入力 (例: 16)",
+    "mHint": "HNSW インデックスにおける層あたりの接続数",
+    "ef": "ベクトルインデックス Ef",
+    "efTooltip": "検索時に考慮する候補数",
+    "efRequired": "ベクトルインデックス Ef を入力してください。",
+    "efPlaceholder": "Ef 値を入力 (例: 100)",
+    "efHint": "HNSW インデックスの検索パラメータ",
+    "efConstruction": "ベクトルインデックス Ef Construction",
+    "efConstructionTooltip": "インデックス構築時の候補数",
+    "efConstructionRequired": "ベクトルインデックス Ef Construction を入力してください。",
+    "efConstructionPlaceholder": "Ef Construction 値を入力 (例: 200)",
+    "efConstructionHint": "HNSW インデックスの構築パラメータ",
+    "enabledSuccess": "ベクトルインデックスを正常に有効化しました",
+    "loadConfigFailed": "ベクトルインデックス構成の読み込みに失敗しました",
+    "unableToRetrieveConfig": "構成の詳細を取得できません",
+    "configHint": "ベクトルインデックスが有効になっていないか、構成へのアクセスに問題があった可能性があります。",
+    "fileValidationDb": "ファイル名は .db で終わり、スペースを含めないでください",
+    "fileNoSpaces": "ベクトルインデックスファイルにスペースを含めないでください。",
+    "fileEndsDb": "ベクトルインデックスファイルは .db で終わる必要があります。",
+    "rebuildConfirm": "ベクトルインデックスを再構築してもよろしいですか？",
+    "rebuildBody": "この操作により、このグラフのベクトルインデックスが再構築されます。処理には時間がかかる場合があり、一時的にベクトル検索のパフォーマンスに影響します。",
+    "rebuildSuccess": "ベクトルインデックスの再構築を正常に開始しました",
+    "rebuildFailed": "ベクトルインデックスの再構築に失敗しました",
+    "deleteConfirm": "ベクトルインデックスを削除してもよろしいですか？",
+    "deleteBody": "この操作により、このグラフのベクトルインデックスが削除されます。",
+    "deleteSuccess": "ベクトルインデックスを正常に削除しました",
+    "deleteFailed": "ベクトルインデックスの削除に失敗しました",
+    "stats": {
+      "loadFailed": "ベクトルインデックス統計の読み込みに失敗しました",
+      "unableToRetrieve": "統計の詳細を取得できません",
+      "hint": "ベクトルインデックスが有効になっていないか、統計へのアクセスに問題があった可能性があります。",
+      "noStats": "利用可能なベクトルインデックス統計がありません",
+      "noStatsHint": "このグラフではベクトルインデックスが有効になっていないか、統計にアクセスできない可能性があります。",
+      "loaded": "読み込み済み",
+      "notLoaded": "未読み込み",
+      "never": "なし",
+      "error": "エラー",
+      "errorProcessing": "統計データの処理中にエラーが発生しました",
+      "label": {
+        "vectorCount": "ベクトル数",
+        "dimensions": "次元数",
+        "indexType": "インデックスの種類",
+        "m": "M パラメータ",
+        "efConstruction": "EF Construction",
+        "defaultEf": "デフォルト EF",
+        "indexFile": "インデックスファイルパス",
+        "indexFileSize": "インデックスファイルサイズ",
+        "estimatedMemory": "推定メモリ使用量",
+        "lastRebuild": "最終再構築",
+        "status": "ステータス",
+        "distanceMetric": "距離メトリック"
+      },
+      "desc": {
+        "vectorCount": "インデックス内のベクトルの総数",
+        "dimensions": "ベクトルの次元数",
+        "indexType": "ベクトルインデックスアルゴリズムの種類",
+        "m": "グラフ内の要素あたりの接続数",
+        "efConstruction": "インデックス構築時に使用される EF パラメータ",
+        "defaultEf": "検索クエリのデフォルト EF パラメータ",
+        "indexFile": "インデックスが保存されているファイルパス",
+        "indexFileSize": "ディスク上のインデックスファイルのサイズ",
+        "estimatedMemory": "インデックスの推定メモリ使用量",
+        "lastRebuild": "最後にインデックスを再構築した日時",
+        "status": "インデックスが現在メモリに読み込まれているかどうか",
+        "distanceMetric": "類似度計算に使用される距離メトリック"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "JSONL にエクスポート",
+    "importIntoGraph": "グラフにインポート",
+    "importNewGraph": "インポート (新規グラフ)",
+    "exportSubgraph": "サブグラフをエクスポート",
+    "modal": {
+      "importTitle": "グラフにインポート",
+      "importNewTitle": "新規グラフにインポート",
+      "exportTitle": "JSONL にエクスポート",
+      "exportSubgraphTitle": "サブグラフをエクスポート"
+    },
+    "fields": {
+      "guidStrategy": "GUID 戦略",
+      "onError": "エラー時",
+      "maxDepth": "最大深度",
+      "direction": "方向",
+      "includeData": "データを含める",
+      "includeSubordinates": "下位要素を含める",
+      "maxEdgeCost": "最大エッジコスト",
+      "startNode": "開始ノード"
+    },
+    "guidStrategy": {
+      "preserve": "保持",
+      "regenerate": "再生成",
+      "skip": "スキップ",
+      "overwrite": "上書き"
+    },
+    "onError": {
+      "abort": "中止",
+      "skip": "スキップ"
+    },
+    "direction": {
+      "outbound": "アウトバウンド",
+      "inbound": "インバウンド",
+      "both": "両方"
+    },
+    "result": {
+      "nodesCreated": "作成されたノード",
+      "nodesUpdated": "更新されたノード",
+      "nodesSkipped": "スキップされたノード",
+      "edgesCreated": "作成されたエッジ",
+      "edgesUpdated": "更新されたエッジ",
+      "edgesSkipped": "スキップされたエッジ",
+      "warnings": "警告",
+      "title": "インポート結果",
+      "graphsCreated": "作成されたグラフ",
+      "linesRead": "読み込んだ行数",
+      "linesIgnored": "無視した行数",
+      "newGraphGuid": "新規グラフ GUID",
+      "noWarnings": "警告はありません。"
+    },
+    "toast": {
+      "importSuccess": "インポートが正常に完了しました",
+      "importFailed": "インポートに失敗しました",
+      "exportSuccess": "エクスポートが正常に完了しました",
+      "exportFailed": "エクスポートに失敗しました"
+    },
+    "guidStrategyHelp": {
+      "preserve": "ファイルの元の GUID を保持します。",
+      "regenerate": "インポートするすべてのオブジェクトに新しい GUID を割り当てます。",
+      "skip": "元の GUID を保持し、既に存在するオブジェクトはスキップします。",
+      "overwrite": "元の GUID を保持し、既に存在するオブジェクトを上書きします。"
+    },
+    "onErrorHelp": {
+      "abort": "最初のエラーでインポートを停止します。",
+      "skip": "失敗した行をスキップしてインポートを続行します。"
+    },
+    "startNodeHelp": "サブグラフはこのノードから抽出されます。",
+    "upload": {
+      "prompt": "このエリアに JSONL ファイルをクリックまたはドラッグしてください",
+      "hint": "LiteGraph からエクスポートされた .jsonl ファイルのみサポートされています。",
+      "selected": "選択されたファイル"
+    },
+    "preview": {
+      "title": "プレビュー",
+      "headerLines": "ヘッダー行",
+      "nodes": "ノード",
+      "edges": "エッジ",
+      "empty": "このファイルには認識可能なコンテンツが見つかりませんでした。"
+    },
+    "actions": {
+      "import": "インポート",
+      "export": "エクスポート"
+    },
+    "exportSubgraphDisabled": "サブグラフをエクスポートするノードを選択してください。",
+    "copyGuid": "GUIDをコピー"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "エッジ",
+    "searchTooltip": "エッジを検索・フィルター",
+    "createTooltip": "新しいエッジを作成",
+    "createEdge": "エッジを作成",
+    "entityName": "エッジ",
+    "edgeJson": "エッジ JSON",
+    "deleteTitle": "「{name}」エッジを削除してもよろしいですか？",
+    "deleteBody": "この操作によりエッジが削除されます。",
+    "labelsCount": "{count, plural, one {# ラベル} other {# ラベル}}",
+    "tagsCount": "{count, plural, one {# タグ} other {# タグ}}",
+    "vectorsCount": "{count, plural, =0 {なし} one {# ベクトル} other {# ベクトル}}",
+    "columns": {
+      "name": "名前",
+      "nameDesc": "エッジの表示名",
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "from": "始点",
+      "fromDesc": "このエッジのソースノード",
+      "to": "終点",
+      "toDesc": "このエッジのターゲットノード",
+      "cost": "コスト",
+      "costDesc": "エッジの走査コスト",
+      "labels": "ラベル",
+      "labelsDesc": "このエッジに割り当てられた分類ラベル",
+      "tags": "タグ",
+      "tagsDesc": "キーと値のメタデータタグ",
+      "vectors": "ベクトル",
+      "vectorsDesc": "このエッジに関連付けられたベクトル埋め込み",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "score": "スコア",
+      "scoreDesc": "検索による関連度スコア",
+      "distance": "距離",
+      "distanceDesc": "検索クエリからのベクトル距離",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "name": "名前で検索",
+      "guid": "GUIDで検索",
+      "from": "始点で検索",
+      "to": "終点で検索",
+      "labels": "ラベルで検索",
+      "tags": "タグで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "graph": "グラフ",
+      "graphTooltip": "このエッジが属するグラフ",
+      "guid": "GUID",
+      "guidTooltip": "このエッジのグローバル一意識別子",
+      "name": "名前",
+      "nameTooltip": "エッジの表示名",
+      "namePlaceholder": "エッジ名を入力",
+      "nameRequired": "エッジ名は必須です",
+      "cost": "コスト",
+      "costTooltip": "このエッジの走査コスト",
+      "costPlaceholder": "エッジコストを入力",
+      "costRequired": "エッジコストは必須です",
+      "fromNode": "始点ノード",
+      "fromNodeTooltip": "エッジのソースノード",
+      "fromRequired": "始点ノードは必須です",
+      "fromSameAsTo": "始点ノードを終点ノードと同じにすることはできません",
+      "toNode": "終点ノード",
+      "toNodeTooltip": "エッジのターゲットノード",
+      "toRequired": "終点ノードは必須です",
+      "toSameAsFrom": "終点ノードを始点ノードと同じにすることはできません",
+      "labels": "ラベル",
+      "labelsTooltip": "このエッジに関連付けられたラベル",
+      "tags": "タグ",
+      "tagsTooltip": "このエッジのキーと値のタグ",
+      "vectors": "ベクトル",
+      "vectorsTooltip": "このエッジのベクトル埋め込み",
+      "data": "データ",
+      "dataTooltip": "このエッジに付加された任意の JSON データ",
+      "copyData": "データをコピー"
+    },
+    "modalTitle": {
+      "create": "エッジを作成",
+      "edit": "エッジを編集",
+      "view": "エッジを表示",
+      "loading": "エッジを読み込み中..."
+    },
+    "toast": {
+      "created": "エッジを正常に追加しました",
+      "updated": "エッジを正常に更新しました",
+      "deleted": "エッジを正常に削除しました",
+      "updateFailed": "エッジの更新に失敗しました: {error}"
+    }
+  },
+  "home": {
+    "pageTitle": "ホーム",
+    "addNode": "ノードを追加",
+    "addEdge": "エッジを追加"
+  },
+  "graphViewer": {
+    "loadingNodes": "ノードを読み込み中...",
+    "loadingEdges": "エッジを読み込み中...",
+    "errorLoadingGraph": "グラフの読み込みエラー",
+    "noNodes": "このグラフにはノードがありません。",
+    "tooManyNodes": "グラフを適切に描画するにはノードが多すぎます。最初の {count} ノードを表示しています。",
+    "controls": {
+      "button": "コントロール",
+      "clearSubGraph": "サブグラフをクリア",
+      "searchSubGraph": "サブグラフを検索",
+      "threeD": "3D",
+      "horizontalLayout": "水平レイアウト",
+      "depthAwareLayout": "深度対応レイアウト",
+      "depthAwareTooltip": "循環や密なバックリンクは自動的に処理されるため、深度レイアウトは読みやすさを保ちます。",
+      "collapseRelatedNodes": "関連ノードを折りたたむ",
+      "collapseRelatedTooltip": "グループ化されたノードをクリックすると展開します。グループはラベル、有意なタグキー、接続パターンから推測されます。",
+      "dragByLabel": "ラベルでドラッグ",
+      "showGraphLegend": "グラフの凡例を表示",
+      "showNodeName": "ノード名を表示",
+      "collapseExpanded": "展開を折りたたむ"
+    },
+    "node": {
+      "title": "ノード情報",
+      "expand": "展開",
+      "guid": "GUID",
+      "name": "名前",
+      "labels": "ラベル",
+      "tags": "タグ",
+      "addNew": "新しいノードを追加",
+      "openAddForm": "ノード追加フォームを開く",
+      "updateTooltip": "ノードを更新",
+      "deleteTooltip": "ノードを削除",
+      "addEdgeTooltip": "エッジを追加",
+      "addEdge": "エッジを追加",
+      "deleteConfirmTitle": "「{name}」ノードを削除してもよろしいですか？",
+      "deleteConfirmText": "この操作によりノードが削除されます。"
+    },
+    "edge": {
+      "title": "エッジ情報",
+      "expand": "展開",
+      "guid": "GUID",
+      "name": "名前",
+      "from": "始点",
+      "to": "終点",
+      "cost": "コスト",
+      "labels": "ラベル",
+      "tags": "タグ",
+      "addNew": "新しいエッジを追加",
+      "openAddForm": "エッジ追加フォームを開く",
+      "updateTooltip": "エッジを更新",
+      "deleteTooltip": "エッジを削除",
+      "deleteConfirmTitle": "「{name}」エッジを削除してもよろしいですか？",
+      "deleteConfirmText": "この操作によりエッジが削除されます。"
+    },
+    "nodeSearch": {
+      "title": "ノードを検索",
+      "placeholder": "名前でノードを検索...",
+      "searchFailed": "ノードの検索に失敗しました。もう一度お試しください。",
+      "noNodesFound": "ノードが見つかりません",
+      "enterSearchTerm": "ノードを検索するための検索語を入力してください",
+      "total": "合計 {count} ノード",
+      "columns": {
+        "name": "名前",
+        "nameTooltip": "ノードの表示名",
+        "labels": "ラベル",
+        "labelsTooltip": "分類ラベル",
+        "guid": "GUID",
+        "guidTooltip": "グローバル一意識別子"
+      }
+    }
+  },
+  "search": {
+    "tags": "タグ",
+    "tagsTooltip": "キーと値のタグでフィルター",
+    "labelsTooltip": "分類ラベルでフィルター",
+    "expression": "式",
+    "expressionTooltip": "式構文を使用してフィルター",
+    "example": "例:",
+    "atLeastOneRequired": "少なくとも 1 つのフィールドが必要です。"
+  },
+  "nodes": {
+    "title": "ノード",
+    "searchTooltip": "ノードを検索・フィルター",
+    "createTooltip": "新しいノードを作成",
+    "createNode": "ノードを作成",
+    "entityName": "ノード",
+    "copyGuid": "GUIDをコピー",
+    "labelsCount": "{count, plural, one {# ラベル} other {# ラベル}}",
+    "tagsCount": "{count, plural, one {# タグ} other {# タグ}}",
+    "vectorsCount": "{count, plural, =0 {なし} one {# ベクトル} other {# ベクトル}}",
+    "deleteTitle": "「{name}」ノードを削除してもよろしいですか？",
+    "deleteBody": "この操作によりノードが削除されます。",
+    "nodeJson": "ノード JSON",
+    "columns": {
+      "name": "名前",
+      "nameDesc": "ノードの表示名",
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "labels": "ラベル",
+      "labelsDesc": "このノードに割り当てられた分類ラベル",
+      "tags": "タグ",
+      "tagsDesc": "キーと値のメタデータタグ",
+      "vectors": "ベクトル",
+      "vectorsDesc": "このノードに関連付けられたベクトル埋め込み",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "score": "スコア",
+      "scoreDesc": "検索による関連度スコア",
+      "distance": "距離",
+      "distanceDesc": "検索クエリからのベクトル距離",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "name": "名前で検索",
+      "guid": "GUIDで検索",
+      "labels": "ラベルで検索",
+      "tags": "タグで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "graph": "グラフ",
+      "graphTooltip": "このノードが属するグラフ",
+      "guid": "GUID",
+      "guidTooltip": "このノードのグローバル一意識別子",
+      "name": "名前",
+      "namePlaceholder": "ノード名を入力",
+      "nameTooltip": "ノードの表示名",
+      "nameRequired": "ノード名は必須です",
+      "labels": "ラベル",
+      "labelsTooltip": "このノードに関連付けられたラベル",
+      "tags": "タグ",
+      "tagsTooltip": "このノードのキーと値のタグ",
+      "vectors": "ベクトル",
+      "vectorsTooltip": "このノードのベクトル埋め込み",
+      "data": "データ",
+      "dataTooltip": "このノードに付加された任意の JSON データ",
+      "copyData": "データをコピー"
+    },
+    "modalTitle": {
+      "create": "ノードを作成",
+      "edit": "ノードを編集",
+      "view": "ノードを表示",
+      "loading": "ノードを読み込み中...",
+      "createOk": "作成",
+      "updateOk": "更新"
+    },
+    "toast": {
+      "created": "ノードを正常に追加しました",
+      "updated": "ノードを正常に更新しました",
+      "deleted": "ノードを正常に削除しました",
+      "updateFailed": "ノードの更新に失敗しました: {error}"
+    }
+  },
+  "labels": {
+    "title": "ラベル",
+    "createTooltip": "新しいラベルを作成",
+    "createLabel": "ラベルを作成",
+    "copyGuid": "GUIDをコピー",
+    "deleteTitle": "「{name}」ラベルを削除してもよろしいですか？",
+    "deleteBody": "この操作によりラベルが削除されます。",
+    "labelJson": "ラベル JSON",
+    "columns": {
+      "label": "ラベル",
+      "labelDesc": "ラベルのテキスト値",
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "node": "ノード",
+      "nodeDesc": "関連付けられたノード名",
+      "edge": "エッジ",
+      "edgeDesc": "関連付けられたエッジ名",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "label": "ラベルで検索",
+      "guid": "GUIDで検索",
+      "node": "ノードで検索",
+      "edge": "エッジで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "label": "ラベル",
+      "labelTooltip": "ラベルのテキスト値",
+      "labelRequired": "ラベルを入力してください。",
+      "labelPlaceholder": "ラベルを入力",
+      "node": "ノード",
+      "nodeTooltip": "このラベルに関連付けるノード",
+      "edge": "エッジ",
+      "edgeTooltip": "このラベルに関連付けるエッジ"
+    },
+    "modalTitle": {
+      "create": "ラベルを作成",
+      "edit": "ラベルを編集"
+    },
+    "toast": {
+      "created": "ラベルを正常に作成しました",
+      "updated": "ラベルを正常に更新しました",
+      "deleted": "ラベルを正常に削除しました",
+      "updateFailed": "ラベルの更新に失敗しました: {error}",
+      "updateFailedNoResponse": "ラベルの更新に失敗しました - 応答がありませんでした"
+    }
+  },
+  "tags": {
+    "title": "タグ",
+    "createTooltip": "新しいタグを作成",
+    "createTag": "タグを作成",
+    "copyGuid": "GUIDをコピー",
+    "deleteTitle": "「{name}」タグを削除してもよろしいですか？",
+    "deleteBody": "この操作によりタグが削除されます。",
+    "tagJson": "タグ JSON",
+    "columns": {
+      "key": "キー",
+      "keyDesc": "タグのキー識別子",
+      "value": "値",
+      "valueDesc": "タグの値",
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "node": "ノード",
+      "nodeDesc": "関連付けられたノード名",
+      "edge": "エッジ",
+      "edgeDesc": "関連付けられたエッジ名",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "key": "キーで検索",
+      "value": "値で検索",
+      "guid": "GUIDで検索",
+      "node": "ノードで検索",
+      "edge": "エッジで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "key": "キー",
+      "keyTooltip": "タグのキー識別子",
+      "keyRequired": "タグのキーを入力してください。",
+      "keyPlaceholder": "タグのキーを入力",
+      "value": "値",
+      "valueTooltip": "タグの値",
+      "valueRequired": "タグの値を入力してください。",
+      "valuePlaceholder": "タグの値を入力",
+      "node": "ノード",
+      "nodeTooltip": "このタグに関連付けるノード",
+      "edge": "エッジ",
+      "edgeTooltip": "このタグに関連付けるエッジ"
+    },
+    "modalTitle": {
+      "create": "タグを作成",
+      "edit": "タグを編集"
+    },
+    "toast": {
+      "created": "タグを正常に作成しました",
+      "updated": "タグを正常に更新しました",
+      "deleted": "タグを正常に削除しました",
+      "updateFailed": "タグの更新に失敗しました: {error}",
+      "updateFailedNoResponse": "タグの更新に失敗しました - 応答がありませんでした"
+    }
+  },
+  "vectors": {
+    "title": "ベクトル",
+    "createTooltip": "新しいベクトルを作成",
+    "createVector": "ベクトルを作成",
+    "copyGuid": "GUIDをコピー",
+    "deleteTitle": "このベクトルを削除してもよろしいですか？",
+    "deleteBody": "この操作によりベクトルが削除されます。",
+    "vectorJson": "ベクトル JSON",
+    "vectorsCount": "{count, plural, one {# ベクトル} other {# ベクトル}}",
+    "columns": {
+      "model": "モデル",
+      "modelDesc": "ベクトルモデル名",
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "node": "ノード",
+      "nodeDesc": "関連付けられたノード名",
+      "edge": "エッジ",
+      "edgeDesc": "関連付けられたエッジ名",
+      "dimensionality": "次元数",
+      "dimensionalityDesc": "ベクトルの次元数",
+      "content": "コンテンツ",
+      "contentDesc": "ベクトルのコンテンツテキスト",
+      "vectors": "ベクトル",
+      "vectorsDesc": "ベクトル埋め込みの値",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "model": "モデルで検索",
+      "guid": "GUIDで検索",
+      "node": "ノードで検索",
+      "edge": "エッジで検索",
+      "content": "コンテンツで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "model": "モデル",
+      "modelTooltip": "埋め込みモデルの名前",
+      "modelRequired": "モデルを入力してください。",
+      "modelPlaceholder": "モデルを入力",
+      "dimensionality": "次元数",
+      "dimensionalityTooltip": "ベクトルの次元数",
+      "dimensionalityRequired": "次元数を入力してください。",
+      "dimensionalityPlaceholder": "次元数を入力",
+      "content": "コンテンツ",
+      "contentTooltip": "ベクトルに関連付けられたテキストコンテンツ",
+      "contentRequired": "コンテンツを入力してください。",
+      "contentPlaceholder": "コンテンツを入力",
+      "vectors": "ベクトル",
+      "vectorsTooltip": "JSON 配列としてのベクトル埋め込みの値",
+      "vectorsRequired": "ベクトルを入力してください。",
+      "node": "ノード",
+      "nodeTooltip": "このベクトルに関連付けるノード",
+      "edge": "エッジ",
+      "edgeTooltip": "このベクトルに関連付けるエッジ"
+    },
+    "modalTitle": {
+      "create": "ベクトルを作成",
+      "edit": "ベクトルを編集"
+    },
+    "toast": {
+      "created": "ベクトルを正常に作成しました",
+      "updated": "ベクトルを正常に更新しました",
+      "deleted": "ベクトルを正常に削除しました",
+      "updateFailed": "ベクトルの更新に失敗しました: {error}"
+    }
+  },
+  "requestHistory": {
+    "title": "リクエスト履歴",
+    "columns": {
+      "time": "時刻",
+      "method": "メソッド",
+      "path": "パス",
+      "status": "ステータス",
+      "transaction": "トランザクション",
+      "duration": "所要時間",
+      "size": "サイズ (リクエスト/レスポンス)",
+      "tenant": "テナント",
+      "actions": "操作"
+    },
+    "transaction": {
+      "noId": "トランザクション"
+    },
+    "transactionState": {
+      "validation": "検証",
+      "committed": "コミット済み",
+      "rolledBack": "ロールバック済み",
+      "failed": "失敗",
+      "transaction": "トランザクション"
+    },
+    "transactionTags": {
+      "retryable": "再試行可能",
+      "conflict": "競合"
+    },
+    "rowActions": {
+      "view": "表示",
+      "viewJson": "JSONを表示",
+      "delete": "削除",
+      "menu": "リクエスト操作"
+    },
+    "filters": {
+      "allStatuses": "すべてのステータス",
+      "allOutcomes": "すべての結果",
+      "successful": "成功",
+      "errors": "エラー",
+      "allRequests": "すべてのリクエスト",
+      "transactions": "トランザクション",
+      "nonTransactions": "非トランザクション",
+      "allMethods": "すべてのメソッド",
+      "transactionIdPlaceholder": "トランザクション ID...",
+      "pathPlaceholder": "パスに含まれる..."
+    },
+    "summary": {
+      "visibleRequests": "表示中のリクエスト:",
+      "visibleErrors": "表示中のエラー:",
+      "errorRate": "エラー率:",
+      "averageDuration": "平均所要時間:",
+      "p95Duration": "P95 所要時間:"
+    },
+    "telemetry": {
+      "title": "運用テレメトリ",
+      "prometheus": "Prometheus メトリクス",
+      "openTelemetry": "OpenTelemetry セットアップ",
+      "description": "リクエスト履歴は最近のリクエストの検査用であり、メトリクスとトレースは集約監視用です。"
+    },
+    "delete": {
+      "confirmTitle": "リクエスト履歴エントリを削除しますか？"
+    },
+    "toast": {
+      "loadFailed": "リクエスト履歴を読み込めません",
+      "deleted": "エントリを削除しました",
+      "deleteFailed": "削除できません"
+    },
+    "entryJson": "リクエスト履歴エントリ JSON",
+    "chart": {
+      "title": "時系列のリクエスト",
+      "ranges": {
+        "hour": "過去 1 時間",
+        "day": "過去 1 日",
+        "week": "過去 1 週間",
+        "month": "過去 1 か月"
+      },
+      "total": "合計",
+      "success": "成功",
+      "failed": "失敗",
+      "tooltip": {
+        "success": "成功: {count}",
+        "failed": "失敗: {count}",
+        "total": "合計: {count}"
+      }
+    },
+    "detail": {
+      "title": "リクエスト詳細",
+      "empty": "(空)",
+      "copyId": "IDをコピー",
+      "truncated": "[切り詰め済み]",
+      "entries": "{count} 件のエントリ",
+      "loadFailed": "リクエスト詳細を読み込めません",
+      "fields": {
+        "id": "ID",
+        "method": "メソッド",
+        "status": "ステータス",
+        "duration": "所要時間",
+        "time": "時刻",
+        "sourceIp": "送信元 IP",
+        "tenant": "テナント",
+        "requestSize": "リクエストサイズ",
+        "responseSize": "レスポンスサイズ",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "リクエストヘッダー",
+        "requestBody": "リクエストボディ",
+        "responseHeaders": "レスポンスヘッダー",
+        "responseBody": "レスポンスボディ",
+        "transactionDiagnostics": "トランザクション診断"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "API エクスプローラー",
+    "send": "送信",
+    "request": {
+      "title": "リクエスト",
+      "resetTooltip": "ボディをテンプレートにリセット",
+      "selectOperation": "操作を選択...",
+      "copyUrl": "URLをコピー",
+      "body": "リクエストボディ",
+      "recentRequests": "最近のリクエスト",
+      "clear": "クリア"
+    },
+    "params": {
+      "path": "パスパラメータ",
+      "query": "クエリパラメータ"
+    },
+    "response": {
+      "title": "レスポンス",
+      "transactionFailed": "トランザクションが失敗しました",
+      "queryFailed": "クエリが失敗しました",
+      "noResponse": "(まだ応答がありません)",
+      "status": "ステータス",
+      "contentType": "Content-Type",
+      "duration": "所要時間",
+      "size": "サイズ",
+      "copyCode": "コードをコピー",
+      "selectOperationHint": "(操作を選択)"
+    },
+    "tabs": {
+      "preview": "プレビュー",
+      "body": "ボディ",
+      "headers": "ヘッダー",
+      "status": "ステータス",
+      "code": "コード"
+    },
+    "toast": {
+      "loadSpecFailed": "OpenAPI 仕様を読み込めません",
+      "requestFailed": "リクエストが失敗しました: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} が失敗しました{indexText}: {error}。",
+      "defaultOperation": "操作",
+      "defaultObject": "オブジェクト",
+      "guid": " ({guid})",
+      "indexText": " インデックス {index} で",
+      "noError": "エラーの詳細は返されませんでした。",
+      "validation": " トランザクションは開始前に検証に失敗しました。",
+      "rolledBack": " トランザクションはロールバックされました。",
+      "transactionId": " トランザクション {transactionId}。",
+      "state": " ステータス: {state}。",
+      "provider": " プロバイダー: {provider}。",
+      "providerError": " プロバイダーエラー: {providerErrorCode}。",
+      "retryable": " この失敗は再試行可能としてマークされています。",
+      "conflict": " 同時実行の競合が検出されました。",
+      "queryErrorAt": "{location} でクエリエラー: {description}",
+      "queryError": "クエリエラー: {description}"
+    }
+  },
+  "credentials": {
+    "title": "認証情報",
+    "createTooltip": "新しい認証情報を作成",
+    "createCredential": "認証情報を作成",
+    "copyGuid": "GUIDをコピー",
+    "credentialJson": "認証情報 JSON",
+    "deleteTitle": "「{name}」認証情報を削除してもよろしいですか？",
+    "deleteBody": "この操作により認証情報が削除されます。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "user": "ユーザー",
+      "userDesc": "関連付けられたユーザー名",
+      "name": "名前",
+      "nameDesc": "認証情報の表示名",
+      "bearerToken": "ベアラートークン",
+      "bearerTokenDesc": "認証用ベアラートークン",
+      "active": "有効",
+      "activeDesc": "認証情報が有効かどうか",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "guid": "GUIDで検索",
+      "user": "ユーザーで検索",
+      "name": "名前で検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "userGuid": "ユーザー GUID",
+      "userGuidTooltip": "この認証情報が属するユーザー",
+      "userGuidRequired": "ユーザー GUID を選択してください。",
+      "userGuidPlaceholder": "ユーザー GUID を選択",
+      "name": "名前",
+      "nameTooltip": "認証情報の表示名",
+      "nameRequired": "名前を入力してください。",
+      "namePlaceholder": "名前を入力",
+      "bearerToken": "ベアラートークン",
+      "bearerTokenTooltip": "認証用ベアラートークン",
+      "bearerTokenRequired": "ベアラートークンを入力してください。",
+      "bearerTokenPlaceholder": "ベアラートークンを入力",
+      "active": "有効",
+      "activeTooltip": "認証情報が有効かどうか"
+    },
+    "modalTitle": {
+      "create": "認証情報を作成",
+      "edit": "認証情報を編集"
+    },
+    "toast": {
+      "created": "認証情報を正常に作成しました",
+      "updated": "認証情報を正常に更新しました",
+      "updateNoResponse": "認証情報の更新に失敗しました - 応答がありませんでした",
+      "deleted": "認証情報を正常に削除しました",
+      "updateFailed": "認証情報の更新に失敗しました: {error}"
+    }
+  },
+  "authorization": {
+    "title": "認可",
+    "createTooltip": "カスタムロールを作成",
+    "adminRequired": "管理者権限が必要です",
+    "createRole": "ロールを作成",
+    "roleJson": "認可ロール JSON",
+    "tabs": {
+      "roles": "ロール",
+      "userRoles": "ユーザーロール",
+      "credentialScopes": "認証情報スコープ"
+    },
+    "sections": {
+      "effectiveUserPermissions": "有効なユーザー権限",
+      "effectiveCredentialPermissions": "有効な認証情報権限"
+    },
+    "states": {
+      "selectTenant": "認可を管理するテナントを選択してください。",
+      "adminWarning": "ロールまたは認証情報スコープを変更するには管理者権限が必要です。"
+    },
+    "columns": {
+      "name": "名前",
+      "scope": "スコープ",
+      "permissions": "権限",
+      "resources": "リソース",
+      "builtIn": "組み込み",
+      "actions": "操作",
+      "role": "ロール",
+      "graph": "グラフ",
+      "source": "ソース"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "viewJson": "JSONを表示",
+      "delete": "削除",
+      "revoke": "取り消し",
+      "menu": "操作"
+    },
+    "labels": {
+      "builtIn": "組み込み",
+      "custom": "カスタム",
+      "immutable": "変更不可",
+      "directRole": "直接ロール",
+      "directGrant": "直接付与"
+    },
+    "confirm": {
+      "deleteRoleTitle": "ロールを削除しますか？",
+      "deleteRoleBody": "「{name}」を削除しますか？",
+      "revokeRole": "ロールを取り消しますか？",
+      "revokeScope": "認証情報スコープを取り消しますか？"
+    },
+    "actions": {
+      "assignRole": "ロールを割り当て",
+      "assignScope": "スコープを割り当て"
+    },
+    "modalTitle": {
+      "create": "ロールを作成",
+      "edit": "ロールを編集"
+    },
+    "form": {
+      "name": "名前",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "表示名",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "説明",
+      "descriptionPlaceholder": "選択したグラフへの読み取り専用の監査アクセス",
+      "defaultScope": "デフォルトスコープ",
+      "permissions": "権限",
+      "resourceTypes": "リソースタイプ",
+      "inheritsToGraphs": "テナントスコープをグラフに継承",
+      "user": "ユーザー",
+      "selectUser": "ユーザーを選択",
+      "role": "ロール",
+      "selectRole": "ロールを選択",
+      "scope": "スコープ",
+      "graph": "グラフ",
+      "selectGraph": "グラフを選択",
+      "graphRequiredAssignment": "グラフスコープの割り当てにはグラフを選択してください。",
+      "credential": "認証情報",
+      "selectCredential": "認証情報を選択",
+      "optionalRole": "任意のロール",
+      "directPermissions": "直接権限",
+      "directResources": "直接リソース",
+      "graphRequiredScope": "グラフスコープのスコープにはグラフを選択してください。"
+    },
+    "permissions": {
+      "Read": "読み取り",
+      "Write": "書き込み",
+      "Delete": "削除",
+      "Admin": "管理者"
+    },
+    "scopes": {
+      "Tenant": "テナント",
+      "Graph": "グラフ",
+      "tenantScope": "テナントスコープ"
+    },
+    "resourceTypes": {
+      "Admin": "管理者",
+      "Graph": "グラフ",
+      "Node": "ノード",
+      "Edge": "エッジ",
+      "Label": "ラベル",
+      "Tag": "タグ",
+      "Vector": "ベクトル",
+      "Query": "クエリ",
+      "Transaction": "トランザクション"
+    }
+  },
+  "backups": {
+    "title": "バックアップ",
+    "createTooltip": "新しいバックアップを作成",
+    "createBackup": "バックアップを作成",
+    "deleteTitle": "「{name}」バックアップを削除してもよろしいですか？",
+    "deleteBody": "この操作によりバックアップが削除されます。",
+    "columns": {
+      "filename": "ファイル名",
+      "filenameDesc": "バックアップファイル名",
+      "size": "サイズ",
+      "sizeDesc": "バックアップファイルのサイズ",
+      "sha256": "SHA256",
+      "sha256Desc": "バックアップファイルの SHA-256 ハッシュ",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "filename": "ファイル名で検索"
+    },
+    "rowActions": {
+      "download": "ダウンロード",
+      "delete": "削除",
+      "menu": "操作"
+    },
+    "form": {
+      "filename": "ファイル名",
+      "filenamePlaceholder": "ファイル名を入力",
+      "filenameTooltip": "バックアップファイルの名前",
+      "filenameRequired": "ファイル名を入力してください"
+    },
+    "modalTitle": {
+      "create": "バックアップを追加",
+      "edit": "バックアップを編集"
+    },
+    "toast": {
+      "created": "バックアップを正常に作成しました",
+      "createFailed": "バックアップの作成に失敗しました",
+      "createFailedError": "バックアップの作成に失敗しました: {error}",
+      "deleted": "バックアップを正常に削除しました",
+      "missingFilename": "バックアップのファイル名がありません",
+      "unableToDownload": "バックアップをダウンロードできません"
+    }
+  },
+  "tenants": {
+    "title": "テナント",
+    "createTooltip": "新しいテナントを作成",
+    "createTenant": "テナントを作成",
+    "copyGuid": "GUIDをコピー",
+    "tenantJson": "テナント JSON",
+    "deleteTitle": "「{name}」テナントを削除してもよろしいですか？",
+    "deleteBody": "この操作によりテナントが削除されます。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "name": "名前",
+      "nameDesc": "テナントの表示名",
+      "active": "有効",
+      "activeDesc": "テナントが有効かどうか",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "search": {
+      "guid": "GUIDで検索",
+      "name": "名前で検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "name": "名前",
+      "nameTooltip": "テナントの表示名",
+      "nameRequired": "名前を入力してください。",
+      "namePlaceholder": "名前を入力",
+      "active": "有効",
+      "activeTooltip": "テナントが有効かどうか"
+    },
+    "modalTitle": {
+      "create": "テナントを作成",
+      "edit": "テナントを編集"
+    },
+    "toast": {
+      "created": "テナントを正常に作成しました",
+      "updated": "テナントを正常に更新しました",
+      "updateNoResponse": "テナントの更新に失敗しました - 応答がありませんでした",
+      "deleted": "テナントを正常に削除しました"
+    }
+  },
+  "users": {
+    "title": "ユーザー",
+    "createTooltip": "新しいユーザーを作成",
+    "createUser": "ユーザーを作成",
+    "copyGuid": "GUIDをコピー",
+    "userJson": "ユーザー JSON",
+    "deleteTitle": "「{name}」ユーザーを削除してもよろしいですか？",
+    "deleteBody": "この操作によりユーザーが削除されます。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "グローバル一意識別子",
+      "firstName": "名",
+      "firstNameDesc": "ユーザーの名",
+      "lastName": "姓",
+      "lastNameDesc": "ユーザーの姓",
+      "email": "メールアドレス",
+      "emailDesc": "ユーザーのメールアドレス",
+      "password": "パスワード",
+      "passwordDesc": "ユーザーのパスワード (目のアイコンをクリックで表示)",
+      "active": "有効",
+      "activeDesc": "ユーザーアカウントが有効かどうか",
+      "createdUtc": "作成日時 (UTC)",
+      "createdUtcDesc": "UTC での作成日時",
+      "actions": "操作",
+      "actionsDesc": "利用可能な操作"
+    },
+    "password": {
+      "show": "パスワードを表示",
+      "hide": "パスワードを非表示"
+    },
+    "search": {
+      "guid": "GUIDで検索",
+      "firstName": "名で検索",
+      "lastName": "姓で検索",
+      "email": "メールアドレスで検索"
+    },
+    "rowActions": {
+      "edit": "編集",
+      "delete": "削除",
+      "viewJson": "JSONを表示",
+      "menu": "操作"
+    },
+    "form": {
+      "firstName": "名",
+      "firstNameTooltip": "ユーザーの名",
+      "firstNameRequired": "名を入力してください。",
+      "firstNamePlaceholder": "名を入力",
+      "lastName": "姓",
+      "lastNameTooltip": "ユーザーの姓",
+      "lastNameRequired": "姓を入力してください。",
+      "lastNamePlaceholder": "姓を入力",
+      "email": "メールアドレス",
+      "emailTooltip": "ユーザーのメールアドレス",
+      "emailRequired": "メールアドレスを入力してください。",
+      "emailInvalid": "有効なメールアドレスを入力してください。",
+      "emailPlaceholder": "メールアドレス",
+      "password": "パスワード",
+      "passwordTooltip": "アカウントのパスワード",
+      "passwordRequired": "パスワードを入力してください。",
+      "passwordPlaceholder": "パスワードを入力",
+      "active": "有効",
+      "activeTooltip": "ユーザーアカウントが有効かどうか",
+      "tenantAdmin": "テナント管理者",
+      "tenantAdminTooltip": "このテナント内での全権限を付与します。",
+      "systemAdmin": "システム管理者",
+      "systemAdminTooltip": "すべてのテナントにわたるサーバー全体のスーパーユーザー権限を付与します。"
+    },
+    "modalTitle": {
+      "create": "ユーザーを作成",
+      "edit": "ユーザーを編集"
+    },
+    "toast": {
+      "created": "ユーザーを正常に作成しました",
+      "updated": "ユーザーを正常に更新しました",
+      "updateNoResponse": "ユーザーの更新に失敗しました - 応答がありませんでした",
+      "deleted": "ユーザーを正常に削除しました",
+      "updateFailed": "ユーザーの更新に失敗しました: {error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "ホーム",
+      "data": "データ",
+      "metadata": "メタデータ",
+      "manage": "管理",
+      "secure": "セキュリティ",
+      "administer": "運用管理"
+    },
+    "item": {
+      "home": "ホーム",
+      "homeTitle": "ダッシュボード概要",
+      "graphs": "グラフ",
+      "graphsTitle": "グラフコンテナを管理",
+      "nodes": "ノード",
+      "nodesTitle": "グラフノードを管理",
+      "edges": "エッジ",
+      "edgesTitle": "グラフエッジを管理",
+      "labels": "ラベル",
+      "labelsTitle": "分類ラベルを管理",
+      "tags": "タグ",
+      "tagsTitle": "キーと値のタグを管理",
+      "vectors": "ベクトル",
+      "vectorsTitle": "ベクトル埋め込みを管理",
+      "requests": "API リクエスト",
+      "requestsTitle": "HTTP リクエスト履歴",
+      "apiExplorer": "API エクスプローラー",
+      "apiExplorerTitle": "API エンドポイントを探索・呼び出し",
+      "tenants": "テナント",
+      "tenantsTitle": "テナントを管理",
+      "users": "ユーザー",
+      "usersTitle": "ユーザーアカウントを管理",
+      "credentials": "認証情報",
+      "credentialsTitle": "API 認証情報を管理",
+      "authorization": "認可",
+      "authorizationTitle": "ロールと認証情報スコープを管理",
+      "backups": "バックアップ",
+      "backupsTitle": "データベースバックアップを管理",
+      "settings": "設定",
+      "settingsTitle": "サーバー構成"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "アクセスが拒否されました",
+      "subtitle": "このページを表示する権限がありません。",
+      "backHome": "ホームへ移動"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "サーバー構成を編集します。一部の変更は即座に適用され、その他は再起動が必要です。",
+    "loading": "設定を読み込み中…",
+    "loadError": "サーバー設定を読み込めません。",
+    "reconnecting": "サーバーを再起動して再接続しています…",
+    "sections": {
+      "general": "一般",
+      "logging": "ログ記録",
+      "caching": "キャッシュ",
+      "requestHistory": "リクエスト履歴",
+      "observability": "オブザーバビリティ",
+      "debug": "デバッグ",
+      "rest": "REST サーバー",
+      "database": "データベース",
+      "security": "セキュリティ"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "リクエストタイムアウト (秒)",
+      "loggingEnable": "ログ記録を有効化",
+      "consoleLogging": "コンソールログ記録",
+      "minimumSeverity": "最小重大度",
+      "logDirectory": "ログディレクトリ",
+      "logFilename": "ログファイル名",
+      "logQueries": "クエリをログ記録",
+      "logResults": "結果をログ記録",
+      "cachingEnable": "キャッシュを有効化",
+      "cacheCapacity": "キャッシュ容量",
+      "cacheEvictCount": "エビクション数",
+      "requestHistoryEnable": "リクエスト履歴を有効化",
+      "maxRequestBodyBytes": "最大リクエストボディ (バイト)",
+      "maxResponseBodyBytes": "最大レスポンスボディ (バイト)",
+      "retentionDays": "保持期間 (日)",
+      "purgeIntervalMinutes": "パージ間隔 (分)",
+      "observabilityEnable": "オブザーバビリティを有効化",
+      "enablePrometheus": "Prometheus を有効化",
+      "enableOpenTelemetry": "OpenTelemetry を有効化",
+      "enableOtlpExporter": "OTLP エクスポーターを有効化",
+      "otlpEndpoint": "OTLP エンドポイント",
+      "metricsPath": "メトリクスパス",
+      "debugAuthentication": "認証をデバッグ",
+      "debugExceptions": "例外をデバッグ",
+      "debugRequests": "リクエストをデバッグ",
+      "debugDatabaseQueries": "データベースクエリをデバッグ",
+      "restHostname": "ホスト名",
+      "restPort": "ポート",
+      "restSslEnable": "SSL を有効化",
+      "databaseType": "データベースの種類",
+      "databaseHostname": "ホスト名",
+      "databasePort": "ポート",
+      "databaseName": "データベース名",
+      "databaseUsername": "ユーザー名",
+      "databasePassword": "パスワード",
+      "databaseMaxConnections": "最大接続数",
+      "adminBearerToken": "管理者ベアラートークン",
+      "encryptionKey": "暗号化キー",
+      "encryptionIv": "暗号化 IV"
+    },
+    "status": {
+      "appliedLive": "即時適用済み",
+      "restartRequired": "再起動が必要",
+      "liveHint": "即時適用",
+      "restartHint": "再起動が必要",
+      "liveHintTooltip": "このセクションの変更は保存時に即座に反映されます。",
+      "restartHintTooltip": "このセクションの変更はサーバーの再起動後にのみ反映されます。"
+    },
+    "actions": {
+      "save": "保存",
+      "discard": "変更を破棄",
+      "restart": "サーバーを再起動"
+    },
+    "restartModal": {
+      "title": "サーバーを再起動しますか？",
+      "body": "サーバーが終了し、保存された設定でコンテナが再起動します。アクティブな接続は一時的に中断されます。"
+    },
+    "toast": {
+      "saved": "設定を保存しました。",
+      "saveFailed": "設定を保存できません。",
+      "restartFailed": "サーバーを再起動できません。",
+      "reconnected": "サーバーがオンラインに戻りました。",
+      "reconnectTimeout": "サーバーが時間内に復帰しませんでした。ステータスを確認してください。"
+    }
+  }
+}

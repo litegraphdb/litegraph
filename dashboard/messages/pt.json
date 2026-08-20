@@ -1,0 +1,1465 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "Criar",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "update": "Atualizar",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar",
+      "close": "Fechar",
+      "next": "Próximo",
+      "retry": "Tentar novamente",
+      "refresh": "Atualizar",
+      "search": "Buscar",
+      "export": "Exportar",
+      "viewJson": "Ver JSON",
+      "login": "Entrar",
+      "logout": "Sair"
+    },
+    "states": {
+      "loading": "Carregando...",
+      "redirecting": "Redirecionando...",
+      "noData": "Sem dados",
+      "none": "Nenhum",
+      "notAvailable": "N/D",
+      "somethingWentWrong": "Algo deu errado.",
+      "cantViewDetails": "Não é possível ver os detalhes no momento."
+    },
+    "copy": {
+      "copyGuid": "Copiar GUID",
+      "copy": "Copiar",
+      "copied": "Copiado"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "Logotipo do LiteGraph",
+    "expand": "Expandir barra lateral",
+    "collapse": "Recolher barra lateral",
+    "flushTitle": "Descarregar o banco de dados no disco",
+    "flushToDisk": "Descarregar no disco",
+    "flushConfirm": "Tem certeza de que deseja descarregar o banco de dados no disco?"
+  },
+  "header": {
+    "graphLabel": "Grafo:",
+    "selectGraph": "Selecione o grafo ativo",
+    "selectAGraph": "Selecione um grafo",
+    "tenantLabel": "Tenant:",
+    "selectTenant": "Selecione o tenant ativo",
+    "selectATenant": "Selecione um tenant",
+    "retry": "Tentar novamente",
+    "connectedServer": "Servidor LiteGraph conectado",
+    "switchToLight": "Alternar para o modo claro",
+    "switchToDark": "Alternar para o modo escuro",
+    "github": "LiteGraph no GitHub",
+    "githubAria": "Repositório do LiteGraph no GitHub",
+    "signOut": "Sair do dashboard",
+    "logoutAria": "Sair",
+    "language": "Idioma",
+    "selectLanguage": "Selecionar idioma"
+  },
+  "login": {
+    "serverUrl": "URL do servidor LiteGraph",
+    "serverUrlPlaceholder": "https://seu-servidor-litegraph.com",
+    "serverUrlRequired": "Insira a URL do servidor LiteGraph!",
+    "onlyHttp": "Somente URLs HTTP ou HTTPS são permitidas!",
+    "validUrl": "Insira uma URL válida!",
+    "email": "E-mail",
+    "emailPlaceholder": "E-mail",
+    "emailRequired": "Insira seu e-mail!",
+    "validEmail": "Insira um e-mail válido!",
+    "tenant": "Tenant",
+    "selectTenant": "Selecionar tenant",
+    "tenantRequired": "Selecione um tenant!",
+    "password": "Senha",
+    "passwordPlaceholder": "Senha",
+    "passwordRequired": "Insira sua senha!",
+    "cancel": "Cancelar",
+    "login": "Entrar",
+    "next": "Próximo",
+    "loading": "Carregando...",
+    "defaultCredentials": "As credenciais padrão são default@user.com e password.",
+    "tenantNotFound": "Tenant não encontrado",
+    "loggedInSso": "Login realizado com sucesso via SSO.",
+    "heading": "Entrar",
+    "subheading": "Informe seu servidor, e-mail e senha para continuar.",
+    "logoAlt": "Logotipo do LiteGraph",
+    "invalidCredentials": "E-mail ou senha incorretos.",
+    "advancedToggle": "Opções avançadas de login",
+    "advancedHide": "Ocultar opções avançadas",
+    "advancedHelp": "Entre com o token de administrador de emergência do servidor. Apenas para recuperação e inicialização.",
+    "advancedTokenPlaceholder": "Token bearer de administrador",
+    "advancedTokenRequired": "Insira o token de administrador.",
+    "advancedTokenInvalid": "O token de administrador não foi aceito.",
+    "advancedLogin": "Entrar com token"
+  },
+  "graphs": {
+    "title": "Grafos",
+    "searchTooltip": "Buscar e filtrar grafos",
+    "createTooltip": "Criar um novo grafo",
+    "createGraph": "Criar grafo",
+    "entityName": "grafo(s)",
+    "copyGuid": "Copiar GUID",
+    "labelsCount": "{count, plural, one {# rótulo} other {# rótulos}}",
+    "tagsCount": "{count, plural, one {# tag} other {# tags}}",
+    "vectorsCount": "{count, plural, =0 {Nenhum} one {# vector} other {# vectors}}",
+    "deleteTitle": "Tem certeza de que deseja excluir este grafo?",
+    "deleteBody": "Esta ação excluirá o grafo.",
+    "graphJson": "JSON do grafo",
+    "columns": {
+      "name": "Nome",
+      "nameDesc": "Nome de exibição do grafo",
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "labels": "Rótulos",
+      "labelsDesc": "Rótulos de classificação atribuídos a este grafo",
+      "tags": "Tags",
+      "tagsDesc": "Tags de metadados chave-valor",
+      "vectors": "Vectors",
+      "vectorsDesc": "Embeddings de vector associados a este grafo",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "score": "Pontuação",
+      "scoreDesc": "Pontuação de relevância da busca",
+      "distance": "Distância",
+      "distanceDesc": "Distância vetorial em relação à consulta de busca",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "name": "Buscar nome",
+      "guid": "Buscar GUID",
+      "labels": "Buscar rótulos",
+      "tags": "Buscar tags"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "exportGexf": "Exportar para GEXF",
+      "enableVectorIndex": "Ativar índice de vector",
+      "readVectorIndexConfig": "Ler configuração do índice de vector",
+      "readVectorIndexStats": "Ler estatísticas do índice de vector",
+      "rebuildVectorIndex": "Reconstruir índice de vector",
+      "deleteVectorIndex": "Excluir índice de vector",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Insira o nome do grafo",
+      "nameTooltip": "Nome de exibição do grafo",
+      "labelsTooltip": "Rótulos associados a este grafo",
+      "tags": "Tags",
+      "tagsTooltip": "Tags chave-valor para este grafo",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Embeddings de vector para este grafo",
+      "data": "Dados",
+      "dataTooltip": "Dados JSON arbitrários anexados a este grafo",
+      "nameRequired": "O nome é obrigatório"
+    },
+    "modalTitle": {
+      "create": "Criar grafo",
+      "edit": "Editar grafo",
+      "view": "Ver grafo",
+      "loading": "Carregando grafo...",
+      "createOk": "Criar",
+      "updateOk": "Atualizar"
+    },
+    "toast": {
+      "exported": "Grafo exportado com sucesso",
+      "exportFailed": "Falha ao exportar o grafo",
+      "noGexf": "Nenhum conteúdo GEXF recebido",
+      "created": "Grafo adicionado com sucesso",
+      "updated": "Grafo atualizado com sucesso",
+      "deleted": "Grafo excluído com sucesso",
+      "updateFailed": "Falha ao atualizar o grafo: {error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "Ativar índice de vector",
+    "viewTitle": "Configuração do índice de vector",
+    "statsTitle": "Estatísticas do índice de vector",
+    "rebuildTitle": "Reconstruir índice de vector",
+    "deleteTitle": "Excluir índice de vector",
+    "type": "Tipo de índice de vector",
+    "typeTooltip": "Tipo de índice de vector a ser usado",
+    "selectType": "Selecione o tipo de índice de vector",
+    "typeRequired": "Selecione o tipo de índice de vector!",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "Nenhum",
+    "file": "Arquivo do índice de vector",
+    "fileTooltip": "Caminho do arquivo do índice de vector",
+    "fileRequired": "Insira o arquivo do índice de vector!",
+    "filePlaceholder": "ex.: graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "O arquivo deve terminar com .db e não deve conter espaços",
+    "threshold": "Limite do índice de vector",
+    "thresholdTooltip": "Número mínimo de vectors antes da indexação",
+    "thresholdPlaceholder": "Insira o limite",
+    "dimensionality": "Dimensionalidade do vector",
+    "dimensionalityTooltip": "Número de dimensões nos vectors",
+    "dimensionalityRequired": "Insira a dimensionalidade do vector!",
+    "dimensionalityPlaceholder": "Insira a dimensionalidade (ex.: 1536)",
+    "m": "M do índice de vector",
+    "mTooltip": "Número máximo de conexões por nó no grafo HNSW",
+    "mRequired": "Insira o M do índice de vector!",
+    "mPlaceholder": "Insira o valor de M (ex.: 16)",
+    "mHint": "Número de conexões por camada no índice HNSW",
+    "ef": "Ef do índice de vector",
+    "efTooltip": "Número de candidatos a considerar durante a busca",
+    "efRequired": "Insira o Ef do índice de vector!",
+    "efPlaceholder": "Insira o valor de Ef (ex.: 100)",
+    "efHint": "Parâmetro de busca para o índice HNSW",
+    "efConstruction": "Ef Construction do índice de vector",
+    "efConstructionTooltip": "Número de candidatos durante a construção do índice",
+    "efConstructionRequired": "Insira o Ef Construction do índice de vector!",
+    "efConstructionPlaceholder": "Insira o valor de Ef Construction (ex.: 200)",
+    "efConstructionHint": "Parâmetro de construção para o índice HNSW",
+    "enabledSuccess": "Índice de vector ativado com sucesso",
+    "loadConfigFailed": "Falha ao carregar a configuração do índice de vector",
+    "unableToRetrieveConfig": "Não foi possível recuperar os detalhes da configuração",
+    "configHint": "O índice de vector pode não estar ativado ou houve um problema ao acessar a configuração.",
+    "fileValidationDb": "O arquivo deve terminar com .db e não deve conter espaços",
+    "fileNoSpaces": "O arquivo do índice de vector não deve conter espaços!",
+    "fileEndsDb": "O arquivo do índice de vector deve terminar com .db!",
+    "rebuildConfirm": "Tem certeza de que deseja reconstruir o índice de vector?",
+    "rebuildBody": "Esta ação reconstruirá o índice de vector deste grafo. Esse processo pode levar algum tempo e afetará temporariamente o desempenho da busca vetorial.",
+    "rebuildSuccess": "Reconstrução do índice de vector iniciada com sucesso",
+    "rebuildFailed": "Falha ao reconstruir o índice de vector",
+    "deleteConfirm": "Tem certeza de que deseja excluir o índice de vector?",
+    "deleteBody": "Esta ação excluirá o índice de vector deste grafo.",
+    "deleteSuccess": "Índice de vector excluído com sucesso",
+    "deleteFailed": "Falha ao excluir o índice de vector",
+    "stats": {
+      "loadFailed": "Falha ao carregar as estatísticas do índice de vector",
+      "unableToRetrieve": "Não foi possível recuperar os detalhes das estatísticas",
+      "hint": "O índice de vector pode não estar ativado ou houve um problema ao acessar as estatísticas.",
+      "noStats": "Nenhuma estatística do índice de vector disponível",
+      "noStatsHint": "Este grafo pode não ter um índice de vector ativado ou as estatísticas não estão acessíveis.",
+      "loaded": "Carregado",
+      "notLoaded": "Não carregado",
+      "never": "Nunca",
+      "error": "Erro",
+      "errorProcessing": "Erro ao processar os dados das estatísticas",
+      "label": {
+        "vectorCount": "Contagem de vectors",
+        "dimensions": "Dimensões",
+        "indexType": "Tipo de índice",
+        "m": "Parâmetro M",
+        "efConstruction": "EF Construction",
+        "defaultEf": "EF padrão",
+        "indexFile": "Caminho do arquivo de índice",
+        "indexFileSize": "Tamanho do arquivo de índice",
+        "estimatedMemory": "Uso estimado de memória",
+        "lastRebuild": "Última reconstrução",
+        "status": "Status",
+        "distanceMetric": "Métrica de distância"
+      },
+      "desc": {
+        "vectorCount": "Número total de vectors no índice",
+        "dimensions": "Dimensionalidade dos vectors",
+        "indexType": "Tipo de algoritmo do índice de vector",
+        "m": "Número de conexões por elemento no grafo",
+        "efConstruction": "Parâmetro EF usado durante a construção do índice",
+        "defaultEf": "Parâmetro EF padrão para consultas de busca",
+        "indexFile": "Caminho do arquivo onde o índice é armazenado",
+        "indexFileSize": "Tamanho do arquivo de índice no disco",
+        "estimatedMemory": "Uso estimado de memória do índice",
+        "lastRebuild": "Data e hora da última reconstrução do índice",
+        "status": "Se o índice está atualmente carregado na memória",
+        "distanceMetric": "Métrica de distância usada para cálculos de similaridade"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "Exportar para JSONL",
+    "importIntoGraph": "Importar para o grafo",
+    "importNewGraph": "Importar (novo grafo)",
+    "exportSubgraph": "Exportar subgrafo",
+    "modal": {
+      "importTitle": "Importar para o grafo",
+      "importNewTitle": "Importar para um novo grafo",
+      "exportTitle": "Exportar para JSONL",
+      "exportSubgraphTitle": "Exportar subgrafo"
+    },
+    "fields": {
+      "guidStrategy": "Estratégia de GUID",
+      "onError": "Em caso de erro",
+      "maxDepth": "Profundidade máxima",
+      "direction": "Direção",
+      "includeData": "Incluir dados",
+      "includeSubordinates": "Incluir subordinados",
+      "maxEdgeCost": "Custo máximo de aresta",
+      "startNode": "Nó inicial"
+    },
+    "guidStrategy": {
+      "preserve": "Preservar",
+      "regenerate": "Regenerar",
+      "skip": "Ignorar",
+      "overwrite": "Sobrescrever"
+    },
+    "onError": {
+      "abort": "Abortar",
+      "skip": "Ignorar"
+    },
+    "direction": {
+      "outbound": "Saída",
+      "inbound": "Entrada",
+      "both": "Ambos"
+    },
+    "result": {
+      "nodesCreated": "Nós criados",
+      "nodesUpdated": "Nós atualizados",
+      "nodesSkipped": "Nós ignorados",
+      "edgesCreated": "Arestas criadas",
+      "edgesUpdated": "Arestas atualizadas",
+      "edgesSkipped": "Arestas ignoradas",
+      "warnings": "Avisos",
+      "title": "Resultado da importação",
+      "graphsCreated": "Grafos criados",
+      "linesRead": "Linhas lidas",
+      "linesIgnored": "Linhas ignoradas",
+      "newGraphGuid": "GUID do novo grafo",
+      "noWarnings": "Nenhum aviso."
+    },
+    "toast": {
+      "importSuccess": "Importação concluída com sucesso",
+      "importFailed": "Falha na importação",
+      "exportSuccess": "Exportação concluída com sucesso",
+      "exportFailed": "Falha na exportação"
+    },
+    "guidStrategyHelp": {
+      "preserve": "Manter os GUIDs originais do arquivo.",
+      "regenerate": "Atribuir novos GUIDs a cada objeto importado.",
+      "skip": "Manter os GUIDs originais e ignorar objetos que já existem.",
+      "overwrite": "Manter os GUIDs originais e sobrescrever objetos que já existem."
+    },
+    "onErrorHelp": {
+      "abort": "Parar a importação no primeiro erro.",
+      "skip": "Ignorar linhas com falha e continuar a importação."
+    },
+    "startNodeHelp": "O subgrafo é extraído a partir deste nó.",
+    "upload": {
+      "prompt": "Clique ou arraste um arquivo JSONL para esta área",
+      "hint": "Apenas arquivos .jsonl exportados do LiteGraph são suportados.",
+      "selected": "Arquivo selecionado"
+    },
+    "preview": {
+      "title": "Pré-visualização",
+      "headerLines": "Linhas de cabeçalho",
+      "nodes": "Nós",
+      "edges": "Arestas",
+      "empty": "Nenhum conteúdo reconhecível encontrado neste arquivo."
+    },
+    "actions": {
+      "import": "Importar",
+      "export": "Exportar"
+    },
+    "exportSubgraphDisabled": "Selecione um nó para exportar seu subgrafo.",
+    "copyGuid": "Copiar GUID"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "Arestas",
+    "searchTooltip": "Buscar e filtrar arestas",
+    "createTooltip": "Criar uma nova aresta",
+    "createEdge": "Criar aresta",
+    "entityName": "aresta(s)",
+    "edgeJson": "JSON da aresta",
+    "deleteTitle": "Tem certeza de que deseja excluir a aresta \"{name}\"?",
+    "deleteBody": "Esta ação excluirá a aresta.",
+    "labelsCount": "{count, plural, one {# rótulo} other {# rótulos}}",
+    "tagsCount": "{count, plural, one {# tag} other {# tags}}",
+    "vectorsCount": "{count, plural, =0 {Nenhum} one {# vector} other {# vectors}}",
+    "columns": {
+      "name": "Nome",
+      "nameDesc": "Nome de exibição da aresta",
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "from": "De",
+      "fromDesc": "Nó de origem desta aresta",
+      "to": "Para",
+      "toDesc": "Nó de destino desta aresta",
+      "cost": "Custo",
+      "costDesc": "Custo de travessia da aresta",
+      "labels": "Rótulos",
+      "labelsDesc": "Rótulos de classificação atribuídos a esta aresta",
+      "tags": "Tags",
+      "tagsDesc": "Tags de metadados chave-valor",
+      "vectors": "Vectors",
+      "vectorsDesc": "Embeddings de vector associados a esta aresta",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "score": "Pontuação",
+      "scoreDesc": "Pontuação de relevância da busca",
+      "distance": "Distância",
+      "distanceDesc": "Distância vetorial em relação à consulta de busca",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "name": "Buscar nome",
+      "guid": "Buscar GUID",
+      "from": "Buscar origem",
+      "to": "Buscar destino",
+      "labels": "Buscar rótulos",
+      "tags": "Buscar tags"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "graph": "Grafo",
+      "graphTooltip": "O grafo ao qual esta aresta pertence",
+      "guid": "GUID",
+      "guidTooltip": "Identificador globalmente único desta aresta",
+      "name": "Nome",
+      "nameTooltip": "Nome de exibição da aresta",
+      "namePlaceholder": "Insira o nome da aresta",
+      "nameRequired": "O nome da aresta é obrigatório",
+      "cost": "Custo",
+      "costTooltip": "Custo de travessia desta aresta",
+      "costPlaceholder": "Insira o custo da aresta",
+      "costRequired": "O custo da aresta é obrigatório",
+      "fromNode": "Nó de origem",
+      "fromNodeTooltip": "Nó de origem da aresta",
+      "fromRequired": "O nó de origem é obrigatório",
+      "fromSameAsTo": "O nó de origem não pode ser igual ao nó de destino",
+      "toNode": "Nó de destino",
+      "toNodeTooltip": "Nó de destino da aresta",
+      "toRequired": "O nó de destino é obrigatório",
+      "toSameAsFrom": "O nó de destino não pode ser igual ao nó de origem",
+      "labels": "Rótulos",
+      "labelsTooltip": "Rótulos associados a esta aresta",
+      "tags": "Tags",
+      "tagsTooltip": "Tags chave-valor para esta aresta",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Embeddings de vector para esta aresta",
+      "data": "Dados",
+      "dataTooltip": "Dados JSON arbitrários anexados a esta aresta",
+      "copyData": "Copiar dados"
+    },
+    "modalTitle": {
+      "create": "Criar aresta",
+      "edit": "Editar aresta",
+      "view": "Ver aresta",
+      "loading": "Carregando aresta..."
+    },
+    "toast": {
+      "created": "Aresta adicionada com sucesso",
+      "updated": "Aresta atualizada com sucesso",
+      "deleted": "Aresta excluída com sucesso",
+      "updateFailed": "Falha ao atualizar a aresta: {error}"
+    }
+  },
+  "home": {
+    "pageTitle": "Início",
+    "addNode": "Adicionar nó",
+    "addEdge": "Adicionar aresta"
+  },
+  "graphViewer": {
+    "loadingNodes": "Carregando nós...",
+    "loadingEdges": "Carregando arestas...",
+    "errorLoadingGraph": "Erro ao carregar o grafo",
+    "noNodes": "Este grafo não tem nós.",
+    "tooManyNodes": "Existem nós demais para renderizar o grafo corretamente. Exibindo os primeiros {count} nós.",
+    "controls": {
+      "button": "Controles",
+      "clearSubGraph": "Limpar subgrafo",
+      "searchSubGraph": "Buscar subgrafo",
+      "threeD": "3D",
+      "horizontalLayout": "Layout horizontal",
+      "depthAwareLayout": "Layout por profundidade",
+      "depthAwareTooltip": "Ciclos e retroligações densas são tratados automaticamente para que o layout por profundidade permaneça legível.",
+      "collapseRelatedNodes": "Recolher nós relacionados",
+      "collapseRelatedTooltip": "Clique nos nós agrupados para expandir. Os grupos são inferidos a partir de rótulos, chaves de tag informativas e padrões de conexão.",
+      "dragByLabel": "Arrastar por rótulo",
+      "showGraphLegend": "Mostrar legenda do grafo",
+      "showNodeName": "Mostrar nome do nó",
+      "collapseExpanded": "Recolher expandidos"
+    },
+    "node": {
+      "title": "Informações do nó",
+      "expand": "Expandir",
+      "guid": "GUID",
+      "name": "Nome",
+      "labels": "Rótulos",
+      "tags": "Tags",
+      "addNew": "Adicionar novo nó",
+      "openAddForm": "Abrir formulário de adição de nó",
+      "updateTooltip": "Atualizar nó",
+      "deleteTooltip": "Excluir nó",
+      "addEdgeTooltip": "Adicionar aresta",
+      "addEdge": "Adicionar aresta",
+      "deleteConfirmTitle": "Tem certeza de que deseja excluir o nó \"{name}\"?",
+      "deleteConfirmText": "Esta ação excluirá o nó."
+    },
+    "edge": {
+      "title": "Informações da aresta",
+      "expand": "Expandir",
+      "guid": "GUID",
+      "name": "Nome",
+      "from": "De",
+      "to": "Para",
+      "cost": "Custo",
+      "labels": "Rótulos",
+      "tags": "Tags",
+      "addNew": "Adicionar nova aresta",
+      "openAddForm": "Abrir formulário de adição de aresta",
+      "updateTooltip": "Atualizar aresta",
+      "deleteTooltip": "Excluir aresta",
+      "deleteConfirmTitle": "Tem certeza de que deseja excluir a aresta \"{name}\"?",
+      "deleteConfirmText": "Esta ação excluirá a aresta."
+    },
+    "nodeSearch": {
+      "title": "Buscar nós",
+      "placeholder": "Buscar nós por nome...",
+      "searchFailed": "Falha ao buscar nós. Tente novamente.",
+      "noNodesFound": "Nenhum nó encontrado",
+      "enterSearchTerm": "Insira um termo de busca para encontrar nós",
+      "total": "Total de {count} nós",
+      "columns": {
+        "name": "Nome",
+        "nameTooltip": "Nome de exibição do nó",
+        "labels": "Rótulos",
+        "labelsTooltip": "Rótulos de classificação",
+        "guid": "GUID",
+        "guidTooltip": "Identificador globalmente único"
+      }
+    }
+  },
+  "search": {
+    "tags": "Tags",
+    "tagsTooltip": "Filtrar por tags chave-valor",
+    "labelsTooltip": "Filtrar por rótulos de classificação",
+    "expression": "Expressão",
+    "expressionTooltip": "Filtrar usando a sintaxe de expressão",
+    "example": "Exemplo:",
+    "atLeastOneRequired": "Pelo menos um campo é obrigatório."
+  },
+  "nodes": {
+    "title": "Nós",
+    "searchTooltip": "Buscar e filtrar nós",
+    "createTooltip": "Criar um novo nó",
+    "createNode": "Criar nó",
+    "entityName": "nó(s)",
+    "copyGuid": "Copiar GUID",
+    "labelsCount": "{count, plural, one {# rótulo} other {# rótulos}}",
+    "tagsCount": "{count, plural, one {# tag} other {# tags}}",
+    "vectorsCount": "{count, plural, =0 {Nenhum} one {# vector} other {# vectors}}",
+    "deleteTitle": "Tem certeza de que deseja excluir o nó \"{name}\"?",
+    "deleteBody": "Esta ação excluirá o nó.",
+    "nodeJson": "JSON do nó",
+    "columns": {
+      "name": "Nome",
+      "nameDesc": "Nome de exibição do nó",
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "labels": "Rótulos",
+      "labelsDesc": "Rótulos de classificação atribuídos a este nó",
+      "tags": "Tags",
+      "tagsDesc": "Tags de metadados chave-valor",
+      "vectors": "Vectors",
+      "vectorsDesc": "Embeddings de vector associados a este nó",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "score": "Pontuação",
+      "scoreDesc": "Pontuação de relevância da busca",
+      "distance": "Distância",
+      "distanceDesc": "Distância vetorial em relação à consulta de busca",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "name": "Buscar nome",
+      "guid": "Buscar GUID",
+      "labels": "Buscar rótulos",
+      "tags": "Buscar tags"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "graph": "Grafo",
+      "graphTooltip": "O grafo ao qual este nó pertence",
+      "guid": "GUID",
+      "guidTooltip": "Identificador globalmente único deste nó",
+      "name": "Nome",
+      "namePlaceholder": "Insira o nome do nó",
+      "nameTooltip": "Nome de exibição do nó",
+      "nameRequired": "O nome do nó é obrigatório",
+      "labels": "Rótulos",
+      "labelsTooltip": "Rótulos associados a este nó",
+      "tags": "Tags",
+      "tagsTooltip": "Tags chave-valor para este nó",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Embeddings de vector para este nó",
+      "data": "Dados",
+      "dataTooltip": "Dados JSON arbitrários anexados a este nó",
+      "copyData": "Copiar dados"
+    },
+    "modalTitle": {
+      "create": "Criar nó",
+      "edit": "Editar nó",
+      "view": "Ver nó",
+      "loading": "Carregando nó...",
+      "createOk": "Criar",
+      "updateOk": "Atualizar"
+    },
+    "toast": {
+      "created": "Nó adicionado com sucesso",
+      "updated": "Nó atualizado com sucesso",
+      "deleted": "Nó excluído com sucesso",
+      "updateFailed": "Falha ao atualizar o nó: {error}"
+    }
+  },
+  "labels": {
+    "title": "Rótulos",
+    "createTooltip": "Criar um novo rótulo",
+    "createLabel": "Criar rótulo",
+    "copyGuid": "Copiar GUID",
+    "deleteTitle": "Tem certeza de que deseja excluir o rótulo \"{name}\"?",
+    "deleteBody": "Esta ação excluirá o rótulo.",
+    "labelJson": "JSON do rótulo",
+    "columns": {
+      "label": "Rótulo",
+      "labelDesc": "Valor de texto do rótulo",
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "node": "Nó",
+      "nodeDesc": "Nome do nó associado",
+      "edge": "Aresta",
+      "edgeDesc": "Nome da aresta associada",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "label": "Buscar rótulo",
+      "guid": "Buscar GUID",
+      "node": "Buscar nó",
+      "edge": "Buscar aresta"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "label": "Rótulo",
+      "labelTooltip": "Valor de texto do rótulo",
+      "labelRequired": "Insira o rótulo!",
+      "labelPlaceholder": "Insira o rótulo",
+      "node": "Nó",
+      "nodeTooltip": "Nó a associar a este rótulo",
+      "edge": "Aresta",
+      "edgeTooltip": "Aresta a associar a este rótulo"
+    },
+    "modalTitle": {
+      "create": "Criar rótulo",
+      "edit": "Editar rótulo"
+    },
+    "toast": {
+      "created": "Rótulo criado com sucesso",
+      "updated": "Rótulo atualizado com sucesso",
+      "deleted": "Rótulo excluído com sucesso",
+      "updateFailed": "Falha ao atualizar o rótulo: {error}",
+      "updateFailedNoResponse": "Falha ao atualizar o rótulo - nenhuma resposta recebida"
+    }
+  },
+  "tags": {
+    "title": "Tags",
+    "createTooltip": "Criar uma nova tag",
+    "createTag": "Criar tag",
+    "copyGuid": "Copiar GUID",
+    "deleteTitle": "Tem certeza de que deseja excluir a tag \"{name}\"?",
+    "deleteBody": "Esta ação excluirá a tag.",
+    "tagJson": "JSON da tag",
+    "columns": {
+      "key": "Chave",
+      "keyDesc": "Identificador da chave da tag",
+      "value": "Valor",
+      "valueDesc": "Valor da tag",
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "node": "Nó",
+      "nodeDesc": "Nome do nó associado",
+      "edge": "Aresta",
+      "edgeDesc": "Nome da aresta associada",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "key": "Buscar chave",
+      "value": "Buscar valor",
+      "guid": "Buscar GUID",
+      "node": "Buscar nó",
+      "edge": "Buscar aresta"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "key": "Chave",
+      "keyTooltip": "Identificador da chave da tag",
+      "keyRequired": "Insira a chave da tag!",
+      "keyPlaceholder": "Insira a chave da tag",
+      "value": "Valor",
+      "valueTooltip": "Valor da tag",
+      "valueRequired": "Insira o valor da tag!",
+      "valuePlaceholder": "Insira o valor da tag",
+      "node": "Nó",
+      "nodeTooltip": "Nó a associar a esta tag",
+      "edge": "Aresta",
+      "edgeTooltip": "Aresta a associar a esta tag"
+    },
+    "modalTitle": {
+      "create": "Criar tag",
+      "edit": "Editar tag"
+    },
+    "toast": {
+      "created": "Tag criada com sucesso",
+      "updated": "Tag atualizada com sucesso",
+      "deleted": "Tag excluída com sucesso",
+      "updateFailed": "Falha ao atualizar a tag: {error}",
+      "updateFailedNoResponse": "Falha ao atualizar a tag - nenhuma resposta recebida"
+    }
+  },
+  "vectors": {
+    "title": "Vectors",
+    "createTooltip": "Criar um novo vector",
+    "createVector": "Criar vector",
+    "copyGuid": "Copiar GUID",
+    "deleteTitle": "Tem certeza de que deseja excluir este vector?",
+    "deleteBody": "Esta ação excluirá o vector.",
+    "vectorJson": "JSON do vector",
+    "vectorsCount": "{count, plural, one {# vector} other {# vectors}}",
+    "columns": {
+      "model": "Modelo",
+      "modelDesc": "Nome do modelo do vector",
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "node": "Nó",
+      "nodeDesc": "Nome do nó associado",
+      "edge": "Aresta",
+      "edgeDesc": "Nome da aresta associada",
+      "dimensionality": "Dimensionalidade",
+      "dimensionalityDesc": "Número de dimensões do vector",
+      "content": "Conteúdo",
+      "contentDesc": "Texto do conteúdo do vector",
+      "vectors": "Vectors",
+      "vectorsDesc": "Valores do embedding de vector",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "model": "Buscar modelo",
+      "guid": "Buscar GUID",
+      "node": "Buscar nó",
+      "edge": "Buscar aresta",
+      "content": "Buscar conteúdo"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "model": "Modelo",
+      "modelTooltip": "Nome do modelo de embedding",
+      "modelRequired": "Insira o modelo!",
+      "modelPlaceholder": "Insira o modelo",
+      "dimensionality": "Dimensionalidade",
+      "dimensionalityTooltip": "Número de dimensões do vector",
+      "dimensionalityRequired": "Insira a dimensionalidade!",
+      "dimensionalityPlaceholder": "Insira a dimensionalidade",
+      "content": "Conteúdo",
+      "contentTooltip": "Conteúdo de texto associado ao vector",
+      "contentRequired": "Insira o conteúdo!",
+      "contentPlaceholder": "Insira o conteúdo",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Valores do embedding de vector como array JSON",
+      "vectorsRequired": "Insira os vectors!",
+      "node": "Nó",
+      "nodeTooltip": "Nó a associar a este vector",
+      "edge": "Aresta",
+      "edgeTooltip": "Aresta a associar a este vector"
+    },
+    "modalTitle": {
+      "create": "Criar vector",
+      "edit": "Editar vector"
+    },
+    "toast": {
+      "created": "Vector criado com sucesso",
+      "updated": "Vector atualizado com sucesso",
+      "deleted": "Vector excluído com sucesso",
+      "updateFailed": "Falha ao atualizar o vector: {error}"
+    }
+  },
+  "requestHistory": {
+    "title": "Histórico de requisições",
+    "columns": {
+      "time": "Hora",
+      "method": "Método",
+      "path": "Caminho",
+      "status": "Status",
+      "transaction": "Transação",
+      "duration": "Duração",
+      "size": "Tamanho (req/resp)",
+      "tenant": "Tenant",
+      "actions": "Ações"
+    },
+    "transaction": {
+      "noId": "transação"
+    },
+    "transactionState": {
+      "validation": "validação",
+      "committed": "confirmada",
+      "rolledBack": "revertida",
+      "failed": "com falha",
+      "transaction": "transação"
+    },
+    "transactionTags": {
+      "retryable": "reexecutável",
+      "conflict": "conflito"
+    },
+    "rowActions": {
+      "view": "Ver",
+      "viewJson": "Ver JSON",
+      "delete": "Excluir",
+      "menu": "Ações da requisição"
+    },
+    "filters": {
+      "allStatuses": "Todos os status",
+      "allOutcomes": "Todos os resultados",
+      "successful": "Bem-sucedidas",
+      "errors": "Erros",
+      "allRequests": "Todas as requisições",
+      "transactions": "Transações",
+      "nonTransactions": "Não transações",
+      "allMethods": "Todos os métodos",
+      "transactionIdPlaceholder": "ID da transação...",
+      "pathPlaceholder": "O caminho contém..."
+    },
+    "summary": {
+      "visibleRequests": "Requisições visíveis:",
+      "visibleErrors": "Erros visíveis:",
+      "errorRate": "Taxa de erro:",
+      "averageDuration": "Duração média:",
+      "p95Duration": "Duração P95:"
+    },
+    "telemetry": {
+      "title": "Telemetria operacional",
+      "prometheus": "Métricas do Prometheus",
+      "openTelemetry": "Configuração do OpenTelemetry",
+      "description": "O histórico de requisições é para inspeção de requisições recentes; métricas e traces são para monitoramento agregado."
+    },
+    "delete": {
+      "confirmTitle": "Excluir entrada do histórico de requisições?"
+    },
+    "toast": {
+      "loadFailed": "Não foi possível carregar o histórico de requisições",
+      "deleted": "Entrada excluída",
+      "deleteFailed": "Não foi possível excluir"
+    },
+    "entryJson": "JSON da entrada do histórico de requisições",
+    "chart": {
+      "title": "Requisições ao longo do tempo",
+      "ranges": {
+        "hour": "Última hora",
+        "day": "Último dia",
+        "week": "Última semana",
+        "month": "Último mês"
+      },
+      "total": "Total",
+      "success": "Sucesso",
+      "failed": "Falha",
+      "tooltip": {
+        "success": "Sucesso: {count}",
+        "failed": "Falha: {count}",
+        "total": "Total: {count}"
+      }
+    },
+    "detail": {
+      "title": "Detalhe da requisição",
+      "empty": "(vazio)",
+      "copyId": "Copiar ID",
+      "truncated": "[TRUNCADO]",
+      "entries": "{count} entradas",
+      "loadFailed": "Não foi possível carregar o detalhe da requisição",
+      "fields": {
+        "id": "ID",
+        "method": "Método",
+        "status": "Status",
+        "duration": "Duração",
+        "time": "Hora",
+        "sourceIp": "IP de origem",
+        "tenant": "Tenant",
+        "requestSize": "Tamanho da requisição",
+        "responseSize": "Tamanho da resposta",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "Cabeçalhos da requisição",
+        "requestBody": "Corpo da requisição",
+        "responseHeaders": "Cabeçalhos da resposta",
+        "responseBody": "Corpo da resposta",
+        "transactionDiagnostics": "Diagnóstico da transação"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "API Explorer",
+    "send": "Enviar",
+    "request": {
+      "title": "Requisição",
+      "resetTooltip": "Redefinir o corpo para o modelo",
+      "selectOperation": "Selecione uma operação...",
+      "copyUrl": "Copiar URL",
+      "body": "Corpo da requisição",
+      "recentRequests": "Requisições recentes",
+      "clear": "Limpar"
+    },
+    "params": {
+      "path": "Parâmetros de caminho",
+      "query": "Parâmetros de consulta"
+    },
+    "response": {
+      "title": "Resposta",
+      "transactionFailed": "Transação com falha",
+      "queryFailed": "Consulta com falha",
+      "noResponse": "(ainda sem resposta)",
+      "status": "Status",
+      "contentType": "Content-Type",
+      "duration": "Duração",
+      "size": "Tamanho",
+      "copyCode": "Copiar código",
+      "selectOperationHint": "(selecione uma operação)"
+    },
+    "tabs": {
+      "preview": "Pré-visualização",
+      "body": "Corpo",
+      "headers": "Cabeçalhos",
+      "status": "Status",
+      "code": "Código"
+    },
+    "toast": {
+      "loadSpecFailed": "Não foi possível carregar a especificação OpenAPI",
+      "requestFailed": "Falha na requisição: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} falhou{indexText}: {error}.",
+      "defaultOperation": "operação",
+      "defaultObject": "objeto",
+      "guid": " ({guid})",
+      "indexText": " no índice {index}",
+      "noError": "Nenhum detalhe de erro retornado.",
+      "validation": " A transação falhou na validação antes de iniciar.",
+      "rolledBack": " A transação foi revertida.",
+      "transactionId": " Transação {transactionId}.",
+      "state": " Estado: {state}.",
+      "provider": " Provedor: {provider}.",
+      "providerError": " Erro do provedor: {providerErrorCode}.",
+      "retryable": " A falha está marcada como reexecutável.",
+      "conflict": " Conflito de concorrência detectado.",
+      "queryErrorAt": "Erro de consulta em {location}: {description}",
+      "queryError": "Erro de consulta: {description}"
+    }
+  },
+  "credentials": {
+    "title": "Credenciais",
+    "createTooltip": "Criar uma nova credencial",
+    "createCredential": "Criar credencial",
+    "copyGuid": "Copiar GUID",
+    "credentialJson": "JSON da credencial",
+    "deleteTitle": "Tem certeza de que deseja excluir a credencial \"{name}\"?",
+    "deleteBody": "Esta ação excluirá a credencial.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "user": "Usuário",
+      "userDesc": "Nome do usuário associado",
+      "name": "Nome",
+      "nameDesc": "Nome de exibição da credencial",
+      "bearerToken": "Token Bearer",
+      "bearerTokenDesc": "Token bearer de autenticação",
+      "active": "Ativa",
+      "activeDesc": "Se a credencial está ativa",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "guid": "Buscar GUID",
+      "user": "Buscar usuário",
+      "name": "Buscar nome"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "userGuid": "GUID do usuário",
+      "userGuidTooltip": "Usuário ao qual esta credencial pertence",
+      "userGuidRequired": "Selecione o GUID do usuário!",
+      "userGuidPlaceholder": "Selecione o GUID do usuário",
+      "name": "Nome",
+      "nameTooltip": "Nome de exibição da credencial",
+      "nameRequired": "Insira o nome!",
+      "namePlaceholder": "Insira o nome",
+      "bearerToken": "Token Bearer",
+      "bearerTokenTooltip": "Token bearer de autenticação",
+      "bearerTokenRequired": "Insira o token bearer!",
+      "bearerTokenPlaceholder": "Insira o token bearer",
+      "active": "Ativa",
+      "activeTooltip": "Se a credencial está ativa"
+    },
+    "modalTitle": {
+      "create": "Criar credencial",
+      "edit": "Editar credencial"
+    },
+    "toast": {
+      "created": "Credencial criada com sucesso",
+      "updated": "Credencial atualizada com sucesso",
+      "updateNoResponse": "Falha ao atualizar a credencial - nenhuma resposta recebida",
+      "deleted": "Credencial excluída com sucesso",
+      "updateFailed": "Falha ao atualizar a credencial: {error}"
+    }
+  },
+  "authorization": {
+    "title": "Autorização",
+    "createTooltip": "Criar uma função personalizada",
+    "adminRequired": "É necessária permissão de administrador",
+    "createRole": "Criar função",
+    "roleJson": "JSON da função de autorização",
+    "tabs": {
+      "roles": "Funções",
+      "userRoles": "Funções de usuário",
+      "credentialScopes": "Escopos de credencial"
+    },
+    "sections": {
+      "effectiveUserPermissions": "Permissões efetivas do usuário",
+      "effectiveCredentialPermissions": "Permissões efetivas da credencial"
+    },
+    "states": {
+      "selectTenant": "Selecione um tenant para gerenciar a autorização.",
+      "adminWarning": "É necessária permissão de administrador para alterar funções ou escopos de credencial."
+    },
+    "columns": {
+      "name": "Nome",
+      "scope": "Escopo",
+      "permissions": "Permissões",
+      "resources": "Recursos",
+      "builtIn": "Integrada",
+      "actions": "Ações",
+      "role": "Função",
+      "graph": "Grafo",
+      "source": "Origem"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "viewJson": "Ver JSON",
+      "delete": "Excluir",
+      "revoke": "Revogar",
+      "menu": "Ações"
+    },
+    "labels": {
+      "builtIn": "Integrada",
+      "custom": "Personalizada",
+      "immutable": "Imutável",
+      "directRole": "Função direta",
+      "directGrant": "Concessão direta"
+    },
+    "confirm": {
+      "deleteRoleTitle": "Excluir função?",
+      "deleteRoleBody": "Excluir \"{name}\"?",
+      "revokeRole": "Revogar função?",
+      "revokeScope": "Revogar escopo de credencial?"
+    },
+    "actions": {
+      "assignRole": "Atribuir função",
+      "assignScope": "Atribuir escopo"
+    },
+    "modalTitle": {
+      "create": "Criar função",
+      "edit": "Editar função"
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "Nome de exibição",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Acesso de auditoria somente leitura para grafos selecionados",
+      "defaultScope": "Escopo padrão",
+      "permissions": "Permissões",
+      "resourceTypes": "Tipos de recurso",
+      "inheritsToGraphs": "O escopo de tenant é herdado pelos grafos",
+      "user": "Usuário",
+      "selectUser": "Selecionar usuário",
+      "role": "Função",
+      "selectRole": "Selecionar função",
+      "scope": "Escopo",
+      "graph": "Grafo",
+      "selectGraph": "Selecionar grafo",
+      "graphRequiredAssignment": "Selecione o grafo para atribuições com escopo de grafo.",
+      "credential": "Credencial",
+      "selectCredential": "Selecionar credencial",
+      "optionalRole": "Função opcional",
+      "directPermissions": "Permissões diretas",
+      "directResources": "Recursos diretos",
+      "graphRequiredScope": "Selecione o grafo para escopos com escopo de grafo."
+    },
+    "permissions": {
+      "Read": "Leitura",
+      "Write": "Escrita",
+      "Delete": "Exclusão",
+      "Admin": "Administrador"
+    },
+    "scopes": {
+      "Tenant": "Tenant",
+      "Graph": "Grafo",
+      "tenantScope": "Escopo de tenant"
+    },
+    "resourceTypes": {
+      "Admin": "Administrador",
+      "Graph": "Grafo",
+      "Node": "Nó",
+      "Edge": "Aresta",
+      "Label": "Rótulo",
+      "Tag": "Tag",
+      "Vector": "Vector",
+      "Query": "Consulta",
+      "Transaction": "Transação"
+    }
+  },
+  "backups": {
+    "title": "Backups",
+    "createTooltip": "Criar um novo backup",
+    "createBackup": "Criar backup",
+    "deleteTitle": "Tem certeza de que deseja excluir o backup \"{name}\"?",
+    "deleteBody": "Esta ação excluirá o backup.",
+    "columns": {
+      "filename": "Nome do arquivo",
+      "filenameDesc": "Nome do arquivo de backup",
+      "size": "Tamanho",
+      "sizeDesc": "Tamanho do arquivo de backup",
+      "sha256": "SHA256",
+      "sha256Desc": "Hash SHA-256 do arquivo de backup",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "filename": "Buscar nome do arquivo"
+    },
+    "rowActions": {
+      "download": "Baixar",
+      "delete": "Excluir",
+      "menu": "Ações"
+    },
+    "form": {
+      "filename": "Nome do arquivo",
+      "filenamePlaceholder": "Insira o nome do arquivo",
+      "filenameTooltip": "Nome do arquivo de backup",
+      "filenameRequired": "Insira um nome de arquivo"
+    },
+    "modalTitle": {
+      "create": "Adicionar backup",
+      "edit": "Editar backup"
+    },
+    "toast": {
+      "created": "Backup criado com sucesso",
+      "createFailed": "Falha ao criar o backup",
+      "createFailedError": "Falha ao criar o backup: {error}",
+      "deleted": "Backup excluído com sucesso",
+      "missingFilename": "Nome do arquivo de backup ausente",
+      "unableToDownload": "Não foi possível baixar o backup"
+    }
+  },
+  "tenants": {
+    "title": "Tenants",
+    "createTooltip": "Criar um novo tenant",
+    "createTenant": "Criar tenant",
+    "copyGuid": "Copiar GUID",
+    "tenantJson": "JSON do tenant",
+    "deleteTitle": "Tem certeza de que deseja excluir o tenant \"{name}\"?",
+    "deleteBody": "Esta ação excluirá o tenant.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "name": "Nome",
+      "nameDesc": "Nome de exibição do tenant",
+      "active": "Ativo",
+      "activeDesc": "Se o tenant está ativo",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "search": {
+      "guid": "Buscar GUID",
+      "name": "Buscar nome"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "name": "Nome",
+      "nameTooltip": "Nome de exibição do tenant",
+      "nameRequired": "Insira o nome!",
+      "namePlaceholder": "Insira o nome",
+      "active": "Ativo",
+      "activeTooltip": "Se o tenant está ativo"
+    },
+    "modalTitle": {
+      "create": "Criar tenant",
+      "edit": "Editar tenant"
+    },
+    "toast": {
+      "created": "Tenant criado com sucesso",
+      "updated": "Tenant atualizado com sucesso",
+      "updateNoResponse": "Falha ao atualizar o tenant - nenhuma resposta recebida",
+      "deleted": "Tenant excluído com sucesso"
+    }
+  },
+  "users": {
+    "title": "Usuários",
+    "createTooltip": "Criar um novo usuário",
+    "createUser": "Criar usuário",
+    "copyGuid": "Copiar GUID",
+    "userJson": "JSON do usuário",
+    "deleteTitle": "Tem certeza de que deseja excluir o usuário \"{name}\"?",
+    "deleteBody": "Esta ação excluirá o usuário.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Identificador globalmente único",
+      "firstName": "Nome",
+      "firstNameDesc": "Nome do usuário",
+      "lastName": "Sobrenome",
+      "lastNameDesc": "Sobrenome do usuário",
+      "email": "E-mail",
+      "emailDesc": "Endereço de e-mail do usuário",
+      "password": "Senha",
+      "passwordDesc": "Senha do usuário (clique no olho para revelar)",
+      "active": "Ativo",
+      "activeDesc": "Se a conta do usuário está ativa",
+      "createdUtc": "Criado em UTC",
+      "createdUtcDesc": "Data e hora de criação em UTC",
+      "actions": "Ações",
+      "actionsDesc": "Operações disponíveis"
+    },
+    "password": {
+      "show": "Mostrar senha",
+      "hide": "Ocultar senha"
+    },
+    "search": {
+      "guid": "Buscar GUID",
+      "firstName": "Buscar nome",
+      "lastName": "Buscar sobrenome",
+      "email": "Buscar e-mail"
+    },
+    "rowActions": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "viewJson": "Ver JSON",
+      "menu": "Ações"
+    },
+    "form": {
+      "firstName": "Nome",
+      "firstNameTooltip": "Nome do usuário",
+      "firstNameRequired": "Insira o nome!",
+      "firstNamePlaceholder": "Insira o nome",
+      "lastName": "Sobrenome",
+      "lastNameTooltip": "Sobrenome do usuário",
+      "lastNameRequired": "Insira o sobrenome!",
+      "lastNamePlaceholder": "Insira o sobrenome",
+      "email": "E-mail",
+      "emailTooltip": "Endereço de e-mail do usuário",
+      "emailRequired": "Insira seu e-mail!",
+      "emailInvalid": "Insira um e-mail válido!",
+      "emailPlaceholder": "E-mail",
+      "password": "Senha",
+      "passwordTooltip": "Senha da conta",
+      "passwordRequired": "Insira a senha!",
+      "passwordPlaceholder": "Insira a senha",
+      "active": "Ativo",
+      "activeTooltip": "Se a conta do usuário está ativa",
+      "tenantAdmin": "Administrador do tenant",
+      "tenantAdminTooltip": "Concede direitos totais dentro deste tenant.",
+      "systemAdmin": "Administrador do sistema",
+      "systemAdminTooltip": "Concede direitos de superusuário em todo o servidor, em todos os tenants."
+    },
+    "modalTitle": {
+      "create": "Criar usuário",
+      "edit": "Editar usuário"
+    },
+    "toast": {
+      "created": "Usuário criado com sucesso",
+      "updated": "Usuário atualizado com sucesso",
+      "updateNoResponse": "Falha ao atualizar o usuário - nenhuma resposta recebida",
+      "deleted": "Usuário excluído com sucesso",
+      "updateFailed": "Falha ao atualizar o usuário: {error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "Início",
+      "data": "Dados",
+      "metadata": "Metadados",
+      "manage": "Gerenciar",
+      "secure": "Segurança",
+      "administer": "Administrar"
+    },
+    "item": {
+      "home": "Início",
+      "homeTitle": "Visão geral do dashboard",
+      "graphs": "Grafos",
+      "graphsTitle": "Gerenciar contêineres de grafo",
+      "nodes": "Nós",
+      "nodesTitle": "Gerenciar nós do grafo",
+      "edges": "Arestas",
+      "edgesTitle": "Gerenciar arestas do grafo",
+      "labels": "Rótulos",
+      "labelsTitle": "Gerenciar rótulos de classificação",
+      "tags": "Tags",
+      "tagsTitle": "Gerenciar tags chave-valor",
+      "vectors": "Vectors",
+      "vectorsTitle": "Gerenciar embeddings de vector",
+      "requests": "Requisições da API",
+      "requestsTitle": "Histórico de requisições HTTP",
+      "apiExplorer": "API Explorer",
+      "apiExplorerTitle": "Explorar e invocar endpoints da API",
+      "tenants": "Tenants",
+      "tenantsTitle": "Gerenciar tenants",
+      "users": "Usuários",
+      "usersTitle": "Gerenciar contas de usuário",
+      "credentials": "Credenciais",
+      "credentialsTitle": "Gerenciar credenciais da API",
+      "authorization": "Autorização",
+      "authorizationTitle": "Gerenciar funções e escopos de credencial",
+      "backups": "Backup",
+      "backupsTitle": "Gerenciar backups do banco de dados",
+      "settings": "Configurações",
+      "settingsTitle": "Configuração do servidor"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "Acesso negado",
+      "subtitle": "Você não tem permissão para ver esta página.",
+      "backHome": "Ir para o início"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "subtitle": "Edite a configuração do servidor. Algumas alterações são aplicadas imediatamente; outras exigem uma reinicialização.",
+    "loading": "Carregando configurações…",
+    "loadError": "Não foi possível carregar as configurações do servidor.",
+    "reconnecting": "Reiniciando o servidor e reconectando…",
+    "sections": {
+      "general": "Geral",
+      "logging": "Registro de logs",
+      "caching": "Cache",
+      "requestHistory": "Histórico de requisições",
+      "observability": "Observabilidade",
+      "debug": "Depuração",
+      "rest": "Servidor REST",
+      "database": "Banco de dados",
+      "security": "Segurança"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "Tempo limite da requisição (segundos)",
+      "loggingEnable": "Ativar registro de logs",
+      "consoleLogging": "Registro no console",
+      "minimumSeverity": "Severidade mínima",
+      "logDirectory": "Diretório de logs",
+      "logFilename": "Nome do arquivo de log",
+      "logQueries": "Registrar consultas",
+      "logResults": "Registrar resultados",
+      "cachingEnable": "Ativar cache",
+      "cacheCapacity": "Capacidade do cache",
+      "cacheEvictCount": "Contagem de remoção",
+      "requestHistoryEnable": "Ativar histórico de requisições",
+      "maxRequestBodyBytes": "Corpo máximo da requisição (bytes)",
+      "maxResponseBodyBytes": "Corpo máximo da resposta (bytes)",
+      "retentionDays": "Retenção (dias)",
+      "purgeIntervalMinutes": "Intervalo de limpeza (minutos)",
+      "observabilityEnable": "Ativar observabilidade",
+      "enablePrometheus": "Ativar Prometheus",
+      "enableOpenTelemetry": "Ativar OpenTelemetry",
+      "enableOtlpExporter": "Ativar exportador OTLP",
+      "otlpEndpoint": "Endpoint OTLP",
+      "metricsPath": "Caminho das métricas",
+      "debugAuthentication": "Depurar autenticação",
+      "debugExceptions": "Depurar exceções",
+      "debugRequests": "Depurar requisições",
+      "debugDatabaseQueries": "Depurar consultas do banco de dados",
+      "restHostname": "Nome do host",
+      "restPort": "Porta",
+      "restSslEnable": "Ativar SSL",
+      "databaseType": "Tipo de banco de dados",
+      "databaseHostname": "Nome do host",
+      "databasePort": "Porta",
+      "databaseName": "Nome do banco de dados",
+      "databaseUsername": "Nome de usuário",
+      "databasePassword": "Senha",
+      "databaseMaxConnections": "Máximo de conexões",
+      "adminBearerToken": "Token bearer de administrador",
+      "encryptionKey": "Chave de criptografia",
+      "encryptionIv": "IV de criptografia"
+    },
+    "status": {
+      "appliedLive": "Aplicado ao vivo",
+      "restartRequired": "Reinicialização necessária",
+      "liveHint": "Aplica ao vivo",
+      "restartHint": "Requer reinicialização",
+      "liveHintTooltip": "As alterações nesta seção entram em vigor imediatamente ao salvar.",
+      "restartHintTooltip": "As alterações nesta seção só entram em vigor após uma reinicialização do servidor."
+    },
+    "actions": {
+      "save": "Salvar",
+      "discard": "Descartar alterações",
+      "restart": "Reiniciar servidor"
+    },
+    "restartModal": {
+      "title": "Reiniciar o servidor?",
+      "body": "O servidor será encerrado e o contêiner será reiniciado com as configurações salvas. As conexões ativas serão interrompidas brevemente."
+    },
+    "toast": {
+      "saved": "Configurações salvas.",
+      "saveFailed": "Não foi possível salvar as configurações.",
+      "restartFailed": "Não foi possível reiniciar o servidor.",
+      "reconnected": "O servidor está online novamente.",
+      "reconnectTimeout": "O servidor não voltou a tempo. Verifique o status dele."
+    }
+  }
+}

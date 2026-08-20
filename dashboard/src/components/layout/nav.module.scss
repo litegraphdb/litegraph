@@ -26,3 +26,40 @@
   padding: 0 var(--ant-padding);
   box-sizing: border-box;
 }
+
+// Tighten the vertical rhythm of the table-of-contents so the grouped
+// sections (HOME / DATA / METADATA / MANAGE / SECURE / ADMINISTER) and their
+// items read as a compact list rather than a spread-out one.
+.navMenu {
+  border-inline-end: none !important;
+
+  :global(.ant-menu-item),
+  :global(.ant-menu-submenu-title) {
+    height: 34px;
+    line-height: 34px;
+    margin-block: 2px;
+    padding-inline: 16px !important;
+  }
+
+  // Section group headers: smaller, tighter, with just enough separation.
+  :global(.ant-menu-item-group-title) {
+    padding: 10px 16px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    color: var(--ant-color-text-tertiary);
+  }
+
+  // Collapse the extra gap AntD inserts between adjacent groups.
+  :global(.ant-menu-item-group + .ant-menu-item-group) {
+    margin-top: 2px;
+  }
+
+  :global(.ant-menu-item-group-list) {
+    :global(.ant-menu-item) {
+      margin-block: 1px;
+    }
+  }
+}

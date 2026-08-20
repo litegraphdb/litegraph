@@ -6,7 +6,17 @@
  * `dashboard/messages/<code>.json`; no application logic needs to change.
  */
 
-export type AppLocale = 'en' | 'es';
+export type AppLocale =
+  | 'en'
+  | 'es'
+  | 'pt'
+  | 'fr'
+  | 'de'
+  | 'it'
+  | 'ja'
+  | 'fa'
+  | 'yue'
+  | 'zh';
 
 export interface LocaleDescriptor {
   /** BCP-47 locale code used as the canonical identifier. */
@@ -28,6 +38,14 @@ export const DEFAULT_LOCALE: AppLocale = 'en';
 export const LOCALE_REGISTRY: LocaleDescriptor[] = [
   { code: 'en', englishName: 'English', nativeName: 'English', dir: 'ltr', fallback: 'en' },
   { code: 'es', englishName: 'Spanish', nativeName: 'Español', dir: 'ltr', fallback: 'en' },
+  { code: 'pt', englishName: 'Portuguese', nativeName: 'Português', dir: 'ltr', fallback: 'en' },
+  { code: 'fr', englishName: 'French', nativeName: 'Français', dir: 'ltr', fallback: 'en' },
+  { code: 'de', englishName: 'German', nativeName: 'Deutsch', dir: 'ltr', fallback: 'en' },
+  { code: 'it', englishName: 'Italian', nativeName: 'Italiano', dir: 'ltr', fallback: 'en' },
+  { code: 'ja', englishName: 'Japanese', nativeName: '日本語', dir: 'ltr', fallback: 'en' },
+  { code: 'fa', englishName: 'Farsi', nativeName: 'فارسی', dir: 'rtl', fallback: 'en' },
+  { code: 'yue', englishName: 'Cantonese', nativeName: '粵語', dir: 'ltr', fallback: 'en' },
+  { code: 'zh', englishName: 'Mandarin', nativeName: '中文', dir: 'ltr', fallback: 'en' },
 ];
 
 /** List of supported locale codes. */

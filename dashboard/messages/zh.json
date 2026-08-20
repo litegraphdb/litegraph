@@ -1,0 +1,1465 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "创建",
+      "edit": "编辑",
+      "delete": "删除",
+      "update": "更新",
+      "save": "保存",
+      "cancel": "取消",
+      "confirm": "确认",
+      "close": "关闭",
+      "next": "下一步",
+      "retry": "重试",
+      "refresh": "刷新",
+      "search": "搜索",
+      "export": "导出",
+      "viewJson": "查看 JSON",
+      "login": "登录",
+      "logout": "退出登录"
+    },
+    "states": {
+      "loading": "加载中……",
+      "redirecting": "正在跳转……",
+      "noData": "暂无数据",
+      "none": "无",
+      "notAvailable": "不适用",
+      "somethingWentWrong": "出错了。",
+      "cantViewDetails": "暂时无法查看详情。"
+    },
+    "copy": {
+      "copyGuid": "复制 GUID",
+      "copy": "复制",
+      "copied": "已复制"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "LiteGraph 徽标",
+    "expand": "展开侧边栏",
+    "collapse": "折叠侧边栏",
+    "flushTitle": "将数据库刷写到磁盘",
+    "flushToDisk": "刷写到磁盘",
+    "flushConfirm": "确定要将数据库刷写到磁盘吗？"
+  },
+  "header": {
+    "graphLabel": "图：",
+    "selectGraph": "选择当前图",
+    "selectAGraph": "选择一个图",
+    "tenantLabel": "租户：",
+    "selectTenant": "选择当前租户",
+    "selectATenant": "选择一个租户",
+    "retry": "重试",
+    "connectedServer": "已连接的 LiteGraph 服务器",
+    "switchToLight": "切换到浅色模式",
+    "switchToDark": "切换到深色模式",
+    "github": "GitHub 上的 LiteGraph",
+    "githubAria": "LiteGraph GitHub 代码仓库",
+    "signOut": "退出仪表板登录",
+    "logoutAria": "退出登录",
+    "language": "语言",
+    "selectLanguage": "选择语言"
+  },
+  "login": {
+    "serverUrl": "LiteGraph 服务器 URL",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "请输入 LiteGraph 服务器 URL！",
+    "onlyHttp": "仅允许 HTTP 或 HTTPS URL！",
+    "validUrl": "请输入有效的 URL！",
+    "email": "邮箱",
+    "emailPlaceholder": "邮箱",
+    "emailRequired": "请输入您的邮箱！",
+    "validEmail": "请输入有效的邮箱！",
+    "tenant": "租户",
+    "selectTenant": "选择租户",
+    "tenantRequired": "请选择一个租户！",
+    "password": "密码",
+    "passwordPlaceholder": "密码",
+    "passwordRequired": "请输入您的密码！",
+    "cancel": "取消",
+    "login": "登录",
+    "next": "下一步",
+    "loading": "加载中……",
+    "defaultCredentials": "默认凭据为 default@user.com 和 password。",
+    "tenantNotFound": "未找到租户",
+    "loggedInSso": "已通过 SSO 成功登录。",
+    "heading": "登录",
+    "subheading": "输入您的服务器、邮箱和密码以继续。",
+    "logoAlt": "LiteGraph 徽标",
+    "invalidCredentials": "邮箱或密码不正确。",
+    "advancedToggle": "高级登录选项",
+    "advancedHide": "隐藏高级选项",
+    "advancedHelp": "使用服务器的应急管理员令牌登录。仅用于恢复和引导初始化。",
+    "advancedTokenPlaceholder": "管理员 bearer 令牌",
+    "advancedTokenRequired": "请输入管理员令牌。",
+    "advancedTokenInvalid": "管理员令牌未被接受。",
+    "advancedLogin": "使用令牌登录"
+  },
+  "graphs": {
+    "title": "图",
+    "searchTooltip": "搜索和筛选图",
+    "createTooltip": "创建新图",
+    "createGraph": "创建图",
+    "entityName": "个图",
+    "copyGuid": "复制 GUID",
+    "labelsCount": "{count, plural, one {# 个标签} other {# 个标签}}",
+    "tagsCount": "{count, plural, one {# 个标记} other {# 个标记}}",
+    "vectorsCount": "{count, plural, =0 {无} one {# 个向量} other {# 个向量}}",
+    "deleteTitle": "确定要删除此图吗？",
+    "deleteBody": "此操作将删除图。",
+    "graphJson": "图 JSON",
+    "columns": {
+      "name": "名称",
+      "nameDesc": "图的显示名称",
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "labels": "标签",
+      "labelsDesc": "分配给此图的分类标签",
+      "tags": "标记",
+      "tagsDesc": "键值元数据标记",
+      "vectors": "向量",
+      "vectorsDesc": "与此图关联的向量嵌入",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "score": "得分",
+      "scoreDesc": "搜索的相关性得分",
+      "distance": "距离",
+      "distanceDesc": "与搜索查询的向量距离",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "name": "搜索名称",
+      "guid": "搜索 GUID",
+      "labels": "搜索标签",
+      "tags": "搜索标记"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "exportGexf": "导出为 GEXF",
+      "enableVectorIndex": "启用向量索引",
+      "readVectorIndexConfig": "读取向量索引配置",
+      "readVectorIndexStats": "读取向量索引统计信息",
+      "rebuildVectorIndex": "重建向量索引",
+      "deleteVectorIndex": "删除向量索引",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "name": "名称",
+      "namePlaceholder": "输入图名称",
+      "nameTooltip": "图的显示名称",
+      "labelsTooltip": "与此图关联的标签",
+      "tags": "标记",
+      "tagsTooltip": "此图的键值标记",
+      "vectors": "向量",
+      "vectorsTooltip": "此图的向量嵌入",
+      "data": "数据",
+      "dataTooltip": "附加到此图的任意 JSON 数据",
+      "nameRequired": "名称为必填项"
+    },
+    "modalTitle": {
+      "create": "创建图",
+      "edit": "编辑图",
+      "view": "查看图",
+      "loading": "正在加载图……",
+      "createOk": "创建",
+      "updateOk": "更新"
+    },
+    "toast": {
+      "exported": "图导出成功",
+      "exportFailed": "图导出失败",
+      "noGexf": "未收到 GEXF 内容",
+      "created": "图添加成功",
+      "updated": "图更新成功",
+      "deleted": "图删除成功",
+      "updateFailed": "图更新失败：{error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "启用向量索引",
+    "viewTitle": "向量索引配置",
+    "statsTitle": "向量索引统计信息",
+    "rebuildTitle": "重建向量索引",
+    "deleteTitle": "删除向量索引",
+    "type": "向量索引类型",
+    "typeTooltip": "要使用的向量索引类型",
+    "selectType": "选择向量索引类型",
+    "typeRequired": "请选择向量索引类型！",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "无",
+    "file": "向量索引文件",
+    "fileTooltip": "向量索引的文件路径",
+    "fileRequired": "请输入向量索引文件！",
+    "filePlaceholder": "例如：graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "文件应以 .db 结尾且不得包含空格",
+    "threshold": "向量索引阈值",
+    "thresholdTooltip": "建立索引前的最小向量数量",
+    "thresholdPlaceholder": "输入阈值",
+    "dimensionality": "向量维度",
+    "dimensionalityTooltip": "向量中的维度数量",
+    "dimensionalityRequired": "请输入向量维度！",
+    "dimensionalityPlaceholder": "输入维度（例如：1536）",
+    "m": "向量索引 M",
+    "mTooltip": "HNSW 图中每个节点的最大连接数",
+    "mRequired": "请输入向量索引 M！",
+    "mPlaceholder": "输入 M 值（例如：16）",
+    "mHint": "HNSW 索引中每层的连接数",
+    "ef": "向量索引 Ef",
+    "efTooltip": "搜索期间要考虑的候选数量",
+    "efRequired": "请输入向量索引 Ef！",
+    "efPlaceholder": "输入 Ef 值（例如：100）",
+    "efHint": "HNSW 索引的搜索参数",
+    "efConstruction": "向量索引 Ef Construction",
+    "efConstructionTooltip": "索引构建期间的候选数量",
+    "efConstructionRequired": "请输入向量索引 Ef Construction！",
+    "efConstructionPlaceholder": "输入 Ef Construction 值（例如：200）",
+    "efConstructionHint": "HNSW 索引的构建参数",
+    "enabledSuccess": "向量索引启用成功",
+    "loadConfigFailed": "加载向量索引配置失败",
+    "unableToRetrieveConfig": "无法检索配置详情",
+    "configHint": "向量索引可能未启用，或访问配置时出现问题。",
+    "fileValidationDb": "文件应以 .db 结尾且不得包含空格",
+    "fileNoSpaces": "向量索引文件不得包含空格！",
+    "fileEndsDb": "向量索引文件应以 .db 结尾！",
+    "rebuildConfirm": "确定要重建向量索引吗？",
+    "rebuildBody": "此操作将重建此图的向量索引。此过程可能需要一些时间，并会暂时影响向量搜索性能。",
+    "rebuildSuccess": "向量索引重建已成功启动",
+    "rebuildFailed": "重建向量索引失败",
+    "deleteConfirm": "确定要删除向量索引吗？",
+    "deleteBody": "此操作将删除此图的向量索引。",
+    "deleteSuccess": "向量索引删除成功",
+    "deleteFailed": "删除向量索引失败",
+    "stats": {
+      "loadFailed": "加载向量索引统计信息失败",
+      "unableToRetrieve": "无法检索统计信息详情",
+      "hint": "向量索引可能未启用，或访问统计信息时出现问题。",
+      "noStats": "没有可用的向量索引统计信息",
+      "noStatsHint": "此图可能未启用向量索引，或统计信息不可访问。",
+      "loaded": "已加载",
+      "notLoaded": "未加载",
+      "never": "从不",
+      "error": "错误",
+      "errorProcessing": "处理统计数据时出错",
+      "label": {
+        "vectorCount": "向量数量",
+        "dimensions": "维度",
+        "indexType": "索引类型",
+        "m": "M 参数",
+        "efConstruction": "EF Construction",
+        "defaultEf": "默认 EF",
+        "indexFile": "索引文件路径",
+        "indexFileSize": "索引文件大小",
+        "estimatedMemory": "预估内存占用",
+        "lastRebuild": "上次重建",
+        "status": "状态",
+        "distanceMetric": "距离度量"
+      },
+      "desc": {
+        "vectorCount": "索引中的向量总数",
+        "dimensions": "向量的维度",
+        "indexType": "向量索引算法类型",
+        "m": "图中每个元素的连接数",
+        "efConstruction": "索引构建期间使用的 EF 参数",
+        "defaultEf": "搜索查询的默认 EF 参数",
+        "indexFile": "存储索引的文件路径",
+        "indexFileSize": "磁盘上索引文件的大小",
+        "estimatedMemory": "索引的预估内存占用",
+        "lastRebuild": "上次索引重建的时间戳",
+        "status": "索引当前是否已加载到内存中",
+        "distanceMetric": "用于相似度计算的距离度量"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "导出为 JSONL",
+    "importIntoGraph": "导入到图中",
+    "importNewGraph": "导入（新建图）",
+    "exportSubgraph": "导出子图",
+    "modal": {
+      "importTitle": "导入到图中",
+      "importNewTitle": "导入到新建图中",
+      "exportTitle": "导出为 JSONL",
+      "exportSubgraphTitle": "导出子图"
+    },
+    "fields": {
+      "guidStrategy": "GUID 策略",
+      "onError": "出错时",
+      "maxDepth": "最大深度",
+      "direction": "方向",
+      "includeData": "包含数据",
+      "includeSubordinates": "包含下级",
+      "maxEdgeCost": "最大边成本",
+      "startNode": "起始节点"
+    },
+    "guidStrategy": {
+      "preserve": "保留",
+      "regenerate": "重新生成",
+      "skip": "跳过",
+      "overwrite": "覆盖"
+    },
+    "onError": {
+      "abort": "中止",
+      "skip": "跳过"
+    },
+    "direction": {
+      "outbound": "出向",
+      "inbound": "入向",
+      "both": "双向"
+    },
+    "result": {
+      "nodesCreated": "已创建节点",
+      "nodesUpdated": "已更新节点",
+      "nodesSkipped": "已跳过节点",
+      "edgesCreated": "已创建边",
+      "edgesUpdated": "已更新边",
+      "edgesSkipped": "已跳过边",
+      "warnings": "警告",
+      "title": "导入结果",
+      "graphsCreated": "已创建图",
+      "linesRead": "已读取行数",
+      "linesIgnored": "已忽略行数",
+      "newGraphGuid": "新图 GUID",
+      "noWarnings": "无警告。"
+    },
+    "toast": {
+      "importSuccess": "导入成功完成",
+      "importFailed": "导入失败",
+      "exportSuccess": "导出成功完成",
+      "exportFailed": "导出失败"
+    },
+    "guidStrategyHelp": {
+      "preserve": "保留文件中的原始 GUID。",
+      "regenerate": "为每个导入的对象分配新的 GUID。",
+      "skip": "保留原始 GUID 并跳过已存在的对象。",
+      "overwrite": "保留原始 GUID 并覆盖已存在的对象。"
+    },
+    "onErrorHelp": {
+      "abort": "在第一个错误处停止导入。",
+      "skip": "跳过失败的行并继续导入。"
+    },
+    "startNodeHelp": "子图从此节点开始提取。",
+    "upload": {
+      "prompt": "点击或将 JSONL 文件拖到此区域",
+      "hint": "仅支持从 LiteGraph 导出的 .jsonl 文件。",
+      "selected": "已选择文件"
+    },
+    "preview": {
+      "title": "预览",
+      "headerLines": "头部行",
+      "nodes": "节点",
+      "edges": "边",
+      "empty": "此文件中未找到可识别的内容。"
+    },
+    "actions": {
+      "import": "导入",
+      "export": "导出"
+    },
+    "exportSubgraphDisabled": "选择一个节点以导出其子图。",
+    "copyGuid": "复制 GUID"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "边",
+    "searchTooltip": "搜索和筛选边",
+    "createTooltip": "创建新边",
+    "createEdge": "创建边",
+    "entityName": "条边",
+    "edgeJson": "边 JSON",
+    "deleteTitle": "确定要删除“{name}”边吗？",
+    "deleteBody": "此操作将删除边。",
+    "labelsCount": "{count, plural, one {# 个标签} other {# 个标签}}",
+    "tagsCount": "{count, plural, one {# 个标记} other {# 个标记}}",
+    "vectorsCount": "{count, plural, =0 {无} one {# 个向量} other {# 个向量}}",
+    "columns": {
+      "name": "名称",
+      "nameDesc": "边的显示名称",
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "from": "起点",
+      "fromDesc": "此边的源节点",
+      "to": "终点",
+      "toDesc": "此边的目标节点",
+      "cost": "成本",
+      "costDesc": "边的遍历成本",
+      "labels": "标签",
+      "labelsDesc": "分配给此边的分类标签",
+      "tags": "标记",
+      "tagsDesc": "键值元数据标记",
+      "vectors": "向量",
+      "vectorsDesc": "与此边关联的向量嵌入",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "score": "得分",
+      "scoreDesc": "搜索的相关性得分",
+      "distance": "距离",
+      "distanceDesc": "与搜索查询的向量距离",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "name": "搜索名称",
+      "guid": "搜索 GUID",
+      "from": "搜索起点",
+      "to": "搜索终点",
+      "labels": "搜索标签",
+      "tags": "搜索标记"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "graph": "图",
+      "graphTooltip": "此边所属的图",
+      "guid": "GUID",
+      "guidTooltip": "此边的全局唯一标识符",
+      "name": "名称",
+      "nameTooltip": "边的显示名称",
+      "namePlaceholder": "输入边名称",
+      "nameRequired": "边名称为必填项",
+      "cost": "成本",
+      "costTooltip": "此边的遍历成本",
+      "costPlaceholder": "输入边成本",
+      "costRequired": "边成本为必填项",
+      "fromNode": "起点节点",
+      "fromNodeTooltip": "边的源节点",
+      "fromRequired": "起点节点为必填项",
+      "fromSameAsTo": "起点节点不能与终点节点相同",
+      "toNode": "终点节点",
+      "toNodeTooltip": "边的目标节点",
+      "toRequired": "终点节点为必填项",
+      "toSameAsFrom": "终点节点不能与起点节点相同",
+      "labels": "标签",
+      "labelsTooltip": "与此边关联的标签",
+      "tags": "标记",
+      "tagsTooltip": "此边的键值标记",
+      "vectors": "向量",
+      "vectorsTooltip": "此边的向量嵌入",
+      "data": "数据",
+      "dataTooltip": "附加到此边的任意 JSON 数据",
+      "copyData": "复制数据"
+    },
+    "modalTitle": {
+      "create": "创建边",
+      "edit": "编辑边",
+      "view": "查看边",
+      "loading": "正在加载边……"
+    },
+    "toast": {
+      "created": "边添加成功",
+      "updated": "边更新成功",
+      "deleted": "边删除成功",
+      "updateFailed": "边更新失败：{error}"
+    }
+  },
+  "home": {
+    "pageTitle": "首页",
+    "addNode": "添加节点",
+    "addEdge": "添加边"
+  },
+  "graphViewer": {
+    "loadingNodes": "正在加载节点……",
+    "loadingEdges": "正在加载边……",
+    "errorLoadingGraph": "加载图时出错",
+    "noNodes": "此图没有节点。",
+    "tooManyNodes": "节点过多，无法正确渲染图。仅显示前 {count} 个节点。",
+    "controls": {
+      "button": "控制项",
+      "clearSubGraph": "清除子图",
+      "searchSubGraph": "搜索子图",
+      "threeD": "3D",
+      "horizontalLayout": "水平布局",
+      "depthAwareLayout": "深度感知布局",
+      "depthAwareTooltip": "系统会自动处理环路和密集的反向链接，以保持深度布局的可读性。",
+      "collapseRelatedNodes": "折叠相关节点",
+      "collapseRelatedTooltip": "点击已分组的节点即可展开。分组是根据标签、信息性标记键和连接模式推断出来的。",
+      "dragByLabel": "按标签拖动",
+      "showGraphLegend": "显示图图例",
+      "showNodeName": "显示节点名称",
+      "collapseExpanded": "折叠已展开项"
+    },
+    "node": {
+      "title": "节点信息",
+      "expand": "展开",
+      "guid": "GUID",
+      "name": "名称",
+      "labels": "标签",
+      "tags": "标记",
+      "addNew": "添加新节点",
+      "openAddForm": "打开添加节点表单",
+      "updateTooltip": "更新节点",
+      "deleteTooltip": "删除节点",
+      "addEdgeTooltip": "添加边",
+      "addEdge": "添加边",
+      "deleteConfirmTitle": "确定要删除“{name}”节点吗？",
+      "deleteConfirmText": "此操作将删除节点。"
+    },
+    "edge": {
+      "title": "边信息",
+      "expand": "展开",
+      "guid": "GUID",
+      "name": "名称",
+      "from": "起点",
+      "to": "终点",
+      "cost": "成本",
+      "labels": "标签",
+      "tags": "标记",
+      "addNew": "添加新边",
+      "openAddForm": "打开添加边表单",
+      "updateTooltip": "更新边",
+      "deleteTooltip": "删除边",
+      "deleteConfirmTitle": "确定要删除“{name}”边吗？",
+      "deleteConfirmText": "此操作将删除边。"
+    },
+    "nodeSearch": {
+      "title": "搜索节点",
+      "placeholder": "按名称搜索节点……",
+      "searchFailed": "搜索节点失败。请重试。",
+      "noNodesFound": "未找到节点",
+      "enterSearchTerm": "输入搜索词以查找节点",
+      "total": "共 {count} 个节点",
+      "columns": {
+        "name": "名称",
+        "nameTooltip": "节点的显示名称",
+        "labels": "标签",
+        "labelsTooltip": "分类标签",
+        "guid": "GUID",
+        "guidTooltip": "全局唯一标识符"
+      }
+    }
+  },
+  "search": {
+    "tags": "标记",
+    "tagsTooltip": "按键值标记筛选",
+    "labelsTooltip": "按分类标签筛选",
+    "expression": "表达式",
+    "expressionTooltip": "使用表达式语法筛选",
+    "example": "示例：",
+    "atLeastOneRequired": "至少需要填写一个字段。"
+  },
+  "nodes": {
+    "title": "节点",
+    "searchTooltip": "搜索和筛选节点",
+    "createTooltip": "创建新节点",
+    "createNode": "创建节点",
+    "entityName": "个节点",
+    "copyGuid": "复制 GUID",
+    "labelsCount": "{count, plural, one {# 个标签} other {# 个标签}}",
+    "tagsCount": "{count, plural, one {# 个标记} other {# 个标记}}",
+    "vectorsCount": "{count, plural, =0 {无} one {# 个向量} other {# 个向量}}",
+    "deleteTitle": "确定要删除“{name}”节点吗？",
+    "deleteBody": "此操作将删除节点。",
+    "nodeJson": "节点 JSON",
+    "columns": {
+      "name": "名称",
+      "nameDesc": "节点的显示名称",
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "labels": "标签",
+      "labelsDesc": "分配给此节点的分类标签",
+      "tags": "标记",
+      "tagsDesc": "键值元数据标记",
+      "vectors": "向量",
+      "vectorsDesc": "与此节点关联的向量嵌入",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "score": "得分",
+      "scoreDesc": "搜索的相关性得分",
+      "distance": "距离",
+      "distanceDesc": "与搜索查询的向量距离",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "name": "搜索名称",
+      "guid": "搜索 GUID",
+      "labels": "搜索标签",
+      "tags": "搜索标记"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "graph": "图",
+      "graphTooltip": "此节点所属的图",
+      "guid": "GUID",
+      "guidTooltip": "此节点的全局唯一标识符",
+      "name": "名称",
+      "namePlaceholder": "输入节点名称",
+      "nameTooltip": "节点的显示名称",
+      "nameRequired": "节点名称为必填项",
+      "labels": "标签",
+      "labelsTooltip": "与此节点关联的标签",
+      "tags": "标记",
+      "tagsTooltip": "此节点的键值标记",
+      "vectors": "向量",
+      "vectorsTooltip": "此节点的向量嵌入",
+      "data": "数据",
+      "dataTooltip": "附加到此节点的任意 JSON 数据",
+      "copyData": "复制数据"
+    },
+    "modalTitle": {
+      "create": "创建节点",
+      "edit": "编辑节点",
+      "view": "查看节点",
+      "loading": "正在加载节点……",
+      "createOk": "创建",
+      "updateOk": "更新"
+    },
+    "toast": {
+      "created": "节点添加成功",
+      "updated": "节点更新成功",
+      "deleted": "节点删除成功",
+      "updateFailed": "节点更新失败：{error}"
+    }
+  },
+  "labels": {
+    "title": "标签",
+    "createTooltip": "创建新标签",
+    "createLabel": "创建标签",
+    "copyGuid": "复制 GUID",
+    "deleteTitle": "确定要删除“{name}”标签吗？",
+    "deleteBody": "此操作将删除标签。",
+    "labelJson": "标签 JSON",
+    "columns": {
+      "label": "标签",
+      "labelDesc": "标签文本值",
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "node": "节点",
+      "nodeDesc": "关联的节点名称",
+      "edge": "边",
+      "edgeDesc": "关联的边名称",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "label": "搜索标签",
+      "guid": "搜索 GUID",
+      "node": "搜索节点",
+      "edge": "搜索边"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "label": "标签",
+      "labelTooltip": "标签文本值",
+      "labelRequired": "请输入标签内容！",
+      "labelPlaceholder": "输入标签内容",
+      "node": "节点",
+      "nodeTooltip": "要与此标签关联的节点",
+      "edge": "边",
+      "edgeTooltip": "要与此标签关联的边"
+    },
+    "modalTitle": {
+      "create": "创建标签",
+      "edit": "编辑标签"
+    },
+    "toast": {
+      "created": "标签创建成功",
+      "updated": "标签更新成功",
+      "deleted": "标签删除成功",
+      "updateFailed": "标签更新失败：{error}",
+      "updateFailedNoResponse": "标签更新失败 - 未收到响应"
+    }
+  },
+  "tags": {
+    "title": "标记",
+    "createTooltip": "创建新标记",
+    "createTag": "创建标记",
+    "copyGuid": "复制 GUID",
+    "deleteTitle": "确定要删除“{name}”标记吗？",
+    "deleteBody": "此操作将删除标记。",
+    "tagJson": "标记 JSON",
+    "columns": {
+      "key": "键",
+      "keyDesc": "标记键标识符",
+      "value": "值",
+      "valueDesc": "标记值",
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "node": "节点",
+      "nodeDesc": "关联的节点名称",
+      "edge": "边",
+      "edgeDesc": "关联的边名称",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "key": "搜索键",
+      "value": "搜索值",
+      "guid": "搜索 GUID",
+      "node": "搜索节点",
+      "edge": "搜索边"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "key": "键",
+      "keyTooltip": "标记键标识符",
+      "keyRequired": "请输入标记键！",
+      "keyPlaceholder": "输入标记键",
+      "value": "值",
+      "valueTooltip": "标记值",
+      "valueRequired": "请输入标记值！",
+      "valuePlaceholder": "输入标记值",
+      "node": "节点",
+      "nodeTooltip": "要与此标记关联的节点",
+      "edge": "边",
+      "edgeTooltip": "要与此标记关联的边"
+    },
+    "modalTitle": {
+      "create": "创建标记",
+      "edit": "编辑标记"
+    },
+    "toast": {
+      "created": "标记创建成功",
+      "updated": "标记更新成功",
+      "deleted": "标记删除成功",
+      "updateFailed": "标记更新失败：{error}",
+      "updateFailedNoResponse": "标记更新失败 - 未收到响应"
+    }
+  },
+  "vectors": {
+    "title": "向量",
+    "createTooltip": "创建新向量",
+    "createVector": "创建向量",
+    "copyGuid": "复制 GUID",
+    "deleteTitle": "确定要删除此向量吗？",
+    "deleteBody": "此操作将删除向量。",
+    "vectorJson": "向量 JSON",
+    "vectorsCount": "{count, plural, one {# 个向量} other {# 个向量}}",
+    "columns": {
+      "model": "模型",
+      "modelDesc": "向量模型名称",
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "node": "节点",
+      "nodeDesc": "关联的节点名称",
+      "edge": "边",
+      "edgeDesc": "关联的边名称",
+      "dimensionality": "维度",
+      "dimensionalityDesc": "向量维度数量",
+      "content": "内容",
+      "contentDesc": "向量内容文本",
+      "vectors": "向量",
+      "vectorsDesc": "向量嵌入值",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "model": "搜索模型",
+      "guid": "搜索 GUID",
+      "node": "搜索节点",
+      "edge": "搜索边",
+      "content": "搜索内容"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "model": "模型",
+      "modelTooltip": "嵌入模型的名称",
+      "modelRequired": "请输入模型！",
+      "modelPlaceholder": "输入模型",
+      "dimensionality": "维度",
+      "dimensionalityTooltip": "向量中的维度数量",
+      "dimensionalityRequired": "请输入维度！",
+      "dimensionalityPlaceholder": "输入维度",
+      "content": "内容",
+      "contentTooltip": "与向量关联的文本内容",
+      "contentRequired": "请输入内容！",
+      "contentPlaceholder": "输入内容",
+      "vectors": "向量",
+      "vectorsTooltip": "以 JSON 数组表示的向量嵌入值",
+      "vectorsRequired": "请输入向量！",
+      "node": "节点",
+      "nodeTooltip": "要与此向量关联的节点",
+      "edge": "边",
+      "edgeTooltip": "要与此向量关联的边"
+    },
+    "modalTitle": {
+      "create": "创建向量",
+      "edit": "编辑向量"
+    },
+    "toast": {
+      "created": "向量创建成功",
+      "updated": "向量更新成功",
+      "deleted": "向量删除成功",
+      "updateFailed": "向量更新失败：{error}"
+    }
+  },
+  "requestHistory": {
+    "title": "请求历史",
+    "columns": {
+      "time": "时间",
+      "method": "方法",
+      "path": "路径",
+      "status": "状态",
+      "transaction": "事务",
+      "duration": "耗时",
+      "size": "大小（请求/响应）",
+      "tenant": "租户",
+      "actions": "操作"
+    },
+    "transaction": {
+      "noId": "事务"
+    },
+    "transactionState": {
+      "validation": "验证",
+      "committed": "已提交",
+      "rolledBack": "已回滚",
+      "failed": "已失败",
+      "transaction": "事务"
+    },
+    "transactionTags": {
+      "retryable": "可重试",
+      "conflict": "冲突"
+    },
+    "rowActions": {
+      "view": "查看",
+      "viewJson": "查看 JSON",
+      "delete": "删除",
+      "menu": "请求操作"
+    },
+    "filters": {
+      "allStatuses": "所有状态",
+      "allOutcomes": "所有结果",
+      "successful": "成功",
+      "errors": "错误",
+      "allRequests": "所有请求",
+      "transactions": "事务",
+      "nonTransactions": "非事务",
+      "allMethods": "所有方法",
+      "transactionIdPlaceholder": "事务 ID……",
+      "pathPlaceholder": "路径包含……"
+    },
+    "summary": {
+      "visibleRequests": "可见请求：",
+      "visibleErrors": "可见错误：",
+      "errorRate": "错误率：",
+      "averageDuration": "平均耗时：",
+      "p95Duration": "P95 耗时："
+    },
+    "telemetry": {
+      "title": "运维遥测",
+      "prometheus": "Prometheus 指标",
+      "openTelemetry": "OpenTelemetry 设置",
+      "description": "请求历史用于检查近期请求；指标和追踪用于聚合监控。"
+    },
+    "delete": {
+      "confirmTitle": "删除请求历史记录条目？"
+    },
+    "toast": {
+      "loadFailed": "无法加载请求历史",
+      "deleted": "条目已删除",
+      "deleteFailed": "无法删除"
+    },
+    "entryJson": "请求历史条目 JSON",
+    "chart": {
+      "title": "随时间变化的请求",
+      "ranges": {
+        "hour": "最近一小时",
+        "day": "最近一天",
+        "week": "最近一周",
+        "month": "最近一月"
+      },
+      "total": "总计",
+      "success": "成功",
+      "failed": "失败",
+      "tooltip": {
+        "success": "成功：{count}",
+        "failed": "失败：{count}",
+        "total": "总计：{count}"
+      }
+    },
+    "detail": {
+      "title": "请求详情",
+      "empty": "（空）",
+      "copyId": "复制 ID",
+      "truncated": "[已截断]",
+      "entries": "{count} 个条目",
+      "loadFailed": "无法加载请求详情",
+      "fields": {
+        "id": "ID",
+        "method": "方法",
+        "status": "状态",
+        "duration": "耗时",
+        "time": "时间",
+        "sourceIp": "源 IP",
+        "tenant": "租户",
+        "requestSize": "请求大小",
+        "responseSize": "响应大小",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "请求头",
+        "requestBody": "请求体",
+        "responseHeaders": "响应头",
+        "responseBody": "响应体",
+        "transactionDiagnostics": "事务诊断"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "API Explorer",
+    "send": "发送",
+    "request": {
+      "title": "请求",
+      "resetTooltip": "将请求体重置为模板",
+      "selectOperation": "选择一个操作……",
+      "copyUrl": "复制 URL",
+      "body": "请求体",
+      "recentRequests": "近期请求",
+      "clear": "清除"
+    },
+    "params": {
+      "path": "路径参数",
+      "query": "查询参数"
+    },
+    "response": {
+      "title": "响应",
+      "transactionFailed": "事务失败",
+      "queryFailed": "查询失败",
+      "noResponse": "（尚无响应）",
+      "status": "状态",
+      "contentType": "Content-Type",
+      "duration": "耗时",
+      "size": "大小",
+      "copyCode": "复制代码",
+      "selectOperationHint": "（选择一个操作）"
+    },
+    "tabs": {
+      "preview": "预览",
+      "body": "正文",
+      "headers": "头部",
+      "status": "状态",
+      "code": "代码"
+    },
+    "toast": {
+      "loadSpecFailed": "无法加载 OpenAPI 规范",
+      "requestFailed": "请求失败：{error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} 失败{indexText}：{error}。",
+      "defaultOperation": "操作",
+      "defaultObject": "对象",
+      "guid": " ({guid})",
+      "indexText": " 在索引 {index} 处",
+      "noError": "未返回错误详情。",
+      "validation": " 事务在开始前验证失败。",
+      "rolledBack": " 事务已回滚。",
+      "transactionId": " 事务 {transactionId}。",
+      "state": " 状态：{state}。",
+      "provider": " 提供程序：{provider}。",
+      "providerError": " 提供程序错误：{providerErrorCode}。",
+      "retryable": " 该失败被标记为可重试。",
+      "conflict": " 检测到并发冲突。",
+      "queryErrorAt": "{location} 处的查询错误：{description}",
+      "queryError": "查询错误：{description}"
+    }
+  },
+  "credentials": {
+    "title": "凭据",
+    "createTooltip": "创建新凭据",
+    "createCredential": "创建凭据",
+    "copyGuid": "复制 GUID",
+    "credentialJson": "凭据 JSON",
+    "deleteTitle": "确定要删除“{name}”凭据吗？",
+    "deleteBody": "此操作将删除凭据。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "user": "用户",
+      "userDesc": "关联的用户名称",
+      "name": "名称",
+      "nameDesc": "凭据的显示名称",
+      "bearerToken": "Bearer 令牌",
+      "bearerTokenDesc": "身份验证 bearer 令牌",
+      "active": "启用",
+      "activeDesc": "凭据是否启用",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "guid": "搜索 GUID",
+      "user": "搜索用户",
+      "name": "搜索名称"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "userGuid": "用户 GUID",
+      "userGuidTooltip": "此凭据所属的用户",
+      "userGuidRequired": "请选择用户 GUID！",
+      "userGuidPlaceholder": "选择用户 GUID",
+      "name": "名称",
+      "nameTooltip": "凭据的显示名称",
+      "nameRequired": "请输入名称！",
+      "namePlaceholder": "输入名称",
+      "bearerToken": "Bearer 令牌",
+      "bearerTokenTooltip": "身份验证 bearer 令牌",
+      "bearerTokenRequired": "请输入 bearer 令牌！",
+      "bearerTokenPlaceholder": "输入 bearer 令牌",
+      "active": "启用",
+      "activeTooltip": "凭据是否启用"
+    },
+    "modalTitle": {
+      "create": "创建凭据",
+      "edit": "编辑凭据"
+    },
+    "toast": {
+      "created": "凭据创建成功",
+      "updated": "凭据更新成功",
+      "updateNoResponse": "凭据更新失败 - 未收到响应",
+      "deleted": "凭据删除成功",
+      "updateFailed": "凭据更新失败：{error}"
+    }
+  },
+  "authorization": {
+    "title": "授权",
+    "createTooltip": "创建自定义角色",
+    "adminRequired": "需要管理员权限",
+    "createRole": "创建角色",
+    "roleJson": "授权角色 JSON",
+    "tabs": {
+      "roles": "角色",
+      "userRoles": "用户角色",
+      "credentialScopes": "凭据范围"
+    },
+    "sections": {
+      "effectiveUserPermissions": "有效用户权限",
+      "effectiveCredentialPermissions": "有效凭据权限"
+    },
+    "states": {
+      "selectTenant": "选择一个租户以管理授权。",
+      "adminWarning": "更改角色或凭据范围需要管理员权限。"
+    },
+    "columns": {
+      "name": "名称",
+      "scope": "范围",
+      "permissions": "权限",
+      "resources": "资源",
+      "builtIn": "内置",
+      "actions": "操作",
+      "role": "角色",
+      "graph": "图",
+      "source": "来源"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "viewJson": "查看 JSON",
+      "delete": "删除",
+      "revoke": "撤销",
+      "menu": "操作"
+    },
+    "labels": {
+      "builtIn": "内置",
+      "custom": "自定义",
+      "immutable": "不可变",
+      "directRole": "直接角色",
+      "directGrant": "直接授予"
+    },
+    "confirm": {
+      "deleteRoleTitle": "删除角色？",
+      "deleteRoleBody": "删除“{name}”？",
+      "revokeRole": "撤销角色？",
+      "revokeScope": "撤销凭据范围？"
+    },
+    "actions": {
+      "assignRole": "分配角色",
+      "assignScope": "分配范围"
+    },
+    "modalTitle": {
+      "create": "创建角色",
+      "edit": "编辑角色"
+    },
+    "form": {
+      "name": "名称",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "显示名称",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "描述",
+      "descriptionPlaceholder": "对选定图的只读审计访问权限",
+      "defaultScope": "默认范围",
+      "permissions": "权限",
+      "resourceTypes": "资源类型",
+      "inheritsToGraphs": "租户范围继承到图",
+      "user": "用户",
+      "selectUser": "选择用户",
+      "role": "角色",
+      "selectRole": "选择角色",
+      "scope": "范围",
+      "graph": "图",
+      "selectGraph": "选择图",
+      "graphRequiredAssignment": "为图范围的分配选择图。",
+      "credential": "凭据",
+      "selectCredential": "选择凭据",
+      "optionalRole": "可选角色",
+      "directPermissions": "直接权限",
+      "directResources": "直接资源",
+      "graphRequiredScope": "为图范围的范围选择图。"
+    },
+    "permissions": {
+      "Read": "读取",
+      "Write": "写入",
+      "Delete": "删除",
+      "Admin": "管理"
+    },
+    "scopes": {
+      "Tenant": "租户",
+      "Graph": "图",
+      "tenantScope": "租户范围"
+    },
+    "resourceTypes": {
+      "Admin": "管理",
+      "Graph": "图",
+      "Node": "节点",
+      "Edge": "边",
+      "Label": "标签",
+      "Tag": "标记",
+      "Vector": "向量",
+      "Query": "查询",
+      "Transaction": "事务"
+    }
+  },
+  "backups": {
+    "title": "备份",
+    "createTooltip": "创建新备份",
+    "createBackup": "创建备份",
+    "deleteTitle": "确定要删除“{name}”备份吗？",
+    "deleteBody": "此操作将删除备份。",
+    "columns": {
+      "filename": "文件名",
+      "filenameDesc": "备份文件名",
+      "size": "大小",
+      "sizeDesc": "备份文件大小",
+      "sha256": "SHA256",
+      "sha256Desc": "备份文件的 SHA-256 哈希值",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "filename": "搜索文件名"
+    },
+    "rowActions": {
+      "download": "下载",
+      "delete": "删除",
+      "menu": "操作"
+    },
+    "form": {
+      "filename": "文件名",
+      "filenamePlaceholder": "输入文件名",
+      "filenameTooltip": "备份文件的名称",
+      "filenameRequired": "请输入文件名"
+    },
+    "modalTitle": {
+      "create": "添加备份",
+      "edit": "编辑备份"
+    },
+    "toast": {
+      "created": "备份创建成功",
+      "createFailed": "创建备份失败",
+      "createFailedError": "创建备份失败：{error}",
+      "deleted": "备份删除成功",
+      "missingFilename": "缺少备份文件名",
+      "unableToDownload": "无法下载备份"
+    }
+  },
+  "tenants": {
+    "title": "租户",
+    "createTooltip": "创建新租户",
+    "createTenant": "创建租户",
+    "copyGuid": "复制 GUID",
+    "tenantJson": "租户 JSON",
+    "deleteTitle": "确定要删除“{name}”租户吗？",
+    "deleteBody": "此操作将删除租户。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "name": "名称",
+      "nameDesc": "租户的显示名称",
+      "active": "启用",
+      "activeDesc": "租户是否启用",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "search": {
+      "guid": "搜索 GUID",
+      "name": "搜索名称"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "name": "名称",
+      "nameTooltip": "租户的显示名称",
+      "nameRequired": "请输入名称！",
+      "namePlaceholder": "输入名称",
+      "active": "启用",
+      "activeTooltip": "租户是否启用"
+    },
+    "modalTitle": {
+      "create": "创建租户",
+      "edit": "编辑租户"
+    },
+    "toast": {
+      "created": "租户创建成功",
+      "updated": "租户更新成功",
+      "updateNoResponse": "租户更新失败 - 未收到响应",
+      "deleted": "租户删除成功"
+    }
+  },
+  "users": {
+    "title": "用户",
+    "createTooltip": "创建新用户",
+    "createUser": "创建用户",
+    "copyGuid": "复制 GUID",
+    "userJson": "用户 JSON",
+    "deleteTitle": "确定要删除“{name}”用户吗？",
+    "deleteBody": "此操作将删除用户。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "全局唯一标识符",
+      "firstName": "名字",
+      "firstNameDesc": "用户名字",
+      "lastName": "姓氏",
+      "lastNameDesc": "用户姓氏",
+      "email": "邮箱",
+      "emailDesc": "用户邮箱地址",
+      "password": "密码",
+      "passwordDesc": "用户密码（点击眼睛图标查看）",
+      "active": "启用",
+      "activeDesc": "用户账户是否启用",
+      "createdUtc": "创建时间 (UTC)",
+      "createdUtcDesc": "以 UTC 表示的创建日期和时间",
+      "actions": "操作",
+      "actionsDesc": "可用操作"
+    },
+    "password": {
+      "show": "显示密码",
+      "hide": "隐藏密码"
+    },
+    "search": {
+      "guid": "搜索 GUID",
+      "firstName": "搜索名字",
+      "lastName": "搜索姓氏",
+      "email": "搜索邮箱"
+    },
+    "rowActions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "viewJson": "查看 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "firstName": "名字",
+      "firstNameTooltip": "用户的名字",
+      "firstNameRequired": "请输入名字！",
+      "firstNamePlaceholder": "输入名字",
+      "lastName": "姓氏",
+      "lastNameTooltip": "用户的姓氏",
+      "lastNameRequired": "请输入姓氏！",
+      "lastNamePlaceholder": "输入姓氏",
+      "email": "邮箱",
+      "emailTooltip": "用户的邮箱地址",
+      "emailRequired": "请输入您的邮箱！",
+      "emailInvalid": "请输入有效的邮箱！",
+      "emailPlaceholder": "邮箱",
+      "password": "密码",
+      "passwordTooltip": "账户密码",
+      "passwordRequired": "请输入密码！",
+      "passwordPlaceholder": "输入密码",
+      "active": "启用",
+      "activeTooltip": "用户账户是否启用",
+      "tenantAdmin": "租户管理员",
+      "tenantAdminTooltip": "授予此租户内的全部权限。",
+      "systemAdmin": "系统管理员",
+      "systemAdminTooltip": "授予跨所有租户的服务器级超级用户权限。"
+    },
+    "modalTitle": {
+      "create": "创建用户",
+      "edit": "编辑用户"
+    },
+    "toast": {
+      "created": "用户创建成功",
+      "updated": "用户更新成功",
+      "updateNoResponse": "用户更新失败 - 未收到响应",
+      "deleted": "用户删除成功",
+      "updateFailed": "用户更新失败：{error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "首页",
+      "data": "数据",
+      "metadata": "元数据",
+      "manage": "管理",
+      "secure": "安全",
+      "administer": "系统管理"
+    },
+    "item": {
+      "home": "首页",
+      "homeTitle": "仪表板概览",
+      "graphs": "图",
+      "graphsTitle": "管理图容器",
+      "nodes": "节点",
+      "nodesTitle": "管理图节点",
+      "edges": "边",
+      "edgesTitle": "管理图的边",
+      "labels": "标签",
+      "labelsTitle": "管理分类标签",
+      "tags": "标记",
+      "tagsTitle": "管理键值标记",
+      "vectors": "向量",
+      "vectorsTitle": "管理向量嵌入",
+      "requests": "API 请求",
+      "requestsTitle": "HTTP 请求历史",
+      "apiExplorer": "API Explorer",
+      "apiExplorerTitle": "浏览和调用 API 端点",
+      "tenants": "租户",
+      "tenantsTitle": "管理租户",
+      "users": "用户",
+      "usersTitle": "管理用户账户",
+      "credentials": "凭据",
+      "credentialsTitle": "管理 API 凭据",
+      "authorization": "授权",
+      "authorizationTitle": "管理角色和凭据范围",
+      "backups": "备份",
+      "backupsTitle": "管理数据库备份",
+      "settings": "设置",
+      "settingsTitle": "服务器配置"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "访问被拒绝",
+      "subtitle": "您没有查看此页面的权限。",
+      "backHome": "返回首页"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "编辑服务器配置。部分更改会立即生效；其他更改需要重启。",
+    "loading": "正在加载设置……",
+    "loadError": "无法加载服务器设置。",
+    "reconnecting": "正在重启服务器并重新连接……",
+    "sections": {
+      "general": "常规",
+      "logging": "日志",
+      "caching": "缓存",
+      "requestHistory": "请求历史",
+      "observability": "可观测性",
+      "debug": "调试",
+      "rest": "REST 服务器",
+      "database": "数据库",
+      "security": "安全"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "请求超时（秒）",
+      "loggingEnable": "启用日志",
+      "consoleLogging": "控制台日志",
+      "minimumSeverity": "最低严重级别",
+      "logDirectory": "日志目录",
+      "logFilename": "日志文件名",
+      "logQueries": "记录查询",
+      "logResults": "记录结果",
+      "cachingEnable": "启用缓存",
+      "cacheCapacity": "缓存容量",
+      "cacheEvictCount": "驱逐数量",
+      "requestHistoryEnable": "启用请求历史",
+      "maxRequestBodyBytes": "最大请求体（字节）",
+      "maxResponseBodyBytes": "最大响应体（字节）",
+      "retentionDays": "保留期（天）",
+      "purgeIntervalMinutes": "清除间隔（分钟）",
+      "observabilityEnable": "启用可观测性",
+      "enablePrometheus": "启用 Prometheus",
+      "enableOpenTelemetry": "启用 OpenTelemetry",
+      "enableOtlpExporter": "启用 OTLP 导出器",
+      "otlpEndpoint": "OTLP 端点",
+      "metricsPath": "指标路径",
+      "debugAuthentication": "调试身份验证",
+      "debugExceptions": "调试异常",
+      "debugRequests": "调试请求",
+      "debugDatabaseQueries": "调试数据库查询",
+      "restHostname": "主机名",
+      "restPort": "端口",
+      "restSslEnable": "启用 SSL",
+      "databaseType": "数据库类型",
+      "databaseHostname": "主机名",
+      "databasePort": "端口",
+      "databaseName": "数据库名称",
+      "databaseUsername": "用户名",
+      "databasePassword": "密码",
+      "databaseMaxConnections": "最大连接数",
+      "adminBearerToken": "管理员 bearer 令牌",
+      "encryptionKey": "加密密钥",
+      "encryptionIv": "加密 IV"
+    },
+    "status": {
+      "appliedLive": "已实时应用",
+      "restartRequired": "需要重启",
+      "liveHint": "实时应用",
+      "restartHint": "需要重启",
+      "liveHintTooltip": "对此部分的更改在保存后立即生效。",
+      "restartHintTooltip": "对此部分的更改仅在服务器重启后生效。"
+    },
+    "actions": {
+      "save": "保存",
+      "discard": "放弃更改",
+      "restart": "重启服务器"
+    },
+    "restartModal": {
+      "title": "重启服务器？",
+      "body": "服务器将退出，容器将使用已保存的设置重启。活动连接将被短暂中断。"
+    },
+    "toast": {
+      "saved": "设置已保存。",
+      "saveFailed": "无法保存设置。",
+      "restartFailed": "无法重启服务器。",
+      "reconnected": "服务器已恢复在线。",
+      "reconnectTimeout": "服务器未能及时恢复。请检查其状态。"
+    }
+  }
+}

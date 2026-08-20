@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Card, Input, InputNumber, Switch, Tag } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { AreaChartOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import PageLoading from '@/components/base/loading/PageLoading';
@@ -51,6 +51,13 @@ const SettingsPage = () => {
     if (!settings || !draft) return false;
     return JSON.stringify(settings) !== JSON.stringify(draft);
   }, [settings, draft]);
+
+  // Default Grafana location for the bundled docker compose stack: same host as
+  // the dashboard, on Grafana's default port. Falls back to localhost during SSR.
+  const grafanaUrl = useMemo(() => {
+    if (typeof window === 'undefined') return 'http://localhost:3000';
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
+  }, []);
 
   const handleFieldChange = (field: SettingField, value: any) => {
     setDraft((prev) => (prev ? setPath(prev, field.path, value) : prev));
@@ -238,6 +245,50 @@ const SettingsPage = () => {
             {section.fields.map((field) => renderField(field))}
           </Card>
         ))}
+
+        <Card
+          size="small"
+          title={
+            <LitegraphFlex align="center" gap={8}>
+              <AreaChartOutlined />
+              <span>{t('grafana.title')}</span>
+            </LitegraphFlex>
+          }
+          data-testid="settings-grafana-card"
+        >
+          <LitegraphText fontSize={13} style={{ display: 'block', marginBottom: 12 }}>
+            {t('grafana.description')}
+          </LitegraphText>
+          <LitegraphFlex vertical gap={8} style={{ marginBottom: 16 }}>
+            <LitegraphFlex align="center" gap={8} wrap="wrap">
+              <LitegraphText fontSize={13} style={{ minWidth: 140, color: 'var(--ant-color-text-secondary)' }}>
+                {t('grafana.urlLabel')}
+              </LitegraphText>
+              <a href={grafanaUrl} target="_blank" rel="noreferrer" data-testid="settings-grafana-url">
+                {grafanaUrl}
+              </a>
+            </LitegraphFlex>
+            <LitegraphFlex align="center" gap={8} wrap="wrap">
+              <LitegraphText fontSize={13} style={{ minWidth: 140, color: 'var(--ant-color-text-secondary)' }}>
+                {t('grafana.credentialsLabel')}
+              </LitegraphText>
+              <LitegraphText fontSize={13}>
+                <code>{t('grafana.credentialsValue')}</code>
+              </LitegraphText>
+            </LitegraphFlex>
+          </LitegraphFlex>
+          <LitegraphText fontSize={12} style={{ display: 'block', marginBottom: 4, color: 'var(--ant-color-text-tertiary)' }}>
+            {t('grafana.credentialsHint')}
+          </LitegraphText>
+          <LitegraphText fontSize={12} style={{ display: 'block', marginBottom: 16, color: 'var(--ant-color-text-tertiary)' }}>
+            {t('grafana.urlHint')}
+          </LitegraphText>
+          <a href={grafanaUrl} target="_blank" rel="noreferrer">
+            <LitegraphButton type="primary" icon={<ExportOutlined />} data-testid="settings-grafana-open">
+              {t('grafana.open')}
+            </LitegraphButton>
+          </a>
+        </Card>
       </LitegraphFlex>
 
       <ConfirmationModal

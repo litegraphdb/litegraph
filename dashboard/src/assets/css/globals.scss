@@ -275,6 +275,67 @@
   }
 }
 
+// jsoneditor ships a light stylesheet with hard-coded colors for its tree,
+// navigation bar, and value fields. In dark mode those render bright panels
+// and dark-on-dark text, so map them onto the theme tokens. (The embedded Ace
+// code view is themed separately in JsonEditorWithAce.)
+.theme-dark-mode {
+  .jsoneditor,
+  .jsoneditor-outer,
+  .jsoneditor .jsoneditor-tree,
+  .jsoneditor textarea.jsoneditor-text {
+    background-color: var(--ant-color-bg-container) !important;
+    color: var(--ant-color-text-base) !important;
+  }
+
+  .jsoneditor-tree table.jsoneditor-tree {
+    background-color: transparent !important;
+  }
+
+  .jsoneditor div.jsoneditor-field,
+  .jsoneditor div.jsoneditor-readonly {
+    color: var(--ant-color-text-base) !important;
+  }
+
+  .jsoneditor div.jsoneditor-value {
+    color: var(--ant-color-text-secondary) !important;
+  }
+
+  .jsoneditor div.jsoneditor-value.jsoneditor-string {
+    color: #7fd1b9 !important;
+  }
+
+  .jsoneditor div.jsoneditor-value.jsoneditor-number {
+    color: #8ab4f8 !important;
+  }
+
+  .jsoneditor div.jsoneditor-value.jsoneditor-boolean,
+  .jsoneditor div.jsoneditor-value.jsoneditor-null {
+    color: #c792ea !important;
+  }
+
+  .jsoneditor tr.jsoneditor-highlight,
+  .jsoneditor tr.jsoneditor-selected {
+    background-color: var(--ant-color-fill-secondary) !important;
+  }
+
+  .jsoneditor .jsoneditor-navigation-bar {
+    background-color: var(--ant-color-bg-elevated) !important;
+    border-color: var(--ant-color-border) !important;
+    color: var(--ant-color-text-secondary) !important;
+  }
+
+  .jsoneditor-frame,
+  .jsoneditor .jsoneditor-search input {
+    background-color: var(--ant-color-bg-container) !important;
+    color: var(--ant-color-text-base) !important;
+  }
+
+  .jsoneditor div.jsoneditor-tree button.jsoneditor-button {
+    filter: invert(0.85);
+  }
+}
+
 .ant-form-item-explain-error {
   font-size: 12px;
 }

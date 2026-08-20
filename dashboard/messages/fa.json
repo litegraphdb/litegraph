@@ -1,0 +1,1465 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "ایجاد",
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "update": "به‌روزرسانی",
+      "save": "ذخیره",
+      "cancel": "لغو",
+      "confirm": "تأیید",
+      "close": "بستن",
+      "next": "بعدی",
+      "retry": "تلاش مجدد",
+      "refresh": "تازه‌سازی",
+      "search": "جستجو",
+      "export": "خروجی گرفتن",
+      "viewJson": "مشاهده JSON",
+      "login": "ورود",
+      "logout": "خروج"
+    },
+    "states": {
+      "loading": "در حال بارگذاری...",
+      "redirecting": "در حال هدایت...",
+      "noData": "داده‌ای وجود ندارد",
+      "none": "هیچ‌کدام",
+      "notAvailable": "موجود نیست",
+      "somethingWentWrong": "مشکلی پیش آمد.",
+      "cantViewDetails": "در حال حاضر امکان مشاهده جزئیات وجود ندارد."
+    },
+    "copy": {
+      "copyGuid": "کپی GUID",
+      "copy": "کپی",
+      "copied": "کپی شد"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "لوگوی LiteGraph",
+    "expand": "باز کردن نوار کناری",
+    "collapse": "جمع کردن نوار کناری",
+    "flushTitle": "تخلیه پایگاه داده روی دیسک",
+    "flushToDisk": "تخلیه روی دیسک",
+    "flushConfirm": "آیا مطمئن هستید که می‌خواهید پایگاه داده را روی دیسک تخلیه کنید؟"
+  },
+  "header": {
+    "graphLabel": "گراف:",
+    "selectGraph": "انتخاب گراف فعال",
+    "selectAGraph": "یک گراف انتخاب کنید",
+    "tenantLabel": "مستأجر:",
+    "selectTenant": "انتخاب مستأجر فعال",
+    "selectATenant": "یک مستأجر انتخاب کنید",
+    "retry": "تلاش مجدد",
+    "connectedServer": "سرور LiteGraph متصل",
+    "switchToLight": "تغییر به حالت روشن",
+    "switchToDark": "تغییر به حالت تیره",
+    "github": "LiteGraph در GitHub",
+    "githubAria": "مخزن GitHub مربوط به LiteGraph",
+    "signOut": "خروج از داشبورد",
+    "logoutAria": "خروج",
+    "language": "زبان",
+    "selectLanguage": "انتخاب زبان"
+  },
+  "login": {
+    "serverUrl": "URL سرور LiteGraph",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "لطفاً URL سرور LiteGraph را وارد کنید!",
+    "onlyHttp": "فقط URLهای HTTP یا HTTPS مجاز هستند!",
+    "validUrl": "لطفاً یک URL معتبر وارد کنید!",
+    "email": "ایمیل",
+    "emailPlaceholder": "ایمیل",
+    "emailRequired": "لطفاً ایمیل خود را وارد کنید!",
+    "validEmail": "لطفاً یک ایمیل معتبر وارد کنید!",
+    "tenant": "مستأجر",
+    "selectTenant": "انتخاب مستأجر",
+    "tenantRequired": "لطفاً یک مستأجر انتخاب کنید!",
+    "password": "رمز عبور",
+    "passwordPlaceholder": "رمز عبور",
+    "passwordRequired": "لطفاً رمز عبور خود را وارد کنید!",
+    "cancel": "لغو",
+    "login": "ورود",
+    "next": "بعدی",
+    "loading": "در حال بارگذاری...",
+    "defaultCredentials": "اطلاعات ورود پیش‌فرض default@user.com و password است.",
+    "tenantNotFound": "مستأجر یافت نشد",
+    "loggedInSso": "ورود از طریق SSO با موفقیت انجام شد.",
+    "heading": "ورود",
+    "subheading": "برای ادامه، سرور، ایمیل و رمز عبور خود را وارد کنید.",
+    "logoAlt": "لوگوی LiteGraph",
+    "invalidCredentials": "ایمیل یا رمز عبور نادرست است.",
+    "advancedToggle": "گزینه‌های پیشرفته ورود",
+    "advancedHide": "پنهان کردن گزینه‌های پیشرفته",
+    "advancedHelp": "با توکن مدیر اضطراری سرور وارد شوید. فقط برای بازیابی و راه‌اندازی اولیه.",
+    "advancedTokenPlaceholder": "توکن حامل مدیر",
+    "advancedTokenRequired": "لطفاً توکن مدیر را وارد کنید.",
+    "advancedTokenInvalid": "توکن مدیر پذیرفته نشد.",
+    "advancedLogin": "ورود با توکن"
+  },
+  "graphs": {
+    "title": "گراف‌ها",
+    "searchTooltip": "جستجو و فیلتر گراف‌ها",
+    "createTooltip": "ایجاد یک گراف جدید",
+    "createGraph": "ایجاد گراف",
+    "entityName": "گراف",
+    "copyGuid": "کپی GUID",
+    "labelsCount": "{count, plural, one {# برچسب} other {# برچسب}}",
+    "tagsCount": "{count, plural, one {# تگ} other {# تگ}}",
+    "vectorsCount": "{count, plural, =0 {هیچ‌کدام} one {# بردار} other {# بردار}}",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید این گراف را حذف کنید؟",
+    "deleteBody": "این عملیات گراف را حذف خواهد کرد.",
+    "graphJson": "JSON گراف",
+    "columns": {
+      "name": "نام",
+      "nameDesc": "نام نمایشی گراف",
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "labels": "برچسب‌ها",
+      "labelsDesc": "برچسب‌های دسته‌بندی اختصاص‌یافته به این گراف",
+      "tags": "تگ‌ها",
+      "tagsDesc": "تگ‌های فراداده کلید-مقدار",
+      "vectors": "بردارها",
+      "vectorsDesc": "جاسازی‌های برداری مرتبط با این گراف",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "score": "امتیاز",
+      "scoreDesc": "امتیاز مرتبط بودن از جستجو",
+      "distance": "فاصله",
+      "distanceDesc": "فاصله برداری از عبارت جستجو",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "name": "جستجوی نام",
+      "guid": "جستجوی GUID",
+      "labels": "جستجوی برچسب‌ها",
+      "tags": "جستجوی تگ‌ها"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "exportGexf": "خروجی به GEXF",
+      "enableVectorIndex": "فعال‌سازی نمایه برداری",
+      "readVectorIndexConfig": "خواندن پیکربندی نمایه برداری",
+      "readVectorIndexStats": "خواندن آمار نمایه برداری",
+      "rebuildVectorIndex": "بازسازی نمایه برداری",
+      "deleteVectorIndex": "حذف نمایه برداری",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "name": "نام",
+      "namePlaceholder": "نام گراف را وارد کنید",
+      "nameTooltip": "نام نمایشی گراف",
+      "labelsTooltip": "برچسب‌های مرتبط با این گراف",
+      "tags": "تگ‌ها",
+      "tagsTooltip": "تگ‌های کلید-مقدار برای این گراف",
+      "vectors": "بردارها",
+      "vectorsTooltip": "جاسازی‌های برداری برای این گراف",
+      "data": "داده",
+      "dataTooltip": "داده JSON دلخواه پیوست‌شده به این گراف",
+      "nameRequired": "نام الزامی است"
+    },
+    "modalTitle": {
+      "create": "ایجاد گراف",
+      "edit": "ویرایش گراف",
+      "view": "مشاهده گراف",
+      "loading": "در حال بارگذاری گراف...",
+      "createOk": "ایجاد",
+      "updateOk": "به‌روزرسانی"
+    },
+    "toast": {
+      "exported": "گراف با موفقیت خروجی گرفته شد",
+      "exportFailed": "خروجی گرفتن از گراف ناموفق بود",
+      "noGexf": "هیچ محتوای GEXF دریافت نشد",
+      "created": "افزودن گراف با موفقیت انجام شد",
+      "updated": "به‌روزرسانی گراف با موفقیت انجام شد",
+      "deleted": "حذف گراف با موفقیت انجام شد",
+      "updateFailed": "به‌روزرسانی گراف ناموفق بود: {error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "فعال‌سازی نمایه برداری",
+    "viewTitle": "پیکربندی نمایه برداری",
+    "statsTitle": "آمار نمایه برداری",
+    "rebuildTitle": "بازسازی نمایه برداری",
+    "deleteTitle": "حذف نمایه برداری",
+    "type": "نوع نمایه برداری",
+    "typeTooltip": "نوع نمایه برداری مورد استفاده",
+    "selectType": "انتخاب نوع نمایه برداری",
+    "typeRequired": "لطفاً نوع نمایه برداری را انتخاب کنید!",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "هیچ‌کدام",
+    "file": "فایل نمایه برداری",
+    "fileTooltip": "مسیر فایل نمایه برداری",
+    "fileRequired": "لطفاً فایل نمایه برداری را وارد کنید!",
+    "filePlaceholder": "مثال: graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "فایل باید با .db پایان یابد و نباید حاوی فاصله باشد",
+    "threshold": "آستانه نمایه برداری",
+    "thresholdTooltip": "حداقل تعداد بردارها پیش از نمایه‌سازی",
+    "thresholdPlaceholder": "آستانه را وارد کنید",
+    "dimensionality": "ابعاد بردار",
+    "dimensionalityTooltip": "تعداد ابعاد در بردارها",
+    "dimensionalityRequired": "لطفاً ابعاد بردار را وارد کنید!",
+    "dimensionalityPlaceholder": "ابعاد را وارد کنید (مثال: 1536)",
+    "m": "پارامتر M نمایه برداری",
+    "mTooltip": "حداکثر تعداد اتصالات به ازای هر گره در گراف HNSW",
+    "mRequired": "لطفاً پارامتر M نمایه برداری را وارد کنید!",
+    "mPlaceholder": "مقدار M را وارد کنید (مثال: 16)",
+    "mHint": "تعداد اتصالات در هر لایه در نمایه HNSW",
+    "ef": "پارامتر Ef نمایه برداری",
+    "efTooltip": "تعداد کاندیداهایی که در حین جستجو در نظر گرفته می‌شوند",
+    "efRequired": "لطفاً پارامتر Ef نمایه برداری را وارد کنید!",
+    "efPlaceholder": "مقدار Ef را وارد کنید (مثال: 100)",
+    "efHint": "پارامتر جستجو برای نمایه HNSW",
+    "efConstruction": "پارامتر Ef Construction نمایه برداری",
+    "efConstructionTooltip": "تعداد کاندیداها در حین ساخت نمایه",
+    "efConstructionRequired": "لطفاً پارامتر Ef Construction نمایه برداری را وارد کنید!",
+    "efConstructionPlaceholder": "مقدار Ef Construction را وارد کنید (مثال: 200)",
+    "efConstructionHint": "پارامتر ساخت برای نمایه HNSW",
+    "enabledSuccess": "نمایه برداری با موفقیت فعال شد",
+    "loadConfigFailed": "بارگذاری پیکربندی نمایه برداری ناموفق بود",
+    "unableToRetrieveConfig": "امکان بازیابی جزئیات پیکربندی وجود ندارد",
+    "configHint": "ممکن است نمایه برداری فعال نباشد یا در دسترسی به پیکربندی مشکلی وجود داشته باشد.",
+    "fileValidationDb": "فایل باید با .db پایان یابد و نباید حاوی فاصله باشد",
+    "fileNoSpaces": "فایل نمایه برداری نباید حاوی فاصله باشد!",
+    "fileEndsDb": "فایل نمایه برداری باید با .db پایان یابد!",
+    "rebuildConfirm": "آیا مطمئن هستید که می‌خواهید نمایه برداری را بازسازی کنید؟",
+    "rebuildBody": "این عملیات نمایه برداری این گراف را بازسازی می‌کند. این فرایند ممکن است مدتی طول بکشد و به‌طور موقت بر عملکرد جستجوی برداری تأثیر بگذارد.",
+    "rebuildSuccess": "بازسازی نمایه برداری با موفقیت آغاز شد",
+    "rebuildFailed": "بازسازی نمایه برداری ناموفق بود",
+    "deleteConfirm": "آیا مطمئن هستید که می‌خواهید نمایه برداری را حذف کنید؟",
+    "deleteBody": "این عملیات نمایه برداری این گراف را حذف خواهد کرد.",
+    "deleteSuccess": "نمایه برداری با موفقیت حذف شد",
+    "deleteFailed": "حذف نمایه برداری ناموفق بود",
+    "stats": {
+      "loadFailed": "بارگذاری آمار نمایه برداری ناموفق بود",
+      "unableToRetrieve": "امکان بازیابی جزئیات آمار وجود ندارد",
+      "hint": "ممکن است نمایه برداری فعال نباشد یا در دسترسی به آمار مشکلی وجود داشته باشد.",
+      "noStats": "هیچ آمار نمایه برداری در دسترس نیست",
+      "noStatsHint": "ممکن است این گراف نمایه برداری فعالی نداشته باشد یا آمار قابل دسترسی نباشد.",
+      "loaded": "بارگذاری‌شده",
+      "notLoaded": "بارگذاری‌نشده",
+      "never": "هرگز",
+      "error": "خطا",
+      "errorProcessing": "خطا در پردازش داده‌های آمار",
+      "label": {
+        "vectorCount": "تعداد بردارها",
+        "dimensions": "ابعاد",
+        "indexType": "نوع نمایه",
+        "m": "پارامتر M",
+        "efConstruction": "EF Construction",
+        "defaultEf": "EF پیش‌فرض",
+        "indexFile": "مسیر فایل نمایه",
+        "indexFileSize": "اندازه فایل نمایه",
+        "estimatedMemory": "مصرف تخمینی حافظه",
+        "lastRebuild": "آخرین بازسازی",
+        "status": "وضعیت",
+        "distanceMetric": "معیار فاصله"
+      },
+      "desc": {
+        "vectorCount": "تعداد کل بردارها در نمایه",
+        "dimensions": "ابعاد بردارها",
+        "indexType": "نوع الگوریتم نمایه برداری",
+        "m": "تعداد اتصالات به ازای هر عنصر در گراف",
+        "efConstruction": "پارامتر EF استفاده‌شده در حین ساخت نمایه",
+        "defaultEf": "پارامتر EF پیش‌فرض برای عبارت‌های جستجو",
+        "indexFile": "مسیر فایلی که نمایه در آن ذخیره می‌شود",
+        "indexFileSize": "اندازه فایل نمایه روی دیسک",
+        "estimatedMemory": "مصرف تخمینی حافظه نمایه",
+        "lastRebuild": "زمان آخرین بازسازی نمایه",
+        "status": "اینکه آیا نمایه در حال حاضر در حافظه بارگذاری شده است",
+        "distanceMetric": "معیار فاصله استفاده‌شده برای محاسبات شباهت"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "خروجی به JSONL",
+    "importIntoGraph": "ورود به گراف",
+    "importNewGraph": "ورود (گراف جدید)",
+    "exportSubgraph": "خروجی زیرگراف",
+    "modal": {
+      "importTitle": "ورود به گراف",
+      "importNewTitle": "ورود به یک گراف جدید",
+      "exportTitle": "خروجی به JSONL",
+      "exportSubgraphTitle": "خروجی زیرگراف"
+    },
+    "fields": {
+      "guidStrategy": "راهبرد GUID",
+      "onError": "در صورت خطا",
+      "maxDepth": "حداکثر عمق",
+      "direction": "جهت",
+      "includeData": "شامل داده",
+      "includeSubordinates": "شامل زیرمجموعه‌ها",
+      "maxEdgeCost": "حداکثر هزینه یال",
+      "startNode": "گره آغازین"
+    },
+    "guidStrategy": {
+      "preserve": "حفظ",
+      "regenerate": "بازتولید",
+      "skip": "رد کردن",
+      "overwrite": "بازنویسی"
+    },
+    "onError": {
+      "abort": "لغو",
+      "skip": "رد کردن"
+    },
+    "direction": {
+      "outbound": "خروجی",
+      "inbound": "ورودی",
+      "both": "هر دو"
+    },
+    "result": {
+      "nodesCreated": "گره‌های ایجادشده",
+      "nodesUpdated": "گره‌های به‌روزشده",
+      "nodesSkipped": "گره‌های ردشده",
+      "edgesCreated": "یال‌های ایجادشده",
+      "edgesUpdated": "یال‌های به‌روزشده",
+      "edgesSkipped": "یال‌های ردشده",
+      "warnings": "هشدارها",
+      "title": "نتیجه ورود",
+      "graphsCreated": "گراف‌های ایجادشده",
+      "linesRead": "خطوط خوانده‌شده",
+      "linesIgnored": "خطوط نادیده‌گرفته‌شده",
+      "newGraphGuid": "GUID گراف جدید",
+      "noWarnings": "بدون هشدار."
+    },
+    "toast": {
+      "importSuccess": "ورود با موفقیت انجام شد",
+      "importFailed": "ورود ناموفق بود",
+      "exportSuccess": "خروجی با موفقیت انجام شد",
+      "exportFailed": "خروجی ناموفق بود"
+    },
+    "guidStrategyHelp": {
+      "preserve": "GUIDهای اصلی فایل را حفظ کنید.",
+      "regenerate": "به هر شیء واردشده GUID جدید اختصاص دهید.",
+      "skip": "GUIDهای اصلی را حفظ کنید و اشیائی را که از قبل وجود دارند رد کنید.",
+      "overwrite": "GUIDهای اصلی را حفظ کنید و اشیائی را که از قبل وجود دارند بازنویسی کنید."
+    },
+    "onErrorHelp": {
+      "abort": "ورود را با اولین خطا متوقف کنید.",
+      "skip": "خطوطی که ناموفق هستند را رد کنید و به ورود ادامه دهید."
+    },
+    "startNodeHelp": "زیرگراف با شروع از این گره استخراج می‌شود.",
+    "upload": {
+      "prompt": "برای بارگذاری یک فایل JSONL روی این ناحیه کلیک کنید یا آن را بکشید",
+      "hint": "فقط فایل‌های .jsonl خروجی‌گرفته‌شده از LiteGraph پشتیبانی می‌شوند.",
+      "selected": "فایل انتخاب‌شده"
+    },
+    "preview": {
+      "title": "پیش‌نمایش",
+      "headerLines": "خطوط سرآیند",
+      "nodes": "گره‌ها",
+      "edges": "یال‌ها",
+      "empty": "هیچ محتوای قابل تشخیصی در این فایل یافت نشد."
+    },
+    "actions": {
+      "import": "ورود",
+      "export": "خروجی"
+    },
+    "exportSubgraphDisabled": "برای خروجی گرفتن زیرگراف، یک گره انتخاب کنید.",
+    "copyGuid": "کپی GUID"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "یال‌ها",
+    "searchTooltip": "جستجو و فیلتر یال‌ها",
+    "createTooltip": "ایجاد یک یال جدید",
+    "createEdge": "ایجاد یال",
+    "entityName": "یال",
+    "edgeJson": "JSON یال",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید یال «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات یال را حذف خواهد کرد.",
+    "labelsCount": "{count, plural, one {# برچسب} other {# برچسب}}",
+    "tagsCount": "{count, plural, one {# تگ} other {# تگ}}",
+    "vectorsCount": "{count, plural, =0 {هیچ‌کدام} one {# بردار} other {# بردار}}",
+    "columns": {
+      "name": "نام",
+      "nameDesc": "نام نمایشی یال",
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "from": "از",
+      "fromDesc": "گره مبدأ این یال",
+      "to": "به",
+      "toDesc": "گره مقصد این یال",
+      "cost": "هزینه",
+      "costDesc": "هزینه پیمایش یال",
+      "labels": "برچسب‌ها",
+      "labelsDesc": "برچسب‌های دسته‌بندی اختصاص‌یافته به این یال",
+      "tags": "تگ‌ها",
+      "tagsDesc": "تگ‌های فراداده کلید-مقدار",
+      "vectors": "بردارها",
+      "vectorsDesc": "جاسازی‌های برداری مرتبط با این یال",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "score": "امتیاز",
+      "scoreDesc": "امتیاز مرتبط بودن از جستجو",
+      "distance": "فاصله",
+      "distanceDesc": "فاصله برداری از عبارت جستجو",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "name": "جستجوی نام",
+      "guid": "جستجوی GUID",
+      "from": "جستجوی مبدأ",
+      "to": "جستجوی مقصد",
+      "labels": "جستجوی برچسب‌ها",
+      "tags": "جستجوی تگ‌ها"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "graph": "گراف",
+      "graphTooltip": "گرافی که این یال به آن تعلق دارد",
+      "guid": "GUID",
+      "guidTooltip": "شناسه یکتای سراسری برای این یال",
+      "name": "نام",
+      "nameTooltip": "نام نمایشی یال",
+      "namePlaceholder": "نام یال را وارد کنید",
+      "nameRequired": "نام یال الزامی است",
+      "cost": "هزینه",
+      "costTooltip": "هزینه پیمایش برای این یال",
+      "costPlaceholder": "هزینه یال را وارد کنید",
+      "costRequired": "هزینه یال الزامی است",
+      "fromNode": "گره مبدأ",
+      "fromNodeTooltip": "گره مبدأ یال",
+      "fromRequired": "گره مبدأ الزامی است",
+      "fromSameAsTo": "گره مبدأ نمی‌تواند با گره مقصد یکسان باشد",
+      "toNode": "گره مقصد",
+      "toNodeTooltip": "گره مقصد یال",
+      "toRequired": "گره مقصد الزامی است",
+      "toSameAsFrom": "گره مقصد نمی‌تواند با گره مبدأ یکسان باشد",
+      "labels": "برچسب‌ها",
+      "labelsTooltip": "برچسب‌های مرتبط با این یال",
+      "tags": "تگ‌ها",
+      "tagsTooltip": "تگ‌های کلید-مقدار برای این یال",
+      "vectors": "بردارها",
+      "vectorsTooltip": "جاسازی‌های برداری برای این یال",
+      "data": "داده",
+      "dataTooltip": "داده JSON دلخواه پیوست‌شده به این یال",
+      "copyData": "کپی داده"
+    },
+    "modalTitle": {
+      "create": "ایجاد یال",
+      "edit": "ویرایش یال",
+      "view": "مشاهده یال",
+      "loading": "در حال بارگذاری یال..."
+    },
+    "toast": {
+      "created": "افزودن یال با موفقیت انجام شد",
+      "updated": "به‌روزرسانی یال با موفقیت انجام شد",
+      "deleted": "حذف یال با موفقیت انجام شد",
+      "updateFailed": "به‌روزرسانی یال ناموفق بود: {error}"
+    }
+  },
+  "home": {
+    "pageTitle": "خانه",
+    "addNode": "افزودن گره",
+    "addEdge": "افزودن یال"
+  },
+  "graphViewer": {
+    "loadingNodes": "در حال بارگذاری گره‌ها...",
+    "loadingEdges": "در حال بارگذاری یال‌ها...",
+    "errorLoadingGraph": "خطا در بارگذاری گراف",
+    "noNodes": "این گراف هیچ گرهی ندارد.",
+    "tooManyNodes": "گره‌های بسیار زیادی برای رندر صحیح گراف وجود دارد. {count} گره اول نمایش داده می‌شود.",
+    "controls": {
+      "button": "کنترل‌ها",
+      "clearSubGraph": "پاک کردن زیرگراف",
+      "searchSubGraph": "جستجوی زیرگراف",
+      "threeD": "سه‌بعدی",
+      "horizontalLayout": "چیدمان افقی",
+      "depthAwareLayout": "چیدمان مبتنی بر عمق",
+      "depthAwareTooltip": "چرخه‌ها و بازپیوندهای متراکم به‌طور خودکار مدیریت می‌شوند تا چیدمان عمق خوانا بماند.",
+      "collapseRelatedNodes": "جمع کردن گره‌های مرتبط",
+      "collapseRelatedTooltip": "برای گسترش، روی گره‌های گروه‌بندی‌شده کلیک کنید. گروه‌ها از برچسب‌ها، کلیدهای تگ آگاهی‌بخش و الگوهای اتصال استنباط می‌شوند.",
+      "dragByLabel": "کشیدن بر اساس برچسب",
+      "showGraphLegend": "نمایش راهنمای گراف",
+      "showNodeName": "نمایش نام گره",
+      "collapseExpanded": "جمع کردن گسترش‌یافته"
+    },
+    "node": {
+      "title": "اطلاعات گره",
+      "expand": "گسترش",
+      "guid": "GUID",
+      "name": "نام",
+      "labels": "برچسب‌ها",
+      "tags": "تگ‌ها",
+      "addNew": "افزودن گره جدید",
+      "openAddForm": "باز کردن فرم افزودن گره",
+      "updateTooltip": "به‌روزرسانی گره",
+      "deleteTooltip": "حذف گره",
+      "addEdgeTooltip": "افزودن یال",
+      "addEdge": "افزودن یال",
+      "deleteConfirmTitle": "آیا مطمئن هستید که می‌خواهید گره «{name}» را حذف کنید؟",
+      "deleteConfirmText": "این عملیات گره را حذف خواهد کرد."
+    },
+    "edge": {
+      "title": "اطلاعات یال",
+      "expand": "گسترش",
+      "guid": "GUID",
+      "name": "نام",
+      "from": "از",
+      "to": "به",
+      "cost": "هزینه",
+      "labels": "برچسب‌ها",
+      "tags": "تگ‌ها",
+      "addNew": "افزودن یال جدید",
+      "openAddForm": "باز کردن فرم افزودن یال",
+      "updateTooltip": "به‌روزرسانی یال",
+      "deleteTooltip": "حذف یال",
+      "deleteConfirmTitle": "آیا مطمئن هستید که می‌خواهید یال «{name}» را حذف کنید؟",
+      "deleteConfirmText": "این عملیات یال را حذف خواهد کرد."
+    },
+    "nodeSearch": {
+      "title": "جستجوی گره‌ها",
+      "placeholder": "جستجوی گره‌ها بر اساس نام...",
+      "searchFailed": "جستجوی گره‌ها ناموفق بود. لطفاً دوباره تلاش کنید.",
+      "noNodesFound": "هیچ گرهی یافت نشد",
+      "enterSearchTerm": "برای یافتن گره‌ها یک عبارت جستجو وارد کنید",
+      "total": "مجموع {count} گره",
+      "columns": {
+        "name": "نام",
+        "nameTooltip": "نام نمایشی گره",
+        "labels": "برچسب‌ها",
+        "labelsTooltip": "برچسب‌های دسته‌بندی",
+        "guid": "GUID",
+        "guidTooltip": "شناسه یکتای سراسری"
+      }
+    }
+  },
+  "search": {
+    "tags": "تگ‌ها",
+    "tagsTooltip": "فیلتر بر اساس تگ‌های کلید-مقدار",
+    "labelsTooltip": "فیلتر بر اساس برچسب‌های دسته‌بندی",
+    "expression": "عبارت",
+    "expressionTooltip": "فیلتر با استفاده از نحو عبارت",
+    "example": "مثال:",
+    "atLeastOneRequired": "حداقل یک فیلد الزامی است."
+  },
+  "nodes": {
+    "title": "گره‌ها",
+    "searchTooltip": "جستجو و فیلتر گره‌ها",
+    "createTooltip": "ایجاد یک گره جدید",
+    "createNode": "ایجاد گره",
+    "entityName": "گره",
+    "copyGuid": "کپی GUID",
+    "labelsCount": "{count, plural, one {# برچسب} other {# برچسب}}",
+    "tagsCount": "{count, plural, one {# تگ} other {# تگ}}",
+    "vectorsCount": "{count, plural, =0 {هیچ‌کدام} one {# بردار} other {# بردار}}",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید گره «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات گره را حذف خواهد کرد.",
+    "nodeJson": "JSON گره",
+    "columns": {
+      "name": "نام",
+      "nameDesc": "نام نمایشی گره",
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "labels": "برچسب‌ها",
+      "labelsDesc": "برچسب‌های دسته‌بندی اختصاص‌یافته به این گره",
+      "tags": "تگ‌ها",
+      "tagsDesc": "تگ‌های فراداده کلید-مقدار",
+      "vectors": "بردارها",
+      "vectorsDesc": "جاسازی‌های برداری مرتبط با این گره",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "score": "امتیاز",
+      "scoreDesc": "امتیاز مرتبط بودن از جستجو",
+      "distance": "فاصله",
+      "distanceDesc": "فاصله برداری از عبارت جستجو",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "name": "جستجوی نام",
+      "guid": "جستجوی GUID",
+      "labels": "جستجوی برچسب‌ها",
+      "tags": "جستجوی تگ‌ها"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "graph": "گراف",
+      "graphTooltip": "گرافی که این گره به آن تعلق دارد",
+      "guid": "GUID",
+      "guidTooltip": "شناسه یکتای سراسری برای این گره",
+      "name": "نام",
+      "namePlaceholder": "نام گره را وارد کنید",
+      "nameTooltip": "نام نمایشی گره",
+      "nameRequired": "نام گره الزامی است",
+      "labels": "برچسب‌ها",
+      "labelsTooltip": "برچسب‌های مرتبط با این گره",
+      "tags": "تگ‌ها",
+      "tagsTooltip": "تگ‌های کلید-مقدار برای این گره",
+      "vectors": "بردارها",
+      "vectorsTooltip": "جاسازی‌های برداری برای این گره",
+      "data": "داده",
+      "dataTooltip": "داده JSON دلخواه پیوست‌شده به این گره",
+      "copyData": "کپی داده"
+    },
+    "modalTitle": {
+      "create": "ایجاد گره",
+      "edit": "ویرایش گره",
+      "view": "مشاهده گره",
+      "loading": "در حال بارگذاری گره...",
+      "createOk": "ایجاد",
+      "updateOk": "به‌روزرسانی"
+    },
+    "toast": {
+      "created": "افزودن گره با موفقیت انجام شد",
+      "updated": "به‌روزرسانی گره با موفقیت انجام شد",
+      "deleted": "حذف گره با موفقیت انجام شد",
+      "updateFailed": "به‌روزرسانی گره ناموفق بود: {error}"
+    }
+  },
+  "labels": {
+    "title": "برچسب‌ها",
+    "createTooltip": "ایجاد یک برچسب جدید",
+    "createLabel": "ایجاد برچسب",
+    "copyGuid": "کپی GUID",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید برچسب «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات برچسب را حذف خواهد کرد.",
+    "labelJson": "JSON برچسب",
+    "columns": {
+      "label": "برچسب",
+      "labelDesc": "مقدار متنی برچسب",
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "node": "گره",
+      "nodeDesc": "نام گره مرتبط",
+      "edge": "یال",
+      "edgeDesc": "نام یال مرتبط",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "label": "جستجوی برچسب",
+      "guid": "جستجوی GUID",
+      "node": "جستجوی گره",
+      "edge": "جستجوی یال"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "label": "برچسب",
+      "labelTooltip": "مقدار متنی برچسب",
+      "labelRequired": "لطفاً برچسب را وارد کنید!",
+      "labelPlaceholder": "برچسب را وارد کنید",
+      "node": "گره",
+      "nodeTooltip": "گرهی که با این برچسب مرتبط شود",
+      "edge": "یال",
+      "edgeTooltip": "یالی که با این برچسب مرتبط شود"
+    },
+    "modalTitle": {
+      "create": "ایجاد برچسب",
+      "edit": "ویرایش برچسب"
+    },
+    "toast": {
+      "created": "برچسب با موفقیت ایجاد شد",
+      "updated": "برچسب با موفقیت به‌روزرسانی شد",
+      "deleted": "برچسب با موفقیت حذف شد",
+      "updateFailed": "به‌روزرسانی برچسب ناموفق بود: {error}",
+      "updateFailedNoResponse": "به‌روزرسانی برچسب ناموفق بود - پاسخی دریافت نشد"
+    }
+  },
+  "tags": {
+    "title": "تگ‌ها",
+    "createTooltip": "ایجاد یک تگ جدید",
+    "createTag": "ایجاد تگ",
+    "copyGuid": "کپی GUID",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید تگ «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات تگ را حذف خواهد کرد.",
+    "tagJson": "JSON تگ",
+    "columns": {
+      "key": "کلید",
+      "keyDesc": "شناسه کلید تگ",
+      "value": "مقدار",
+      "valueDesc": "مقدار تگ",
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "node": "گره",
+      "nodeDesc": "نام گره مرتبط",
+      "edge": "یال",
+      "edgeDesc": "نام یال مرتبط",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "key": "جستجوی کلید",
+      "value": "جستجوی مقدار",
+      "guid": "جستجوی GUID",
+      "node": "جستجوی گره",
+      "edge": "جستجوی یال"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "key": "کلید",
+      "keyTooltip": "شناسه کلید تگ",
+      "keyRequired": "لطفاً کلید تگ را وارد کنید!",
+      "keyPlaceholder": "کلید تگ را وارد کنید",
+      "value": "مقدار",
+      "valueTooltip": "مقدار تگ",
+      "valueRequired": "لطفاً مقدار تگ را وارد کنید!",
+      "valuePlaceholder": "مقدار تگ را وارد کنید",
+      "node": "گره",
+      "nodeTooltip": "گرهی که با این تگ مرتبط شود",
+      "edge": "یال",
+      "edgeTooltip": "یالی که با این تگ مرتبط شود"
+    },
+    "modalTitle": {
+      "create": "ایجاد تگ",
+      "edit": "ویرایش تگ"
+    },
+    "toast": {
+      "created": "تگ با موفقیت ایجاد شد",
+      "updated": "تگ با موفقیت به‌روزرسانی شد",
+      "deleted": "تگ با موفقیت حذف شد",
+      "updateFailed": "به‌روزرسانی تگ ناموفق بود: {error}",
+      "updateFailedNoResponse": "به‌روزرسانی تگ ناموفق بود - پاسخی دریافت نشد"
+    }
+  },
+  "vectors": {
+    "title": "بردارها",
+    "createTooltip": "ایجاد یک بردار جدید",
+    "createVector": "ایجاد بردار",
+    "copyGuid": "کپی GUID",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید این بردار را حذف کنید؟",
+    "deleteBody": "این عملیات بردار را حذف خواهد کرد.",
+    "vectorJson": "JSON بردار",
+    "vectorsCount": "{count, plural, one {# بردار} other {# بردار}}",
+    "columns": {
+      "model": "مدل",
+      "modelDesc": "نام مدل بردار",
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "node": "گره",
+      "nodeDesc": "نام گره مرتبط",
+      "edge": "یال",
+      "edgeDesc": "نام یال مرتبط",
+      "dimensionality": "ابعاد",
+      "dimensionalityDesc": "تعداد ابعاد بردار",
+      "content": "محتوا",
+      "contentDesc": "متن محتوای بردار",
+      "vectors": "بردارها",
+      "vectorsDesc": "مقادیر جاسازی برداری",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "model": "جستجوی مدل",
+      "guid": "جستجوی GUID",
+      "node": "جستجوی گره",
+      "edge": "جستجوی یال",
+      "content": "جستجوی محتوا"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "model": "مدل",
+      "modelTooltip": "نام مدل جاسازی",
+      "modelRequired": "لطفاً مدل را وارد کنید!",
+      "modelPlaceholder": "مدل را وارد کنید",
+      "dimensionality": "ابعاد",
+      "dimensionalityTooltip": "تعداد ابعاد در بردار",
+      "dimensionalityRequired": "لطفاً ابعاد را وارد کنید!",
+      "dimensionalityPlaceholder": "ابعاد را وارد کنید",
+      "content": "محتوا",
+      "contentTooltip": "محتوای متنی مرتبط با بردار",
+      "contentRequired": "لطفاً محتوا را وارد کنید!",
+      "contentPlaceholder": "محتوا را وارد کنید",
+      "vectors": "بردارها",
+      "vectorsTooltip": "مقادیر جاسازی برداری به‌صورت آرایه JSON",
+      "vectorsRequired": "لطفاً بردارها را وارد کنید!",
+      "node": "گره",
+      "nodeTooltip": "گرهی که با این بردار مرتبط شود",
+      "edge": "یال",
+      "edgeTooltip": "یالی که با این بردار مرتبط شود"
+    },
+    "modalTitle": {
+      "create": "ایجاد بردار",
+      "edit": "ویرایش بردار"
+    },
+    "toast": {
+      "created": "بردار با موفقیت ایجاد شد",
+      "updated": "بردار با موفقیت به‌روزرسانی شد",
+      "deleted": "بردار با موفقیت حذف شد",
+      "updateFailed": "به‌روزرسانی بردار ناموفق بود: {error}"
+    }
+  },
+  "requestHistory": {
+    "title": "تاریخچه درخواست‌ها",
+    "columns": {
+      "time": "زمان",
+      "method": "متد",
+      "path": "مسیر",
+      "status": "وضعیت",
+      "transaction": "تراکنش",
+      "duration": "مدت زمان",
+      "size": "اندازه (درخواست/پاسخ)",
+      "tenant": "مستأجر",
+      "actions": "عملیات"
+    },
+    "transaction": {
+      "noId": "تراکنش"
+    },
+    "transactionState": {
+      "validation": "اعتبارسنجی",
+      "committed": "ثبت‌شده",
+      "rolledBack": "بازگردانده‌شده",
+      "failed": "ناموفق",
+      "transaction": "تراکنش"
+    },
+    "transactionTags": {
+      "retryable": "قابل تلاش مجدد",
+      "conflict": "تعارض"
+    },
+    "rowActions": {
+      "view": "مشاهده",
+      "viewJson": "مشاهده JSON",
+      "delete": "حذف",
+      "menu": "عملیات درخواست"
+    },
+    "filters": {
+      "allStatuses": "همه وضعیت‌ها",
+      "allOutcomes": "همه نتایج",
+      "successful": "موفق",
+      "errors": "خطاها",
+      "allRequests": "همه درخواست‌ها",
+      "transactions": "تراکنش‌ها",
+      "nonTransactions": "غیرتراکنش‌ها",
+      "allMethods": "همه متدها",
+      "transactionIdPlaceholder": "شناسه تراکنش...",
+      "pathPlaceholder": "مسیر شامل..."
+    },
+    "summary": {
+      "visibleRequests": "درخواست‌های قابل مشاهده:",
+      "visibleErrors": "خطاهای قابل مشاهده:",
+      "errorRate": "نرخ خطا:",
+      "averageDuration": "میانگین مدت زمان:",
+      "p95Duration": "مدت زمان P95:"
+    },
+    "telemetry": {
+      "title": "سنجش عملیاتی",
+      "prometheus": "معیارهای Prometheus",
+      "openTelemetry": "راه‌اندازی OpenTelemetry",
+      "description": "تاریخچه درخواست‌ها برای بررسی درخواست‌های اخیر است؛ معیارها و ردیابی‌ها برای پایش تجمیعی هستند."
+    },
+    "delete": {
+      "confirmTitle": "ورودی تاریخچه درخواست حذف شود؟"
+    },
+    "toast": {
+      "loadFailed": "امکان بارگذاری تاریخچه درخواست‌ها وجود ندارد",
+      "deleted": "ورودی حذف شد",
+      "deleteFailed": "امکان حذف وجود ندارد"
+    },
+    "entryJson": "JSON ورودی تاریخچه درخواست",
+    "chart": {
+      "title": "درخواست‌ها در طول زمان",
+      "ranges": {
+        "hour": "ساعت گذشته",
+        "day": "روز گذشته",
+        "week": "هفته گذشته",
+        "month": "ماه گذشته"
+      },
+      "total": "مجموع",
+      "success": "موفق",
+      "failed": "ناموفق",
+      "tooltip": {
+        "success": "موفق: {count}",
+        "failed": "ناموفق: {count}",
+        "total": "مجموع: {count}"
+      }
+    },
+    "detail": {
+      "title": "جزئیات درخواست",
+      "empty": "(خالی)",
+      "copyId": "کپی شناسه",
+      "truncated": "[کوتاه‌شده]",
+      "entries": "{count} ورودی",
+      "loadFailed": "امکان بارگذاری جزئیات درخواست وجود ندارد",
+      "fields": {
+        "id": "شناسه",
+        "method": "متد",
+        "status": "وضعیت",
+        "duration": "مدت زمان",
+        "time": "زمان",
+        "sourceIp": "IP مبدأ",
+        "tenant": "مستأجر",
+        "requestSize": "اندازه درخواست",
+        "responseSize": "اندازه پاسخ",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "سرآیندهای درخواست",
+        "requestBody": "بدنه درخواست",
+        "responseHeaders": "سرآیندهای پاسخ",
+        "responseBody": "بدنه پاسخ",
+        "transactionDiagnostics": "عیب‌یابی تراکنش"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "کاوشگر API",
+    "send": "ارسال",
+    "request": {
+      "title": "درخواست",
+      "resetTooltip": "بازنشانی بدنه به قالب",
+      "selectOperation": "یک عملیات انتخاب کنید...",
+      "copyUrl": "کپی URL",
+      "body": "بدنه درخواست",
+      "recentRequests": "درخواست‌های اخیر",
+      "clear": "پاک کردن"
+    },
+    "params": {
+      "path": "پارامترهای مسیر",
+      "query": "پارامترهای پرس‌وجو"
+    },
+    "response": {
+      "title": "پاسخ",
+      "transactionFailed": "تراکنش ناموفق بود",
+      "queryFailed": "پرس‌وجو ناموفق بود",
+      "noResponse": "(هنوز پاسخی وجود ندارد)",
+      "status": "وضعیت",
+      "contentType": "Content-Type",
+      "duration": "مدت زمان",
+      "size": "اندازه",
+      "copyCode": "کپی کد",
+      "selectOperationHint": "(یک عملیات انتخاب کنید)"
+    },
+    "tabs": {
+      "preview": "پیش‌نمایش",
+      "body": "بدنه",
+      "headers": "سرآیندها",
+      "status": "وضعیت",
+      "code": "کد"
+    },
+    "toast": {
+      "loadSpecFailed": "امکان بارگذاری مشخصات OpenAPI وجود ندارد",
+      "requestFailed": "درخواست ناموفق بود: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} ناموفق بود{indexText}: {error}.",
+      "defaultOperation": "عملیات",
+      "defaultObject": "شیء",
+      "guid": " ({guid})",
+      "indexText": " در اندیس {index}",
+      "noError": "هیچ جزئیات خطایی بازگردانده نشد.",
+      "validation": " تراکنش پیش از آغاز در اعتبارسنجی ناموفق بود.",
+      "rolledBack": " تراکنش بازگردانده شد.",
+      "transactionId": " تراکنش {transactionId}.",
+      "state": " وضعیت: {state}.",
+      "provider": " ارائه‌دهنده: {provider}.",
+      "providerError": " خطای ارائه‌دهنده: {providerErrorCode}.",
+      "retryable": " این شکست به‌عنوان قابل تلاش مجدد علامت‌گذاری شده است.",
+      "conflict": " تعارض همزمانی شناسایی شد.",
+      "queryErrorAt": "خطای پرس‌وجو در {location}: {description}",
+      "queryError": "خطای پرس‌وجو: {description}"
+    }
+  },
+  "credentials": {
+    "title": "اعتبارنامه‌ها",
+    "createTooltip": "ایجاد یک اعتبارنامه جدید",
+    "createCredential": "ایجاد اعتبارنامه",
+    "copyGuid": "کپی GUID",
+    "credentialJson": "JSON اعتبارنامه",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید اعتبارنامه «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات اعتبارنامه را حذف خواهد کرد.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "user": "کاربر",
+      "userDesc": "نام کاربر مرتبط",
+      "name": "نام",
+      "nameDesc": "نام نمایشی اعتبارنامه",
+      "bearerToken": "توکن حامل",
+      "bearerTokenDesc": "توکن حامل احراز هویت",
+      "active": "فعال",
+      "activeDesc": "اینکه آیا اعتبارنامه فعال است",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "guid": "جستجوی GUID",
+      "user": "جستجوی کاربر",
+      "name": "جستجوی نام"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "userGuid": "GUID کاربر",
+      "userGuidTooltip": "کاربری که این اعتبارنامه به آن تعلق دارد",
+      "userGuidRequired": "لطفاً GUID کاربر را انتخاب کنید!",
+      "userGuidPlaceholder": "GUID کاربر را انتخاب کنید",
+      "name": "نام",
+      "nameTooltip": "نام نمایشی اعتبارنامه",
+      "nameRequired": "لطفاً نام را وارد کنید!",
+      "namePlaceholder": "نام را وارد کنید",
+      "bearerToken": "توکن حامل",
+      "bearerTokenTooltip": "توکن حامل احراز هویت",
+      "bearerTokenRequired": "لطفاً توکن حامل را وارد کنید!",
+      "bearerTokenPlaceholder": "توکن حامل را وارد کنید",
+      "active": "فعال",
+      "activeTooltip": "اینکه آیا اعتبارنامه فعال است"
+    },
+    "modalTitle": {
+      "create": "ایجاد اعتبارنامه",
+      "edit": "ویرایش اعتبارنامه"
+    },
+    "toast": {
+      "created": "اعتبارنامه با موفقیت ایجاد شد",
+      "updated": "اعتبارنامه با موفقیت به‌روزرسانی شد",
+      "updateNoResponse": "به‌روزرسانی اعتبارنامه ناموفق بود - پاسخی دریافت نشد",
+      "deleted": "اعتبارنامه با موفقیت حذف شد",
+      "updateFailed": "به‌روزرسانی اعتبارنامه ناموفق بود: {error}"
+    }
+  },
+  "authorization": {
+    "title": "مجوزدهی",
+    "createTooltip": "ایجاد یک نقش سفارشی",
+    "adminRequired": "مجوز مدیر الزامی است",
+    "createRole": "ایجاد نقش",
+    "roleJson": "JSON نقش مجوزدهی",
+    "tabs": {
+      "roles": "نقش‌ها",
+      "userRoles": "نقش‌های کاربر",
+      "credentialScopes": "دامنه‌های اعتبارنامه"
+    },
+    "sections": {
+      "effectiveUserPermissions": "مجوزهای مؤثر کاربر",
+      "effectiveCredentialPermissions": "مجوزهای مؤثر اعتبارنامه"
+    },
+    "states": {
+      "selectTenant": "برای مدیریت مجوزدهی یک مستأجر انتخاب کنید.",
+      "adminWarning": "برای تغییر نقش‌ها یا دامنه‌های اعتبارنامه، مجوز مدیر الزامی است."
+    },
+    "columns": {
+      "name": "نام",
+      "scope": "دامنه",
+      "permissions": "مجوزها",
+      "resources": "منابع",
+      "builtIn": "داخلی",
+      "actions": "عملیات",
+      "role": "نقش",
+      "graph": "گراف",
+      "source": "منبع"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "viewJson": "مشاهده JSON",
+      "delete": "حذف",
+      "revoke": "لغو",
+      "menu": "عملیات"
+    },
+    "labels": {
+      "builtIn": "داخلی",
+      "custom": "سفارشی",
+      "immutable": "غیرقابل تغییر",
+      "directRole": "نقش مستقیم",
+      "directGrant": "اعطای مستقیم"
+    },
+    "confirm": {
+      "deleteRoleTitle": "نقش حذف شود؟",
+      "deleteRoleBody": "«{name}» حذف شود؟",
+      "revokeRole": "نقش لغو شود؟",
+      "revokeScope": "دامنه اعتبارنامه لغو شود؟"
+    },
+    "actions": {
+      "assignRole": "اختصاص نقش",
+      "assignScope": "اختصاص دامنه"
+    },
+    "modalTitle": {
+      "create": "ایجاد نقش",
+      "edit": "ویرایش نقش"
+    },
+    "form": {
+      "name": "نام",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "نام نمایشی",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "توضیحات",
+      "descriptionPlaceholder": "دسترسی حسابرسی فقط‌خواندنی برای گراف‌های انتخاب‌شده",
+      "defaultScope": "دامنه پیش‌فرض",
+      "permissions": "مجوزها",
+      "resourceTypes": "انواع منابع",
+      "inheritsToGraphs": "دامنه مستأجر به گراف‌ها به ارث می‌رسد",
+      "user": "کاربر",
+      "selectUser": "انتخاب کاربر",
+      "role": "نقش",
+      "selectRole": "انتخاب نقش",
+      "scope": "دامنه",
+      "graph": "گراف",
+      "selectGraph": "انتخاب گراف",
+      "graphRequiredAssignment": "برای اختصاص‌های در سطح گراف، گراف را انتخاب کنید.",
+      "credential": "اعتبارنامه",
+      "selectCredential": "انتخاب اعتبارنامه",
+      "optionalRole": "نقش اختیاری",
+      "directPermissions": "مجوزهای مستقیم",
+      "directResources": "منابع مستقیم",
+      "graphRequiredScope": "برای دامنه‌های در سطح گراف، گراف را انتخاب کنید."
+    },
+    "permissions": {
+      "Read": "خواندن",
+      "Write": "نوشتن",
+      "Delete": "حذف",
+      "Admin": "مدیر"
+    },
+    "scopes": {
+      "Tenant": "مستأجر",
+      "Graph": "گراف",
+      "tenantScope": "دامنه مستأجر"
+    },
+    "resourceTypes": {
+      "Admin": "مدیر",
+      "Graph": "گراف",
+      "Node": "گره",
+      "Edge": "یال",
+      "Label": "برچسب",
+      "Tag": "تگ",
+      "Vector": "بردار",
+      "Query": "پرس‌وجو",
+      "Transaction": "تراکنش"
+    }
+  },
+  "backups": {
+    "title": "پشتیبان‌ها",
+    "createTooltip": "ایجاد یک پشتیبان جدید",
+    "createBackup": "ایجاد پشتیبان",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید پشتیبان «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات پشتیبان را حذف خواهد کرد.",
+    "columns": {
+      "filename": "نام فایل",
+      "filenameDesc": "نام فایل پشتیبان",
+      "size": "اندازه",
+      "sizeDesc": "اندازه فایل پشتیبان",
+      "sha256": "SHA256",
+      "sha256Desc": "هش SHA-256 فایل پشتیبان",
+      "createdUtc": "ایجاد (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "filename": "جستجوی نام فایل"
+    },
+    "rowActions": {
+      "download": "دانلود",
+      "delete": "حذف",
+      "menu": "عملیات"
+    },
+    "form": {
+      "filename": "نام فایل",
+      "filenamePlaceholder": "نام فایل را وارد کنید",
+      "filenameTooltip": "نام فایل پشتیبان",
+      "filenameRequired": "لطفاً یک نام فایل وارد کنید"
+    },
+    "modalTitle": {
+      "create": "افزودن پشتیبان",
+      "edit": "ویرایش پشتیبان"
+    },
+    "toast": {
+      "created": "پشتیبان با موفقیت ایجاد شد",
+      "createFailed": "ایجاد پشتیبان ناموفق بود",
+      "createFailedError": "ایجاد پشتیبان ناموفق بود: {error}",
+      "deleted": "پشتیبان با موفقیت حذف شد",
+      "missingFilename": "نام فایل پشتیبان موجود نیست",
+      "unableToDownload": "امکان دانلود پشتیبان وجود ندارد"
+    }
+  },
+  "tenants": {
+    "title": "مستأجرها",
+    "createTooltip": "ایجاد یک مستأجر جدید",
+    "createTenant": "ایجاد مستأجر",
+    "copyGuid": "کپی GUID",
+    "tenantJson": "JSON مستأجر",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید مستأجر «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات مستأجر را حذف خواهد کرد.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "name": "نام",
+      "nameDesc": "نام نمایشی مستأجر",
+      "active": "فعال",
+      "activeDesc": "اینکه آیا مستأجر فعال است",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "search": {
+      "guid": "جستجوی GUID",
+      "name": "جستجوی نام"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "name": "نام",
+      "nameTooltip": "نام نمایشی مستأجر",
+      "nameRequired": "لطفاً نام را وارد کنید!",
+      "namePlaceholder": "نام را وارد کنید",
+      "active": "فعال",
+      "activeTooltip": "اینکه آیا مستأجر فعال است"
+    },
+    "modalTitle": {
+      "create": "ایجاد مستأجر",
+      "edit": "ویرایش مستأجر"
+    },
+    "toast": {
+      "created": "مستأجر با موفقیت ایجاد شد",
+      "updated": "مستأجر با موفقیت به‌روزرسانی شد",
+      "updateNoResponse": "به‌روزرسانی مستأجر ناموفق بود - پاسخی دریافت نشد",
+      "deleted": "مستأجر با موفقیت حذف شد"
+    }
+  },
+  "users": {
+    "title": "کاربران",
+    "createTooltip": "ایجاد یک کاربر جدید",
+    "createUser": "ایجاد کاربر",
+    "copyGuid": "کپی GUID",
+    "userJson": "JSON کاربر",
+    "deleteTitle": "آیا مطمئن هستید که می‌خواهید کاربر «{name}» را حذف کنید؟",
+    "deleteBody": "این عملیات کاربر را حذف خواهد کرد.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "شناسه یکتای سراسری",
+      "firstName": "نام",
+      "firstNameDesc": "نام کوچک کاربر",
+      "lastName": "نام خانوادگی",
+      "lastNameDesc": "نام خانوادگی کاربر",
+      "email": "ایمیل",
+      "emailDesc": "آدرس ایمیل کاربر",
+      "password": "رمز عبور",
+      "passwordDesc": "رمز عبور کاربر (برای نمایش روی چشم کلیک کنید)",
+      "active": "فعال",
+      "activeDesc": "اینکه آیا حساب کاربر فعال است",
+      "createdUtc": "ایجادشده (UTC)",
+      "createdUtcDesc": "تاریخ و زمان ایجاد به وقت UTC",
+      "actions": "عملیات",
+      "actionsDesc": "عملیات موجود"
+    },
+    "password": {
+      "show": "نمایش رمز عبور",
+      "hide": "پنهان کردن رمز عبور"
+    },
+    "search": {
+      "guid": "جستجوی GUID",
+      "firstName": "جستجوی نام",
+      "lastName": "جستجوی نام خانوادگی",
+      "email": "جستجوی ایمیل"
+    },
+    "rowActions": {
+      "edit": "ویرایش",
+      "delete": "حذف",
+      "viewJson": "مشاهده JSON",
+      "menu": "عملیات"
+    },
+    "form": {
+      "firstName": "نام",
+      "firstNameTooltip": "نام کوچک کاربر",
+      "firstNameRequired": "لطفاً نام را وارد کنید!",
+      "firstNamePlaceholder": "نام را وارد کنید",
+      "lastName": "نام خانوادگی",
+      "lastNameTooltip": "نام خانوادگی کاربر",
+      "lastNameRequired": "لطفاً نام خانوادگی را وارد کنید!",
+      "lastNamePlaceholder": "نام خانوادگی را وارد کنید",
+      "email": "ایمیل",
+      "emailTooltip": "آدرس ایمیل کاربر",
+      "emailRequired": "لطفاً ایمیل خود را وارد کنید!",
+      "emailInvalid": "لطفاً یک ایمیل معتبر وارد کنید!",
+      "emailPlaceholder": "ایمیل",
+      "password": "رمز عبور",
+      "passwordTooltip": "رمز عبور حساب",
+      "passwordRequired": "لطفاً رمز عبور را وارد کنید!",
+      "passwordPlaceholder": "رمز عبور را وارد کنید",
+      "active": "فعال",
+      "activeTooltip": "اینکه آیا حساب کاربر فعال است",
+      "tenantAdmin": "مدیر مستأجر",
+      "tenantAdminTooltip": "حقوق کامل درون این مستأجر را اعطا می‌کند.",
+      "systemAdmin": "مدیر سیستم",
+      "systemAdminTooltip": "حقوق ابرکاربر در سطح سرور را در تمام مستأجرها اعطا می‌کند."
+    },
+    "modalTitle": {
+      "create": "ایجاد کاربر",
+      "edit": "ویرایش کاربر"
+    },
+    "toast": {
+      "created": "کاربر با موفقیت ایجاد شد",
+      "updated": "کاربر با موفقیت به‌روزرسانی شد",
+      "updateNoResponse": "به‌روزرسانی کاربر ناموفق بود - پاسخی دریافت نشد",
+      "deleted": "کاربر با موفقیت حذف شد",
+      "updateFailed": "به‌روزرسانی کاربر ناموفق بود: {error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "خانه",
+      "data": "داده",
+      "metadata": "فراداده",
+      "manage": "مدیریت",
+      "secure": "امنیت",
+      "administer": "مدیریت سیستم"
+    },
+    "item": {
+      "home": "خانه",
+      "homeTitle": "نمای کلی داشبورد",
+      "graphs": "گراف‌ها",
+      "graphsTitle": "مدیریت مخازن گراف",
+      "nodes": "گره‌ها",
+      "nodesTitle": "مدیریت گره‌های گراف",
+      "edges": "یال‌ها",
+      "edgesTitle": "مدیریت یال‌های گراف",
+      "labels": "برچسب‌ها",
+      "labelsTitle": "مدیریت برچسب‌های دسته‌بندی",
+      "tags": "تگ‌ها",
+      "tagsTitle": "مدیریت تگ‌های کلید-مقدار",
+      "vectors": "بردارها",
+      "vectorsTitle": "مدیریت جاسازی‌های برداری",
+      "requests": "درخواست‌های API",
+      "requestsTitle": "تاریخچه درخواست‌های HTTP",
+      "apiExplorer": "کاوشگر API",
+      "apiExplorerTitle": "کاوش و فراخوانی نقاط پایانی API",
+      "tenants": "مستأجرها",
+      "tenantsTitle": "مدیریت مستأجرها",
+      "users": "کاربران",
+      "usersTitle": "مدیریت حساب‌های کاربری",
+      "credentials": "اعتبارنامه‌ها",
+      "credentialsTitle": "مدیریت اعتبارنامه‌های API",
+      "authorization": "مجوزدهی",
+      "authorizationTitle": "مدیریت نقش‌ها و دامنه‌های اعتبارنامه",
+      "backups": "پشتیبان",
+      "backupsTitle": "مدیریت پشتیبان‌های پایگاه داده",
+      "settings": "تنظیمات",
+      "settingsTitle": "پیکربندی سرور"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "دسترسی رد شد",
+      "subtitle": "شما مجوز مشاهده این صفحه را ندارید.",
+      "backHome": "رفتن به خانه"
+    }
+  },
+  "settings": {
+    "title": "تنظیمات",
+    "subtitle": "پیکربندی سرور را ویرایش کنید. برخی تغییرات بلافاصله اعمال می‌شوند؛ برخی دیگر نیازمند راه‌اندازی مجدد هستند.",
+    "loading": "در حال بارگذاری تنظیمات…",
+    "loadError": "امکان بارگذاری تنظیمات سرور وجود ندارد.",
+    "reconnecting": "در حال راه‌اندازی مجدد سرور و اتصال دوباره…",
+    "sections": {
+      "general": "عمومی",
+      "logging": "ثبت رویداد",
+      "caching": "کش",
+      "requestHistory": "تاریخچه درخواست‌ها",
+      "observability": "قابلیت مشاهده",
+      "debug": "اشکال‌زدایی",
+      "rest": "سرور REST",
+      "database": "پایگاه داده",
+      "security": "امنیت"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "مهلت درخواست (ثانیه)",
+      "loggingEnable": "فعال‌سازی ثبت رویداد",
+      "consoleLogging": "ثبت رویداد در کنسول",
+      "minimumSeverity": "حداقل شدت",
+      "logDirectory": "پوشه گزارش",
+      "logFilename": "نام فایل گزارش",
+      "logQueries": "ثبت پرس‌وجوها",
+      "logResults": "ثبت نتایج",
+      "cachingEnable": "فعال‌سازی کش",
+      "cacheCapacity": "ظرفیت کش",
+      "cacheEvictCount": "تعداد تخلیه",
+      "requestHistoryEnable": "فعال‌سازی تاریخچه درخواست‌ها",
+      "maxRequestBodyBytes": "حداکثر بدنه درخواست (بایت)",
+      "maxResponseBodyBytes": "حداکثر بدنه پاسخ (بایت)",
+      "retentionDays": "نگهداری (روز)",
+      "purgeIntervalMinutes": "بازه پاک‌سازی (دقیقه)",
+      "observabilityEnable": "فعال‌سازی قابلیت مشاهده",
+      "enablePrometheus": "فعال‌سازی Prometheus",
+      "enableOpenTelemetry": "فعال‌سازی OpenTelemetry",
+      "enableOtlpExporter": "فعال‌سازی صادرکننده OTLP",
+      "otlpEndpoint": "نقطه پایانی OTLP",
+      "metricsPath": "مسیر معیارها",
+      "debugAuthentication": "اشکال‌زدایی احراز هویت",
+      "debugExceptions": "اشکال‌زدایی استثناها",
+      "debugRequests": "اشکال‌زدایی درخواست‌ها",
+      "debugDatabaseQueries": "اشکال‌زدایی پرس‌وجوهای پایگاه داده",
+      "restHostname": "نام میزبان",
+      "restPort": "پورت",
+      "restSslEnable": "فعال‌سازی SSL",
+      "databaseType": "نوع پایگاه داده",
+      "databaseHostname": "نام میزبان",
+      "databasePort": "پورت",
+      "databaseName": "نام پایگاه داده",
+      "databaseUsername": "نام کاربری",
+      "databasePassword": "رمز عبور",
+      "databaseMaxConnections": "حداکثر اتصالات",
+      "adminBearerToken": "توکن حامل مدیر",
+      "encryptionKey": "کلید رمزنگاری",
+      "encryptionIv": "IV رمزنگاری"
+    },
+    "status": {
+      "appliedLive": "به‌صورت زنده اعمال شد",
+      "restartRequired": "نیازمند راه‌اندازی مجدد",
+      "liveHint": "به‌صورت زنده اعمال می‌شود",
+      "restartHint": "نیازمند راه‌اندازی مجدد",
+      "liveHintTooltip": "تغییرات این بخش هنگام ذخیره بلافاصله اعمال می‌شوند.",
+      "restartHintTooltip": "تغییرات این بخش فقط پس از راه‌اندازی مجدد سرور اعمال می‌شوند."
+    },
+    "actions": {
+      "save": "ذخیره",
+      "discard": "نادیده گرفتن تغییرات",
+      "restart": "راه‌اندازی مجدد سرور"
+    },
+    "restartModal": {
+      "title": "سرور راه‌اندازی مجدد شود؟",
+      "body": "سرور خارج می‌شود و کانتینر با تنظیمات ذخیره‌شده مجدداً راه‌اندازی می‌شود. اتصالات فعال به‌طور کوتاهی قطع خواهند شد."
+    },
+    "toast": {
+      "saved": "تنظیمات ذخیره شد.",
+      "saveFailed": "امکان ذخیره تنظیمات وجود ندارد.",
+      "restartFailed": "امکان راه‌اندازی مجدد سرور وجود ندارد.",
+      "reconnected": "سرور دوباره آنلاین است.",
+      "reconnectTimeout": "سرور به‌موقع بازنگشت. لطفاً وضعیت آن را بررسی کنید."
+    }
+  }
+}

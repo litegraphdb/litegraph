@@ -147,7 +147,7 @@ const DashboardLayout = ({
         />
         <Layout>
           <div className={styles.header}>
-            <LitegraphFlex vertical justify="center">
+            <LitegraphFlex align="center" justify="flex-start" gap={20}>
               {useGraphsSelector && (
                 <LitegraphFlex align="center" gap={8}>
                   <LitegraphTooltip title={t('selectGraph')}>

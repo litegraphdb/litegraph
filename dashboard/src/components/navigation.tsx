@@ -80,7 +80,7 @@ const Navigation = ({
           </LitegraphTooltip>
         </LitegraphFlex>
       )}
-      <MenuItems menuItems={menuItems} />
+      <MenuItems menuItems={menuItems} className={styles.navMenu} />
       <ConfirmationModal
         title={t('flushTitle')}
         content={t('flushConfirm')}

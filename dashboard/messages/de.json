@@ -1,0 +1,1465 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "Erstellen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "update": "Aktualisieren",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen",
+      "close": "Schließen",
+      "next": "Weiter",
+      "retry": "Erneut versuchen",
+      "refresh": "Aktualisieren",
+      "search": "Suchen",
+      "export": "Exportieren",
+      "viewJson": "JSON anzeigen",
+      "login": "Anmelden",
+      "logout": "Abmelden"
+    },
+    "states": {
+      "loading": "Wird geladen...",
+      "redirecting": "Weiterleitung...",
+      "noData": "Keine Daten",
+      "none": "Keine",
+      "notAvailable": "Nicht verfügbar",
+      "somethingWentWrong": "Etwas ist schiefgelaufen.",
+      "cantViewDetails": "Details können derzeit nicht angezeigt werden."
+    },
+    "copy": {
+      "copyGuid": "GUID kopieren",
+      "copy": "Kopieren",
+      "copied": "Kopiert"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "LiteGraph Logo",
+    "expand": "Seitenleiste ausklappen",
+    "collapse": "Seitenleiste einklappen",
+    "flushTitle": "Datenbank auf Festplatte schreiben",
+    "flushToDisk": "Auf Festplatte schreiben",
+    "flushConfirm": "Möchten Sie die Datenbank wirklich auf die Festplatte schreiben?"
+  },
+  "header": {
+    "graphLabel": "Graph:",
+    "selectGraph": "Aktiven Graph auswählen",
+    "selectAGraph": "Einen Graph auswählen",
+    "tenantLabel": "Mandant:",
+    "selectTenant": "Aktiven Mandanten auswählen",
+    "selectATenant": "Einen Mandanten auswählen",
+    "retry": "Erneut versuchen",
+    "connectedServer": "Verbundener LiteGraph-Server",
+    "switchToLight": "Zum hellen Modus wechseln",
+    "switchToDark": "Zum dunklen Modus wechseln",
+    "github": "LiteGraph auf GitHub",
+    "githubAria": "LiteGraph GitHub-Repository",
+    "signOut": "Vom Dashboard abmelden",
+    "logoutAria": "Abmelden",
+    "language": "Sprache",
+    "selectLanguage": "Sprache auswählen"
+  },
+  "login": {
+    "serverUrl": "LiteGraph Server-URL",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "Bitte geben Sie die LiteGraph Server-URL ein!",
+    "onlyHttp": "Es sind nur HTTP- oder HTTPS-URLs erlaubt!",
+    "validUrl": "Bitte geben Sie eine gültige URL ein!",
+    "email": "E-Mail",
+    "emailPlaceholder": "E-Mail",
+    "emailRequired": "Bitte geben Sie Ihre E-Mail-Adresse ein!",
+    "validEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein!",
+    "tenant": "Mandant",
+    "selectTenant": "Mandant auswählen",
+    "tenantRequired": "Bitte wählen Sie einen Mandanten aus!",
+    "password": "Passwort",
+    "passwordPlaceholder": "Passwort",
+    "passwordRequired": "Bitte geben Sie Ihr Passwort ein!",
+    "cancel": "Abbrechen",
+    "login": "Anmelden",
+    "next": "Weiter",
+    "loading": "Wird geladen...",
+    "defaultCredentials": "Die Standardanmeldedaten sind default@user.com und password.",
+    "tenantNotFound": "Mandant nicht gefunden",
+    "loggedInSso": "Erfolgreich über SSO angemeldet.",
+    "heading": "Anmelden",
+    "subheading": "Geben Sie Ihren Server, Ihre E-Mail-Adresse und Ihr Passwort ein, um fortzufahren.",
+    "logoAlt": "LiteGraph Logo",
+    "invalidCredentials": "Falsche E-Mail-Adresse oder falsches Passwort.",
+    "advancedToggle": "Erweiterte Anmeldeoptionen",
+    "advancedHide": "Erweiterte Optionen ausblenden",
+    "advancedHelp": "Melden Sie sich mit dem Notfall-Administrator-Token des Servers an. Nur für Wiederherstellung und Bootstrap.",
+    "advancedTokenPlaceholder": "Administrator-Bearer-Token",
+    "advancedTokenRequired": "Bitte geben Sie das Administrator-Token ein.",
+    "advancedTokenInvalid": "Das Administrator-Token wurde nicht akzeptiert.",
+    "advancedLogin": "Mit Token anmelden"
+  },
+  "graphs": {
+    "title": "Graphen",
+    "searchTooltip": "Graphen suchen und filtern",
+    "createTooltip": "Einen neuen Graph erstellen",
+    "createGraph": "Graph erstellen",
+    "entityName": "Graph(en)",
+    "copyGuid": "GUID kopieren",
+    "labelsCount": "{count, plural, one {# Label} other {# Labels}}",
+    "tagsCount": "{count, plural, one {# Tag} other {# Tags}}",
+    "vectorsCount": "{count, plural, =0 {Keine} one {# Vector} other {# Vectors}}",
+    "deleteTitle": "Möchten Sie diesen Graph wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht den Graph.",
+    "graphJson": "Graph-JSON",
+    "columns": {
+      "name": "Name",
+      "nameDesc": "Anzeigename des Graphen",
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "labels": "Labels",
+      "labelsDesc": "Diesem Graph zugewiesene Klassifizierungslabels",
+      "tags": "Tags",
+      "tagsDesc": "Schlüssel-Wert-Metadaten-Tags",
+      "vectors": "Vectors",
+      "vectorsDesc": "Diesem Graph zugeordnete Vector-Embeddings",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "score": "Bewertung",
+      "scoreDesc": "Relevanzbewertung aus der Suche",
+      "distance": "Distanz",
+      "distanceDesc": "Vector-Distanz zur Suchanfrage",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "name": "Name suchen",
+      "guid": "GUID suchen",
+      "labels": "Labels suchen",
+      "tags": "Tags suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "exportGexf": "Nach GEXF exportieren",
+      "enableVectorIndex": "Vector-Index aktivieren",
+      "readVectorIndexConfig": "Vector-Index-Konfiguration lesen",
+      "readVectorIndexStats": "Vector-Index-Statistiken lesen",
+      "rebuildVectorIndex": "Vector-Index neu aufbauen",
+      "deleteVectorIndex": "Vector-Index löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Graph-Namen eingeben",
+      "nameTooltip": "Anzeigename für den Graph",
+      "labelsTooltip": "Diesem Graph zugeordnete Labels",
+      "tags": "Tags",
+      "tagsTooltip": "Schlüssel-Wert-Tags für diesen Graph",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector-Embeddings für diesen Graph",
+      "data": "Daten",
+      "dataTooltip": "Beliebige JSON-Daten, die an diesen Graph angehängt sind",
+      "nameRequired": "Name ist erforderlich"
+    },
+    "modalTitle": {
+      "create": "Graph erstellen",
+      "edit": "Graph bearbeiten",
+      "view": "Graph anzeigen",
+      "loading": "Graph wird geladen...",
+      "createOk": "Erstellen",
+      "updateOk": "Aktualisieren"
+    },
+    "toast": {
+      "exported": "Graph erfolgreich exportiert",
+      "exportFailed": "Export des Graphen fehlgeschlagen",
+      "noGexf": "Kein GEXF-Inhalt empfangen",
+      "created": "Graph erfolgreich hinzugefügt",
+      "updated": "Graph erfolgreich aktualisiert",
+      "deleted": "Graph erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung des Graphen fehlgeschlagen: {error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "Vector-Index aktivieren",
+    "viewTitle": "Vector-Index-Konfiguration",
+    "statsTitle": "Vector-Index-Statistiken",
+    "rebuildTitle": "Vector-Index neu aufbauen",
+    "deleteTitle": "Vector-Index löschen",
+    "type": "Vector-Index-Typ",
+    "typeTooltip": "Zu verwendender Typ des Vector-Index",
+    "selectType": "Vector-Index-Typ auswählen",
+    "typeRequired": "Bitte wählen Sie den Vector-Index-Typ aus!",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "Keiner",
+    "file": "Vector-Index-Datei",
+    "fileTooltip": "Dateipfad für den Vector-Index",
+    "fileRequired": "Bitte geben Sie die Vector-Index-Datei ein!",
+    "filePlaceholder": "z. B. graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "Die Datei sollte auf .db enden und keine Leerzeichen enthalten",
+    "threshold": "Vector-Index-Schwellenwert",
+    "thresholdTooltip": "Mindestanzahl an Vectors vor der Indizierung",
+    "thresholdPlaceholder": "Schwellenwert eingeben",
+    "dimensionality": "Vector-Dimensionalität",
+    "dimensionalityTooltip": "Anzahl der Dimensionen in den Vectors",
+    "dimensionalityRequired": "Bitte geben Sie die Vector-Dimensionalität ein!",
+    "dimensionalityPlaceholder": "Dimensionalität eingeben (z. B. 1536)",
+    "m": "Vector-Index M",
+    "mTooltip": "Maximale Anzahl an Verbindungen pro Knoten im HNSW-Graph",
+    "mRequired": "Bitte geben Sie Vector-Index M ein!",
+    "mPlaceholder": "M-Wert eingeben (z. B. 16)",
+    "mHint": "Anzahl der Verbindungen pro Schicht im HNSW-Index",
+    "ef": "Vector-Index Ef",
+    "efTooltip": "Anzahl der bei der Suche zu berücksichtigenden Kandidaten",
+    "efRequired": "Bitte geben Sie Vector-Index Ef ein!",
+    "efPlaceholder": "Ef-Wert eingeben (z. B. 100)",
+    "efHint": "Suchparameter für den HNSW-Index",
+    "efConstruction": "Vector-Index Ef Construction",
+    "efConstructionTooltip": "Anzahl der Kandidaten während des Index-Aufbaus",
+    "efConstructionRequired": "Bitte geben Sie Vector-Index Ef Construction ein!",
+    "efConstructionPlaceholder": "Ef-Construction-Wert eingeben (z. B. 200)",
+    "efConstructionHint": "Konstruktionsparameter für den HNSW-Index",
+    "enabledSuccess": "Vector-Index erfolgreich aktiviert",
+    "loadConfigFailed": "Laden der Vector-Index-Konfiguration fehlgeschlagen",
+    "unableToRetrieveConfig": "Konfigurationsdetails konnten nicht abgerufen werden",
+    "configHint": "Der Vector-Index ist möglicherweise nicht aktiviert oder es gab ein Problem beim Zugriff auf die Konfiguration.",
+    "fileValidationDb": "Die Datei sollte auf .db enden und keine Leerzeichen enthalten",
+    "fileNoSpaces": "Die Vector-Index-Datei darf keine Leerzeichen enthalten!",
+    "fileEndsDb": "Die Vector-Index-Datei sollte auf .db enden!",
+    "rebuildConfirm": "Möchten Sie den Vector-Index wirklich neu aufbauen?",
+    "rebuildBody": "Diese Aktion baut den Vector-Index für diesen Graph neu auf. Dieser Vorgang kann einige Zeit dauern und beeinträchtigt vorübergehend die Leistung der Vector-Suche.",
+    "rebuildSuccess": "Neuaufbau des Vector-Index erfolgreich gestartet",
+    "rebuildFailed": "Neuaufbau des Vector-Index fehlgeschlagen",
+    "deleteConfirm": "Möchten Sie den Vector-Index wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht den Vector-Index für diesen Graph.",
+    "deleteSuccess": "Vector-Index erfolgreich gelöscht",
+    "deleteFailed": "Löschen des Vector-Index fehlgeschlagen",
+    "stats": {
+      "loadFailed": "Laden der Vector-Index-Statistiken fehlgeschlagen",
+      "unableToRetrieve": "Statistikdetails konnten nicht abgerufen werden",
+      "hint": "Der Vector-Index ist möglicherweise nicht aktiviert oder es gab ein Problem beim Zugriff auf die Statistiken.",
+      "noStats": "Keine Vector-Index-Statistiken verfügbar",
+      "noStatsHint": "Für diesen Graph ist möglicherweise kein Vector-Index aktiviert oder die Statistiken sind nicht zugänglich.",
+      "loaded": "Geladen",
+      "notLoaded": "Nicht geladen",
+      "never": "Nie",
+      "error": "Fehler",
+      "errorProcessing": "Fehler bei der Verarbeitung der Statistikdaten",
+      "label": {
+        "vectorCount": "Anzahl der Vectors",
+        "dimensions": "Dimensionen",
+        "indexType": "Index-Typ",
+        "m": "M-Parameter",
+        "efConstruction": "EF Construction",
+        "defaultEf": "Standard-EF",
+        "indexFile": "Pfad der Index-Datei",
+        "indexFileSize": "Größe der Index-Datei",
+        "estimatedMemory": "Geschätzte Speichernutzung",
+        "lastRebuild": "Letzter Neuaufbau",
+        "status": "Status",
+        "distanceMetric": "Distanzmetrik"
+      },
+      "desc": {
+        "vectorCount": "Gesamtzahl der Vectors im Index",
+        "dimensions": "Dimensionalität der Vectors",
+        "indexType": "Typ des Vector-Index-Algorithmus",
+        "m": "Anzahl der Verbindungen pro Element im Graph",
+        "efConstruction": "Beim Index-Aufbau verwendeter EF-Parameter",
+        "defaultEf": "Standard-EF-Parameter für Suchanfragen",
+        "indexFile": "Dateipfad, unter dem der Index gespeichert ist",
+        "indexFileSize": "Größe der Index-Datei auf der Festplatte",
+        "estimatedMemory": "Geschätzte Speichernutzung des Index",
+        "lastRebuild": "Zeitstempel des letzten Index-Neuaufbaus",
+        "status": "Ob der Index derzeit im Speicher geladen ist",
+        "distanceMetric": "Für Ähnlichkeitsberechnungen verwendete Distanzmetrik"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "Nach JSONL exportieren",
+    "importIntoGraph": "In Graph importieren",
+    "importNewGraph": "Importieren (neuer Graph)",
+    "exportSubgraph": "Subgraph exportieren",
+    "modal": {
+      "importTitle": "In Graph importieren",
+      "importNewTitle": "In einen neuen Graph importieren",
+      "exportTitle": "Nach JSONL exportieren",
+      "exportSubgraphTitle": "Subgraph exportieren"
+    },
+    "fields": {
+      "guidStrategy": "GUID-Strategie",
+      "onError": "Bei Fehler",
+      "maxDepth": "Maximale Tiefe",
+      "direction": "Richtung",
+      "includeData": "Daten einschließen",
+      "includeSubordinates": "Untergeordnete einschließen",
+      "maxEdgeCost": "Maximale Kantenkosten",
+      "startNode": "Startknoten"
+    },
+    "guidStrategy": {
+      "preserve": "Beibehalten",
+      "regenerate": "Neu generieren",
+      "skip": "Überspringen",
+      "overwrite": "Überschreiben"
+    },
+    "onError": {
+      "abort": "Abbrechen",
+      "skip": "Überspringen"
+    },
+    "direction": {
+      "outbound": "Ausgehend",
+      "inbound": "Eingehend",
+      "both": "Beide"
+    },
+    "result": {
+      "nodesCreated": "Erstellte Knoten",
+      "nodesUpdated": "Aktualisierte Knoten",
+      "nodesSkipped": "Übersprungene Knoten",
+      "edgesCreated": "Erstellte Kanten",
+      "edgesUpdated": "Aktualisierte Kanten",
+      "edgesSkipped": "Übersprungene Kanten",
+      "warnings": "Warnungen",
+      "title": "Importergebnis",
+      "graphsCreated": "Erstellte Graphen",
+      "linesRead": "Gelesene Zeilen",
+      "linesIgnored": "Ignorierte Zeilen",
+      "newGraphGuid": "Neue Graph-GUID",
+      "noWarnings": "Keine Warnungen."
+    },
+    "toast": {
+      "importSuccess": "Import erfolgreich abgeschlossen",
+      "importFailed": "Import fehlgeschlagen",
+      "exportSuccess": "Export erfolgreich abgeschlossen",
+      "exportFailed": "Export fehlgeschlagen"
+    },
+    "guidStrategyHelp": {
+      "preserve": "Die ursprünglichen GUIDs aus der Datei beibehalten.",
+      "regenerate": "Jedem importierten Objekt neue GUIDs zuweisen.",
+      "skip": "Ursprüngliche GUIDs beibehalten und bereits vorhandene Objekte überspringen.",
+      "overwrite": "Ursprüngliche GUIDs beibehalten und bereits vorhandene Objekte überschreiben."
+    },
+    "onErrorHelp": {
+      "abort": "Den Import beim ersten Fehler stoppen.",
+      "skip": "Fehlerhafte Zeilen überspringen und den Import fortsetzen."
+    },
+    "startNodeHelp": "Der Subgraph wird ausgehend von diesem Knoten extrahiert.",
+    "upload": {
+      "prompt": "Klicken Sie oder ziehen Sie eine JSONL-Datei in diesen Bereich",
+      "hint": "Es werden nur aus LiteGraph exportierte .jsonl-Dateien unterstützt.",
+      "selected": "Ausgewählte Datei"
+    },
+    "preview": {
+      "title": "Vorschau",
+      "headerLines": "Kopfzeilen",
+      "nodes": "Knoten",
+      "edges": "Kanten",
+      "empty": "In dieser Datei wurde kein erkennbarer Inhalt gefunden."
+    },
+    "actions": {
+      "import": "Importieren",
+      "export": "Exportieren"
+    },
+    "exportSubgraphDisabled": "Wählen Sie einen Knoten aus, um seinen Subgraph zu exportieren.",
+    "copyGuid": "GUID kopieren"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "Kanten",
+    "searchTooltip": "Kanten suchen und filtern",
+    "createTooltip": "Eine neue Kante erstellen",
+    "createEdge": "Kante erstellen",
+    "entityName": "Kante(n)",
+    "edgeJson": "Kanten-JSON",
+    "deleteTitle": "Möchten Sie die Kante \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht die Kante.",
+    "labelsCount": "{count, plural, one {# Label} other {# Labels}}",
+    "tagsCount": "{count, plural, one {# Tag} other {# Tags}}",
+    "vectorsCount": "{count, plural, =0 {Keine} one {# Vector} other {# Vectors}}",
+    "columns": {
+      "name": "Name",
+      "nameDesc": "Anzeigename der Kante",
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "from": "Von",
+      "fromDesc": "Quellknoten dieser Kante",
+      "to": "Nach",
+      "toDesc": "Zielknoten dieser Kante",
+      "cost": "Kosten",
+      "costDesc": "Traversierungskosten der Kante",
+      "labels": "Labels",
+      "labelsDesc": "Dieser Kante zugewiesene Klassifizierungslabels",
+      "tags": "Tags",
+      "tagsDesc": "Schlüssel-Wert-Metadaten-Tags",
+      "vectors": "Vectors",
+      "vectorsDesc": "Dieser Kante zugeordnete Vector-Embeddings",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "score": "Bewertung",
+      "scoreDesc": "Relevanzbewertung aus der Suche",
+      "distance": "Distanz",
+      "distanceDesc": "Vector-Distanz zur Suchanfrage",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "name": "Name suchen",
+      "guid": "GUID suchen",
+      "from": "Von suchen",
+      "to": "Nach suchen",
+      "labels": "Labels suchen",
+      "tags": "Tags suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "graph": "Graph",
+      "graphTooltip": "Der Graph, zu dem diese Kante gehört",
+      "guid": "GUID",
+      "guidTooltip": "Global eindeutiger Bezeichner für diese Kante",
+      "name": "Name",
+      "nameTooltip": "Anzeigename für die Kante",
+      "namePlaceholder": "Kantennamen eingeben",
+      "nameRequired": "Kantenname ist erforderlich",
+      "cost": "Kosten",
+      "costTooltip": "Traversierungskosten für diese Kante",
+      "costPlaceholder": "Kantenkosten eingeben",
+      "costRequired": "Kantenkosten sind erforderlich",
+      "fromNode": "Von-Knoten",
+      "fromNodeTooltip": "Quellknoten der Kante",
+      "fromRequired": "Von-Knoten ist erforderlich",
+      "fromSameAsTo": "Der Von-Knoten darf nicht mit dem Nach-Knoten identisch sein",
+      "toNode": "Nach-Knoten",
+      "toNodeTooltip": "Zielknoten der Kante",
+      "toRequired": "Nach-Knoten ist erforderlich",
+      "toSameAsFrom": "Der Nach-Knoten darf nicht mit dem Von-Knoten identisch sein",
+      "labels": "Labels",
+      "labelsTooltip": "Dieser Kante zugeordnete Labels",
+      "tags": "Tags",
+      "tagsTooltip": "Schlüssel-Wert-Tags für diese Kante",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector-Embeddings für diese Kante",
+      "data": "Daten",
+      "dataTooltip": "Beliebige JSON-Daten, die an diese Kante angehängt sind",
+      "copyData": "Daten kopieren"
+    },
+    "modalTitle": {
+      "create": "Kante erstellen",
+      "edit": "Kante bearbeiten",
+      "view": "Kante anzeigen",
+      "loading": "Kante wird geladen..."
+    },
+    "toast": {
+      "created": "Kante erfolgreich hinzugefügt",
+      "updated": "Kante erfolgreich aktualisiert",
+      "deleted": "Kante erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung der Kante fehlgeschlagen: {error}"
+    }
+  },
+  "home": {
+    "pageTitle": "Startseite",
+    "addNode": "Knoten hinzufügen",
+    "addEdge": "Kante hinzufügen"
+  },
+  "graphViewer": {
+    "loadingNodes": "Knoten werden geladen...",
+    "loadingEdges": "Kanten werden geladen...",
+    "errorLoadingGraph": "Fehler beim Laden des Graphen",
+    "noNodes": "Dieser Graph hat keine Knoten.",
+    "tooManyNodes": "Es sind zu viele Knoten vorhanden, um den Graph korrekt darzustellen. Es werden die ersten {count} Knoten angezeigt.",
+    "controls": {
+      "button": "Steuerung",
+      "clearSubGraph": "Subgraph löschen",
+      "searchSubGraph": "Subgraph durchsuchen",
+      "threeD": "3D",
+      "horizontalLayout": "Horizontales Layout",
+      "depthAwareLayout": "Tiefenbasiertes Layout",
+      "depthAwareTooltip": "Zyklen und dichte Rückverweise werden automatisch behandelt, sodass das Tiefen-Layout lesbar bleibt.",
+      "collapseRelatedNodes": "Verwandte Knoten einklappen",
+      "collapseRelatedTooltip": "Klicken Sie auf gruppierte Knoten, um sie auszuklappen. Gruppen werden aus Labels, aussagekräftigen Tag-Schlüsseln und Verbindungsmustern abgeleitet.",
+      "dragByLabel": "Nach Label ziehen",
+      "showGraphLegend": "Graph-Legende anzeigen",
+      "showNodeName": "Knotennamen anzeigen",
+      "collapseExpanded": "Ausgeklappte einklappen"
+    },
+    "node": {
+      "title": "Knoteninformationen",
+      "expand": "Ausklappen",
+      "guid": "GUID",
+      "name": "Name",
+      "labels": "Labels",
+      "tags": "Tags",
+      "addNew": "Neuen Knoten hinzufügen",
+      "openAddForm": "Formular zum Hinzufügen eines Knotens öffnen",
+      "updateTooltip": "Knoten aktualisieren",
+      "deleteTooltip": "Knoten löschen",
+      "addEdgeTooltip": "Kante hinzufügen",
+      "addEdge": "Kante hinzufügen",
+      "deleteConfirmTitle": "Möchten Sie den Knoten \"{name}\" wirklich löschen?",
+      "deleteConfirmText": "Diese Aktion löscht den Knoten."
+    },
+    "edge": {
+      "title": "Kanteninformationen",
+      "expand": "Ausklappen",
+      "guid": "GUID",
+      "name": "Name",
+      "from": "Von",
+      "to": "Nach",
+      "cost": "Kosten",
+      "labels": "Labels",
+      "tags": "Tags",
+      "addNew": "Neue Kante hinzufügen",
+      "openAddForm": "Formular zum Hinzufügen einer Kante öffnen",
+      "updateTooltip": "Kante aktualisieren",
+      "deleteTooltip": "Kante löschen",
+      "deleteConfirmTitle": "Möchten Sie die Kante \"{name}\" wirklich löschen?",
+      "deleteConfirmText": "Diese Aktion löscht die Kante."
+    },
+    "nodeSearch": {
+      "title": "Knoten suchen",
+      "placeholder": "Knoten nach Namen suchen...",
+      "searchFailed": "Suche nach Knoten fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "noNodesFound": "Keine Knoten gefunden",
+      "enterSearchTerm": "Geben Sie einen Suchbegriff ein, um Knoten zu finden",
+      "total": "Insgesamt {count} Knoten",
+      "columns": {
+        "name": "Name",
+        "nameTooltip": "Anzeigename des Knotens",
+        "labels": "Labels",
+        "labelsTooltip": "Klassifizierungslabels",
+        "guid": "GUID",
+        "guidTooltip": "Global eindeutiger Bezeichner"
+      }
+    }
+  },
+  "search": {
+    "tags": "Tags",
+    "tagsTooltip": "Nach Schlüssel-Wert-Tags filtern",
+    "labelsTooltip": "Nach Klassifizierungslabels filtern",
+    "expression": "Ausdruck",
+    "expressionTooltip": "Mit Ausdruckssyntax filtern",
+    "example": "Beispiel:",
+    "atLeastOneRequired": "Mindestens ein Feld ist erforderlich."
+  },
+  "nodes": {
+    "title": "Knoten",
+    "searchTooltip": "Knoten suchen und filtern",
+    "createTooltip": "Einen neuen Knoten erstellen",
+    "createNode": "Knoten erstellen",
+    "entityName": "Knoten",
+    "copyGuid": "GUID kopieren",
+    "labelsCount": "{count, plural, one {# Label} other {# Labels}}",
+    "tagsCount": "{count, plural, one {# Tag} other {# Tags}}",
+    "vectorsCount": "{count, plural, =0 {Keine} one {# Vector} other {# Vectors}}",
+    "deleteTitle": "Möchten Sie den Knoten \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht den Knoten.",
+    "nodeJson": "Knoten-JSON",
+    "columns": {
+      "name": "Name",
+      "nameDesc": "Anzeigename des Knotens",
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "labels": "Labels",
+      "labelsDesc": "Diesem Knoten zugewiesene Klassifizierungslabels",
+      "tags": "Tags",
+      "tagsDesc": "Schlüssel-Wert-Metadaten-Tags",
+      "vectors": "Vectors",
+      "vectorsDesc": "Diesem Knoten zugeordnete Vector-Embeddings",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "score": "Bewertung",
+      "scoreDesc": "Relevanzbewertung aus der Suche",
+      "distance": "Distanz",
+      "distanceDesc": "Vector-Distanz zur Suchanfrage",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "name": "Name suchen",
+      "guid": "GUID suchen",
+      "labels": "Labels suchen",
+      "tags": "Tags suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "graph": "Graph",
+      "graphTooltip": "Der Graph, zu dem dieser Knoten gehört",
+      "guid": "GUID",
+      "guidTooltip": "Global eindeutiger Bezeichner für diesen Knoten",
+      "name": "Name",
+      "namePlaceholder": "Knotennamen eingeben",
+      "nameTooltip": "Anzeigename für den Knoten",
+      "nameRequired": "Knotenname ist erforderlich",
+      "labels": "Labels",
+      "labelsTooltip": "Diesem Knoten zugeordnete Labels",
+      "tags": "Tags",
+      "tagsTooltip": "Schlüssel-Wert-Tags für diesen Knoten",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Vector-Embeddings für diesen Knoten",
+      "data": "Daten",
+      "dataTooltip": "Beliebige JSON-Daten, die an diesen Knoten angehängt sind",
+      "copyData": "Daten kopieren"
+    },
+    "modalTitle": {
+      "create": "Knoten erstellen",
+      "edit": "Knoten bearbeiten",
+      "view": "Knoten anzeigen",
+      "loading": "Knoten wird geladen...",
+      "createOk": "Erstellen",
+      "updateOk": "Aktualisieren"
+    },
+    "toast": {
+      "created": "Knoten erfolgreich hinzugefügt",
+      "updated": "Knoten erfolgreich aktualisiert",
+      "deleted": "Knoten erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung des Knotens fehlgeschlagen: {error}"
+    }
+  },
+  "labels": {
+    "title": "Labels",
+    "createTooltip": "Ein neues Label erstellen",
+    "createLabel": "Label erstellen",
+    "copyGuid": "GUID kopieren",
+    "deleteTitle": "Möchten Sie das Label \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht das Label.",
+    "labelJson": "Label-JSON",
+    "columns": {
+      "label": "Label",
+      "labelDesc": "Label-Textwert",
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "node": "Knoten",
+      "nodeDesc": "Zugeordneter Knotenname",
+      "edge": "Kante",
+      "edgeDesc": "Zugeordneter Kantenname",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "label": "Label suchen",
+      "guid": "GUID suchen",
+      "node": "Knoten suchen",
+      "edge": "Kante suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "label": "Label",
+      "labelTooltip": "Label-Textwert",
+      "labelRequired": "Bitte geben Sie das Label ein!",
+      "labelPlaceholder": "Label eingeben",
+      "node": "Knoten",
+      "nodeTooltip": "Knoten, der diesem Label zugeordnet werden soll",
+      "edge": "Kante",
+      "edgeTooltip": "Kante, die diesem Label zugeordnet werden soll"
+    },
+    "modalTitle": {
+      "create": "Label erstellen",
+      "edit": "Label bearbeiten"
+    },
+    "toast": {
+      "created": "Label erfolgreich erstellt",
+      "updated": "Label erfolgreich aktualisiert",
+      "deleted": "Label erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung des Labels fehlgeschlagen: {error}",
+      "updateFailedNoResponse": "Aktualisierung des Labels fehlgeschlagen - keine Antwort erhalten"
+    }
+  },
+  "tags": {
+    "title": "Tags",
+    "createTooltip": "Ein neues Tag erstellen",
+    "createTag": "Tag erstellen",
+    "copyGuid": "GUID kopieren",
+    "deleteTitle": "Möchten Sie das Tag \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht das Tag.",
+    "tagJson": "Tag-JSON",
+    "columns": {
+      "key": "Schlüssel",
+      "keyDesc": "Tag-Schlüsselbezeichner",
+      "value": "Wert",
+      "valueDesc": "Tag-Wert",
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "node": "Knoten",
+      "nodeDesc": "Zugeordneter Knotenname",
+      "edge": "Kante",
+      "edgeDesc": "Zugeordneter Kantenname",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "key": "Schlüssel suchen",
+      "value": "Wert suchen",
+      "guid": "GUID suchen",
+      "node": "Knoten suchen",
+      "edge": "Kante suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "key": "Schlüssel",
+      "keyTooltip": "Tag-Schlüsselbezeichner",
+      "keyRequired": "Bitte geben Sie den Tag-Schlüssel ein!",
+      "keyPlaceholder": "Tag-Schlüssel eingeben",
+      "value": "Wert",
+      "valueTooltip": "Tag-Wert",
+      "valueRequired": "Bitte geben Sie den Tag-Wert ein!",
+      "valuePlaceholder": "Tag-Wert eingeben",
+      "node": "Knoten",
+      "nodeTooltip": "Knoten, der diesem Tag zugeordnet werden soll",
+      "edge": "Kante",
+      "edgeTooltip": "Kante, die diesem Tag zugeordnet werden soll"
+    },
+    "modalTitle": {
+      "create": "Tag erstellen",
+      "edit": "Tag bearbeiten"
+    },
+    "toast": {
+      "created": "Tag erfolgreich erstellt",
+      "updated": "Tag erfolgreich aktualisiert",
+      "deleted": "Tag erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung des Tags fehlgeschlagen: {error}",
+      "updateFailedNoResponse": "Aktualisierung des Tags fehlgeschlagen - keine Antwort erhalten"
+    }
+  },
+  "vectors": {
+    "title": "Vectors",
+    "createTooltip": "Einen neuen Vector erstellen",
+    "createVector": "Vector erstellen",
+    "copyGuid": "GUID kopieren",
+    "deleteTitle": "Möchten Sie diesen Vector wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht den Vector.",
+    "vectorJson": "Vector-JSON",
+    "vectorsCount": "{count, plural, one {# Vector} other {# Vectors}}",
+    "columns": {
+      "model": "Modell",
+      "modelDesc": "Name des Vector-Modells",
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "node": "Knoten",
+      "nodeDesc": "Zugeordneter Knotenname",
+      "edge": "Kante",
+      "edgeDesc": "Zugeordneter Kantenname",
+      "dimensionality": "Dimensionalität",
+      "dimensionalityDesc": "Anzahl der Vector-Dimensionen",
+      "content": "Inhalt",
+      "contentDesc": "Textinhalt des Vectors",
+      "vectors": "Vectors",
+      "vectorsDesc": "Werte des Vector-Embeddings",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "model": "Modell suchen",
+      "guid": "GUID suchen",
+      "node": "Knoten suchen",
+      "edge": "Kante suchen",
+      "content": "Inhalt suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "model": "Modell",
+      "modelTooltip": "Name des Embedding-Modells",
+      "modelRequired": "Bitte geben Sie das Modell ein!",
+      "modelPlaceholder": "Modell eingeben",
+      "dimensionality": "Dimensionalität",
+      "dimensionalityTooltip": "Anzahl der Dimensionen im Vector",
+      "dimensionalityRequired": "Bitte geben Sie die Dimensionalität ein!",
+      "dimensionalityPlaceholder": "Dimensionalität eingeben",
+      "content": "Inhalt",
+      "contentTooltip": "Dem Vector zugeordneter Textinhalt",
+      "contentRequired": "Bitte geben Sie den Inhalt ein!",
+      "contentPlaceholder": "Inhalt eingeben",
+      "vectors": "Vectors",
+      "vectorsTooltip": "Werte des Vector-Embeddings als JSON-Array",
+      "vectorsRequired": "Bitte geben Sie die Vectors ein!",
+      "node": "Knoten",
+      "nodeTooltip": "Knoten, der diesem Vector zugeordnet werden soll",
+      "edge": "Kante",
+      "edgeTooltip": "Kante, die diesem Vector zugeordnet werden soll"
+    },
+    "modalTitle": {
+      "create": "Vector erstellen",
+      "edit": "Vector bearbeiten"
+    },
+    "toast": {
+      "created": "Vector erfolgreich erstellt",
+      "updated": "Vector erfolgreich aktualisiert",
+      "deleted": "Vector erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung des Vectors fehlgeschlagen: {error}"
+    }
+  },
+  "requestHistory": {
+    "title": "Anfrageverlauf",
+    "columns": {
+      "time": "Zeit",
+      "method": "Methode",
+      "path": "Pfad",
+      "status": "Status",
+      "transaction": "Transaktion",
+      "duration": "Dauer",
+      "size": "Größe (Anf./Antw.)",
+      "tenant": "Mandant",
+      "actions": "Aktionen"
+    },
+    "transaction": {
+      "noId": "Transaktion"
+    },
+    "transactionState": {
+      "validation": "Validierung",
+      "committed": "committet",
+      "rolledBack": "zurückgerollt",
+      "failed": "fehlgeschlagen",
+      "transaction": "Transaktion"
+    },
+    "transactionTags": {
+      "retryable": "wiederholbar",
+      "conflict": "Konflikt"
+    },
+    "rowActions": {
+      "view": "Anzeigen",
+      "viewJson": "JSON anzeigen",
+      "delete": "Löschen",
+      "menu": "Anfrageaktionen"
+    },
+    "filters": {
+      "allStatuses": "Alle Status",
+      "allOutcomes": "Alle Ergebnisse",
+      "successful": "Erfolgreich",
+      "errors": "Fehler",
+      "allRequests": "Alle Anfragen",
+      "transactions": "Transaktionen",
+      "nonTransactions": "Keine Transaktionen",
+      "allMethods": "Alle Methoden",
+      "transactionIdPlaceholder": "Transaktions-ID...",
+      "pathPlaceholder": "Pfad enthält..."
+    },
+    "summary": {
+      "visibleRequests": "Sichtbare Anfragen:",
+      "visibleErrors": "Sichtbare Fehler:",
+      "errorRate": "Fehlerrate:",
+      "averageDuration": "Durchschnittliche Dauer:",
+      "p95Duration": "P95-Dauer:"
+    },
+    "telemetry": {
+      "title": "Betriebstelemetrie",
+      "prometheus": "Prometheus-Metriken",
+      "openTelemetry": "OpenTelemetry-Einrichtung",
+      "description": "Der Anfrageverlauf dient der Inspektion aktueller Anfragen; Metriken und Traces dienen der aggregierten Überwachung."
+    },
+    "delete": {
+      "confirmTitle": "Eintrag im Anfrageverlauf löschen?"
+    },
+    "toast": {
+      "loadFailed": "Anfrageverlauf konnte nicht geladen werden",
+      "deleted": "Eintrag gelöscht",
+      "deleteFailed": "Löschen nicht möglich"
+    },
+    "entryJson": "JSON des Anfrageverlauf-Eintrags",
+    "chart": {
+      "title": "Anfragen im Zeitverlauf",
+      "ranges": {
+        "hour": "Letzte Stunde",
+        "day": "Letzter Tag",
+        "week": "Letzte Woche",
+        "month": "Letzter Monat"
+      },
+      "total": "Gesamt",
+      "success": "Erfolg",
+      "failed": "Fehlgeschlagen",
+      "tooltip": {
+        "success": "Erfolg: {count}",
+        "failed": "Fehlgeschlagen: {count}",
+        "total": "Gesamt: {count}"
+      }
+    },
+    "detail": {
+      "title": "Anfragedetails",
+      "empty": "(leer)",
+      "copyId": "ID kopieren",
+      "truncated": "[GEKÜRZT]",
+      "entries": "{count} Einträge",
+      "loadFailed": "Anfragedetails konnten nicht geladen werden",
+      "fields": {
+        "id": "ID",
+        "method": "Methode",
+        "status": "Status",
+        "duration": "Dauer",
+        "time": "Zeit",
+        "sourceIp": "Quell-IP",
+        "tenant": "Mandant",
+        "requestSize": "Anfragegröße",
+        "responseSize": "Antwortgröße",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "Anfrage-Header",
+        "requestBody": "Anfragetext",
+        "responseHeaders": "Antwort-Header",
+        "responseBody": "Antworttext",
+        "transactionDiagnostics": "Transaktionsdiagnose"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "API Explorer",
+    "send": "Senden",
+    "request": {
+      "title": "Anfrage",
+      "resetTooltip": "Text auf Vorlage zurücksetzen",
+      "selectOperation": "Eine Operation auswählen...",
+      "copyUrl": "URL kopieren",
+      "body": "Anfragetext",
+      "recentRequests": "Letzte Anfragen",
+      "clear": "Leeren"
+    },
+    "params": {
+      "path": "Pfadparameter",
+      "query": "Abfrageparameter"
+    },
+    "response": {
+      "title": "Antwort",
+      "transactionFailed": "Transaktion fehlgeschlagen",
+      "queryFailed": "Abfrage fehlgeschlagen",
+      "noResponse": "(noch keine Antwort)",
+      "status": "Status",
+      "contentType": "Content-Type",
+      "duration": "Dauer",
+      "size": "Größe",
+      "copyCode": "Code kopieren",
+      "selectOperationHint": "(eine Operation auswählen)"
+    },
+    "tabs": {
+      "preview": "Vorschau",
+      "body": "Text",
+      "headers": "Header",
+      "status": "Status",
+      "code": "Code"
+    },
+    "toast": {
+      "loadSpecFailed": "OpenAPI-Spezifikation konnte nicht geladen werden",
+      "requestFailed": "Anfrage fehlgeschlagen: {error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} fehlgeschlagen{indexText}: {error}.",
+      "defaultOperation": "Operation",
+      "defaultObject": "Objekt",
+      "guid": " ({guid})",
+      "indexText": " bei Index {index}",
+      "noError": "Keine Fehlerdetails zurückgegeben.",
+      "validation": " Die Transaktion ist vor dem Start an der Validierung gescheitert.",
+      "rolledBack": " Die Transaktion wurde zurückgerollt.",
+      "transactionId": " Transaktion {transactionId}.",
+      "state": " Status: {state}.",
+      "provider": " Anbieter: {provider}.",
+      "providerError": " Anbieterfehler: {providerErrorCode}.",
+      "retryable": " Der Fehler ist als wiederholbar markiert.",
+      "conflict": " Nebenläufigkeitskonflikt erkannt.",
+      "queryErrorAt": "Abfragefehler bei {location}: {description}",
+      "queryError": "Abfragefehler: {description}"
+    }
+  },
+  "credentials": {
+    "title": "Anmeldedaten",
+    "createTooltip": "Neue Anmeldedaten erstellen",
+    "createCredential": "Anmeldedaten erstellen",
+    "copyGuid": "GUID kopieren",
+    "credentialJson": "Anmeldedaten-JSON",
+    "deleteTitle": "Möchten Sie die Anmeldedaten \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht die Anmeldedaten.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "user": "Benutzer",
+      "userDesc": "Zugeordneter Benutzername",
+      "name": "Name",
+      "nameDesc": "Anzeigename der Anmeldedaten",
+      "bearerToken": "Bearer-Token",
+      "bearerTokenDesc": "Bearer-Token zur Authentifizierung",
+      "active": "Aktiv",
+      "activeDesc": "Ob die Anmeldedaten aktiv sind",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "guid": "GUID suchen",
+      "user": "Benutzer suchen",
+      "name": "Name suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "userGuid": "Benutzer-GUID",
+      "userGuidTooltip": "Benutzer, zu dem diese Anmeldedaten gehören",
+      "userGuidRequired": "Bitte wählen Sie die Benutzer-GUID aus!",
+      "userGuidPlaceholder": "Benutzer-GUID auswählen",
+      "name": "Name",
+      "nameTooltip": "Anzeigename für die Anmeldedaten",
+      "nameRequired": "Bitte geben Sie den Namen ein!",
+      "namePlaceholder": "Namen eingeben",
+      "bearerToken": "Bearer-Token",
+      "bearerTokenTooltip": "Bearer-Token zur Authentifizierung",
+      "bearerTokenRequired": "Bitte geben Sie das Bearer-Token ein!",
+      "bearerTokenPlaceholder": "Bearer-Token eingeben",
+      "active": "Aktiv",
+      "activeTooltip": "Ob die Anmeldedaten aktiv sind"
+    },
+    "modalTitle": {
+      "create": "Anmeldedaten erstellen",
+      "edit": "Anmeldedaten bearbeiten"
+    },
+    "toast": {
+      "created": "Anmeldedaten erfolgreich erstellt",
+      "updated": "Anmeldedaten erfolgreich aktualisiert",
+      "updateNoResponse": "Aktualisierung der Anmeldedaten fehlgeschlagen - keine Antwort erhalten",
+      "deleted": "Anmeldedaten erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung der Anmeldedaten fehlgeschlagen: {error}"
+    }
+  },
+  "authorization": {
+    "title": "Autorisierung",
+    "createTooltip": "Eine benutzerdefinierte Rolle erstellen",
+    "adminRequired": "Administratorberechtigung ist erforderlich",
+    "createRole": "Rolle erstellen",
+    "roleJson": "Autorisierungsrollen-JSON",
+    "tabs": {
+      "roles": "Rollen",
+      "userRoles": "Benutzerrollen",
+      "credentialScopes": "Anmeldedaten-Geltungsbereiche"
+    },
+    "sections": {
+      "effectiveUserPermissions": "Effektive Benutzerberechtigungen",
+      "effectiveCredentialPermissions": "Effektive Anmeldedaten-Berechtigungen"
+    },
+    "states": {
+      "selectTenant": "Wählen Sie einen Mandanten aus, um die Autorisierung zu verwalten.",
+      "adminWarning": "Zum Ändern von Rollen oder Anmeldedaten-Geltungsbereichen ist eine Administratorberechtigung erforderlich."
+    },
+    "columns": {
+      "name": "Name",
+      "scope": "Geltungsbereich",
+      "permissions": "Berechtigungen",
+      "resources": "Ressourcen",
+      "builtIn": "Integriert",
+      "actions": "Aktionen",
+      "role": "Rolle",
+      "graph": "Graph",
+      "source": "Quelle"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "viewJson": "JSON anzeigen",
+      "delete": "Löschen",
+      "revoke": "Widerrufen",
+      "menu": "Aktionen"
+    },
+    "labels": {
+      "builtIn": "Integriert",
+      "custom": "Benutzerdefiniert",
+      "immutable": "Unveränderlich",
+      "directRole": "Direkte Rolle",
+      "directGrant": "Direkte Zuweisung"
+    },
+    "confirm": {
+      "deleteRoleTitle": "Rolle löschen?",
+      "deleteRoleBody": "\"{name}\" löschen?",
+      "revokeRole": "Rolle widerrufen?",
+      "revokeScope": "Anmeldedaten-Geltungsbereich widerrufen?"
+    },
+    "actions": {
+      "assignRole": "Rolle zuweisen",
+      "assignScope": "Geltungsbereich zuweisen"
+    },
+    "modalTitle": {
+      "create": "Rolle erstellen",
+      "edit": "Rolle bearbeiten"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "Anzeigename",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Schreibgeschützter Prüfzugriff für ausgewählte Graphen",
+      "defaultScope": "Standard-Geltungsbereich",
+      "permissions": "Berechtigungen",
+      "resourceTypes": "Ressourcentypen",
+      "inheritsToGraphs": "Mandanten-Geltungsbereich wird auf Graphen vererbt",
+      "user": "Benutzer",
+      "selectUser": "Benutzer auswählen",
+      "role": "Rolle",
+      "selectRole": "Rolle auswählen",
+      "scope": "Geltungsbereich",
+      "graph": "Graph",
+      "selectGraph": "Graph auswählen",
+      "graphRequiredAssignment": "Wählen Sie einen Graph für graph-spezifische Zuweisungen aus.",
+      "credential": "Anmeldedaten",
+      "selectCredential": "Anmeldedaten auswählen",
+      "optionalRole": "Optionale Rolle",
+      "directPermissions": "Direkte Berechtigungen",
+      "directResources": "Direkte Ressourcen",
+      "graphRequiredScope": "Wählen Sie einen Graph für graph-spezifische Geltungsbereiche aus."
+    },
+    "permissions": {
+      "Read": "Lesen",
+      "Write": "Schreiben",
+      "Delete": "Löschen",
+      "Admin": "Administrator"
+    },
+    "scopes": {
+      "Tenant": "Mandant",
+      "Graph": "Graph",
+      "tenantScope": "Mandanten-Geltungsbereich"
+    },
+    "resourceTypes": {
+      "Admin": "Administrator",
+      "Graph": "Graph",
+      "Node": "Knoten",
+      "Edge": "Kante",
+      "Label": "Label",
+      "Tag": "Tag",
+      "Vector": "Vector",
+      "Query": "Abfrage",
+      "Transaction": "Transaktion"
+    }
+  },
+  "backups": {
+    "title": "Backups",
+    "createTooltip": "Ein neues Backup erstellen",
+    "createBackup": "Backup erstellen",
+    "deleteTitle": "Möchten Sie das Backup \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht das Backup.",
+    "columns": {
+      "filename": "Dateiname",
+      "filenameDesc": "Name der Backup-Datei",
+      "size": "Größe",
+      "sizeDesc": "Größe der Backup-Datei",
+      "sha256": "SHA256",
+      "sha256Desc": "SHA-256-Hash der Backup-Datei",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "filename": "Dateiname suchen"
+    },
+    "rowActions": {
+      "download": "Herunterladen",
+      "delete": "Löschen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "filename": "Dateiname",
+      "filenamePlaceholder": "Dateinamen eingeben",
+      "filenameTooltip": "Name für die Backup-Datei",
+      "filenameRequired": "Bitte geben Sie einen Dateinamen ein"
+    },
+    "modalTitle": {
+      "create": "Backup hinzufügen",
+      "edit": "Backup bearbeiten"
+    },
+    "toast": {
+      "created": "Backup erfolgreich erstellt",
+      "createFailed": "Erstellen des Backups fehlgeschlagen",
+      "createFailedError": "Erstellen des Backups fehlgeschlagen: {error}",
+      "deleted": "Backup erfolgreich gelöscht",
+      "missingFilename": "Backup-Dateiname fehlt",
+      "unableToDownload": "Backup kann nicht heruntergeladen werden"
+    }
+  },
+  "tenants": {
+    "title": "Mandanten",
+    "createTooltip": "Einen neuen Mandanten erstellen",
+    "createTenant": "Mandant erstellen",
+    "copyGuid": "GUID kopieren",
+    "tenantJson": "Mandanten-JSON",
+    "deleteTitle": "Möchten Sie den Mandanten \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht den Mandanten.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "name": "Name",
+      "nameDesc": "Anzeigename des Mandanten",
+      "active": "Aktiv",
+      "activeDesc": "Ob der Mandant aktiv ist",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "search": {
+      "guid": "GUID suchen",
+      "name": "Name suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "name": "Name",
+      "nameTooltip": "Anzeigename für den Mandanten",
+      "nameRequired": "Bitte geben Sie den Namen ein!",
+      "namePlaceholder": "Namen eingeben",
+      "active": "Aktiv",
+      "activeTooltip": "Ob der Mandant aktiv ist"
+    },
+    "modalTitle": {
+      "create": "Mandant erstellen",
+      "edit": "Mandant bearbeiten"
+    },
+    "toast": {
+      "created": "Mandant erfolgreich erstellt",
+      "updated": "Mandant erfolgreich aktualisiert",
+      "updateNoResponse": "Aktualisierung des Mandanten fehlgeschlagen - keine Antwort erhalten",
+      "deleted": "Mandant erfolgreich gelöscht"
+    }
+  },
+  "users": {
+    "title": "Benutzer",
+    "createTooltip": "Einen neuen Benutzer erstellen",
+    "createUser": "Benutzer erstellen",
+    "copyGuid": "GUID kopieren",
+    "userJson": "Benutzer-JSON",
+    "deleteTitle": "Möchten Sie den Benutzer \"{name}\" wirklich löschen?",
+    "deleteBody": "Diese Aktion löscht den Benutzer.",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "Global eindeutiger Bezeichner",
+      "firstName": "Vorname",
+      "firstNameDesc": "Vorname des Benutzers",
+      "lastName": "Nachname",
+      "lastNameDesc": "Nachname des Benutzers",
+      "email": "E-Mail",
+      "emailDesc": "E-Mail-Adresse des Benutzers",
+      "password": "Passwort",
+      "passwordDesc": "Benutzerpasswort (zum Anzeigen auf das Auge klicken)",
+      "active": "Aktiv",
+      "activeDesc": "Ob das Benutzerkonto aktiv ist",
+      "createdUtc": "Erstellt (UTC)",
+      "createdUtcDesc": "Datum und Uhrzeit der Erstellung in UTC",
+      "actions": "Aktionen",
+      "actionsDesc": "Verfügbare Operationen"
+    },
+    "password": {
+      "show": "Passwort anzeigen",
+      "hide": "Passwort ausblenden"
+    },
+    "search": {
+      "guid": "GUID suchen",
+      "firstName": "Vorname suchen",
+      "lastName": "Nachname suchen",
+      "email": "E-Mail suchen"
+    },
+    "rowActions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "viewJson": "JSON anzeigen",
+      "menu": "Aktionen"
+    },
+    "form": {
+      "firstName": "Vorname",
+      "firstNameTooltip": "Vorname des Benutzers",
+      "firstNameRequired": "Bitte geben Sie den Vornamen ein!",
+      "firstNamePlaceholder": "Vornamen eingeben",
+      "lastName": "Nachname",
+      "lastNameTooltip": "Nachname des Benutzers",
+      "lastNameRequired": "Bitte geben Sie den Nachnamen ein!",
+      "lastNamePlaceholder": "Nachnamen eingeben",
+      "email": "E-Mail",
+      "emailTooltip": "E-Mail-Adresse des Benutzers",
+      "emailRequired": "Bitte geben Sie Ihre E-Mail-Adresse ein!",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein!",
+      "emailPlaceholder": "E-Mail",
+      "password": "Passwort",
+      "passwordTooltip": "Kontopasswort",
+      "passwordRequired": "Bitte geben Sie das Passwort ein!",
+      "passwordPlaceholder": "Passwort eingeben",
+      "active": "Aktiv",
+      "activeTooltip": "Ob das Benutzerkonto aktiv ist",
+      "tenantAdmin": "Mandantenadministrator",
+      "tenantAdminTooltip": "Gewährt volle Rechte innerhalb dieses Mandanten.",
+      "systemAdmin": "Systemadministrator",
+      "systemAdminTooltip": "Gewährt serverweite Superuser-Rechte über alle Mandanten hinweg."
+    },
+    "modalTitle": {
+      "create": "Benutzer erstellen",
+      "edit": "Benutzer bearbeiten"
+    },
+    "toast": {
+      "created": "Benutzer erfolgreich erstellt",
+      "updated": "Benutzer erfolgreich aktualisiert",
+      "updateNoResponse": "Aktualisierung des Benutzers fehlgeschlagen - keine Antwort erhalten",
+      "deleted": "Benutzer erfolgreich gelöscht",
+      "updateFailed": "Aktualisierung des Benutzers fehlgeschlagen: {error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "Startseite",
+      "data": "Daten",
+      "metadata": "Metadaten",
+      "manage": "Verwalten",
+      "secure": "Sichern",
+      "administer": "Administrieren"
+    },
+    "item": {
+      "home": "Startseite",
+      "homeTitle": "Dashboard-Übersicht",
+      "graphs": "Graphen",
+      "graphsTitle": "Graph-Container verwalten",
+      "nodes": "Knoten",
+      "nodesTitle": "Graph-Knoten verwalten",
+      "edges": "Kanten",
+      "edgesTitle": "Graph-Kanten verwalten",
+      "labels": "Labels",
+      "labelsTitle": "Klassifizierungslabels verwalten",
+      "tags": "Tags",
+      "tagsTitle": "Schlüssel-Wert-Tags verwalten",
+      "vectors": "Vectors",
+      "vectorsTitle": "Vector-Embeddings verwalten",
+      "requests": "API-Anfragen",
+      "requestsTitle": "HTTP-Anfrageverlauf",
+      "apiExplorer": "API Explorer",
+      "apiExplorerTitle": "API-Endpunkte erkunden und aufrufen",
+      "tenants": "Mandanten",
+      "tenantsTitle": "Mandanten verwalten",
+      "users": "Benutzer",
+      "usersTitle": "Benutzerkonten verwalten",
+      "credentials": "Anmeldedaten",
+      "credentialsTitle": "API-Anmeldedaten verwalten",
+      "authorization": "Autorisierung",
+      "authorizationTitle": "Rollen und Anmeldedaten-Geltungsbereiche verwalten",
+      "backups": "Backup",
+      "backupsTitle": "Datenbank-Backups verwalten",
+      "settings": "Einstellungen",
+      "settingsTitle": "Serverkonfiguration"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "Zugriff verweigert",
+      "subtitle": "Sie haben keine Berechtigung, diese Seite anzuzeigen.",
+      "backHome": "Zur Startseite"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Bearbeiten Sie die Serverkonfiguration. Einige Änderungen werden sofort übernommen, andere erfordern einen Neustart.",
+    "loading": "Einstellungen werden geladen…",
+    "loadError": "Servereinstellungen konnten nicht geladen werden.",
+    "reconnecting": "Server wird neu gestartet und die Verbindung wiederhergestellt…",
+    "sections": {
+      "general": "Allgemein",
+      "logging": "Protokollierung",
+      "caching": "Caching",
+      "requestHistory": "Anfrageverlauf",
+      "observability": "Observability",
+      "debug": "Debug",
+      "rest": "REST-Server",
+      "database": "Datenbank",
+      "security": "Sicherheit"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "Anfrage-Timeout (Sekunden)",
+      "loggingEnable": "Protokollierung aktivieren",
+      "consoleLogging": "Konsolenprotokollierung",
+      "minimumSeverity": "Mindestschweregrad",
+      "logDirectory": "Protokollverzeichnis",
+      "logFilename": "Protokolldateiname",
+      "logQueries": "Abfragen protokollieren",
+      "logResults": "Ergebnisse protokollieren",
+      "cachingEnable": "Caching aktivieren",
+      "cacheCapacity": "Cache-Kapazität",
+      "cacheEvictCount": "Verdrängungsanzahl",
+      "requestHistoryEnable": "Anfrageverlauf aktivieren",
+      "maxRequestBodyBytes": "Max. Anfragetext (Bytes)",
+      "maxResponseBodyBytes": "Max. Antworttext (Bytes)",
+      "retentionDays": "Aufbewahrung (Tage)",
+      "purgeIntervalMinutes": "Bereinigungsintervall (Minuten)",
+      "observabilityEnable": "Observability aktivieren",
+      "enablePrometheus": "Prometheus aktivieren",
+      "enableOpenTelemetry": "OpenTelemetry aktivieren",
+      "enableOtlpExporter": "OTLP-Exporter aktivieren",
+      "otlpEndpoint": "OTLP-Endpunkt",
+      "metricsPath": "Metrikpfad",
+      "debugAuthentication": "Authentifizierung debuggen",
+      "debugExceptions": "Ausnahmen debuggen",
+      "debugRequests": "Anfragen debuggen",
+      "debugDatabaseQueries": "Datenbankabfragen debuggen",
+      "restHostname": "Hostname",
+      "restPort": "Port",
+      "restSslEnable": "SSL aktivieren",
+      "databaseType": "Datenbanktyp",
+      "databaseHostname": "Hostname",
+      "databasePort": "Port",
+      "databaseName": "Datenbankname",
+      "databaseUsername": "Benutzername",
+      "databasePassword": "Passwort",
+      "databaseMaxConnections": "Max. Verbindungen",
+      "adminBearerToken": "Admin-Bearer-Token",
+      "encryptionKey": "Verschlüsselungsschlüssel",
+      "encryptionIv": "Verschlüsselungs-IV"
+    },
+    "status": {
+      "appliedLive": "Live übernommen",
+      "restartRequired": "Neustart erforderlich",
+      "liveHint": "Wird live übernommen",
+      "restartHint": "Neustart erforderlich",
+      "liveHintTooltip": "Änderungen an diesem Abschnitt werden beim Speichern sofort wirksam.",
+      "restartHintTooltip": "Änderungen an diesem Abschnitt werden erst nach einem Server-Neustart wirksam."
+    },
+    "actions": {
+      "save": "Speichern",
+      "discard": "Änderungen verwerfen",
+      "restart": "Server neu starten"
+    },
+    "restartModal": {
+      "title": "Server neu starten?",
+      "body": "Der Server wird beendet und der Container mit den gespeicherten Einstellungen neu gestartet. Aktive Verbindungen werden kurzzeitig unterbrochen."
+    },
+    "toast": {
+      "saved": "Einstellungen gespeichert.",
+      "saveFailed": "Einstellungen konnten nicht gespeichert werden.",
+      "restartFailed": "Server konnte nicht neu gestartet werden.",
+      "reconnected": "Server ist wieder online.",
+      "reconnectTimeout": "Der Server ist nicht rechtzeitig zurückgekehrt. Bitte überprüfen Sie seinen Status."
+    }
+  }
+}

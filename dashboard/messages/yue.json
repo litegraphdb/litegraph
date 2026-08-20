@@ -1,0 +1,1465 @@
+{
+  "common": {
+    "appName": "LiteGraph",
+    "actions": {
+      "create": "建立",
+      "edit": "編輯",
+      "delete": "刪除",
+      "update": "更新",
+      "save": "儲存",
+      "cancel": "取消",
+      "confirm": "確認",
+      "close": "閂咗佢",
+      "next": "下一步",
+      "retry": "再試",
+      "refresh": "重新整理",
+      "search": "搜尋",
+      "export": "匯出",
+      "viewJson": "睇 JSON",
+      "login": "登入",
+      "logout": "登出"
+    },
+    "states": {
+      "loading": "載入緊…",
+      "redirecting": "轉緊去…",
+      "noData": "冇資料",
+      "none": "冇",
+      "notAvailable": "唔適用",
+      "somethingWentWrong": "出咗啲問題。",
+      "cantViewDetails": "而家睇唔到詳情。"
+    },
+    "copy": {
+      "copyGuid": "複製 GUID",
+      "copy": "複製",
+      "copied": "已複製"
+    }
+  },
+  "sidebar": {
+    "logoAlt": "LiteGraph 標誌",
+    "expand": "展開側邊欄",
+    "collapse": "收埋側邊欄",
+    "flushTitle": "將資料庫寫入磁碟",
+    "flushToDisk": "寫入磁碟",
+    "flushConfirm": "你係咪確定要將資料庫寫入磁碟？"
+  },
+  "header": {
+    "graphLabel": "圖：",
+    "selectGraph": "選擇使用中嘅圖",
+    "selectAGraph": "選擇一個圖",
+    "tenantLabel": "租戶：",
+    "selectTenant": "選擇使用中嘅租戶",
+    "selectATenant": "選擇一個租戶",
+    "retry": "再試",
+    "connectedServer": "已連接嘅 LiteGraph 伺服器",
+    "switchToLight": "切換去淺色模式",
+    "switchToDark": "切換去深色模式",
+    "github": "GitHub 上嘅 LiteGraph",
+    "githubAria": "LiteGraph GitHub 儲存庫",
+    "signOut": "登出儀表板",
+    "logoutAria": "登出",
+    "language": "語言",
+    "selectLanguage": "選擇語言"
+  },
+  "login": {
+    "serverUrl": "LiteGraph 伺服器 URL",
+    "serverUrlPlaceholder": "https://your-litegraph-server.com",
+    "serverUrlRequired": "請輸入 LiteGraph 伺服器 URL！",
+    "onlyHttp": "只准用 HTTP 或者 HTTPS URL！",
+    "validUrl": "請輸入有效嘅 URL！",
+    "email": "電郵",
+    "emailPlaceholder": "電郵",
+    "emailRequired": "請輸入你嘅電郵！",
+    "validEmail": "請輸入有效嘅電郵！",
+    "tenant": "租戶",
+    "selectTenant": "選擇租戶",
+    "tenantRequired": "請選擇一個租戶！",
+    "password": "密碼",
+    "passwordPlaceholder": "密碼",
+    "passwordRequired": "請輸入你嘅密碼！",
+    "cancel": "取消",
+    "login": "登入",
+    "next": "下一步",
+    "loading": "載入緊…",
+    "defaultCredentials": "預設帳戶係 default@user.com，密碼係 password。",
+    "tenantNotFound": "搵唔到租戶",
+    "loggedInSso": "已經成功透過 SSO 登入。",
+    "heading": "登入",
+    "subheading": "輸入你嘅伺服器、電郵同密碼繼續。",
+    "logoAlt": "LiteGraph 標誌",
+    "invalidCredentials": "電郵或者密碼唔啱。",
+    "advancedToggle": "進階登入選項",
+    "advancedHide": "收埋進階選項",
+    "advancedHelp": "用伺服器嘅緊急管理員權杖登入。只限用嚟復原同初始化。",
+    "advancedTokenPlaceholder": "管理員 bearer 權杖",
+    "advancedTokenRequired": "請輸入管理員權杖。",
+    "advancedTokenInvalid": "管理員權杖唔接受。",
+    "advancedLogin": "用權杖登入"
+  },
+  "graphs": {
+    "title": "圖",
+    "searchTooltip": "搜尋同篩選圖",
+    "createTooltip": "建立一個新圖",
+    "createGraph": "建立圖",
+    "entityName": "個圖",
+    "copyGuid": "複製 GUID",
+    "labelsCount": "{count, plural, one {# 個標籤} other {# 個標籤}}",
+    "tagsCount": "{count, plural, one {# 個標記} other {# 個標記}}",
+    "vectorsCount": "{count, plural, =0 {冇} one {# 個向量} other {# 個向量}}",
+    "deleteTitle": "你係咪確定要刪除呢個圖？",
+    "deleteBody": "呢個操作會刪除圖。",
+    "graphJson": "圖 JSON",
+    "columns": {
+      "name": "名稱",
+      "nameDesc": "圖顯示名稱",
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "labels": "標籤",
+      "labelsDesc": "指派畀呢個圖嘅分類標籤",
+      "tags": "標記",
+      "tagsDesc": "鍵值元資料標記",
+      "vectors": "向量",
+      "vectorsDesc": "同呢個圖相關嘅向量嵌入",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "score": "分數",
+      "scoreDesc": "搜尋嘅相關性分數",
+      "distance": "距離",
+      "distanceDesc": "同搜尋查詢嘅向量距離",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "name": "搜尋名稱",
+      "guid": "搜尋 GUID",
+      "labels": "搜尋標籤",
+      "tags": "搜尋標記"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "exportGexf": "匯出成 GEXF",
+      "enableVectorIndex": "啟用向量索引",
+      "readVectorIndexConfig": "讀取向量索引設定",
+      "readVectorIndexStats": "讀取向量索引統計",
+      "rebuildVectorIndex": "重建向量索引",
+      "deleteVectorIndex": "刪除向量索引",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "name": "名稱",
+      "namePlaceholder": "輸入圖名稱",
+      "nameTooltip": "圖嘅顯示名稱",
+      "labelsTooltip": "同呢個圖相關嘅標籤",
+      "tags": "標記",
+      "tagsTooltip": "呢個圖嘅鍵值標記",
+      "vectors": "向量",
+      "vectorsTooltip": "呢個圖嘅向量嵌入",
+      "data": "資料",
+      "dataTooltip": "附加喺呢個圖嘅任意 JSON 資料",
+      "nameRequired": "必須填名稱"
+    },
+    "modalTitle": {
+      "create": "建立圖",
+      "edit": "編輯圖",
+      "view": "睇圖",
+      "loading": "載入緊圖…",
+      "createOk": "建立",
+      "updateOk": "更新"
+    },
+    "toast": {
+      "exported": "已成功匯出圖",
+      "exportFailed": "匯出圖失敗",
+      "noGexf": "收唔到 GEXF 內容",
+      "created": "已成功新增圖",
+      "updated": "已成功更新圖",
+      "deleted": "已成功刪除圖",
+      "updateFailed": "更新圖失敗：{error}"
+    }
+  },
+  "vectorIndex": {
+    "enableTitle": "啟用向量索引",
+    "viewTitle": "向量索引設定",
+    "statsTitle": "向量索引統計",
+    "rebuildTitle": "重建向量索引",
+    "deleteTitle": "刪除向量索引",
+    "type": "向量索引類型",
+    "typeTooltip": "要用嘅向量索引類型",
+    "selectType": "選擇向量索引類型",
+    "typeRequired": "請選擇向量索引類型！",
+    "typeHnswSqlite": "HNSW (Sqlite)",
+    "typeHnswRam": "HNSW (RAM)",
+    "typeNone": "冇",
+    "file": "向量索引檔案",
+    "fileTooltip": "向量索引嘅檔案路徑",
+    "fileRequired": "請輸入向量索引檔案！",
+    "filePlaceholder": "例如：graph-00000000-0000-0000-0000-000000000000-hnsw.db",
+    "fileHint": "檔案應該以 .db 結尾，而且唔可以有空格",
+    "threshold": "向量索引門檻",
+    "thresholdTooltip": "開始索引前所需嘅最少向量數目",
+    "thresholdPlaceholder": "輸入門檻",
+    "dimensionality": "向量維度",
+    "dimensionalityTooltip": "向量嘅維度數目",
+    "dimensionalityRequired": "請輸入向量維度！",
+    "dimensionalityPlaceholder": "輸入維度（例如 1536）",
+    "m": "向量索引 M",
+    "mTooltip": "HNSW 圖入面每個節點嘅最大連接數",
+    "mRequired": "請輸入向量索引 M！",
+    "mPlaceholder": "輸入 M 值（例如 16）",
+    "mHint": "HNSW 索引每層嘅連接數目",
+    "ef": "向量索引 Ef",
+    "efTooltip": "搜尋期間要考慮嘅候選數目",
+    "efRequired": "請輸入向量索引 Ef！",
+    "efPlaceholder": "輸入 Ef 值（例如 100）",
+    "efHint": "HNSW 索引嘅搜尋參數",
+    "efConstruction": "向量索引 Ef 建構值",
+    "efConstructionTooltip": "建構索引期間嘅候選數目",
+    "efConstructionRequired": "請輸入向量索引 Ef 建構值！",
+    "efConstructionPlaceholder": "輸入 Ef 建構值（例如 200）",
+    "efConstructionHint": "HNSW 索引嘅建構參數",
+    "enabledSuccess": "已成功啟用向量索引",
+    "loadConfigFailed": "載入向量索引設定失敗",
+    "unableToRetrieveConfig": "取唔到設定詳情",
+    "configHint": "向量索引可能未啟用，或者存取設定嗰陣出咗問題。",
+    "fileValidationDb": "檔案應該以 .db 結尾，而且唔可以有空格",
+    "fileNoSpaces": "向量索引檔案唔可以有空格！",
+    "fileEndsDb": "向量索引檔案要以 .db 結尾！",
+    "rebuildConfirm": "你係咪確定要重建向量索引？",
+    "rebuildBody": "呢個操作會重建呢個圖嘅向量索引。呢個過程可能要花啲時間，並會暫時影響向量搜尋效能。",
+    "rebuildSuccess": "已成功開始重建向量索引",
+    "rebuildFailed": "重建向量索引失敗",
+    "deleteConfirm": "你係咪確定要刪除向量索引？",
+    "deleteBody": "呢個操作會刪除呢個圖嘅向量索引。",
+    "deleteSuccess": "已成功刪除向量索引",
+    "deleteFailed": "刪除向量索引失敗",
+    "stats": {
+      "loadFailed": "載入向量索引統計失敗",
+      "unableToRetrieve": "取唔到統計詳情",
+      "hint": "向量索引可能未啟用，或者存取統計嗰陣出咗問題。",
+      "noStats": "冇可用嘅向量索引統計",
+      "noStatsHint": "呢個圖可能未啟用向量索引，或者統計唔可以存取。",
+      "loaded": "已載入",
+      "notLoaded": "未載入",
+      "never": "從未",
+      "error": "錯誤",
+      "errorProcessing": "處理統計資料嗰陣出錯",
+      "label": {
+        "vectorCount": "向量數目",
+        "dimensions": "維度",
+        "indexType": "索引類型",
+        "m": "M 參數",
+        "efConstruction": "EF 建構值",
+        "defaultEf": "預設 EF",
+        "indexFile": "索引檔案路徑",
+        "indexFileSize": "索引檔案大細",
+        "estimatedMemory": "估計記憶體用量",
+        "lastRebuild": "上次重建",
+        "status": "狀態",
+        "distanceMetric": "距離度量"
+      },
+      "desc": {
+        "vectorCount": "索引入面向量嘅總數",
+        "dimensions": "向量嘅維度",
+        "indexType": "向量索引演算法類型",
+        "m": "圖入面每個元素嘅連接數目",
+        "efConstruction": "建構索引時用嘅 EF 參數",
+        "defaultEf": "搜尋查詢嘅預設 EF 參數",
+        "indexFile": "儲存索引嘅檔案路徑",
+        "indexFileSize": "磁碟上索引檔案嘅大細",
+        "estimatedMemory": "索引嘅估計記憶體用量",
+        "lastRebuild": "上次索引重建嘅時間戳",
+        "status": "索引而家係咪已載入記憶體",
+        "distanceMetric": "計算相似度所用嘅距離度量"
+      }
+    }
+  },
+  "importExport": {
+    "exportJsonl": "匯出成 JSONL",
+    "importIntoGraph": "匯入去圖",
+    "importNewGraph": "匯入（新圖）",
+    "exportSubgraph": "匯出子圖",
+    "modal": {
+      "importTitle": "匯入去圖",
+      "importNewTitle": "匯入去一個新圖",
+      "exportTitle": "匯出成 JSONL",
+      "exportSubgraphTitle": "匯出子圖"
+    },
+    "fields": {
+      "guidStrategy": "GUID 策略",
+      "onError": "出錯時",
+      "maxDepth": "最大深度",
+      "direction": "方向",
+      "includeData": "包含資料",
+      "includeSubordinates": "包含下級",
+      "maxEdgeCost": "最大邊成本",
+      "startNode": "起始節點"
+    },
+    "guidStrategy": {
+      "preserve": "保留",
+      "regenerate": "重新產生",
+      "skip": "略過",
+      "overwrite": "覆寫"
+    },
+    "onError": {
+      "abort": "中止",
+      "skip": "略過"
+    },
+    "direction": {
+      "outbound": "外向",
+      "inbound": "內向",
+      "both": "兩者"
+    },
+    "result": {
+      "nodesCreated": "已建立節點",
+      "nodesUpdated": "已更新節點",
+      "nodesSkipped": "已略過節點",
+      "edgesCreated": "已建立邊",
+      "edgesUpdated": "已更新邊",
+      "edgesSkipped": "已略過邊",
+      "warnings": "警告",
+      "title": "匯入結果",
+      "graphsCreated": "已建立圖",
+      "linesRead": "已讀取行數",
+      "linesIgnored": "已略過行數",
+      "newGraphGuid": "新圖 GUID",
+      "noWarnings": "冇警告。"
+    },
+    "toast": {
+      "importSuccess": "已成功完成匯入",
+      "importFailed": "匯入失敗",
+      "exportSuccess": "已成功完成匯出",
+      "exportFailed": "匯出失敗"
+    },
+    "guidStrategyHelp": {
+      "preserve": "保留檔案原本嘅 GUID。",
+      "regenerate": "為每個匯入嘅物件指派新 GUID。",
+      "skip": "保留原本 GUID，並略過已經存在嘅物件。",
+      "overwrite": "保留原本 GUID，並覆寫已經存在嘅物件。"
+    },
+    "onErrorHelp": {
+      "abort": "一出錯就即刻停止匯入。",
+      "skip": "略過失敗嘅行，繼續匯入。"
+    },
+    "startNodeHelp": "子圖由呢個節點開始擷取。",
+    "upload": {
+      "prompt": "㩒一下或者拖一個 JSONL 檔案入嚟呢度",
+      "hint": "只支援由 LiteGraph 匯出嘅 .jsonl 檔案。",
+      "selected": "已選擇檔案"
+    },
+    "preview": {
+      "title": "預覽",
+      "headerLines": "標頭行",
+      "nodes": "節點",
+      "edges": "邊",
+      "empty": "呢個檔案入面搵唔到可辨識嘅內容。"
+    },
+    "actions": {
+      "import": "匯入",
+      "export": "匯出"
+    },
+    "exportSubgraphDisabled": "選擇一個節點嚟匯出佢嘅子圖。",
+    "copyGuid": "複製 GUID"
+  },
+  "language": {
+    "en": "English",
+    "es": "Español"
+  },
+  "edges": {
+    "title": "邊",
+    "searchTooltip": "搜尋同篩選邊",
+    "createTooltip": "建立一個新邊",
+    "createEdge": "建立邊",
+    "entityName": "條邊",
+    "edgeJson": "邊 JSON",
+    "deleteTitle": "你係咪確定要刪除「{name}」邊？",
+    "deleteBody": "呢個操作會刪除邊。",
+    "labelsCount": "{count, plural, one {# 個標籤} other {# 個標籤}}",
+    "tagsCount": "{count, plural, one {# 個標記} other {# 個標記}}",
+    "vectorsCount": "{count, plural, =0 {冇} one {# 個向量} other {# 個向量}}",
+    "columns": {
+      "name": "名稱",
+      "nameDesc": "邊顯示名稱",
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "from": "由",
+      "fromDesc": "呢條邊嘅來源節點",
+      "to": "去",
+      "toDesc": "呢條邊嘅目標節點",
+      "cost": "成本",
+      "costDesc": "邊嘅遍歷成本",
+      "labels": "標籤",
+      "labelsDesc": "指派畀呢條邊嘅分類標籤",
+      "tags": "標記",
+      "tagsDesc": "鍵值元資料標記",
+      "vectors": "向量",
+      "vectorsDesc": "同呢條邊相關嘅向量嵌入",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "score": "分數",
+      "scoreDesc": "搜尋嘅相關性分數",
+      "distance": "距離",
+      "distanceDesc": "同搜尋查詢嘅向量距離",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "name": "搜尋名稱",
+      "guid": "搜尋 GUID",
+      "from": "搜尋來源",
+      "to": "搜尋目標",
+      "labels": "搜尋標籤",
+      "tags": "搜尋標記"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "graph": "圖",
+      "graphTooltip": "呢條邊所屬嘅圖",
+      "guid": "GUID",
+      "guidTooltip": "呢條邊嘅全域唯一識別碼",
+      "name": "名稱",
+      "nameTooltip": "邊嘅顯示名稱",
+      "namePlaceholder": "輸入邊名稱",
+      "nameRequired": "必須填邊名稱",
+      "cost": "成本",
+      "costTooltip": "呢條邊嘅遍歷成本",
+      "costPlaceholder": "輸入邊成本",
+      "costRequired": "必須填邊成本",
+      "fromNode": "來源節點",
+      "fromNodeTooltip": "邊嘅來源節點",
+      "fromRequired": "必須填來源節點",
+      "fromSameAsTo": "來源節點唔可以同目標節點一樣",
+      "toNode": "目標節點",
+      "toNodeTooltip": "邊嘅目標節點",
+      "toRequired": "必須填目標節點",
+      "toSameAsFrom": "目標節點唔可以同來源節點一樣",
+      "labels": "標籤",
+      "labelsTooltip": "同呢條邊相關嘅標籤",
+      "tags": "標記",
+      "tagsTooltip": "呢條邊嘅鍵值標記",
+      "vectors": "向量",
+      "vectorsTooltip": "呢條邊嘅向量嵌入",
+      "data": "資料",
+      "dataTooltip": "附加喺呢條邊嘅任意 JSON 資料",
+      "copyData": "複製資料"
+    },
+    "modalTitle": {
+      "create": "建立邊",
+      "edit": "編輯邊",
+      "view": "睇邊",
+      "loading": "載入緊邊…"
+    },
+    "toast": {
+      "created": "已成功新增邊",
+      "updated": "已成功更新邊",
+      "deleted": "已成功刪除邊",
+      "updateFailed": "更新邊失敗：{error}"
+    }
+  },
+  "home": {
+    "pageTitle": "首頁",
+    "addNode": "新增節點",
+    "addEdge": "新增邊"
+  },
+  "graphViewer": {
+    "loadingNodes": "載入緊節點…",
+    "loadingEdges": "載入緊邊…",
+    "errorLoadingGraph": "載入圖出錯",
+    "noNodes": "呢個圖冇節點。",
+    "tooManyNodes": "節點太多，冇辦法正常呈現個圖。顯示緊頭 {count} 個節點。",
+    "controls": {
+      "button": "控制項",
+      "clearSubGraph": "清除子圖",
+      "searchSubGraph": "搜尋子圖",
+      "threeD": "3D",
+      "horizontalLayout": "水平版面",
+      "depthAwareLayout": "深度感知版面",
+      "depthAwareTooltip": "循環同密集嘅回連會自動處理，令深度版面保持易睇。",
+      "collapseRelatedNodes": "收埋相關節點",
+      "collapseRelatedTooltip": "㩒分組節點就展開。分組係根據標籤、有用嘅標記鍵同連接模式推斷出嚟。",
+      "dragByLabel": "按標籤拖曳",
+      "showGraphLegend": "顯示圖例",
+      "showNodeName": "顯示節點名稱",
+      "collapseExpanded": "收埋已展開"
+    },
+    "node": {
+      "title": "節點資訊",
+      "expand": "展開",
+      "guid": "GUID",
+      "name": "名稱",
+      "labels": "標籤",
+      "tags": "標記",
+      "addNew": "新增節點",
+      "openAddForm": "開啟新增節點表單",
+      "updateTooltip": "更新節點",
+      "deleteTooltip": "刪除節點",
+      "addEdgeTooltip": "新增邊",
+      "addEdge": "新增邊",
+      "deleteConfirmTitle": "你係咪確定要刪除「{name}」節點？",
+      "deleteConfirmText": "呢個操作會刪除節點。"
+    },
+    "edge": {
+      "title": "邊資訊",
+      "expand": "展開",
+      "guid": "GUID",
+      "name": "名稱",
+      "from": "由",
+      "to": "去",
+      "cost": "成本",
+      "labels": "標籤",
+      "tags": "標記",
+      "addNew": "新增邊",
+      "openAddForm": "開啟新增邊表單",
+      "updateTooltip": "更新邊",
+      "deleteTooltip": "刪除邊",
+      "deleteConfirmTitle": "你係咪確定要刪除「{name}」邊？",
+      "deleteConfirmText": "呢個操作會刪除邊。"
+    },
+    "nodeSearch": {
+      "title": "搜尋節點",
+      "placeholder": "按名稱搜尋節點…",
+      "searchFailed": "搜尋節點失敗。請再試。",
+      "noNodesFound": "搵唔到節點",
+      "enterSearchTerm": "輸入搜尋字詞嚟搵節點",
+      "total": "總共 {count} 個節點",
+      "columns": {
+        "name": "名稱",
+        "nameTooltip": "節點顯示名稱",
+        "labels": "標籤",
+        "labelsTooltip": "分類標籤",
+        "guid": "GUID",
+        "guidTooltip": "全域唯一識別碼"
+      }
+    }
+  },
+  "search": {
+    "tags": "標記",
+    "tagsTooltip": "按鍵值標記篩選",
+    "labelsTooltip": "按分類標籤篩選",
+    "expression": "運算式",
+    "expressionTooltip": "用運算式語法篩選",
+    "example": "範例：",
+    "atLeastOneRequired": "最少要填一個欄位。"
+  },
+  "nodes": {
+    "title": "節點",
+    "searchTooltip": "搜尋同篩選節點",
+    "createTooltip": "建立一個新節點",
+    "createNode": "建立節點",
+    "entityName": "個節點",
+    "copyGuid": "複製 GUID",
+    "labelsCount": "{count, plural, one {# 個標籤} other {# 個標籤}}",
+    "tagsCount": "{count, plural, one {# 個標記} other {# 個標記}}",
+    "vectorsCount": "{count, plural, =0 {冇} one {# 個向量} other {# 個向量}}",
+    "deleteTitle": "你係咪確定要刪除「{name}」節點？",
+    "deleteBody": "呢個操作會刪除節點。",
+    "nodeJson": "節點 JSON",
+    "columns": {
+      "name": "名稱",
+      "nameDesc": "節點顯示名稱",
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "labels": "標籤",
+      "labelsDesc": "指派畀呢個節點嘅分類標籤",
+      "tags": "標記",
+      "tagsDesc": "鍵值元資料標記",
+      "vectors": "向量",
+      "vectorsDesc": "同呢個節點相關嘅向量嵌入",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "score": "分數",
+      "scoreDesc": "搜尋嘅相關性分數",
+      "distance": "距離",
+      "distanceDesc": "同搜尋查詢嘅向量距離",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "name": "搜尋名稱",
+      "guid": "搜尋 GUID",
+      "labels": "搜尋標籤",
+      "tags": "搜尋標記"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "graph": "圖",
+      "graphTooltip": "呢個節點所屬嘅圖",
+      "guid": "GUID",
+      "guidTooltip": "呢個節點嘅全域唯一識別碼",
+      "name": "名稱",
+      "namePlaceholder": "輸入節點名稱",
+      "nameTooltip": "節點嘅顯示名稱",
+      "nameRequired": "必須填節點名稱",
+      "labels": "標籤",
+      "labelsTooltip": "同呢個節點相關嘅標籤",
+      "tags": "標記",
+      "tagsTooltip": "呢個節點嘅鍵值標記",
+      "vectors": "向量",
+      "vectorsTooltip": "呢個節點嘅向量嵌入",
+      "data": "資料",
+      "dataTooltip": "附加喺呢個節點嘅任意 JSON 資料",
+      "copyData": "複製資料"
+    },
+    "modalTitle": {
+      "create": "建立節點",
+      "edit": "編輯節點",
+      "view": "睇節點",
+      "loading": "載入緊節點…",
+      "createOk": "建立",
+      "updateOk": "更新"
+    },
+    "toast": {
+      "created": "已成功新增節點",
+      "updated": "已成功更新節點",
+      "deleted": "已成功刪除節點",
+      "updateFailed": "更新節點失敗：{error}"
+    }
+  },
+  "labels": {
+    "title": "標籤",
+    "createTooltip": "建立一個新標籤",
+    "createLabel": "建立標籤",
+    "copyGuid": "複製 GUID",
+    "deleteTitle": "你係咪確定要刪除「{name}」標籤？",
+    "deleteBody": "呢個操作會刪除標籤。",
+    "labelJson": "標籤 JSON",
+    "columns": {
+      "label": "標籤",
+      "labelDesc": "標籤文字值",
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "node": "節點",
+      "nodeDesc": "相關嘅節點名稱",
+      "edge": "邊",
+      "edgeDesc": "相關嘅邊名稱",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "label": "搜尋標籤",
+      "guid": "搜尋 GUID",
+      "node": "搜尋節點",
+      "edge": "搜尋邊"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "label": "標籤",
+      "labelTooltip": "標籤文字值",
+      "labelRequired": "請輸入標籤！",
+      "labelPlaceholder": "輸入標籤",
+      "node": "節點",
+      "nodeTooltip": "要同呢個標籤關聯嘅節點",
+      "edge": "邊",
+      "edgeTooltip": "要同呢個標籤關聯嘅邊"
+    },
+    "modalTitle": {
+      "create": "建立標籤",
+      "edit": "編輯標籤"
+    },
+    "toast": {
+      "created": "已成功建立標籤",
+      "updated": "已成功更新標籤",
+      "deleted": "已成功刪除標籤",
+      "updateFailed": "更新標籤失敗：{error}",
+      "updateFailedNoResponse": "更新標籤失敗——收唔到回應"
+    }
+  },
+  "tags": {
+    "title": "標記",
+    "createTooltip": "建立一個新標記",
+    "createTag": "建立標記",
+    "copyGuid": "複製 GUID",
+    "deleteTitle": "你係咪確定要刪除「{name}」標記？",
+    "deleteBody": "呢個操作會刪除標記。",
+    "tagJson": "標記 JSON",
+    "columns": {
+      "key": "鍵",
+      "keyDesc": "標記鍵識別碼",
+      "value": "值",
+      "valueDesc": "標記值",
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "node": "節點",
+      "nodeDesc": "相關嘅節點名稱",
+      "edge": "邊",
+      "edgeDesc": "相關嘅邊名稱",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "key": "搜尋鍵",
+      "value": "搜尋值",
+      "guid": "搜尋 GUID",
+      "node": "搜尋節點",
+      "edge": "搜尋邊"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "key": "鍵",
+      "keyTooltip": "標記鍵識別碼",
+      "keyRequired": "請輸入標記鍵！",
+      "keyPlaceholder": "輸入標記鍵",
+      "value": "值",
+      "valueTooltip": "標記值",
+      "valueRequired": "請輸入標記值！",
+      "valuePlaceholder": "輸入標記值",
+      "node": "節點",
+      "nodeTooltip": "要同呢個標記關聯嘅節點",
+      "edge": "邊",
+      "edgeTooltip": "要同呢個標記關聯嘅邊"
+    },
+    "modalTitle": {
+      "create": "建立標記",
+      "edit": "編輯標記"
+    },
+    "toast": {
+      "created": "已成功建立標記",
+      "updated": "已成功更新標記",
+      "deleted": "已成功刪除標記",
+      "updateFailed": "更新標記失敗：{error}",
+      "updateFailedNoResponse": "更新標記失敗——收唔到回應"
+    }
+  },
+  "vectors": {
+    "title": "向量",
+    "createTooltip": "建立一個新向量",
+    "createVector": "建立向量",
+    "copyGuid": "複製 GUID",
+    "deleteTitle": "你係咪確定要刪除呢個向量？",
+    "deleteBody": "呢個操作會刪除向量。",
+    "vectorJson": "向量 JSON",
+    "vectorsCount": "{count, plural, one {# 個向量} other {# 個向量}}",
+    "columns": {
+      "model": "模型",
+      "modelDesc": "向量模型名稱",
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "node": "節點",
+      "nodeDesc": "相關嘅節點名稱",
+      "edge": "邊",
+      "edgeDesc": "相關嘅邊名稱",
+      "dimensionality": "維度",
+      "dimensionalityDesc": "向量維度數目",
+      "content": "內容",
+      "contentDesc": "向量內容文字",
+      "vectors": "向量",
+      "vectorsDesc": "向量嵌入值",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "model": "搜尋模型",
+      "guid": "搜尋 GUID",
+      "node": "搜尋節點",
+      "edge": "搜尋邊",
+      "content": "搜尋內容"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "model": "模型",
+      "modelTooltip": "嵌入模型嘅名稱",
+      "modelRequired": "請輸入模型！",
+      "modelPlaceholder": "輸入模型",
+      "dimensionality": "維度",
+      "dimensionalityTooltip": "向量嘅維度數目",
+      "dimensionalityRequired": "請輸入維度！",
+      "dimensionalityPlaceholder": "輸入維度",
+      "content": "內容",
+      "contentTooltip": "同向量相關嘅文字內容",
+      "contentRequired": "請輸入內容！",
+      "contentPlaceholder": "輸入內容",
+      "vectors": "向量",
+      "vectorsTooltip": "以 JSON 陣列表示嘅向量嵌入值",
+      "vectorsRequired": "請輸入向量！",
+      "node": "節點",
+      "nodeTooltip": "要同呢個向量關聯嘅節點",
+      "edge": "邊",
+      "edgeTooltip": "要同呢個向量關聯嘅邊"
+    },
+    "modalTitle": {
+      "create": "建立向量",
+      "edit": "編輯向量"
+    },
+    "toast": {
+      "created": "已成功建立向量",
+      "updated": "已成功更新向量",
+      "deleted": "已成功刪除向量",
+      "updateFailed": "更新向量失敗：{error}"
+    }
+  },
+  "requestHistory": {
+    "title": "請求記錄",
+    "columns": {
+      "time": "時間",
+      "method": "方法",
+      "path": "路徑",
+      "status": "狀態",
+      "transaction": "交易",
+      "duration": "時長",
+      "size": "大細（請求/回應）",
+      "tenant": "租戶",
+      "actions": "操作"
+    },
+    "transaction": {
+      "noId": "交易"
+    },
+    "transactionState": {
+      "validation": "驗證",
+      "committed": "已提交",
+      "rolledBack": "已回滾",
+      "failed": "失敗",
+      "transaction": "交易"
+    },
+    "transactionTags": {
+      "retryable": "可重試",
+      "conflict": "衝突"
+    },
+    "rowActions": {
+      "view": "睇",
+      "viewJson": "睇 JSON",
+      "delete": "刪除",
+      "menu": "請求操作"
+    },
+    "filters": {
+      "allStatuses": "所有狀態",
+      "allOutcomes": "所有結果",
+      "successful": "成功",
+      "errors": "錯誤",
+      "allRequests": "所有請求",
+      "transactions": "交易",
+      "nonTransactions": "非交易",
+      "allMethods": "所有方法",
+      "transactionIdPlaceholder": "交易 ID…",
+      "pathPlaceholder": "路徑包含…"
+    },
+    "summary": {
+      "visibleRequests": "可見請求：",
+      "visibleErrors": "可見錯誤：",
+      "errorRate": "錯誤率：",
+      "averageDuration": "平均時長：",
+      "p95Duration": "P95 時長："
+    },
+    "telemetry": {
+      "title": "運作遙測",
+      "prometheus": "Prometheus 指標",
+      "openTelemetry": "OpenTelemetry 設定",
+      "description": "請求記錄係用嚟檢查最近嘅請求；指標同追蹤就係用嚟做整體監控。"
+    },
+    "delete": {
+      "confirmTitle": "刪除請求記錄項目？"
+    },
+    "toast": {
+      "loadFailed": "載入唔到請求記錄",
+      "deleted": "項目已刪除",
+      "deleteFailed": "刪除唔到"
+    },
+    "entryJson": "請求記錄項目 JSON",
+    "chart": {
+      "title": "隨時間嘅請求",
+      "ranges": {
+        "hour": "過去一小時",
+        "day": "過去一日",
+        "week": "過去一星期",
+        "month": "過去一個月"
+      },
+      "total": "總數",
+      "success": "成功",
+      "failed": "失敗",
+      "tooltip": {
+        "success": "成功：{count}",
+        "failed": "失敗：{count}",
+        "total": "總數：{count}"
+      }
+    },
+    "detail": {
+      "title": "請求詳情",
+      "empty": "（空）",
+      "copyId": "複製 ID",
+      "truncated": "[已截斷]",
+      "entries": "{count} 個項目",
+      "loadFailed": "載入唔到請求詳情",
+      "fields": {
+        "id": "ID",
+        "method": "方法",
+        "status": "狀態",
+        "duration": "時長",
+        "time": "時間",
+        "sourceIp": "來源 IP",
+        "tenant": "租戶",
+        "requestSize": "請求大細",
+        "responseSize": "回應大細",
+        "url": "URL"
+      },
+      "sections": {
+        "requestHeaders": "請求標頭",
+        "requestBody": "請求本文",
+        "responseHeaders": "回應標頭",
+        "responseBody": "回應本文",
+        "transactionDiagnostics": "交易診斷"
+      }
+    }
+  },
+  "apiExplorer": {
+    "title": "API 探索器",
+    "send": "傳送",
+    "request": {
+      "title": "請求",
+      "resetTooltip": "將本文重設做範本",
+      "selectOperation": "選擇一個操作…",
+      "copyUrl": "複製 URL",
+      "body": "請求本文",
+      "recentRequests": "最近嘅請求",
+      "clear": "清除"
+    },
+    "params": {
+      "path": "路徑參數",
+      "query": "查詢參數"
+    },
+    "response": {
+      "title": "回應",
+      "transactionFailed": "交易失敗",
+      "queryFailed": "查詢失敗",
+      "noResponse": "（仲未有回應）",
+      "status": "狀態",
+      "contentType": "Content-Type",
+      "duration": "時長",
+      "size": "大細",
+      "copyCode": "複製程式碼",
+      "selectOperationHint": "（選擇一個操作）"
+    },
+    "tabs": {
+      "preview": "預覽",
+      "body": "本文",
+      "headers": "標頭",
+      "status": "狀態",
+      "code": "程式碼"
+    },
+    "toast": {
+      "loadSpecFailed": "載入唔到 OpenAPI 規格",
+      "requestFailed": "請求失敗：{error}"
+    },
+    "summary": {
+      "transactionMain": "{operationType} {objectType}{guid} 失敗{indexText}：{error}。",
+      "defaultOperation": "操作",
+      "defaultObject": "物件",
+      "guid": " ({guid})",
+      "indexText": " 喺索引 {index}",
+      "noError": "冇傳回錯誤詳情。",
+      "validation": " 交易喺開始前驗證失敗。",
+      "rolledBack": " 交易已經回滾。",
+      "transactionId": " 交易 {transactionId}。",
+      "state": " 狀態：{state}。",
+      "provider": " 供應者：{provider}。",
+      "providerError": " 供應者錯誤：{providerErrorCode}。",
+      "retryable": " 呢個失敗標記為可重試。",
+      "conflict": " 偵測到並行衝突。",
+      "queryErrorAt": "喺 {location} 嘅查詢錯誤：{description}",
+      "queryError": "查詢錯誤：{description}"
+    }
+  },
+  "credentials": {
+    "title": "憑證",
+    "createTooltip": "建立一個新憑證",
+    "createCredential": "建立憑證",
+    "copyGuid": "複製 GUID",
+    "credentialJson": "憑證 JSON",
+    "deleteTitle": "你係咪確定要刪除「{name}」憑證？",
+    "deleteBody": "呢個操作會刪除憑證。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "user": "使用者",
+      "userDesc": "相關嘅使用者名稱",
+      "name": "名稱",
+      "nameDesc": "憑證顯示名稱",
+      "bearerToken": "Bearer 權杖",
+      "bearerTokenDesc": "驗證用嘅 bearer 權杖",
+      "active": "啟用",
+      "activeDesc": "憑證係咪啟用",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "guid": "搜尋 GUID",
+      "user": "搜尋使用者",
+      "name": "搜尋名稱"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "userGuid": "使用者 GUID",
+      "userGuidTooltip": "呢個憑證所屬嘅使用者",
+      "userGuidRequired": "請選擇使用者 GUID！",
+      "userGuidPlaceholder": "選擇使用者 GUID",
+      "name": "名稱",
+      "nameTooltip": "憑證嘅顯示名稱",
+      "nameRequired": "請輸入名稱！",
+      "namePlaceholder": "輸入名稱",
+      "bearerToken": "Bearer 權杖",
+      "bearerTokenTooltip": "驗證用嘅 bearer 權杖",
+      "bearerTokenRequired": "請輸入 bearer 權杖！",
+      "bearerTokenPlaceholder": "輸入 bearer 權杖",
+      "active": "啟用",
+      "activeTooltip": "憑證係咪啟用"
+    },
+    "modalTitle": {
+      "create": "建立憑證",
+      "edit": "編輯憑證"
+    },
+    "toast": {
+      "created": "已成功建立憑證",
+      "updated": "已成功更新憑證",
+      "updateNoResponse": "更新憑證失敗——收唔到回應",
+      "deleted": "已成功刪除憑證",
+      "updateFailed": "更新憑證失敗：{error}"
+    }
+  },
+  "authorization": {
+    "title": "授權",
+    "createTooltip": "建立一個自訂角色",
+    "adminRequired": "需要管理員權限",
+    "createRole": "建立角色",
+    "roleJson": "授權角色 JSON",
+    "tabs": {
+      "roles": "角色",
+      "userRoles": "使用者角色",
+      "credentialScopes": "憑證範圍"
+    },
+    "sections": {
+      "effectiveUserPermissions": "有效使用者權限",
+      "effectiveCredentialPermissions": "有效憑證權限"
+    },
+    "states": {
+      "selectTenant": "選擇一個租戶嚟管理授權。",
+      "adminWarning": "更改角色或者憑證範圍需要管理員權限。"
+    },
+    "columns": {
+      "name": "名稱",
+      "scope": "範圍",
+      "permissions": "權限",
+      "resources": "資源",
+      "builtIn": "內建",
+      "actions": "操作",
+      "role": "角色",
+      "graph": "圖",
+      "source": "來源"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "viewJson": "睇 JSON",
+      "delete": "刪除",
+      "revoke": "撤銷",
+      "menu": "操作"
+    },
+    "labels": {
+      "builtIn": "內建",
+      "custom": "自訂",
+      "immutable": "不可變更",
+      "directRole": "直接角色",
+      "directGrant": "直接授予"
+    },
+    "confirm": {
+      "deleteRoleTitle": "刪除角色？",
+      "deleteRoleBody": "刪除「{name}」？",
+      "revokeRole": "撤銷角色？",
+      "revokeScope": "撤銷憑證範圍？"
+    },
+    "actions": {
+      "assignRole": "指派角色",
+      "assignScope": "指派範圍"
+    },
+    "modalTitle": {
+      "create": "建立角色",
+      "edit": "編輯角色"
+    },
+    "form": {
+      "name": "名稱",
+      "namePlaceholder": "GraphAuditor",
+      "displayName": "顯示名稱",
+      "displayNamePlaceholder": "Graph Auditor",
+      "description": "描述",
+      "descriptionPlaceholder": "對選定圖嘅唯讀稽核存取",
+      "defaultScope": "預設範圍",
+      "permissions": "權限",
+      "resourceTypes": "資源類型",
+      "inheritsToGraphs": "租戶範圍繼承到圖",
+      "user": "使用者",
+      "selectUser": "選擇使用者",
+      "role": "角色",
+      "selectRole": "選擇角色",
+      "scope": "範圍",
+      "graph": "圖",
+      "selectGraph": "選擇圖",
+      "graphRequiredAssignment": "為圖範圍嘅指派選擇圖。",
+      "credential": "憑證",
+      "selectCredential": "選擇憑證",
+      "optionalRole": "選填角色",
+      "directPermissions": "直接權限",
+      "directResources": "直接資源",
+      "graphRequiredScope": "為圖範圍嘅範圍選擇圖。"
+    },
+    "permissions": {
+      "Read": "讀取",
+      "Write": "寫入",
+      "Delete": "刪除",
+      "Admin": "管理"
+    },
+    "scopes": {
+      "Tenant": "租戶",
+      "Graph": "圖",
+      "tenantScope": "租戶範圍"
+    },
+    "resourceTypes": {
+      "Admin": "管理",
+      "Graph": "圖",
+      "Node": "節點",
+      "Edge": "邊",
+      "Label": "標籤",
+      "Tag": "標記",
+      "Vector": "向量",
+      "Query": "查詢",
+      "Transaction": "交易"
+    }
+  },
+  "backups": {
+    "title": "備份",
+    "createTooltip": "建立一個新備份",
+    "createBackup": "建立備份",
+    "deleteTitle": "你係咪確定要刪除「{name}」備份？",
+    "deleteBody": "呢個操作會刪除備份。",
+    "columns": {
+      "filename": "檔案名稱",
+      "filenameDesc": "備份檔案名稱",
+      "size": "大細",
+      "sizeDesc": "備份檔案大細",
+      "sha256": "SHA256",
+      "sha256Desc": "備份檔案嘅 SHA-256 雜湊值",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "filename": "搜尋檔案名稱"
+    },
+    "rowActions": {
+      "download": "下載",
+      "delete": "刪除",
+      "menu": "操作"
+    },
+    "form": {
+      "filename": "檔案名稱",
+      "filenamePlaceholder": "輸入檔案名稱",
+      "filenameTooltip": "備份檔案嘅名稱",
+      "filenameRequired": "請輸入檔案名稱"
+    },
+    "modalTitle": {
+      "create": "新增備份",
+      "edit": "編輯備份"
+    },
+    "toast": {
+      "created": "已成功建立備份",
+      "createFailed": "建立備份失敗",
+      "createFailedError": "建立備份失敗：{error}",
+      "deleted": "已成功刪除備份",
+      "missingFilename": "缺少備份檔案名稱",
+      "unableToDownload": "下載唔到備份"
+    }
+  },
+  "tenants": {
+    "title": "租戶",
+    "createTooltip": "建立一個新租戶",
+    "createTenant": "建立租戶",
+    "copyGuid": "複製 GUID",
+    "tenantJson": "租戶 JSON",
+    "deleteTitle": "你係咪確定要刪除「{name}」租戶？",
+    "deleteBody": "呢個操作會刪除租戶。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "name": "名稱",
+      "nameDesc": "租戶顯示名稱",
+      "active": "啟用",
+      "activeDesc": "租戶係咪啟用",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "search": {
+      "guid": "搜尋 GUID",
+      "name": "搜尋名稱"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "name": "名稱",
+      "nameTooltip": "租戶嘅顯示名稱",
+      "nameRequired": "請輸入名稱！",
+      "namePlaceholder": "輸入名稱",
+      "active": "啟用",
+      "activeTooltip": "租戶係咪啟用"
+    },
+    "modalTitle": {
+      "create": "建立租戶",
+      "edit": "編輯租戶"
+    },
+    "toast": {
+      "created": "已成功建立租戶",
+      "updated": "已成功更新租戶",
+      "updateNoResponse": "更新租戶失敗——收唔到回應",
+      "deleted": "已成功刪除租戶"
+    }
+  },
+  "users": {
+    "title": "使用者",
+    "createTooltip": "建立一個新使用者",
+    "createUser": "建立使用者",
+    "copyGuid": "複製 GUID",
+    "userJson": "使用者 JSON",
+    "deleteTitle": "你係咪確定要刪除「{name}」使用者？",
+    "deleteBody": "呢個操作會刪除使用者。",
+    "columns": {
+      "guid": "GUID",
+      "guidDesc": "全域唯一識別碼",
+      "firstName": "名",
+      "firstNameDesc": "使用者名",
+      "lastName": "姓",
+      "lastNameDesc": "使用者姓",
+      "email": "電郵",
+      "emailDesc": "使用者電郵地址",
+      "password": "密碼",
+      "passwordDesc": "使用者密碼（㩒個眼睛嚟顯示）",
+      "active": "啟用",
+      "activeDesc": "使用者帳戶係咪啟用",
+      "createdUtc": "建立時間 (UTC)",
+      "createdUtcDesc": "以 UTC 表示嘅建立日期同時間",
+      "actions": "操作",
+      "actionsDesc": "可用嘅操作"
+    },
+    "password": {
+      "show": "顯示密碼",
+      "hide": "隱藏密碼"
+    },
+    "search": {
+      "guid": "搜尋 GUID",
+      "firstName": "搜尋名",
+      "lastName": "搜尋姓",
+      "email": "搜尋電郵"
+    },
+    "rowActions": {
+      "edit": "編輯",
+      "delete": "刪除",
+      "viewJson": "睇 JSON",
+      "menu": "操作"
+    },
+    "form": {
+      "firstName": "名",
+      "firstNameTooltip": "使用者嘅名",
+      "firstNameRequired": "請輸入名！",
+      "firstNamePlaceholder": "輸入名",
+      "lastName": "姓",
+      "lastNameTooltip": "使用者嘅姓",
+      "lastNameRequired": "請輸入姓！",
+      "lastNamePlaceholder": "輸入姓",
+      "email": "電郵",
+      "emailTooltip": "使用者嘅電郵地址",
+      "emailRequired": "請輸入你嘅電郵！",
+      "emailInvalid": "請輸入有效嘅電郵！",
+      "emailPlaceholder": "電郵",
+      "password": "密碼",
+      "passwordTooltip": "帳戶密碼",
+      "passwordRequired": "請輸入密碼！",
+      "passwordPlaceholder": "輸入密碼",
+      "active": "啟用",
+      "activeTooltip": "使用者帳戶係咪啟用",
+      "tenantAdmin": "租戶管理員",
+      "tenantAdminTooltip": "授予呢個租戶內嘅完整權限。",
+      "systemAdmin": "系統管理員",
+      "systemAdminTooltip": "授予橫跨所有租戶嘅伺服器級超級使用者權限。"
+    },
+    "modalTitle": {
+      "create": "建立使用者",
+      "edit": "編輯使用者"
+    },
+    "toast": {
+      "created": "已成功建立使用者",
+      "updated": "已成功更新使用者",
+      "updateNoResponse": "更新使用者失敗——收唔到回應",
+      "deleted": "已成功刪除使用者",
+      "updateFailed": "更新使用者失敗：{error}"
+    }
+  },
+  "nav": {
+    "section": {
+      "home": "首頁",
+      "data": "資料",
+      "metadata": "元資料",
+      "manage": "管理",
+      "secure": "安全",
+      "administer": "管理"
+    },
+    "item": {
+      "home": "首頁",
+      "homeTitle": "儀表板概覽",
+      "graphs": "圖",
+      "graphsTitle": "管理圖容器",
+      "nodes": "節點",
+      "nodesTitle": "管理圖節點",
+      "edges": "邊",
+      "edgesTitle": "管理圖嘅邊",
+      "labels": "標籤",
+      "labelsTitle": "管理分類標籤",
+      "tags": "標記",
+      "tagsTitle": "管理鍵值標記",
+      "vectors": "向量",
+      "vectorsTitle": "管理向量嵌入",
+      "requests": "API 請求",
+      "requestsTitle": "HTTP 請求記錄",
+      "apiExplorer": "API 探索器",
+      "apiExplorerTitle": "探索同呼叫 API 端點",
+      "tenants": "租戶",
+      "tenantsTitle": "管理租戶",
+      "users": "使用者",
+      "usersTitle": "管理使用者帳戶",
+      "credentials": "憑證",
+      "credentialsTitle": "管理 API 憑證",
+      "authorization": "授權",
+      "authorizationTitle": "管理角色同憑證範圍",
+      "backups": "備份",
+      "backupsTitle": "管理資料庫備份",
+      "settings": "設定",
+      "settingsTitle": "伺服器組態"
+    }
+  },
+  "secure": {
+    "denied": {
+      "title": "存取被拒",
+      "subtitle": "你冇權限睇呢一頁。",
+      "backHome": "去首頁"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "編輯伺服器組態。有啲更改即刻生效；有啲就要重新啟動先生效。",
+    "loading": "載入緊設定…",
+    "loadError": "載入唔到伺服器設定。",
+    "reconnecting": "重新啟動伺服器並重新連接緊…",
+    "sections": {
+      "general": "一般",
+      "logging": "記錄",
+      "caching": "快取",
+      "requestHistory": "請求記錄",
+      "observability": "可觀察性",
+      "debug": "偵錯",
+      "rest": "REST 伺服器",
+      "database": "資料庫",
+      "security": "安全"
+    },
+    "fields": {
+      "requestTimeoutSeconds": "請求逾時（秒）",
+      "loggingEnable": "啟用記錄",
+      "consoleLogging": "主控台記錄",
+      "minimumSeverity": "最低嚴重程度",
+      "logDirectory": "記錄目錄",
+      "logFilename": "記錄檔案名稱",
+      "logQueries": "記錄查詢",
+      "logResults": "記錄結果",
+      "cachingEnable": "啟用快取",
+      "cacheCapacity": "快取容量",
+      "cacheEvictCount": "驅逐數目",
+      "requestHistoryEnable": "啟用請求記錄",
+      "maxRequestBodyBytes": "最大請求本文（位元組）",
+      "maxResponseBodyBytes": "最大回應本文（位元組）",
+      "retentionDays": "保留（日）",
+      "purgeIntervalMinutes": "清除間隔（分鐘）",
+      "observabilityEnable": "啟用可觀察性",
+      "enablePrometheus": "啟用 Prometheus",
+      "enableOpenTelemetry": "啟用 OpenTelemetry",
+      "enableOtlpExporter": "啟用 OTLP 匯出器",
+      "otlpEndpoint": "OTLP 端點",
+      "metricsPath": "指標路徑",
+      "debugAuthentication": "偵錯驗證",
+      "debugExceptions": "偵錯例外",
+      "debugRequests": "偵錯請求",
+      "debugDatabaseQueries": "偵錯資料庫查詢",
+      "restHostname": "主機名稱",
+      "restPort": "連接埠",
+      "restSslEnable": "啟用 SSL",
+      "databaseType": "資料庫類型",
+      "databaseHostname": "主機名稱",
+      "databasePort": "連接埠",
+      "databaseName": "資料庫名稱",
+      "databaseUsername": "使用者名稱",
+      "databasePassword": "密碼",
+      "databaseMaxConnections": "最大連接數",
+      "adminBearerToken": "管理員 bearer 權杖",
+      "encryptionKey": "加密金鑰",
+      "encryptionIv": "加密 IV"
+    },
+    "status": {
+      "appliedLive": "已即時套用",
+      "restartRequired": "需要重新啟動",
+      "liveHint": "即時套用",
+      "restartHint": "需要重新啟動",
+      "liveHintTooltip": "呢個部分嘅更改一儲存就即刻生效。",
+      "restartHintTooltip": "呢個部分嘅更改要重新啟動伺服器之後先生效。"
+    },
+    "actions": {
+      "save": "儲存",
+      "discard": "捨棄更改",
+      "restart": "重新啟動伺服器"
+    },
+    "restartModal": {
+      "title": "重新啟動伺服器？",
+      "body": "伺服器會結束，容器會用已儲存嘅設定重新啟動。使用中嘅連接會短暫中斷。"
+    },
+    "toast": {
+      "saved": "設定已儲存。",
+      "saveFailed": "儲存唔到設定。",
+      "restartFailed": "重新啟動唔到伺服器。",
+      "reconnected": "伺服器已經重新上線。",
+      "reconnectTimeout": "伺服器冇喺時限內恢復。請檢查佢嘅狀態。"
+    }
+  }
+}

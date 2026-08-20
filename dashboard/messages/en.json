@@ -463,7 +463,35 @@
   "home": {
     "pageTitle": "Home",
     "addNode": "Add Node",
-    "addEdge": "Add Edge"
+    "addEdge": "Add Edge",
+    "overview": {
+      "kpis": {
+        "graphs": "Graphs",
+        "nodes": "Nodes",
+        "edges": "Edges",
+        "labels": "Labels",
+        "tags": "Tags",
+        "vectors": "Vectors",
+        "inSelectedGraph": "in selected graph",
+        "inTenant": "in tenant",
+        "selectGraphHint": "Select a graph to see counts"
+      },
+      "cta": {
+        "heading": "Quick actions",
+        "browseGraphs": "Browse graphs",
+        "browseGraphsDesc": "Create, inspect, and manage graphs",
+        "browseNodes": "Nodes",
+        "browseNodesDesc": "View and edit nodes",
+        "browseEdges": "Edges",
+        "browseEdgesDesc": "View and edit edges",
+        "metadata": "Labels, tags & vectors",
+        "metadataDesc": "Manage metadata and embeddings",
+        "apiExplorer": "API Explorer",
+        "apiExplorerDesc": "Try REST calls interactively",
+        "vectorSearch": "Vectors",
+        "vectorSearchDesc": "Manage vectors and run similarity search"
+      }
+    }
   },
   "graphViewer": {
     "loadingNodes": "Loading nodes...",
@@ -1394,7 +1422,9 @@
       "debug": "Debug",
       "rest": "REST Server",
       "database": "Database",
-      "security": "Security"
+      "security": "Security",
+      "litegraph": "LiteGraph Engine",
+      "storage": "Storage"
     },
     "fields": {
       "requestTimeoutSeconds": "Request timeout (seconds)",
@@ -1435,7 +1465,24 @@
       "databaseMaxConnections": "Max connections",
       "adminBearerToken": "Admin bearer token",
       "encryptionKey": "Encryption key",
-      "encryptionIv": "Encryption IV"
+      "encryptionIv": "Encryption IV",
+      "enableColors": "Colorized console output",
+      "jsonLogOutput": "JSON log output",
+      "logHeader": "Log line header",
+      "otlpProtocol": "OTLP protocol",
+      "otlpTimeoutMs": "OTLP timeout (ms)",
+      "restSslMutualAuth": "SSL mutual authentication",
+      "restSslAcceptInvalid": "Accept invalid SSL certificates",
+      "graphRepositoryFilename": "Graph repository filename",
+      "maxConcurrentOperations": "Max concurrent operations",
+      "litegraphInMemory": "Run engine in-memory",
+      "txMaxOperations": "Transaction max operations",
+      "txMaxTimeoutSeconds": "Transaction max timeout (seconds)",
+      "databaseFilename": "Database filename (SQLite)",
+      "databaseInMemory": "Database in-memory (SQLite)",
+      "databaseSchema": "Database schema (PostgreSQL)",
+      "databaseCommandTimeout": "Database command timeout (seconds)",
+      "backupsDirectory": "Backups directory"
     },
     "status": {
       "appliedLive": "Applied live",
@@ -1460,6 +1507,16 @@
       "restartFailed": "Unable to restart the server.",
       "reconnected": "Server is back online.",
       "reconnectTimeout": "The server did not come back in time. Please check its status."
+    },
+    "grafana": {
+      "title": "Monitoring & dashboards",
+      "description": "LiteGraph ships metrics to Prometheus and logs to Loki. Explore request rates, latency, errors, and logs for both the REST and MCP servers in Grafana.",
+      "open": "Open Grafana",
+      "urlLabel": "URL",
+      "credentialsLabel": "Default credentials",
+      "credentialsValue": "admin / admin",
+      "credentialsHint": "Grafana prompts you to change the default password on first sign-in.",
+      "urlHint": "This is the default location for the bundled docker compose stack. Update it if you host Grafana elsewhere."
     }
   }
 }
