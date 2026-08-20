@@ -1,3 +1,4 @@
+import { http, HttpResponse } from 'msw';
 import { handlers } from './handlers';
 import { getServer } from './server';
 import { api, mockEndpoint, sdk, mockTenantId, mockAccessToken } from './setupTest';
@@ -74,5 +75,48 @@ describe('LiteGraph SDK', () => {
     //       expect(err.toString()).toBe('Error: ArgumentNullException: Modal Class is null or empty');
     //     }
     //   });
+  });
+
+  describe('v8 settings admin methods', () => {
+    it('reads server settings', async () => {
+      server.use(
+        http.get(`${mockEndpoint}v1.0/settings`, () =>
+          HttpResponse.json({ RequestTimeoutSeconds: 60 })
+        )
+      );
+      const settings = await api.readSettings();
+      expect(settings.RequestTimeoutSeconds).toBe(60);
+    });
+
+    it('updates server settings and returns the update result', async () => {
+      server.use(
+        http.put(`${mockEndpoint}v1.0/settings`, async ({ request }) => {
+          const body = await request.json();
+          expect(body.RequestTimeoutSeconds).toBe(30);
+          return HttpResponse.json({
+            Success: true,
+            AppliedLive: ['RequestTimeoutSeconds'],
+            RestartRequired: [],
+          });
+        })
+      );
+      const result = await api.updateSettings({ RequestTimeoutSeconds: 30 });
+      expect(result.Success).toBe(true);
+      expect(result.AppliedLive).toContain('RequestTimeoutSeconds');
+    });
+
+    it('rejects updating settings without a body', async () => {
+      await expect(api.updateSettings()).rejects.toBeDefined();
+    });
+
+    it('requests a server restart', async () => {
+      server.use(
+        http.post(`${mockEndpoint}v1.0/settings/restart`, () =>
+          HttpResponse.json({ restarting: true })
+        )
+      );
+      const result = await api.restartServer();
+      expect(result).toBeDefined();
+    });
   });
 });

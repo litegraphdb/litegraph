@@ -1921,7 +1921,7 @@ export default class LiteGraphSdk extends SdkBase {
    */
   async readSettings(cancellationToken) {
     const url = `${this._endpoint}v1.0/settings`;
-    return await this.get(url, cancellationToken);
+    return await this.get(url, Object, cancellationToken);
   }
 
   /**
@@ -1935,7 +1935,7 @@ export default class LiteGraphSdk extends SdkBase {
       GenericExceptionHandlers.ArgumentNullException('settings');
     }
     const url = `${this._endpoint}v1.0/settings`;
-    return await this.putUpdate(url, settings, null, cancellationToken);
+    return await this.putUpdate(url, settings, Object, cancellationToken);
   }
 
   /**
@@ -1947,7 +1947,7 @@ export default class LiteGraphSdk extends SdkBase {
   async restartServer(cancellationToken) {
     const url = `${this._endpoint}v1.0/settings/restart`;
     try {
-      return await this.post(url, { confirm: true }, null, cancellationToken);
+      return await this.post(url, { confirm: true }, Object, cancellationToken);
     } catch (e) {
       // The server may drop the connection as it exits; this is expected.
       return undefined;
