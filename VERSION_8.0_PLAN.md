@@ -8,6 +8,24 @@ Two rules run through the whole plan and are not optional. **Tests expand in bot
 
 ---
 
+## Completion status
+
+Running summary of where each section stands. Per-section checkboxes below remain the source of truth for individual items; this table is the at-a-glance view.
+
+| § | Area | Status | Evidence |
+|---|------|--------|----------|
+| 0 | Branch, version, Docker baseline | **Done** | On branch `8.0`; all `.csproj`/SDK/`package.json`/`setup.cfg` at `8.0.0`; MCP `Constants.Version` and REST OpenAPI at `v8.0.0`; compose tags `v8.0.0` with `restart: unless-stopped`. |
+| 1 | Account model + auth overlay + bootstrap | **Done** | `IsSystemAdmin`/`IsTenantAdmin` on `UserMaster` + both providers' DDL/converters; auth overlay in `AuthorizationService`; default seed user is SystemAdmin. Accounts suite 10/10; Authorization suite 6/6. |
+| 2 | Observability (REST+MCP metrics, Loki/Alloy logs) | **Done** | Unified `component`-labeled metrics; MCP `/metrics` on 8705; Loki+Alloy in both compose files; SyslogLogging 2.2.2. Observability suite present. |
+| 3 | Settings API + self-service + route consolidation | **Done** | `GET/PUT /v1.0/settings`, `POST /v1.0/settings/restart`; self-service user read/update. Authorization suite covers settings round-trip + denial + self-service. |
+| 4 | Unified login + consolidated dashboard + settings page | **Done** | Single login + one dashboard with hierarchical TOC; form-based settings editor. |
+| 5 | SDK updates (C#/JS/Python) | **Done** (code + READMEs) | Flags on user models; `ReadSettings/UpdateSettings/RestartServer` in all three SDKs; READMEs updated. |
+| 6–9 | MCP verify, docs, Postman, docker/factory | **Done** | Docs updated (RBAC, OBSERVABILITY, UPGRADE, REST_API, MCP_API, SETTINGS); Postman user flags + Settings folder (JSON validated); compose/factory + smoke probes. |
+| 10 | Automated RBAC/settings/self-service tests | **Done** | `LiteGraphTouchstoneAuthorizationSuites` — 6/6 green over a live REST server. |
+| 11 | Release closeout | **In progress** | Solution builds clean (0 warnings); full SQLite regression running; version sweep done. **Remaining for the maintainer:** PostgreSQL regression leg (`LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING`), live `docker compose up` acceptance for Loki/Grafana + restart flow, rendered dashboard walkthrough in both locales, and opening the PR. |
+
+---
+
 ## Decisions that shape this release
 
 These were settled before planning and are binding unless a task explicitly revisits them.
