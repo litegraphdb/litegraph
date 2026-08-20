@@ -74,6 +74,26 @@ loki.relabel "litegraph_syslog" {
 // ---------------------------------------------------------------------------
 
 loki.process "litegraph" {
+  // LiteGraph's SyslogLogging emits a PRI whose severity number equals the LiteGraph
+  // SeverityEnum ordinal (Debug=0..Emergency=6), which does not match the RFC5424
+  // severity scale (Emergency=0..Debug=7). Left alone, a Debug line is stamped
+  // "emergency" in Loki. Every LiteGraph line carries its real level as a word before
+  // the "[Component]" tag, so derive the severity label from the message body instead.
+  stage.regex {
+    expression = "(?i)(?:^|\\s)(?P<level>debug|info|warn|error|alert|critical|emergency)\\s+\\["
+  }
+
+  stage.template {
+    source   = "level"
+    template = "{{ ToLower .Value }}"
+  }
+
+  stage.labels {
+    values = {
+      severity = "level",
+    }
+  }
+
   forward_to = [loki.write.default.receiver]
 }
 
