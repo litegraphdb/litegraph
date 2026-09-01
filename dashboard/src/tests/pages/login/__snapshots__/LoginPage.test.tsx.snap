@@ -299,7 +299,7 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
           >
             <button
               class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-primary ant-btn-color-primary ant-btn-variant-solid loginButton"
-              type="button"
+              type="submit"
             >
               <span>
                 Next

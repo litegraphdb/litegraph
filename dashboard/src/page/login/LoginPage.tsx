@@ -319,9 +319,9 @@ const LoginPage = () => {
             )}
             <LitegraphButton
               type="primary"
+              htmlType="submit"
               loading={isGeneratingToken || isLoadingTenant || isValidatingConnectivity}
               className={styles.loginButton}
-              onClick={currentStep === 3 ? handleSubmit : handleNext}
             >
               {isLoadingTenant || isValidatingConnectivity
                 ? t('loading')

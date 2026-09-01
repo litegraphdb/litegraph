@@ -112,11 +112,6 @@ const buildHeaders = (): Record<string, string> => {
   if (defaults) {
     for (const key of Object.keys(defaults)) headers[key] = defaults[key];
   }
-  const authConfig = sdk.config as unknown as { accessToken?: string; accessKey?: string };
-  const bearerToken = authConfig.accessToken || authConfig.accessKey;
-  if (bearerToken && !headers.Authorization) {
-    headers.Authorization = `Bearer ${bearerToken}`;
-  }
   return headers;
 };
 

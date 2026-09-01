@@ -4,7 +4,7 @@ import {
   getUserEffectivePermissions,
   listAuthorizationRoles,
 } from '@/lib/sdk/authorization';
-import { setAccessKey, setEndpoint } from '@/lib/sdk/litegraph.service';
+import { sdk, setAccessKey, setEndpoint } from '@/lib/sdk/litegraph.service';
 import { mockEndpoint } from '@/tests/config';
 import { mockTenantGUID } from '@/tests/pages/mockData';
 
@@ -14,6 +14,11 @@ describe('authorization sdk helpers', () => {
   beforeEach(() => {
     setEndpoint(mockEndpoint);
     setAccessKey('test-access-key');
+    // The real SdkConfiguration's accessKey setter maintains defaultHeaders; the jest-mocked
+    // litegraphdb has no such side effect, so seed the header the same way the SDK would.
+    (sdk.config as unknown as { defaultHeaders: Record<string, string> }).defaultHeaders = {
+      Authorization: 'Bearer test-access-key',
+    };
     global.fetch = jest.fn().mockImplementation(() =>
       Promise.resolve({
         ok: true,

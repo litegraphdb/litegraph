@@ -61,11 +61,6 @@ const buildHeaders = (accept: string, contentType?: string): Record<string, stri
   if (defaults) {
     for (const key of Object.keys(defaults)) headers[key] = defaults[key];
   }
-  const authConfig = sdk.config as unknown as { accessToken?: string; accessKey?: string };
-  const bearerToken = authConfig.accessToken || authConfig.accessKey;
-  if (bearerToken && !headers.Authorization) {
-    headers.Authorization = `Bearer ${bearerToken}`;
-  }
   if (contentType) headers['Content-Type'] = contentType;
   return headers;
 };
