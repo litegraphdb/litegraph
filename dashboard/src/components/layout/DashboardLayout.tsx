@@ -137,7 +137,7 @@ const DashboardLayout = ({
 
   return (
     <LayoutContext.Provider value={{ isGraphsLoading, graphError, refetchGraphs: fetchGraphsList }}>
-      <Layout style={{ minHeight: '100vh' }}>
+      <Layout style={{ height: '100vh', overflow: 'hidden' }}>
         <Navigation
           collapsed={collapsed}
           menuItems={menuItems}
@@ -145,7 +145,7 @@ const DashboardLayout = ({
           isAdmin={isAdmin}
           data-testid="navigation"
         />
-        <Layout>
+        <Layout style={{ height: '100vh' }}>
           <div className={styles.header}>
             <LitegraphFlex align="center" justify="flex-start" gap={20}>
               {useGraphsSelector && (
@@ -262,7 +262,9 @@ const DashboardLayout = ({
           </div>
           <Content
             style={{
-              minHeight: 280,
+              minHeight: 0,
+              flex: 1,
+              overflowY: 'auto',
               background: 'var(--ant-color-bg-base)',
             }}
             data-testid="layout-children"

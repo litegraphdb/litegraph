@@ -279,7 +279,7 @@ export const dashboardNavSections: NavSection[] = [
   {
     id: 'administer',
     labelKey: 'nav.section.administer',
-    label: 'Administer',
+    label: 'Administration',
     items: [
       {
         key: '/backups',

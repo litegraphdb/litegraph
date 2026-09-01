@@ -269,15 +269,16 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 12,
+        gap: 8,
         flexWrap: 'wrap',
-        marginBottom: 12,
+        marginBottom: 6,
       }}
     >
-      <Space size={[8, 8]} wrap>
+      <Space size={[6, 6]} wrap>
         {onRefresh && (
           <Tooltip title={refreshTooltip}>
             <Button
+              size="small"
               aria-label="Refresh table"
               data-testid="litegraph-table-refresh"
               icon={<ReloadOutlined spin={isRefreshing} />}
@@ -293,8 +294,9 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
           Total pages: <strong>{totalPages.toLocaleString()}</strong>
         </LitegraphText>
       </Space>
-      <Space size={[8, 8]} wrap style={{ justifyContent: 'flex-end' }}>
+      <Space size={[6, 6]} wrap style={{ justifyContent: 'flex-end' }}>
         <Button
+          size="small"
           data-testid="litegraph-table-first-page"
           onClick={() => changePage(1)}
           disabled={currentPage <= 1}
@@ -302,6 +304,7 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
           First
         </Button>
         <Button
+          size="small"
           data-testid="litegraph-table-previous-page"
           onClick={() => changePage(currentPage - 1)}
           disabled={currentPage <= 1}
@@ -310,6 +313,7 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
         </Button>
         <LitegraphText>Page</LitegraphText>
         <InputNumber
+          size="small"
           aria-label="Jump to page"
           data-testid="litegraph-table-page-jump"
           min={1}
@@ -320,10 +324,11 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
               changePage(Number(value));
             }
           }}
-          style={{ width: 82 }}
+          style={{ width: 72 }}
         />
         <LitegraphText>of {totalPages.toLocaleString()}</LitegraphText>
         <Button
+          size="small"
           data-testid="litegraph-table-next-page"
           onClick={() => changePage(currentPage + 1)}
           disabled={currentPage >= totalPages}
@@ -331,6 +336,7 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
           Next
         </Button>
         <Button
+          size="small"
           data-testid="litegraph-table-last-page"
           onClick={() => changePage(totalPages)}
           disabled={currentPage >= totalPages}
@@ -338,12 +344,13 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
           Last
         </Button>
         <Select
+          size="small"
           aria-label="Records per page"
           data-testid="litegraph-table-page-size"
           value={pageSize}
           options={pageSizeOptions}
           onChange={changePageSize}
-          style={{ width: 112 }}
+          style={{ width: 96 }}
         />
         <LitegraphText>per page</LitegraphText>
       </Space>

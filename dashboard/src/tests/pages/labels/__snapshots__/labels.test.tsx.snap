@@ -59,11 +59,11 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
     >
       <div
         data-testid="litegraph-table-pagination-bar"
-        style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;"
+        style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;"
       >
         <div
           class="ant-space css-dev-only-do-not-override-mncuj7 ant-space-horizontal ant-space-align-center"
-          style="flex-wrap: wrap; column-gap: 8px; row-gap: 8px;"
+          style="flex-wrap: wrap; column-gap: 6px; row-gap: 6px;"
         >
           <div
             class="ant-space-item"
@@ -71,7 +71,7 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
             <button
               aria-describedby="test-id"
               aria-label="Refresh table"
-              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-icon-only"
+              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-sm ant-btn-icon-only"
               data-testid="litegraph-table-refresh"
               disabled=""
               type="button"
@@ -130,13 +130,13 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
         </div>
         <div
           class="ant-space css-dev-only-do-not-override-mncuj7 ant-space-horizontal ant-space-align-center"
-          style="flex-wrap: wrap; column-gap: 8px; row-gap: 8px; justify-content: flex-end;"
+          style="flex-wrap: wrap; column-gap: 6px; row-gap: 6px; justify-content: flex-end;"
         >
           <div
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-sm"
               data-testid="litegraph-table-first-page"
               disabled=""
               type="button"
@@ -150,7 +150,7 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-sm"
               data-testid="litegraph-table-previous-page"
               disabled=""
               type="button"
@@ -173,8 +173,8 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
             class="ant-space-item"
           >
             <div
-              class="ant-input-number css-dev-only-do-not-override-mncuj7 ant-input-number-outlined"
-              style="width: 82px;"
+              class="ant-input-number ant-input-number-sm css-dev-only-do-not-override-mncuj7 ant-input-number-outlined"
+              style="width: 72px;"
             >
               <div
                 class="ant-input-number-handler-wrap"
@@ -266,7 +266,7 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-sm"
               data-testid="litegraph-table-next-page"
               disabled=""
               type="button"
@@ -280,7 +280,7 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-mncuj7 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-sm"
               data-testid="litegraph-table-last-page"
               disabled=""
               type="button"
@@ -295,9 +295,9 @@ exports[`LabelsPage renders the labels page: initial table state 1`] = `
           >
             <div
               aria-label="Records per page"
-              class="ant-select ant-select-outlined css-dev-only-do-not-override-mncuj7 ant-select-single ant-select-show-arrow"
+              class="ant-select ant-select-sm ant-select-outlined css-dev-only-do-not-override-mncuj7 ant-select-single ant-select-show-arrow"
               data-testid="litegraph-table-page-size"
-              style="width: 112px;"
+              style="width: 96px;"
             >
               <div
                 class="ant-select-selector"

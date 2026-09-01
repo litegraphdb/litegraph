@@ -595,3 +595,10 @@
     opacity: 1;
   }
 }
+
+/* Table column headers never line-wrap (sorted/filtered or plain). Cells may
+   still wrap; headers ellipsize into the resizable column width instead. */
+.ant-table-thead > tr > th,
+.ant-table-thead > tr > td {
+  white-space: nowrap;
+}

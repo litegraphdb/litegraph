@@ -1,6 +1,22 @@
 .sidebarContainer {
   border-right: 1px solid var(--ant-color-border);
   box-shadow: 1px 0 4px rgba(0, 0, 0, 0.03);
+  height: 100vh;
+
+  // The sider owns its own scroll region: fixed logo/controls on top, the
+  // menu scrolling independently of the workspace below them.
+  :global(.ant-layout-sider-children) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+.navScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebarLight {
@@ -35,15 +51,15 @@
 
   :global(.ant-menu-item),
   :global(.ant-menu-submenu-title) {
-    height: 34px;
-    line-height: 34px;
-    margin-block: 2px;
+    height: 28px;
+    line-height: 28px;
+    margin-block: 1px;
     padding-inline: 16px !important;
   }
 
   // Section group headers: smaller, tighter, with just enough separation.
   :global(.ant-menu-item-group-title) {
-    padding: 10px 16px 4px;
+    padding: 5px 16px 2px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -54,12 +70,12 @@
 
   // Collapse the extra gap AntD inserts between adjacent groups.
   :global(.ant-menu-item-group + .ant-menu-item-group) {
-    margin-top: 2px;
+    margin-top: 1px;
   }
 
   :global(.ant-menu-item-group-list) {
     :global(.ant-menu-item) {
-      margin-block: 1px;
+      margin-block: 0;
     }
   }
 }
