@@ -50,9 +50,13 @@ export const primaryTheme: ThemeConfig = {
     },
     Menu: {
       itemSelectedBg: LightGraphTheme.primaryLight2,
-      itemBorderRadius: 8,
+      itemBorderRadius: 6,
       itemHoverBg: '#f1f5f9',
       itemMarginInline: 8,
+      itemHeight: 26,
+      itemMarginBlock: 0,
+      itemPaddingInline: 16,
+      groupTitleFontSize: 11,
     },
     Button: {
       borderRadius: 8,
@@ -141,9 +145,13 @@ export const darkTheme: ThemeConfig = {
     Menu: {
       itemSelectedBg: '#1f1f1f',
       itemSelectedColor: 'var(--ant-color-primary)',
-      itemBorderRadius: 8,
+      itemBorderRadius: 6,
       itemHoverBg: '#2a2a2a',
       itemMarginInline: 8,
+      itemHeight: 26,
+      itemMarginBlock: 0,
+      itemPaddingInline: 16,
+      groupTitleFontSize: 11,
     },
     Button: {
       borderRadius: 8,
