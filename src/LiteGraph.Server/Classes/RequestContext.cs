@@ -88,6 +88,11 @@
             {
                 return _Authentication;
             }
+            set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(Authentication));
+                _Authentication = value;
+            }
         }
 
         /// <summary>
@@ -374,6 +379,61 @@
         /// </summary>
         public string BearerToken { get; set; } = null;
 
+        /// <summary>
+        /// Chat endpoint GUID.
+        /// </summary>
+        public Guid? ChatEndpointGUID { get; set; } = null;
+
+        /// <summary>
+        /// Chat endpoint.
+        /// </summary>
+        public ChatEndpoint ChatEndpoint { get; set; } = null;
+
+        /// <summary>
+        /// Chat thread GUID.
+        /// </summary>
+        public Guid? ChatThreadGUID { get; set; } = null;
+
+        /// <summary>
+        /// Chat thread.
+        /// </summary>
+        public ChatThread ChatThread { get; set; } = null;
+
+        /// <summary>
+        /// Chat turn GUID.
+        /// </summary>
+        public Guid? ChatTurnGUID { get; set; } = null;
+
+        /// <summary>
+        /// Chat feedback GUID.
+        /// </summary>
+        public Guid? ChatFeedbackGUID { get; set; } = null;
+
+        /// <summary>
+        /// Chat feedback.
+        /// </summary>
+        public ChatFeedback ChatFeedback { get; set; } = null;
+
+        /// <summary>
+        /// Chat settings, populated on a chat settings update request.
+        /// </summary>
+        public ChatSettings ChatSettings { get; set; } = null;
+
+        /// <summary>
+        /// Chat completion request.
+        /// </summary>
+        public ChatCompletionRequest ChatCompletionRequest { get; set; } = null;
+
+        /// <summary>
+        /// Chat endpoint type filter for endpoint enumeration.  Null returns all types.
+        /// </summary>
+        public ChatEndpointTypeEnum? ChatEndpointTypeFilter { get; set; } = null;
+
+        /// <summary>
+        /// When true, list objects across all users rather than only the authenticated principal's own.
+        /// </summary>
+        public bool AllUsers { get; set; } = false;
+
         #endregion
 
         #region Query
@@ -492,6 +552,15 @@
         #region Constructors-and-Factories
 
         /// <summary>
+        /// Instantiate a synthetic request context, used for in-process dispatch (for example chat tool calls).
+        /// Callers must populate RequestType, Authentication, and target identifiers themselves.
+        /// </summary>
+        public RequestContext()
+        {
+
+        }
+
+        /// <summary>
         /// Instantiate.
         /// </summary>
         /// <param name="ctx">HTTP context.</param>
@@ -606,6 +675,10 @@
                     if (_Url.UrlParameters.AllKeys.Contains("nodeGuid")) NodeGUID = Guid.Parse(_Url.GetParameter("nodeGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("edgeGuid")) EdgeGUID = Guid.Parse(_Url.GetParameter("edgeGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("bearerToken")) BearerToken = _Url.GetParameter("bearerToken");
+                    if (_Url.UrlParameters.AllKeys.Contains("chatEndpointGuid")) ChatEndpointGUID = Guid.Parse(_Url.GetParameter("chatEndpointGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("chatThreadGuid")) ChatThreadGUID = Guid.Parse(_Url.GetParameter("chatThreadGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("chatTurnGuid")) ChatTurnGUID = Guid.Parse(_Url.GetParameter("chatTurnGuid"));
+                    if (_Url.UrlParameters.AllKeys.Contains("chatFeedbackGuid")) ChatFeedbackGUID = Guid.Parse(_Url.GetParameter("chatFeedbackGuid"));
                 }
 
                 if (_Url.QueryExists(Constants.SkipQuerystring))

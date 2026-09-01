@@ -183,10 +183,25 @@ namespace LiteGraph.Server.Services
             if (bytes.Length > limit)
             {
                 truncated = true;
-                return SafeDecode(bytes, limit);
+                return RedactSensitiveJsonFields(SafeDecode(bytes, limit));
             }
 
-            return SafeDecode(bytes);
+            return RedactSensitiveJsonFields(SafeDecode(bytes));
+        }
+
+        /// <summary>
+        /// Redact sensitive string fields (API keys, passwords, bearer tokens) inside a captured JSON body.
+        /// </summary>
+        /// <param name="body">Body string.</param>
+        /// <returns>Body with sensitive field values replaced by the redaction marker.</returns>
+        public static string RedactSensitiveJsonFields(string body)
+        {
+            if (string.IsNullOrEmpty(body)) return body;
+            return System.Text.RegularExpressions.Regex.Replace(
+                body,
+                "\"(apikey|password|bearertoken)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*\"",
+                "\"$1\":\"" + RedactedValue + "\"",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 
         /// <summary>

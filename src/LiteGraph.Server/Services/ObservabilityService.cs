@@ -18,7 +18,7 @@ namespace LiteGraph.Server.Services
     /// <summary>
     /// Central request metrics and trace instrumentation.
     /// </summary>
-    public class ObservabilityService : IDisposable
+    public partial class ObservabilityService : IDisposable
     {
         #region Public-Members
 
@@ -132,6 +132,7 @@ namespace LiteGraph.Server.Services
             _EntityCountGauge = Meter.CreateObservableGauge<long>("litegraph.entity.count", ObserveEntityCounts, "entities", "Latest observed LiteGraph entity counts from statistics endpoints.");
             AssertRouteLabelsComplete();
             InitializeOpenTelemetryExporters();
+            InitializeChatInstruments();
             LiteGraphTelemetry.RepositoryOperationRecorded += HandleRepositoryOperationRecorded;
         }
 
@@ -902,6 +903,8 @@ namespace LiteGraph.Server.Services
                 sb.Append(' ');
                 sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
             }
+
+            RenderPrometheusChat(sb);
 
             return sb.ToString();
         }

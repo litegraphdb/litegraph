@@ -160,6 +160,22 @@ namespace LiteGraph.Server.Classes
         }
 
         /// <summary>
+        /// Chat settings.
+        /// </summary>
+        public ChatServerSettings Chat
+        {
+            get
+            {
+                return _Chat;
+            }
+            set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(Chat));
+                _Chat = value;
+            }
+        }
+
+        /// <summary>
         /// Observability settings.
         /// </summary>
         public ObservabilitySettings Observability
@@ -188,6 +204,7 @@ namespace LiteGraph.Server.Classes
         private DebugSettings _Debug = new DebugSettings();
         private RequestHistorySettings _RequestHistory = new RequestHistorySettings();
         private ObservabilitySettings _Observability = new ObservabilitySettings();
+        private ChatServerSettings _Chat = new ChatServerSettings();
         private int _RequestTimeoutSeconds = 60;
 
         #endregion

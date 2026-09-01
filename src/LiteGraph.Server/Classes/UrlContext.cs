@@ -286,6 +286,17 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}", out _UrlParameters)) return RequestTypeEnum.TenantRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/stats", out _UrlParameters)) return RequestTypeEnum.TenantStatistics;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints", out _UrlParameters)) return RequestTypeEnum.ChatEndpointReadAll;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/health", out _UrlParameters)) return RequestTypeEnum.ChatEndpointHealthReadAll;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/health", out _UrlParameters)) return RequestTypeEnum.ChatEndpointHealthRead;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointRead;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads", out _UrlParameters)) return RequestTypeEnum.ChatThreadReadAll;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}/turns", out _UrlParameters)) return RequestTypeEnum.ChatThreadTurnsRead;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", out _UrlParameters)) return RequestTypeEnum.ChatThreadRead;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/feedback", out _UrlParameters)) return RequestTypeEnum.ChatFeedbackReadAll;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/feedback/{chatFeedbackGuid}", out _UrlParameters)) return RequestTypeEnum.ChatFeedbackRead;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/settings", out _UrlParameters)) return RequestTypeEnum.ChatSettingsRead;
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users", out _UrlParameters)) return RequestTypeEnum.UserReadAll;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/users", out _UrlParameters)) return RequestTypeEnum.UserEnumerate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users/{userGuid}/roles/{assignmentGuid}", out _UrlParameters)) return RequestTypeEnum.UserRoleAssignmentRead;
@@ -384,6 +395,8 @@
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}", out _UrlParameters)) return RequestTypeEnum.CredentialExists;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointExists;
+
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/labels/{labelGuid}", out _UrlParameters)) return RequestTypeEnum.LabelExists;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/tags/{tagGuid}", out _UrlParameters)) return RequestTypeEnum.TagExists;
@@ -405,6 +418,11 @@
                     if (matcher.Match("/v1.0/settings", out _UrlParameters)) return RequestTypeEnum.SettingsUpdate;
                     if (matcher.Match("/v1.0/tenants", out _UrlParameters)) return RequestTypeEnum.TenantCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}", out _UrlParameters)) return RequestTypeEnum.TenantUpdate;
+
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints", out _UrlParameters)) return RequestTypeEnum.ChatEndpointCreate;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointUpdate;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads", out _UrlParameters)) return RequestTypeEnum.ChatThreadCreate;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/settings", out _UrlParameters)) return RequestTypeEnum.ChatSettingsUpdate;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users", out _UrlParameters)) return RequestTypeEnum.UserCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users/{userGuid}/roles/{assignmentGuid}", out _UrlParameters)) return RequestTypeEnum.UserRoleAssignmentUpdate;
@@ -457,6 +475,10 @@
 
                     if (matcher.Match("/v1.0/flush", out _UrlParameters)) return RequestTypeEnum.FlushDatabase;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/completions", out _UrlParameters)) return RequestTypeEnum.ChatCompletion;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/test", out _UrlParameters)) return RequestTypeEnum.ChatEndpointTest;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/turns/{chatTurnGuid}/feedback", out _UrlParameters)) return RequestTypeEnum.ChatFeedbackCreate;
+
                     if (matcher.Match("/v2.0/tenants", out _UrlParameters)) return RequestTypeEnum.TenantEnumerate;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs", out _UrlParameters)) return RequestTypeEnum.GraphEnumerate;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/users", out _UrlParameters)) return RequestTypeEnum.UserEnumerate;
@@ -505,6 +527,10 @@
                     if (matcher.Match("/v1.0/backups/{backupFilename}", out _UrlParameters)) return RequestTypeEnum.BackupDelete;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}", out _UrlParameters)) return RequestTypeEnum.TenantDelete;
+
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointDelete;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", out _UrlParameters)) return RequestTypeEnum.ChatThreadDelete;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/feedback/{chatFeedbackGuid}", out _UrlParameters)) return RequestTypeEnum.ChatFeedbackDelete;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users/{userGuid}/credentials", out _UrlParameters)) return RequestTypeEnum.CredentialDeleteByUser;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/credentials/{credentialGuid}/scopes/{assignmentGuid}", out _UrlParameters)) return RequestTypeEnum.CredentialScopeAssignmentDelete;

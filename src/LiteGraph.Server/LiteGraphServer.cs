@@ -40,6 +40,8 @@ namespace LiteGraph.Server
 
         private static ServiceHandler _ServiceHandler = null;
         private static AuthenticationService _AuthenticationService = null;
+        private static Services.ChatEndpointHealthService _ChatHealthService = null;
+        private static Services.Chat.ChatService _ChatService = null;
         private static RequestHistoryService _RequestHistoryService = null;
         private static ObservabilityService _ObservabilityService = null;
         private static RestServiceHandler _RestService = null;
@@ -178,6 +180,18 @@ namespace LiteGraph.Server
             {
                 _RestService?.Dispose();
                 _RestService = null;
+            });
+
+            TryCleanup("chat service", () =>
+            {
+                _ChatService?.Dispose();
+                _ChatService = null;
+            });
+
+            TryCleanup("chat endpoint health service", () =>
+            {
+                _ChatHealthService?.Dispose();
+                _ChatHealthService = null;
             });
 
             TryCleanup("request history service", () =>
@@ -591,6 +605,24 @@ namespace LiteGraph.Server
                 _Settings.LiteGraph.Database.MaxConnections,
                 _Settings.LiteGraph.Database.CommandTimeoutSeconds);
 
+            _ChatHealthService = new Services.ChatEndpointHealthService(
+                _Logging,
+                _LiteGraph,
+                _ObservabilityService);
+
+            _ChatService = new Services.Chat.ChatService(
+                _Settings,
+                _Logging,
+                _LiteGraph,
+                _ServiceHandler,
+                _AuthenticationService.Authorization,
+                _ObservabilityService,
+                _ChatHealthService);
+
+            _ServiceHandler.ChatHealth = _ChatHealthService;
+            _ServiceHandler.Chat = _ChatService;
+            _ServiceHandler.Observability = _ObservabilityService;
+
             _RestService = new RestServiceHandler(
                 _Settings,
                 _Logging,
@@ -599,7 +631,21 @@ namespace LiteGraph.Server
                 _AuthenticationService,
                 _ServiceHandler,
                 _RequestHistoryService,
-                _ObservabilityService);
+                _ObservabilityService,
+                _ChatService,
+                _ChatHealthService);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _ChatHealthService.Start(_TokenSource.Token).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    LogError(_Header + "chat endpoint health service failed to start: " + e.Message);
+                }
+            });
 
             #endregion
         }

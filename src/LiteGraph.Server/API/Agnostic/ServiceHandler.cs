@@ -12,7 +12,7 @@
     using LiteGraph.Server.Services;
     using SyslogLogging;
 
-    internal class ServiceHandler
+    internal partial class ServiceHandler
     {
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 

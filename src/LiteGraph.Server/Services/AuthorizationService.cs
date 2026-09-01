@@ -448,6 +448,10 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.EdgeDeleteNodeEdges:
                 case RequestTypeEnum.EdgeDeleteNodeEdgesMany:
                 case RequestTypeEnum.EdgeUpdate:
+                case RequestTypeEnum.ChatCompletion:
+                case RequestTypeEnum.ChatThreadCreate:
+                case RequestTypeEnum.ChatThreadDelete:
+                case RequestTypeEnum.ChatFeedbackCreate:
                     return "write";
                 default:
                     return "read";
@@ -734,6 +738,19 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.SettingsRead:
                 case RequestTypeEnum.SettingsUpdate:
                 case RequestTypeEnum.SettingsRestart:
+                case RequestTypeEnum.ChatEndpointCreate:
+                case RequestTypeEnum.ChatEndpointReadAll:
+                case RequestTypeEnum.ChatEndpointRead:
+                case RequestTypeEnum.ChatEndpointExists:
+                case RequestTypeEnum.ChatEndpointUpdate:
+                case RequestTypeEnum.ChatEndpointDelete:
+                case RequestTypeEnum.ChatEndpointTest:
+                case RequestTypeEnum.ChatEndpointHealthReadAll:
+                case RequestTypeEnum.ChatEndpointHealthRead:
+                case RequestTypeEnum.ChatSettingsUpdate:
+                case RequestTypeEnum.ChatFeedbackReadAll:
+                case RequestTypeEnum.ChatFeedbackRead:
+                case RequestTypeEnum.ChatFeedbackDelete:
                     return true;
                 default:
                     return false;

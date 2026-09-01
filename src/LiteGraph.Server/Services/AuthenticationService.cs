@@ -50,6 +50,18 @@ namespace LiteGraph.Server.Services
             _Authorization = new AuthorizationService(_Logging, _Repo);
         }
 
+        /// <summary>
+        /// Authorization service used by this authentication service.
+        /// Shared with in-process dispatchers (for example chat tool calls) so RBAC caches stay unified.
+        /// </summary>
+        public AuthorizationService Authorization
+        {
+            get
+            {
+                return _Authorization;
+            }
+        }
+
         #endregion
 
         #region Internal-Methods

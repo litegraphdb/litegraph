@@ -42,6 +42,8 @@
         private ServiceHandler _ServiceHandler = null;
         private RequestHistoryService _RequestHistory = null;
         private ObservabilityService _Observability = null;
+        private Services.Chat.ChatService _ChatService = null;
+        private ChatEndpointHealthService _ChatHealth = null;
 
         private Webserver _Webserver = null;
         private bool _Disposed = false;
@@ -65,7 +67,9 @@
             AuthenticationService auth,
             ServiceHandler service,
             RequestHistoryService requestHistory,
-            ObservabilityService observability)
+            ObservabilityService observability,
+            Services.Chat.ChatService chatService = null,
+            ChatEndpointHealthService chatHealth = null)
         {
             _Settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _Logging = logging ?? throw new ArgumentNullException(nameof(logging));
@@ -75,6 +79,8 @@
             _ServiceHandler = service ?? throw new ArgumentNullException(nameof(service));
             _RequestHistory = requestHistory ?? throw new ArgumentNullException(nameof(requestHistory));
             _Observability = observability ?? throw new ArgumentNullException(nameof(observability));
+            _ChatService = chatService;
+            _ChatHealth = chatHealth;
 
             _Webserver = new Webserver(_Settings.Rest, DefaultRoute);
             _Webserver.Routes.PreRouting = PreRoutingHandler;
@@ -84,6 +90,7 @@
             _Webserver.Routes.Exception = ExceptionRoute;
 
             InitializeRoutes();
+            RegisterChatRoutes();
 
             _Webserver.UseOpenApi(openApi =>
             {
@@ -117,6 +124,7 @@
                 openApi.Tags.Add(new OpenApiTag { Name = "Labels", Description = "Label management for graphs, nodes, and edges" });
                 openApi.Tags.Add(new OpenApiTag { Name = "Tags", Description = "Key-value tag management for graphs, nodes, and edges" });
                 openApi.Tags.Add(new OpenApiTag { Name = "Vectors", Description = "Vector embedding storage, search, and management" });
+                openApi.Tags.Add(new OpenApiTag { Name = "Chat", Description = "LLM chat: endpoints, completions, threads, feedback, and chat settings" });
                 openApi.Tags.Add(new OpenApiTag { Name = "RequestHistory", Description = "HTTP request history capture, search, and retention" });
 
                 openApi.SecuritySchemes["BearerToken"] = new OpenApiSecurityScheme

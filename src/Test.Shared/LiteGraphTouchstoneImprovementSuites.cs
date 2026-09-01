@@ -13201,6 +13201,11 @@
             public override IRequestHistoryMethods RequestHistory { get { return Unsupported<IRequestHistoryMethods>(); } }
             public override IAuthorizationAuditMethods AuthorizationAudit { get { return Unsupported<IAuthorizationAuditMethods>(); } }
             public override IAuthorizationRoleMethods AuthorizationRoles { get { return Unsupported<IAuthorizationRoleMethods>(); } }
+            public override IChatEndpointMethods ChatEndpoint { get { return Unsupported<IChatEndpointMethods>(); } }
+            public override IChatThreadMethods ChatThread { get { return Unsupported<IChatThreadMethods>(); } }
+            public override IChatTurnMethods ChatTurn { get { return Unsupported<IChatTurnMethods>(); } }
+            public override IChatFeedbackMethods ChatFeedback { get { return Unsupported<IChatFeedbackMethods>(); } }
+            public override IChatSettingsMethods ChatSettings { get { return Unsupported<IChatSettingsMethods>(); } }
             public override bool GraphTransactionActive { get { return _Active; } }
 
             private readonly FaultInjectionState _State;
@@ -13363,6 +13368,11 @@
             public override IRequestHistoryMethods RequestHistory { get { return Unsupported<IRequestHistoryMethods>(); } }
             public override IAuthorizationAuditMethods AuthorizationAudit { get { return Unsupported<IAuthorizationAuditMethods>(); } }
             public override IAuthorizationRoleMethods AuthorizationRoles { get { return Unsupported<IAuthorizationRoleMethods>(); } }
+            public override IChatEndpointMethods ChatEndpoint { get { return Unsupported<IChatEndpointMethods>(); } }
+            public override IChatThreadMethods ChatThread { get { return Unsupported<IChatThreadMethods>(); } }
+            public override IChatTurnMethods ChatTurn { get { return Unsupported<IChatTurnMethods>(); } }
+            public override IChatFeedbackMethods ChatFeedback { get { return Unsupported<IChatFeedbackMethods>(); } }
+            public override IChatSettingsMethods ChatSettings { get { return Unsupported<IChatSettingsMethods>(); } }
             public override bool GraphTransactionActive { get { return _Active; } }
 
             private readonly ParallelTransactionState _State;
@@ -13509,6 +13519,11 @@
             public override IRequestHistoryMethods RequestHistory { get { return Unsupported<IRequestHistoryMethods>(); } }
             public override IAuthorizationAuditMethods AuthorizationAudit { get { return Unsupported<IAuthorizationAuditMethods>(); } }
             public override IAuthorizationRoleMethods AuthorizationRoles { get { return Unsupported<IAuthorizationRoleMethods>(); } }
+            public override IChatEndpointMethods ChatEndpoint { get { return Unsupported<IChatEndpointMethods>(); } }
+            public override IChatThreadMethods ChatThread { get { return Unsupported<IChatThreadMethods>(); } }
+            public override IChatTurnMethods ChatTurn { get { return Unsupported<IChatTurnMethods>(); } }
+            public override IChatFeedbackMethods ChatFeedback { get { return Unsupported<IChatFeedbackMethods>(); } }
+            public override IChatSettingsMethods ChatSettings { get { return Unsupported<IChatSettingsMethods>(); } }
             public override bool GraphTransactionActive { get { return _Active; } }
 
             private readonly INodeMethods _Node;

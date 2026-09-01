@@ -985,7 +985,117 @@
         /// SettingsRestart
         /// </summary>
         [EnumMember(Value = "SettingsRestart")]
-        SettingsRestart
+        SettingsRestart,
+
+        #endregion
+
+        #region Chat
+
+        /// <summary>
+        /// ChatEndpointCreate
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointCreate")]
+        ChatEndpointCreate,
+        /// <summary>
+        /// ChatEndpointReadAll
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointReadAll")]
+        ChatEndpointReadAll,
+        /// <summary>
+        /// ChatEndpointRead
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointRead")]
+        ChatEndpointRead,
+        /// <summary>
+        /// ChatEndpointExists
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointExists")]
+        ChatEndpointExists,
+        /// <summary>
+        /// ChatEndpointUpdate
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointUpdate")]
+        ChatEndpointUpdate,
+        /// <summary>
+        /// ChatEndpointDelete
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointDelete")]
+        ChatEndpointDelete,
+        /// <summary>
+        /// ChatEndpointTest
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointTest")]
+        ChatEndpointTest,
+        /// <summary>
+        /// ChatEndpointHealthReadAll
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointHealthReadAll")]
+        ChatEndpointHealthReadAll,
+        /// <summary>
+        /// ChatEndpointHealthRead
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointHealthRead")]
+        ChatEndpointHealthRead,
+        /// <summary>
+        /// ChatCompletion
+        /// </summary>
+        [EnumMember(Value = "ChatCompletion")]
+        ChatCompletion,
+        /// <summary>
+        /// ChatThreadCreate
+        /// </summary>
+        [EnumMember(Value = "ChatThreadCreate")]
+        ChatThreadCreate,
+        /// <summary>
+        /// ChatThreadReadAll
+        /// </summary>
+        [EnumMember(Value = "ChatThreadReadAll")]
+        ChatThreadReadAll,
+        /// <summary>
+        /// ChatThreadRead
+        /// </summary>
+        [EnumMember(Value = "ChatThreadRead")]
+        ChatThreadRead,
+        /// <summary>
+        /// ChatThreadDelete
+        /// </summary>
+        [EnumMember(Value = "ChatThreadDelete")]
+        ChatThreadDelete,
+        /// <summary>
+        /// ChatThreadTurnsRead
+        /// </summary>
+        [EnumMember(Value = "ChatThreadTurnsRead")]
+        ChatThreadTurnsRead,
+        /// <summary>
+        /// ChatFeedbackCreate
+        /// </summary>
+        [EnumMember(Value = "ChatFeedbackCreate")]
+        ChatFeedbackCreate,
+        /// <summary>
+        /// ChatFeedbackReadAll
+        /// </summary>
+        [EnumMember(Value = "ChatFeedbackReadAll")]
+        ChatFeedbackReadAll,
+        /// <summary>
+        /// ChatFeedbackRead
+        /// </summary>
+        [EnumMember(Value = "ChatFeedbackRead")]
+        ChatFeedbackRead,
+        /// <summary>
+        /// ChatFeedbackDelete
+        /// </summary>
+        [EnumMember(Value = "ChatFeedbackDelete")]
+        ChatFeedbackDelete,
+        /// <summary>
+        /// ChatSettingsRead
+        /// </summary>
+        [EnumMember(Value = "ChatSettingsRead")]
+        ChatSettingsRead,
+        /// <summary>
+        /// ChatSettingsUpdate
+        /// </summary>
+        [EnumMember(Value = "ChatSettingsUpdate")]
+        ChatSettingsUpdate
 
         #endregion
     }
