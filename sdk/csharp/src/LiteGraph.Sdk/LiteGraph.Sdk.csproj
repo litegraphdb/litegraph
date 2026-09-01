@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>8.0.0</Version>
+		<Version>8.1.0</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v8.0.0 breaking release: unified account model (IsSystemAdmin/IsTenantAdmin flags), server settings operations (read/update/restart), and JSONL subgraph import/export helpers.</PackageReleaseNotes>
+		<PackageReleaseNotes>v8.1.0 additive release: chat surface (endpoints, completions with SSE streaming, threads, feedback, chat settings, endpoint health).</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>LiteGraph.Sdk</Title>

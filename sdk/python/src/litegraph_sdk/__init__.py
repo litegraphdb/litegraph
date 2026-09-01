@@ -1,6 +1,6 @@
 # ruff: noqa
 
-__version__ = "8.0.0"
+__version__ = "8.1.0"
 
 from .base import BaseClient
 from .configuration import configure, get_client
