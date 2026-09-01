@@ -43,18 +43,20 @@ const KpiCard = ({
   <Card
     size="small"
     style={{ flex: '1 1 150px', minWidth: 140 }}
-    styles={{ body: { padding: '6px 12px' } }}
+    styles={{ body: { padding: '4px 10px' } }}
     data-testid="home-kpi"
   >
     <Statistic
-      title={label}
+      title={
+        <span style={{ fontSize: 11, lineHeight: 1.1 }}>
+          {label}{' '}
+          <span style={{ color: 'var(--ant-color-text-tertiary)' }}>· {scope}</span>
+        </span>
+      }
       value={value ?? 0}
       loading={loading}
-      valueStyle={{ fontSize: 18, lineHeight: 1.15 }}
+      valueStyle={{ fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}
     />
-    <LitegraphText fontSize={11} style={{ color: 'var(--ant-color-text-tertiary)', lineHeight: 1.1 }}>
-      {scope}
-    </LitegraphText>
   </Card>
 );
 
@@ -71,14 +73,23 @@ const CtaCard = ({
   description: string;
 }) => (
   <Link href={href} style={{ flex: '1 1 200px', minWidth: 190, textDecoration: 'none' }}>
-    <Card size="small" hoverable style={{ height: '100%' }} data-testid="home-cta">
-      <LitegraphFlex align="center" gap={12}>
-        <span style={{ fontSize: 22, color: 'var(--ant-color-primary)' }}>{icon}</span>
-        <LitegraphFlex vertical gap={2}>
-          <LitegraphText fontSize={14} weight={600}>
+    <Card
+      size="small"
+      hoverable
+      style={{ height: '100%' }}
+      styles={{ body: { padding: '6px 10px' } }}
+      data-testid="home-cta"
+    >
+      <LitegraphFlex align="center" gap={10}>
+        <span style={{ fontSize: 18, color: 'var(--ant-color-primary)' }}>{icon}</span>
+        <LitegraphFlex vertical gap={0}>
+          <LitegraphText fontSize={13} weight={600} style={{ lineHeight: 1.25 }}>
             {title}
           </LitegraphText>
-          <LitegraphText fontSize={12} style={{ color: 'var(--ant-color-text-tertiary)' }}>
+          <LitegraphText
+            fontSize={11}
+            style={{ color: 'var(--ant-color-text-tertiary)', lineHeight: 1.25 }}
+          >
             {description}
           </LitegraphText>
         </LitegraphFlex>
