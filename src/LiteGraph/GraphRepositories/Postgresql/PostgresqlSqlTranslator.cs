@@ -25,7 +25,12 @@
             "nodes",
             "edges",
             "requesthistory",
-            "authorizationaudit"
+            "authorizationaudit",
+            "chatendpoints",
+            "chatthreads",
+            "chatturns",
+            "chatfeedback",
+            "chatsettings"
         };
 
         private static readonly string[] QuotedColumns =

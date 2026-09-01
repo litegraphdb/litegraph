@@ -792,6 +792,9 @@ namespace Test.Shared
 
         #region Chat-Private-Methods
 
+        private static readonly Dictionary<string, string> _ChatPostgresqlSchemas = new Dictionary<string, string>(StringComparer.Ordinal);
+        private static readonly object _ChatPostgresqlSchemaLock = new object();
+
         private static string ChatDbName(string suffix)
         {
             return "test-chat-" + suffix + ".db";
@@ -799,11 +802,42 @@ namespace Test.Shared
 
         private static LiteGraphClient ChatNewClient(string filename)
         {
+            string? connectionString = Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable);
+
+            if (!String.IsNullOrWhiteSpace(connectionString))
+            {
+                string schema = "litegraph_chat_" + Guid.NewGuid().ToString("N");
+                lock (_ChatPostgresqlSchemaLock) _ChatPostgresqlSchemas[filename] = schema;
+
+                LiteGraph.GraphRepositories.GraphRepositoryBase repo = LiteGraph.GraphRepositories.GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Type = DatabaseTypeEnum.Postgresql,
+                    ConnectionString = connectionString,
+                    Schema = schema
+                });
+                repo.InitializeRepository();
+                return new LiteGraphClient(repo, null, null, null, true);
+            }
+
             return IeNewClient(filename);
         }
 
         private static void ChatCleanup(string filename)
         {
+            string? connectionString = Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable);
+            string? schema = null;
+
+            lock (_ChatPostgresqlSchemaLock)
+            {
+                if (_ChatPostgresqlSchemas.TryGetValue(filename, out schema)) _ChatPostgresqlSchemas.Remove(filename);
+            }
+
+            if (!String.IsNullOrWhiteSpace(connectionString) && !String.IsNullOrEmpty(schema))
+            {
+                DropPostgresqlSchemaAsync(connectionString, schema, CancellationToken.None).GetAwaiter().GetResult();
+                return;
+            }
+
             IeCleanup(filename);
         }
 
