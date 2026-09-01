@@ -50,7 +50,8 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.Streaming", "SSE stream carries started, delta, usage, and DONE frames", TestChatRestStreaming),
                     ChatCase("Chat.Rest", "Chat.Rest.Feedback", "Feedback submit, admin list, and delete", TestChatRestFeedback),
                     ChatCase("Chat.Rest", "Chat.Rest.ThreadOwnership", "Threads are private to their owner", TestChatRestThreadOwnership),
-                    ChatCase("Chat.Rest", "Chat.Rest.Metrics", "Chat metrics appear on the metrics endpoint", TestChatRestMetrics)
+                    ChatCase("Chat.Rest", "Chat.Rest.Metrics", "Chat metrics appear on the metrics endpoint", TestChatRestMetrics),
+                    ChatCase("Chat.Rest", "Chat.Rest.ToolCatalogParity", "Every chat-advertised tool exists in the MCP catalog", TestChatToolCatalogParity)
                 });
         }
 
@@ -733,6 +734,58 @@ namespace Test.Shared
                     await CleanupMcpServer().ConfigureAwait(false);
                 }
             }
+        }
+
+        private static readonly string[] _ChatAdvertisedToolNames = new string[]
+        {
+            "graph/all", "graph/get", "graph/search", "graph/statistics",
+            "node/readallingraph", "node/get", "node/search", "node/neighbors", "node/children", "node/parents",
+            "edge/readallingraph", "edge/get", "edge/search", "edge/betweennodes", "edge/fromnode", "edge/tonode",
+            "vector/search",
+            "label/readallingraph", "label/readmanynode", "label/readmanyedge",
+            "tag/readallingraph", "tag/readmanynode", "tag/readmanyedge",
+            "graph/create", "graph/update", "graph/delete",
+            "node/create", "node/update", "node/delete",
+            "edge/create", "edge/update", "edge/delete"
+        };
+
+        private static async Task TestChatToolCatalogParity(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                if (_McpEnvironment == null) throw new InvalidOperationException("MCP environment is not running.");
+                string rpcUrl = _McpEnvironment.McpHttpEndpoint + "/rpc";
+
+                using (HttpClient client = new HttpClient())
+                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, rpcUrl))
+                {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}", Encoding.UTF8, "application/json");
+
+                    using (HttpResponseMessage response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                    {
+                        string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                        AssertEqual(200, (int)response.StatusCode, "tools/list responds (body " + Truncate(body, 200) + ")");
+
+                        foreach (string toolName in _ChatAdvertisedToolNames)
+                        {
+                            AssertTrue(body.Contains("\"" + toolName + "\""), "MCP catalog contains chat-advertised tool '" + toolName + "'");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static string Truncate(string value, int maxLength)
+        {
+            if (String.IsNullOrEmpty(value) || value.Length <= maxLength) return value;
+            return value.Substring(0, maxLength);
         }
 
         #endregion
