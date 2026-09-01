@@ -3507,8 +3507,8 @@
             cancellationToken.ThrowIfCancellationRequested();
 
             IReadOnlyList<RoleDefinition> roles = AuthorizationPolicyDefinitions.BuiltInRoles;
-            AssertEqual(5, roles.Count, "Built-in role count");
-            AssertEqual(5, roles.Select(role => role.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count(), "Built-in role names are unique");
+            AssertEqual(6, roles.Count, "Built-in role count");
+            AssertEqual(6, roles.Select(role => role.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count(), "Built-in role names are unique");
 
             foreach (BuiltInRoleEnum role in Enum.GetValues(typeof(BuiltInRoleEnum)))
             {
@@ -3523,7 +3523,7 @@
             AssertEqual(AuthorizationResourceScopeEnum.Tenant, tenantAdmin.ResourceScope, "TenantAdmin scope");
             AssertTrue(tenantAdmin.InheritsToGraphs, "TenantAdmin inherits to graphs");
             AssertRoleHasPermissions(tenantAdmin, AuthorizationPermissionEnum.Read, AuthorizationPermissionEnum.Write, AuthorizationPermissionEnum.Delete, AuthorizationPermissionEnum.Admin);
-            AssertRoleAppliesTo(tenantAdmin, AuthorizationResourceTypeEnum.Admin, AuthorizationResourceTypeEnum.Graph, AuthorizationResourceTypeEnum.Node, AuthorizationResourceTypeEnum.Edge, AuthorizationResourceTypeEnum.Label, AuthorizationResourceTypeEnum.Tag, AuthorizationResourceTypeEnum.Vector, AuthorizationResourceTypeEnum.Query, AuthorizationResourceTypeEnum.Transaction);
+            AssertRoleAppliesTo(tenantAdmin, AuthorizationResourceTypeEnum.Admin, AuthorizationResourceTypeEnum.Graph, AuthorizationResourceTypeEnum.Node, AuthorizationResourceTypeEnum.Edge, AuthorizationResourceTypeEnum.Label, AuthorizationResourceTypeEnum.Tag, AuthorizationResourceTypeEnum.Vector, AuthorizationResourceTypeEnum.Query, AuthorizationResourceTypeEnum.Transaction, AuthorizationResourceTypeEnum.Chat);
 
             RoleDefinition graphAdmin = AuthorizationPolicyDefinitions.GetBuiltInRole(BuiltInRoleEnum.GraphAdmin);
             AssertEqual(AuthorizationResourceScopeEnum.Graph, graphAdmin.ResourceScope, "GraphAdmin scope");
@@ -3548,6 +3548,14 @@
             AssertFalse(viewer.AppliesTo(AuthorizationResourceTypeEnum.Transaction), "Viewer does not apply to mutating transactions");
             AssertFalse(viewer.AppliesTo(AuthorizationResourceTypeEnum.Admin), "Viewer does not apply to tenant/server admin resources");
 
+            RoleDefinition chatAdmin = AuthorizationPolicyDefinitions.GetBuiltInRole(BuiltInRoleEnum.ChatAdmin);
+            AssertEqual(AuthorizationResourceScopeEnum.Tenant, chatAdmin.ResourceScope, "ChatAdmin scope");
+            AssertFalse(chatAdmin.InheritsToGraphs, "ChatAdmin does not inherit to graphs");
+            AssertRoleHasPermissions(chatAdmin, AuthorizationPermissionEnum.Read, AuthorizationPermissionEnum.Write, AuthorizationPermissionEnum.Delete, AuthorizationPermissionEnum.Admin);
+            AssertRoleAppliesTo(chatAdmin, AuthorizationResourceTypeEnum.Chat);
+            AssertFalse(chatAdmin.AppliesTo(AuthorizationResourceTypeEnum.Admin), "ChatAdmin does not apply to tenant/server admin resources");
+            AssertFalse(chatAdmin.AppliesTo(AuthorizationResourceTypeEnum.Graph), "ChatAdmin does not apply to graph resources");
+
             RoleDefinition custom = AuthorizationPolicyDefinitions.GetBuiltInRole(BuiltInRoleEnum.Custom);
             AssertEqual(AuthorizationResourceScopeEnum.Graph, custom.ResourceScope, "Custom default scope");
             AssertEqual(0, custom.Permissions.Count, "Custom built-in template has no predefined permissions");
@@ -3566,7 +3574,7 @@
 
             AssertEqual(4, Enum.GetValues(typeof(AuthorizationPermissionEnum)).Length, "Permission enum count");
             AssertEqual(2, Enum.GetValues(typeof(AuthorizationResourceScopeEnum)).Length, "Resource scope enum count");
-            AssertEqual(9, Enum.GetValues(typeof(AuthorizationResourceTypeEnum)).Length, "Resource type enum count");
+            AssertEqual(10, Enum.GetValues(typeof(AuthorizationResourceTypeEnum)).Length, "Resource type enum count");
 
             return Task.CompletedTask;
         }
@@ -3578,7 +3586,14 @@
             foreach (RequestTypeEnum requestType in Enum.GetValues(typeof(RequestTypeEnum)))
             {
                 if (!AuthorizationService.IsAdministrativeRequest(requestType)) continue;
-                AssertRequestAuthorization(requestType, "admin", AuthorizationPermissionEnum.Admin, AuthorizationResourceTypeEnum.Admin);
+
+                // Administrative chat requests resolve to the Chat resource type so [Admin] x [Chat]
+                // grants can delegate chat management; all other administrative requests resolve to Admin.
+                AuthorizationResourceTypeEnum expectedResourceType = requestType.ToString().StartsWith("Chat", StringComparison.Ordinal)
+                    ? AuthorizationResourceTypeEnum.Chat
+                    : AuthorizationResourceTypeEnum.Admin;
+
+                AssertRequestAuthorization(requestType, "admin", AuthorizationPermissionEnum.Admin, expectedResourceType);
             }
 
             (RequestTypeEnum RequestType, string Scope, AuthorizationPermissionEnum Permission, AuthorizationResourceTypeEnum ResourceType)[] requestExpectations =
@@ -3674,7 +3689,8 @@
             AuthorizationPermissionEnum[] allPermissions = Enum.GetValues(typeof(AuthorizationPermissionEnum)).Cast<AuthorizationPermissionEnum>().ToArray();
             AuthorizationResourceTypeEnum[] allResourceTypes = Enum.GetValues(typeof(AuthorizationResourceTypeEnum)).Cast<AuthorizationResourceTypeEnum>().ToArray();
             AuthorizationResourceTypeEnum[] graphResourceTypes = allResourceTypes
-                .Where(resourceType => resourceType != AuthorizationResourceTypeEnum.Admin)
+                .Where(resourceType => resourceType != AuthorizationResourceTypeEnum.Admin
+                    && resourceType != AuthorizationResourceTypeEnum.Chat)
                 .ToArray();
             AuthorizationResourceTypeEnum[] readOnlyGraphResourceTypes = graphResourceTypes
                 .Where(resourceType => resourceType != AuthorizationResourceTypeEnum.Transaction)
@@ -3708,6 +3724,14 @@
                     AuthorizationPermissionEnum.Read
                 },
                 readOnlyGraphResourceTypes);
+            AssertRoleMatrix(
+                AuthorizationPolicyDefinitions.GetBuiltInRole(BuiltInRoleEnum.ChatAdmin),
+                false,
+                allPermissions,
+                new[]
+                {
+                    AuthorizationResourceTypeEnum.Chat
+                });
             AssertRoleMatrix(
                 AuthorizationPolicyDefinitions.GetBuiltInRole(BuiltInRoleEnum.Custom),
                 false,
@@ -3992,7 +4016,7 @@
             {
                 client.InitializeRepository();
 
-                await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = true }, 5L, "Seeded built-in role count", cancellationToken).ConfigureAwait(false);
+                await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = true }, 6L, "Seeded built-in role count", cancellationToken).ConfigureAwait(false);
 
                 AuthorizationRole createdEditor = await client.AuthorizationRoles.ReadRoleByName(null, AuthorizationPolicyDefinitions.EditorRoleName, cancellationToken).ConfigureAwait(false);
                 AssertNotNull(createdEditor, "Seeded Editor role");
@@ -4077,7 +4101,7 @@
 
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { TenantGUID = tenantA }, 1L, "Role tenant filter", cancellationToken).ConfigureAwait(false);
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { Name = "DataCurator" }, 1L, "Role name filter", cancellationToken).ConfigureAwait(false);
-                await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = true }, 5L, "Role built-in filter", cancellationToken).ConfigureAwait(false);
+                await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = true }, 6L, "Role built-in filter", cancellationToken).ConfigureAwait(false);
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltInRole = BuiltInRoleEnum.Editor }, 1L, "Role built-in enum filter", cancellationToken).ConfigureAwait(false);
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = false, ResourceScope = AuthorizationResourceScopeEnum.Graph }, 2L, "Role resource scope filter", cancellationToken).ConfigureAwait(false);
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = false, Permission = AuthorizationPermissionEnum.Write }, 1L, "Role permission filter", cancellationToken).ConfigureAwait(false);
@@ -4301,7 +4325,7 @@
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = false }, 1L, "Role delete by GUID", cancellationToken).ConfigureAwait(false);
                 await client.AuthorizationRoles.DeleteRoleByGuid(updatedCustom.GUID, cancellationToken).ConfigureAwait(false);
                 await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = false }, 0L, "Custom role count after deletes", cancellationToken).ConfigureAwait(false);
-                await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = true }, 5L, "Built-in roles remain after custom deletes", cancellationToken).ConfigureAwait(false);
+                await AssertAuthorizationRoleCount(client, new AuthorizationRoleSearchRequest { BuiltIn = true }, 6L, "Built-in roles remain after custom deletes", cancellationToken).ConfigureAwait(false);
             }
 
             DeleteFileIfExists(filename);
@@ -4351,8 +4375,8 @@
                     BuiltIn = true,
                     PageSize = 1000
                 }, cancellationToken).ConfigureAwait(false);
-                AssertEqual(5L, builtIns.TotalCount, "Migration seeds built-in roles");
-                AssertEqual(5, builtIns.Objects.Select(role => role.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count(), "Migration seeds unique built-in roles");
+                AssertEqual(6L, builtIns.TotalCount, "Migration seeds built-in roles");
+                AssertEqual(6, builtIns.Objects.Select(role => role.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count(), "Migration seeds unique built-in roles");
 
                 AuthorizationService service = new AuthorizationService(new LoggingModule(), repo);
                 AuthorizationDecision writeDecision = await service.EvaluateCredentialEffectiveAccess(
@@ -4369,7 +4393,7 @@
                     BuiltIn = true,
                     PageSize = 1000
                 }, cancellationToken).ConfigureAwait(false);
-                AssertEqual(5L, builtInsAfterSecondInitialize.TotalCount, "Authorization migration is idempotent");
+                AssertEqual(6L, builtInsAfterSecondInitialize.TotalCount, "Authorization migration is idempotent");
             }
 
             DeleteFileIfExists(filename);

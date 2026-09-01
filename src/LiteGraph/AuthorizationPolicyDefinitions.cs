@@ -32,6 +32,11 @@ namespace LiteGraph
         public const string ViewerRoleName = "Viewer";
 
         /// <summary>
+        /// Role name for chat administrators.
+        /// </summary>
+        public const string ChatAdminRoleName = "ChatAdmin";
+
+        /// <summary>
         /// Role name for custom roles.
         /// </summary>
         public const string CustomRoleName = "Custom";
@@ -94,7 +99,8 @@ namespace LiteGraph
             AuthorizationResourceTypeEnum.Tag,
             AuthorizationResourceTypeEnum.Vector,
             AuthorizationResourceTypeEnum.Query,
-            AuthorizationResourceTypeEnum.Transaction
+            AuthorizationResourceTypeEnum.Transaction,
+            AuthorizationResourceTypeEnum.Chat
         };
 
         private static readonly List<AuthorizationResourceTypeEnum> _GraphResourceTypes = new List<AuthorizationResourceTypeEnum>
@@ -176,6 +182,21 @@ namespace LiteGraph
                     AuthorizationPermissionEnum.Read
                 },
                 ResourceTypes = new List<AuthorizationResourceTypeEnum>(_ReadOnlyGraphResourceTypes),
+                InheritsToGraphs = false
+            },
+            new RoleDefinition
+            {
+                Name = ChatAdminRoleName,
+                DisplayName = "Chat Admin",
+                Description = "Manage chat endpoints, settings, feedback, and all-user chat history for the tenant.",
+                BuiltInRole = BuiltInRoleEnum.ChatAdmin,
+                BuiltIn = true,
+                ResourceScope = AuthorizationResourceScopeEnum.Tenant,
+                Permissions = new List<AuthorizationPermissionEnum>(_AllPermissions),
+                ResourceTypes = new List<AuthorizationResourceTypeEnum>
+                {
+                    AuthorizationResourceTypeEnum.Chat
+                },
                 InheritsToGraphs = false
             },
             new RoleDefinition

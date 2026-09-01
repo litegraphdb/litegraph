@@ -29,11 +29,13 @@ namespace LiteGraph.Server.API.REST
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/test", ChatEndpointTestRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Test chat endpoint connectivity", "Chat"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/completions", ChatCompletionRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Chat completion (SSE or JSON)", "Chat"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/models", ChatModelsReadAllRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List selectable chat models", "Chat"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/chat/threads", ChatThreadCreateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Create chat thread", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/threads", ChatThreadReadAllRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List chat threads", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}/turns", ChatThreadTurnsReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List chat thread turns", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", ChatThreadReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read chat thread", "Chat"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", ChatThreadUpdateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Update chat thread (rename)", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", ChatThreadDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Delete chat thread", "Chat"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/turns/{chatTurnGuid}/feedback", ChatFeedbackCreateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Submit chat feedback", "Chat"));
@@ -229,6 +231,12 @@ namespace LiteGraph.Server.API.REST
 
         #region Chat-Thread-Routes
 
+        private async Task ChatModelsReadAllRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ChatModelsReadAll);
+        }
+
         private async Task ChatThreadCreateRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -253,6 +261,22 @@ namespace LiteGraph.Server.API.REST
         {
             RequestContext req = (RequestContext)ctx.Metadata;
             await WrappedRequestHandler(ctx, req, _ServiceHandler.ChatThreadRead);
+        }
+
+        private async Task ChatThreadUpdateRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.ChatThread = _Serializer.DeserializeJson<ChatThread>(ctx.Request.DataAsString);
+            req.ChatThread.TenantGUID = req.TenantGUID.Value;
+            req.ChatThread.GUID = req.ChatThreadGUID.Value;
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ChatThreadUpdate);
         }
 
         private async Task ChatThreadDeleteRoute(HttpContextBase ctx)

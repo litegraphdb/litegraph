@@ -647,3 +647,9 @@
 .ant-modal .ant-modal-confirm-btns {
   flex-shrink: 0;
 }
+
+/* Crisp vector icon edges: small (especially rotated/spinning) SVG icons render
+   aliased on Windows and other low-DPI displays without geometric precision. */
+.anticon svg {
+  shape-rendering: geometricPrecision;
+}

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { List, Skeleton } from 'antd';
-import { DeleteOutlined, PlusOutlined, ShareAltOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined, ShareAltOutlined } from '@ant-design/icons';
 import LitegraphButton from '@/components/base/button/Button';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
@@ -16,6 +16,7 @@ interface ThreadSidebarProps {
   selectedThreadGuid: string | null;
   onSelect: (threadGuid: string) => void;
   onNewThread: () => void;
+  onRenameThread: (thread: ChatThread) => void;
   onDeleteThread: (thread: ChatThread) => void;
   disabled?: boolean;
 }
@@ -27,6 +28,7 @@ const ThreadSidebar = ({
   selectedThreadGuid,
   onSelect,
   onNewThread,
+  onRenameThread,
   onDeleteThread,
   disabled,
 }: ThreadSidebarProps) => {
@@ -72,6 +74,19 @@ const ThreadSidebar = ({
                   }}
                   data-testid={`chat-thread-${thread.GUID}`}
                   actions={[
+                    <LitegraphTooltip title={t('renameThreadTooltip')} key="rename">
+                      <LitegraphButton
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        aria-label={t('renameThreadTooltip')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRenameThread(thread);
+                        }}
+                        data-testid={`chat-thread-rename-${thread.GUID}`}
+                      />
+                    </LitegraphTooltip>,
                     <LitegraphTooltip title={t('deleteThreadTooltip')} key="delete">
                       <LitegraphButton
                         type="text"

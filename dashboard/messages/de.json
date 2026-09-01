@@ -926,6 +926,11 @@
         "responseHeaders": "Antwort-Header",
         "responseBody": "Antworttext",
         "transactionDiagnostics": "Transaktionsdiagnose"
+      },
+      "sse": {
+        "reconstructed": "Rekonstruierte Ausgabe",
+        "events": "{count} gestreamte Ereignisse",
+        "raw": "Roh-Stream"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "Tag",
       "Vector": "Vector",
       "Query": "Abfrage",
-      "Transaction": "Transaktion"
+      "Transaction": "Transaktion",
+      "Chat": "Chat"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "Erstes Token: {ms} ms",
         "tps": "{tps} Token/s",
         "duration": "Gesamt: {ms} ms"
+      },
+      "toolbar": {
+        "model": "Modell",
+        "modelDefault": "Standardmodell",
+        "defaultModelLabel": "{name} ({model}) — Standard",
+        "streaming": "Streaming",
+        "streamingTooltip": "Token beim Generieren streamen"
+      },
+      "disclaimer": "KI kann Fehler machen. Bitte alle Antworten überprüfen.",
+      "renameThreadTooltip": "Unterhaltung umbenennen",
+      "renameThreadModal": {
+        "title": "Unterhaltung umbenennen",
+        "label": "Titel der Unterhaltung",
+        "save": "Speichern",
+        "failed": "Die Unterhaltung konnte nicht umbenannt werden.",
+        "done": "Unterhaltung umbenannt."
+      },
+      "stats": {
+        "tooltip": "Statistiken zum Turn",
+        "model": "Modell",
+        "promptTokens": "Prompt-Token",
+        "completionTokens": "Completion-Token",
+        "totalTokens": "Token gesamt",
+        "ttft": "Zeit bis zum ersten Token",
+        "streamingTime": "Streaming-Dauer",
+        "totalDuration": "Gesamtdauer",
+        "tpsOverall": "Token/Sek. (gesamt)",
+        "tpsGeneration": "Token/Sek. (Generierung)",
+        "toolCalls": "Tool-Aufrufe",
+        "toolIterations": "Tool-Iterationen",
+        "ragChunks": "Abgerufene Chunks",
+        "retries": "Wiederholungen"
+      },
+      "commands": {
+        "helpCommand": "Befehl",
+        "helpDescription": "Beschreibung",
+        "clearDesc": "Ansicht leeren und neue Unterhaltung starten",
+        "contextDesc": "Aktuelle Kontextinformationen anzeigen",
+        "helpDesc": "Diese Hilfe anzeigen",
+        "or": "oder",
+        "unknown": "Unbekannter Befehl `{command}`. Gib `/help` ein, um verfügbare Befehle zu sehen.",
+        "contextField": "Feld",
+        "contextValue": "Wert",
+        "contextTenant": "Mandant",
+        "contextGraph": "Ausgewählter Graph",
+        "contextThread": "Thread",
+        "contextModel": "Modell",
+        "contextStreaming": "Streaming",
+        "contextTokens": "Token des letzten Turns",
+        "none": "Keine",
+        "on": "Ein",
+        "off": "Aus"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "Unterhaltung",
         "threadDesc": "Die Unterhaltung im Chatverlauf öffnen",
         "turn": "Zug",
-        "turnDesc": "Der bewertete Zug"
+        "turnDesc": "Der bewertete Zug",
+        "user": "Benutzer",
+        "userDesc": "Der Benutzer, der das Feedback abgegeben hat"
       },
       "toast": {
         "deleted": "Feedback gelöscht.",

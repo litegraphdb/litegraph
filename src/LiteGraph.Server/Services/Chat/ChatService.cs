@@ -360,7 +360,7 @@ namespace LiteGraph.Server.Services.Chat
                     #region Context
 
                     List<ChatMessage> messages = new List<ChatMessage>();
-                    messages.Add(ChatMessage.System(BuildSystemPrompt(tenantSettings, request, thread)));
+                    messages.Add(ChatMessage.System(await BuildSystemPrompt(tenantGuid, tenantSettings, request, thread, token).ConfigureAwait(false)));
                     int historyBudgetTokens = _DefaultHistoryBudgetTokens;
                     if (completionEndpoint.ContextWindowTokens > 0)
                         historyBudgetTokens = Math.Max(1024, completionEndpoint.ContextWindowTokens - completionEndpoint.MaxOutputTokens);
@@ -850,12 +850,39 @@ namespace LiteGraph.Server.Services.Chat
             return client;
         }
 
-        private string BuildSystemPrompt(ChatSettings tenantSettings, ChatCompletionRequest request, ChatThread thread)
+        private async Task<string> BuildSystemPrompt(Guid tenantGuid, ChatSettings tenantSettings, ChatCompletionRequest request, ChatThread thread, CancellationToken token)
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             sb.AppendLine("You are the LiteGraph assistant.  You help users explore and understand their graph data.");
             sb.AppendLine("Use the available tools to query graphs, nodes, edges, labels, tags, and vectors before answering questions about the data; do not guess.");
-            if (thread.GraphGUID != null) sb.AppendLine("This conversation is bound to graph " + thread.GraphGUID + ".  Prefer that graph unless the user asks otherwise.");
+
+            try
+            {
+                TenantMetadata tenant = await _LiteGraph.Tenant.ReadByGuid(tenantGuid, token).ConfigureAwait(false);
+                if (tenant != null)
+                    sb.AppendLine("You are operating in tenant \"" + tenant.Name + "\" (GUID " + tenant.GUID + ").");
+            }
+            catch (KeyNotFoundException)
+            {
+            }
+
+            Guid? contextGraphGuid = (thread.GraphGUID != null ? thread.GraphGUID : request.GraphGUID);
+            if (contextGraphGuid != null)
+            {
+                string graphLabel = contextGraphGuid.Value.ToString();
+
+                try
+                {
+                    Graph graph = await _LiteGraph.Graph.ReadByGuid(tenantGuid, contextGraphGuid.Value, token: token).ConfigureAwait(false);
+                    if (graph != null && !String.IsNullOrEmpty(graph.Name)) graphLabel = "\"" + graph.Name + "\" (GUID " + contextGraphGuid.Value + ")";
+                }
+                catch (KeyNotFoundException)
+                {
+                }
+
+                sb.AppendLine("The currently selected graph is " + graphLabel + ".  Prefer that graph unless the user asks otherwise.");
+            }
+
             sb.AppendLine("Answer concisely and cite node or edge identifiers when referencing specific graph objects.");
 
             string tenantPrompt = (!String.IsNullOrEmpty(request.SystemPrompt) ? request.SystemPrompt : tenantSettings.SystemPrompt);

@@ -114,6 +114,16 @@ namespace LiteGraph.Sdk.Interfaces
         Task<ChatThread> ReadThread(Guid tenantGuid, Guid threadGuid, CancellationToken token = default);
 
         /// <summary>
+        /// Update a chat thread.  Only the Title property is honored and it must be non-empty.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="threadGuid">Chat thread GUID.</param>
+        /// <param name="thread">Chat thread containing the new Title.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Updated chat thread.</returns>
+        Task<ChatThread> UpdateThread(Guid tenantGuid, Guid threadGuid, ChatThread thread, CancellationToken token = default);
+
+        /// <summary>
         /// Delete a chat thread along with its turns and feedback.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

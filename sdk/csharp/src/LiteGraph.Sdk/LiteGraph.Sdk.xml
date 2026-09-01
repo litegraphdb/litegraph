@@ -2156,6 +2156,9 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.UpdateThread(System.Guid,System.Guid,LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.DeleteThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -3009,6 +3012,16 @@
             <param name="threadGuid">Chat thread GUID.</param>
             <param name="token">Cancellation token.</param>
             <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.UpdateThread(System.Guid,System.Guid,LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
+            <summary>
+            Update a chat thread.  Only the Title property is honored and it must be non-empty.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Chat thread GUID.</param>
+            <param name="thread">Chat thread containing the new Title.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Updated chat thread.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.DeleteThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>

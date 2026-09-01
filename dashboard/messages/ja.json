@@ -926,6 +926,11 @@
         "responseHeaders": "レスポンスヘッダー",
         "responseBody": "レスポンスボディ",
         "transactionDiagnostics": "トランザクション診断"
+      },
+      "sse": {
+        "reconstructed": "再構成した出力",
+        "events": "ストリーミングイベント {count} 件",
+        "raw": "生ストリーム"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "タグ",
       "Vector": "ベクトル",
       "Query": "クエリ",
-      "Transaction": "トランザクション"
+      "Transaction": "トランザクション",
+      "Chat": "チャット"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "最初のトークン: {ms} ms",
         "tps": "{tps} トークン/秒",
         "duration": "合計: {ms} ms"
+      },
+      "toolbar": {
+        "model": "モデル",
+        "modelDefault": "デフォルトモデル",
+        "defaultModelLabel": "{name}（{model}）— デフォルト",
+        "streaming": "ストリーミング",
+        "streamingTooltip": "生成されたトークンを逐次ストリーミングする"
+      },
+      "disclaimer": "AI は間違えることがあります。すべての回答をご確認ください。",
+      "renameThreadTooltip": "会話名を変更",
+      "renameThreadModal": {
+        "title": "会話名を変更",
+        "label": "会話のタイトル",
+        "save": "保存",
+        "failed": "会話名を変更できませんでした。",
+        "done": "会話名を変更しました。"
+      },
+      "stats": {
+        "tooltip": "ターンの統計",
+        "model": "モデル",
+        "promptTokens": "プロンプトトークン",
+        "completionTokens": "生成トークン",
+        "totalTokens": "合計トークン",
+        "ttft": "最初のトークンまでの時間",
+        "streamingTime": "ストリーミング時間",
+        "totalDuration": "合計時間",
+        "tpsOverall": "トークン/秒（全体）",
+        "tpsGeneration": "トークン/秒（生成）",
+        "toolCalls": "ツール呼び出し",
+        "toolIterations": "ツール反復",
+        "ragChunks": "取得チャンク",
+        "retries": "リトライ"
+      },
+      "commands": {
+        "helpCommand": "コマンド",
+        "helpDescription": "説明",
+        "clearDesc": "表示をクリアして新しい会話を開始",
+        "contextDesc": "現在のコンテキスト情報を表示",
+        "helpDesc": "このヘルプを表示",
+        "or": "または",
+        "unknown": "不明なコマンド `{command}` です。`/help` で利用可能なコマンドを確認してください。",
+        "contextField": "項目",
+        "contextValue": "値",
+        "contextTenant": "テナント",
+        "contextGraph": "選択中のグラフ",
+        "contextThread": "スレッド",
+        "contextModel": "モデル",
+        "contextStreaming": "ストリーミング",
+        "contextTokens": "直前ターンのトークン",
+        "none": "なし",
+        "on": "オン",
+        "off": "オフ"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "会話",
         "threadDesc": "チャット履歴で会話を開く",
         "turn": "ターン",
-        "turnDesc": "評価対象のターン"
+        "turnDesc": "評価対象のターン",
+        "user": "ユーザー",
+        "userDesc": "フィードバックを送信したユーザー"
       },
       "toast": {
         "deleted": "フィードバックを削除しました。",

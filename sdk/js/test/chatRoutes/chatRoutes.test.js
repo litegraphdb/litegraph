@@ -176,6 +176,12 @@ describe('chatRoute Tests', () => {
       expect(response[0].ThreadGUID).toBe(mockThreadGuid);
     });
 
+    test('should update a chat thread title', async () => {
+      const response = await api.updateChatThread(mockTenantId, mockThreadGuid, { Title: 'Renamed thread' });
+      expect(response instanceof ChatThread).toBe(true);
+      expect(response.GUID).toBe(mockThreadGuid);
+    });
+
     test('should delete a chat thread', async () => {
       const response = await api.deleteChatThread(mockTenantId, mockThreadGuid);
       expect(response).toBeUndefined();

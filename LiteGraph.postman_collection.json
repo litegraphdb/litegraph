@@ -13241,6 +13241,30 @@
 										}
 									},
 									"response": []
+								},
+								{
+									"name": "List models",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists selectable chat models for the tenant: active endpoints projected to GUID, Name, Model, Provider, EndpointType, and IsDefault. Available to any tenant member; endpoint URLs, API keys, and health configuration are never included. Supply a GUID from this list as CompletionEndpointGUID (or EmbeddingEndpointGUID) on completion requests.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/models",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"models"
+											]
+										}
+									},
+									"response": []
 								}
 							]
 						},
@@ -13357,6 +13381,45 @@
 												"{{chatThreadGuid}}",
 												"turns"
 											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update thread (rename)",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"description": "Renames a chat thread; only Title is honored and it must be non-empty. Accessible to the thread owner or an administrator.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/threads/{{chatThreadGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"threads",
+												"{{chatThreadGuid}}"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"Title\": \"Renamed conversation\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
 										}
 									},
 									"response": []

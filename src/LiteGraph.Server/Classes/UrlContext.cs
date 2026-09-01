@@ -290,6 +290,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/health", out _UrlParameters)) return RequestTypeEnum.ChatEndpointHealthReadAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/health", out _UrlParameters)) return RequestTypeEnum.ChatEndpointHealthRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointRead;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/models", out _UrlParameters)) return RequestTypeEnum.ChatModelsReadAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads", out _UrlParameters)) return RequestTypeEnum.ChatThreadReadAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}/turns", out _UrlParameters)) return RequestTypeEnum.ChatThreadTurnsRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", out _UrlParameters)) return RequestTypeEnum.ChatThreadRead;
@@ -422,6 +423,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints", out _UrlParameters)) return RequestTypeEnum.ChatEndpointCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointUpdate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads", out _UrlParameters)) return RequestTypeEnum.ChatThreadCreate;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", out _UrlParameters)) return RequestTypeEnum.ChatThreadUpdate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/settings", out _UrlParameters)) return RequestTypeEnum.ChatSettingsUpdate;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/users", out _UrlParameters)) return RequestTypeEnum.UserCreate;

@@ -53,6 +53,11 @@ namespace LiteGraph
         /// Graph transaction execution.
         /// </summary>
         [EnumMember(Value = "Transaction")]
-        Transaction
+        Transaction,
+        /// <summary>
+        /// Chat resources, including endpoints, threads, turns, feedback, and settings.
+        /// </summary>
+        [EnumMember(Value = "Chat")]
+        Chat
     }
 }

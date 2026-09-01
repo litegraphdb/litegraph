@@ -56,7 +56,11 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointHealthRoutes", "Endpoint health routes report monitored state and reject unknown endpoints", TestChatRestEndpointHealthRoutes),
                     ChatCase("Chat.Rest", "Chat.Rest.FeedbackReadAndNegatives", "Single feedback read, unknown-GUID deletes, and cross-user turn denial", TestChatRestFeedbackReadAndNegatives),
                     ChatCase("Chat.Rest", "Chat.Rest.McpChatTools", "MCP chat tools round-trip endpoint and settings operations", TestChatRestMcpChatTools),
-                    ChatCase("Chat.Rest", "Chat.Rest.HealthDedup", "Endpoints sharing a probe target share one healthcheck and verdict", TestChatRestHealthDedup)
+                    ChatCase("Chat.Rest", "Chat.Rest.HealthDedup", "Endpoints sharing a probe target share one healthcheck and verdict", TestChatRestHealthDedup),
+                    ChatCase("Chat.Rest", "Chat.Rest.ThreadRename", "Thread rename honors ownership and validation", TestChatRestThreadRename),
+                    ChatCase("Chat.Rest", "Chat.Rest.ModelsCatalog", "Non-admin users can list selectable models without secrets", TestChatRestModelsCatalog),
+                    ChatCase("Chat.Rest", "Chat.Rest.ContextPrompt", "System prompt carries tenant and selected graph context", TestChatRestContextPrompt),
+                    ChatCase("Chat.Rest", "Chat.Rest.RbacDelegation", "An [Admin] x [Chat] role delegates chat management without tenant admin", TestChatRestRbacDelegation)
                 });
         }
 
@@ -707,6 +711,125 @@ namespace Test.Shared
             }
         }
 
+        private static async Task TestChatRestThreadRename(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+                string ownerBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatrename@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                string otherBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatrenameother@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                string threadsUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads";
+
+                HttpOutcome created = await AuthRestAsync(HttpMethod.Put, threadsUrl, ownerBearer, "{\"Title\":\"before rename\"}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, created.Status, "Owner creates a thread (body " + created.Body + ")");
+                string threadGuid = ExtractGuid(created.Body);
+
+                HttpOutcome renamed = await AuthRestAsync(HttpMethod.Put, threadsUrl + "/" + threadGuid, ownerBearer, "{\"Title\":\"after rename\"}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, renamed.Status, "Owner renames the thread (body " + renamed.Body + ")");
+                AssertTrue(renamed.Body.Contains("after rename"), "Rename response carries the new title");
+
+                HttpOutcome read = await AuthRestAsync(HttpMethod.Get, threadsUrl + "/" + threadGuid, ownerBearer, null, cancellationToken).ConfigureAwait(false);
+                AssertTrue(read.Body.Contains("after rename"), "Read-back reflects the new title");
+
+                HttpOutcome emptyTitle = await AuthRestAsync(HttpMethod.Put, threadsUrl + "/" + threadGuid, ownerBearer, "{\"Title\":\"  \"}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(400, emptyTitle.Status, "Blank title is rejected (status " + emptyTitle.Status + ")");
+
+                HttpOutcome deniedRename = await AuthRestAsync(HttpMethod.Put, threadsUrl + "/" + threadGuid, otherBearer, "{\"Title\":\"hijacked\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(deniedRename.Status == 401 || deniedRename.Status == 403, "Another user cannot rename the thread (status " + deniedRename.Status + ")");
+
+                HttpOutcome adminRename = await AuthRestAsync(HttpMethod.Put, threadsUrl + "/" + threadGuid, _AdminBearerToken, "{\"Title\":\"admin rename\"}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, adminRename.Status, "An administrator can rename any thread");
+
+                HttpOutcome missing = await AuthRestAsync(HttpMethod.Put, threadsUrl + "/" + Guid.NewGuid(), ownerBearer, "{\"Title\":\"ghost\"}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(404, missing.Status, "Renaming an unknown thread returns 404 (status " + missing.Status + ")");
+
+                await AuthRestAsync(HttpMethod.Delete, threadsUrl + "/" + threadGuid, ownerBearer, null, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestChatRestModelsCatalog(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatmodels@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string modelsUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/models";
+
+                    HttpOutcome adminDenied = await AuthRestAsync(HttpMethod.Get,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints",
+                        userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertTrue(adminDenied.Status == 401 || adminDenied.Status == 403, "Full endpoint listing stays admin-only (status " + adminDenied.Status + ")");
+
+                    HttpOutcome models = await AuthRestAsync(HttpMethod.Get, modelsUrl, userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, models.Status, "Non-admin user lists chat models (body " + Truncate(models.Body, 200) + ")");
+                    AssertTrue(models.Body.Contains(endpointGuid), "Model catalog contains the provisioned endpoint GUID");
+                    AssertTrue(models.Body.Contains("\"Model\""), "Model catalog carries model identifiers");
+                    AssertTrue(models.Body.Contains("\"IsDefault\""), "Model catalog flags defaults");
+                    AssertFalse(models.Body.Contains("ApiKey"), "Model catalog never exposes API keys");
+                    AssertFalse(models.Body.Contains(fake.Endpoint), "Model catalog never exposes endpoint URLs");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestContextPrompt(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatcontext@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+
+                    HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs",
+                        _AdminBearerToken, "{\"Name\":\"context-prompt-graph\"}", cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(graphCreated.Status), "Context graph created (status " + graphCreated.Status + ")");
+                    string graphGuid = ExtractGuid(graphCreated.Body);
+
+                    fake.EnqueueText("context answer", 2, 2);
+
+                    HttpOutcome completion = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/completions",
+                        userBearer,
+                        "{\"Message\":\"what graph am I in?\",\"CompletionEndpointGUID\":\"" + endpointGuid + "\",\"GraphGUID\":\"" + graphGuid + "\",\"EnableTools\":false,\"EnableRag\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, completion.Status, "Completion with graph context succeeds (body " + Truncate(completion.Body, 200) + ")");
+
+                    AssertTrue(fake.CapturedCompletionBodies.TryDequeue(out string? capturedBody), "Provider request body was captured");
+                    capturedBody ??= String.Empty;
+                    AssertTrue(capturedBody.Contains("operating in tenant"), "System prompt names the tenant");
+                    AssertTrue(capturedBody.Contains(graphGuid), "System prompt references the selected graph GUID");
+                    AssertTrue(capturedBody.Contains("context-prompt-graph"), "System prompt references the selected graph name");
+
+                    await AuthRestAsync(HttpMethod.Delete,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid,
+                        _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
         private static async Task TestChatRestMetrics(CancellationToken cancellationToken)
         {
             await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
@@ -1037,6 +1160,84 @@ namespace Test.Shared
         {
             if (String.IsNullOrEmpty(value) || value.Length <= maxLength) return value;
             return value.Substring(0, maxLength);
+        }
+
+        private static async Task TestChatRestRbacDelegation(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+                string endpointsUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints";
+                string settingsUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/settings";
+
+                // (a) A non-admin user without a chat grant cannot manage chat endpoints.
+                string? userAGuid = null;
+                string userABearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatuser-rbac-a@chat.test", false, false, cancellationToken, capturedGuid => userAGuid = capturedGuid).ConfigureAwait(false);
+
+                HttpOutcome deniedBefore = await AuthRestAsync(HttpMethod.Get, endpointsUrl, userABearer, null, cancellationToken).ConfigureAwait(false);
+                AssertTrue(deniedBefore.Status == 401 || deniedBefore.Status == 403, "Without a chat grant, endpoint list is denied (status " + deniedBefore.Status + ")");
+
+                // (b) Create a tenant-scoped [Admin] x [Chat] role and assign it to user A.
+                HttpOutcome roleCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/roles", _AdminBearerToken,
+                    "{\"Name\":\"ChatDelegate\",\"DisplayName\":\"Chat Delegate\",\"Description\":\"Delegated chat administration\",\"ResourceScope\":\"Tenant\",\"Permissions\":[\"Admin\",\"Read\",\"Write\",\"Delete\"],\"ResourceTypes\":[\"Chat\"]}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(roleCreated.Status), "Chat delegation role create succeeds (status " + roleCreated.Status + " body " + roleCreated.Body + ")");
+                string roleGuid = ExtractGuid(roleCreated.Body);
+
+                HttpOutcome assigned = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/users/" + userAGuid + "/roles", _AdminBearerToken,
+                    "{\"RoleGUID\":\"" + roleGuid + "\",\"RoleName\":\"ChatDelegate\",\"ResourceScope\":\"Tenant\"}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(assigned.Status), "Chat delegation role assignment succeeds (status " + assigned.Status + " body " + assigned.Body + ")");
+
+                // (c) User A can now manage chat, but chat delegation confers no general admin rights.
+                HttpOutcome allowedList = await AuthRestAsync(HttpMethod.Get, endpointsUrl, userABearer, null, cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, allowedList.Status, "With an [Admin] x [Chat] grant, endpoint list succeeds (body " + allowedList.Body + ")");
+
+                HttpOutcome allowedSettings = await AuthRestAsync(HttpMethod.Put, settingsUrl, userABearer, "{\"RagTopK\":3}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, allowedSettings.Status, "With an [Admin] x [Chat] grant, settings update succeeds (body " + allowedSettings.Body + ")");
+
+                HttpOutcome usersDenied = await AuthRestAsync(HttpMethod.Get, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/users", userABearer, null, cancellationToken).ConfigureAwait(false);
+                AssertTrue(usersDenied.Status == 401 || usersDenied.Status == 403, "Chat delegation does not confer general tenant administration (status " + usersDenied.Status + ")");
+
+                // (d) Regression: graph-scoped grants must not lock a tenant member out of member-level chat.
+                HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs", _AdminBearerToken,
+                    "{\"Name\":\"chat-rbac-graph\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(graphCreated.Status), "Graph create succeeds (status " + graphCreated.Status + ")");
+                string graphGuid = ExtractGuid(graphCreated.Body);
+
+                string? userBGuid = null;
+                await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatuser-rbac-b@chat.test", false, false, cancellationToken, capturedGuid => userBGuid = capturedGuid).ConfigureAwait(false);
+
+                string userBBearer = "chat-rbac-b-" + userBGuid;
+                HttpOutcome credentialCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/credentials", _AdminBearerToken,
+                    "{\"UserGUID\":\"" + userBGuid + "\",\"Name\":\"Chat RBAC scoped credential\",\"BearerToken\":\"" + userBBearer + "\",\"Active\":true}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(credentialCreated.Status), "Scoped credential create succeeds (status " + credentialCreated.Status + ")");
+                string credentialGuid = ExtractGuid(credentialCreated.Body);
+
+                HttpOutcome viewerAssigned = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/users/" + userBGuid + "/roles", _AdminBearerToken,
+                    "{\"RoleName\":\"Viewer\",\"ResourceScope\":\"Graph\",\"GraphGUID\":\"" + graphGuid + "\"}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(viewerAssigned.Status), "Graph-scoped Viewer role assignment succeeds (status " + viewerAssigned.Status + " body " + viewerAssigned.Body + ")");
+
+                HttpOutcome scopeAssigned = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/credentials/" + credentialGuid + "/scopes", _AdminBearerToken,
+                    "{\"RoleName\":\"Viewer\",\"ResourceScope\":\"Graph\",\"GraphGUID\":\"" + graphGuid + "\"}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(scopeAssigned.Status), "Graph-scoped credential scope assignment succeeds (status " + scopeAssigned.Status + " body " + scopeAssigned.Body + ")");
+
+                HttpOutcome completion = await AuthRestAsync(HttpMethod.Post,
+                    endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/completions",
+                    userBBearer,
+                    "{\"Message\":\"hello\",\"EnableTools\":false,\"EnableRag\":false}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(completion.Status != 401 && completion.Status != 403, "Graph-scoped grants do not block member-level chat completions (status " + completion.Status + " body " + Truncate(completion.Body, 300) + ")");
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
         }
 
         #endregion

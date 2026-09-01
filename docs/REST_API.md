@@ -1257,6 +1257,14 @@ Completion error responses:
 
 On a streaming connection these surface as an `error` event rather than an HTTP status once the stream has opened. Failed turns are persisted with `Success=false` and the upstream status and error, so the failure is visible in the thread's turn history.
 
+### Chat Models
+
+| API       | Method | URL                                     |
+|-----------|--------|-----------------------------------------|
+| Read many | GET    | /v1.0/tenants/[guid]/chat/models        |
+
+Lists the tenant's selectable chat models for any tenant member: each entry is an active endpoint projected to `GUID`, `Name`, `Model`, `Provider`, `EndpointType`, and `IsDefault`. Endpoint URLs, API keys, and health configuration are never included, so the full endpoint listing can stay administrator-only while chat users still pick a model. Supply an entry's `GUID` as `CompletionEndpointGUID` (or `EmbeddingEndpointGUID`) on completion requests to override the tenant default.
+
 ### Chat Threads
 
 | API             | Method | URL                                              |
@@ -1266,9 +1274,10 @@ On a streaming connection these surface as an `error` event rather than an HTTP 
 | Read many (all) | GET    | /v1.0/tenants/[guid]/chat/threads?all            |
 | Read            | GET    | /v1.0/tenants/[guid]/chat/threads/[guid]         |
 | Read turns      | GET    | /v1.0/tenants/[guid]/chat/threads/[guid]/turns   |
+| Update (rename) | PUT    | /v1.0/tenants/[guid]/chat/threads/[guid]         |
 | Delete          | DELETE | /v1.0/tenants/[guid]/chat/threads/[guid]         |
 
-Create takes an optional body of `{ "GraphGUID": ..., "Title": ... }`; the caller becomes the owner, and a missing title is generated from the first exchange. The plain list returns the caller's own threads; the valueless `all` flag returns every user's threads and requires an administrator. Read, turns, and delete are available to the owner or an administrator. Deleting a thread removes its turns and their feedback. Turns are returned ascending by `Sequence` as full `ChatTurn` objects, including all telemetry columns plus `ToolTranscriptJson` and `TelemetryJson` — see [CHAT.md](CHAT.md) for the field-by-field reference.
+Create takes an optional body of `{ "GraphGUID": ..., "Title": ... }`; the caller becomes the owner, and a missing title is generated from the first exchange. The plain list returns the caller's own threads; the valueless `all` flag returns every user's threads and requires an administrator. Update renames a thread — the body is `{ "Title": ... }`, only `Title` is honored, and a blank title is rejected with `400`. Read, turns, update, and delete are available to the owner or an administrator. Deleting a thread removes its turns and their feedback. Turns are returned ascending by `Sequence` as full `ChatTurn` objects, including all telemetry columns plus `ToolTranscriptJson` and `TelemetryJson` — see [CHAT.md](CHAT.md) for the field-by-field reference.
 
 ### Chat Feedback
 

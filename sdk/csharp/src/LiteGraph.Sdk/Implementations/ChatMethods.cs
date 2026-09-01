@@ -130,6 +130,14 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
+        public async Task<ChatThread> UpdateThread(Guid tenantGuid, Guid threadGuid, ChatThread thread, CancellationToken token = default)
+        {
+            if (thread == null) throw new ArgumentNullException(nameof(thread));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/threads/" + threadGuid;
+            return await _Sdk.PutUpdate<ChatThread>(url, thread, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task DeleteThread(Guid tenantGuid, Guid threadGuid, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/threads/" + threadGuid;

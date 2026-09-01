@@ -169,6 +169,17 @@ class Chat:
         return ChatThreadModel.model_validate(instance)
 
     @classmethod
+    def update_thread(cls, thread_guid: str, title: str) -> ChatThreadModel:
+        """Update (rename) a chat thread. Only the Title is honored and it
+        must be non-empty (owner or administrator)."""
+        client = get_client()
+        body = {"Title": title}
+        instance = client.request(
+            "PUT", f"{cls._base_url()}/threads/{thread_guid}", json=body
+        )
+        return ChatThreadModel.model_validate(instance)
+
+    @classmethod
     def delete_thread(cls, thread_guid: str) -> None:
         """Delete a chat thread along with its turns and feedback."""
         client = get_client()

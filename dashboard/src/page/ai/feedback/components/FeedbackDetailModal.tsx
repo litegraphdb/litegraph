@@ -9,6 +9,7 @@ import LitegraphText from '@/components/base/typograpghy/Text';
 import { ChatFeedback } from '@/lib/sdk/chat';
 import { useListChatThreadTurnsQuery } from '@/lib/store/slice/slice';
 import { formatDateTime } from '@/utils/dateUtils';
+import Markdown from '@/page/ai/chat/components/Markdown';
 
 interface FeedbackDetailModalProps {
   tenantGuid: string;
@@ -37,7 +38,7 @@ const FeedbackDetailModal = ({ tenantGuid, feedback, onClose }: FeedbackDetailMo
       onOk={onClose}
       cancelButtonProps={{ style: { display: 'none' } }}
       okText={t('detail.close')}
-      width={640}
+      width={960}
       data-testid="feedback-detail-modal"
     >
       <LitegraphFlex vertical gap={16}>
@@ -82,7 +83,7 @@ const FeedbackDetailModal = ({ tenantGuid, feedback, onClose }: FeedbackDetailMo
                   padding: 10,
                   fontSize: 12.5,
                   whiteSpace: 'pre-wrap',
-                  maxHeight: 160,
+                  maxHeight: 240,
                   overflowY: 'auto',
                 }}
               >
@@ -101,12 +102,12 @@ const FeedbackDetailModal = ({ tenantGuid, feedback, onClose }: FeedbackDetailMo
                   borderRadius: 8,
                   padding: 10,
                   fontSize: 12.5,
-                  whiteSpace: 'pre-wrap',
-                  maxHeight: 220,
+                  maxHeight: 330,
                   overflowY: 'auto',
                 }}
+                data-testid="feedback-assistant-markdown"
               >
-                {turn.AssistantResponse}
+                <Markdown content={turn.AssistantResponse || ''} />
               </div>
             </div>
           </>

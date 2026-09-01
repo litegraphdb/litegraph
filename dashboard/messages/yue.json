@@ -926,6 +926,11 @@
         "responseHeaders": "回應標頭",
         "responseBody": "回應本文",
         "transactionDiagnostics": "交易診斷"
+      },
+      "sse": {
+        "reconstructed": "重組後嘅輸出",
+        "events": "{count} 個串流事件",
+        "raw": "原始串流"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "標記",
       "Vector": "向量",
       "Query": "查詢",
-      "Transaction": "交易"
+      "Transaction": "交易",
+      "Chat": "傾偈"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "首個權杖：{ms} 毫秒",
         "tps": "{tps} 權杖/秒",
         "duration": "總計：{ms} 毫秒"
+      },
+      "toolbar": {
+        "model": "模型",
+        "modelDefault": "預設模型",
+        "defaultModelLabel": "{name}（{model}）— 預設",
+        "streaming": "串流輸出",
+        "streamingTooltip": "生成時即時串流傳送 token"
+      },
+      "disclaimer": "AI 可能會出錯。請核實所有回答。",
+      "renameThreadTooltip": "重新命名對話",
+      "renameThreadModal": {
+        "title": "重新命名對話",
+        "label": "對話標題",
+        "save": "儲存",
+        "failed": "無法重新命名對話。",
+        "done": "對話已重新命名。"
+      },
+      "stats": {
+        "tooltip": "回合統計",
+        "model": "模型",
+        "promptTokens": "提示 token",
+        "completionTokens": "生成 token",
+        "totalTokens": "token 總數",
+        "ttft": "首個 token 時間",
+        "streamingTime": "串流時長",
+        "totalDuration": "總時長",
+        "tpsOverall": "token/秒（整體）",
+        "tpsGeneration": "token/秒（生成）",
+        "toolCalls": "工具呼叫",
+        "toolIterations": "工具迭代",
+        "ragChunks": "檢索到嘅片段",
+        "retries": "重試次數"
+      },
+      "commands": {
+        "helpCommand": "指令",
+        "helpDescription": "說明",
+        "clearDesc": "清空畫面並開始新對話",
+        "contextDesc": "顯示目前上下文資訊",
+        "helpDesc": "顯示呢個說明",
+        "or": "或",
+        "unknown": "未知指令 `{command}`。輸入 `/help` 查看可用指令。",
+        "contextField": "欄位",
+        "contextValue": "值",
+        "contextTenant": "租戶",
+        "contextGraph": "揀選咗嘅圖",
+        "contextThread": "線程",
+        "contextModel": "模型",
+        "contextStreaming": "串流輸出",
+        "contextTokens": "上一回合 token",
+        "none": "無",
+        "on": "開",
+        "off": "關"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "對話",
         "threadDesc": "喺傾偈紀錄開啟呢個對話",
         "turn": "回合",
-        "turnDesc": "被評價嘅回合"
+        "turnDesc": "被評價嘅回合",
+        "user": "用戶",
+        "userDesc": "提交反饋嘅用戶"
       },
       "toast": {
         "deleted": "意見回饋已刪除。",

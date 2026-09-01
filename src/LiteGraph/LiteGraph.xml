@@ -465,6 +465,11 @@
             Role name for graph viewers.
             </summary>
         </member>
+        <member name="F:LiteGraph.AuthorizationPolicyDefinitions.ChatAdminRoleName">
+            <summary>
+            Role name for chat administrators.
+            </summary>
+        </member>
         <member name="F:LiteGraph.AuthorizationPolicyDefinitions.CustomRoleName">
             <summary>
             Role name for custom roles.
@@ -577,6 +582,11 @@
         <member name="F:LiteGraph.AuthorizationResourceTypeEnum.Transaction">
             <summary>
             Graph transaction execution.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.AuthorizationResourceTypeEnum.Chat">
+            <summary>
+            Chat resources, including endpoints, threads, turns, feedback, and settings.
             </summary>
         </member>
         <member name="T:LiteGraph.AuthorizationRole">
@@ -866,6 +876,11 @@
         <member name="F:LiteGraph.BuiltInRoleEnum.Viewer">
             <summary>
             Graph viewer.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.BuiltInRoleEnum.ChatAdmin">
+            <summary>
+            Chat administrator.
             </summary>
         </member>
         <member name="F:LiteGraph.BuiltInRoleEnum.Custom">

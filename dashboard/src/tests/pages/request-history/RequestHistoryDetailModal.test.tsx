@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import RequestHistoryDetailModal from '@/page/request-history/RequestHistoryDetailModal';
-import { RequestHistoryEntry } from '@/lib/sdk/requestHistory';
+import { RequestHistoryEntry, getRequestHistoryDetail } from '@/lib/sdk/requestHistory';
 
 jest.mock('react-hot-toast', () => ({
   success: jest.fn(),
@@ -65,5 +65,38 @@ describe('RequestHistoryDetailModal', () => {
     expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain(
       'calc(100vw - 32px)'
     );
+  });
+
+  it('renders an SSE response body as parsed events with reconstructed output', async () => {
+    const sseBody =
+      'data: {"event":"started","threadGuid":"t1","turnGuid":"u1"}\n\n' +
+      'data: {"event":"delta","content":"Hello "}\n\n' +
+      'data: {"event":"delta","content":"world"}\n\n' +
+      'data: [DONE]\n\n';
+    (getRequestHistoryDetail as jest.Mock).mockResolvedValueOnce({
+      RequestHeaders: { Accept: 'text/event-stream' },
+      ResponseHeaders: { 'Content-Type': 'text/event-stream' },
+      RequestBody: null,
+      ResponseBody: sseBody,
+    });
+
+    render(<RequestHistoryDetailModal entry={requestEntry} open={true} onClose={jest.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+
+    expect(document.querySelector('.ant-modal')?.getAttribute('style')).toContain('top: 16px');
+
+    fireEvent.click(screen.getByText('Response Body'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('request-detail-sse')).toBeInTheDocument();
+    });
+    const sseView = screen.getByTestId('request-detail-sse');
+    expect(sseView).toHaveTextContent('Reconstructed output');
+    expect(sseView).toHaveTextContent('Hello world');
+    expect(sseView).toHaveTextContent('4 streamed events');
+    expect(sseView).toHaveTextContent('[DONE]');
   });
 });

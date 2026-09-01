@@ -926,6 +926,11 @@
         "responseHeaders": "响应头",
         "responseBody": "响应体",
         "transactionDiagnostics": "事务诊断"
+      },
+      "sse": {
+        "reconstructed": "重组后的输出",
+        "events": "{count} 个流式事件",
+        "raw": "原始流"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "标记",
       "Vector": "向量",
       "Query": "查询",
-      "Transaction": "事务"
+      "Transaction": "事务",
+      "Chat": "聊天"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "首个令牌：{ms} 毫秒",
         "tps": "{tps} 令牌/秒",
         "duration": "总计：{ms} 毫秒"
+      },
+      "toolbar": {
+        "model": "模型",
+        "modelDefault": "默认模型",
+        "defaultModelLabel": "{name}（{model}）— 默认",
+        "streaming": "流式输出",
+        "streamingTooltip": "在生成过程中流式传输令牌"
+      },
+      "disclaimer": "AI 可能会出错。请核实所有回答。",
+      "renameThreadTooltip": "重命名会话",
+      "renameThreadModal": {
+        "title": "重命名会话",
+        "label": "会话标题",
+        "save": "保存",
+        "failed": "无法重命名会话。",
+        "done": "会话已重命名。"
+      },
+      "stats": {
+        "tooltip": "轮次统计",
+        "model": "模型",
+        "promptTokens": "提示令牌",
+        "completionTokens": "生成令牌",
+        "totalTokens": "总令牌数",
+        "ttft": "首个令牌耗时",
+        "streamingTime": "流式传输时长",
+        "totalDuration": "总时长",
+        "tpsOverall": "令牌/秒（总体）",
+        "tpsGeneration": "令牌/秒（生成）",
+        "toolCalls": "工具调用",
+        "toolIterations": "工具迭代",
+        "ragChunks": "检索到的片段",
+        "retries": "重试次数"
+      },
+      "commands": {
+        "helpCommand": "命令",
+        "helpDescription": "说明",
+        "clearDesc": "清空视图并开始新会话",
+        "contextDesc": "显示当前上下文信息",
+        "helpDesc": "显示此帮助信息",
+        "or": "或",
+        "unknown": "未知命令 `{command}`。输入 `/help` 查看可用命令。",
+        "contextField": "字段",
+        "contextValue": "值",
+        "contextTenant": "租户",
+        "contextGraph": "选中的图",
+        "contextThread": "线程",
+        "contextModel": "模型",
+        "contextStreaming": "流式输出",
+        "contextTokens": "上一轮令牌",
+        "none": "无",
+        "on": "开",
+        "off": "关"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "会话",
         "threadDesc": "在聊天历史中打开该会话",
         "turn": "轮次",
-        "turnDesc": "被评价的轮次"
+        "turnDesc": "被评价的轮次",
+        "user": "用户",
+        "userDesc": "提交反馈的用户"
       },
       "toast": {
         "deleted": "反馈已删除。",

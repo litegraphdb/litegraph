@@ -333,6 +333,24 @@ export const readChatEndpointHealth = (
 
 // endregion
 
+// region Models
+
+/** Non-privileged model summary for the chat model selector. */
+export type ChatModelSummary = {
+  GUID: string;
+  Name: string;
+  Model: string;
+  Provider: string;
+  EndpointType: 'Completion' | 'Embedding';
+  IsDefault: boolean;
+};
+
+/** List selectable chat models (any tenant member); active endpoints only, no secrets. */
+export const listChatModels = (tenantGuid: string): Promise<ChatModelSummary[]> =>
+  request<ChatModelSummary[]>('GET', `${tenantBase(tenantGuid)}/chat/models`);
+
+// endregion
+
 // region Threads
 
 /** List chat threads; `all` returns every user's thread (admin only). */
@@ -358,6 +376,18 @@ export const listChatThreadTurns = (tenantGuid: string, threadGuid: string): Pro
   request<ChatTurn[]>(
     'GET',
     `${tenantBase(tenantGuid)}/chat/threads/${encodeURIComponent(threadGuid)}/turns`
+  );
+
+/** Rename a chat thread (owner or admin); only Title is honored. */
+export const updateChatThread = (
+  tenantGuid: string,
+  threadGuid: string,
+  body: { Title: string }
+): Promise<ChatThread> =>
+  request<ChatThread>(
+    'PUT',
+    `${tenantBase(tenantGuid)}/chat/threads/${encodeURIComponent(threadGuid)}`,
+    body
   );
 
 /** Delete a thread together with its turns and feedback. */

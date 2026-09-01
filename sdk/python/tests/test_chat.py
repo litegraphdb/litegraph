@@ -293,6 +293,23 @@ class TestChatThreads:
             "GET", f"{CHAT_BASE}/threads/{THREAD_GUID}"
         )
 
+    def test_update_thread(self, mock_client):
+        """update_thread PUTs the new Title."""
+        mock_client.request.return_value = {
+            "GUID": THREAD_GUID,
+            "TenantGUID": TENANT_GUID,
+            "UserGUID": "55555555-5555-5555-5555-555555555555",
+            "Title": "Renamed thread",
+        }
+        result = Chat.update_thread(THREAD_GUID, "Renamed thread")
+        assert isinstance(result, ChatThreadModel)
+        assert result.title == "Renamed thread"
+        mock_client.request.assert_called_once_with(
+            "PUT",
+            f"{CHAT_BASE}/threads/{THREAD_GUID}",
+            json={"Title": "Renamed thread"},
+        )
+
     def test_delete_thread(self, mock_client):
         """delete_thread issues a DELETE."""
         mock_client.request.return_value = None

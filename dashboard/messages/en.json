@@ -954,6 +954,11 @@
         "responseHeaders": "Response Headers",
         "responseBody": "Response Body",
         "transactionDiagnostics": "Transaction Diagnostics"
+      },
+      "sse": {
+        "reconstructed": "Reconstructed output",
+        "events": "{count} streamed events",
+        "raw": "Raw stream"
       }
     }
   },
@@ -1182,7 +1187,8 @@
       "Tag": "Tag",
       "Vector": "Vector",
       "Query": "Query",
-      "Transaction": "Transaction"
+      "Transaction": "Transaction",
+      "Chat": "Chat"
     }
   },
   "backups": {
@@ -1607,6 +1613,58 @@
         "ttft": "First token: {ms} ms",
         "tps": "{tps} tokens/s",
         "duration": "Total: {ms} ms"
+      },
+      "toolbar": {
+        "model": "Model",
+        "modelDefault": "Default model",
+        "defaultModelLabel": "{name} ({model}) — default",
+        "streaming": "Streaming",
+        "streamingTooltip": "Stream tokens as they are generated"
+      },
+      "disclaimer": "AI can make mistakes. Please verify all answers.",
+      "renameThreadTooltip": "Rename conversation",
+      "renameThreadModal": {
+        "title": "Rename conversation",
+        "label": "Conversation title",
+        "save": "Save",
+        "failed": "Unable to rename the conversation.",
+        "done": "Conversation renamed."
+      },
+      "stats": {
+        "tooltip": "Turn statistics",
+        "model": "Model",
+        "promptTokens": "Prompt tokens",
+        "completionTokens": "Completion tokens",
+        "totalTokens": "Total tokens",
+        "ttft": "Time to first token",
+        "streamingTime": "Streaming time",
+        "totalDuration": "Total duration",
+        "tpsOverall": "Tokens/sec (overall)",
+        "tpsGeneration": "Tokens/sec (generation)",
+        "toolCalls": "Tool calls",
+        "toolIterations": "Tool iterations",
+        "ragChunks": "Retrieved chunks",
+        "retries": "Retries"
+      },
+      "commands": {
+        "helpCommand": "Command",
+        "helpDescription": "Description",
+        "clearDesc": "Clear the view and start a new conversation",
+        "contextDesc": "Display current context information",
+        "helpDesc": "Show this help message",
+        "or": "or",
+        "unknown": "Unknown command `{command}`. Type `/help` to see available commands.",
+        "contextField": "Field",
+        "contextValue": "Value",
+        "contextTenant": "Tenant",
+        "contextGraph": "Selected graph",
+        "contextThread": "Thread",
+        "contextModel": "Model",
+        "contextStreaming": "Streaming",
+        "contextTokens": "Last turn tokens",
+        "none": "None",
+        "on": "On",
+        "off": "Off"
       }
     },
     "endpoints": {
@@ -1831,7 +1889,9 @@
         "thread": "Conversation",
         "threadDesc": "Open the conversation in Chat History",
         "turn": "Turn",
-        "turnDesc": "The rated turn"
+        "turnDesc": "The rated turn",
+        "user": "User",
+        "userDesc": "The user who submitted the feedback"
       },
       "toast": {
         "deleted": "Feedback deleted.",

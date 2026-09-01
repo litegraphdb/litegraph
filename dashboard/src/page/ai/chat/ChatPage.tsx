@@ -2,23 +2,28 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
-import { Alert, Drawer, Grid } from 'antd';
+import { Alert, Drawer, Grid, Switch } from 'antd';
 import { MenuUnfoldOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
+import LitegraphSelect from '@/components/base/select/Select';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ConfirmationModal from '@/components/confirmation-modal/ConfirmationModal';
 import { useCan } from '@/hooks/permissionHooks';
 import { useAppDynamicNavigation } from '@/hooks/hooks';
+import { useAppSelector } from '@/lib/store/hooks';
+import { RootState } from '@/lib/store/store';
 import { paths } from '@/constants/constant';
 import { globalToastId } from '@/constants/config';
 import { ChatFeedbackRating, ChatThread, ChatTurn } from '@/lib/sdk/chat';
-import { streamChatCompletion } from '@/lib/sdk/chatSse';
+import { completeChatCompletion, streamChatCompletion } from '@/lib/sdk/chatSse';
 import {
   useDeleteChatThreadMutation,
   useGetChatSettingsQuery,
+  useListChatModelsQuery,
   useListChatThreadTurnsQuery,
   useListChatThreadsQuery,
 } from '@/lib/store/slice/slice';
@@ -33,6 +38,10 @@ import ThreadSidebar from './components/ThreadSidebar';
 import ChatInput from './components/ChatInput';
 import FeedbackModal from './components/FeedbackModal';
 import NewThreadModal from './components/NewThreadModal';
+import RenameThreadModal from './components/RenameThreadModal';
+
+/** A slash-command notice pinned after the display item index it was issued at. */
+type ChatNotice = { id: number; afterCount: number; content: string };
 
 const turnToDisplayItem = (turn: ChatTurn): ChatDisplayItem => ({
   key: turn.GUID,
@@ -44,6 +53,21 @@ const turnToDisplayItem = (turn: ChatTurn): ChatDisplayItem => ({
   retrieval: [],
   error: turn.Success ? null : turn.Error || '',
   streaming: false,
+  stats: {
+    provider: turn.Provider,
+    model: turn.Model,
+    promptTokens: turn.PromptTokens,
+    completionTokens: turn.CompletionTokens,
+    ttftMs: turn.TimeToFirstTokenMs,
+    ttltMs: turn.TimeToLastTokenMs,
+    totalDurationMs: turn.TotalDurationMs,
+    tpsOverall: turn.TokensPerSecondOverall,
+    tpsGeneration: turn.TokensPerSecondGeneration,
+    toolCalls: turn.ToolCallCount,
+    toolIterations: turn.ToolLoopIterations,
+    ragChunks: turn.RetrievedChunkCount,
+    retries: turn.RetryCount,
+  },
 });
 
 const exchangeToDisplayItem = (exchange: ChatExchange, streaming: boolean): ChatDisplayItem => ({
@@ -56,6 +80,22 @@ const exchangeToDisplayItem = (exchange: ChatExchange, streaming: boolean): Chat
   retrieval: exchange.retrieval,
   error: exchange.error,
   streaming,
+  stats: exchange.usage
+    ? {
+        provider: exchange.usage.Provider,
+        model: exchange.usage.Model,
+        promptTokens: exchange.usage.PromptTokens,
+        completionTokens: exchange.usage.CompletionTokens,
+        ttftMs: exchange.usage.TimeToFirstTokenMs,
+        ttltMs: exchange.usage.TimeToLastTokenMs,
+        totalDurationMs: exchange.usage.TotalDurationMs,
+        tpsOverall: exchange.usage.TokensPerSecondOverall,
+        toolCalls: exchange.usage.ToolCallCount,
+        toolIterations: exchange.usage.ToolLoopIterations,
+        ragChunks: exchange.usage.RetrievedChunkCount,
+        retries: exchange.usage.RetryCount,
+      }
+    : null,
 });
 
 const ChatPage = () => {
@@ -95,8 +135,24 @@ const ChatPage = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const localIdRef = useRef(0);
+  const noticeIdRef = useRef(0);
+
+  const selectedGraph = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
+  const tenant = useAppSelector((state: RootState) => state.liteGraph.tenant);
+
+  const { data: chatModels = [] } = useListChatModelsQuery({ tenantGuid }, { skip: !tenantGuid });
+  const completionModels = useMemo(
+    () => chatModels.filter((model) => model.EndpointType === 'Completion'),
+    [chatModels]
+  );
+  const [completionEndpointGuid, setCompletionEndpointGuid] = useState<string | undefined>(
+    undefined
+  );
+  const [streamingEnabled, setStreamingEnabled] = useState(true);
+  const [notices, setNotices] = useState<ChatNotice[]>([]);
 
   const [isNewThreadModalOpen, setIsNewThreadModalOpen] = useState(false);
+  const [threadToRename, setThreadToRename] = useState<ChatThread | null>(null);
   const [threadToDelete, setThreadToDelete] = useState<ChatThread | null>(null);
   const [feedbackTarget, setFeedbackTarget] = useState<{
     turnGuid: string;
@@ -126,13 +182,110 @@ const ChatPage = () => {
     abortRef.current?.abort();
     setIsStreaming(false);
     dispatch({ type: 'reset' });
+    setNotices([]);
     setSelectedThreadGuid(threadGuid);
     setIsDrawerOpen(false);
   }, []);
 
+  const baseItems = useMemo<ChatDisplayItem[]>(() => {
+    const items: ChatDisplayItem[] = serverTurns.map(turnToDisplayItem);
+    const serverGuids = new Set(serverTurns.map((turn) => turn.GUID));
+    for (const exchange of streamState.completed) {
+      if (exchange.turnGuid && serverGuids.has(exchange.turnGuid)) continue;
+      items.push(exchangeToDisplayItem(exchange, false));
+    }
+    if (streamState.live) {
+      items.push(exchangeToDisplayItem(streamState.live, true));
+    }
+    return items;
+  }, [serverTurns, streamState]);
+
+  const baseItemCountRef = useRef(0);
+  useEffect(() => {
+    baseItemCountRef.current = baseItems.length;
+  }, [baseItems]);
+
+  const lastUsage =
+    streamState.live?.usage ??
+    (streamState.completed.length > 0
+      ? streamState.completed[streamState.completed.length - 1].usage
+      : null);
+
+  const selectedModel = completionEndpointGuid
+    ? completionModels.find((model) => model.GUID === completionEndpointGuid)
+    : (completionModels.find((model) => model.IsDefault) ?? completionModels[0]);
+
+  const pushNotice = useCallback((content: string) => {
+    noticeIdRef.current += 1;
+    setNotices((prev) => [
+      ...prev,
+      { id: noticeIdRef.current, afterCount: baseItemCountRef.current, content },
+    ]);
+  }, []);
+
+  const handleSlashCommand = useCallback(
+    (input: string): boolean => {
+      const command = input.split(/\s/)[0].toLowerCase();
+      switch (command) {
+        case '/clear':
+          selectThread(null);
+          return true;
+        case '/context': {
+          const rows: string[] = [
+            `| ${t('commands.contextField')} | ${t('commands.contextValue')} |`,
+            '|---|---|',
+            `| ${t('commands.contextTenant')} | ${tenant?.Name ? `${tenant.Name} (\`${tenantGuid}\`)` : `\`${tenantGuid}\``} |`,
+            `| ${t('commands.contextGraph')} | ${selectedGraph ? `\`${selectedGraph}\`` : t('commands.none')} |`,
+            `| ${t('commands.contextThread')} | ${selectedThreadGuid ? `\`${selectedThreadGuid}\`` : t('commands.none')} |`,
+            `| ${t('commands.contextModel')} | ${selectedModel ? `${selectedModel.Name} (${selectedModel.Model})` : t('commands.none')} |`,
+            `| ${t('commands.contextStreaming')} | ${streamingEnabled ? t('commands.on') : t('commands.off')} |`,
+          ];
+          if (lastUsage) {
+            rows.push(
+              `| ${t('commands.contextTokens')} | ${(lastUsage.PromptTokens ?? 0) + (lastUsage.CompletionTokens ?? 0)} |`
+            );
+          }
+          pushNotice(rows.join('\n'));
+          return true;
+        }
+        case '/help':
+        case '/?':
+          pushNotice(
+            [
+              `| ${t('commands.helpCommand')} | ${t('commands.helpDescription')} |`,
+              '|---------|-------------|',
+              `| \`/clear\` | ${t('commands.clearDesc')} |`,
+              `| \`/context\` | ${t('commands.contextDesc')} |`,
+              `| \`/?\` ${t('commands.or')} \`/help\` | ${t('commands.helpDesc')} |`,
+            ].join('\n')
+          );
+          return true;
+        default:
+          pushNotice(t('commands.unknown', { command }));
+          return true;
+      }
+    },
+    [
+      selectThread,
+      pushNotice,
+      t,
+      tenant,
+      tenantGuid,
+      selectedGraph,
+      selectedThreadGuid,
+      selectedModel,
+      streamingEnabled,
+      lastUsage,
+    ]
+  );
+
   const handleSend = useCallback(
     async (message: string) => {
       if (!tenantGuid || isStreaming || !chatAvailable) return;
+      if (message.trimStart().startsWith('/')) {
+        handleSlashCommand(message.trim());
+        return;
+      }
       localIdRef.current += 1;
       const localId = `local-${localIdRef.current}`;
       dispatch({ type: 'sendStarted', localId, userMessage: message, threadGuid: selectedThreadGuid });
@@ -140,10 +293,18 @@ const ChatPage = () => {
       const controller = new AbortController();
       abortRef.current = controller;
       let startedThreadGuid: string | null = null;
+      const request = {
+        ThreadGUID: selectedThreadGuid,
+        Message: message,
+        Stream: streamingEnabled,
+        CompletionEndpointGUID: completionEndpointGuid || null,
+        GraphGUID: selectedGraph || null,
+      };
+      const transport = streamingEnabled ? streamChatCompletion : completeChatCompletion;
       try {
-        await streamChatCompletion(
+        await transport(
           tenantGuid,
-          { ThreadGUID: selectedThreadGuid, Message: message, Stream: true },
+          request,
           (event) => {
             if (event.event === 'started') {
               startedThreadGuid = event.threadGuid;
@@ -174,7 +335,19 @@ const ChatPage = () => {
         }
       }
     },
-    [tenantGuid, isStreaming, chatAvailable, selectedThreadGuid, refetchThreads, refetchTurns, t]
+    [
+      tenantGuid,
+      isStreaming,
+      chatAvailable,
+      selectedThreadGuid,
+      streamingEnabled,
+      completionEndpointGuid,
+      selectedGraph,
+      handleSlashCommand,
+      refetchThreads,
+      refetchTurns,
+      t,
+    ]
   );
 
   const handleStop = useCallback(() => {
@@ -196,23 +369,32 @@ const ChatPage = () => {
   };
 
   const displayItems = useMemo<ChatDisplayItem[]>(() => {
-    const items: ChatDisplayItem[] = serverTurns.map(turnToDisplayItem);
-    const serverGuids = new Set(serverTurns.map((turn) => turn.GUID));
-    for (const exchange of streamState.completed) {
-      if (exchange.turnGuid && serverGuids.has(exchange.turnGuid)) continue;
-      items.push(exchangeToDisplayItem(exchange, false));
+    if (notices.length === 0) return baseItems;
+    const merged: ChatDisplayItem[] = [];
+    let noticeIndex = 0;
+    for (let i = 0; i <= baseItems.length; i++) {
+      while (noticeIndex < notices.length && notices[noticeIndex].afterCount <= i) {
+        const notice = notices[noticeIndex];
+        merged.push({
+          key: `notice-${notice.id}`,
+          turnGuid: null,
+          userMessage: '',
+          assistant: '',
+          thinking: '',
+          tools: [],
+          retrieval: [],
+          error: null,
+          streaming: false,
+          notice: notice.content,
+        });
+        noticeIndex += 1;
+      }
+      if (i < baseItems.length) merged.push(baseItems[i]);
     }
-    if (streamState.live) {
-      items.push(exchangeToDisplayItem(streamState.live, true));
-    }
-    return items;
-  }, [serverTurns, streamState]);
+    return merged;
+  }, [baseItems, notices]);
 
-  const usage =
-    streamState.live?.usage ??
-    (streamState.completed.length > 0
-      ? streamState.completed[streamState.completed.length - 1].usage
-      : null);
+  const usage = lastUsage;
 
   const sidebar = (
     <ThreadSidebar
@@ -221,6 +403,7 @@ const ChatPage = () => {
       selectedThreadGuid={selectedThreadGuid}
       onSelect={(threadGuid) => selectThread(threadGuid)}
       onNewThread={() => setIsNewThreadModalOpen(true)}
+      onRenameThread={(thread) => setThreadToRename(thread)}
       onDeleteThread={(thread) => setThreadToDelete(thread)}
       disabled={!chatAvailable}
     />
@@ -344,12 +527,73 @@ const ChatPage = () => {
               <span>{t('status.duration', { ms: Math.round(usage.TotalDurationMs) })}</span>
             </LitegraphFlex>
           )}
+          <LitegraphFlex
+            align="center"
+            gap={12}
+            wrap="wrap"
+            style={{
+              paddingInline: 16,
+              paddingBlock: 6,
+              borderTop: '1px solid var(--ant-color-border-secondary)',
+            }}
+            data-testid="chat-toolbar"
+          >
+            <LitegraphFlex align="center" gap={6}>
+              <LitegraphText style={{ fontSize: 12, color: 'var(--ant-color-text-secondary)' }}>
+                {t('toolbar.model')}
+              </LitegraphText>
+              <LitegraphSelect
+                size="small"
+                showSearch
+                optionFilterProp="label"
+                style={{ minWidth: 220 }}
+                placeholder={t('toolbar.modelDefault')}
+                value={completionEndpointGuid}
+                allowClear
+                onChange={(value) => setCompletionEndpointGuid((value as string) || undefined)}
+                options={completionModels.map((model) => ({
+                  label: model.IsDefault
+                    ? t('toolbar.defaultModelLabel', { name: model.Name, model: model.Model })
+                    : `${model.Name} (${model.Model})`,
+                  value: model.GUID,
+                }))}
+                disabled={!chatAvailable}
+                data-testid="chat-model-select"
+              />
+            </LitegraphFlex>
+            <LitegraphFlex align="center" gap={6}>
+              <LitegraphTooltip title={t('toolbar.streamingTooltip')}>
+                <Switch
+                  size="small"
+                  checked={streamingEnabled}
+                  onChange={setStreamingEnabled}
+                  disabled={!chatAvailable || isStreaming}
+                  aria-label={t('toolbar.streaming')}
+                  data-testid="chat-streaming-toggle"
+                />
+              </LitegraphTooltip>
+              <LitegraphText style={{ fontSize: 12, color: 'var(--ant-color-text-secondary)' }}>
+                {t('toolbar.streaming')}
+              </LitegraphText>
+            </LitegraphFlex>
+          </LitegraphFlex>
           <ChatInput
             disabled={!chatAvailable}
             isStreaming={isStreaming}
             onSend={handleSend}
             onStop={handleStop}
           />
+          <LitegraphText
+            style={{
+              fontSize: 11.5,
+              color: 'var(--ant-color-text-tertiary)',
+              textAlign: 'center',
+              paddingBlock: 4,
+            }}
+            data-testid="chat-disclaimer"
+          >
+            {t('disclaimer')}
+          </LitegraphText>
         </LitegraphFlex>
       </LitegraphFlex>
 
@@ -371,6 +615,14 @@ const ChatPage = () => {
           tenantGuid={tenantGuid}
           onClose={() => setIsNewThreadModalOpen(false)}
           onCreated={(threadGuid) => selectThread(threadGuid)}
+        />
+      )}
+
+      {threadToRename && (
+        <RenameThreadModal
+          tenantGuid={tenantGuid}
+          thread={threadToRename}
+          onClose={() => setThreadToRename(null)}
         />
       )}
 

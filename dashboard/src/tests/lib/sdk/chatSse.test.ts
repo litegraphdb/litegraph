@@ -1,5 +1,10 @@
 import '@testing-library/jest-dom';
-import { ChatSseEvent, createChatSseParser, streamChatCompletion } from '@/lib/sdk/chatSse';
+import {
+  ChatSseEvent,
+  completeChatCompletion,
+  createChatSseParser,
+  streamChatCompletion,
+} from '@/lib/sdk/chatSse';
 import { setEndpoint } from '@/lib/sdk/litegraph.service';
 
 const collect = () => {
@@ -156,5 +161,69 @@ describe('streamChatCompletion', () => {
     await expect(
       streamChatCompletion('tenant-1', { Message: 'x' }, () => undefined)
     ).rejects.toThrow('No completion endpoint is configured.');
+  });
+});
+
+describe('completeChatCompletion', () => {
+  beforeEach(() => {
+    setEndpoint('http://localhost:8701/');
+    jest.clearAllMocks();
+  });
+
+  const result = {
+    ThreadGUID: 'thread-1',
+    TurnGUID: 'turn-1',
+    Message: 'Hello world',
+    Reasoning: null,
+    Provider: 'OpenAI',
+    Model: 'gpt-4o',
+    PromptTokens: 5,
+    CompletionTokens: 7,
+    TotalDurationMs: 1000,
+    ToolCallCount: 0,
+    ToolLoopIterations: 0,
+    RetrievedChunkCount: 0,
+    RetryCount: 0,
+  };
+
+  it('POSTs with Stream=false and replays the result as started/delta/usage/done', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => result,
+    }) as jest.Mock;
+
+    const events: ChatSseEvent[] = [];
+    await completeChatCompletion(
+      'tenant-1',
+      { Message: 'hi', Stream: true },
+      (e) => events.push(e)
+    );
+
+    const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe('http://localhost:8701/v1.0/tenants/tenant-1/chat/completions');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toMatchObject({ Message: 'hi', Stream: false });
+
+    expect(events.map((e) => e.event)).toEqual(['started', 'delta', 'usage', 'done']);
+    expect(events[0]).toEqual({ event: 'started', threadGuid: 'thread-1', turnGuid: 'turn-1' });
+    expect(events[1]).toEqual({ event: 'delta', content: 'Hello world' });
+    expect(events[2]).toMatchObject({
+      event: 'usage',
+      usage: { PromptTokens: 5, CompletionTokens: 7 },
+    });
+  });
+
+  it('emits a thinking event before delta when Reasoning is present', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ...result, Reasoning: 'step 1' }),
+    }) as jest.Mock;
+
+    const events: ChatSseEvent[] = [];
+    await completeChatCompletion('tenant-1', { Message: 'hi' }, (e) => events.push(e));
+
+    expect(events.map((e) => e.event)).toEqual(['started', 'thinking', 'delta', 'usage', 'done']);
   });
 });

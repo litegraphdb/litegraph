@@ -2783,6 +2783,29 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
+   * Update (rename) a chat thread. Only the Title property is honored and it must be non-empty.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} threadGuid - Chat thread GUID.
+   * @param {Object} thread - Thread payload.
+   * @param {string} thread.Title - New thread title.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatThread>} - The updated chat thread.
+   */
+  async updateChatThread(tenantGuid, threadGuid, thread, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!threadGuid) {
+      GenericExceptionHandlers.ArgumentNullException('threadGuid');
+    }
+    if (!thread) {
+      GenericExceptionHandlers.ArgumentNullException('thread');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/threads/${threadGuid}`;
+    return await this.putUpdate(url, thread, ChatThread, cancellationToken);
+  }
+
+  /**
    * Delete a chat thread along with its turns and feedback.
    * @param {string} tenantGuid - Tenant GUID.
    * @param {string} threadGuid - Chat thread GUID.

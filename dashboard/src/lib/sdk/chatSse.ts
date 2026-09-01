@@ -88,6 +88,53 @@ export const createChatSseParser = (onEvent: (event: ChatSseEvent) => void) => {
  * until the `[DONE]` sentinel or stream end. Throws on a non-2xx response with
  * the server's Description when available. Abortable via `signal`.
  */
+/**
+ * POSTs a buffered (non-streaming) chat completion and replays the JSON result
+ * as synthetic SSE events (`started` → `thinking` → `delta` → `usage` →
+ * `done`) so callers can share one event-driven code path with streaming.
+ * Throws on a non-2xx response with the server's Description when available.
+ */
+export const completeChatCompletion = async (
+  tenantGuid: string,
+  body: ChatCompletionRequest,
+  onEvent: (event: ChatSseEvent) => void,
+  signal?: AbortSignal
+): Promise<void> => {
+  const headers = buildChatHeaders();
+  headers['Content-Type'] = 'application/json';
+
+  const response = await fetch(chatCompletionsUrl(tenantGuid), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ ...body, Stream: false }),
+    signal,
+  });
+
+  if (!response.ok) {
+    let message = `HTTP ${response.status} ${response.statusText}`;
+    try {
+      const errorBody = await response.json();
+      message = errorBody?.Description || errorBody?.Message || message;
+    } catch {
+      // Keep the HTTP status message when the server did not return JSON.
+    }
+    const error = new Error(message) as Error & { statusCode?: number };
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  const result = (await response.json()) as ChatCompletionResult;
+  onEvent({
+    event: 'started',
+    threadGuid: result.ThreadGUID,
+    turnGuid: result.TurnGUID,
+  });
+  if (result.Reasoning) onEvent({ event: 'thinking', content: result.Reasoning });
+  if (result.Message) onEvent({ event: 'delta', content: result.Message });
+  onEvent({ event: 'usage', usage: result });
+  onEvent({ event: 'done' });
+};
+
 export const streamChatCompletion = async (
   tenantGuid: string,
   body: ChatCompletionRequest,

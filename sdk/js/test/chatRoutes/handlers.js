@@ -117,6 +117,11 @@ export const handlers = [
     return HttpResponse.json(chatTurnsMockApiResponse);
   }),
 
+  // Update a chat thread
+  http.put(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/threads/${mockThreadGuid}`, () => {
+    return HttpResponse.json(chatThreadData);
+  }),
+
   // Delete a chat thread
   http.delete(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/threads/${mockThreadGuid}`, () => {
     return HttpResponse.json(chatThreadData);

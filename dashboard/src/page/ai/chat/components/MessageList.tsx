@@ -1,12 +1,13 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { Alert, Card, Collapse, Spin, Table, Tag } from 'antd';
+import { Alert, Card, Collapse, Popover, Spin, Table, Tag } from 'antd';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
   DislikeOutlined,
   FileSearchOutlined,
+  InfoCircleOutlined,
   LikeOutlined,
   ToolOutlined,
 } from '@ant-design/icons';
@@ -20,6 +21,23 @@ import { ChatRetrievalChunk } from '@/lib/sdk/chatSse';
 import { ToolActivityEntry } from '../chatStream';
 import Markdown from './Markdown';
 
+/** Per-turn statistics surfaced behind the (i) button. */
+export type ChatTurnStats = {
+  provider?: string | null;
+  model?: string | null;
+  promptTokens?: number | null;
+  completionTokens?: number | null;
+  ttftMs?: number | null;
+  ttltMs?: number | null;
+  totalDurationMs?: number | null;
+  tpsOverall?: number | null;
+  tpsGeneration?: number | null;
+  toolCalls?: number | null;
+  toolIterations?: number | null;
+  ragChunks?: number | null;
+  retries?: number | null;
+};
+
 /** Normalized display model for one exchange (server turn or live stream). */
 export type ChatDisplayItem = {
   key: string;
@@ -31,6 +49,9 @@ export type ChatDisplayItem = {
   retrieval: ChatRetrievalChunk[];
   error: string | null;
   streaming: boolean;
+  stats?: ChatTurnStats | null;
+  /** When set, the item renders as a centered system notice (slash-command output). */
+  notice?: string;
 };
 
 interface MessageListProps {
@@ -141,6 +162,86 @@ const ToolActivityView = ({ tools }: { tools: ToolActivityEntry[] }) => {
   );
 };
 
+const TurnStatsButton = ({ stats }: { stats: ChatTurnStats }) => {
+  const t = useTranslations('ai.chat');
+
+  const streamingMs =
+    stats.ttftMs != null && stats.ttltMs != null ? Math.max(0, stats.ttltMs - stats.ttftMs) : null;
+  const totalTokens =
+    stats.promptTokens != null || stats.completionTokens != null
+      ? (stats.promptTokens ?? 0) + (stats.completionTokens ?? 0)
+      : null;
+
+  const rows: { label: string; value: string }[] = [];
+  const push = (label: string, value: string | null | undefined) => {
+    if (value != null && value !== '') rows.push({ label, value });
+  };
+  push(
+    t('stats.model'),
+    stats.model ? (stats.provider ? `${stats.provider} / ${stats.model}` : stats.model) : null
+  );
+  push(t('stats.promptTokens'), stats.promptTokens != null ? String(stats.promptTokens) : null);
+  push(
+    t('stats.completionTokens'),
+    stats.completionTokens != null ? String(stats.completionTokens) : null
+  );
+  push(t('stats.totalTokens'), totalTokens != null ? String(totalTokens) : null);
+  push(t('stats.ttft'), stats.ttftMs != null ? `${Math.round(stats.ttftMs)} ms` : null);
+  push(t('stats.streamingTime'), streamingMs != null ? `${Math.round(streamingMs)} ms` : null);
+  push(
+    t('stats.totalDuration'),
+    stats.totalDurationMs != null ? `${Math.round(stats.totalDurationMs)} ms` : null
+  );
+  push(t('stats.tpsOverall'), stats.tpsOverall != null ? stats.tpsOverall.toFixed(1) : null);
+  push(
+    t('stats.tpsGeneration'),
+    stats.tpsGeneration != null ? stats.tpsGeneration.toFixed(1) : null
+  );
+  push(t('stats.toolCalls'), stats.toolCalls ? String(stats.toolCalls) : null);
+  push(t('stats.toolIterations'), stats.toolIterations ? String(stats.toolIterations) : null);
+  push(t('stats.ragChunks'), stats.ragChunks ? String(stats.ragChunks) : null);
+  push(t('stats.retries'), stats.retries ? String(stats.retries) : null);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <Popover
+      trigger="click"
+      placement="topLeft"
+      content={
+        <table style={{ fontSize: 12, borderCollapse: 'collapse' }} data-testid="chat-turn-stats">
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.label}>
+                <td
+                  style={{
+                    padding: '2px 12px 2px 0',
+                    color: 'var(--ant-color-text-secondary)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {row.label}
+                </td>
+                <td style={{ padding: '2px 0', fontVariantNumeric: 'tabular-nums' }}>{row.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      }
+    >
+      <LitegraphTooltip title={t('stats.tooltip')}>
+        <LitegraphButton
+          type="text"
+          size="small"
+          icon={<InfoCircleOutlined style={{ fontSize: 13 }} />}
+          aria-label={t('stats.tooltip')}
+          data-testid="chat-turn-stats-button"
+        />
+      </LitegraphTooltip>
+    </Popover>
+  );
+};
+
 const SourcesCard = ({ retrieval }: { retrieval: ChatRetrievalChunk[] }) => {
   const t = useTranslations('ai.chat');
   if (retrieval.length === 0) return null;
@@ -193,7 +294,24 @@ const MessageList = ({ items, onFeedback }: MessageListProps) => {
     <LitegraphFlex vertical gap={16} style={{ padding: '16px 16px 8px' }} data-testid="chat-messages">
       {items.map((item) => (
         <LitegraphFlex key={item.key} vertical gap={4}>
+          {/* System notice (slash-command output) */}
+          {item.notice != null ? (
+            <LitegraphFlex justify="center">
+              <div
+                style={{
+                  ...bubbleBase,
+                  background: 'var(--ant-color-fill-quaternary)',
+                  border: '1px dashed var(--ant-color-border)',
+                  fontSize: 12.5,
+                }}
+                data-testid="chat-system-notice"
+              >
+                <Markdown content={item.notice} />
+              </div>
+            </LitegraphFlex>
+          ) : null}
           {/* User bubble */}
+          {item.notice == null && (
           <LitegraphFlex justify="flex-end">
             <div
               style={{
@@ -206,6 +324,7 @@ const MessageList = ({ items, onFeedback }: MessageListProps) => {
               <LitegraphText style={{ fontSize: 13.5 }}>{item.userMessage}</LitegraphText>
             </div>
           </LitegraphFlex>
+          )}
 
           {/* Thinking block */}
           {item.thinking && (
@@ -265,6 +384,7 @@ const MessageList = ({ items, onFeedback }: MessageListProps) => {
                 {!item.streaming && item.assistant && (
                   <LitegraphFlex align="center" gap={2} style={{ marginTop: 4 }}>
                     <CopyButton text={item.assistant} tooltipTitle={t('copyMessage')} />
+                    {item.stats && <TurnStatsButton stats={item.stats} />}
                     {item.turnGuid && (
                       <>
                         <LitegraphTooltip title={t('feedback.up')}>

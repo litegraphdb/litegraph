@@ -622,6 +622,7 @@ namespace LiteGraph.Server
             _ServiceHandler.ChatHealth = _ChatHealthService;
             _ServiceHandler.Chat = _ChatService;
             _ServiceHandler.Observability = _ObservabilityService;
+            _ServiceHandler.Authorization = _AuthenticationService.Authorization;
 
             _RestService = new RestServiceHandler(
                 _Settings,

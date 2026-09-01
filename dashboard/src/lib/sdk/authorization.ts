@@ -11,8 +11,9 @@ export type AuthorizationResourceType =
   | 'Tag'
   | 'Vector'
   | 'Query'
-  | 'Transaction';
-export type BuiltInRole = 'TenantAdmin' | 'GraphAdmin' | 'Editor' | 'Viewer' | 'Custom';
+  | 'Transaction'
+  | 'Chat';
+export type BuiltInRole = 'TenantAdmin' | 'GraphAdmin' | 'Editor' | 'Viewer' | 'ChatAdmin' | 'Custom';
 
 export type AuthorizationRole = {
   GUID: string;

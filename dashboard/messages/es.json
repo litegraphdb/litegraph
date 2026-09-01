@@ -926,6 +926,11 @@
         "responseHeaders": "Encabezados de la respuesta",
         "responseBody": "Cuerpo de la respuesta",
         "transactionDiagnostics": "Diagnóstico de la transacción"
+      },
+      "sse": {
+        "reconstructed": "Salida reconstruida",
+        "events": "{count} eventos transmitidos",
+        "raw": "Flujo sin procesar"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "Marcador",
       "Vector": "Vector",
       "Query": "Consulta",
-      "Transaction": "Transacción"
+      "Transaction": "Transacción",
+      "Chat": "Chat"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "Primer token: {ms} ms",
         "tps": "{tps} tokens/s",
         "duration": "Total: {ms} ms"
+      },
+      "toolbar": {
+        "model": "Modelo",
+        "modelDefault": "Modelo predeterminado",
+        "defaultModelLabel": "{name} ({model}) — predeterminado",
+        "streaming": "Streaming",
+        "streamingTooltip": "Transmitir tokens a medida que se generan"
+      },
+      "disclaimer": "La IA puede cometer errores. Verifique todas las respuestas.",
+      "renameThreadTooltip": "Renombrar conversación",
+      "renameThreadModal": {
+        "title": "Renombrar conversación",
+        "label": "Título de la conversación",
+        "save": "Guardar",
+        "failed": "No se pudo renombrar la conversación.",
+        "done": "Conversación renombrada."
+      },
+      "stats": {
+        "tooltip": "Estadísticas del turno",
+        "model": "Modelo",
+        "promptTokens": "Tokens de prompt",
+        "completionTokens": "Tokens de completado",
+        "totalTokens": "Tokens totales",
+        "ttft": "Tiempo hasta el primer token",
+        "streamingTime": "Tiempo de streaming",
+        "totalDuration": "Duración total",
+        "tpsOverall": "Tokens/seg (total)",
+        "tpsGeneration": "Tokens/seg (generación)",
+        "toolCalls": "Llamadas a herramientas",
+        "toolIterations": "Iteraciones de herramientas",
+        "ragChunks": "Fragmentos recuperados",
+        "retries": "Reintentos"
+      },
+      "commands": {
+        "helpCommand": "Comando",
+        "helpDescription": "Descripción",
+        "clearDesc": "Limpiar la vista e iniciar una nueva conversación",
+        "contextDesc": "Mostrar la información de contexto actual",
+        "helpDesc": "Mostrar este mensaje de ayuda",
+        "or": "o",
+        "unknown": "Comando desconocido `{command}`. Escriba `/help` para ver los comandos disponibles.",
+        "contextField": "Campo",
+        "contextValue": "Valor",
+        "contextTenant": "Inquilino",
+        "contextGraph": "Grafo seleccionado",
+        "contextThread": "Hilo",
+        "contextModel": "Modelo",
+        "contextStreaming": "Streaming",
+        "contextTokens": "Tokens del último turno",
+        "none": "Ninguno",
+        "on": "Activado",
+        "off": "Desactivado"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "Conversación",
         "threadDesc": "Abrir la conversación en el historial de chat",
         "turn": "Turno",
-        "turnDesc": "El turno valorado"
+        "turnDesc": "El turno valorado",
+        "user": "Usuario",
+        "userDesc": "El usuario que envió el comentario"
       },
       "toast": {
         "deleted": "Comentario eliminado.",

@@ -91,6 +91,8 @@ import {
   listChatEndpointHealth,
   listChatEndpoints,
   listChatFeedback,
+  ChatModelSummary,
+  listChatModels,
   listChatThreadTurns,
   listChatThreads,
   readChatThread,
@@ -98,6 +100,7 @@ import {
   testChatEndpoint,
   updateChatEndpoint,
   updateChatSettings,
+  updateChatThread,
 } from '@/lib/sdk/chat';
 
 const enhancedSdk = sdkSlice.enhanceEndpoints({
@@ -923,6 +926,12 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       providesTags: [SliceTags.CHAT_ENDPOINT],
     }),
+    listChatModels: build.query<ChatModelSummary[], { tenantGuid: string }>({
+      query: ({ tenantGuid }) => ({
+        callback: () => listChatModels(tenantGuid),
+      }),
+      providesTags: [SliceTags.CHAT_ENDPOINT],
+    }),
     listChatThreads: build.query<ChatThread[], { tenantGuid: string; all?: boolean }>({
       query: ({ tenantGuid, all }) => ({
         callback: () => listChatThreads(tenantGuid, all),
@@ -941,6 +950,15 @@ const graphSlice = enhancedSdk.injectEndpoints({
     >({
       query: ({ tenantGuid, body }) => ({
         callback: () => createChatThread(tenantGuid, body),
+      }),
+      invalidatesTags: [SliceTags.CHAT_THREAD],
+    }),
+    updateChatThread: build.mutation<
+      ChatThread,
+      { tenantGuid: string; threadGuid: string; body: { Title: string } }
+    >({
+      query: ({ tenantGuid, threadGuid, body }) => ({
+        callback: () => updateChatThread(tenantGuid, threadGuid, body),
       }),
       invalidatesTags: [SliceTags.CHAT_THREAD],
     }),
@@ -1105,9 +1123,11 @@ export const {
   useDeleteChatEndpointMutation,
   useTestChatEndpointMutation,
   useListChatEndpointHealthQuery,
+  useListChatModelsQuery,
   useListChatThreadsQuery,
   useReadChatThreadQuery,
   useCreateChatThreadMutation,
+  useUpdateChatThreadMutation,
   useDeleteChatThreadMutation,
   useListChatThreadTurnsQuery,
   useSubmitChatFeedbackMutation,

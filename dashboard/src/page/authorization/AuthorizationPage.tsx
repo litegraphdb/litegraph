@@ -73,6 +73,7 @@ const resourceTypeOptions: AuthorizationResourceType[] = [
   'Vector',
   'Query',
   'Transaction',
+  'Chat',
 ];
 const scopeOptions: AuthorizationResourceScope[] = ['Tenant', 'Graph'];
 

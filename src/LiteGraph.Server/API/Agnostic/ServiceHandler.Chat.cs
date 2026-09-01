@@ -30,15 +30,30 @@ namespace LiteGraph.Server.API.Agnostic
         /// </summary>
         internal Services.ObservabilityService Observability { get; set; } = null;
 
+        /// <summary>
+        /// Authorization service used to resolve effective RBAC grants.  Null until wired at startup.
+        /// </summary>
+        internal Services.AuthorizationService Authorization { get; set; } = null;
+
         #endregion
 
         #region Chat-Helpers
 
-        private bool CanManageChat(RequestContext req)
+        private async Task<bool> CanManageChat(RequestContext req, CancellationToken token = default)
         {
             // Managing chat endpoints, chat settings, feedback administration, and all-user history:
-            // system admins, or tenant admins in their own tenant.
-            return req.Authentication.IsSystemAdmin || (req.Authentication.IsTenantAdmin && IsOwnTenant(req));
+            // system admins, tenant admins in their own tenant, or principals holding an effective
+            // [Admin] x [Chat] RBAC grant in their own tenant.
+            if (req.Authentication.IsSystemAdmin) return true;
+            if (!IsOwnTenant(req)) return false;
+            if (req.Authentication.IsTenantAdmin) return true;
+            if (Authorization == null) return false;
+
+            return await Authorization.HasEffectiveGrant(
+                req.Authentication,
+                AuthorizationPermissionEnum.Admin,
+                AuthorizationResourceTypeEnum.Chat,
+                token).ConfigureAwait(false);
         }
 
         private bool CanUseChat(RequestContext req)
@@ -61,7 +76,7 @@ namespace LiteGraph.Server.API.Agnostic
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.ChatEndpoint == null) throw new ArgumentNullException(nameof(req.ChatEndpoint));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.ChatEndpoint.TenantGUID = req.TenantGUID.Value;
             ChatEndpoint obj = await _LiteGraph.ChatEndpoint.Create(req.ChatEndpoint, token).ConfigureAwait(false);
             ChatHealth?.OnEndpointCreatedOrUpdated(obj);
@@ -71,7 +86,7 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatEndpointReadAll(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
             List<ChatEndpoint> objs = new List<ChatEndpoint>();
             await foreach (ChatEndpoint endpoint in _LiteGraph.ChatEndpoint.ReadAllInTenant(req.TenantGUID.Value, req.ChatEndpointTypeFilter, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -85,7 +100,7 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatEndpointRead(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatEndpoint obj = await _LiteGraph.ChatEndpoint.ReadByGuid(req.TenantGUID.Value, req.ChatEndpointGUID.Value, token).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj.Redact());
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -94,7 +109,7 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatEndpointExists(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (await _LiteGraph.ChatEndpoint.ExistsByGuid(req.TenantGUID.Value, req.ChatEndpointGUID.Value, token).ConfigureAwait(false)) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
@@ -103,7 +118,7 @@ namespace LiteGraph.Server.API.Agnostic
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.ChatEndpoint == null) throw new ArgumentNullException(nameof(req.ChatEndpoint));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.ChatEndpoint.TenantGUID = req.TenantGUID.Value;
             req.ChatEndpoint.GUID = req.ChatEndpointGUID.Value;
 
@@ -123,13 +138,48 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatEndpointDelete(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatEndpoint existing = await _LiteGraph.ChatEndpoint.ReadByGuid(req.TenantGUID.Value, req.ChatEndpointGUID.Value, token).ConfigureAwait(false);
             if (existing == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             await _LiteGraph.ChatEndpoint.DeleteByGuid(req.TenantGUID.Value, req.ChatEndpointGUID.Value, token).ConfigureAwait(false);
             Chat?.InvalidateEndpoint(existing.GUID);
             ChatHealth?.OnEndpointDeleted(existing.TenantGUID, existing.GUID, existing.Name, existing.EndpointType);
             return new ResponseContext(req);
+        }
+
+        internal async Task<ResponseContext> ChatModelsReadAll(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!CanUseChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            ChatSettings settings = await _LiteGraph.ChatSettings.ReadByTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
+            Guid? defaultCompletion = settings?.DefaultCompletionEndpointGUID;
+            Guid? defaultEmbedding = settings?.DefaultEmbeddingEndpointGUID;
+
+            List<ChatModelSummary> objs = new List<ChatModelSummary>();
+            await foreach (ChatEndpoint endpoint in _LiteGraph.ChatEndpoint.ReadAllInTenant(req.TenantGUID.Value, null, EnumerationOrderEnum.CreatedAscending, 0, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                if (!endpoint.Active) continue;
+                bool isDefault =
+                    (endpoint.EndpointType == ChatEndpointTypeEnum.Completion && defaultCompletion != null && defaultCompletion.Value.Equals(endpoint.GUID))
+                    || (endpoint.EndpointType == ChatEndpointTypeEnum.Embedding && defaultEmbedding != null && defaultEmbedding.Value.Equals(endpoint.GUID));
+                objs.Add(ChatModelSummary.FromEndpoint(endpoint, isDefault));
+            }
+
+            // No explicit default stored: the orchestrator falls back to the first active endpoint.
+            if (defaultCompletion == null)
+            {
+                ChatModelSummary first = objs.Find(o => o.EndpointType == ChatEndpointTypeEnum.Completion);
+                if (first != null) first.IsDefault = true;
+            }
+
+            if (defaultEmbedding == null)
+            {
+                ChatModelSummary first = objs.Find(o => o.EndpointType == ChatEndpointTypeEnum.Embedding);
+                if (first != null) first.IsDefault = true;
+            }
+
+            return new ResponseContext(req, objs);
         }
 
         #endregion
@@ -167,14 +217,14 @@ namespace LiteGraph.Server.API.Agnostic
 
             if (req.AllUsers)
             {
-                if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+                if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
                 userFilter = null;
             }
             else
             {
                 if (!req.Authentication.UserGUID.HasValue)
                 {
-                    if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+                    if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
                     userFilter = null;
                 }
                 else
@@ -198,9 +248,26 @@ namespace LiteGraph.Server.API.Agnostic
             if (!CanUseChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatThread obj = await _LiteGraph.ChatThread.ReadByGuid(req.TenantGUID.Value, req.ChatThreadGUID.Value, token).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!CanManageChat(req) && !IsOwnChatPrincipal(req, obj.UserGUID))
+            if (!IsOwnChatPrincipal(req, obj.UserGUID) && !await CanManageChat(req, token).ConfigureAwait(false))
                 return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             return new ResponseContext(req, obj);
+        }
+
+        internal async Task<ResponseContext> ChatThreadUpdate(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.ChatThread == null) throw new ArgumentNullException(nameof(req.ChatThread));
+            if (!CanUseChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            ChatThread existing = await _LiteGraph.ChatThread.ReadByGuid(req.TenantGUID.Value, req.ChatThreadGUID.Value, token).ConfigureAwait(false);
+            if (existing == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
+            if (!IsOwnChatPrincipal(req, existing.UserGUID) && !await CanManageChat(req, token).ConfigureAwait(false))
+                return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (String.IsNullOrWhiteSpace(req.ChatThread.Title))
+                return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "A non-empty Title is required to update a chat thread.");
+
+            existing.Title = req.ChatThread.Title.Trim();
+            ChatThread updated = await _LiteGraph.ChatThread.Update(existing, token).ConfigureAwait(false);
+            return new ResponseContext(req, updated);
         }
 
         internal async Task<ResponseContext> ChatThreadDelete(RequestContext req, CancellationToken token = default)
@@ -209,7 +276,7 @@ namespace LiteGraph.Server.API.Agnostic
             if (!CanUseChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatThread obj = await _LiteGraph.ChatThread.ReadByGuid(req.TenantGUID.Value, req.ChatThreadGUID.Value, token).ConfigureAwait(false);
             if (obj == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!CanManageChat(req) && !IsOwnChatPrincipal(req, obj.UserGUID))
+            if (!IsOwnChatPrincipal(req, obj.UserGUID) && !await CanManageChat(req, token).ConfigureAwait(false))
                 return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             await _LiteGraph.ChatThread.DeleteByGuid(req.TenantGUID.Value, req.ChatThreadGUID.Value, token).ConfigureAwait(false);
             return new ResponseContext(req);
@@ -221,7 +288,7 @@ namespace LiteGraph.Server.API.Agnostic
             if (!CanUseChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatThread thread = await _LiteGraph.ChatThread.ReadByGuid(req.TenantGUID.Value, req.ChatThreadGUID.Value, token).ConfigureAwait(false);
             if (thread == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            if (!CanManageChat(req) && !IsOwnChatPrincipal(req, thread.UserGUID))
+            if (!IsOwnChatPrincipal(req, thread.UserGUID) && !await CanManageChat(req, token).ConfigureAwait(false))
                 return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
             List<ChatTurn> objs = new List<ChatTurn>();
@@ -247,7 +314,7 @@ namespace LiteGraph.Server.API.Agnostic
             if (turn == null) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
 
             ChatThread thread = await _LiteGraph.ChatThread.ReadByGuid(req.TenantGUID.Value, turn.ThreadGUID, token).ConfigureAwait(false);
-            if (thread != null && !CanManageChat(req) && !IsOwnChatPrincipal(req, thread.UserGUID))
+            if (thread != null && !IsOwnChatPrincipal(req, thread.UserGUID) && !await CanManageChat(req, token).ConfigureAwait(false))
                 return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
             req.ChatFeedback.TenantGUID = req.TenantGUID.Value;
@@ -263,7 +330,7 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatFeedbackReadAll(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
             List<ChatFeedback> objs = new List<ChatFeedback>();
             await foreach (ChatFeedback feedback in _LiteGraph.ChatFeedback.ReadAllInTenant(req.TenantGUID.Value, null, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
@@ -277,7 +344,7 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatFeedbackRead(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatFeedback obj = await _LiteGraph.ChatFeedback.ReadByGuid(req.TenantGUID.Value, req.ChatFeedbackGUID.Value, token).ConfigureAwait(false);
             if (obj != null) return new ResponseContext(req, obj);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
@@ -286,7 +353,7 @@ namespace LiteGraph.Server.API.Agnostic
         internal async Task<ResponseContext> ChatFeedbackDelete(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (!await _LiteGraph.ChatFeedback.ExistsByGuid(req.TenantGUID.Value, req.ChatFeedbackGUID.Value, token).ConfigureAwait(false))
                 return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
             await _LiteGraph.ChatFeedback.DeleteByGuid(req.TenantGUID.Value, req.ChatFeedbackGUID.Value, token).ConfigureAwait(false);
@@ -329,7 +396,7 @@ namespace LiteGraph.Server.API.Agnostic
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (req.ChatSettings == null) throw new ArgumentNullException(nameof(req.ChatSettings));
-            if (!CanManageChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             req.ChatSettings.TenantGUID = req.TenantGUID.Value;
 
             try

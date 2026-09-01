@@ -1042,6 +1042,11 @@
         [EnumMember(Value = "ChatCompletion")]
         ChatCompletion,
         /// <summary>
+        /// ChatModelsReadAll
+        /// </summary>
+        [EnumMember(Value = "ChatModelsReadAll")]
+        ChatModelsReadAll,
+        /// <summary>
         /// ChatThreadCreate
         /// </summary>
         [EnumMember(Value = "ChatThreadCreate")]
@@ -1056,6 +1061,11 @@
         /// </summary>
         [EnumMember(Value = "ChatThreadRead")]
         ChatThreadRead,
+        /// <summary>
+        /// ChatThreadUpdate
+        /// </summary>
+        [EnumMember(Value = "ChatThreadUpdate")]
+        ChatThreadUpdate,
         /// <summary>
         /// ChatThreadDelete
         /// </summary>

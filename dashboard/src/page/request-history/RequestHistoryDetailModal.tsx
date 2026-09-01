@@ -88,6 +88,137 @@ const CodeBlock: React.FC<{ text: string; empty?: string }> = ({ text, empty }) 
   );
 };
 
+type SseFrame = { index: number; event: string; summary: string };
+
+/** True when a stored response body is a text/event-stream payload. */
+const isSseBody = (body: string | null | undefined, headers?: Record<string, string> | null): boolean => {
+  if (headers) {
+    const contentType = Object.entries(headers).find(([k]) => k.toLowerCase() === 'content-type');
+    if (contentType && contentType[1].toLowerCase().includes('text/event-stream')) return true;
+  }
+  return !!body && /^(data:|event:)/m.test(body.trimStart().slice(0, 200));
+};
+
+/** Parse a stored SSE body into display frames plus the reconstructed assistant output. */
+const parseSseBody = (body: string): { frames: SseFrame[]; reconstructed: string } => {
+  const frames: SseFrame[] = [];
+  let reconstructed = '';
+  const rawFrames = body.replace(/\r\n/g, '\n').split(/\n\n+/);
+  let index = 0;
+  for (const rawFrame of rawFrames) {
+    const dataLines = rawFrame
+      .split('\n')
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).replace(/^\s/, ''));
+    if (dataLines.length === 0) continue;
+    const payload = dataLines.join('\n');
+    index += 1;
+    if (payload.trim() === '[DONE]') {
+      frames.push({ index, event: 'done', summary: '[DONE]' });
+      continue;
+    }
+    try {
+      const parsed = JSON.parse(payload);
+      const eventName = typeof parsed.event === 'string' ? parsed.event : '?';
+      let summary = '';
+      switch (eventName) {
+        case 'delta':
+        case 'thinking':
+          summary = String(parsed.content ?? '');
+          if (eventName === 'delta') reconstructed += String(parsed.content ?? '');
+          break;
+        case 'started':
+          summary = `thread ${parsed.threadGuid ?? '?'} · turn ${parsed.turnGuid ?? '?'}`;
+          break;
+        case 'tool_call':
+          summary = String(parsed.name ?? '');
+          break;
+        case 'tool_result':
+          summary = `${parsed.name ?? ''} · ${parsed.success ? 'ok' : 'failed'}${parsed.runtimeMs != null ? ` · ${Number(parsed.runtimeMs).toFixed(1)} ms` : ''}`;
+          break;
+        case 'usage':
+          summary = `prompt ${parsed.usage?.PromptTokens ?? '?'} · completion ${parsed.usage?.CompletionTokens ?? '?'} · ${parsed.usage?.TotalDurationMs != null ? `${Math.round(parsed.usage.TotalDurationMs)} ms` : ''}`;
+          break;
+        case 'retrieval':
+          summary = `${Array.isArray(parsed.chunks) ? parsed.chunks.length : '?'} chunk(s)`;
+          break;
+        case 'error':
+          summary = String(parsed.message ?? '');
+          break;
+        default:
+          summary = payload.length > 120 ? `${payload.slice(0, 120)}…` : payload;
+      }
+      frames.push({ index, event: eventName, summary });
+    } catch {
+      frames.push({ index, event: 'raw', summary: payload.length > 120 ? `${payload.slice(0, 120)}…` : payload });
+    }
+  }
+  return { frames, reconstructed };
+};
+
+const SseEventsView: React.FC<{ body: string }> = ({ body }) => {
+  const t = useTranslations('requestHistory');
+  const { frames, reconstructed } = parseSseBody(body);
+  return (
+    <div data-testid="request-detail-sse">
+      {reconstructed && (
+        <>
+          <Text strong style={{ fontSize: 12.5, display: 'block', marginBottom: 4 }}>
+            {t('detail.sse.reconstructed')}
+          </Text>
+          <CodeBlock text={reconstructed} />
+        </>
+      )}
+      <Text strong style={{ fontSize: 12.5, display: 'block', margin: '12px 0 4px' }}>
+        {t('detail.sse.events', { count: frames.length })}
+      </Text>
+      <div
+        style={{
+          border: '1px solid var(--ant-color-border)',
+          borderRadius: 6,
+          maxHeight: 320,
+          overflowY: 'auto',
+          fontFamily: "'Monaco', 'Menlo', 'Consolas', monospace",
+          fontSize: 12,
+        }}
+      >
+        {frames.map((frame) => (
+          <div
+            key={frame.index}
+            style={{
+              display: 'flex',
+              gap: 8,
+              padding: '3px 10px',
+              borderBottom: '1px solid var(--ant-color-border-secondary)',
+              alignItems: 'baseline',
+            }}
+          >
+            <span style={{ color: 'var(--ant-color-text-tertiary)', minWidth: 32, textAlign: 'right' }}>
+              {frame.index}
+            </span>
+            <Tag style={{ marginInlineEnd: 0, fontSize: 11 }}>{frame.event}</Tag>
+            <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', flex: 1 }}>
+              {frame.summary}
+            </span>
+          </div>
+        ))}
+      </div>
+      <Collapse
+        size="small"
+        ghost
+        style={{ marginTop: 8 }}
+        items={[
+          {
+            key: 'raw-sse',
+            label: t('detail.sse.raw'),
+            children: <CodeBlock text={body} />,
+          },
+        ]}
+      />
+    </div>
+  );
+};
+
 const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) => {
   const t = useTranslations('requestHistory');
   const tCommon = useTranslations('common');
@@ -129,6 +260,8 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
       onCancel={onClose}
       footer={null}
       width="min(1688px, calc(100vw - 32px))"
+      style={{ top: 16, paddingBottom: 0 }}
+      styles={{ body: { maxHeight: 'calc(100vh - 130px)', overflowY: 'auto' } }}
       destroyOnHidden
       maskClosable
     >
@@ -251,7 +384,9 @@ const RequestHistoryDetailModal: React.FC<Props> = ({ entry, open, onClose }) =>
                 )}
               </Space>
             ),
-            children: (
+            children: isSseBody(detail?.ResponseBody, detail?.ResponseHeaders) ? (
+              <SseEventsView body={detail?.ResponseBody || ''} />
+            ) : (
               <CodeBlock
                 text={prettyJson(detail?.ResponseBody)}
                 empty={loading ? tCommon('states.loading') : t('detail.empty')}

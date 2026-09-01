@@ -30,6 +30,11 @@ namespace LiteGraph
         [EnumMember(Value = "Viewer")]
         Viewer,
         /// <summary>
+        /// Chat administrator.
+        /// </summary>
+        [EnumMember(Value = "ChatAdmin")]
+        ChatAdmin,
+        /// <summary>
         /// Custom role.
         /// </summary>
         [EnumMember(Value = "Custom")]

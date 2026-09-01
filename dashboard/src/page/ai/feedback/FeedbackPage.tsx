@@ -13,6 +13,7 @@ import ConfirmationModal from '@/components/confirmation-modal/ConfirmationModal
 import { ChatFeedback } from '@/lib/sdk/chat';
 import {
   useDeleteChatFeedbackMutation,
+  useGetAllUsersQuery,
   useListChatFeedbackQuery,
 } from '@/lib/store/slice/slice';
 import { useAppDynamicNavigation } from '@/hooks/hooks';
@@ -42,6 +43,12 @@ const FeedbackPage = () => {
     refetch,
   } = useListChatFeedbackQuery({ tenantGuid }, { skip: !tenantGuid });
   const [deleteFeedback, { isLoading: isDeleting }] = useDeleteChatFeedbackMutation();
+  const { data: users = [] } = useGetAllUsersQuery();
+  const userLabel = (userGuid: string): string => {
+    const user = users.find((candidate) => candidate.GUID === userGuid);
+    if (!user) return `${userGuid.slice(0, 8)}…`;
+    return user.Email || [user.FirstName, user.LastName].filter(Boolean).join(' ') || user.GUID;
+  };
 
   const [detailTarget, setDetailTarget] = useState<ChatFeedback | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ChatFeedback | null>(null);
@@ -61,6 +68,25 @@ const FeedbackPage = () => {
   };
 
   const columns = [
+    {
+      title: columnTooltip(t('columns.created'), t('columns.createdDesc')),
+      dataIndex: 'CreatedUtc',
+      key: 'CreatedUtc',
+      width: 170,
+      render: (createdUtc: string) => formatDateTime(createdUtc),
+    },
+    {
+      title: columnTooltip(t('columns.user'), t('columns.userDesc')),
+      dataIndex: 'UserGUID',
+      key: 'UserGUID',
+      width: 200,
+      ellipsis: true,
+      render: (userGuid: string) => (
+        <span style={{ fontSize: 12.5 }} data-testid={`feedback-user-${userGuid}`}>
+          {userLabel(userGuid)}
+        </span>
+      ),
+    },
     {
       title: columnTooltip(t('columns.rating'), t('columns.ratingDesc')),
       dataIndex: 'Rating',
@@ -95,13 +121,6 @@ const FeedbackPage = () => {
             {t('detail.noComment')}
           </span>
         ),
-    },
-    {
-      title: columnTooltip(t('columns.created'), t('columns.createdDesc')),
-      dataIndex: 'CreatedUtc',
-      key: 'CreatedUtc',
-      width: 170,
-      render: (createdUtc: string) => formatDateTime(createdUtc),
     },
     {
       title: columnTooltip(t('columns.thread'), t('columns.threadDesc')),

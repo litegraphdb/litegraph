@@ -926,6 +926,11 @@
         "responseHeaders": "Cabeçalhos da resposta",
         "responseBody": "Corpo da resposta",
         "transactionDiagnostics": "Diagnóstico da transação"
+      },
+      "sse": {
+        "reconstructed": "Saída reconstruída",
+        "events": "{count} eventos transmitidos",
+        "raw": "Stream bruto"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "Tag",
       "Vector": "Vector",
       "Query": "Consulta",
-      "Transaction": "Transação"
+      "Transaction": "Transação",
+      "Chat": "Chat"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "Primeiro token: {ms} ms",
         "tps": "{tps} tokens/s",
         "duration": "Total: {ms} ms"
+      },
+      "toolbar": {
+        "model": "Modelo",
+        "modelDefault": "Modelo padrão",
+        "defaultModelLabel": "{name} ({model}) — padrão",
+        "streaming": "Streaming",
+        "streamingTooltip": "Transmitir tokens à medida que são gerados"
+      },
+      "disclaimer": "A IA pode cometer erros. Verifique todas as respostas.",
+      "renameThreadTooltip": "Renomear conversa",
+      "renameThreadModal": {
+        "title": "Renomear conversa",
+        "label": "Título da conversa",
+        "save": "Salvar",
+        "failed": "Não foi possível renomear a conversa.",
+        "done": "Conversa renomeada."
+      },
+      "stats": {
+        "tooltip": "Estatísticas do turno",
+        "model": "Modelo",
+        "promptTokens": "Tokens do prompt",
+        "completionTokens": "Tokens de conclusão",
+        "totalTokens": "Tokens totais",
+        "ttft": "Tempo até o primeiro token",
+        "streamingTime": "Tempo de streaming",
+        "totalDuration": "Duração total",
+        "tpsOverall": "Tokens/seg (geral)",
+        "tpsGeneration": "Tokens/seg (geração)",
+        "toolCalls": "Chamadas de ferramentas",
+        "toolIterations": "Iterações de ferramentas",
+        "ragChunks": "Trechos recuperados",
+        "retries": "Novas tentativas"
+      },
+      "commands": {
+        "helpCommand": "Comando",
+        "helpDescription": "Descrição",
+        "clearDesc": "Limpar a visualização e iniciar uma nova conversa",
+        "contextDesc": "Exibir informações do contexto atual",
+        "helpDesc": "Mostrar esta mensagem de ajuda",
+        "or": "ou",
+        "unknown": "Comando desconhecido `{command}`. Digite `/help` para ver os comandos disponíveis.",
+        "contextField": "Campo",
+        "contextValue": "Valor",
+        "contextTenant": "Locatário",
+        "contextGraph": "Grafo selecionado",
+        "contextThread": "Thread",
+        "contextModel": "Modelo",
+        "contextStreaming": "Streaming",
+        "contextTokens": "Tokens do último turno",
+        "none": "Nenhum",
+        "on": "Ativado",
+        "off": "Desativado"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "Conversa",
         "threadDesc": "Abrir a conversa no histórico de chat",
         "turn": "Turno",
-        "turnDesc": "O turno classificado"
+        "turnDesc": "O turno classificado",
+        "user": "Usuário",
+        "userDesc": "O usuário que enviou o feedback"
       },
       "toast": {
         "deleted": "Feedback eliminado.",

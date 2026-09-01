@@ -926,6 +926,11 @@
         "responseHeaders": "سرآیندهای پاسخ",
         "responseBody": "بدنه پاسخ",
         "transactionDiagnostics": "عیب‌یابی تراکنش"
+      },
+      "sse": {
+        "reconstructed": "خروجی بازسازی‌شده",
+        "events": "{count} رویداد استریم‌شده",
+        "raw": "استریم خام"
       }
     }
   },
@@ -1154,7 +1159,8 @@
       "Tag": "تگ",
       "Vector": "بردار",
       "Query": "پرس‌وجو",
-      "Transaction": "تراکنش"
+      "Transaction": "تراکنش",
+      "Chat": "گفتگو"
     }
   },
   "backups": {
@@ -1550,6 +1556,58 @@
         "ttft": "اولین توکن: {ms} میلی‌ثانیه",
         "tps": "{tps} توکن/ثانیه",
         "duration": "مجموع: {ms} میلی‌ثانیه"
+      },
+      "toolbar": {
+        "model": "مدل",
+        "modelDefault": "مدل پیش‌فرض",
+        "defaultModelLabel": "{name} ({model}) — پیش‌فرض",
+        "streaming": "استریم",
+        "streamingTooltip": "ارسال توکن‌ها هم‌زمان با تولید"
+      },
+      "disclaimer": "هوش مصنوعی ممکن است اشتباه کند. لطفاً همه پاسخ‌ها را بررسی کنید.",
+      "renameThreadTooltip": "تغییر نام گفتگو",
+      "renameThreadModal": {
+        "title": "تغییر نام گفتگو",
+        "label": "عنوان گفتگو",
+        "save": "ذخیره",
+        "failed": "تغییر نام گفتگو ممکن نشد.",
+        "done": "نام گفتگو تغییر کرد."
+      },
+      "stats": {
+        "tooltip": "آمار نوبت",
+        "model": "مدل",
+        "promptTokens": "توکن‌های پرامپت",
+        "completionTokens": "توکن‌های تکمیل",
+        "totalTokens": "مجموع توکن‌ها",
+        "ttft": "زمان تا اولین توکن",
+        "streamingTime": "مدت استریم",
+        "totalDuration": "مدت کل",
+        "tpsOverall": "توکن/ثانیه (کلی)",
+        "tpsGeneration": "توکن/ثانیه (تولید)",
+        "toolCalls": "فراخوانی ابزار",
+        "toolIterations": "تکرارهای ابزار",
+        "ragChunks": "قطعات بازیابی‌شده",
+        "retries": "تلاش‌های مجدد"
+      },
+      "commands": {
+        "helpCommand": "فرمان",
+        "helpDescription": "توضیح",
+        "clearDesc": "پاک کردن نما و شروع گفتگوی جدید",
+        "contextDesc": "نمایش اطلاعات زمینه فعلی",
+        "helpDesc": "نمایش این راهنما",
+        "or": "یا",
+        "unknown": "فرمان ناشناخته `{command}`. برای مشاهده فرمان‌های موجود `/help` را وارد کنید.",
+        "contextField": "فیلد",
+        "contextValue": "مقدار",
+        "contextTenant": "مستاجر",
+        "contextGraph": "گراف انتخاب‌شده",
+        "contextThread": "رشته",
+        "contextModel": "مدل",
+        "contextStreaming": "استریم",
+        "contextTokens": "توکن‌های نوبت قبلی",
+        "none": "هیچ",
+        "on": "روشن",
+        "off": "خاموش"
       }
     },
     "endpoints": {
@@ -1774,7 +1832,9 @@
         "thread": "گفتگو",
         "threadDesc": "باز کردن گفتگو در تاریخچه گفتگو",
         "turn": "نوبت",
-        "turnDesc": "نوبت ارزیابی‌شده"
+        "turnDesc": "نوبت ارزیابی‌شده",
+        "user": "کاربر",
+        "userDesc": "کاربری که بازخورد را ارسال کرده است"
       },
       "toast": {
         "deleted": "بازخورد حذف شد.",

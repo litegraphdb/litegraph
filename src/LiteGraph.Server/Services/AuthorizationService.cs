@@ -283,12 +283,23 @@ namespace LiteGraph.Server.Services
             AuthorizationEffectivePolicy policy = await GetCredentialEffectivePolicy(credential.TenantGUID, credential.GUID, token).ConfigureAwait(false);
             if (policy.AssignmentCount < 1) return legacyDecision;
 
-            return EvaluateCredentialPolicy(
+            AuthorizationPermissionEnum permission = RequiredPermission(requiredScope, requestType);
+            AuthorizationDecision policyDecision = EvaluateCredentialPolicy(
                 policy,
                 graphGuid,
                 requiredScope,
-                RequiredPermission(requiredScope, requestType),
+                permission,
                 resourceType);
+
+            if (policyDecision.Result != AuthorizationResultEnum.Permitted
+                && IsMemberLevelChatRequest(permission, resourceType))
+            {
+                // Member-level chat operations remain available to any tenant member, mirroring the
+                // no-assignment fallback: graph-scoped grants must not lock a principal out of chat.
+                return AuthorizationDecision.Permit(requiredScope, AuthorizationDecisionReason.Permitted);
+            }
+
+            return policyDecision;
         }
 
         /// <summary>
@@ -348,12 +359,73 @@ namespace LiteGraph.Server.Services
                 return AuthorizationDecision.Permit(requiredScope, AuthorizationDecisionReason.NoCredential);
             }
 
-            return EvaluateUserPolicy(
+            AuthorizationPermissionEnum permission = RequiredPermission(requiredScope, requestType);
+            AuthorizationDecision policyDecision = EvaluateUserPolicy(
                 policy,
                 graphGuid,
                 requiredScope,
-                RequiredPermission(requiredScope, requestType),
+                permission,
                 resourceType);
+
+            if (policyDecision.Result != AuthorizationResultEnum.Permitted
+                && IsMemberLevelChatRequest(permission, resourceType))
+            {
+                // Member-level chat operations remain available to any tenant member, mirroring the
+                // no-assignment fallback: graph-scoped grants must not lock a principal out of chat.
+                return AuthorizationDecision.Permit(requiredScope, AuthorizationDecisionReason.Permitted);
+            }
+
+            return policyDecision;
+        }
+
+        /// <summary>
+        /// Determine whether the authenticated principal holds an effective grant for the supplied permission and resource type within its own tenant.
+        /// Evaluates the same cached user-role and credential-scope grants used by the authorize path.  Graph-scoped grants do not qualify.
+        /// System and tenant administrator flags are not considered; callers should check those flags separately.
+        /// </summary>
+        /// <param name="authentication">Authentication context.</param>
+        /// <param name="permission">Required permission.</param>
+        /// <param name="resourceType">Required resource type.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>True when an effective grant covers the permission and resource type.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the authentication context is null.</exception>
+        public async Task<bool> HasEffectiveGrant(
+            AuthenticationContext authentication,
+            AuthorizationPermissionEnum permission,
+            AuthorizationResourceTypeEnum resourceType,
+            CancellationToken token = default)
+        {
+            if (authentication == null) throw new ArgumentNullException(nameof(authentication));
+            token.ThrowIfCancellationRequested();
+
+            if (_Repo == null) return false;
+            if (!authentication.TenantGUID.HasValue) return false;
+
+            Guid tenantGuid = authentication.TenantGUID.Value;
+
+            if (authentication.UserGUID.HasValue)
+            {
+                AuthorizationEffectivePolicy userPolicy = await GetUserEffectivePolicy(tenantGuid, authentication.UserGUID.Value, token).ConfigureAwait(false);
+                if (userPolicy.Grants.Any(grant =>
+                    AssignmentAppliesToGraph(grant.ResourceScope, grant.GraphGUID, grant.Role, null)
+                    && RoleGrants(grant.Role, permission, resourceType)))
+                {
+                    return true;
+                }
+            }
+
+            if (authentication.Credential != null)
+            {
+                AuthorizationEffectivePolicy credentialPolicy = await GetCredentialEffectivePolicy(authentication.Credential.TenantGUID, authentication.Credential.GUID, token).ConfigureAwait(false);
+                if (credentialPolicy.Grants.Any(grant =>
+                    AssignmentAppliesToGraph(grant.ResourceScope, grant.GraphGUID, grant.Role, null)
+                    && CachedCredentialScopeGrants(grant, permission, resourceType)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -450,6 +522,7 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.EdgeUpdate:
                 case RequestTypeEnum.ChatCompletion:
                 case RequestTypeEnum.ChatThreadCreate:
+                case RequestTypeEnum.ChatThreadUpdate:
                 case RequestTypeEnum.ChatThreadDelete:
                 case RequestTypeEnum.ChatFeedbackCreate:
                     return "write";
@@ -543,6 +616,36 @@ namespace LiteGraph.Server.Services
         /// <returns>Authorization resource type.</returns>
         public static AuthorizationResourceTypeEnum RequiredResourceType(RequestTypeEnum requestType)
         {
+            // Chat requests resolve to the Chat resource type even when they are administrative,
+            // so a role granting [Admin] on [Chat] can delegate chat management without tenant-wide admin.
+            switch (requestType)
+            {
+                case RequestTypeEnum.ChatCompletion:
+                case RequestTypeEnum.ChatModelsReadAll:
+                case RequestTypeEnum.ChatEndpointCreate:
+                case RequestTypeEnum.ChatEndpointReadAll:
+                case RequestTypeEnum.ChatEndpointRead:
+                case RequestTypeEnum.ChatEndpointExists:
+                case RequestTypeEnum.ChatEndpointUpdate:
+                case RequestTypeEnum.ChatEndpointDelete:
+                case RequestTypeEnum.ChatEndpointTest:
+                case RequestTypeEnum.ChatEndpointHealthReadAll:
+                case RequestTypeEnum.ChatEndpointHealthRead:
+                case RequestTypeEnum.ChatThreadCreate:
+                case RequestTypeEnum.ChatThreadReadAll:
+                case RequestTypeEnum.ChatThreadRead:
+                case RequestTypeEnum.ChatThreadUpdate:
+                case RequestTypeEnum.ChatThreadDelete:
+                case RequestTypeEnum.ChatThreadTurnsRead:
+                case RequestTypeEnum.ChatFeedbackCreate:
+                case RequestTypeEnum.ChatFeedbackReadAll:
+                case RequestTypeEnum.ChatFeedbackRead:
+                case RequestTypeEnum.ChatFeedbackDelete:
+                case RequestTypeEnum.ChatSettingsRead:
+                case RequestTypeEnum.ChatSettingsUpdate:
+                    return AuthorizationResourceTypeEnum.Chat;
+            }
+
             if (IsAdministrativeRequest(requestType)) return AuthorizationResourceTypeEnum.Admin;
 
             switch (requestType)
@@ -1194,6 +1297,12 @@ namespace LiteGraph.Server.Services
                 && grant.DirectResourceTypes.Contains(resourceType);
 
             return permissionGranted && resourceGranted;
+        }
+
+        private static bool IsMemberLevelChatRequest(AuthorizationPermissionEnum permission, AuthorizationResourceTypeEnum resourceType)
+        {
+            return resourceType == AuthorizationResourceTypeEnum.Chat
+                && permission != AuthorizationPermissionEnum.Admin;
         }
 
         private static bool RoleGrants(RoleDefinition role, AuthorizationPermissionEnum permission, AuthorizationResourceTypeEnum resourceType)
