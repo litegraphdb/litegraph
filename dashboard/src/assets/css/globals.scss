@@ -602,3 +602,10 @@
 .ant-table-thead > tr > td {
   white-space: nowrap;
 }
+
+/* Compact table density: AntD's default 16px cell padding spreads rows out;
+   8px vertical / 12px horizontal keeps rows scannable without the sprawl. */
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  padding: 8px 12px !important;
+}

@@ -1,11 +1,14 @@
-'use client';
 import RequestHistoryPage from '@/page/request-history/RequestHistoryPage';
-import { useParams } from 'next/navigation';
 import React from 'react';
+import { Metadata } from 'next';
 
-const Page = () => {
-  const params = useParams();
-  const tenantId = (params?.tenantId as string) || undefined;
+export const metadata: Metadata = {
+  title: 'LiteGraph | API Requests',
+  description: 'LiteGraph',
+};
+
+const Page = async ({ params }: { params: Promise<{ tenantId: string }> }) => {
+  const { tenantId } = await params;
   return <RequestHistoryPage mode="tenant" tenantScope={tenantId} />;
 };
 

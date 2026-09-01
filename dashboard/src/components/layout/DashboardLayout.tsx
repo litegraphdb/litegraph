@@ -154,6 +154,7 @@ const DashboardLayout = ({
                     <span>{t('graphLabel')}</span>
                   </LitegraphTooltip>
                   <LitegraphSelect
+                    size="small"
                     placeholder={t('selectAGraph')}
                     options={graphOptions}
                     value={selectedGraphRedux || undefined}
@@ -181,6 +182,7 @@ const DashboardLayout = ({
                     </LitegraphText>
                   ) : (
                     <LitegraphSelect
+                      size="small"
                       loading={isTenantsLoading}
                       placeholder={t('selectATenant')}
                       options={tenantOptions}

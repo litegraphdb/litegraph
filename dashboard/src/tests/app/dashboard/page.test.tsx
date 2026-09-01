@@ -147,7 +147,10 @@ describe('Dashboard Page Component', () => {
     // Should have default export
     expect(DashboardPageModule.default).toBeDefined();
 
-    // Should not have metadata export (unlike other pages)
-    expect(DashboardPageModule.metadata).toBeUndefined();
+    // Carries the standard page metadata like every other dashboard page.
+    expect(DashboardPageModule.metadata).toEqual({
+      title: 'LiteGraph | Dashboard',
+      description: 'LiteGraph',
+    });
   });
 });

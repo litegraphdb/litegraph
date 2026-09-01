@@ -48,18 +48,19 @@
 // items read as a compact list rather than a spread-out one.
 .navMenu {
   border-inline-end: none !important;
+  padding: 0;
 
   :global(.ant-menu-item),
   :global(.ant-menu-submenu-title) {
-    height: 28px;
-    line-height: 28px;
-    margin-block: 1px;
+    height: 26px;
+    line-height: 26px;
+    margin-block: 0;
     padding-inline: 16px !important;
   }
 
   // Section group headers: smaller, tighter, with just enough separation.
   :global(.ant-menu-item-group-title) {
-    padding: 5px 16px 2px;
+    padding: 4px 16px 1px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;

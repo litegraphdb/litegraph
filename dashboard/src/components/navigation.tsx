@@ -74,7 +74,7 @@ const Navigation = ({
       {isAdmin && (
         <LitegraphFlex className="mt mb-sm" gap={10} justify="center" align="center">
           <LitegraphTooltip title={t('flushTitle')}>
-            <Button type="default" icon={<DatabaseOutlined />} onClick={() => setOpen(true)}>
+            <Button size="small" type="default" icon={<DatabaseOutlined />} onClick={() => setOpen(true)}>
               {collapsed ? '' : t('flushToDisk')}
             </Button>
           </LitegraphTooltip>

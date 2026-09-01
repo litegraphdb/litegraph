@@ -32,8 +32,8 @@ describe('Home Page Component', () => {
     const HomeModule = require('@/app/page');
 
     expect(HomeModule.metadata).toBeDefined();
-    expect(HomeModule.metadata.title).toBe('Home | Litegraph');
-    expect(HomeModule.metadata.description).toBe('Litegraph');
+    expect(HomeModule.metadata.title).toBe('LiteGraph | Home');
+    expect(HomeModule.metadata.description).toBe('LiteGraph');
   });
 
   it('has correct metadata structure', () => {
@@ -118,8 +118,8 @@ describe('Home Page Component', () => {
     // Should not be writable (though this is a runtime check)
     const originalMetadata = HomeModule.metadata;
     expect(originalMetadata).toEqual({
-      title: 'Home | Litegraph',
-      description: 'Litegraph',
+      title: 'LiteGraph | Home',
+      description: 'LiteGraph',
     });
   });
 
