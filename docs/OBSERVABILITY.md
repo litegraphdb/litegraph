@@ -1,5 +1,33 @@
 # LiteGraph Observability
 
+## v8.1 — Operational Metrics: Backups, Imports, Index Rebuilds, Retention
+
+Administrative and maintenance operations are instrumented alongside the request-path metrics. Labels stay low-cardinality (`operation`, `result`, `component`, `index_type`, `success`); tenant and graph GUIDs never appear on metric labels.
+
+**Operational metric inventory.**
+
+| Metric | Type | Labels | Meaning |
+|---|---|---|---|
+| `litegraph_backup_operations_total` | counter | `operation`, `success` | Backup admin operations (`create`, `read`, `read_all`, `enumerate`, `exists`, `delete`) |
+| `litegraph_backup_operation_duration_ms` | summary | `operation`, `success` | Backup operation duration (sum/count) |
+| `litegraph_graph_import_records_total` | counter | `result` | Records processed by JSONL imports, split `created`/`updated`/`skipped` (graphs + nodes + edges) |
+| `litegraph_graph_import_warnings_total` | counter | — | Warnings raised during JSONL imports (dropped dangling edges, malformed lines) |
+| `litegraph_vector_index_rebuilds_total` | counter | `index_type`, `success` | HNSW vector index rebuilds |
+| `litegraph_vector_index_rebuild_vectors_total` | counter | `index_type`, `success` | Vectors added during index rebuilds |
+| `litegraph_vector_index_rebuild_duration_ms` | summary | `index_type`, `success` | Index rebuild duration (sum/count) |
+| `litegraph_retention_sweeps_total` | counter | `component`, `success` | Retention sweep passes (`request_history`, `chat_history`) |
+| `litegraph_retention_sweep_duration_ms` | summary | `component`, `success` | Retention sweep duration (sum/count) |
+| `litegraph_retention_deleted_total` | counter | `component` | Records deleted by retention sweeps (`chat_history` reports zero because the underlying delete does not return a count) |
+| `litegraph_request_history_dropped_total` | counter | — | Request history captures dropped because the bounded capture queue was full (non-zero means history data loss under load) |
+
+The same instruments are exposed through the .NET `Meter` for OTLP consumers: `litegraph.backup.operations`, `litegraph.backup.operation.duration`, `litegraph.graph.import.records`, `litegraph.graph.import.warnings`, `litegraph.server.vector.index.rebuilds`, `litegraph.server.vector.index.rebuild.vectors`, `litegraph.server.vector.index.rebuild.duration`, `litegraph.retention.sweeps`, `litegraph.retention.sweep.duration`, `litegraph.retention.deleted`, and `litegraph.request_history.dropped`. The core `LiteGraph` meter additionally emits `litegraph.vector.index.rebuilds`, `litegraph.vector.index.rebuild.vectors`, and `litegraph.vector.index.rebuild.duration` from the index manager itself.
+
+Counts, durations, and status classes for the backup, import/export (JSONL and GEXF), and token issuance HTTP routes are additionally covered by the per-route `litegraph_http_*` family (routes such as `backup`, `graph.export.jsonl`, `graph.import.jsonl`, `token.create`), so the dedicated series above add operation-level success/failure and volume detail rather than duplicating request accounting.
+
+**New trace spans.** `litegraph.backup` (internal, tag `litegraph.backup.operation`) wraps backup creation under the REST request span. `litegraph.vector.index.rebuild` (internal, tags `litegraph.graph.guid`, `litegraph.vector.index.type`, `litegraph.vector.index.vectors`) is emitted by the core `LiteGraph` activity source around HNSW index rebuilds.
+
+---
+
 ## v8.1 — Chat Metrics, Traces, And Dashboard
 
 The chat feature ships fully instrumented from day one: every completion, tool call, retrieval, embedding request, retry, feedback submission, and endpoint health probe is measured. Labels stay low-cardinality on purpose — `provider`, `model`, `tool` (a fixed catalog), `endpoint` (endpoint name, a small tenant-managed set), `streamed`, `status_class`, `success`, `rating`, `to_state` — while per-turn GUIDs, exact timings, and transcripts live on trace spans and the persisted `ChatTurn` record instead of metric labels.
@@ -154,18 +182,17 @@ The metrics endpoint is registered before authentication when observability and 
 
 ## Grafana
 
-An importable Grafana dashboard template is available at `assets/grafana/litegraph-observability-dashboard.json`.
+Importable Grafana dashboard templates are available under `assets/grafana/`. The dashboards are split per domain, all tagged `litegraph`, and are provisioned into the `LiteGraph` folder by the bundled compose deployment:
 
-The dashboard expects a Prometheus datasource and includes panels for:
+- **LiteGraph Overview** (`litegraph-overview.json`) — the landing dashboard: one row of high-level stats (request rate, average latency, error rate, active chats, active transactions, entity counts) plus a dashboard list linking to the other dashboards.
+- **LiteGraph API Requests** (`litegraph-api-requests.json`) — REST and MCP request rates by route/tool, error rates by component and status class, request latency percentiles (p50/p95), in-flight requests, authentication and authorization outcomes, and token issuance routes.
+- **LiteGraph Graphs and Queries** (`litegraph-graphs-queries.json`) — native graph query rate, outcomes, and latency; graph transactions (rate, outcomes, retries, conflicts, queue wait, commit/rollback durations, active gauge); repository operation rates and durations; latest entity counts; and JSONL graph import records and warnings.
+- **LiteGraph Vector Search** (`litegraph-vector-search.json`) — vector search rate, duration, and result counts by domain, plus HNSW vector index rebuilds (rate, duration, vectors added).
+- **LiteGraph Storage** (`litegraph-storage.json`) — storage backend configuration, connection pool and command timeout settings, backup operations and durations, retention sweeps and deletions, request-history capture drops, and database flush requests.
+- **LiteGraph Logs** (`litegraph-logs.json`) — Loki panels: log volume by severity over time, recent REST and MCP logs with component and severity filters, and an error/critical-only panel.
+- **LiteGraph Chat and Inference** (`litegraph-chat-inference.json`) — chat request rate and errors, TTFT and duration percentiles, token throughput and consumption, tool calls, retrieval and embedding, endpoint health, and feedback.
 
-- HTTP request rate, status mix, and average latency
-- native graph query and graph transaction rates, outcomes, and average latency
-- active graph transactions, serialized fallback queue wait, conflict rate, and retry rate
-- vector search rates and result counts
-- repository operation rates by provider, operation, and success
-- latest entity count gauges
-- storage backend and configured storage limits
-- authentication and authorization outcomes
+All dashboards except Logs expect a Prometheus datasource; the Logs dashboard expects a Loki datasource.
 
 ## Quick Start: Prometheus And Grafana
 
@@ -182,14 +209,14 @@ Then open:
 - Prometheus targets: `http://localhost:9090/targets`
 - LiteGraph metrics: `http://localhost:8701/metrics`
 
-In Grafana, browse to the `LiteGraph` folder and open the provisioned LiteGraph observability dashboard. Some panels remain empty until the corresponding LiteGraph operations have run.
+In Grafana, browse to the `LiteGraph` folder and open the **LiteGraph Overview** dashboard, which links to the per-domain dashboards. Some panels remain empty until the corresponding LiteGraph operations have run.
 
 The bundled compose path uses:
 
 - [`docker/litegraph.json`](docker/litegraph.json), where `Observability.EnablePrometheus` is enabled and `MetricsPath` is `/metrics`
 - [`docker/prometheus.yaml`](../docker/prometheus.yaml), where Prometheus scrapes `localhost:8701`
 - [`docker/grafana/provisioning/datasources/litegraph-prometheus.yml`](../docker/grafana/provisioning/datasources/litegraph-prometheus.yml), where Grafana points to Prometheus
-- [`assets/grafana/litegraph-observability-dashboard.json`](assets/grafana/litegraph-observability-dashboard.json), the provisioned dashboard
+- [`assets/grafana/`](../assets/grafana/), the provisioned per-domain dashboards
 
 The manual example below assumes LiteGraph.Server is running locally on `http://localhost:8701` and that `Settings.Observability.EnablePrometheus` is `true`.
 
@@ -258,8 +285,8 @@ docker compose -f compose.observability.yml up
 - Open `http://localhost:3000`.
 - Sign in with `admin` / `admin` unless you changed the compose environment.
 - Add a Prometheus datasource with URL `http://prometheus:9090`.
-- Import `assets/grafana/litegraph-observability-dashboard.json`.
-- Select the Prometheus datasource during import.
+- Import the dashboards under `assets/grafana/`, starting with `litegraph-overview.json` (import `litegraph-logs.json` only if you also run Loki).
+- Select the Prometheus (or Loki) datasource during import.
 
 6. Generate traffic and refresh the dashboard:
 
@@ -436,6 +463,7 @@ Core activities:
 - query executor phase child activity: `litegraph.query.execute`
 - vector search activity: `litegraph.vector.search`
 - SQLite HNSW vector index search activity: `litegraph.vector.index.search`
+- vector index rebuild activity: `litegraph.vector.index.rebuild`
 - repository operation activity: `litegraph.repository.operation`
 - graph transaction activity: `litegraph.transaction`
 
@@ -453,6 +481,9 @@ Core metrics:
 - `litegraph.vector.search.results`
 - `litegraph.vector.search.duration`
 - `litegraph.vector.index.mutation.failures`
+- `litegraph.vector.index.rebuilds`
+- `litegraph.vector.index.rebuild.vectors`
+- `litegraph.vector.index.rebuild.duration`
 
 `litegraph.vector.index.mutation.failures` increments when a staged vector-index mutation fails after the database transaction has committed. It is tagged by repository provider, vector index type, and error type. A non-zero value means the database commit succeeded but the derived vector index was marked dirty and should be rebuilt before relying on indexed vector search latency or recall.
 

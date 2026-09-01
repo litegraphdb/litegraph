@@ -14722,6 +14722,119 @@
 									"response": []
 								}
 							]
+						},
+						{
+							"name": "Graph-Scoped Compatible Chat",
+							"item": [
+								{
+									"name": "OpenAI-format completion",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Chats with the graph in the URL using the OpenAI chat completions request/response format. The client supplies the full messages transcript; model matches a tenant chat endpoint by Name, Model, or GUID (case-insensitive) and may be omitted to use the tenant default completion endpoint. Set stream true for SSE chat.completion.chunk frames terminated by data: [DONE]. Errors use the OpenAI error envelope.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/chat/completions",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"graphs",
+												"{{graph}}",
+												"chat",
+												"completions"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"model\": null,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Answer briefly.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"What are the most connected nodes in this graph?\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 4096,\n  \"stream\": false\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Ollama-format chat",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Chats with the graph in the URL using the Ollama /api/chat request/response format. stream defaults to true (newline-delimited JSON), matching Ollama; set it false for a single JSON object with done true and token counters. Model selection semantics are shared with the OpenAI-format route.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/chat/ollama",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"graphs",
+												"{{graph}}",
+												"chat",
+												"ollama"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"model\": null,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"What are the most connected nodes in this graph?\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.7,\n    \"num_predict\": 4096\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "OpenAI-format model list",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists the tenant's active completion endpoints in the OpenAI models shape ({object: list, data: [{id, object, created, owned_by}]}). Each id is the chat endpoint name; Name, Model, and GUID are all accepted in the model field of the compatible POST routes.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/chat/models",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"graphs",
+												"{{graph}}",
+												"chat",
+												"models"
+											]
+										}
+									},
+									"response": []
+								}
+							]
 						}
 					],
 					"description": "LLM chat over graph data: tenant-managed completion and embedding endpoints (OpenAI and OpenAI-compatible, Ollama, Gemini, Anthropic completion-only, VoyageAI embedding-only), completions with SSE streaming, an in-process graph tool loop, optional vector retrieval, threads and turns with per-stage telemetry, feedback, and per-tenant settings."

@@ -13746,21 +13746,42 @@
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            string dashboardPath = ResolveRepositoryFile("assets", "grafana", "litegraph-observability-dashboard.json");
-            string dashboardJson = File.ReadAllText(dashboardPath);
-            using JsonDocument document = JsonDocument.Parse(dashboardJson);
-            JsonElement root = document.RootElement;
-
-            AssertEqual("LiteGraph Observability", root.GetProperty("title").GetString(), "Grafana dashboard title");
-            AssertEqual("litegraph-observability", root.GetProperty("uid").GetString(), "Grafana dashboard UID");
-            AssertTrue(root.GetProperty("tags").EnumerateArray().Any(tag => tag.GetString() == "litegraph"), "Grafana dashboard tag");
-
-            JsonElement panels = root.GetProperty("panels");
-            AssertTrue(panels.ValueKind == JsonValueKind.Array, "Grafana panels array");
-            AssertTrue(panels.GetArrayLength() >= 10, "Grafana dashboard panel count");
+            Dictionary<string, string> expectedDashboards = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { "litegraph-overview.json", "litegraph-overview" },
+                { "litegraph-api-requests.json", "litegraph-api-requests" },
+                { "litegraph-graphs-queries.json", "litegraph-graphs-queries" },
+                { "litegraph-vector-search.json", "litegraph-vector-search" },
+                { "litegraph-storage.json", "litegraph-storage" },
+                { "litegraph-logs.json", "litegraph-logs" },
+                { "litegraph-chat-inference.json", "litegraph-chat-inference" }
+            };
 
             List<string> expressions = new List<string>();
-            CollectGrafanaExpressions(root, expressions);
+            HashSet<string> observedUids = new HashSet<string>(StringComparer.Ordinal);
+            int totalPanels = 0;
+
+            foreach (KeyValuePair<string, string> expected in expectedDashboards)
+            {
+                string dashboardPath = ResolveRepositoryFile("assets", "grafana", expected.Key);
+                string dashboardJson = File.ReadAllText(dashboardPath);
+                using JsonDocument document = JsonDocument.Parse(dashboardJson);
+                JsonElement root = document.RootElement;
+
+                AssertEqual(expected.Value, root.GetProperty("uid").GetString(), "Grafana dashboard UID for " + expected.Key);
+                AssertTrue(observedUids.Add(root.GetProperty("uid").GetString() ?? String.Empty), "Grafana dashboard UID unique for " + expected.Key);
+                AssertTrue(!String.IsNullOrWhiteSpace(root.GetProperty("title").GetString()), "Grafana dashboard title for " + expected.Key);
+                AssertTrue(root.GetProperty("tags").EnumerateArray().Any(tag => tag.GetString() == "litegraph"), "Grafana dashboard tag for " + expected.Key);
+
+                JsonElement panels = root.GetProperty("panels");
+                AssertTrue(panels.ValueKind == JsonValueKind.Array, "Grafana panels array for " + expected.Key);
+                AssertTrue(panels.GetArrayLength() >= 3, "Grafana dashboard panel count for " + expected.Key);
+                totalPanels += panels.GetArrayLength();
+
+                CollectGrafanaExpressions(root, expressions);
+            }
+
+            AssertTrue(totalPanels >= 40, "Grafana dashboard total panel count");
 
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_http_requests_total", StringComparison.Ordinal)), "Grafana HTTP request metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_http_request_duration_ms_sum", StringComparison.Ordinal)), "Grafana HTTP duration metric");
@@ -13775,6 +13796,11 @@
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_entity_count", StringComparison.Ordinal)), "Grafana entity count metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_storage_backend_info", StringComparison.Ordinal)), "Grafana storage backend metric");
             AssertTrue(expressions.Any(expr => expr.Contains("litegraph_authentication_requests_total", StringComparison.Ordinal)), "Grafana auth metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_backup_operations_total", StringComparison.Ordinal)), "Grafana backup metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_retention_sweeps_total", StringComparison.Ordinal)), "Grafana retention metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_vector_index_rebuilds_total", StringComparison.Ordinal)), "Grafana vector index rebuild metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_graph_import_records_total", StringComparison.Ordinal)), "Grafana graph import metric");
+            AssertTrue(expressions.Any(expr => expr.Contains("litegraph_chat_requests_total", StringComparison.Ordinal)), "Grafana chat request metric");
 
             return Task.CompletedTask;
         }

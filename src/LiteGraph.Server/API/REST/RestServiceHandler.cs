@@ -2496,6 +2496,12 @@
                 {
                     GraphImportResult result = await _LiteGraph.ImportGraphFromJsonlStream(req.TenantGUID.Value, body, importRequest, timeoutCts.Token).ConfigureAwait(false);
 
+                    _Observability.RecordGraphImport(
+                        result.GraphsCreated + result.NodesCreated + result.EdgesCreated,
+                        result.NodesUpdated + result.EdgesUpdated,
+                        result.NodesSkipped + result.EdgesSkipped,
+                        result.Warnings?.Count ?? 0);
+
                     ctx.Response.StatusCode = 200;
                     ctx.Response.ContentType = Constants.JsonContentType;
                     await ctx.Response.Send(_Serializer.SerializeJson(result));

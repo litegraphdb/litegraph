@@ -19,6 +19,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
         {
             string ret =
                 "INSERT INTO 'vectors' "
+                + "(guid, tenantguid, graphguid, nodeguid, edgeguid, model, dimensionality, content, embeddings, createdutc, lastupdateutc) "
                 + "VALUES ("
                 + "'" + vector.GUID + "',"
                 + "'" + vector.TenantGUID + "',"

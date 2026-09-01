@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -62,7 +63,27 @@
             if (req.BackupRequest == null) throw new ArgumentNullException(nameof(req.BackupRequest));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            await _LiteGraph.Admin.Backup(req.BackupRequest.Filename, token).ConfigureAwait(false);
+            using (Activity activity = Observability?.StartActivity("litegraph.backup", ActivityKind.Internal))
+            {
+                activity?.SetTag("litegraph.backup.operation", "create");
+
+                try
+                {
+                    await RecordedBackupOperation("create", async () =>
+                    {
+                        await _LiteGraph.Admin.Backup(req.BackupRequest.Filename, token).ConfigureAwait(false);
+                        return true;
+                    }).ConfigureAwait(false);
+
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                }
+                catch (Exception e)
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, e.Message);
+                    throw;
+                }
+            }
+
             return new ResponseContext(req);
         }
 
@@ -72,7 +93,7 @@
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            BackupFile data = await _LiteGraph.Admin.BackupRead(req.BackupFilename, token).ConfigureAwait(false);
+            BackupFile data = await RecordedBackupOperation("read", () => _LiteGraph.Admin.BackupRead(req.BackupFilename, token)).ConfigureAwait(false);
             return new ResponseContext(req, data);
         }
 
@@ -82,7 +103,7 @@
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            bool exists = await _LiteGraph.Admin.BackupExists(req.BackupFilename, token).ConfigureAwait(false);
+            bool exists = await RecordedBackupOperation("exists", () => _LiteGraph.Admin.BackupExists(req.BackupFilename, token)).ConfigureAwait(false);
             if (exists) return new ResponseContext(req);
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound, null, "The specified backup file was not found.");
         }
@@ -92,11 +113,16 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<BackupFile> files = new List<BackupFile>();
-            await foreach (BackupFile backup in _LiteGraph.Admin.BackupReadAll(token).WithCancellation(token).ConfigureAwait(false))
+            List<BackupFile> files = await RecordedBackupOperation("read_all", async () =>
             {
-                files.Add(backup);
-            }
+                List<BackupFile> ret = new List<BackupFile>();
+                await foreach (BackupFile backup in _LiteGraph.Admin.BackupReadAll(token).WithCancellation(token).ConfigureAwait(false))
+                {
+                    ret.Add(backup);
+                }
+
+                return ret;
+            }).ConfigureAwait(false);
 
             return new ResponseContext(req, files);
         }
@@ -106,7 +132,7 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             if (req.EnumerationQuery == null) req.EnumerationQuery = new EnumerationRequest();
-            EnumerationResult<BackupFile> er = await _LiteGraph.Admin.BackupEnumerate(req.EnumerationQuery, token).ConfigureAwait(false);
+            EnumerationResult<BackupFile> er = await RecordedBackupOperation("enumerate", () => _LiteGraph.Admin.BackupEnumerate(req.EnumerationQuery, token)).ConfigureAwait(false);
             return new ResponseContext(req, er);
         }
 
@@ -116,7 +142,12 @@
             if (String.IsNullOrEmpty(req.BackupFilename)) throw new ArgumentNullException(nameof(req.BackupFilename));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            await _LiteGraph.Admin.DeleteBackup(req.BackupFilename, token).ConfigureAwait(false);
+            await RecordedBackupOperation("delete", async () =>
+            {
+                await _LiteGraph.Admin.DeleteBackup(req.BackupFilename, token).ConfigureAwait(false);
+                return true;
+            }).ConfigureAwait(false);
+
             return new ResponseContext(req);
         }
 
@@ -2217,6 +2248,25 @@
                 ApiErrorEnum.BadRequest,
                 null,
                 "Invalid bulk create return mode '" + req.InvalidBulkCreateReturnMode + "'. Valid values are 'full' and 'minimal'.");
+        }
+
+        private async Task<T> RecordedBackupOperation<T>(string operation, Func<Task<T>> action)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                T result = await action().ConfigureAwait(false);
+                stopwatch.Stop();
+                Observability?.RecordBackupOperation(operation, true, stopwatch.Elapsed.TotalMilliseconds);
+                return result;
+            }
+            catch (Exception)
+            {
+                stopwatch.Stop();
+                Observability?.RecordBackupOperation(operation, false, stopwatch.Elapsed.TotalMilliseconds);
+                throw;
+            }
         }
 
         #endregion

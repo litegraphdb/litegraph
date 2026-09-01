@@ -61,7 +61,14 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.ModelsCatalog", "Non-admin users can list selectable models without secrets", TestChatRestModelsCatalog),
                     ChatCase("Chat.Rest", "Chat.Rest.ContentRoundTrip", "Stored text preserves markdown separators and comment tokens", TestChatRestContentRoundTrip),
                     ChatCase("Chat.Rest", "Chat.Rest.ContextPrompt", "System prompt carries tenant and selected graph context", TestChatRestContextPrompt),
-                    ChatCase("Chat.Rest", "Chat.Rest.RbacDelegation", "An [Admin] x [Chat] role delegates chat management without tenant admin", TestChatRestRbacDelegation)
+                    ChatCase("Chat.Rest", "Chat.Rest.RbacDelegation", "An [Admin] x [Chat] role delegates chat management without tenant admin", TestChatRestRbacDelegation),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatModelsCatalog", "Graph-scoped compatible model list carries only active completion endpoints", TestChatRestCompatModels),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatOpenAiCompletion", "Graph-scoped OpenAI-format completion returns choices and usage and persists a turn", TestChatRestCompatOpenAiCompletion),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatOpenAiStreaming", "Graph-scoped OpenAI-format streaming emits role, content, and DONE frames", TestChatRestCompatOpenAiStreaming),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatModelSelection", "Compatible model selector matches name, model, and GUID; unknown models yield 404", TestChatRestCompatModelSelection),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatOllamaCompletion", "Graph-scoped Ollama-format completion reports done true with counters", TestChatRestCompatOllama),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatAuthRequired", "Compatible chat routes reject unauthenticated requests", TestChatRestCompatAuthRequired),
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatUnknownGraph", "Compatible chat routes return 404 for unknown graphs", TestChatRestCompatUnknownGraph)
                 });
         }
 
@@ -1273,6 +1280,373 @@ namespace Test.Shared
             {
                 await CleanupMcpServer().ConfigureAwait(false);
             }
+        }
+
+        private static async Task TestChatRestCompatModels(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "compat-models@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string graphGuid = await ChatProvisionGraphAsync(endpoint, "compat-models-graph", cancellationToken).ConfigureAwait(false);
+
+                    HttpOutcome embeddingCreated = await AuthRestAsync(HttpMethod.Put,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints",
+                        _AdminBearerToken,
+                        "{\"Name\":\"fake-embed\",\"EndpointType\":\"Embedding\",\"Provider\":\"OpenAI\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"fake-embed\",\"HealthCheckEnabled\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(embeddingCreated.Status), "Provisioned embedding endpoint (status " + embeddingCreated.Status + ")");
+
+                    HttpOutcome models = await AuthRestAsync(HttpMethod.Get,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat/models",
+                        userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, models.Status, "Compat model list succeeds (body " + Truncate(models.Body, 300) + ")");
+
+                    using (JsonDocument doc = JsonDocument.Parse(models.Body))
+                    {
+                        AssertEqual("list", doc.RootElement.GetProperty("object").GetString() ?? String.Empty, "Model list object is 'list'");
+                        JsonElement data = doc.RootElement.GetProperty("data");
+                        AssertTrue(data.GetArrayLength() >= 1, "Model list carries at least one entry");
+
+                        bool sawCompletion = false;
+                        bool sawEmbedding = false;
+                        foreach (JsonElement entry in data.EnumerateArray())
+                        {
+                            string id = entry.GetProperty("id").GetString() ?? String.Empty;
+                            AssertEqual("model", entry.GetProperty("object").GetString() ?? String.Empty, "Model entry object is 'model'");
+                            AssertTrue(entry.TryGetProperty("created", out _), "Model entry carries a created epoch");
+                            AssertTrue(entry.TryGetProperty("owned_by", out _), "Model entry carries owned_by");
+                            if (id == "fake-llm") sawCompletion = true;
+                            if (id == "fake-embed") sawEmbedding = true;
+                        }
+
+                        AssertTrue(sawCompletion, "The completion endpoint appears by name in the model list");
+                        AssertFalse(sawEmbedding, "Embedding endpoints are excluded from the model list");
+                    }
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestCompatOpenAiCompletion(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "compat-openai@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string graphGuid = await ChatProvisionGraphAsync(endpoint, "compat-openai-graph", cancellationToken).ConfigureAwait(false);
+
+                    fake.EnqueueText("Compat says hello.", 12, 5);
+
+                    HttpOutcome completion = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat/completions",
+                        userBearer,
+                        "{\"messages\":[{\"role\":\"system\",\"content\":\"Answer briefly.\"},{\"role\":\"user\",\"content\":\"say hello\"}],\"ignored_field\":true}",
+                        cancellationToken).ConfigureAwait(false);
+
+                    AssertEqual(200, completion.Status, "OpenAI-format completion succeeds (body " + Truncate(completion.Body, 400) + ")");
+
+                    using (JsonDocument doc = JsonDocument.Parse(completion.Body))
+                    {
+                        AssertEqual("chat.completion", doc.RootElement.GetProperty("object").GetString() ?? String.Empty, "Response object is chat.completion");
+                        AssertTrue((doc.RootElement.GetProperty("id").GetString() ?? String.Empty).StartsWith("chatcmpl-", StringComparison.Ordinal), "Completion id carries the chatcmpl prefix");
+                        AssertEqual("fake-model", doc.RootElement.GetProperty("model").GetString() ?? String.Empty, "Model reflects the endpoint's model");
+
+                        JsonElement choice = doc.RootElement.GetProperty("choices")[0];
+                        AssertEqual("assistant", choice.GetProperty("message").GetProperty("role").GetString() ?? String.Empty, "Choice message role is assistant");
+                        AssertTrue((choice.GetProperty("message").GetProperty("content").GetString() ?? String.Empty).Contains("Compat says hello."), "Choice message carries the fake model's answer");
+                        AssertEqual("stop", choice.GetProperty("finish_reason").GetString() ?? String.Empty, "Finish reason is stop");
+
+                        JsonElement usage = doc.RootElement.GetProperty("usage");
+                        AssertEqual(12, usage.GetProperty("prompt_tokens").GetInt32(), "Prompt tokens are reported");
+                        AssertEqual(5, usage.GetProperty("completion_tokens").GetInt32(), "Completion tokens are reported");
+                        AssertEqual(17, usage.GetProperty("total_tokens").GetInt32(), "Total tokens are the sum");
+                    }
+
+                    HttpOutcome threads = await AuthRestAsync(HttpMethod.Get,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads",
+                        userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, threads.Status, "Thread list succeeds");
+
+                    string? threadGuid = null;
+                    using (JsonDocument threadsDoc = JsonDocument.Parse(threads.Body))
+                    {
+                        foreach (JsonElement thread in threadsDoc.RootElement.EnumerateArray())
+                        {
+                            string title = (thread.TryGetProperty("Title", out JsonElement titleProp) ? titleProp.GetString() ?? String.Empty : String.Empty);
+                            if (title.StartsWith("OpenAI-compatible:", StringComparison.Ordinal))
+                            {
+                                threadGuid = thread.GetProperty("GUID").GetString();
+                                break;
+                            }
+                        }
+                    }
+
+                    AssertNotNull(threadGuid, "The exchange was persisted into an implicit OpenAI-compatible thread");
+
+                    HttpOutcome turns = await AuthRestAsync(HttpMethod.Get,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads/" + threadGuid + "/turns",
+                        userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, turns.Status, "Turns read back for the implicit thread");
+                    AssertTrue(turns.Body.Contains("say hello"), "The persisted turn carries the user message");
+                    AssertTrue(turns.Body.Contains("\"Success\":true") || turns.Body.Contains("\"Success\": true"), "The persisted turn is successful");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestCompatOpenAiStreaming(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "compat-stream@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string graphGuid = await ChatProvisionGraphAsync(endpoint, "compat-stream-graph", cancellationToken).ConfigureAwait(false);
+
+                    fake.EnqueueText("streamed compat answer", 9, 4);
+
+                    using (HttpClient client = new HttpClient())
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat/completions"))
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(60);
+                        request.Headers.Add("Authorization", "Bearer " + userBearer);
+                        request.Content = new StringContent(
+                            "{\"messages\":[{\"role\":\"user\",\"content\":\"stream it\"}],\"stream\":true,\"stream_options\":{\"include_usage\":true}}",
+                            Encoding.UTF8, "application/json");
+
+                        using (HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
+                        {
+                            AssertEqual(200, (int)response.StatusCode, "OpenAI-format streaming returns 200");
+                            string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                            AssertTrue(body.Contains("\"object\":\"chat.completion.chunk\""), "Stream carries chat.completion.chunk frames");
+                            AssertTrue(body.Contains("\"role\":\"assistant\""), "The first chunk carries the assistant role");
+                            AssertTrue(body.Contains("\"content\":\"streamed co\"") && body.Contains("\"content\":\"mpat answer\""), "Stream carries the content fragments");
+                            AssertTrue(body.Contains("\"finish_reason\":\"stop\""), "The terminal chunk carries finish_reason stop");
+                            AssertTrue(body.Contains("\"total_tokens\":13"), "The usage chunk reports total tokens");
+                            AssertTrue(body.Contains("[DONE]"), "Stream terminates with DONE");
+
+                            int roleIndex = body.IndexOf("\"role\":\"assistant\"", StringComparison.Ordinal);
+                            int finishIndex = body.IndexOf("\"finish_reason\":\"stop\"", StringComparison.Ordinal);
+                            int doneIndex = body.IndexOf("[DONE]", StringComparison.Ordinal);
+                            AssertTrue(roleIndex < finishIndex && finishIndex < doneIndex, "Frames arrive in order role < finish < DONE");
+                        }
+                    }
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestCompatModelSelection(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "compat-select@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string graphGuid = await ChatProvisionGraphAsync(endpoint, "compat-select-graph", cancellationToken).ConfigureAwait(false);
+                    string url = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat/completions";
+
+                    fake.EnqueueText("selected by name", 4, 2);
+                    HttpOutcome byName = await AuthRestAsync(HttpMethod.Post, url, userBearer,
+                        "{\"model\":\"fake-llm\",\"messages\":[{\"role\":\"user\",\"content\":\"by name\"}]}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, byName.Status, "Selection by endpoint name succeeds (body " + Truncate(byName.Body, 300) + ")");
+                    AssertTrue(byName.Body.Contains("selected by name"), "Name-selected completion returns the fake answer");
+
+                    fake.EnqueueText("selected by model", 4, 2);
+                    HttpOutcome byModel = await AuthRestAsync(HttpMethod.Post, url, userBearer,
+                        "{\"model\":\"FAKE-MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"by model\"}]}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, byModel.Status, "Selection by model string is case-insensitive (body " + Truncate(byModel.Body, 300) + ")");
+
+                    fake.EnqueueText("selected by guid", 4, 2);
+                    HttpOutcome byGuid = await AuthRestAsync(HttpMethod.Post, url, userBearer,
+                        "{\"model\":\"" + endpointGuid + "\",\"messages\":[{\"role\":\"user\",\"content\":\"by guid\"}]}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, byGuid.Status, "Selection by endpoint GUID succeeds (body " + Truncate(byGuid.Body, 300) + ")");
+
+                    HttpOutcome unknown = await AuthRestAsync(HttpMethod.Post, url, userBearer,
+                        "{\"model\":\"no-such-model\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, unknown.Status, "Unknown model yields 404 (body " + Truncate(unknown.Body, 300) + ")");
+
+                    using (JsonDocument doc = JsonDocument.Parse(unknown.Body))
+                    {
+                        JsonElement error = doc.RootElement.GetProperty("error");
+                        AssertEqual("invalid_request_error", error.GetProperty("type").GetString() ?? String.Empty, "The 404 uses the OpenAI error envelope");
+                        AssertTrue((error.GetProperty("message").GetString() ?? String.Empty).Contains("no-such-model"), "The error names the unknown model");
+                    }
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestCompatOllama(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "compat-ollama@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string graphGuid = await ChatProvisionGraphAsync(endpoint, "compat-ollama-graph", cancellationToken).ConfigureAwait(false);
+
+                    fake.EnqueueText("Ollama compat answer.", 11, 6);
+
+                    HttpOutcome completion = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat/ollama",
+                        userBearer,
+                        "{\"messages\":[{\"role\":\"user\",\"content\":\"hello ollama\"}],\"stream\":false,\"options\":{\"temperature\":0.2}}",
+                        cancellationToken).ConfigureAwait(false);
+
+                    AssertEqual(200, completion.Status, "Ollama-format completion succeeds (body " + Truncate(completion.Body, 400) + ")");
+
+                    using (JsonDocument doc = JsonDocument.Parse(completion.Body))
+                    {
+                        AssertEqual("fake-model", doc.RootElement.GetProperty("model").GetString() ?? String.Empty, "Model reflects the endpoint's model");
+                        AssertTrue(doc.RootElement.GetProperty("done").GetBoolean(), "Response reports done true");
+                        AssertTrue(doc.RootElement.TryGetProperty("created_at", out _), "Response carries created_at");
+
+                        JsonElement message = doc.RootElement.GetProperty("message");
+                        AssertEqual("assistant", message.GetProperty("role").GetString() ?? String.Empty, "Message role is assistant");
+                        AssertTrue((message.GetProperty("content").GetString() ?? String.Empty).Contains("Ollama compat answer."), "Message carries the fake model's answer");
+
+                        AssertEqual(11, doc.RootElement.GetProperty("prompt_eval_count").GetInt32(), "prompt_eval_count reports prompt tokens");
+                        AssertEqual(6, doc.RootElement.GetProperty("eval_count").GetInt32(), "eval_count reports completion tokens");
+                        AssertTrue(doc.RootElement.GetProperty("total_duration").GetInt64() > 0, "total_duration is reported in nanoseconds");
+                        AssertTrue(doc.RootElement.TryGetProperty("eval_duration", out _), "eval_duration is reported");
+                    }
+
+                    fake.EnqueueText("Ollama streamed answer.", 7, 3);
+
+                    HttpOutcome streamed = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat/ollama",
+                        userBearer,
+                        "{\"messages\":[{\"role\":\"user\",\"content\":\"stream by default\"}]}",
+                        cancellationToken).ConfigureAwait(false);
+
+                    AssertEqual(200, streamed.Status, "Ollama-format streaming (the protocol default) succeeds (body " + Truncate(streamed.Body, 400) + ")");
+                    string[] lines = streamed.Body.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    AssertTrue(lines.Length >= 2, "The stream carries multiple NDJSON lines (got " + lines.Length + ")");
+                    AssertTrue(streamed.Body.Contains("\"done\":false"), "Fragments report done false");
+
+                    using (JsonDocument finalDoc = JsonDocument.Parse(lines[lines.Length - 1]))
+                    {
+                        AssertTrue(finalDoc.RootElement.GetProperty("done").GetBoolean(), "The final NDJSON line reports done true");
+                        AssertEqual(3, finalDoc.RootElement.GetProperty("eval_count").GetInt32(), "The final line carries token counters");
+                    }
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestCompatAuthRequired(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+                string graphGuid = await ChatProvisionGraphAsync(endpoint, "compat-auth-graph", cancellationToken).ConfigureAwait(false);
+                string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/chat";
+
+                HttpOutcome openAi = await AuthRestAsync(HttpMethod.Post, baseUrl + "/completions", null,
+                    "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(openAi.Status == 401 || openAi.Status == 403, "OpenAI-format completion requires authentication (status " + openAi.Status + ")");
+
+                HttpOutcome ollama = await AuthRestAsync(HttpMethod.Post, baseUrl + "/ollama", null,
+                    "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(ollama.Status == 401 || ollama.Status == 403, "Ollama-format completion requires authentication (status " + ollama.Status + ")");
+
+                HttpOutcome models = await AuthRestAsync(HttpMethod.Get, baseUrl + "/models", null, null, cancellationToken).ConfigureAwait(false);
+                AssertTrue(models.Status == 401 || models.Status == 403, "Compat model list requires authentication (status " + models.Status + ")");
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestChatRestCompatUnknownGraph(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "compat-nograph@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    string missingGraph = Guid.NewGuid().ToString();
+                    string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + missingGraph + "/chat";
+
+                    HttpOutcome openAi = await AuthRestAsync(HttpMethod.Post, baseUrl + "/completions", userBearer,
+                        "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}", cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, openAi.Status, "OpenAI-format completion against an unknown graph yields 404 (body " + Truncate(openAi.Body, 300) + ")");
+                    AssertTrue(openAi.Body.Contains("invalid_request_error"), "The unknown-graph 404 uses the OpenAI error envelope");
+
+                    HttpOutcome ollama = await AuthRestAsync(HttpMethod.Post, baseUrl + "/ollama", userBearer,
+                        "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}", cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, ollama.Status, "Ollama-format completion against an unknown graph yields 404 (body " + Truncate(ollama.Body, 300) + ")");
+
+                    HttpOutcome models = await AuthRestAsync(HttpMethod.Get, baseUrl + "/models", userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, models.Status, "Compat model list against an unknown graph yields 404 (body " + Truncate(models.Body, 300) + ")");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task<string> ChatProvisionGraphAsync(string endpoint, string name, CancellationToken cancellationToken)
+        {
+            HttpOutcome created = await AuthRestAsync(HttpMethod.Put,
+                endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs",
+                _AdminBearerToken,
+                "{\"Name\":\"" + name + "\"}",
+                cancellationToken).ConfigureAwait(false);
+            AssertTrue(IsSuccess(created.Status), "Provisioned graph '" + name + "' (status " + created.Status + " body " + Truncate(created.Body, 200) + ")");
+            return ExtractGuid(created.Body);
         }
 
         #endregion

@@ -1,6 +1,7 @@
 namespace LiteGraph.Server.API.REST
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using LiteGraph;
@@ -30,6 +31,10 @@ namespace LiteGraph.Server.API.REST
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/completions", ChatCompletionRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Chat completion (SSE or JSON)", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/models", ChatModelsReadAllRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List selectable chat models", "Chat"));
+
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/completions", ChatGraphCompletionOpenAiRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Graph-scoped OpenAI-compatible chat completion", "Chat"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/ollama", ChatGraphCompletionOllamaRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Graph-scoped Ollama-compatible chat", "Chat"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/models", ChatGraphModelsReadAllRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Graph-scoped OpenAI-compatible model list", "Chat"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/chat/threads", ChatThreadCreateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Create chat thread", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/threads", ChatThreadReadAllRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List chat threads", "Chat"));
@@ -225,6 +230,128 @@ namespace LiteGraph.Server.API.REST
                 using System.Threading.CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
                 await _ChatService.ProcessCompletion(ctx, req, timeoutCts.Token).ConfigureAwait(false);
             }
+        }
+
+        #endregion
+
+        #region Chat-Graph-Compat-Routes
+
+        private async Task ChatGraphCompletionOpenAiRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (!await ChatCompatPreflight(ctx).ConfigureAwait(false)) return;
+
+            OpenAiChatCompletionRequest request;
+            try
+            {
+                request = _Serializer.DeserializeJson<OpenAiChatCompletionRequest>(ctx.Request.DataAsString);
+            }
+            catch (Exception e)
+            {
+                await SendChatCompatBadRequest(ctx, "The request body could not be parsed: " + e.Message).ConfigureAwait(false);
+                return;
+            }
+
+            using (System.Diagnostics.Activity activity = StartInternalActivity("litegraph.rest.chat.compat.openai", req))
+            {
+                using System.Threading.CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+                await _ChatService.ProcessOpenAiGraphCompletion(ctx, req, request, timeoutCts.Token).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ChatGraphCompletionOllamaRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (!await ChatCompatPreflight(ctx).ConfigureAwait(false)) return;
+
+            OllamaChatRequest request;
+            try
+            {
+                request = _Serializer.DeserializeJson<OllamaChatRequest>(ctx.Request.DataAsString);
+            }
+            catch (Exception e)
+            {
+                await SendChatCompatBadRequest(ctx, "The request body could not be parsed: " + e.Message).ConfigureAwait(false);
+                return;
+            }
+
+            using (System.Diagnostics.Activity activity = StartInternalActivity("litegraph.rest.chat.compat.ollama", req))
+            {
+                using System.Threading.CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+                await _ChatService.ProcessOllamaGraphCompletion(ctx, req, request, timeoutCts.Token).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ChatGraphModelsReadAllRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            using System.Threading.CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+
+            Graph graph = null;
+            try
+            {
+                graph = await _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token: timeoutCts.Token).ConfigureAwait(false);
+            }
+            catch (KeyNotFoundException)
+            {
+            }
+            catch (ArgumentException)
+            {
+            }
+
+            if (graph == null)
+            {
+                ctx.Response.StatusCode = 404;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new OpenAiErrorResponse("The specified graph could not be found in this tenant.", "invalid_request_error"), true)).ConfigureAwait(false);
+                return;
+            }
+
+            OpenAiModelList list = new OpenAiModelList();
+
+            await foreach (ChatEndpoint endpoint in _LiteGraph.ChatEndpoint.ReadAllInTenant(req.TenantGUID.Value, ChatEndpointTypeEnum.Completion, EnumerationOrderEnum.CreatedAscending, 0, timeoutCts.Token).ConfigureAwait(false))
+            {
+                if (!endpoint.Active) continue;
+
+                list.Data.Add(new OpenAiModelEntry
+                {
+                    Id = endpoint.Name,
+                    Created = new DateTimeOffset(DateTime.SpecifyKind(endpoint.CreatedUtc, DateTimeKind.Utc)).ToUnixTimeSeconds(),
+                    OwnedBy = "litegraph"
+                });
+            }
+
+            ctx.Response.StatusCode = 200;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(list, true)).ConfigureAwait(false);
+        }
+
+        private async Task<bool> ChatCompatPreflight(HttpContextBase ctx)
+        {
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await SendChatCompatBadRequest(ctx, "A request body is required.").ConfigureAwait(false);
+                return false;
+            }
+
+            if (_ChatService == null)
+            {
+                ctx.Response.StatusCode = 500;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new OpenAiErrorResponse("Chat service is not available.", "server_error"), true)).ConfigureAwait(false);
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task SendChatCompatBadRequest(HttpContextBase ctx, string message)
+        {
+            ctx.Response.StatusCode = 400;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(new OpenAiErrorResponse(message, "invalid_request_error"), true)).ConfigureAwait(false);
         }
 
         #endregion

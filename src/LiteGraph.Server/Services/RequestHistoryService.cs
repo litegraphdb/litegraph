@@ -25,6 +25,11 @@ namespace LiteGraph.Server.Services
         /// </summary>
         public const string RedactedValue = "***";
 
+        /// <summary>
+        /// Observability service used for capture-drop and retention sweep metrics.  Null until wired at startup.
+        /// </summary>
+        public ObservabilityService Observability { get; set; } = null;
+
         #endregion
 
         #region Private-Members
@@ -102,6 +107,7 @@ namespace LiteGraph.Server.Services
 
             if (!_CaptureChannel.Writer.TryWrite(detail))
             {
+                Observability?.RecordRequestHistoryDrop();
                 long dropped = Interlocked.Increment(ref _DroppedCaptures);
                 if (dropped == 1 || dropped % 100 == 0)
                 {
@@ -326,9 +332,22 @@ namespace LiteGraph.Server.Services
                     if (_Settings.RequestHistory.Enable)
                     {
                         DateTime cutoff = DateTime.UtcNow.AddDays(-_Settings.RequestHistory.RetentionDays);
-                        int deleted = await _Repo.RequestHistory.DeleteOlderThan(cutoff, token).ConfigureAwait(false);
-                        if (deleted > 0)
-                            _Logging.Debug(_Header + "purged " + deleted + " request history records older than " + cutoff.ToString("O"));
+                        System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                        try
+                        {
+                            int deleted = await _Repo.RequestHistory.DeleteOlderThan(cutoff, token).ConfigureAwait(false);
+                            stopwatch.Stop();
+                            Observability?.RecordRetentionSweep("request_history", true, deleted, stopwatch.Elapsed.TotalMilliseconds);
+                            if (deleted > 0)
+                                _Logging.Debug(_Header + "purged " + deleted + " request history records older than " + cutoff.ToString("O"));
+                        }
+                        catch (Exception) when (!token.IsCancellationRequested)
+                        {
+                            stopwatch.Stop();
+                            Observability?.RecordRetentionSweep("request_history", false, 0, stopwatch.Elapsed.TotalMilliseconds);
+                            throw;
+                        }
                     }
                 }
                 catch (OperationCanceledException) { return; }

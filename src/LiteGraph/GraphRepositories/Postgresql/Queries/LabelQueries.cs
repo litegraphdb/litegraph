@@ -19,6 +19,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
         {
             string ret =
                 "INSERT INTO 'labels' "
+                + "(guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) "
                 + "VALUES ("
                 + "'" + label.GUID + "',"
                 + "'" + label.TenantGUID + "',"
@@ -38,6 +39,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
         {
             string ret =
                 "INSERT INTO 'labels' "
+                + "(guid, tenantguid, graphguid, nodeguid, edgeguid, label, createdutc, lastupdateutc) "
                 + "VALUES ";
 
             for (int i = 0; i < labels.Count; i++)

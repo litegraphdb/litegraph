@@ -25,7 +25,7 @@ namespace LiteGraph.Server.Services.Chat
     /// usage and time-to-first-token are captured even for buffered client responses.
     /// Thread safety: safe for concurrent use.
     /// </summary>
-    internal class ChatService : IDisposable
+    internal partial class ChatService : IDisposable
     {
         #region Public-Members
 
@@ -589,13 +589,15 @@ namespace LiteGraph.Server.Services.Chat
             ChatCompletionResult result,
             List<object> toolTranscript,
             bool streaming,
-            CancellationToken token)
+            CancellationToken token,
+            Func<string, Task> onDelta = null)
         {
             System.Text.StringBuilder content = new System.Text.StringBuilder();
             System.Text.StringBuilder reasoning = new System.Text.StringBuilder();
             Func<string, CancellationToken, Task<List<float>>> embedText = null;
             if (embeddingEndpoint != null) embedText = (text, ct) => EmbedText(embeddingEndpoint, text, ct);
 
+            string finishReason = null;
             int iteration = 0;
 
             while (true)
@@ -623,7 +625,8 @@ namespace LiteGraph.Server.Services.Chat
                     {
                         sawContent = true;
                         content.Append(chunk.Text);
-                        if (streaming) await SendSse(ctx, new { @event = "delta", content = chunk.Text }).ConfigureAwait(false);
+                        if (onDelta != null) await onDelta(chunk.Text).ConfigureAwait(false);
+                        else if (streaming) await SendSse(ctx, new { @event = "delta", content = chunk.Text }).ConfigureAwait(false);
                     }
 
                     if (!String.IsNullOrEmpty(chunk.ReasoningText))
@@ -638,6 +641,8 @@ namespace LiteGraph.Server.Services.Chat
                     turn.PromptTokens = response.Usage.PromptTokens;
                     turn.CompletionTokens = response.Usage.CompletionTokens;
                 }
+
+                if (!String.IsNullOrEmpty(response.FinishReason)) finishReason = response.FinishReason;
 
                 if (response.TimeToFirstTokenMs >= 0) turn.TimeToFirstTokenMs = response.TimeToFirstTokenMs;
                 if (response.TimeToLastTokenMs >= 0) turn.TimeToLastTokenMs = response.TimeToLastTokenMs;
@@ -697,6 +702,7 @@ namespace LiteGraph.Server.Services.Chat
 
             result.Message = content.ToString();
             result.Reasoning = (reasoning.Length > 0 ? reasoning.ToString() : null);
+            result.FinishReason = finishReason;
             result.PromptTokens = turn.PromptTokens;
             result.CompletionTokens = turn.CompletionTokens;
             result.TimeToFirstTokenMs = turn.TimeToFirstTokenMs;
@@ -968,6 +974,8 @@ namespace LiteGraph.Server.Services.Chat
         {
             _ = Task.Run(async () =>
             {
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
                 try
                 {
                     await foreach (TenantMetadata tenant in _LiteGraph.Tenant.ReadMany(EnumerationOrderEnum.CreatedDescending, 0, _TokenSource.Token).ConfigureAwait(false))
@@ -977,12 +985,17 @@ namespace LiteGraph.Server.Services.Chat
                         if (retentionDays < 1) continue;
                         await _LiteGraph.ChatTurn.DeleteOlderThan(tenant.GUID, DateTime.UtcNow.AddDays(-retentionDays), _TokenSource.Token).ConfigureAwait(false);
                     }
+
+                    stopwatch.Stop();
+                    _Observability?.RecordRetentionSweep("chat_history", true, 0, stopwatch.Elapsed.TotalMilliseconds);
                 }
                 catch (OperationCanceledException)
                 {
                 }
                 catch (Exception e)
                 {
+                    stopwatch.Stop();
+                    _Observability?.RecordRetentionSweep("chat_history", false, 0, stopwatch.Elapsed.TotalMilliseconds);
                     _Logging.Warn(_Header + "retention sweep failed: " + e.Message);
                 }
             });

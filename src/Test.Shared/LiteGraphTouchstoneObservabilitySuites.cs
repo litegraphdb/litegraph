@@ -26,7 +26,8 @@ namespace Test.Shared
                     Obs("Observability.RestMetricLabels", "REST metrics carry component, route, method, and status class labels", TestObservabilityRestMetricLabels),
                     Obs("Observability.RestErrorCounter", "A REST error response increments the error counter", TestObservabilityRestErrorCounter),
                     Obs("Observability.McpMetricLabels", "MCP metrics expose component=mcp with tool and transport labels", TestObservabilityMcpMetricLabels),
-                    Obs("Observability.McpErrorCounter", "A failing MCP tool call increments the MCP error counter", TestObservabilityMcpErrorCounter)
+                    Obs("Observability.McpErrorCounter", "A failing MCP tool call increments the MCP error counter", TestObservabilityMcpErrorCounter),
+                    Obs("Observability.BackupMetrics", "Backup operations are counted with operation and success labels", TestObservabilityBackupMetrics)
                 });
         }
 
@@ -192,6 +193,40 @@ namespace Test.Shared
 
                 double errorCount = SumMetricSeries(metrics, "litegraph_http_request_errors_total", "component=\"mcp\"", "status_class=\"5xx\"");
                 AssertTrue(errorCount >= 1, "MCP error counter increments for a failing tool call");
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestObservabilityBackupMetrics(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                if (_McpEnvironment == null) throw new InvalidOperationException("MCP environment was not initialized.");
+
+                string filename = "touchstone-observability-backup.db";
+                string createBody = "{\"Filename\":\"" + filename + "\"}";
+
+                HttpOutcome create = await AuthRestAsync(HttpMethod.Post, _McpEnvironment.LiteGraphEndpoint + "/v1.0/backups", "litegraphadmin", createBody, cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, create.Status, "Backup create returns 200");
+
+                HttpOutcome delete = await AuthRestAsync(HttpMethod.Delete, _McpEnvironment.LiteGraphEndpoint + "/v1.0/backups/" + filename, "litegraphadmin", null, cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, delete.Status, "Backup delete returns 200");
+
+                string metrics = await ScrapeAsync(_McpEnvironment.LiteGraphEndpoint + "/metrics", cancellationToken).ConfigureAwait(false);
+
+                double createCount = SumMetricSeries(metrics, "litegraph_backup_operations_total", "operation=\"create\"", "success=\"true\"");
+                AssertTrue(createCount >= 1, "Backup create operation counter increments");
+
+                double deleteCount = SumMetricSeries(metrics, "litegraph_backup_operations_total", "operation=\"delete\"", "success=\"true\"");
+                AssertTrue(deleteCount >= 1, "Backup delete operation counter increments");
+
+                AssertTrue(metrics.Contains("litegraph_backup_operation_duration_ms_sum"), "Backup operation duration summary is exposed");
+                AssertTrue(metrics.Contains("# TYPE litegraph_backup_operations_total counter"), "Backup operation counter family carries counter type metadata");
             }
             finally
             {

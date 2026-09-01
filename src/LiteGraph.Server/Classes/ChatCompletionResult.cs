@@ -30,6 +30,12 @@ namespace LiteGraph.Server.Classes
         public string Reasoning { get; set; } = null;
 
         /// <summary>
+        /// Finish reason reported by the provider for the final response, for example stop or length.
+        /// Null when unreported.
+        /// </summary>
+        public string FinishReason { get; set; } = null;
+
+        /// <summary>
         /// Provider of the completion endpoint.
         /// </summary>
         public ChatProviderTypeEnum Provider { get; set; } = ChatProviderTypeEnum.OpenAI;

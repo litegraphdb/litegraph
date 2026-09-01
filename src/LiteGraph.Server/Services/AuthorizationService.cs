@@ -521,6 +521,8 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.EdgeDeleteNodeEdgesMany:
                 case RequestTypeEnum.EdgeUpdate:
                 case RequestTypeEnum.ChatCompletion:
+                case RequestTypeEnum.ChatGraphCompletionOpenAI:
+                case RequestTypeEnum.ChatGraphCompletionOllama:
                 case RequestTypeEnum.ChatThreadCreate:
                 case RequestTypeEnum.ChatThreadUpdate:
                 case RequestTypeEnum.ChatThreadDelete:
@@ -621,7 +623,10 @@ namespace LiteGraph.Server.Services
             switch (requestType)
             {
                 case RequestTypeEnum.ChatCompletion:
+                case RequestTypeEnum.ChatGraphCompletionOpenAI:
+                case RequestTypeEnum.ChatGraphCompletionOllama:
                 case RequestTypeEnum.ChatModelsReadAll:
+                case RequestTypeEnum.ChatGraphModelsReadAll:
                 case RequestTypeEnum.ChatEndpointCreate:
                 case RequestTypeEnum.ChatEndpointReadAll:
                 case RequestTypeEnum.ChatEndpointRead:

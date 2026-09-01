@@ -264,6 +264,14 @@ namespace LiteGraph.Indexing.Vector
             if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 throw new ArgumentException("Graph must have indexing enabled.");
 
+            string indexType = graph.VectorIndexType.Value.ToString();
+            long vectorCount = 0;
+            System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            using System.Diagnostics.Activity activity = LiteGraphTelemetry.ActivitySource.StartActivity(LiteGraphTelemetry.VectorIndexRebuildActivityName, System.Diagnostics.ActivityKind.Internal);
+            activity?.SetTag("litegraph.graph.guid", graph.GUID.ToString());
+            activity?.SetTag("litegraph.vector.index.type", indexType);
+
             SemaphoreSlim indexLock = GetIndexLock(graph.GUID);
             await indexLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
@@ -307,6 +315,7 @@ namespace LiteGraph.Indexing.Vector
                         if (entry == null || entry.Vector == null || entry.Vector.Count < 1) continue;
 
                         batch.Add(entry);
+                        vectorCount++;
                         if (batch.Count >= batchSize)
                         {
                             await index.AddBatchAsync(batch, cancellationToken).ConfigureAwait(false);
@@ -325,7 +334,19 @@ namespace LiteGraph.Indexing.Vector
                 }
 
                 _Indexes[graph.GUID] = index;
+
+                stopwatch.Stop();
+                activity?.SetTag("litegraph.vector.index.vectors", vectorCount);
+                LiteGraphTelemetry.SetActivityOk(activity);
+                LiteGraphTelemetry.RecordVectorIndexRebuild(new VectorIndexRebuildTelemetryEventArgs(indexType, true, vectorCount, stopwatch.Elapsed.TotalMilliseconds));
                 return index;
+            }
+            catch (Exception e)
+            {
+                stopwatch.Stop();
+                LiteGraphTelemetry.SetActivityException(activity, e);
+                LiteGraphTelemetry.RecordVectorIndexRebuild(new VectorIndexRebuildTelemetryEventArgs(indexType, false, vectorCount, stopwatch.Elapsed.TotalMilliseconds));
+                throw;
             }
             finally
             {

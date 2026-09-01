@@ -1808,8 +1808,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LiteGraph Chat",
-  "uid": "litegraph-chat",
+  "title": "LiteGraph Chat and Inference",
+  "uid": "litegraph-chat-inference",
   "version": 1,
   "weekStart": ""
 }

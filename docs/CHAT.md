@@ -50,6 +50,18 @@ A completion request runs through a fixed pipeline. Understanding it explains mo
 
 After the loop, the turn is persisted (with its tool transcript and a serialized copy of the result as `TelemetryJson`), metrics are recorded, and — on a thread's first successful exchange — a short title is generated from the opening message with a best-effort extra model call.
 
+## Protocol-Compatible Graph Chat
+
+Beyond the native completion API, three graph-scoped routes speak foreign wire protocols so existing OpenAI or Ollama clients can chat with a specific graph without learning LiteGraph's API. The URLs are LiteGraph-shaped; the bodies are protocol-shaped:
+
+- `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/completions` — OpenAI chat completions request/response bodies, including SSE streaming (`chat.completion.chunk` frames, `data: [DONE]` terminator, and an optional usage chunk via `stream_options.include_usage`).
+- `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/ollama` — Ollama `/api/chat` request/response bodies; streaming is newline-delimited JSON and, matching Ollama, is the default.
+- `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/models` — OpenAI model list, one entry per active completion endpoint.
+
+**Model selection.** The `model` field on either POST route matches a tenant chat endpoint by `Name`, `Model`, or `GUID`, case-insensitively, among active completion endpoints; the model list advertises endpoint names as `id`, but all three identifiers are accepted. Omitting `model` selects the tenant default completion endpoint. An unknown selector yields `404`, and all errors on these routes use the OpenAI error envelope (`{"error":{"message":...,"type":...}}`) rather than LiteGraph's.
+
+**Semantics.** The pipeline is the same one described above — tool loop and retrieval per tenant chat settings, with the URL's graph as the bound context and retrieval target — but these routes are stateless: the client supplies the full `messages` transcript, request system messages are appended after LiteGraph's own system prompt, prior user/assistant messages are replayed as history, and the last user message is the current message. Each exchange is still persisted as a turn, in an implicit per-user, per-graph thread titled `OpenAI-compatible: <graph name>`, so telemetry, feedback, and history work exactly as for native completions. Authentication and authorization are unchanged (member-level chat).
+
 ## Security Model
 
 Tool calls execute in-process against the same agnostic service handler REST uses, and every call runs under the calling user's authentication context. The dispatcher forces the caller's tenant GUID onto the request after argument binding, so nothing the model writes into tool arguments can reach another tenant, and each call passes through the standard authorization service — a user who cannot read a graph over REST cannot read it by asking the model nicely. The MCP server's configured elevated credential plays no part here; chat tools never inherit it.

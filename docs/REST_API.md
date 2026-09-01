@@ -1265,6 +1265,105 @@ On a streaming connection these surface as an `error` event rather than an HTTP 
 
 Lists the tenant's selectable chat models for any tenant member: each entry is an active endpoint projected to `GUID`, `Name`, `Model`, `Provider`, `EndpointType`, and `IsDefault`. Endpoint URLs, API keys, and health configuration are never included, so the full endpoint listing can stay administrator-only while chat users still pick a model. Supply an entry's `GUID` as `CompletionEndpointGUID` (or `EmbeddingEndpointGUID`) on completion requests to override the tenant default.
 
+### Graph-Scoped Compatible Chat
+
+| API                        | Method | URL                                                        |
+|----------------------------|--------|------------------------------------------------------------|
+| OpenAI-format completion   | POST   | /v1.0/tenants/[guid]/graphs/[guid]/chat/completions        |
+| Ollama-format chat         | POST   | /v1.0/tenants/[guid]/graphs/[guid]/chat/ollama             |
+| OpenAI-format model list   | GET    | /v1.0/tenants/[guid]/graphs/[guid]/chat/models             |
+
+These routes let any application that already speaks the OpenAI chat completions protocol or the Ollama `/api/chat` protocol point at LiteGraph and chat with a specific graph, without knowing LiteGraph's own chat API. The URLs are LiteGraph's; the request and response bodies are wire-compatible with the respective protocol. Authentication is normal LiteGraph authentication (bearer credential or `x-token`), and authorization is member-level chat, identical to the native completion route.
+
+The routes are stateless at the protocol level: the client supplies the entire `messages` transcript on every call. System messages from the request are appended after LiteGraph's own system prompt, earlier user and assistant messages are replayed as history, and the final user message is treated as the current message. The graph in the URL must exist in the tenant (`404` otherwise) and becomes the bound context for the exchange — the tool loop and retrieval run per tenant chat settings with that graph as the retrieval target. Each exchange is persisted as a turn in an implicit per-user, per-graph thread titled `OpenAI-compatible: <graph name>`, so telemetry and history remain visible through the normal thread APIs.
+
+Model selection is shared by both POST routes: when `model` is present it selects the tenant chat endpoint whose `Name`, `Model`, or `GUID` matches (case-insensitive, active completion endpoints only); when absent or empty the tenant default completion endpoint is used. An unknown `model` yields `404`. All error responses on these routes use the OpenAI error envelope rather than LiteGraph's:
+
+```
+{
+    "error": {
+        "message": "The model 'no-such-model' does not exist.  Supply a chat endpoint name, model, or GUID, or omit model to use the tenant default.",
+        "type": "invalid_request_error"
+    }
+}
+```
+
+An OpenAI-format request (`temperature`, `max_tokens`, and its synonym `max_completion_tokens` are optional; unknown fields are ignored):
+
+```
+{
+    "model": "my-endpoint",
+    "messages": [
+        { "role": "system", "content": "Answer briefly." },
+        { "role": "user", "content": "What are the most connected nodes?" }
+    ],
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "stream": false
+}
+```
+
+The non-streaming response is a standard `chat.completion` object; `model` reflects the resolved endpoint's `Model`:
+
+```
+{
+    "id": "chatcmpl-00000000-0000-0000-0000-000000000000",
+    "object": "chat.completion",
+    "created": 1767225600,
+    "model": "gemma3:4b",
+    "choices": [
+        {
+            "index": 0,
+            "message": { "role": "assistant", "content": "The most connected node is Ada, with 14 edges." },
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": { "prompt_tokens": 812, "completion_tokens": 96, "total_tokens": 908 }
+}
+```
+
+With `"stream": true` the response is `text/event-stream` carrying `data: <chat.completion.chunk>` frames: the first chunk carries `delta.role`, subsequent chunks carry `delta.content` fragments, the terminal chunk carries `finish_reason` (`stop` or `length`), a usage-bearing chunk follows when `stream_options.include_usage` is set, and the stream ends with `data: [DONE]`.
+
+The Ollama-format route accepts the `/api/chat` request shape (`stream` defaults to true, matching Ollama; `options.temperature` and `options.num_predict` are honored):
+
+```
+{
+    "model": "my-endpoint",
+    "messages": [ { "role": "user", "content": "What are the most connected nodes?" } ],
+    "stream": false,
+    "options": { "temperature": 0.7, "num_predict": 4096 }
+}
+```
+
+The non-streaming response:
+
+```
+{
+    "model": "gemma3:4b",
+    "created_at": "2026-01-01T00:00:00.0000000Z",
+    "message": { "role": "assistant", "content": "The most connected node is Ada, with 14 edges." },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 2405100000,
+    "eval_duration": 1460800000,
+    "prompt_eval_count": 812,
+    "eval_count": 96
+}
+```
+
+With streaming enabled the response is newline-delimited JSON (`application/x-ndjson`): each line carries a `message.content` fragment with `done` false, and the final line has `done` true with the duration and token counters.
+
+The model list returns the OpenAI models shape, with one entry per active completion endpoint. `id` is the endpoint's `Name`; `Name`, `Model`, and `GUID` are all accepted in the `model` field of the POST routes.
+
+```
+{
+    "object": "list",
+    "data": [
+        { "id": "my-endpoint", "object": "model", "created": 1767225600, "owned_by": "litegraph" }
+    ]
+}
+```
+
 ### Chat Threads
 
 | API             | Method | URL                                              |

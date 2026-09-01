@@ -39,8 +39,56 @@ v8.1 adds LLM chat over graph data. It is a non-breaking, in-place upgrade: the 
   - Exposed chat across the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs.
   - Added chat coverage to the Postman collection and documented the feature in `docs/CHAT.md`, the REST API reference, and the observability, settings, and upgrade guides.
 
+- Chat experience (dashboard)
+  - Added slash commands to the chat window (`/help`, `/?`, `/context`, `/clear`) rendered as in-thread system notices.
+  - Added a model selector backed by the new non-privileged model catalog, and a streaming toggle (default on) whose off path renders the buffered result through the same event pipeline.
+  - Upgraded the markdown renderer to GFM: tables, blockquotes, strikethrough, nested and task lists, horizontal rules, and code blocks with language labels and copy buttons.
+  - Added a per-turn statistics popover (model, prompt/completion/total tokens, TTFT, streaming time, total duration, tokens per second, tool calls and iterations, retrieved chunks, retries) and an "AI can make mistakes" disclaimer under the composer.
+  - Added conversation rename (sidebar pencil and modal), hover tooltips with the conversation title, and compacted thread cards; the selected graph is sent with every prompt.
+  - Reworked Chat History: threads lead with UPDATED and CREATED, user shown as a linked email and graph as a linked name; turns lead with CREATED and gained a TTFT column; the turn detail modal is wider with markdown rendering and fixed-size stage-duration bars.
+
+- Chat API additions
+  - Added graph-scoped protocol-compatible chat: `POST /graphs/{guid}/chat/completions` accepts OpenAI chat-completions request/response bodies (including streamed `chat.completion.chunk` frames and an optional usage chunk), `POST /graphs/{guid}/chat/ollama` speaks Ollama's `/api/chat` format (newline-delimited JSON streaming by default), and `GET /graphs/{guid}/chat/models` returns an OpenAI model list of the tenant's active completion endpoints — so any OpenAI- or Ollama-capable client can chat with a specific graph without learning LiteGraph's API. The body's `model` field selects a chat endpoint by name, model, or GUID; errors use the protocol's own envelope; exchanges persist as turns in an implicit per-user thread.
+  - Added `PUT /chat/threads/{guid}` to rename a thread (owner or administrator; `Title` only), mirrored in all three SDKs and the dashboard.
+  - Added `GET /chat/models`, a non-privileged catalog of active endpoints projected to GUID, name, model, provider, type, and default flag — never URLs, keys, or health configuration — so chat users can pick a model while full endpoint listing stays administrative.
+  - Injected the tenant name and the selected graph (resolved to its name) into the chat system prompt so the model knows its scope.
+
+- Authorization
+  - Added the `Chat` authorization resource type and a built-in `ChatAdmin` role, so endpoint, settings, feedback, and all-user history administration can be delegated through roles or credential scopes without granting full tenant administration.
+  - Fixed graph-scoped roles (Editor/Viewer) incorrectly denying member-level chat operations, on both the user-role and credential-scope evaluation paths.
+  - Exposed the Chat resource type in the dashboard's Authorization page.
+
+- Endpoint health
+  - Deduplicated health checks by probe target: endpoints sharing URL, method, expected status, and auth material share a single probe loop at the fastest configured interval, and all report the shared verdict.
+  - Rebuilt the dashboard health detail modal around stat cards, a time-bucketed probe histogram, and first/last check timestamps.
+
+- Fixes
+  - Stopped the SQL sanitizers (SQLite and PostgreSQL) from stripping `--`, `/*`, and `*/` out of stored values; quote doubling already secures quoted literals, and the stripping permanently corrupted stored markdown (table separators, horizontal rules) and code content.
+  - Fixed the Settings page failing for session logins: its fetch helper sent the session token as a bearer credential instead of relying on the SDK's `x-token` header.
+  - Constrained every dashboard modal to open fully inside the viewport with internal body scrolling.
+  - Rendered stored SSE chat responses in Request Detail as a reconstructed output plus a per-event breakdown.
+
+- Dashboard usability
+  - Added an auto-refresh selector (10/30/60/300 seconds, default off) to every table, with the interval and page size persisted per table.
+  - Added deep links: `?user=` on Users and `?graph=` on Graphs open that record's details directly.
+  - Added an observability links row (Grafana, Prometheus, API Requests) beneath the Home graph, informative hover tooltips across column headers, forms, and controls, and assorted layout compaction.
+
+- Parity
+  - Brought the Python and JavaScript SDK `ChatEndpoint` models to full field parity with the server, added the model catalog and thread rename to all three SDKs, refreshed SDK READMEs and tests, and regenerated the JavaScript typings.
+  - Audited the Postman collection against every registered route and added the missing authorization, graph query, request history, enumeration, vector search, and vector index requests.
+
+- Observability
+  - Split the Grafana provisioning into seven focused dashboards under the LiteGraph folder — Overview (landing), API Requests, Graphs and Queries, Vector Search, Storage, Logs, and Chat and Inference.
+  - Extended instrumentation after a full audit: backup operation counts and durations, JSONL import record and warning counters, HNSW rebuild counters and durations, retention sweep telemetry for request history and chat history, a request-history capture-drop counter, and correct route classification for token issuance; new trace spans for backups and vector index rebuilds.
+
+- Tooling
+  - Added the `LoadGenerator` console project: seeds a database with themed synthetic graphs, nodes, edges, vectors, backdated request history, and chat activity under a diurnal-with-bursts temporal distribution, controlled by CLI arguments (`--graphs`, `--nodes`, `--density`, `--days`, `--requests`, `--chat-threads`, and more, with `/?` usage) and reversible via `--wipe`.
+
+- Storage fixes
+  - Converted positional `INSERT` statements to explicit column lists so inserts survive databases whose columns were appended by migrations (user creation previously failed on migrated PostgreSQL deployments).
+
 - Dependencies
-  - Added PolyPrompt 2.4.0.
+  - Added PolyPrompt 2.4.1.
 
 ## Previous Versions
 

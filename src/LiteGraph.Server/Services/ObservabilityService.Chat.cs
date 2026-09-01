@@ -23,9 +23,9 @@ namespace LiteGraph.Server.Services
         private static readonly double[] _ChatTokensPerSecondBuckets = new double[] { 1, 5, 10, 25, 50, 100, 250, 500, 1000 };
         private static readonly double[] _ChatIterationBuckets = new double[] { 1, 2, 3, 5, 8, 13, 25 };
 
-        private readonly ConcurrentDictionary<string, ChatLabeledCounter> _ChatCounters = new ConcurrentDictionary<string, ChatLabeledCounter>(StringComparer.Ordinal);
-        private readonly ConcurrentDictionary<string, ChatLabeledHistogram> _ChatHistograms = new ConcurrentDictionary<string, ChatLabeledHistogram>(StringComparer.Ordinal);
-        private readonly ConcurrentDictionary<string, ChatLabeledGauge> _ChatGauges = new ConcurrentDictionary<string, ChatLabeledGauge>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, LabeledCounter> _ChatCounters = new ConcurrentDictionary<string, LabeledCounter>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, LabeledHistogram> _ChatHistograms = new ConcurrentDictionary<string, LabeledHistogram>(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, LabeledGauge> _ChatGauges = new ConcurrentDictionary<string, LabeledGauge>(StringComparer.Ordinal);
 
         private Counter<long> _ChatRequestsCounter;
         private Counter<long> _ChatRequestErrorsCounter;
@@ -297,7 +297,7 @@ namespace LiteGraph.Server.Services
                 return;
             }
 
-            ChatLabeledGauge gauge = _ChatGauges.GetOrAdd(key, _ => new ChatLabeledGauge("litegraph_chat_endpoint_healthy", "Chat endpoint health state (1 healthy, 0 unhealthy).", labelNames, labelValues));
+            LabeledGauge gauge = _ChatGauges.GetOrAdd(key, _ => new LabeledGauge("litegraph_chat_endpoint_healthy", "Chat endpoint health state (1 healthy, 0 unhealthy).", labelNames, labelValues));
             gauge.Value = (healthy.Value ? 1 : 0);
         }
 
@@ -352,27 +352,27 @@ namespace LiteGraph.Server.Services
                 new KeyValuePair<string, object>("component", _RestComponent));
         }
 
-        private ChatLabeledCounter ChatCounter(string name, string help, string[] labelNames, string[] labelValues)
+        private LabeledCounter ChatCounter(string name, string help, string[] labelNames, string[] labelValues)
         {
             string key = name + "\n" + String.Join("\n", labelValues);
-            return _ChatCounters.GetOrAdd(key, _ => new ChatLabeledCounter(name, help, labelNames, labelValues));
+            return _ChatCounters.GetOrAdd(key, _ => new LabeledCounter(name, help, labelNames, labelValues));
         }
 
-        private ChatLabeledHistogram ChatHistogram(string name, string help, double[] buckets, string[] labelNames, string[] labelValues)
+        private LabeledHistogram ChatHistogram(string name, string help, double[] buckets, string[] labelNames, string[] labelValues)
         {
             string key = name + "\n" + String.Join("\n", labelValues);
-            return _ChatHistograms.GetOrAdd(key, _ => new ChatLabeledHistogram(name, help, buckets, labelNames, labelValues));
+            return _ChatHistograms.GetOrAdd(key, _ => new LabeledHistogram(name, help, buckets, labelNames, labelValues));
         }
 
         private void RenderPrometheusChat(StringBuilder sb)
         {
-            List<IGrouping<string, ChatLabeledCounter>> counterFamilies = _ChatCounters.Values.GroupBy(c => c.Name).ToList();
-            foreach (IGrouping<string, ChatLabeledCounter> family in counterFamilies)
+            List<IGrouping<string, LabeledCounter>> counterFamilies = _ChatCounters.Values.GroupBy(c => c.Name).ToList();
+            foreach (IGrouping<string, LabeledCounter> family in counterFamilies)
             {
-                ChatLabeledCounter first = family.First();
+                LabeledCounter first = family.First();
                 sb.AppendLine("# HELP " + first.Name + " " + first.Help);
                 sb.AppendLine("# TYPE " + first.Name + " counter");
-                foreach (ChatLabeledCounter metric in family)
+                foreach (LabeledCounter metric in family)
                 {
                     sb.Append(metric.Name);
                     sb.Append(metric.LabelText());
@@ -381,25 +381,25 @@ namespace LiteGraph.Server.Services
                 }
             }
 
-            List<IGrouping<string, ChatLabeledHistogram>> histogramFamilies = _ChatHistograms.Values.GroupBy(h => h.Name).ToList();
-            foreach (IGrouping<string, ChatLabeledHistogram> family in histogramFamilies)
+            List<IGrouping<string, LabeledHistogram>> histogramFamilies = _ChatHistograms.Values.GroupBy(h => h.Name).ToList();
+            foreach (IGrouping<string, LabeledHistogram> family in histogramFamilies)
             {
-                ChatLabeledHistogram first = family.First();
+                LabeledHistogram first = family.First();
                 sb.AppendLine("# HELP " + first.Name + " " + first.Help);
                 sb.AppendLine("# TYPE " + first.Name + " histogram");
-                foreach (ChatLabeledHistogram metric in family)
+                foreach (LabeledHistogram metric in family)
                 {
                     metric.Render(sb);
                 }
             }
 
-            List<IGrouping<string, ChatLabeledGauge>> gaugeFamilies = _ChatGauges.Values.GroupBy(g => g.Name).ToList();
-            foreach (IGrouping<string, ChatLabeledGauge> family in gaugeFamilies)
+            List<IGrouping<string, LabeledGauge>> gaugeFamilies = _ChatGauges.Values.GroupBy(g => g.Name).ToList();
+            foreach (IGrouping<string, LabeledGauge> family in gaugeFamilies)
             {
-                ChatLabeledGauge first = family.First();
+                LabeledGauge first = family.First();
                 sb.AppendLine("# HELP " + first.Name + " " + first.Help);
                 sb.AppendLine("# TYPE " + first.Name + " gauge");
-                foreach (ChatLabeledGauge metric in family)
+                foreach (LabeledGauge metric in family)
                 {
                     sb.Append(metric.Name);
                     sb.Append(metric.LabelText());
@@ -418,14 +418,14 @@ namespace LiteGraph.Server.Services
 
         #region Chat-Metric-Classes
 
-        private sealed class ChatLabeledCounter
+        private sealed class LabeledCounter
         {
             internal readonly string Name;
             internal readonly string Help;
             private readonly string _LabelText;
             private long _Count = 0;
 
-            internal ChatLabeledCounter(string name, string help, string[] labelNames, string[] labelValues)
+            internal LabeledCounter(string name, string help, string[] labelNames, string[] labelValues)
             {
                 Name = name;
                 Help = help;
@@ -451,7 +451,7 @@ namespace LiteGraph.Server.Services
             }
         }
 
-        private sealed class ChatLabeledHistogram
+        private sealed class LabeledHistogram
         {
             internal readonly string Name;
             internal readonly string Help;
@@ -464,7 +464,7 @@ namespace LiteGraph.Server.Services
             private double _Sum = 0;
             private readonly object _Lock = new object();
 
-            internal ChatLabeledHistogram(string name, string help, double[] buckets, string[] labelNames, string[] labelValues)
+            internal LabeledHistogram(string name, string help, double[] buckets, string[] labelNames, string[] labelValues)
             {
                 Name = name;
                 Help = help;
@@ -530,14 +530,14 @@ namespace LiteGraph.Server.Services
             }
         }
 
-        private sealed class ChatLabeledGauge
+        private sealed class LabeledGauge
         {
             internal readonly string Name;
             internal readonly string Help;
             private readonly string _LabelText;
             private long _Value = 0;
 
-            internal ChatLabeledGauge(string name, string help, string[] labelNames, string[] labelValues)
+            internal LabeledGauge(string name, string help, string[] labelNames, string[] labelValues)
             {
                 Name = name;
                 Help = help;
@@ -564,6 +564,8 @@ namespace LiteGraph.Server.Services
 
         private static string BuildLabelText(string[] labelNames, string[] labelValues, string leBucket = null)
         {
+            if (labelNames.Length == 0 && leBucket == null) return String.Empty;
+
             StringBuilder sb = new StringBuilder();
             sb.Append('{');
 

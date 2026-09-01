@@ -54,6 +54,11 @@ namespace LiteGraph
         public const string VectorIndexSearchActivityName = "litegraph.vector.index.search";
 
         /// <summary>
+        /// Vector index rebuild activity name.
+        /// </summary>
+        public const string VectorIndexRebuildActivityName = "litegraph.vector.index.rebuild";
+
+        /// <summary>
         /// Repository operation activity name.
         /// </summary>
         public const string RepositoryOperationActivityName = "litegraph.repository.operation";
@@ -82,6 +87,11 @@ namespace LiteGraph
         /// Raised whenever a vector search completes.
         /// </summary>
         public static event EventHandler<VectorSearchTelemetryEventArgs> VectorSearchRecorded;
+
+        /// <summary>
+        /// Raised whenever a vector index rebuild completes.
+        /// </summary>
+        public static event EventHandler<VectorIndexRebuildTelemetryEventArgs> VectorIndexRebuildRecorded;
 
         #endregion
 
@@ -178,6 +188,36 @@ namespace LiteGraph
             _TimingCapture.Value?.AddTransaction(durationMs);
         }
 
+        internal static void RecordVectorIndexRebuild(VectorIndexRebuildTelemetryEventArgs args)
+        {
+            if (args == null) return;
+
+            KeyValuePair<string, object>[] tags =
+            {
+                new KeyValuePair<string, object>("litegraph.vector.index.type", args.IndexType),
+                new KeyValuePair<string, object>("litegraph.vector.index.success", args.Success)
+            };
+
+            _VectorIndexRebuildCounter.Add(1, tags);
+            _VectorIndexRebuildVectorsCounter.Add(args.VectorCount, tags);
+            _VectorIndexRebuildDurationMs.Record(args.DurationMs, tags);
+
+            EventHandler<VectorIndexRebuildTelemetryEventArgs> handler = VectorIndexRebuildRecorded;
+            if (handler == null) return;
+
+            foreach (Delegate subscriber in handler.GetInvocationList())
+            {
+                try
+                {
+                    ((EventHandler<VectorIndexRebuildTelemetryEventArgs>)subscriber)(null, args);
+                }
+                catch
+                {
+                    // Telemetry subscribers must not affect vector index behavior.
+                }
+            }
+        }
+
         internal static void RecordVectorIndexMutationFailure(string provider, string indexType, string errorType)
         {
             KeyValuePair<string, object>[] tags =
@@ -225,6 +265,21 @@ namespace LiteGraph
             "litegraph.vector.index.mutation.failures",
             "failures",
             "Total vector index mutation failures after database commit.");
+
+        private static readonly Counter<long> _VectorIndexRebuildCounter = Meter.CreateCounter<long>(
+            "litegraph.vector.index.rebuilds",
+            "rebuilds",
+            "Total vector index rebuilds executed by LiteGraph.");
+
+        private static readonly Counter<long> _VectorIndexRebuildVectorsCounter = Meter.CreateCounter<long>(
+            "litegraph.vector.index.rebuild.vectors",
+            "vectors",
+            "Total vectors added during vector index rebuilds.");
+
+        private static readonly Histogram<double> _VectorIndexRebuildDurationMs = Meter.CreateHistogram<double>(
+            "litegraph.vector.index.rebuild.duration",
+            "ms",
+            "Vector index rebuild duration in milliseconds.");
 
         #endregion
     }
@@ -444,6 +499,59 @@ namespace LiteGraph
             Domain = String.IsNullOrEmpty(domain) ? "unknown" : domain;
             Success = success;
             ResultCount = resultCount < 0 ? 0 : resultCount;
+            DurationMs = durationMs < 0 ? 0 : durationMs;
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Vector index rebuild telemetry event.
+    /// </summary>
+    public sealed class VectorIndexRebuildTelemetryEventArgs : EventArgs
+    {
+        #region Public-Members
+
+        /// <summary>
+        /// Vector index type.
+        /// </summary>
+        public string IndexType { get; }
+
+        /// <summary>
+        /// Whether the rebuild completed successfully.
+        /// </summary>
+        public bool Success { get; }
+
+        /// <summary>
+        /// Number of vectors added to the rebuilt index.
+        /// </summary>
+        public long VectorCount { get; }
+
+        /// <summary>
+        /// Rebuild duration in milliseconds.
+        /// </summary>
+        public double DurationMs { get; }
+
+        #endregion
+
+        #region Constructors-and-Factories
+
+        /// <summary>
+        /// Instantiate.
+        /// </summary>
+        /// <param name="indexType">Vector index type.</param>
+        /// <param name="success">Whether the rebuild completed successfully.</param>
+        /// <param name="vectorCount">Number of vectors added to the rebuilt index.</param>
+        /// <param name="durationMs">Rebuild duration in milliseconds.</param>
+        public VectorIndexRebuildTelemetryEventArgs(
+            string indexType,
+            bool success,
+            long vectorCount,
+            double durationMs)
+        {
+            IndexType = String.IsNullOrEmpty(indexType) ? "unknown" : indexType;
+            Success = success;
+            VectorCount = vectorCount < 0 ? 0 : vectorCount;
             DurationMs = durationMs < 0 ? 0 : durationMs;
         }
 

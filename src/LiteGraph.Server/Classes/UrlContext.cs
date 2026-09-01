@@ -277,6 +277,9 @@
                     if (matcher.Match("/favicon.ico", out _UrlParameters)) return RequestTypeEnum.Favicon;
 
                     if (matcher.Match("/v1.0/settings", out _UrlParameters)) return RequestTypeEnum.SettingsRead;
+                    if (matcher.Match("/v1.0/token/tenants", out _UrlParameters)) return RequestTypeEnum.TokenTenantsRead;
+                    if (matcher.Match("/v1.0/token/details", out _UrlParameters)) return RequestTypeEnum.TokenDetailsRead;
+                    if (matcher.Match("/v1.0/token", out _UrlParameters)) return RequestTypeEnum.TokenCreate;
                     if (matcher.Match("/v1.0/backups", out _UrlParameters)) return RequestTypeEnum.BackupReadAll;
                     if (matcher.Match("/v1.0/backups/{backupFilename}", out _UrlParameters)) return RequestTypeEnum.BackupRead;
 
@@ -291,6 +294,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/health", out _UrlParameters)) return RequestTypeEnum.ChatEndpointHealthRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", out _UrlParameters)) return RequestTypeEnum.ChatEndpointRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/models", out _UrlParameters)) return RequestTypeEnum.ChatModelsReadAll;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/models", out _UrlParameters)) return RequestTypeEnum.ChatGraphModelsReadAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads", out _UrlParameters)) return RequestTypeEnum.ChatThreadReadAll;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}/turns", out _UrlParameters)) return RequestTypeEnum.ChatThreadTurnsRead;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/threads/{chatThreadGuid}", out _UrlParameters)) return RequestTypeEnum.ChatThreadRead;
@@ -478,6 +482,8 @@
                     if (matcher.Match("/v1.0/flush", out _UrlParameters)) return RequestTypeEnum.FlushDatabase;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/completions", out _UrlParameters)) return RequestTypeEnum.ChatCompletion;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/completions", out _UrlParameters)) return RequestTypeEnum.ChatGraphCompletionOpenAI;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/ollama", out _UrlParameters)) return RequestTypeEnum.ChatGraphCompletionOllama;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/test", out _UrlParameters)) return RequestTypeEnum.ChatEndpointTest;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/turns/{chatTurnGuid}/feedback", out _UrlParameters)) return RequestTypeEnum.ChatFeedbackCreate;
 

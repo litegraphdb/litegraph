@@ -13557,6 +13557,11 @@
             Vector index search activity name.
             </summary>
         </member>
+        <member name="F:LiteGraph.LiteGraphTelemetry.VectorIndexRebuildActivityName">
+            <summary>
+            Vector index rebuild activity name.
+            </summary>
+        </member>
         <member name="F:LiteGraph.LiteGraphTelemetry.RepositoryOperationActivityName">
             <summary>
             Repository operation activity name.
@@ -13585,6 +13590,11 @@
         <member name="E:LiteGraph.LiteGraphTelemetry.VectorSearchRecorded">
             <summary>
             Raised whenever a vector search completes.
+            </summary>
+        </member>
+        <member name="E:LiteGraph.LiteGraphTelemetry.VectorIndexRebuildRecorded">
+            <summary>
+            Raised whenever a vector index rebuild completes.
             </summary>
         </member>
         <member name="T:LiteGraph.LiteGraphTelemetryTimingCapture">
@@ -13707,6 +13717,40 @@
             <param name="success">Whether the search completed successfully.</param>
             <param name="resultCount">Number of returned results.</param>
             <param name="durationMs">Search duration in milliseconds.</param>
+        </member>
+        <member name="T:LiteGraph.VectorIndexRebuildTelemetryEventArgs">
+            <summary>
+            Vector index rebuild telemetry event.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexRebuildTelemetryEventArgs.IndexType">
+            <summary>
+            Vector index type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexRebuildTelemetryEventArgs.Success">
+            <summary>
+            Whether the rebuild completed successfully.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexRebuildTelemetryEventArgs.VectorCount">
+            <summary>
+            Number of vectors added to the rebuilt index.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.VectorIndexRebuildTelemetryEventArgs.DurationMs">
+            <summary>
+            Rebuild duration in milliseconds.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.VectorIndexRebuildTelemetryEventArgs.#ctor(System.String,System.Boolean,System.Int64,System.Double)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="indexType">Vector index type.</param>
+            <param name="success">Whether the rebuild completed successfully.</param>
+            <param name="vectorCount">Number of vectors added to the rebuilt index.</param>
+            <param name="durationMs">Rebuild duration in milliseconds.</param>
         </member>
         <member name="T:LiteGraph.LoggingSettings">
             <summary>

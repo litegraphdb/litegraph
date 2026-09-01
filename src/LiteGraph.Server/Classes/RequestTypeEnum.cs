@@ -30,6 +30,21 @@
         /// </summary>
         [EnumMember(Value = "Unknown")]
         Unknown,
+        /// <summary>
+        /// TokenCreate.
+        /// </summary>
+        [EnumMember(Value = "TokenCreate")]
+        TokenCreate,
+        /// <summary>
+        /// TokenDetailsRead.
+        /// </summary>
+        [EnumMember(Value = "TokenDetailsRead")]
+        TokenDetailsRead,
+        /// <summary>
+        /// TokenTenantsRead.
+        /// </summary>
+        [EnumMember(Value = "TokenTenantsRead")]
+        TokenTenantsRead,
 
         #endregion
 
@@ -1046,6 +1061,21 @@
         /// </summary>
         [EnumMember(Value = "ChatModelsReadAll")]
         ChatModelsReadAll,
+        /// <summary>
+        /// ChatGraphCompletionOpenAI
+        /// </summary>
+        [EnumMember(Value = "ChatGraphCompletionOpenAI")]
+        ChatGraphCompletionOpenAI,
+        /// <summary>
+        /// ChatGraphCompletionOllama
+        /// </summary>
+        [EnumMember(Value = "ChatGraphCompletionOllama")]
+        ChatGraphCompletionOllama,
+        /// <summary>
+        /// ChatGraphModelsReadAll
+        /// </summary>
+        [EnumMember(Value = "ChatGraphModelsReadAll")]
+        ChatGraphModelsReadAll,
         /// <summary>
         /// ChatThreadCreate
         /// </summary>

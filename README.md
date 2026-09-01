@@ -29,12 +29,15 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 
 v8.1 lets you talk to your graphs. A chat surface built into the server connects any tenant to an LLM — and the LLM to the graph.
 
-- Bring your own model. Tenants register completion and embedding endpoints for OpenAI (and any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.0. API keys are stored server-side and always come back redacted.
+- Bring your own model. Tenants register completion and embedding endpoints for OpenAI (and any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.1. API keys are stored server-side and always come back redacted; health checks are deduplicated per probe target, so five models on one host cost one probe.
 - The model queries the graph, not the other way around. A curated tool catalog — the same names as the MCP tools — is dispatched in-process under the caller's own tenant and RBAC. Mutations are off unless the tenant opts in; `vector/search` takes plain text and the server embeds it.
 - Grounded answers. Threads bound to a graph get automatic vector retrieval through the tenant's embedding endpoint, with the retrieved nodes visible in the stream and counted in the turn record.
 - Streaming with full telemetry. Responses stream over SSE with delta, thinking, retrieval, tool, usage, and error events. Every turn persists time to first token, tokens per second, per-stage timings, tool transcripts, retries, and a trace ID — even failed turns.
-- Operable from day one. Endpoint health checks with debounced state transitions, `litegraph_chat_*` Prometheus metrics, chat trace spans, a dedicated Grafana chat dashboard, per-tenant chat settings, and a server-side `Chat` policy block in `litegraph.json`.
-- The chat surface reaches the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs.
+- Operable from day one. Endpoint health checks with debounced state transitions, `litegraph_chat_*` Prometheus metrics, chat trace spans, provisioned Grafana dashboards split by domain (API requests, graphs and queries, vector search, storage, logs, chat and inference), per-tenant chat settings, and a server-side `Chat` policy block in `litegraph.json`.
+- A full chat client in the dashboard: streaming markdown (GFM tables and code blocks), a model selector, a streaming toggle, slash commands (`/help`, `/context`, `/clear`), per-turn statistics (TTFT, tokens, tokens/sec), conversation rename, thumbs feedback, and an admin view of all-user history with per-turn drill-down.
+- Delegable administration. A `Chat` authorization resource and built-in `ChatAdmin` role let endpoint, settings, feedback, and history administration be granted through roles or credential scopes without full tenant admin.
+- The chat surface reaches the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs — including a non-privileged model catalog (`GET /chat/models`) and thread rename.
+- OpenAI- and Ollama-compatible graph chat. Point any OpenAI or Ollama chat client at `/v1.0/tenants/{t}/graphs/{g}/chat/completions`, `/chat/ollama`, or `/chat/models` and chat with a specific graph using those wire formats — model selection by endpoint name, model, or GUID, streaming included, with each exchange persisted for telemetry.
 - In-place upgrade: the chat tables are created on first boot and nothing existing changes.
 
 See [Chat](docs/CHAT.md) for the architecture and [REST API](docs/REST_API.md) for the routes.
@@ -433,6 +436,29 @@ python -m pytest
 cd ../../dashboard
 npm test -- --runInBand
 ```
+
+### Load Generator
+
+`src/LoadGenerator` seeds a LiteGraph database with realistic synthetic activity — themed graphs with nodes, edges, and vectors, backdated API request history following a diurnal curve with bursts, and chat threads with turn telemetry and feedback — so the dashboard and Grafana render a fully hydrated system. It writes through the core library directly (not REST), so timestamps are spread organically across the chosen window rather than clustered at the current time.
+
+```bash
+# Seed a SQLite database with the defaults (3 graphs, 50 nodes each, 2000 requests, 7 days)
+dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db
+
+# Seed the docker-compose PostgreSQL stack (see docker/compose.yaml)
+dotnet run --project src/LoadGenerator --framework net8.0 -- \
+  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
+
+# Larger dataset with a fixed RNG seed, replacing prior synthetic data
+dotnet run --project src/LoadGenerator --framework net8.0 -- \
+  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph" \
+  --graphs 5 --nodes 200 --density 0.02 --days 14 --requests 10000 --wipe --seed 42
+
+# Remove previously generated synthetic data and exit
+dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db --wipe-only
+```
+
+Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen`, users under the `loadgen.synthetic` email domain, request-history correlation ID `loadgen-synthetic`), so `--wipe`/`--wipe-only` remove only generated data and leave real data untouched. Run with `--help` for the full argument list.
 
 ## Version History
 

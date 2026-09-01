@@ -133,7 +133,9 @@ namespace LiteGraph.Server.Services
             AssertRouteLabelsComplete();
             InitializeOpenTelemetryExporters();
             InitializeChatInstruments();
+            InitializeOperationInstruments();
             LiteGraphTelemetry.RepositoryOperationRecorded += HandleRepositoryOperationRecorded;
+            LiteGraphTelemetry.VectorIndexRebuildRecorded += HandleVectorIndexRebuildRecorded;
         }
 
         #endregion
@@ -904,6 +906,7 @@ namespace LiteGraph.Server.Services
                 sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
             }
 
+            RenderPrometheusOperations(sb);
             RenderPrometheusChat(sb);
 
             return sb.ToString();
@@ -917,6 +920,7 @@ namespace LiteGraph.Server.Services
             if (_Disposed) return;
             _Disposed = true;
             LiteGraphTelemetry.RepositoryOperationRecorded -= HandleRepositoryOperationRecorded;
+            LiteGraphTelemetry.VectorIndexRebuildRecorded -= HandleVectorIndexRebuildRecorded;
             _TracerProvider?.Dispose();
             _MeterProvider?.Dispose();
             ActivitySource.Dispose();

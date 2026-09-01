@@ -76,8 +76,7 @@ mkdir -p "$DOCKER_DIR/grafana/provisioning/datasources" "$DOCKER_DIR/grafana/pro
 cp "$FACTORY_DIR/grafana/provisioning/datasources/litegraph-prometheus.yml" "$DOCKER_DIR/grafana/provisioning/datasources/litegraph-prometheus.yml"
 cp "$FACTORY_DIR/grafana/provisioning/dashboards/litegraph.yml" "$DOCKER_DIR/grafana/provisioning/dashboards/litegraph.yml"
 mkdir -p "$REPO_DIR/assets/grafana"
-cp "$FACTORY_DIR/assets/grafana/litegraph-observability-dashboard.json" "$REPO_DIR/assets/grafana/litegraph-observability-dashboard.json"
-cp "$FACTORY_DIR/assets/grafana/litegraph-chat.json" "$REPO_DIR/assets/grafana/litegraph-chat.json"
+cp "$FACTORY_DIR/assets/grafana/"*.json "$REPO_DIR/assets/grafana/"
 echo "        Restored compose.yaml, Prometheus, Grafana, litegraph.json, and litegraph-mcp.json"
 
 echo "[4/5] Clearing runtime directories..."

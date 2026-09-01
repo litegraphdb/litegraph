@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteGraph.SampleDatabase", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.PerformanceAndScalability", "Test.PerformanceAndScalability\Test.PerformanceAndScalability.csproj", "{4381E377-CBA5-4F26-A76C-10765103021D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadGenerator", "LoadGenerator\LoadGenerator.csproj", "{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -167,6 +169,18 @@ Global
 		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x64.Build.0 = Release|Any CPU
 		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x86.ActiveCfg = Release|Any CPU
 		{4381E377-CBA5-4F26-A76C-10765103021D}.Release|x86.Build.0 = Release|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Debug|x64.Build.0 = Debug|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Debug|x86.Build.0 = Debug|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x64.Build.0 = Release|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x86.ActiveCfg = Release|Any CPU
+		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

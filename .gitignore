@@ -295,6 +295,10 @@ _UpgradeReport_Files/
 Backup*/
 !dashboard/src/app/admin/dashboard/backups/
 !dashboard/src/app/admin/dashboard/backups/**
+!dashboard/src/app/dashboard/(server)/backups/
+!dashboard/src/app/dashboard/(server)/backups/**
+!dashboard/src/tests/pages/backup/
+!dashboard/src/tests/pages/backup/**
 !dashboard/src/page/backups/
 !dashboard/src/page/backups/**
 UpgradeLog*.XML

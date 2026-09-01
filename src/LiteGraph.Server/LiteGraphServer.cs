@@ -597,6 +597,7 @@ namespace LiteGraph.Server
                 _Repo);
 
             _ObservabilityService = new ObservabilityService(_Settings.Observability);
+            _RequestHistoryService.Observability = _ObservabilityService;
             _ObservabilityService.RecordStorageBackend(
                 _Settings.LiteGraph.Database.Type.ToString(),
                 _Settings.LiteGraph.Database.Type == DatabaseTypeEnum.Postgresql);

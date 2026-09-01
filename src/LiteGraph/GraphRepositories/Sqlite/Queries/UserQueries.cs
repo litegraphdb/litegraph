@@ -19,6 +19,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             string ret =
                 "INSERT INTO 'users' "
+                + "(guid, tenantguid, firstname, lastname, email, password, active, issystemadmin, istenantadmin, createdutc, lastupdateutc) "
                 + "VALUES ("
                 + "'" + user.GUID + "',"
                 + "'" + user.TenantGUID + "',"
