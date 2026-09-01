@@ -274,4 +274,4 @@ Closeout mirrors v8.0's: prove the whole stack live, sweep the versions, walk th
 - [ ] Rendered dashboard walkthrough of the five AI routes plus regressions on the v8.0 routes, both themes, three breakpoints, two locales minimum; findings fixed. *(Maintainer action, as in v8.0.)*
 - [x] Version sweep (`8.1.0` everywhere), `CHANGELOG.md` finalized, Postman/docs sync check (§10) rerun.
 - [ ] Publish SDK packages (NuGet, npm, PyPI) and Docker images `v8.1.0` per the existing release scripts. *(Maintainer action; Docker images additionally gated on PolyPrompt 2.4.1.)*
-- [x] Open the PR from `V8.1` to `main` with the standard body trailer. *(2026-08-31: opened as a draft pending the PolyPrompt 2.4.1 gate and the maintainer walkthrough.)*
+- [ ] Open the PR from `V8.1` to `main` with the standard body trailer. *(2026-08-31: branch pushed to origin; the GitHub CLI is not installed on this machine, so opening the draft PR is a maintainer click at https://github.com/litegraphdb/litegraph/compare/main...V8.1 — a ready-to-paste PR body is in `scratchpad` notes and the plan's §13 gates apply.)*
