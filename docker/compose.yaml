@@ -173,7 +173,7 @@ services:
 
   prometheus:
     container_name: 'litegraph-prometheus'
-    image: 'prom/prometheus:latest'
+    image: 'prom/prometheus:v3.14.0'
     stdin_open: true
     tty: true
     ports:
@@ -242,7 +242,7 @@ services:
 
   grafana:
     container_name: 'litegraph-grafana'
-    image: 'grafana/grafana-oss:latest'
+    image: 'grafana/grafana-oss:13.0.2'
     stdin_open: true
     tty: true
     ports:
