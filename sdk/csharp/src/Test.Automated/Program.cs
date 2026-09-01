@@ -23,6 +23,8 @@ namespace Test.Automated
 		private static Guid _UserGuid = Guid.Empty;
 		private static Guid _CredentialGuid = Guid.Empty;
 		private static Guid _SubgraphRootNodeGuid = Guid.Empty;
+		private static Guid _ChatEndpointGuid = Guid.Empty;
+		private static string _ChatEndpointName = string.Empty;
 		private static string _TenantName = string.Empty;
 		private static string _GraphName = string.Empty;
 		private static string _UserEmail = string.Empty;
@@ -718,6 +720,16 @@ namespace Test.Automated
 
 			// Batch tests
 			await RunTest("Batch.Existence", TestBatchExistence).ConfigureAwait(false);
+
+			// Chat tests
+			await RunTest("Chat.EndpointCreate", TestChatEndpointCreate).ConfigureAwait(false);
+			await RunTest("Chat.EndpointRead", TestChatEndpointRead).ConfigureAwait(false);
+			await RunTest("Chat.EndpointUpdate", TestChatEndpointUpdate).ConfigureAwait(false);
+			await RunTest("Chat.EndpointHealth", TestChatEndpointHealth).ConfigureAwait(false);
+			await RunTest("Chat.SettingsRoundTrip", TestChatSettingsRoundTrip).ConfigureAwait(false);
+			await RunTest("Chat.ThreadLifecycle", TestChatThreadLifecycle).ConfigureAwait(false);
+			await RunTest("Chat.CompletionUnreachableEndpoint", TestChatCompletionUnreachableEndpoint).ConfigureAwait(false);
+			await RunTest("Chat.EndpointDelete", TestChatEndpointDelete).ConfigureAwait(false);
 
 			// Delete tests (run in dependency order)
 			await RunTest("Vector.DeleteMethods", TestVectorDeleteMethods).ConfigureAwait(false);
@@ -3900,6 +3912,155 @@ namespace Test.Automated
 			_VectorNodePrimaryContent = string.Empty;
 			_VectorNodeSecondaryContent = string.Empty;
 			_VectorEdgePrimaryContent = string.Empty;
+		}
+
+		private static async Task TestChatEndpointCreate()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			ChatEndpoint endpoint = new ChatEndpoint
+			{
+				TenantGUID = _TenantGuid,
+				Name = UniqueName("sdk-chat-endpoint"),
+				EndpointType = ChatEndpointTypeEnum.Completion,
+				Provider = ChatProviderTypeEnum.OpenAI,
+				Endpoint = "http://127.0.0.1:9",
+				Model = "sdk-fake-model",
+				ApiKey = "sk-sdk-secret-4321",
+				HealthCheckEnabled = false
+			};
+
+			ChatEndpoint? created = await sdk.Chat.CreateEndpoint(endpoint).ConfigureAwait(false);
+
+			AssertNotNull(created, "Chat endpoint create result");
+			AssertNotEmpty(created!.GUID, "Chat endpoint GUID");
+			AssertTrue(created.ApiKey != null && created.ApiKey.EndsWith("4321", StringComparison.Ordinal) && created.ApiKey.StartsWith("********", StringComparison.Ordinal), "API key is redacted in the create response");
+
+			_ChatEndpointGuid = created.GUID;
+			_ChatEndpointName = created.Name ?? string.Empty;
+		}
+
+		private static async Task TestChatEndpointRead()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			ChatEndpoint? read = await sdk.Chat.ReadEndpoint(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
+			AssertNotNull(read, "Chat endpoint read result");
+			AssertEqual(_ChatEndpointName, read!.Name ?? string.Empty, "Chat endpoint name");
+
+			bool exists = await sdk.Chat.EndpointExists(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
+			AssertTrue(exists, "Chat endpoint exists");
+
+			List<ChatEndpoint>? completions = await sdk.Chat.ReadEndpoints(_TenantGuid, ChatEndpointTypeEnum.Completion).ConfigureAwait(false);
+			AssertNotNull(completions, "Chat endpoint filtered list");
+			AssertTrue(completions!.Count >= 1, "Filtered list contains the completion endpoint");
+
+			List<ChatEndpoint>? embeddings = await sdk.Chat.ReadEndpoints(_TenantGuid, ChatEndpointTypeEnum.Embedding).ConfigureAwait(false);
+			AssertTrue(embeddings == null || embeddings.Count == 0 || !embeddings.Exists(e => e.GUID.Equals(_ChatEndpointGuid)), "Embedding filter excludes the completion endpoint");
+		}
+
+		private static async Task TestChatEndpointUpdate()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			ChatEndpoint? read = await sdk.Chat.ReadEndpoint(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
+			AssertNotNull(read, "Chat endpoint read before update");
+
+			read!.Name = UniqueName("sdk-chat-endpoint-renamed");
+			ChatEndpoint? updated = await sdk.Chat.UpdateEndpoint(read).ConfigureAwait(false);
+
+			AssertNotNull(updated, "Chat endpoint update result");
+			AssertEqual(read.Name ?? string.Empty, updated!.Name ?? string.Empty, "Chat endpoint updated name");
+			AssertTrue(updated.ApiKey != null && updated.ApiKey.EndsWith("4321", StringComparison.Ordinal), "The stored API key survives an update carrying the redacted placeholder");
+
+			_ChatEndpointName = updated.Name ?? string.Empty;
+		}
+
+		private static async Task TestChatEndpointHealth()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			List<ChatEndpointHealth>? health = await sdk.Chat.ReadAllEndpointHealth(_TenantGuid).ConfigureAwait(false);
+			AssertNotNull(health, "Chat endpoint health list");
+		}
+
+		private static async Task TestChatSettingsRoundTrip()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			ChatSettings? defaults = await sdk.Chat.ReadChatSettings(_TenantGuid).ConfigureAwait(false);
+			AssertNotNull(defaults, "Chat settings defaults");
+			AssertTrue(defaults!.EnableChat, "Chat is enabled by default");
+
+			defaults.TenantGUID = _TenantGuid;
+			defaults.RagTopK = 6;
+			ChatSettings? updated = await sdk.Chat.UpdateChatSettings(defaults).ConfigureAwait(false);
+			AssertNotNull(updated, "Chat settings update result");
+			AssertEqual(6, updated!.RagTopK, "Updated RagTopK");
+
+			ChatSettings? reread = await sdk.Chat.ReadChatSettings(_TenantGuid).ConfigureAwait(false);
+			AssertEqual(6, reread!.RagTopK, "RagTopK reads back");
+		}
+
+		private static async Task TestChatThreadLifecycle()
+		{
+			using (LiteGraphSdk userSdk = new LiteGraphSdk(_Endpoint, _CredentialBearerToken))
+			{
+				ChatThread? created = await userSdk.Chat.CreateThread(new ChatThread { TenantGUID = _TenantGuid, Title = UniqueName("sdk-chat-thread") }).ConfigureAwait(false);
+				AssertNotNull(created, "Chat thread create result");
+				AssertNotEmpty(created!.GUID, "Chat thread GUID");
+
+				List<ChatThread>? threads = await userSdk.Chat.ReadThreads(_TenantGuid).ConfigureAwait(false);
+				AssertNotNull(threads, "Chat thread list");
+				AssertTrue(threads!.Exists(t => t.GUID.Equals(created.GUID)), "The created thread is listed");
+
+				ChatThread? read = await userSdk.Chat.ReadThread(_TenantGuid, created.GUID).ConfigureAwait(false);
+				AssertNotNull(read, "Chat thread read result");
+
+				List<ChatTurn>? turns = await userSdk.Chat.ReadThreadTurns(_TenantGuid, created.GUID).ConfigureAwait(false);
+				AssertTrue(turns == null || turns.Count == 0, "A new thread has no turns");
+
+				await userSdk.Chat.DeleteThread(_TenantGuid, created.GUID).ConfigureAwait(false);
+
+				ChatThread? afterDelete = await userSdk.Chat.ReadThread(_TenantGuid, created.GUID).ConfigureAwait(false);
+				AssertTrue(afterDelete == null, "The deleted thread no longer reads back");
+			}
+		}
+
+		private static async Task TestChatCompletionUnreachableEndpoint()
+		{
+			using (LiteGraphSdk userSdk = new LiteGraphSdk(_Endpoint, _CredentialBearerToken))
+			{
+				ChatCompletionResult? result = null;
+				bool threw = false;
+
+				try
+				{
+					result = await userSdk.Chat.Completion(_TenantGuid, new ChatCompletionRequest
+					{
+						Message = "this endpoint is unreachable",
+						CompletionEndpointGUID = _ChatEndpointGuid,
+						EnableTools = false,
+						EnableRag = false
+					}).ConfigureAwait(false);
+				}
+				catch (Exception)
+				{
+					threw = true;
+				}
+
+				AssertTrue(threw || result == null, "Completion against an unreachable endpoint surfaces a failure");
+			}
+		}
+
+		private static async Task TestChatEndpointDelete()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			await sdk.Chat.DeleteEndpoint(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
+
+			bool exists = await sdk.Chat.EndpointExists(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
+			AssertTrue(!exists, "Deleted chat endpoint no longer exists");
 		}
 
 		private static void AssertNotNull<T>(T? value, string message) where T : class
