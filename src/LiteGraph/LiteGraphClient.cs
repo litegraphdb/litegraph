@@ -135,6 +135,31 @@
         public ITransactionMethods Transaction { get; }
 
         /// <summary>
+        /// Chat endpoint methods.
+        /// </summary>
+        public IChatEndpointMethods ChatEndpoint { get; }
+
+        /// <summary>
+        /// Chat thread methods.
+        /// </summary>
+        public IChatThreadMethods ChatThread { get; }
+
+        /// <summary>
+        /// Chat turn methods.
+        /// </summary>
+        public IChatTurnMethods ChatTurn { get; }
+
+        /// <summary>
+        /// Chat feedback methods.
+        /// </summary>
+        public IChatFeedbackMethods ChatFeedback { get; }
+
+        /// <summary>
+        /// Chat settings methods.
+        /// </summary>
+        public IChatSettingsMethods ChatSettings { get; }
+
+        /// <summary>
         /// Request history methods.
         /// </summary>
         public LiteGraph.GraphRepositories.Interfaces.IRequestHistoryMethods RequestHistory
@@ -256,6 +281,11 @@
             VectorIndex = new VectorIndexMethods(this, _Repo);
             Query = new QueryMethods(this, _Repo);
             Transaction = new TransactionMethods(_Repo);
+            ChatEndpoint = new ChatEndpointMethods(this, _Repo);
+            ChatThread = new ChatThreadMethods(this, _Repo);
+            ChatTurn = new ChatTurnMethods(this, _Repo);
+            ChatFeedback = new ChatFeedbackMethods(this, _Repo);
+            ChatSettings = new ChatSettingsMethods(this, _Repo);
         }
 
         /// <summary>

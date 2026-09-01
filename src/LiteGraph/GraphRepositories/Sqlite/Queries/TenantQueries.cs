@@ -119,6 +119,11 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             ret += "DELETE FROM 'graphs' WHERE tenantguid = '" + tenantGuid + "'; ";
             ret += "DELETE FROM 'creds' WHERE tenantguid = '" + tenantGuid + "'; ";
             ret += "DELETE FROM 'users' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'chatfeedback' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'chatturns' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'chatthreads' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'chatendpoints' WHERE tenantguid = '" + tenantGuid + "'; ";
+            ret += "DELETE FROM 'chatsettings' WHERE tenantguid = '" + tenantGuid + "'; ";
             ret += "DELETE FROM 'tenants' WHERE guid = '" + tenantGuid + "'; ";
             return ret;
         }

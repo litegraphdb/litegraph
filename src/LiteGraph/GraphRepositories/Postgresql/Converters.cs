@@ -1003,6 +1003,194 @@
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
         }
+        internal static double? GetDataRowNullableDoubleValue(DataRow row, string column)
+        {
+            if (row.Table.Columns.Contains(column))
+            {
+                if (row[column] != null && row[column] != DBNull.Value)
+                {
+                    return Convert.ToDouble(row[column]);
+                }
+            }
+            return null;
+        }
+
+        internal static double GetDataRowDoubleValue(DataRow row, string column)
+        {
+            double? val = GetDataRowNullableDoubleValue(row, column);
+            return (val != null ? val.Value : 0);
+        }
+
+        internal static Guid? GetDataRowNullableGuidValue(DataRow row, string column)
+        {
+            string val = GetDataRowStringValue(row, column);
+            if (String.IsNullOrEmpty(val)) return null;
+            return Guid.Parse(val);
+        }
+
+        internal static ChatEndpoint ChatEndpointFromDataRow(DataRow row)
+        {
+            if (row == null) return null;
+
+            return new ChatEndpoint
+            {
+                GUID = Guid.Parse(row["guid"].ToString()),
+                TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
+                Name = GetDataRowStringValue(row, "name"),
+                EndpointType = (ChatEndpointTypeEnum)Enum.Parse(typeof(ChatEndpointTypeEnum), GetDataRowStringValue(row, "endpointtype")),
+                Provider = (ChatProviderTypeEnum)Enum.Parse(typeof(ChatProviderTypeEnum), GetDataRowStringValue(row, "provider")),
+                Endpoint = GetDataRowStringValue(row, "endpoint"),
+                ApiKey = GetDataRowStringValue(row, "apikey"),
+                Model = GetDataRowStringValue(row, "model"),
+                MaxOutputTokens = GetDataRowIntValue(row, "maxoutputtokens"),
+                Temperature = GetDataRowDoubleValue(row, "temperature"),
+                TimeoutMs = GetDataRowIntValue(row, "timeoutms"),
+                MaxConcurrentRequests = GetDataRowIntValue(row, "maxconcurrentrequests"),
+                Active = GetDataRowBooleanValue(row, "active"),
+                HealthCheckEnabled = GetDataRowBooleanValue(row, "healthcheckenabled"),
+                HealthCheckUrl = GetDataRowStringValue(row, "healthcheckurl"),
+                HealthCheckMethod = GetDataRowStringValue(row, "healthcheckmethod"),
+                HealthCheckIntervalMs = GetDataRowIntValue(row, "healthcheckintervalms"),
+                HealthCheckTimeoutMs = GetDataRowIntValue(row, "healthchecktimeoutms"),
+                HealthCheckExpectedStatusCode = GetDataRowIntValue(row, "healthcheckexpectedstatuscode"),
+                HealthyThreshold = GetDataRowIntValue(row, "healthythreshold"),
+                UnhealthyThreshold = GetDataRowIntValue(row, "unhealthythreshold"),
+                HealthCheckUseAuth = GetDataRowBooleanValue(row, "healthcheckuseauth"),
+                CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
+                LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
+            };
+        }
+
+        internal static List<ChatEndpoint> ChatEndpointsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+            List<ChatEndpoint> ret = new List<ChatEndpoint>();
+            foreach (DataRow row in table.Rows) ret.Add(ChatEndpointFromDataRow(row));
+            return ret;
+        }
+
+        internal static ChatThread ChatThreadFromDataRow(DataRow row)
+        {
+            if (row == null) return null;
+
+            return new ChatThread
+            {
+                GUID = Guid.Parse(row["guid"].ToString()),
+                TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
+                UserGUID = Guid.Parse(row["userguid"].ToString()),
+                GraphGUID = GetDataRowNullableGuidValue(row, "graphguid"),
+                Title = GetDataRowStringValue(row, "title"),
+                CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
+                LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
+            };
+        }
+
+        internal static List<ChatThread> ChatThreadsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+            List<ChatThread> ret = new List<ChatThread>();
+            foreach (DataRow row in table.Rows) ret.Add(ChatThreadFromDataRow(row));
+            return ret;
+        }
+
+        internal static ChatTurn ChatTurnFromDataRow(DataRow row)
+        {
+            if (row == null) return null;
+
+            return new ChatTurn
+            {
+                GUID = Guid.Parse(row["guid"].ToString()),
+                TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
+                ThreadGUID = Guid.Parse(row["threadguid"].ToString()),
+                Sequence = GetDataRowIntValue(row, "sequence"),
+                UserMessage = GetDataRowStringValue(row, "usermessage"),
+                AssistantResponse = GetDataRowStringValue(row, "assistantresponse"),
+                Reasoning = GetDataRowStringValue(row, "reasoning"),
+                ToolTranscriptJson = GetDataRowStringValue(row, "tooltranscript"),
+                TelemetryJson = GetDataRowStringValue(row, "telemetry"),
+                TraceId = GetDataRowStringValue(row, "traceid"),
+                CompletionEndpointGUID = GetDataRowNullableGuidValue(row, "completionendpointguid"),
+                EmbeddingEndpointGUID = GetDataRowNullableGuidValue(row, "embeddingendpointguid"),
+                Provider = (ChatProviderTypeEnum)Enum.Parse(typeof(ChatProviderTypeEnum), GetDataRowStringValue(row, "provider")),
+                Model = GetDataRowStringValue(row, "model"),
+                EmbeddingDurationMs = GetDataRowNullableDoubleValue(row, "embeddingdurationms"),
+                RetrievalDurationMs = GetDataRowNullableDoubleValue(row, "retrievaldurationms"),
+                RetrievedChunkCount = GetDataRowIntValue(row, "retrievedchunkcount"),
+                ToolLoopIterations = GetDataRowIntValue(row, "toolloopiterations"),
+                ToolCallCount = GetDataRowIntValue(row, "toolcallcount"),
+                LimiterWaitMs = GetDataRowNullableDoubleValue(row, "limiterwaitms"),
+                InferenceConnectionMs = GetDataRowNullableDoubleValue(row, "inferenceconnectionms"),
+                TimeToFirstTokenMs = GetDataRowNullableDoubleValue(row, "timetofirsttokenms"),
+                TimeToLastTokenMs = GetDataRowNullableDoubleValue(row, "timetolasttokenms"),
+                TotalDurationMs = GetDataRowDoubleValue(row, "totaldurationms"),
+                PromptTokens = GetDataRowNullableIntValue(row, "prompttokens"),
+                CompletionTokens = GetDataRowNullableIntValue(row, "completiontokens"),
+                TokensPerSecondOverall = GetDataRowNullableDoubleValue(row, "tokspersecoverall"),
+                TokensPerSecondGeneration = GetDataRowNullableDoubleValue(row, "tokspersecgeneration"),
+                RetryCount = GetDataRowIntValue(row, "retrycount"),
+                Success = GetDataRowBooleanValue(row, "success"),
+                HttpStatus = GetDataRowNullableIntValue(row, "httpstatus"),
+                Error = GetDataRowStringValue(row, "error"),
+                CreatedUtc = DateTime.Parse(row["createdutc"].ToString())
+            };
+        }
+
+        internal static List<ChatTurn> ChatTurnsFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+            List<ChatTurn> ret = new List<ChatTurn>();
+            foreach (DataRow row in table.Rows) ret.Add(ChatTurnFromDataRow(row));
+            return ret;
+        }
+
+        internal static ChatFeedback ChatFeedbackFromDataRow(DataRow row)
+        {
+            if (row == null) return null;
+
+            return new ChatFeedback
+            {
+                GUID = Guid.Parse(row["guid"].ToString()),
+                TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
+                ThreadGUID = Guid.Parse(row["threadguid"].ToString()),
+                TurnGUID = Guid.Parse(row["turnguid"].ToString()),
+                UserGUID = Guid.Parse(row["userguid"].ToString()),
+                Rating = (ChatFeedbackRatingEnum)Enum.Parse(typeof(ChatFeedbackRatingEnum), GetDataRowStringValue(row, "rating")),
+                FeedbackText = GetDataRowStringValue(row, "feedbacktext"),
+                CreatedUtc = DateTime.Parse(row["createdutc"].ToString())
+            };
+        }
+
+        internal static List<ChatFeedback> ChatFeedbackFromDataTable(DataTable table)
+        {
+            if (table == null || table.Rows == null || table.Rows.Count < 1) return null;
+            List<ChatFeedback> ret = new List<ChatFeedback>();
+            foreach (DataRow row in table.Rows) ret.Add(ChatFeedbackFromDataRow(row));
+            return ret;
+        }
+
+        internal static ChatSettings ChatSettingsFromDataRow(DataRow row)
+        {
+            if (row == null) return null;
+
+            return new ChatSettings
+            {
+                TenantGUID = Guid.Parse(row["tenantguid"].ToString()),
+                DefaultCompletionEndpointGUID = GetDataRowNullableGuidValue(row, "defaultcompletionendpointguid"),
+                DefaultEmbeddingEndpointGUID = GetDataRowNullableGuidValue(row, "defaultembeddingendpointguid"),
+                SystemPrompt = GetDataRowStringValue(row, "systemprompt"),
+                EnableChat = GetDataRowBooleanValue(row, "enablechat"),
+                EnableTools = GetDataRowBooleanValue(row, "enabletools"),
+                EnableMutationTools = GetDataRowBooleanValue(row, "enablemutationtools"),
+                MaxToolIterations = GetDataRowIntValue(row, "maxtooliterations"),
+                EnableRag = GetDataRowBooleanValue(row, "enablerag"),
+                RagTopK = GetDataRowIntValue(row, "ragtopk"),
+                RagScoreThreshold = GetDataRowDoubleValue(row, "ragscorethreshold"),
+                MaxContextTokens = GetDataRowIntValue(row, "maxcontexttokens"),
+                HistoryRetentionDays = GetDataRowIntValue(row, "historyretentiondays"),
+                CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
+                LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
+            };
+        }
+
     }
 }
-

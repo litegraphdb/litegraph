@@ -439,6 +439,140 @@
 
             #endregion
 
+            #region Chat
+
+            sql.AppendLine(
+                "CREATE TABLE IF NOT EXISTS 'chatendpoints' ("
+                + "guid VARCHAR(64) NOT NULL UNIQUE, "
+                + "tenantguid VARCHAR(64) NOT NULL, "
+                + "name VARCHAR(128), "
+                + "endpointtype VARCHAR(32) NOT NULL, "
+                + "provider VARCHAR(32) NOT NULL, "
+                + "endpoint TEXT, "
+                + "apikey TEXT, "
+                + "model VARCHAR(128), "
+                + "maxoutputtokens INT NOT NULL DEFAULT 4096, "
+                + "temperature REAL NOT NULL DEFAULT 0.7, "
+                + "timeoutms INT NOT NULL DEFAULT 120000, "
+                + "maxconcurrentrequests INT NOT NULL DEFAULT 2, "
+                + "active INT NOT NULL DEFAULT 1, "
+                + "healthcheckenabled INT NOT NULL DEFAULT 1, "
+                + "healthcheckurl TEXT, "
+                + "healthcheckmethod VARCHAR(8), "
+                + "healthcheckintervalms INT NOT NULL DEFAULT 30000, "
+                + "healthchecktimeoutms INT NOT NULL DEFAULT 10000, "
+                + "healthcheckexpectedstatuscode INT NOT NULL DEFAULT 200, "
+                + "healthythreshold INT NOT NULL DEFAULT 2, "
+                + "unhealthythreshold INT NOT NULL DEFAULT 2, "
+                + "healthcheckuseauth INT NOT NULL DEFAULT 0, "
+                + "createdutc VARCHAR(64), "
+                + "lastupdateutc VARCHAR(64) "
+                + ");");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatendpoints_guid' ON 'chatendpoints' (guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatendpoints_tenantguid' ON 'chatendpoints' (tenantguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatendpoints_tenantguid_endpointtype' ON 'chatendpoints' (tenantguid ASC, endpointtype ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatendpoints_createdutc' ON 'chatendpoints' ('createdutc' ASC);");
+
+            sql.AppendLine(
+                "CREATE TABLE IF NOT EXISTS 'chatthreads' ("
+                + "guid VARCHAR(64) NOT NULL UNIQUE, "
+                + "tenantguid VARCHAR(64) NOT NULL, "
+                + "userguid VARCHAR(64) NOT NULL, "
+                + "graphguid VARCHAR(64), "
+                + "title VARCHAR(256), "
+                + "createdutc VARCHAR(64), "
+                + "lastupdateutc VARCHAR(64) "
+                + ");");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatthreads_guid' ON 'chatthreads' (guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatthreads_tenantguid' ON 'chatthreads' (tenantguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatthreads_tenantguid_userguid' ON 'chatthreads' (tenantguid ASC, userguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatthreads_createdutc' ON 'chatthreads' ('createdutc' ASC);");
+
+            sql.AppendLine(
+                "CREATE TABLE IF NOT EXISTS 'chatturns' ("
+                + "guid VARCHAR(64) NOT NULL UNIQUE, "
+                + "tenantguid VARCHAR(64) NOT NULL, "
+                + "threadguid VARCHAR(64) NOT NULL, "
+                + "sequence INT NOT NULL DEFAULT 0, "
+                + "usermessage TEXT, "
+                + "assistantresponse TEXT, "
+                + "reasoning TEXT, "
+                + "tooltranscript TEXT, "
+                + "telemetry TEXT, "
+                + "traceid VARCHAR(128), "
+                + "completionendpointguid VARCHAR(64), "
+                + "embeddingendpointguid VARCHAR(64), "
+                + "provider VARCHAR(32), "
+                + "model VARCHAR(128), "
+                + "embeddingdurationms REAL, "
+                + "retrievaldurationms REAL, "
+                + "retrievedchunkcount INT NOT NULL DEFAULT 0, "
+                + "toolloopiterations INT NOT NULL DEFAULT 0, "
+                + "toolcallcount INT NOT NULL DEFAULT 0, "
+                + "limiterwaitms REAL, "
+                + "inferenceconnectionms REAL, "
+                + "timetofirsttokenms REAL, "
+                + "timetolasttokenms REAL, "
+                + "totaldurationms REAL NOT NULL DEFAULT 0, "
+                + "prompttokens INT, "
+                + "completiontokens INT, "
+                + "tokspersecoverall REAL, "
+                + "tokspersecgeneration REAL, "
+                + "retrycount INT NOT NULL DEFAULT 0, "
+                + "success INT NOT NULL DEFAULT 1, "
+                + "httpstatus INT, "
+                + "error TEXT, "
+                + "createdutc VARCHAR(64) "
+                + ");");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatturns_guid' ON 'chatturns' (guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatturns_tenantguid' ON 'chatturns' (tenantguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatturns_tenantguid_threadguid' ON 'chatturns' (tenantguid ASC, threadguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatturns_threadguid_sequence' ON 'chatturns' (threadguid ASC, sequence ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatturns_createdutc' ON 'chatturns' ('createdutc' ASC);");
+
+            sql.AppendLine(
+                "CREATE TABLE IF NOT EXISTS 'chatfeedback' ("
+                + "guid VARCHAR(64) NOT NULL UNIQUE, "
+                + "tenantguid VARCHAR(64) NOT NULL, "
+                + "threadguid VARCHAR(64) NOT NULL, "
+                + "turnguid VARCHAR(64) NOT NULL, "
+                + "userguid VARCHAR(64) NOT NULL, "
+                + "rating VARCHAR(32) NOT NULL, "
+                + "feedbacktext TEXT, "
+                + "createdutc VARCHAR(64) "
+                + ");");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatfeedback_guid' ON 'chatfeedback' (guid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatfeedback_tenantguid' ON 'chatfeedback' (tenantguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatfeedback_tenantguid_threadguid' ON 'chatfeedback' (tenantguid ASC, threadguid ASC);");
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatfeedback_createdutc' ON 'chatfeedback' ('createdutc' ASC);");
+
+            sql.AppendLine(
+                "CREATE TABLE IF NOT EXISTS 'chatsettings' ("
+                + "tenantguid VARCHAR(64) NOT NULL UNIQUE, "
+                + "defaultcompletionendpointguid VARCHAR(64), "
+                + "defaultembeddingendpointguid VARCHAR(64), "
+                + "systemprompt TEXT, "
+                + "enablechat INT NOT NULL DEFAULT 1, "
+                + "enabletools INT NOT NULL DEFAULT 1, "
+                + "enablemutationtools INT NOT NULL DEFAULT 0, "
+                + "maxtooliterations INT NOT NULL DEFAULT 10, "
+                + "enablerag INT NOT NULL DEFAULT 1, "
+                + "ragtopk INT NOT NULL DEFAULT 8, "
+                + "ragscorethreshold REAL NOT NULL DEFAULT 0, "
+                + "maxcontexttokens INT NOT NULL DEFAULT 16384, "
+                + "historyretentiondays INT NOT NULL DEFAULT 90, "
+                + "createdutc VARCHAR(64), "
+                + "lastupdateutc VARCHAR(64) "
+                + ");");
+
+            sql.AppendLine("CREATE INDEX IF NOT EXISTS 'idx_chatsettings_tenantguid' ON 'chatsettings' (tenantguid ASC);");
+
+            #endregion
+
             return sql.ToString();
         }
     }

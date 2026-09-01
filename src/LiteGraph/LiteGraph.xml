@@ -914,6 +914,569 @@
             Caching settings.
             </summary>
         </member>
+        <member name="T:LiteGraph.ChatEndpoint">
+            <summary>
+            Chat endpoint.  Defines an embedding or completion (inference) endpoint used by the chat feature.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.Name">
+            <summary>
+            Name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.EndpointType">
+            <summary>
+            Endpoint type.  Default is Completion.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.Provider">
+            <summary>
+            Provider type.  Default is OpenAI, which also covers any OpenAI-compatible server.
+            Anthropic is valid only for completion endpoints; VoyageAI is valid only for embedding endpoints.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.Endpoint">
+            <summary>
+            Base URL of the upstream endpoint, for example http://127.0.0.1:11434 or https://api.openai.com.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.ApiKey">
+            <summary>
+            API key.  Null when the upstream requires no authentication.
+            Redacted to its last four characters in API responses.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.Model">
+            <summary>
+            Model name, for example gpt-4o-mini, gemma3:4b, or voyage-3.5.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.MaxOutputTokens">
+            <summary>
+            Maximum output tokens per completion.  Default is 4096.  Minimum is 1, maximum is 10000000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.Temperature">
+            <summary>
+            Sampling temperature.  Default is 0.7.  Minimum is 0, maximum is 2.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.TimeoutMs">
+            <summary>
+            Request timeout in milliseconds.  Default is 120000.  Minimum is 1000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.MaxConcurrentRequests">
+            <summary>
+            Maximum concurrent requests to the upstream endpoint.  Default is 2.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.Active">
+            <summary>
+            Active.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckEnabled">
+            <summary>
+            Enable background health checks.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckUrl">
+            <summary>
+            Health check URL.  When null, the endpoint base URL is probed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckMethod">
+            <summary>
+            Health check HTTP method.  Valid values are GET and HEAD.  Default is GET.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckIntervalMs">
+            <summary>
+            Interval between health checks in milliseconds.  Default is 30000.  Minimum is 1000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckTimeoutMs">
+            <summary>
+            Health check timeout in milliseconds.  Default is 10000.  Minimum is 1000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckExpectedStatusCode">
+            <summary>
+            HTTP status code expected from a healthy endpoint.  Default is 200.  Minimum is 100, maximum is 599.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthyThreshold">
+            <summary>
+            Consecutive successful checks required to transition to healthy.  Default is 2.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.UnhealthyThreshold">
+            <summary>
+            Consecutive failed checks required to transition to unhealthy.  Default is 2.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.HealthCheckUseAuth">
+            <summary>
+            Send the endpoint's API key with health check probes.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatEndpoint.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ChatEndpoint.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ChatEndpoint.Redact">
+            <summary>
+            Produce a copy of this endpoint with the API key redacted to its last four characters.
+            </summary>
+            <returns>Redacted copy.</returns>
+        </member>
+        <member name="M:LiteGraph.ChatEndpoint.IsRedactedApiKey(System.String)">
+            <summary>
+            Check whether a supplied API key value is a redacted placeholder produced by Redact.
+            </summary>
+            <param name="value">API key value.</param>
+            <returns>True if the value is a redacted placeholder.</returns>
+        </member>
+        <member name="T:LiteGraph.ChatEndpointTypeEnum">
+            <summary>
+            Chat endpoint type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatEndpointTypeEnum.Embedding">
+            <summary>
+            Embedding endpoint, used to generate vector embeddings.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatEndpointTypeEnum.Completion">
+            <summary>
+            Completion (inference) endpoint, used to generate chat completions.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.ChatFeedback">
+            <summary>
+            Chat feedback.  A user's rating of a single assistant turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.ThreadGUID">
+            <summary>
+            Thread GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.TurnGUID">
+            <summary>
+            Turn GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.UserGUID">
+            <summary>
+            GUID of the user that submitted the feedback.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.Rating">
+            <summary>
+            Rating.  Default is ThumbsUp.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.FeedbackText">
+            <summary>
+            Free-text feedback.  Null when the user supplied no comment.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatFeedback.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ChatFeedback.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.ChatFeedbackRatingEnum">
+            <summary>
+            Chat feedback rating.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatFeedbackRatingEnum.ThumbsUp">
+            <summary>
+            Thumbs up.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatFeedbackRatingEnum.ThumbsDown">
+            <summary>
+            Thumbs down.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.ChatProviderTypeEnum">
+            <summary>
+            Chat provider type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatProviderTypeEnum.OpenAI">
+            <summary>
+            OpenAI, or any OpenAI-compatible server (for example vLLM or LM Studio).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatProviderTypeEnum.Ollama">
+            <summary>
+            Ollama.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatProviderTypeEnum.Gemini">
+            <summary>
+            Google Gemini.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatProviderTypeEnum.Anthropic">
+            <summary>
+            Anthropic.  Completion endpoints only; Anthropic has no embeddings API.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.ChatProviderTypeEnum.VoyageAI">
+            <summary>
+            VoyageAI.  Embedding endpoints only; VoyageAI has no completions API.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.ChatSettings">
+            <summary>
+            Chat settings.  Per-tenant chat defaults; one record per tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.TenantGUID">
+            <summary>
+            Tenant GUID.  Keys the record; one settings record exists per tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.DefaultCompletionEndpointGUID">
+            <summary>
+            GUID of the default completion endpoint.  Null when no default has been chosen.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.DefaultEmbeddingEndpointGUID">
+            <summary>
+            GUID of the default embedding endpoint.  Null when no default has been chosen.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.SystemPrompt">
+            <summary>
+            Tenant system prompt, merged with the server's fixed preamble.  Null uses the preamble alone.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.EnableChat">
+            <summary>
+            Enable chat for the tenant.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.EnableTools">
+            <summary>
+            Advertise graph tools to the model.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.EnableMutationTools">
+            <summary>
+            Advertise mutation (create/update/delete) tools to the model.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.MaxToolIterations">
+            <summary>
+            Maximum tool loop iterations per turn.  Default is 10.  Minimum is 1.
+            The server-level MaxToolIterationsCap in litegraph.json bounds the effective value.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.EnableRag">
+            <summary>
+            Enable automatic vector retrieval when a thread is bound to a graph.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.RagTopK">
+            <summary>
+            Number of vector search results retrieved for context.  Default is 8.  Minimum is 1, maximum is 100.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.RagScoreThreshold">
+            <summary>
+            Minimum similarity score for retrieved context.  Default is 0.  Minimum is -1, maximum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.MaxContextTokens">
+            <summary>
+            Token budget for prior-turn history included in the prompt.  Default is 16384.  Minimum is 1024.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.HistoryRetentionDays">
+            <summary>
+            Days to retain chat turns before pruning.  Default is 90.  Minimum is 0; 0 retains forever.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatSettings.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ChatSettings.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.ChatThread">
+            <summary>
+            Chat thread.  A conversation owned by a user, optionally bound to a graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.UserGUID">
+            <summary>
+            GUID of the user that owns the thread.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.GraphGUID">
+            <summary>
+            GUID of the graph the conversation explores.  Null when the thread is not bound to a graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.Title">
+            <summary>
+            Title.  Generated from the first exchange when not supplied.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatThread.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ChatThread.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.ChatTurn">
+            <summary>
+            Chat turn.  One user message and its assistant response within a thread, with per-stage telemetry.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.ThreadGUID">
+            <summary>
+            Thread GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.Sequence">
+            <summary>
+            Zero-based position of the turn within its thread.  Minimum is 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.UserMessage">
+            <summary>
+            User message.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.AssistantResponse">
+            <summary>
+            Assistant response.  Partial content is preserved when a turn fails mid-stream.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.Reasoning">
+            <summary>
+            Model reasoning ("thinking") text.  Null when the model emitted none.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.ToolTranscriptJson">
+            <summary>
+            Ordered record of tool calls and results within the turn, serialized as JSON.
+            Deliberate unmanaged-JSON exception: variable-shape display payload, never queried relationally.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TelemetryJson">
+            <summary>
+            Full per-stage timing detail, serialized as JSON.
+            Deliberate unmanaged-JSON exception: variable-shape display payload, never queried relationally.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TraceId">
+            <summary>
+            Trace identifier correlating the turn with distributed traces and request history.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.CompletionEndpointGUID">
+            <summary>
+            GUID of the completion endpoint used.  Null when the turn failed before endpoint resolution.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.EmbeddingEndpointGUID">
+            <summary>
+            GUID of the embedding endpoint used for retrieval.  Null when retrieval did not run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.Provider">
+            <summary>
+            Provider of the completion endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.Model">
+            <summary>
+            Model that generated the response.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.EmbeddingDurationMs">
+            <summary>
+            Time spent generating the query embedding, in milliseconds.  Null when retrieval did not run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.RetrievalDurationMs">
+            <summary>
+            Time spent on vector retrieval, in milliseconds.  Null when retrieval did not run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.RetrievedChunkCount">
+            <summary>
+            Number of retrieved context chunks injected into the prompt.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.ToolLoopIterations">
+            <summary>
+            Number of tool loop iterations (model calls) within the turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.ToolCallCount">
+            <summary>
+            Number of tool calls executed within the turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.LimiterWaitMs">
+            <summary>
+            Time spent waiting on the endpoint concurrency limiter, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.InferenceConnectionMs">
+            <summary>
+            Time from request start to response headers on the final inference call, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TimeToFirstTokenMs">
+            <summary>
+            Time to first token on the final inference call, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TimeToLastTokenMs">
+            <summary>
+            Time to last token on the final inference call, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TotalDurationMs">
+            <summary>
+            Total wall-clock duration of the turn, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.PromptTokens">
+            <summary>
+            Prompt tokens reported by the provider.  Null when the provider reported no usage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.CompletionTokens">
+            <summary>
+            Completion tokens reported by the provider.  Null when the provider reported no usage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TokensPerSecondOverall">
+            <summary>
+            Tokens per second across the whole response, including time to first token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.TokensPerSecondGeneration">
+            <summary>
+            Tokens per second between the first and last token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.RetryCount">
+            <summary>
+            Number of retries performed before the response started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.Success">
+            <summary>
+            Whether the turn completed successfully.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.HttpStatus">
+            <summary>
+            HTTP status returned by the upstream provider on failure.  Null on success.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.Error">
+            <summary>
+            Error message.  Null on success.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.ChatTurn.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.ChatTurn.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Client.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -960,6 +1523,194 @@
             <param name="repo">Graph repository.</param>
         </member>
         <member name="M:LiteGraph.Client.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Client.Implementations.ChatEndpointMethods">
+            <summary>
+            Chat endpoint methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.Create(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Client.Implementations.ChatFeedbackMethods">
+            <summary>
+            Chat feedback methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Chat feedback methods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.Create(LiteGraph.ChatFeedback,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Client.Implementations.ChatSettingsMethods">
+            <summary>
+            Chat settings methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatSettingsMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Chat settings methods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatSettingsMethods.ReadByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatSettingsMethods.Upsert(LiteGraph.ChatSettings,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatSettingsMethods.DeleteByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatSettingsMethods.ExistsByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Client.Implementations.ChatThreadMethods">
+            <summary>
+            Chat thread methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Chat thread methods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.Create(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.ReadAllInTenant(System.Guid,System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.Update(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatThreadMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Client.Implementations.ChatTurnMethods">
+            <summary>
+            Chat turn methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Chat turn methods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.Create(LiteGraph.ChatTurn,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.ReadByThread(System.Guid,System.Guid,System.Boolean,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.GetMaxSequence(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.DeleteOlderThan(System.Guid,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.CredentialMethods">
@@ -1751,6 +2502,390 @@
             <param name="req">Existence request.</param>
             <param name="token">Cancellation token.</param>
             <returns>Existence result.</returns>
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IChatEndpointMethods">
+            <summary>
+            Interface for chat endpoint methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.Create(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat endpoint.
+            </summary>
+            <param name="endpoint">Chat endpoint.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat endpoints in tenant, optionally filtered by endpoint type.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointType">Endpoint type filter.  Null returns all types.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat endpoints.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat endpoint by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate chat endpoints.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <summary>
+            Update a chat endpoint.
+            </summary>
+            <param name="endpoint">Chat endpoint.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat endpoint.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat endpoints in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat endpoint exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IChatFeedbackMethods">
+            <summary>
+            Interface for chat feedback methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.Create(LiteGraph.ChatFeedback,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat feedback record.
+            </summary>
+            <param name="feedback">Chat feedback.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat feedback record by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat feedback in tenant, optionally filtered by rating or thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="rating">Rating filter.  Null returns all ratings.</param>
+            <param name="threadGuid">Thread GUID filter.  Null returns all threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat feedback records.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="rating">Rating filter.  Null counts all ratings.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat feedback record.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all feedback for a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat feedback in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat feedback record exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IChatSettingsMethods">
+            <summary>
+            Interface for chat settings methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatSettingsMethods.ReadByTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read the chat settings for a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat settings, or null when the tenant has none.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatSettingsMethods.Upsert(LiteGraph.ChatSettings,System.Threading.CancellationToken)">
+            <summary>
+            Create or replace the chat settings for a tenant.
+            </summary>
+            <param name="settings">Chat settings.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat settings.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatSettingsMethods.DeleteByTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete the chat settings for a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatSettingsMethods.ExistsByTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if chat settings exist for a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IChatThreadMethods">
+            <summary>
+            Interface for chat thread methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.Create(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat thread.
+            </summary>
+            <param name="thread">Chat thread.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.ReadAllInTenant(System.Guid,System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat threads in tenant, optionally filtered by owning user.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="userGuid">User GUID filter.  Null returns all users' threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat threads.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat thread by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate chat threads.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="userGuid">User GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.Update(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <summary>
+            Update a chat thread.
+            </summary>
+            <param name="thread">Chat thread.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat threads in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatThreadMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat thread exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IChatTurnMethods">
+            <summary>
+            Interface for chat turn methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.Create(LiteGraph.ChatTurn,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat turn.
+            </summary>
+            <param name="turn">Chat turn.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat turn.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat turn by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat turn, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.ReadByThread(System.Guid,System.Guid,System.Boolean,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read the turns of a thread in sequence order.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="ascending">True to read oldest-first; false to read newest-first.  Default is true.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat turns in tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Get the number of turns in a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of turns.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.GetMaxSequence(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Get the highest sequence number in a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Highest sequence number, or -1 when the thread has no turns.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat turn.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all turns in a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat turns in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.DeleteOlderThan(System.Guid,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Delete turns created before a cutoff, for retention pruning.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="olderThanUtc">Cutoff timestamp, in UTC.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat turn exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.ICredentialMethods">
             <summary>
@@ -5288,6 +6423,31 @@
             Request history methods.
             </summary>
         </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.ChatEndpoint">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.ChatThread">
+            <summary>
+            Chat thread methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.ChatTurn">
+            <summary>
+            Chat turn methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.ChatFeedback">
+            <summary>
+            Chat feedback methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.ChatSettings">
+            <summary>
+            Chat settings methods.
+            </summary>
+        </member>
         <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.AuthorizationAudit">
             <summary>
             Authorization audit methods.
@@ -5660,6 +6820,390 @@
             <param name="req">Existence request.</param>
             <param name="token">Cancellation token.</param>
             <returns>Existence result.</returns>
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods">
+            <summary>
+            Interface for chat endpoint methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.Create(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat endpoint.
+            </summary>
+            <param name="endpoint">Chat endpoint.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat endpoints in tenant, optionally filtered by endpoint type.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointType">Endpoint type filter.  Null returns all types.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat endpoints.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat endpoint by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate chat endpoints.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <summary>
+            Update a chat endpoint.
+            </summary>
+            <param name="endpoint">Chat endpoint.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat endpoint.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat endpoints in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat endpoint exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods">
+            <summary>
+            Interface for chat feedback methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.Create(LiteGraph.ChatFeedback,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat feedback record.
+            </summary>
+            <param name="feedback">Chat feedback.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat feedback record by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat feedback in tenant, optionally filtered by rating or thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="rating">Rating filter.  Null returns all ratings.</param>
+            <param name="threadGuid">Thread GUID filter.  Null returns all threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat feedback records.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="rating">Rating filter.  Null counts all ratings.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat feedback record.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all feedback for a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat feedback in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat feedback record exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.IChatSettingsMethods">
+            <summary>
+            Interface for chat settings methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatSettingsMethods.ReadByTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read the chat settings for a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat settings, or null when the tenant has none.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatSettingsMethods.Upsert(LiteGraph.ChatSettings,System.Threading.CancellationToken)">
+            <summary>
+            Create or replace the chat settings for a tenant.
+            </summary>
+            <param name="settings">Chat settings.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat settings.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatSettingsMethods.DeleteByTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete the chat settings for a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatSettingsMethods.ExistsByTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if chat settings exist for a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods">
+            <summary>
+            Interface for chat thread methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.Create(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat thread.
+            </summary>
+            <param name="thread">Chat thread.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.ReadAllInTenant(System.Guid,System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat threads in tenant, optionally filtered by owning user.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="userGuid">User GUID filter.  Null returns all users' threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat threads.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat thread by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate chat threads.
+            </summary>
+            <param name="query">Enumeration query.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="userGuid">User GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.Update(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <summary>
+            Update a chat thread.
+            </summary>
+            <param name="thread">Chat thread.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat threads in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatThreadMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat thread exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods">
+            <summary>
+            Interface for chat turn methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.Create(LiteGraph.ChatTurn,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat turn.
+            </summary>
+            <param name="turn">Chat turn.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat turn.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat turn by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat turn, or null if not found.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.ReadByThread(System.Guid,System.Guid,System.Boolean,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read the turns of a thread in sequence order.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="ascending">True to read oldest-first; false to read newest-first.  Default is true.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat turns in tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Get the number of turns in a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of turns.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.GetMaxSequence(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Get the highest sequence number in a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Highest sequence number, or -1 when the thread has no turns.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat turn.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all turns in a thread.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete all chat turns in a tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.DeleteOlderThan(System.Guid,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Delete turns created before a cutoff, for retention pruning.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="olderThanUtc">Cutoff timestamp, in UTC.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat turn exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="guid">GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Interfaces.ICredentialMethods">
             <summary>
@@ -7770,6 +9314,189 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods">
+            <summary>
+            Chat endpoint methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.#ctor(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository)">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.Create(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods">
+            <summary>
+            Chat feedback methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.#ctor(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository)">
+            <summary>
+            Chat feedback methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.Create(LiteGraph.ChatFeedback,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatSettingsMethods">
+            <summary>
+            Chat settings methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatSettingsMethods.#ctor(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository)">
+            <summary>
+            Chat settings methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatSettingsMethods.ReadByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatSettingsMethods.Upsert(LiteGraph.ChatSettings,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatSettingsMethods.DeleteByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatSettingsMethods.ExistsByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods">
+            <summary>
+            Chat thread methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.#ctor(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository)">
+            <summary>
+            Chat thread methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.Create(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.ReadAllInTenant(System.Guid,System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.Update(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatThreadMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods">
+            <summary>
+            Chat turn methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.#ctor(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository)">
+            <summary>
+            Chat turn methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.Create(LiteGraph.ChatTurn,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.ReadByThread(System.Guid,System.Guid,System.Boolean,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.GetMaxSequence(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.DeleteOlderThan(System.Guid,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.CredentialMethods">
             <summary>
             Credential methods.
@@ -8618,6 +10345,31 @@
         <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.RequestHistory">
             <inheritdoc />
         </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.ChatEndpoint">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.ChatThread">
+            <summary>
+            Chat thread methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.ChatTurn">
+            <summary>
+            Chat turn methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.ChatFeedback">
+            <summary>
+            Chat feedback methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.ChatSettings">
+            <summary>
+            Chat settings methods.
+            </summary>
+        </member>
         <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.AuthorizationAudit">
             <inheritdoc />
         </member>
@@ -8814,6 +10566,189 @@
             <param name="repo">Graph repository.</param>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.ExistenceRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods">
+            <summary>
+            Chat endpoint methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.Create(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods">
+            <summary>
+            Chat feedback methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Chat feedback methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.Create(LiteGraph.ChatFeedback,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatSettingsMethods">
+            <summary>
+            Chat settings methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatSettingsMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Chat settings methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatSettingsMethods.ReadByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatSettingsMethods.Upsert(LiteGraph.ChatSettings,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatSettingsMethods.DeleteByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatSettingsMethods.ExistsByTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods">
+            <summary>
+            Chat thread methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Chat thread methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.Create(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.ReadAllInTenant(System.Guid,System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.Update(LiteGraph.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatThreadMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods">
+            <summary>
+            Chat turn methods.
+            Graph repository base methods are responsible only for primitives, not input validation or cross-cutting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.#ctor(LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository)">
+            <summary>
+            Chat turn methods.
+            </summary>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.Create(LiteGraph.ChatTurn,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.ReadByThread(System.Guid,System.Guid,System.Boolean,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.GetMaxSequence(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.DeleteByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.DeleteOlderThan(System.Guid,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.ExistsByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.CredentialMethods">
@@ -9683,6 +11618,31 @@
         </member>
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.RequestHistory">
             <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.ChatEndpoint">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.ChatThread">
+            <summary>
+            Chat thread methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.ChatTurn">
+            <summary>
+            Chat turn methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.ChatFeedback">
+            <summary>
+            Chat feedback methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.ChatSettings">
+            <summary>
+            Chat settings methods.
+            </summary>
         </member>
         <member name="P:LiteGraph.GraphRepositories.Sqlite.SqliteGraphRepository.AuthorizationAudit">
             <inheritdoc />
@@ -11281,6 +13241,31 @@
         </member>
         <member name="P:LiteGraph.LiteGraphClient.Transaction">
             <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.ChatEndpoint">
+            <summary>
+            Chat endpoint methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.ChatThread">
+            <summary>
+            Chat thread methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.ChatTurn">
+            <summary>
+            Chat turn methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.ChatFeedback">
+            <summary>
+            Chat feedback methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.ChatSettings">
+            <summary>
+            Chat settings methods.
+            </summary>
         </member>
         <member name="P:LiteGraph.LiteGraphClient.RequestHistory">
             <summary>

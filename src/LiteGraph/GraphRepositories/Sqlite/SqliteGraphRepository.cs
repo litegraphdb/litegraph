@@ -155,6 +155,31 @@ namespace LiteGraph.GraphRepositories.Sqlite
         /// <inheritdoc />
         public override IRequestHistoryMethods RequestHistory { get; }
 
+        /// <summary>
+        /// Chat endpoint methods.
+        /// </summary>
+        public override IChatEndpointMethods ChatEndpoint { get; }
+
+        /// <summary>
+        /// Chat thread methods.
+        /// </summary>
+        public override IChatThreadMethods ChatThread { get; }
+
+        /// <summary>
+        /// Chat turn methods.
+        /// </summary>
+        public override IChatTurnMethods ChatTurn { get; }
+
+        /// <summary>
+        /// Chat feedback methods.
+        /// </summary>
+        public override IChatFeedbackMethods ChatFeedback { get; }
+
+        /// <summary>
+        /// Chat settings methods.
+        /// </summary>
+        public override IChatSettingsMethods ChatSettings { get; }
+
         /// <inheritdoc />
         public override IAuthorizationAuditMethods AuthorizationAudit { get; }
 
@@ -260,6 +285,11 @@ namespace LiteGraph.GraphRepositories.Sqlite
             RequestHistory = new RequestHistoryMethods(this);
             AuthorizationAudit = new AuthorizationAuditMethods(this);
             AuthorizationRoles = new AuthorizationRoleMethods(this);
+            ChatEndpoint = new ChatEndpointMethods(this);
+            ChatThread = new ChatThreadMethods(this);
+            ChatTurn = new ChatTurnMethods(this);
+            ChatFeedback = new ChatFeedbackMethods(this);
+            ChatSettings = new ChatSettingsMethods(this);
 
             // Initialize vector index manager
             string indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");

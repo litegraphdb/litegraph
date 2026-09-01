@@ -120,6 +120,31 @@
         public abstract IRequestHistoryMethods RequestHistory { get; }
 
         /// <summary>
+        /// Chat endpoint methods.
+        /// </summary>
+        public abstract IChatEndpointMethods ChatEndpoint { get; }
+
+        /// <summary>
+        /// Chat thread methods.
+        /// </summary>
+        public abstract IChatThreadMethods ChatThread { get; }
+
+        /// <summary>
+        /// Chat turn methods.
+        /// </summary>
+        public abstract IChatTurnMethods ChatTurn { get; }
+
+        /// <summary>
+        /// Chat feedback methods.
+        /// </summary>
+        public abstract IChatFeedbackMethods ChatFeedback { get; }
+
+        /// <summary>
+        /// Chat settings methods.
+        /// </summary>
+        public abstract IChatSettingsMethods ChatSettings { get; }
+
+        /// <summary>
         /// Authorization audit methods.
         /// </summary>
         public abstract IAuthorizationAuditMethods AuthorizationAudit { get; }
