@@ -41,6 +41,7 @@ const ENFORCED_DIRS = [
   'page/request-history',
   'page/api-explorer',
   'page/authorization',
+  'page/ai',
 ];
 const ENFORCED_FILES = [
   'components/layout/DashboardLayout.tsx',

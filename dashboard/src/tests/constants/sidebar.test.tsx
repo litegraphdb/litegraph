@@ -32,11 +32,12 @@ const itemKeys = (p: Principal) =>
   buildNavForPrincipal(p).flatMap((s) => s.items.map((i) => i.key));
 
 describe('dashboardNavSections (consolidated grouped nav)', () => {
-  it('declares the six workflow sections in order', () => {
+  it('declares the seven workflow sections in order (AI between METADATA and MANAGE)', () => {
     expect(dashboardNavSections.map((s) => s.id)).toEqual([
       'home',
       'data',
       'metadata',
+      'ai',
       'manage',
       'secure',
       'administer',
@@ -56,6 +57,7 @@ describe('buildNavForPrincipal — role-aware nav', () => {
       'home',
       'data',
       'metadata',
+      'ai',
       'manage',
       'secure',
       'administer',
@@ -90,6 +92,30 @@ describe('buildNavForPrincipal — role-aware nav', () => {
 
   it('returns nothing for an anonymous principal', () => {
     expect(buildNavForPrincipal(null)).toEqual([]);
+  });
+});
+
+describe('buildNavForPrincipal — AI section', () => {
+  const aiSection = (p: Principal) => buildNavForPrincipal(p).find((s) => s.id === 'ai');
+
+  it('shows all five AI items to admins', () => {
+    for (const admin of [systemAdmin, tenantAdmin]) {
+      const section = aiSection(admin);
+      expect(section).toBeDefined();
+      expect(section!.items.map((i) => i.key)).toEqual([
+        '/ai/chat',
+        '/ai/endpoints',
+        '/ai/history',
+        '/ai/feedback',
+        '/ai/settings',
+      ]);
+    }
+  });
+
+  it('shows only Chat to a regular tenant user', () => {
+    const section = aiSection(regular);
+    expect(section).toBeDefined();
+    expect(section!.items.map((i) => i.key)).toEqual(['/ai/chat']);
   });
 });
 

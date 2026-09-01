@@ -123,3 +123,33 @@ describe('capability map — canViewSection()', () => {
     expect(canViewSection(regular, 'administer')).toBe(false);
   });
 });
+
+describe('capability map — AI resources', () => {
+  it('chat is open to every tenant principal', () => {
+    expect(can(regular, 'view', 'aiChat')).toBe(true);
+    expect(can(tenantAdmin, 'view', 'aiChat')).toBe(true);
+    expect(can(systemAdmin, 'view', 'aiChat')).toBe(true);
+    expect(can(breakGlass, 'view', 'aiChat')).toBe(true);
+  });
+
+  it('admin AI surfaces are hidden from regular users', () => {
+    for (const resource of ['aiEndpoints', 'aiHistory', 'aiFeedback', 'aiSettings'] as const) {
+      expect(can(regular, 'view', resource)).toBe(false);
+      expect(can(regular, 'edit', resource)).toBe(false);
+      expect(can(tenantAdmin, 'view', resource)).toBe(true);
+      expect(can(systemAdmin, 'view', resource)).toBe(true);
+    }
+  });
+
+  it('tenant admins are scoped to their own tenant for AI admin surfaces', () => {
+    expect(can(tenantAdmin, 'edit', 'aiEndpoints', { tenantGuid: TENANT_A })).toBe(true);
+    expect(can(tenantAdmin, 'edit', 'aiEndpoints', { tenantGuid: TENANT_B })).toBe(false);
+  });
+
+  it('the AI section is visible to everyone (chat is always viewable)', () => {
+    expect(canViewSection(regular, 'ai')).toBe(true);
+    expect(canViewSection(tenantAdmin, 'ai')).toBe(true);
+    expect(canViewSection(systemAdmin, 'ai')).toBe(true);
+    expect(canViewSection(null, 'ai')).toBe(false);
+  });
+});

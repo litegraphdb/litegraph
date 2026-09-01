@@ -1337,7 +1337,8 @@
       "metadata": "فراداده",
       "manage": "مدیریت",
       "secure": "امنیت",
-      "administer": "مدیریت سیستم"
+      "administer": "مدیریت سیستم",
+      "ai": "هوش مصنوعی"
     },
     "item": {
       "home": "خانه",
@@ -1369,7 +1370,17 @@
       "backups": "پشتیبان",
       "backupsTitle": "مدیریت پشتیبان‌های پایگاه داده",
       "settings": "تنظیمات",
-      "settingsTitle": "پیکربندی سرور"
+      "settingsTitle": "پیکربندی سرور",
+      "aiChat": "گفتگو",
+      "aiChatTitle": "با گراف‌های خود گفتگو کنید",
+      "aiEndpoints": "نقاط پایانی",
+      "aiEndpointsTitle": "مدیریت نقاط پایانی LLM",
+      "aiHistory": "تاریخچه گفتگو",
+      "aiHistoryTitle": "مرور گفتگوها و نوبت‌های چت",
+      "aiFeedback": "بازخورد",
+      "aiFeedbackTitle": "بررسی بازخورد گفتگو",
+      "aiSettings": "تنظیمات گفتگو",
+      "aiSettingsTitle": "پیکربندی گفتگوی مستاجر"
     }
   },
   "secure": {
@@ -1394,7 +1405,8 @@
       "debug": "اشکال‌زدایی",
       "rest": "سرور REST",
       "database": "پایگاه داده",
-      "security": "امنیت"
+      "security": "امنیت",
+      "chat": "گفتگو"
     },
     "fields": {
       "requestTimeoutSeconds": "مهلت درخواست (ثانیه)",
@@ -1435,7 +1447,14 @@
       "databaseMaxConnections": "حداکثر اتصالات",
       "adminBearerToken": "توکن حامل مدیر",
       "encryptionKey": "کلید رمزنگاری",
-      "encryptionIv": "IV رمزنگاری"
+      "encryptionIv": "IV رمزنگاری",
+      "chatEnable": "فعال‌سازی گفتگو",
+      "chatMaxRetries": "حداکثر تلاش مجدد",
+      "chatRetryBackoffMs": "تاخیر تلاش مجدد (میلی‌ثانیه)",
+      "chatMaxToolIterationsCap": "سقف تکرار ابزار",
+      "chatMaxConcurrentChats": "حداکثر گفتگوهای هم‌زمان",
+      "chatSseKeepAliveSeconds": "نگه‌داشتن اتصال SSE (ثانیه)",
+      "chatDefaultTimeoutMs": "مهلت پیش‌فرض (میلی‌ثانیه)"
     },
     "status": {
       "appliedLive": "به‌صورت زنده اعمال شد",
@@ -1460,6 +1479,359 @@
       "restartFailed": "امکان راه‌اندازی مجدد سرور وجود ندارد.",
       "reconnected": "سرور دوباره آنلاین است.",
       "reconnectTimeout": "سرور به‌موقع بازنگشت. لطفاً وضعیت آن را بررسی کنید."
+    }
+  },
+  "ai": {
+    "chat": {
+      "title": "گفتگو",
+      "threads": "گفتگوها",
+      "newThread": "گفتگوی جدید",
+      "noThreads": "هنوز گفتگویی وجود ندارد",
+      "untitledThread": "گفتگوی بدون عنوان",
+      "boundToGraph": "به یک گراف متصل است",
+      "deleteThreadTooltip": "حذف گفتگو",
+      "deleteThreadTitle": "حذف گفتگو",
+      "deleteThreadBody": "آیا مطمئن هستید که می‌خواهید «{title}» را حذف کنید؟ نوبت‌ها و بازخوردهای آن نیز حذف خواهند شد.",
+      "deleteThreadFailed": "حذف گفتگو ممکن نبود.",
+      "deleteThreadDone": "گفتگو حذف شد.",
+      "inputPlaceholder": "پیامی بفرستید… (Enter برای ارسال، Shift+Enter برای خط جدید)",
+      "sendTooltip": "ارسال پیام",
+      "stopTooltip": "توقف تولید",
+      "stopped": "تولید متوقف شد.",
+      "emptyTitle": "گفتگویی را آغاز کنید",
+      "emptyBody": "درباره گراف‌های خود سوال بپرسید، یا گفتگویی جدید متصل به یک گراف بسازید تا بازیابی فعال شود.",
+      "thinking": "در حال فکر کردن",
+      "copyMessage": "کپی پیام",
+      "errorTitle": "دستیار نتوانست این نوبت را کامل کند",
+      "tools": {
+        "summaryTitle": "{count, plural, one {# فراخوانی ابزار} other {# فراخوانی ابزار}}",
+        "name": "ابزار",
+        "success": "موفقیت",
+        "runtime": "مدت اجرا",
+        "running": "در حال اجرای {name}…",
+        "finished": "{name} تمام شد"
+      },
+      "sources": {
+        "title": "{count, plural, one {# منبع} other {# منبع}}",
+        "unnamedNode": "گره بدون نام",
+        "score": "امتیاز {score}"
+      },
+      "feedback": {
+        "up": "پاسخ خوب",
+        "down": "پاسخ ضعیف",
+        "title": "ارسال بازخورد",
+        "submit": "ارسال",
+        "submitted": "بازخورد ارسال شد. سپاسگزاریم!",
+        "failed": "ارسال بازخورد ممکن نبود.",
+        "ratedUp": "این پاسخ را مفید ارزیابی کردید.",
+        "ratedDown": "این پاسخ را غیرمفید ارزیابی کردید.",
+        "commentPlaceholder": "یک نظر اختیاری اضافه کنید…"
+      },
+      "newThreadModal": {
+        "title": "گفتگوی جدید",
+        "create": "ایجاد",
+        "failed": "ایجاد گفتگو ممکن نبود.",
+        "graphLabel": "اتصال به گراف (اختیاری)",
+        "graphPlaceholder": "یک گراف انتخاب کنید…",
+        "graphHint": "با اتصال به یک گراف، دستیار می‌تواند گره‌های مرتبط را به‌عنوان زمینه بازیابی کند و از ابزارهای گراف استفاده کند."
+      },
+      "disabled": {
+        "chatOffTitle": "گفتگو برای این مستاجر غیرفعال است",
+        "noEndpointTitle": "هیچ نقطه پایانی تکمیل پیکربندی نشده است",
+        "chatOffAdmin": "برای استفاده از دستیار، گفتگو را در تنظیمات گفتگوی مستاجر فعال کنید.",
+        "chatOffUser": "گفتگو توسط مدیر شما غیرفعال شده است.",
+        "noEndpointAdmin": "برای شروع گفتگو، یک نقطه پایانی تکمیل بسازید و آن را به‌عنوان پیش‌فرض مستاجر تنظیم کنید.",
+        "noEndpointUser": "از مدیر خود بخواهید یک نقطه پایانی LLM برای این مستاجر پیکربندی کند.",
+        "goToEndpoints": "رفتن به نقاط پایانی",
+        "goToSettings": "رفتن به تنظیمات گفتگو"
+      },
+      "status": {
+        "tokens": "توکن‌ها: {prompt} پرامپت / {completion} تکمیل",
+        "ttft": "اولین توکن: {ms} میلی‌ثانیه",
+        "tps": "{tps} توکن/ثانیه",
+        "duration": "مجموع: {ms} میلی‌ثانیه"
+      }
+    },
+    "endpoints": {
+      "title": "نقاط پایانی LLM",
+      "createEndpoint": "ایجاد نقطه پایانی",
+      "createTooltip": "ثبت نقطه پایانی LLM جدید",
+      "copyGuid": "کپی GUID",
+      "columns": {
+        "name": "نام",
+        "nameDesc": "نام نمایشی نقطه پایانی",
+        "type": "نوع",
+        "typeDesc": "تکمیل (گفتگو) یا تعبیه (بازیابی)",
+        "provider": "ارائه‌دهنده",
+        "providerDesc": "ارائه‌دهنده LLM بالادستی",
+        "model": "مدل",
+        "modelDesc": "شناسه مدل ارسالی به ارائه‌دهنده",
+        "endpoint": "نشانی نقطه پایانی",
+        "endpointDesc": "نشانی پایه API ارائه‌دهنده",
+        "concurrency": "هم‌زمانی",
+        "concurrencyDesc": "حداکثر درخواست‌های هم‌زمان",
+        "active": "فعال",
+        "activeDesc": "اینکه آیا این نقطه پایانی قابل استفاده است",
+        "health": "سلامت",
+        "healthDesc": "وضعیت بررسی سلامت پس‌زمینه؛ برای جزئیات کلیک کنید",
+        "created": "ایجاد",
+        "createdDesc": "زمان ایجاد (UTC)"
+      },
+      "types": {
+        "completion": "تکمیل",
+        "embedding": "تعبیه"
+      },
+      "health": {
+        "notMonitored": "پایش نمی‌شود",
+        "healthy": "سالم",
+        "unhealthy": "ناسالم",
+        "pending": "در انتظار"
+      },
+      "actions": {
+        "edit": "ویرایش",
+        "test": "آزمایش اتصال",
+        "healthDetail": "جزئیات سلامت",
+        "activate": "فعال‌سازی",
+        "deactivate": "غیرفعال‌سازی",
+        "delete": "حذف",
+        "menu": "عملیات نقطه پایانی"
+      },
+      "toast": {
+        "updated": "نقطه پایانی به‌روزرسانی شد.",
+        "updateFailed": "به‌روزرسانی نقطه پایانی ممکن نبود.",
+        "created": "نقطه پایانی ایجاد شد.",
+        "createFailed": "ایجاد نقطه پایانی ممکن نبود.",
+        "deleted": "نقطه پایانی حذف شد.",
+        "deleteFailed": "حذف نقطه پایانی ممکن نبود.",
+        "activated": "نقطه پایانی فعال شد.",
+        "deactivated": "نقطه پایانی غیرفعال شد."
+      },
+      "modal": {
+        "editTitle": "ویرایش نقطه پایانی",
+        "createTitle": "ایجاد نقطه پایانی",
+        "groupGeneral": "عمومی",
+        "groupPerformance": "کارایی",
+        "groupHealth": "بررسی‌های سلامت"
+      },
+      "form": {
+        "name": "نام",
+        "namePlaceholder": "مثلاً GPT تولیدی",
+        "nameRequired": "نام الزامی است",
+        "type": "نوع نقطه پایانی",
+        "typeTooltip": "نقاط پایانی تکمیل به گفتگو پاسخ می‌دهند؛ نقاط تعبیه بازیابی را تأمین می‌کنند",
+        "typeRequired": "نوع نقطه پایانی الزامی است",
+        "provider": "ارائه‌دهنده",
+        "providerTooltip": "فقط ارائه‌دهندگان معتبر برای نوع انتخاب‌شده فهرست می‌شوند",
+        "providerRequired": "ارائه‌دهنده الزامی است",
+        "comboAnthropicEmbedding": "Anthropic رابط تعبیه ارائه نمی‌دهد. برای نقاط پایانی تعبیه ارائه‌دهنده دیگری انتخاب کنید.",
+        "comboVoyageCompletion": "VoyageAI فقط تعبیه ارائه می‌دهد. برای نقاط پایانی تکمیل ارائه‌دهنده دیگری انتخاب کنید.",
+        "endpoint": "نشانی نقطه پایانی",
+        "endpointTooltip": "نشانی پایه مطلق http(s) برای API ارائه‌دهنده",
+        "endpointRequired": "نشانی نقطه پایانی الزامی است",
+        "endpointInvalid": "باید یک نشانی مطلق http یا https باشد",
+        "apiKey": "کلید API",
+        "apiKeyTooltip": "کلید محرمانه ارسالی به ارائه‌دهنده؛ در سمت سرور ذخیره می‌شود",
+        "apiKeyRedactedTooltip": "به‌صورت پوشیده نمایش داده می‌شود؛ بدون تغییر بگذارید تا کلید ذخیره‌شده حفظ شود",
+        "apiKeyPlaceholder": "کلید API را وارد کنید…",
+        "apiKeyRedactedHint": "کلید به‌صورت پوشیده نمایش داده می‌شود. بدون تغییر، کلید ذخیره‌شده حفظ می‌شود؛ مقدار جدید جایگزین آن می‌شود.",
+        "model": "مدل",
+        "modelTooltip": "شناسه مدل مطابق انتظار ارائه‌دهنده",
+        "modelPlaceholder": "مثلاً gpt-4o-mini",
+        "modelRequired": "مدل الزامی است",
+        "maxOutputTokens": "حداکثر توکن خروجی",
+        "maxOutputTokensTooltip": "سقف توکن‌هایی که مدل می‌تواند در هر نوبت تولید کند",
+        "timeoutMs": "مهلت زمانی (میلی‌ثانیه)",
+        "timeoutMsTooltip": "مهلت هر درخواست بر حسب میلی‌ثانیه",
+        "maxConcurrentRequests": "حداکثر درخواست‌های هم‌زمان",
+        "maxConcurrentRequestsTooltip": "سقف هم‌زمانی اعمال‌شده بر این نقطه پایانی (حداقل ۱)",
+        "maxConcurrentRequestsMin": "باید دست‌کم ۱ باشد",
+        "active": "فعال",
+        "healthCheckEnabled": "فعال‌سازی بررسی سلامت",
+        "healthCheckEnabledTooltip": "نقطه پایانی را به‌طور دوره‌ای در پس‌زمینه بررسی می‌کند",
+        "healthCheckUrl": "نشانی بررسی سلامت",
+        "healthCheckUrlTooltip": "نشانی اختیاری که به‌جای پیش‌فرض ارائه‌دهنده بررسی می‌شود",
+        "healthCheckUrlPlaceholder": "به‌طور پیش‌فرض یک نشانی مخصوص ارائه‌دهنده",
+        "healthCheckUseAuth": "ارسال احراز هویت در بررسی‌ها",
+        "healthCheckUseAuthTooltip": "هنگام بررسی نشانی سلامت، کلید API را همراه کنید"
+      },
+      "test": {
+        "title": "آزمایش: {name}",
+        "close": "بستن",
+        "running": "در حال آزمایش اتصال…",
+        "failed": "اجرای آزمایش اتصال ممکن نبود.",
+        "reachable": "در دسترس",
+        "yes": "بله",
+        "no": "خیر",
+        "unknown": "نامشخص",
+        "modelExists": "مدل موجود است",
+        "runtime": "مدت اجرا",
+        "error": "خطا",
+        "models": "مدل‌ها"
+      },
+      "healthDetail": {
+        "title": "سلامت: {name}",
+        "close": "بستن",
+        "noData": "هنوز داده سلامتی برای این نقطه پایانی موجود نیست.",
+        "status": "وضعیت",
+        "uptime": "دسترس‌پذیری (۲۴ ساعت)",
+        "notAvailable": "N/A",
+        "lastChecked": "آخرین بررسی",
+        "consecutiveSuccesses": "موفقیت‌های متوالی",
+        "consecutiveFailures": "شکست‌های متوالی",
+        "lastError": "آخرین خطا",
+        "historyTitle": "تاریخچه بررسی‌ها (۲۴ ساعت اخیر)",
+        "noHistory": "هنوز بررسی‌ای ثبت نشده است."
+      },
+      "deleteModal": {
+        "title": "حذف نقطه پایانی «{name}»",
+        "body": "آیا مطمئن هستید که می‌خواهید این نقطه پایانی را حذف کنید؟ مستاجرانی که آن را به‌عنوان پیش‌فرض استفاده می‌کنند تا پیکربندی نقطه‌ای دیگر، گفتگو را از دست می‌دهند."
+      }
+    },
+    "history": {
+      "title": "تاریخچه گفتگو",
+      "subtitle": "همه گفتگوهای کاربران این مستاجر. برای بررسی نوبت‌ها روی یک گفتگو کلیک کنید.",
+      "untitledThread": "گفتگوی بدون عنوان",
+      "copyGuid": "کپی GUID",
+      "noGraph": "هیچ",
+      "backToThreads": "بازگشت به گفتگوها",
+      "turnsTitle": "نوبت‌ها — {title}",
+      "columns": {
+        "title": "عنوان",
+        "titleDesc": "عنوان گفتگو",
+        "user": "کاربر",
+        "userDesc": "GUID کاربر مالک",
+        "graph": "گراف",
+        "graphDesc": "گرافی که گفتگو به آن متصل است",
+        "created": "ایجاد",
+        "createdDesc": "زمان ایجاد (UTC)",
+        "updated": "به‌روزرسانی",
+        "updatedDesc": "زمان آخرین به‌روزرسانی (UTC)",
+        "userMessage": "پیام کاربر",
+        "userMessageDesc": "پیامی که نوبت را آغاز کرد",
+        "success": "موفقیت",
+        "successDesc": "اینکه آیا نوبت با موفقیت کامل شد",
+        "tokens": "توکن‌ها (ورودی/خروجی)",
+        "tokensDesc": "شمار توکن‌های پرامپت / تکمیل",
+        "duration": "مدت",
+        "durationDesc": "مدت کل نوبت",
+        "toolCalls": "فراخوانی ابزار",
+        "toolCallsDesc": "شمار فراخوانی‌های ابزار در نوبت",
+        "turnCreated": "ایجاد",
+        "turnCreatedDesc": "زمان ایجاد نوبت (UTC)"
+      },
+      "turnDetail": {
+        "title": "جزئیات نوبت",
+        "close": "بستن",
+        "waterfallTitle": "آبشار مراحل",
+        "noTimings": "برای این نوبت زمان‌بندی مراحل ثبت نشده است.",
+        "stageEmbedding": "تعبیه",
+        "stageRetrieval": "بازیابی",
+        "stageLimiter": "انتظار محدودکننده",
+        "stageTtft": "اولین توکن",
+        "stageStreaming": "استریم",
+        "promptTokens": "توکن‌های پرامپت",
+        "completionTokens": "توکن‌های تکمیل",
+        "tokensPerSecond": "توکن/ثانیه",
+        "retries": "تلاش‌های مجدد",
+        "totalDuration": "مدت کل",
+        "status": "وضعیت",
+        "success": "موفق",
+        "failed": "ناموفق",
+        "error": "خطا",
+        "toolsTitle": "رونوشت ابزارها",
+        "toolName": "ابزار",
+        "toolIteration": "تکرار",
+        "toolSuccess": "موفقیت",
+        "toolRuntime": "مدت اجرا",
+        "userMessage": "پیام کاربر",
+        "assistantResponse": "پاسخ دستیار",
+        "copy": "کپی"
+      }
+    },
+    "feedback": {
+      "title": "بازخورد گفتگو",
+      "deleteTooltip": "حذف بازخورد",
+      "ratings": {
+        "thumbsUp": "پسندیدم",
+        "thumbsDown": "نپسندیدم"
+      },
+      "columns": {
+        "rating": "ارزیابی",
+        "ratingDesc": "پسندیدن یا نپسندیدن",
+        "comment": "نظر",
+        "commentDesc": "نظر اختیاری کاربر",
+        "created": "ایجاد",
+        "createdDesc": "زمان ارسال (UTC)",
+        "thread": "گفتگو",
+        "threadDesc": "باز کردن گفتگو در تاریخچه گفتگو",
+        "turn": "نوبت",
+        "turnDesc": "نوبت ارزیابی‌شده"
+      },
+      "toast": {
+        "deleted": "بازخورد حذف شد.",
+        "deleteFailed": "حذف بازخورد ممکن نبود."
+      },
+      "deleteModal": {
+        "title": "حذف بازخورد",
+        "body": "آیا مطمئن هستید که می‌خواهید این بازخورد را حذف کنید؟"
+      },
+      "detail": {
+        "title": "جزئیات بازخورد",
+        "close": "بستن",
+        "rating": "ارزیابی",
+        "created": "ایجاد",
+        "comment": "نظر",
+        "noComment": "نظری ثبت نشده است",
+        "userMessage": "پیام کاربر",
+        "assistantResponse": "پاسخ دستیار",
+        "turnMissing": "بارگذاری نوبت ارزیابی‌شده ممکن نبود (شاید حذف شده باشد)."
+      }
+    },
+    "settings": {
+      "title": "تنظیمات گفتگو",
+      "subtitle": "پیکربندی سراسری گفتگوی هوش مصنوعی برای مستاجر: نقاط پایانی پیش‌فرض، پرامپت سیستم، قابلیت‌ها و محدودیت‌ها.",
+      "loading": "در حال بارگذاری تنظیمات گفتگو…",
+      "loadError": "بارگذاری تنظیمات گفتگو ممکن نبود.",
+      "actions": {
+        "save": "ذخیره",
+        "discard": "لغو تغییرات"
+      },
+      "toast": {
+        "saved": "تنظیمات گفتگو ذخیره شد.",
+        "saveFailed": "ذخیره تنظیمات گفتگو ممکن نبود."
+      },
+      "sections": {
+        "endpoints": "نقاط پایانی پیش‌فرض",
+        "prompt": "پرامپت سیستم",
+        "features": "قابلیت‌ها",
+        "limits": "محدودیت‌ها"
+      },
+      "fields": {
+        "defaultCompletionEndpoint": "نقطه پایانی تکمیل پیش‌فرض",
+        "defaultCompletionEndpointPlaceholder": "یک نقطه پایانی تکمیل انتخاب کنید…",
+        "defaultEmbeddingEndpoint": "نقطه پایانی تعبیه پیش‌فرض",
+        "defaultEmbeddingEndpointPlaceholder": "یک نقطه پایانی تعبیه انتخاب کنید…",
+        "systemPrompt": "پرامپت سیستم",
+        "systemPromptPlaceholder": "دستورالعمل‌های اختیاری که به ابتدای هر گفتگو افزوده می‌شوند…",
+        "enableChat": "فعال‌سازی گفتگو",
+        "enableChatHint": "به کاربران مستاجر اجازه استفاده از پنل گفتگو را می‌دهد",
+        "enableTools": "فعال‌سازی ابزارها",
+        "enableToolsHint": "به دستیار اجازه فراخوانی ابزارهای فقط‌خواندنی گراف را می‌دهد",
+        "enableMutationTools": "فعال‌سازی ابزارهای تغییردهنده",
+        "enableMutationToolsHint": "به دستیار اجازه ایجاد، به‌روزرسانی و حذف داده‌های گراف را نیز می‌دهد",
+        "enableRag": "فعال‌سازی بازیابی (RAG)",
+        "enableRagHint": "وقتی گفتگو به گرافی متصل است، بردارهای مرتبط به‌عنوان زمینه بازیابی می‌شوند",
+        "maxToolIterations": "حداکثر تکرار ابزار",
+        "maxToolIterationsHint": "حداکثر تکرارهای حلقه ابزار در هر نوبت (حداقل ۱)",
+        "ragTopK": "Top K بازیابی",
+        "ragTopKHint": "تعداد نتایج جستجوی برداری بازیابی‌شده (۱ تا ۱۰۰)",
+        "ragScoreThreshold": "آستانه امتیاز بازیابی",
+        "ragScoreThresholdHint": "حداقل امتیاز شباهت برای زمینه بازیابی‌شده (از ‎-1 تا 1)",
+        "maxContextTokens": "حداکثر توکن زمینه",
+        "maxContextTokensHint": "بودجه توکن برای تاریخچه نوبت‌های قبلی در پرامپت (حداقل ۱۰۲۴)",
+        "historyRetentionDays": "نگهداری تاریخچه (روز)",
+        "historyRetentionDaysHint": "شمار روزهای نگهداری نوبت‌های گفتگو پیش از پاک‌سازی؛ ۰ یعنی نگهداری همیشگی"
+      }
     }
   }
 }

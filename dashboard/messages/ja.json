@@ -1337,7 +1337,8 @@
       "metadata": "メタデータ",
       "manage": "管理",
       "secure": "セキュリティ",
-      "administer": "運用管理"
+      "administer": "運用管理",
+      "ai": "AI"
     },
     "item": {
       "home": "ホーム",
@@ -1369,7 +1370,17 @@
       "backups": "バックアップ",
       "backupsTitle": "データベースバックアップを管理",
       "settings": "設定",
-      "settingsTitle": "サーバー構成"
+      "settingsTitle": "サーバー構成",
+      "aiChat": "チャット",
+      "aiChatTitle": "グラフとチャットする",
+      "aiEndpoints": "エンドポイント",
+      "aiEndpointsTitle": "LLM エンドポイントの管理",
+      "aiHistory": "チャット履歴",
+      "aiHistoryTitle": "チャットのスレッドとターンを閲覧",
+      "aiFeedback": "フィードバック",
+      "aiFeedbackTitle": "チャットのフィードバックを確認",
+      "aiSettings": "チャット設定",
+      "aiSettingsTitle": "テナントのチャット構成"
     }
   },
   "secure": {
@@ -1394,7 +1405,8 @@
       "debug": "デバッグ",
       "rest": "REST サーバー",
       "database": "データベース",
-      "security": "セキュリティ"
+      "security": "セキュリティ",
+      "chat": "チャット"
     },
     "fields": {
       "requestTimeoutSeconds": "リクエストタイムアウト (秒)",
@@ -1435,7 +1447,14 @@
       "databaseMaxConnections": "最大接続数",
       "adminBearerToken": "管理者ベアラートークン",
       "encryptionKey": "暗号化キー",
-      "encryptionIv": "暗号化 IV"
+      "encryptionIv": "暗号化 IV",
+      "chatEnable": "チャットを有効化",
+      "chatMaxRetries": "最大リトライ回数",
+      "chatRetryBackoffMs": "リトライ間隔 (ミリ秒)",
+      "chatMaxToolIterationsCap": "ツール反復の上限",
+      "chatMaxConcurrentChats": "最大同時チャット数",
+      "chatSseKeepAliveSeconds": "SSE キープアライブ (秒)",
+      "chatDefaultTimeoutMs": "デフォルトタイムアウト (ミリ秒)"
     },
     "status": {
       "appliedLive": "即時適用済み",
@@ -1460,6 +1479,359 @@
       "restartFailed": "サーバーを再起動できません。",
       "reconnected": "サーバーがオンラインに戻りました。",
       "reconnectTimeout": "サーバーが時間内に復帰しませんでした。ステータスを確認してください。"
+    }
+  },
+  "ai": {
+    "chat": {
+      "title": "チャット",
+      "threads": "会話",
+      "newThread": "新しい会話",
+      "noThreads": "まだ会話はありません",
+      "untitledThread": "無題の会話",
+      "boundToGraph": "グラフに関連付け済み",
+      "deleteThreadTooltip": "会話を削除",
+      "deleteThreadTitle": "会話を削除",
+      "deleteThreadBody": "「{title}」を削除しますか？ターンとフィードバックも削除されます。",
+      "deleteThreadFailed": "会話を削除できませんでした。",
+      "deleteThreadDone": "会話を削除しました。",
+      "inputPlaceholder": "メッセージを送信…（Enter で送信、Shift+Enter で改行）",
+      "sendTooltip": "メッセージを送信",
+      "stopTooltip": "生成を停止",
+      "stopped": "生成を停止しました。",
+      "emptyTitle": "会話を始める",
+      "emptyBody": "グラフについて質問するか、グラフに関連付けた新しい会話を作成して検索（RAG）を有効にしてください。",
+      "thinking": "思考中",
+      "copyMessage": "メッセージをコピー",
+      "errorTitle": "アシスタントはこのターンを完了できませんでした",
+      "tools": {
+        "summaryTitle": "{count, plural, other {# 件のツール呼び出し}}",
+        "name": "ツール",
+        "success": "成功",
+        "runtime": "実行時間",
+        "running": "{name} を実行中…",
+        "finished": "{name} が完了"
+      },
+      "sources": {
+        "title": "{count, plural, other {# 件のソース}}",
+        "unnamedNode": "名前のないノード",
+        "score": "スコア {score}"
+      },
+      "feedback": {
+        "up": "良い回答",
+        "down": "不十分な回答",
+        "title": "フィードバックを送る",
+        "submit": "送信",
+        "submitted": "フィードバックを送信しました。ありがとうございます！",
+        "failed": "フィードバックを送信できませんでした。",
+        "ratedUp": "この回答を「役に立った」と評価しました。",
+        "ratedDown": "この回答を「役に立たなかった」と評価しました。",
+        "commentPlaceholder": "任意のコメントを追加…"
+      },
+      "newThreadModal": {
+        "title": "新しい会話",
+        "create": "作成",
+        "failed": "会話を作成できませんでした。",
+        "graphLabel": "グラフに関連付け（任意）",
+        "graphPlaceholder": "グラフを選択…",
+        "graphHint": "グラフに関連付けると、アシスタントは関連ノードをコンテキストとして取得し、グラフツールを使用できます。"
+      },
+      "disabled": {
+        "chatOffTitle": "このテナントではチャットが無効です",
+        "noEndpointTitle": "Completion エンドポイントが未設定です",
+        "chatOffAdmin": "アシスタントを使うには、テナントのチャット設定でチャットを有効にしてください。",
+        "chatOffUser": "管理者によってチャットが無効化されています。",
+        "noEndpointAdmin": "Completion エンドポイントを作成し、テナントの既定に設定するとチャットを開始できます。",
+        "noEndpointUser": "このテナント用の LLM エンドポイントの設定を管理者に依頼してください。",
+        "goToEndpoints": "エンドポイントへ",
+        "goToSettings": "チャット設定へ"
+      },
+      "status": {
+        "tokens": "トークン: プロンプト {prompt} / 生成 {completion}",
+        "ttft": "最初のトークン: {ms} ms",
+        "tps": "{tps} トークン/秒",
+        "duration": "合計: {ms} ms"
+      }
+    },
+    "endpoints": {
+      "title": "LLM エンドポイント",
+      "createEndpoint": "エンドポイントを作成",
+      "createTooltip": "新しい LLM エンドポイントを登録",
+      "copyGuid": "GUID をコピー",
+      "columns": {
+        "name": "名前",
+        "nameDesc": "エンドポイントの表示名",
+        "type": "種類",
+        "typeDesc": "Completion（チャット）または Embedding（検索）",
+        "provider": "プロバイダー",
+        "providerDesc": "上流の LLM プロバイダー",
+        "model": "モデル",
+        "modelDesc": "プロバイダーに送信されるモデル識別子",
+        "endpoint": "エンドポイント URL",
+        "endpointDesc": "プロバイダー API のベース URL",
+        "concurrency": "同時実行数",
+        "concurrencyDesc": "最大同時リクエスト数",
+        "active": "有効",
+        "activeDesc": "このエンドポイントが使用可能かどうか",
+        "health": "ヘルス",
+        "healthDesc": "バックグラウンドのヘルスチェック状態。クリックで詳細",
+        "created": "作成日時",
+        "createdDesc": "作成日時（UTC）"
+      },
+      "types": {
+        "completion": "Completion",
+        "embedding": "Embedding"
+      },
+      "health": {
+        "notMonitored": "未監視",
+        "healthy": "正常",
+        "unhealthy": "異常",
+        "pending": "保留中"
+      },
+      "actions": {
+        "edit": "編集",
+        "test": "接続をテスト",
+        "healthDetail": "ヘルスの詳細",
+        "activate": "有効化",
+        "deactivate": "無効化",
+        "delete": "削除",
+        "menu": "エンドポイントの操作"
+      },
+      "toast": {
+        "updated": "エンドポイントを更新しました。",
+        "updateFailed": "エンドポイントを更新できませんでした。",
+        "created": "エンドポイントを作成しました。",
+        "createFailed": "エンドポイントを作成できませんでした。",
+        "deleted": "エンドポイントを削除しました。",
+        "deleteFailed": "エンドポイントを削除できませんでした。",
+        "activated": "エンドポイントを有効化しました。",
+        "deactivated": "エンドポイントを無効化しました。"
+      },
+      "modal": {
+        "editTitle": "エンドポイントを編集",
+        "createTitle": "エンドポイントを作成",
+        "groupGeneral": "一般",
+        "groupPerformance": "パフォーマンス",
+        "groupHealth": "ヘルスチェック"
+      },
+      "form": {
+        "name": "名前",
+        "namePlaceholder": "例: 本番用 GPT",
+        "nameRequired": "名前は必須です",
+        "type": "エンドポイントの種類",
+        "typeTooltip": "Completion はチャットに応答し、Embedding は検索を支えます",
+        "typeRequired": "エンドポイントの種類は必須です",
+        "provider": "プロバイダー",
+        "providerTooltip": "選択した種類で有効なプロバイダーのみ表示されます",
+        "providerRequired": "プロバイダーは必須です",
+        "comboAnthropicEmbedding": "Anthropic は埋め込み API を提供していません。Embedding エンドポイントには別のプロバイダーを選択してください。",
+        "comboVoyageCompletion": "VoyageAI は埋め込みのみ提供しています。Completion エンドポイントには別のプロバイダーを選択してください。",
+        "endpoint": "エンドポイント URL",
+        "endpointTooltip": "プロバイダー API の絶対 http(s) ベース URL",
+        "endpointRequired": "エンドポイント URL は必須です",
+        "endpointInvalid": "絶対 http または https URL である必要があります",
+        "apiKey": "API キー",
+        "apiKeyTooltip": "プロバイダーへ送信される秘密鍵。サーバー側に保存されます",
+        "apiKeyRedactedTooltip": "伏せ字で表示されます。変更しなければ保存済みのキーが維持されます",
+        "apiKeyPlaceholder": "API キーを入力…",
+        "apiKeyRedactedHint": "キーは伏せ字で表示されています。変更しなければ保存済みのキーが維持され、新しい値を入力すると置き換えられます。",
+        "model": "モデル",
+        "modelTooltip": "プロバイダーが想定するモデル識別子",
+        "modelPlaceholder": "例: gpt-4o-mini",
+        "modelRequired": "モデルは必須です",
+        "maxOutputTokens": "最大出力トークン",
+        "maxOutputTokensTooltip": "1 ターンでモデルが生成できるトークン数の上限",
+        "timeoutMs": "タイムアウト（ms）",
+        "timeoutMsTooltip": "リクエストごとのタイムアウト（ミリ秒）",
+        "maxConcurrentRequests": "最大同時リクエスト数",
+        "maxConcurrentRequestsTooltip": "このエンドポイントに適用される同時実行の上限（最小 1）",
+        "maxConcurrentRequestsMin": "1 以上である必要があります",
+        "active": "有効",
+        "healthCheckEnabled": "ヘルスチェックを有効化",
+        "healthCheckEnabledTooltip": "バックグラウンドで定期的にエンドポイントを確認します",
+        "healthCheckUrl": "ヘルスチェック URL",
+        "healthCheckUrlTooltip": "プロバイダー既定の代わりに確認する任意の URL",
+        "healthCheckUrlPlaceholder": "既定ではプロバイダー固有の URL",
+        "healthCheckUseAuth": "ヘルスチェックで認証を送信",
+        "healthCheckUseAuthTooltip": "ヘルスチェック URL の確認時に API キーを含めます"
+      },
+      "test": {
+        "title": "テスト: {name}",
+        "close": "閉じる",
+        "running": "接続をテスト中…",
+        "failed": "接続テストを実行できませんでした。",
+        "reachable": "到達可能",
+        "yes": "はい",
+        "no": "いいえ",
+        "unknown": "不明",
+        "modelExists": "モデルの存在",
+        "runtime": "実行時間",
+        "error": "エラー",
+        "models": "モデル"
+      },
+      "healthDetail": {
+        "title": "ヘルス: {name}",
+        "close": "閉じる",
+        "noData": "このエンドポイントのヘルスデータはまだありません。",
+        "status": "状態",
+        "uptime": "稼働率（24 時間）",
+        "notAvailable": "N/A",
+        "lastChecked": "最終チェック",
+        "consecutiveSuccesses": "連続成功数",
+        "consecutiveFailures": "連続失敗数",
+        "lastError": "直近のエラー",
+        "historyTitle": "チェック履歴（過去 24 時間）",
+        "noHistory": "まだチェックの記録はありません。"
+      },
+      "deleteModal": {
+        "title": "エンドポイント「{name}」を削除",
+        "body": "このエンドポイントを削除しますか？これを既定として使用しているテナントは、別のエンドポイントが設定されるまでチャットを利用できません。"
+      }
+    },
+    "history": {
+      "title": "チャット履歴",
+      "subtitle": "このテナントの全ユーザーの会話です。会話をクリックするとターンを確認できます。",
+      "untitledThread": "無題の会話",
+      "copyGuid": "GUID をコピー",
+      "noGraph": "なし",
+      "backToThreads": "会話一覧に戻る",
+      "turnsTitle": "ターン — {title}",
+      "columns": {
+        "title": "タイトル",
+        "titleDesc": "会話のタイトル",
+        "user": "ユーザー",
+        "userDesc": "所有ユーザーの GUID",
+        "graph": "グラフ",
+        "graphDesc": "会話が関連付けられているグラフ",
+        "created": "作成日時",
+        "createdDesc": "作成日時（UTC）",
+        "updated": "更新日時",
+        "updatedDesc": "最終更新日時（UTC）",
+        "userMessage": "ユーザーメッセージ",
+        "userMessageDesc": "ターンを開始したメッセージ",
+        "success": "成功",
+        "successDesc": "ターンが正常に完了したかどうか",
+        "tokens": "トークン（入/出）",
+        "tokensDesc": "プロンプト / 生成のトークン数",
+        "duration": "所要時間",
+        "durationDesc": "ターンの合計時間",
+        "toolCalls": "ツール呼び出し",
+        "toolCallsDesc": "ターン内のツール呼び出し回数",
+        "turnCreated": "作成日時",
+        "turnCreatedDesc": "ターンの作成日時（UTC）"
+      },
+      "turnDetail": {
+        "title": "ターンの詳細",
+        "close": "閉じる",
+        "waterfallTitle": "ステージのウォーターフォール",
+        "noTimings": "このターンではステージのタイミングが記録されていません。",
+        "stageEmbedding": "埋め込み",
+        "stageRetrieval": "検索",
+        "stageLimiter": "リミッター待機",
+        "stageTtft": "最初のトークン",
+        "stageStreaming": "ストリーミング",
+        "promptTokens": "プロンプトトークン",
+        "completionTokens": "生成トークン",
+        "tokensPerSecond": "トークン/秒",
+        "retries": "リトライ",
+        "totalDuration": "合計時間",
+        "status": "状態",
+        "success": "成功",
+        "failed": "失敗",
+        "error": "エラー",
+        "toolsTitle": "ツールの記録",
+        "toolName": "ツール",
+        "toolIteration": "イテレーション",
+        "toolSuccess": "成功",
+        "toolRuntime": "実行時間",
+        "userMessage": "ユーザーメッセージ",
+        "assistantResponse": "アシスタントの応答",
+        "copy": "コピー"
+      }
+    },
+    "feedback": {
+      "title": "チャットのフィードバック",
+      "deleteTooltip": "フィードバックを削除",
+      "ratings": {
+        "thumbsUp": "高評価",
+        "thumbsDown": "低評価"
+      },
+      "columns": {
+        "rating": "評価",
+        "ratingDesc": "高評価または低評価",
+        "comment": "コメント",
+        "commentDesc": "ユーザーが残した任意のコメント",
+        "created": "作成日時",
+        "createdDesc": "送信日時（UTC）",
+        "thread": "会話",
+        "threadDesc": "チャット履歴で会話を開く",
+        "turn": "ターン",
+        "turnDesc": "評価対象のターン"
+      },
+      "toast": {
+        "deleted": "フィードバックを削除しました。",
+        "deleteFailed": "フィードバックを削除できませんでした。"
+      },
+      "deleteModal": {
+        "title": "フィードバックを削除",
+        "body": "このフィードバックの記録を削除しますか？"
+      },
+      "detail": {
+        "title": "フィードバックの詳細",
+        "close": "閉じる",
+        "rating": "評価",
+        "created": "作成日時",
+        "comment": "コメント",
+        "noComment": "コメントはありません",
+        "userMessage": "ユーザーメッセージ",
+        "assistantResponse": "アシスタントの応答",
+        "turnMissing": "評価対象のターンを読み込めませんでした（削除された可能性があります）。"
+      }
+    },
+    "settings": {
+      "title": "チャット設定",
+      "subtitle": "AI チャットのテナント全体の構成: 既定のエンドポイント、システムプロンプト、機能、および制限。",
+      "loading": "チャット設定を読み込み中…",
+      "loadError": "チャット設定を読み込めませんでした。",
+      "actions": {
+        "save": "保存",
+        "discard": "変更を破棄"
+      },
+      "toast": {
+        "saved": "チャット設定を保存しました。",
+        "saveFailed": "チャット設定を保存できませんでした。"
+      },
+      "sections": {
+        "endpoints": "既定のエンドポイント",
+        "prompt": "システムプロンプト",
+        "features": "機能",
+        "limits": "制限"
+      },
+      "fields": {
+        "defaultCompletionEndpoint": "既定の Completion エンドポイント",
+        "defaultCompletionEndpointPlaceholder": "Completion エンドポイントを選択…",
+        "defaultEmbeddingEndpoint": "既定の Embedding エンドポイント",
+        "defaultEmbeddingEndpointPlaceholder": "Embedding エンドポイントを選択…",
+        "systemPrompt": "システムプロンプト",
+        "systemPromptPlaceholder": "すべての会話の先頭に付加される任意の指示…",
+        "enableChat": "チャットを有効化",
+        "enableChatHint": "テナントのユーザーにチャットパネルの使用を許可します",
+        "enableTools": "ツールを有効化",
+        "enableToolsHint": "アシスタントに読み取り専用のグラフツールの呼び出しを許可します",
+        "enableMutationTools": "変更ツールを有効化",
+        "enableMutationToolsHint": "アシスタントにグラフデータの作成・更新・削除も許可します",
+        "enableRag": "検索（RAG）を有効化",
+        "enableRagHint": "会話がグラフに関連付けられている場合、関連ベクトルをコンテキストとして取得します",
+        "maxToolIterations": "最大ツールイテレーション",
+        "maxToolIterationsHint": "1 ターンあたりのツールループの最大反復回数（最小 1）",
+        "ragTopK": "検索の上位 K",
+        "ragTopKHint": "取得するベクトル検索結果の数（1〜100）",
+        "ragScoreThreshold": "検索スコアのしきい値",
+        "ragScoreThresholdHint": "取得コンテキストの最小類似度スコア（-1〜1）",
+        "maxContextTokens": "最大コンテキストトークン",
+        "maxContextTokensHint": "プロンプトに含める過去ターン履歴のトークン予算（最小 1024）",
+        "historyRetentionDays": "履歴保持（日数）",
+        "historyRetentionDaysHint": "チャットターンを保持する日数。0 は無期限に保持します"
+      }
     }
   }
 }

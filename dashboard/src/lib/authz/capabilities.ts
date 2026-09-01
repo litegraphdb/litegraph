@@ -27,6 +27,11 @@ export type CapabilityResource =
   | 'vectors'
   | 'requests'
   | 'apiExplorer'
+  | 'aiChat'
+  | 'aiEndpoints'
+  | 'aiHistory'
+  | 'aiFeedback'
+  | 'aiSettings'
   | 'tenants'
   | 'users'
   | 'credentials'
@@ -34,7 +39,14 @@ export type CapabilityResource =
   | 'backups'
   | 'settings';
 
-export type NavSectionId = 'home' | 'data' | 'metadata' | 'manage' | 'secure' | 'administer';
+export type NavSectionId =
+  | 'home'
+  | 'data'
+  | 'metadata'
+  | 'ai'
+  | 'manage'
+  | 'secure'
+  | 'administer';
 
 /** The authenticated principal, derived from the session (see usePrincipal). */
 export interface Principal {
@@ -104,6 +116,16 @@ export const can = (
       // Everyone may open the explorer; execution is still server-authorized.
       return true;
 
+    // AI — chat is open to every tenant principal; administration of
+    // endpoints, history, feedback, and chat settings is tenant-admin only.
+    case 'aiChat':
+      return true;
+    case 'aiEndpoints':
+    case 'aiHistory':
+    case 'aiFeedback':
+    case 'aiSettings':
+      return tenantAdmin && sameTenant(principal, scope);
+
     // SECURE — server-level, permission-filtered.
     case 'tenants':
       if (action === 'view') return true; // regular users see their tenant read-only
@@ -142,6 +164,14 @@ export const canViewSection = (
       return can(principal, 'view', 'graphs');
     case 'metadata':
       return can(principal, 'view', 'labels');
+    case 'ai':
+      return (
+        can(principal, 'view', 'aiChat') ||
+        can(principal, 'view', 'aiEndpoints') ||
+        can(principal, 'view', 'aiHistory') ||
+        can(principal, 'view', 'aiFeedback') ||
+        can(principal, 'view', 'aiSettings')
+      );
     case 'manage':
       return can(principal, 'view', 'requests') || can(principal, 'view', 'apiExplorer');
     case 'secure':

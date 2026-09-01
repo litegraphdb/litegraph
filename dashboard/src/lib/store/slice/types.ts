@@ -18,4 +18,8 @@ export enum SliceTags {
   AUTHORIZATION = 'authorization',
   SETTINGS = 'settings',
   RESET = 'reset',
+  CHAT_ENDPOINT = 'chatEndpoint',
+  CHAT_THREAD = 'chatThread',
+  CHAT_FEEDBACK = 'chatFeedback',
+  CHAT_SETTINGS = 'chatSettings',
 }

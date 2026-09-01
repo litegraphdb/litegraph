@@ -1337,7 +1337,8 @@
       "metadata": "Metadatos",
       "manage": "Gestionar",
       "secure": "Seguridad",
-      "administer": "Administrar"
+      "administer": "Administrar",
+      "ai": "IA"
     },
     "item": {
       "home": "Inicio",
@@ -1369,7 +1370,17 @@
       "backups": "Copia de seguridad",
       "backupsTitle": "Gestionar copias de seguridad de la base de datos",
       "settings": "Configuración",
-      "settingsTitle": "Configuración del servidor"
+      "settingsTitle": "Configuración del servidor",
+      "aiChat": "Chat",
+      "aiChatTitle": "Chatee con sus grafos",
+      "aiEndpoints": "Endpoints",
+      "aiEndpointsTitle": "Gestionar endpoints de LLM",
+      "aiHistory": "Historial de chat",
+      "aiHistoryTitle": "Explorar conversaciones y turnos de chat",
+      "aiFeedback": "Comentarios",
+      "aiFeedbackTitle": "Revisar comentarios del chat",
+      "aiSettings": "Ajustes de chat",
+      "aiSettingsTitle": "Configuración de chat del inquilino"
     }
   },
   "secure": {
@@ -1394,7 +1405,8 @@
       "debug": "Depuración",
       "rest": "Servidor REST",
       "database": "Base de datos",
-      "security": "Seguridad"
+      "security": "Seguridad",
+      "chat": "Chat"
     },
     "fields": {
       "requestTimeoutSeconds": "Tiempo de espera de solicitud (segundos)",
@@ -1435,7 +1447,14 @@
       "databaseMaxConnections": "Conexiones máximas",
       "adminBearerToken": "Token de administrador",
       "encryptionKey": "Clave de cifrado",
-      "encryptionIv": "IV de cifrado"
+      "encryptionIv": "IV de cifrado",
+      "chatEnable": "Habilitar chat",
+      "chatMaxRetries": "Reintentos máximos",
+      "chatRetryBackoffMs": "Retardo de reintento (ms)",
+      "chatMaxToolIterationsCap": "Límite de iteraciones de herramientas",
+      "chatMaxConcurrentChats": "Chats simultáneos máximos",
+      "chatSseKeepAliveSeconds": "Keep-alive SSE (segundos)",
+      "chatDefaultTimeoutMs": "Tiempo de espera predeterminado (ms)"
     },
     "status": {
       "appliedLive": "Aplicado en vivo",
@@ -1460,6 +1479,359 @@
       "restartFailed": "No se pudo reiniciar el servidor.",
       "reconnected": "El servidor está de nuevo en línea.",
       "reconnectTimeout": "El servidor no volvió a tiempo. Comprueba su estado."
+    }
+  },
+  "ai": {
+    "chat": {
+      "title": "Chat",
+      "threads": "Conversaciones",
+      "newThread": "Nueva conversación",
+      "noThreads": "Aún no hay conversaciones",
+      "untitledThread": "Conversación sin título",
+      "boundToGraph": "Vinculada a un grafo",
+      "deleteThreadTooltip": "Eliminar conversación",
+      "deleteThreadTitle": "Eliminar conversación",
+      "deleteThreadBody": "¿Seguro que desea eliminar «{title}»? También se eliminarán sus turnos y comentarios.",
+      "deleteThreadFailed": "No se pudo eliminar la conversación.",
+      "deleteThreadDone": "Conversación eliminada.",
+      "inputPlaceholder": "Envíe un mensaje… (Enter para enviar, Mayús+Enter para nueva línea)",
+      "sendTooltip": "Enviar mensaje",
+      "stopTooltip": "Detener generación",
+      "stopped": "Generación detenida.",
+      "emptyTitle": "Inicie una conversación",
+      "emptyBody": "Haga una pregunta sobre sus grafos o cree una conversación vinculada a un grafo para habilitar la recuperación.",
+      "thinking": "Pensando",
+      "copyMessage": "Copiar mensaje",
+      "errorTitle": "El asistente no pudo completar este turno",
+      "tools": {
+        "summaryTitle": "{count, plural, one {# llamada a herramienta} other {# llamadas a herramientas}}",
+        "name": "Herramienta",
+        "success": "Éxito",
+        "runtime": "Duración",
+        "running": "Ejecutando {name}…",
+        "finished": "{name} finalizada"
+      },
+      "sources": {
+        "title": "{count, plural, one {# fuente} other {# fuentes}}",
+        "unnamedNode": "Nodo sin nombre",
+        "score": "puntuación {score}"
+      },
+      "feedback": {
+        "up": "Buena respuesta",
+        "down": "Respuesta deficiente",
+        "title": "Compartir comentarios",
+        "submit": "Enviar",
+        "submitted": "Comentarios enviados. ¡Gracias!",
+        "failed": "No se pudieron enviar los comentarios.",
+        "ratedUp": "Ha valorado esta respuesta como útil.",
+        "ratedDown": "Ha valorado esta respuesta como no útil.",
+        "commentPlaceholder": "Añada un comentario opcional…"
+      },
+      "newThreadModal": {
+        "title": "Nueva conversación",
+        "create": "Crear",
+        "failed": "No se pudo crear la conversación.",
+        "graphLabel": "Vincular a un grafo (opcional)",
+        "graphPlaceholder": "Seleccione un grafo…",
+        "graphHint": "Al vincularse a un grafo, el asistente puede recuperar nodos relevantes como contexto y usar herramientas de grafos."
+      },
+      "disabled": {
+        "chatOffTitle": "El chat está deshabilitado para este inquilino",
+        "noEndpointTitle": "No hay un endpoint de completion configurado",
+        "chatOffAdmin": "Habilite el chat en los ajustes de chat del inquilino para empezar a usar el asistente.",
+        "chatOffUser": "Su administrador ha deshabilitado el chat.",
+        "noEndpointAdmin": "Cree un endpoint de completion y defínalo como predeterminado del inquilino para chatear.",
+        "noEndpointUser": "Pida a su administrador que configure un endpoint de LLM para este inquilino.",
+        "goToEndpoints": "Ir a Endpoints",
+        "goToSettings": "Ir a Ajustes de chat"
+      },
+      "status": {
+        "tokens": "Tokens: {prompt} prompt / {completion} completion",
+        "ttft": "Primer token: {ms} ms",
+        "tps": "{tps} tokens/s",
+        "duration": "Total: {ms} ms"
+      }
+    },
+    "endpoints": {
+      "title": "Endpoints de LLM",
+      "createEndpoint": "Crear endpoint",
+      "createTooltip": "Registrar un nuevo endpoint de LLM",
+      "copyGuid": "Copiar GUID",
+      "columns": {
+        "name": "Nombre",
+        "nameDesc": "Nombre visible del endpoint",
+        "type": "Tipo",
+        "typeDesc": "Completion (chat) o embedding (recuperación)",
+        "provider": "Proveedor",
+        "providerDesc": "El proveedor de LLM ascendente",
+        "model": "Modelo",
+        "modelDesc": "Identificador de modelo enviado al proveedor",
+        "endpoint": "URL del endpoint",
+        "endpointDesc": "URL base de la API del proveedor",
+        "concurrency": "Concurrencia",
+        "concurrencyDesc": "Máximo de solicitudes concurrentes",
+        "active": "Activo",
+        "activeDesc": "Si este endpoint puede utilizarse",
+        "health": "Estado",
+        "healthDesc": "Estado de la comprobación en segundo plano; haga clic para más detalles",
+        "created": "Creado",
+        "createdDesc": "Hora de creación (UTC)"
+      },
+      "types": {
+        "completion": "Completion",
+        "embedding": "Embedding"
+      },
+      "health": {
+        "notMonitored": "Sin supervisar",
+        "healthy": "Saludable",
+        "unhealthy": "Con errores",
+        "pending": "Pendiente"
+      },
+      "actions": {
+        "edit": "Editar",
+        "test": "Probar conectividad",
+        "healthDetail": "Detalles de estado",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "delete": "Eliminar",
+        "menu": "Acciones del endpoint"
+      },
+      "toast": {
+        "updated": "Endpoint actualizado.",
+        "updateFailed": "No se pudo actualizar el endpoint.",
+        "created": "Endpoint creado.",
+        "createFailed": "No se pudo crear el endpoint.",
+        "deleted": "Endpoint eliminado.",
+        "deleteFailed": "No se pudo eliminar el endpoint.",
+        "activated": "Endpoint activado.",
+        "deactivated": "Endpoint desactivado."
+      },
+      "modal": {
+        "editTitle": "Editar endpoint",
+        "createTitle": "Crear endpoint",
+        "groupGeneral": "General",
+        "groupPerformance": "Rendimiento",
+        "groupHealth": "Comprobaciones de estado"
+      },
+      "form": {
+        "name": "Nombre",
+        "namePlaceholder": "p. ej., GPT de producción",
+        "nameRequired": "El nombre es obligatorio",
+        "type": "Tipo de endpoint",
+        "typeTooltip": "Los endpoints de completion responden al chat; los de embedding impulsan la recuperación",
+        "typeRequired": "El tipo de endpoint es obligatorio",
+        "provider": "Proveedor",
+        "providerTooltip": "Solo se listan proveedores válidos para el tipo seleccionado",
+        "providerRequired": "El proveedor es obligatorio",
+        "comboAnthropicEmbedding": "Anthropic no ofrece API de embeddings. Elija otro proveedor para endpoints de embedding.",
+        "comboVoyageCompletion": "VoyageAI solo ofrece embeddings. Elija otro proveedor para endpoints de completion.",
+        "endpoint": "URL del endpoint",
+        "endpointTooltip": "URL base absoluta http(s) de la API del proveedor",
+        "endpointRequired": "La URL del endpoint es obligatoria",
+        "endpointInvalid": "Debe ser una URL absoluta http o https",
+        "apiKey": "Clave de API",
+        "apiKeyTooltip": "Clave secreta enviada al proveedor; se almacena en el servidor",
+        "apiKeyRedactedTooltip": "Se muestra ofuscada; déjela sin cambios para conservar la clave almacenada",
+        "apiKeyPlaceholder": "Introduzca la clave de API…",
+        "apiKeyRedactedHint": "La clave se muestra ofuscada. Si no la cambia, se conserva la clave almacenada; escribir un valor nuevo la reemplaza.",
+        "model": "Modelo",
+        "modelTooltip": "Identificador de modelo tal como lo espera el proveedor",
+        "modelPlaceholder": "p. ej., gpt-4o-mini",
+        "modelRequired": "El modelo es obligatorio",
+        "maxOutputTokens": "Máx. tokens de salida",
+        "maxOutputTokensTooltip": "Límite superior de tokens que el modelo puede generar por turno",
+        "timeoutMs": "Tiempo de espera (ms)",
+        "timeoutMsTooltip": "Tiempo de espera por solicitud en milisegundos",
+        "maxConcurrentRequests": "Máx. solicitudes concurrentes",
+        "maxConcurrentRequestsTooltip": "Límite de concurrencia aplicado a este endpoint (mínimo 1)",
+        "maxConcurrentRequestsMin": "Debe ser al menos 1",
+        "active": "Activo",
+        "healthCheckEnabled": "Habilitar comprobaciones de estado",
+        "healthCheckEnabledTooltip": "Sondear periódicamente el endpoint en segundo plano",
+        "healthCheckUrl": "URL de comprobación de estado",
+        "healthCheckUrlTooltip": "URL opcional sondeada en lugar de la predeterminada del proveedor",
+        "healthCheckUrlPlaceholder": "De forma predeterminada, una URL específica del proveedor",
+        "healthCheckUseAuth": "Enviar autenticación en las comprobaciones",
+        "healthCheckUseAuthTooltip": "Incluir la clave de API al sondear la URL de comprobación"
+      },
+      "test": {
+        "title": "Prueba: {name}",
+        "close": "Cerrar",
+        "running": "Probando conectividad…",
+        "failed": "No se pudo ejecutar la prueba de conectividad.",
+        "reachable": "Accesible",
+        "yes": "Sí",
+        "no": "No",
+        "unknown": "Desconocido",
+        "modelExists": "El modelo existe",
+        "runtime": "Duración",
+        "error": "Error",
+        "models": "Modelos"
+      },
+      "healthDetail": {
+        "title": "Estado: {name}",
+        "close": "Cerrar",
+        "noData": "Aún no hay datos de estado para este endpoint.",
+        "status": "Estado",
+        "uptime": "Disponibilidad (24 h)",
+        "notAvailable": "N/A",
+        "lastChecked": "Última comprobación",
+        "consecutiveSuccesses": "Éxitos consecutivos",
+        "consecutiveFailures": "Fallos consecutivos",
+        "lastError": "Último error",
+        "historyTitle": "Historial de comprobaciones (últimas 24 h)",
+        "noHistory": "Aún no se han registrado comprobaciones."
+      },
+      "deleteModal": {
+        "title": "Eliminar el endpoint «{name}»",
+        "body": "¿Seguro que desea eliminar este endpoint? Los inquilinos que lo usen como predeterminado perderán el chat hasta configurar otro."
+      }
+    },
+    "history": {
+      "title": "Historial de chat",
+      "subtitle": "Todas las conversaciones de los usuarios de este inquilino. Haga clic en una conversación para inspeccionar sus turnos.",
+      "untitledThread": "Conversación sin título",
+      "copyGuid": "Copiar GUID",
+      "noGraph": "Ninguno",
+      "backToThreads": "Volver a las conversaciones",
+      "turnsTitle": "Turnos — {title}",
+      "columns": {
+        "title": "Título",
+        "titleDesc": "Título de la conversación",
+        "user": "Usuario",
+        "userDesc": "GUID del usuario propietario",
+        "graph": "Grafo",
+        "graphDesc": "Grafo al que está vinculada la conversación",
+        "created": "Creada",
+        "createdDesc": "Hora de creación (UTC)",
+        "updated": "Actualizada",
+        "updatedDesc": "Hora de la última actualización (UTC)",
+        "userMessage": "Mensaje del usuario",
+        "userMessageDesc": "El mensaje que inició el turno",
+        "success": "Éxito",
+        "successDesc": "Si el turno se completó correctamente",
+        "tokens": "Tokens (ent/sal)",
+        "tokensDesc": "Recuento de tokens de prompt / completion",
+        "duration": "Duración",
+        "durationDesc": "Duración total del turno",
+        "toolCalls": "Llamadas a herramientas",
+        "toolCallsDesc": "Número de invocaciones de herramientas en el turno",
+        "turnCreated": "Creado",
+        "turnCreatedDesc": "Hora de creación del turno (UTC)"
+      },
+      "turnDetail": {
+        "title": "Detalles del turno",
+        "close": "Cerrar",
+        "waterfallTitle": "Cascada de etapas",
+        "noTimings": "No se registraron tiempos de etapas para este turno.",
+        "stageEmbedding": "Embedding",
+        "stageRetrieval": "Recuperación",
+        "stageLimiter": "Espera del limitador",
+        "stageTtft": "Primer token",
+        "stageStreaming": "Streaming",
+        "promptTokens": "Tokens de prompt",
+        "completionTokens": "Tokens de completion",
+        "tokensPerSecond": "Tokens/s",
+        "retries": "Reintentos",
+        "totalDuration": "Duración total",
+        "status": "Estado",
+        "success": "Éxito",
+        "failed": "Fallido",
+        "error": "Error",
+        "toolsTitle": "Transcripción de herramientas",
+        "toolName": "Herramienta",
+        "toolIteration": "Iteración",
+        "toolSuccess": "Éxito",
+        "toolRuntime": "Duración",
+        "userMessage": "Mensaje del usuario",
+        "assistantResponse": "Respuesta del asistente",
+        "copy": "Copiar"
+      }
+    },
+    "feedback": {
+      "title": "Comentarios del chat",
+      "deleteTooltip": "Eliminar comentario",
+      "ratings": {
+        "thumbsUp": "Me gusta",
+        "thumbsDown": "No me gusta"
+      },
+      "columns": {
+        "rating": "Valoración",
+        "ratingDesc": "Me gusta o no me gusta",
+        "comment": "Comentario",
+        "commentDesc": "Comentario opcional dejado por el usuario",
+        "created": "Creado",
+        "createdDesc": "Hora de envío (UTC)",
+        "thread": "Conversación",
+        "threadDesc": "Abrir la conversación en el historial de chat",
+        "turn": "Turno",
+        "turnDesc": "El turno valorado"
+      },
+      "toast": {
+        "deleted": "Comentario eliminado.",
+        "deleteFailed": "No se pudo eliminar el comentario."
+      },
+      "deleteModal": {
+        "title": "Eliminar comentario",
+        "body": "¿Seguro que desea eliminar este registro de comentarios?"
+      },
+      "detail": {
+        "title": "Detalles del comentario",
+        "close": "Cerrar",
+        "rating": "Valoración",
+        "created": "Creado",
+        "comment": "Comentario",
+        "noComment": "No se dejó ningún comentario",
+        "userMessage": "Mensaje del usuario",
+        "assistantResponse": "Respuesta del asistente",
+        "turnMissing": "No se pudo cargar el turno valorado (puede haber sido eliminado)."
+      }
+    },
+    "settings": {
+      "title": "Ajustes de chat",
+      "subtitle": "Configuración del chat de IA para todo el inquilino: endpoints predeterminados, prompt del sistema, funciones y límites.",
+      "loading": "Cargando ajustes de chat…",
+      "loadError": "No se pudieron cargar los ajustes de chat.",
+      "actions": {
+        "save": "Guardar",
+        "discard": "Descartar cambios"
+      },
+      "toast": {
+        "saved": "Ajustes de chat guardados.",
+        "saveFailed": "No se pudieron guardar los ajustes de chat."
+      },
+      "sections": {
+        "endpoints": "Endpoints predeterminados",
+        "prompt": "Prompt del sistema",
+        "features": "Funciones",
+        "limits": "Límites"
+      },
+      "fields": {
+        "defaultCompletionEndpoint": "Endpoint de completion predeterminado",
+        "defaultCompletionEndpointPlaceholder": "Seleccione un endpoint de completion…",
+        "defaultEmbeddingEndpoint": "Endpoint de embedding predeterminado",
+        "defaultEmbeddingEndpointPlaceholder": "Seleccione un endpoint de embedding…",
+        "systemPrompt": "Prompt del sistema",
+        "systemPromptPlaceholder": "Instrucciones opcionales antepuestas a cada conversación…",
+        "enableChat": "Habilitar chat",
+        "enableChatHint": "Permitir a los usuarios del inquilino usar el panel de chat",
+        "enableTools": "Habilitar herramientas",
+        "enableToolsHint": "Permitir al asistente llamar a herramientas de grafos de solo lectura",
+        "enableMutationTools": "Habilitar herramientas de mutación",
+        "enableMutationToolsHint": "Permitir además al asistente crear, actualizar y eliminar datos de grafos",
+        "enableRag": "Habilitar recuperación (RAG)",
+        "enableRagHint": "Recuperar vectores relevantes como contexto cuando una conversación esté vinculada a un grafo",
+        "maxToolIterations": "Máx. iteraciones de herramientas",
+        "maxToolIterationsHint": "Máximo de iteraciones del bucle de herramientas por turno (mínimo 1)",
+        "ragTopK": "Top K de recuperación",
+        "ragTopKHint": "Número de resultados de búsqueda vectorial recuperados (1–100)",
+        "ragScoreThreshold": "Umbral de puntuación de recuperación",
+        "ragScoreThresholdHint": "Puntuación mínima de similitud para el contexto recuperado (-1 a 1)",
+        "maxContextTokens": "Máx. tokens de contexto",
+        "maxContextTokensHint": "Presupuesto de tokens para el historial previo en el prompt (mínimo 1024)",
+        "historyRetentionDays": "Retención del historial (días)",
+        "historyRetentionDaysHint": "Días que se conservan los turnos de chat antes de purgarlos; 0 los conserva para siempre"
+      }
     }
   }
 }

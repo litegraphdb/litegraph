@@ -1337,7 +1337,8 @@
       "metadata": "元数据",
       "manage": "管理",
       "secure": "安全",
-      "administer": "系统管理"
+      "administer": "系统管理",
+      "ai": "AI"
     },
     "item": {
       "home": "首页",
@@ -1369,7 +1370,17 @@
       "backups": "备份",
       "backupsTitle": "管理数据库备份",
       "settings": "设置",
-      "settingsTitle": "服务器配置"
+      "settingsTitle": "服务器配置",
+      "aiChat": "聊天",
+      "aiChatTitle": "与您的图谱对话",
+      "aiEndpoints": "端点",
+      "aiEndpointsTitle": "管理 LLM 端点",
+      "aiHistory": "聊天历史",
+      "aiHistoryTitle": "浏览聊天会话与轮次",
+      "aiFeedback": "反馈",
+      "aiFeedbackTitle": "查看聊天反馈",
+      "aiSettings": "聊天设置",
+      "aiSettingsTitle": "租户聊天配置"
     }
   },
   "secure": {
@@ -1394,7 +1405,8 @@
       "debug": "调试",
       "rest": "REST 服务器",
       "database": "数据库",
-      "security": "安全"
+      "security": "安全",
+      "chat": "聊天"
     },
     "fields": {
       "requestTimeoutSeconds": "请求超时（秒）",
@@ -1435,7 +1447,14 @@
       "databaseMaxConnections": "最大连接数",
       "adminBearerToken": "管理员 bearer 令牌",
       "encryptionKey": "加密密钥",
-      "encryptionIv": "加密 IV"
+      "encryptionIv": "加密 IV",
+      "chatEnable": "启用聊天",
+      "chatMaxRetries": "最大重试次数",
+      "chatRetryBackoffMs": "重试退避（毫秒）",
+      "chatMaxToolIterationsCap": "工具迭代上限",
+      "chatMaxConcurrentChats": "最大并发聊天数",
+      "chatSseKeepAliveSeconds": "SSE 保活（秒）",
+      "chatDefaultTimeoutMs": "默认超时（毫秒）"
     },
     "status": {
       "appliedLive": "已实时应用",
@@ -1460,6 +1479,359 @@
       "restartFailed": "无法重启服务器。",
       "reconnected": "服务器已恢复在线。",
       "reconnectTimeout": "服务器未能及时恢复。请检查其状态。"
+    }
+  },
+  "ai": {
+    "chat": {
+      "title": "聊天",
+      "threads": "会话",
+      "newThread": "新建会话",
+      "noThreads": "暂无会话",
+      "untitledThread": "未命名会话",
+      "boundToGraph": "已绑定到图谱",
+      "deleteThreadTooltip": "删除会话",
+      "deleteThreadTitle": "删除会话",
+      "deleteThreadBody": "确定要删除“{title}”吗？其轮次和反馈也将被删除。",
+      "deleteThreadFailed": "无法删除该会话。",
+      "deleteThreadDone": "会话已删除。",
+      "inputPlaceholder": "发送消息…（Enter 发送，Shift+Enter 换行）",
+      "sendTooltip": "发送消息",
+      "stopTooltip": "停止生成",
+      "stopped": "已停止生成。",
+      "emptyTitle": "开始对话",
+      "emptyBody": "就您的图谱提问，或创建一个绑定到图谱的新会话以启用检索。",
+      "thinking": "思考中",
+      "copyMessage": "复制消息",
+      "errorTitle": "助手未能完成此轮对话",
+      "tools": {
+        "summaryTitle": "{count, plural, other {# 次工具调用}}",
+        "name": "工具",
+        "success": "成功",
+        "runtime": "耗时",
+        "running": "正在运行 {name}…",
+        "finished": "{name} 已完成"
+      },
+      "sources": {
+        "title": "{count, plural, other {# 个来源}}",
+        "unnamedNode": "未命名节点",
+        "score": "得分 {score}"
+      },
+      "feedback": {
+        "up": "回答不错",
+        "down": "回答欠佳",
+        "title": "提交反馈",
+        "submit": "提交",
+        "submitted": "反馈已提交，谢谢！",
+        "failed": "无法提交反馈。",
+        "ratedUp": "您认为此回答有帮助。",
+        "ratedDown": "您认为此回答没有帮助。",
+        "commentPlaceholder": "添加可选评论…"
+      },
+      "newThreadModal": {
+        "title": "新建会话",
+        "create": "创建",
+        "failed": "无法创建会话。",
+        "graphLabel": "绑定到图谱（可选）",
+        "graphPlaceholder": "选择图谱…",
+        "graphHint": "绑定到图谱后，助手可以检索相关节点作为上下文，并使用图谱工具。"
+      },
+      "disabled": {
+        "chatOffTitle": "此租户已禁用聊天",
+        "noEndpointTitle": "未配置补全端点",
+        "chatOffAdmin": "请在租户聊天设置中启用聊天以开始使用助手。",
+        "chatOffUser": "您的管理员已禁用聊天。",
+        "noEndpointAdmin": "请创建一个补全端点并将其设为租户默认值以开始聊天。",
+        "noEndpointUser": "请让您的管理员为此租户配置 LLM 端点。",
+        "goToEndpoints": "前往端点",
+        "goToSettings": "前往聊天设置"
+      },
+      "status": {
+        "tokens": "令牌：提示 {prompt} / 生成 {completion}",
+        "ttft": "首个令牌：{ms} 毫秒",
+        "tps": "{tps} 令牌/秒",
+        "duration": "总计：{ms} 毫秒"
+      }
+    },
+    "endpoints": {
+      "title": "LLM 端点",
+      "createEndpoint": "创建端点",
+      "createTooltip": "注册新的 LLM 端点",
+      "copyGuid": "复制 GUID",
+      "columns": {
+        "name": "名称",
+        "nameDesc": "端点的显示名称",
+        "type": "类型",
+        "typeDesc": "补全（聊天）或嵌入（检索）",
+        "provider": "提供商",
+        "providerDesc": "上游 LLM 提供商",
+        "model": "模型",
+        "modelDesc": "发送给提供商的模型标识符",
+        "endpoint": "端点 URL",
+        "endpointDesc": "提供商 API 的基础 URL",
+        "concurrency": "并发数",
+        "concurrencyDesc": "最大并发请求数",
+        "active": "启用",
+        "activeDesc": "此端点是否可用",
+        "health": "健康状态",
+        "healthDesc": "后台健康检查状态；点击查看详情",
+        "created": "创建时间",
+        "createdDesc": "创建时间（UTC）"
+      },
+      "types": {
+        "completion": "补全",
+        "embedding": "嵌入"
+      },
+      "health": {
+        "notMonitored": "未监控",
+        "healthy": "健康",
+        "unhealthy": "异常",
+        "pending": "待定"
+      },
+      "actions": {
+        "edit": "编辑",
+        "test": "测试连通性",
+        "healthDetail": "健康详情",
+        "activate": "启用",
+        "deactivate": "停用",
+        "delete": "删除",
+        "menu": "端点操作"
+      },
+      "toast": {
+        "updated": "端点已更新。",
+        "updateFailed": "无法更新端点。",
+        "created": "端点已创建。",
+        "createFailed": "无法创建端点。",
+        "deleted": "端点已删除。",
+        "deleteFailed": "无法删除端点。",
+        "activated": "端点已启用。",
+        "deactivated": "端点已停用。"
+      },
+      "modal": {
+        "editTitle": "编辑端点",
+        "createTitle": "创建端点",
+        "groupGeneral": "常规",
+        "groupPerformance": "性能",
+        "groupHealth": "健康检查"
+      },
+      "form": {
+        "name": "名称",
+        "namePlaceholder": "例如：生产环境 GPT",
+        "nameRequired": "名称为必填项",
+        "type": "端点类型",
+        "typeTooltip": "补全端点响应聊天；嵌入端点支持检索",
+        "typeRequired": "端点类型为必填项",
+        "provider": "提供商",
+        "providerTooltip": "仅列出对所选端点类型有效的提供商",
+        "providerRequired": "提供商为必填项",
+        "comboAnthropicEmbedding": "Anthropic 不提供嵌入 API。请为嵌入端点选择其他提供商。",
+        "comboVoyageCompletion": "VoyageAI 仅提供嵌入。请为补全端点选择其他提供商。",
+        "endpoint": "端点 URL",
+        "endpointTooltip": "提供商 API 的绝对 http(s) 基础 URL",
+        "endpointRequired": "端点 URL 为必填项",
+        "endpointInvalid": "必须是绝对的 http 或 https URL",
+        "apiKey": "API 密钥",
+        "apiKeyTooltip": "发送给提供商的密钥；存储在服务器端",
+        "apiKeyRedactedTooltip": "以脱敏方式显示；保持不变即可保留已存储的密钥",
+        "apiKeyPlaceholder": "输入 API 密钥…",
+        "apiKeyRedactedHint": "密钥以脱敏方式显示。保持不变将保留已存储的密钥；输入新值将替换它。",
+        "model": "模型",
+        "modelTooltip": "提供商所要求的模型标识符",
+        "modelPlaceholder": "例如：gpt-4o-mini",
+        "modelRequired": "模型为必填项",
+        "maxOutputTokens": "最大输出令牌数",
+        "maxOutputTokensTooltip": "模型每轮可生成令牌数的上限",
+        "timeoutMs": "超时（毫秒）",
+        "timeoutMsTooltip": "每个请求的超时时间（毫秒）",
+        "maxConcurrentRequests": "最大并发请求数",
+        "maxConcurrentRequestsTooltip": "对此端点强制执行的并发上限（最小为 1）",
+        "maxConcurrentRequestsMin": "必须至少为 1",
+        "active": "启用",
+        "healthCheckEnabled": "启用健康检查",
+        "healthCheckEnabledTooltip": "在后台定期探测该端点",
+        "healthCheckUrl": "健康检查 URL",
+        "healthCheckUrlTooltip": "可选 URL，用于替代提供商默认的探测地址",
+        "healthCheckUrlPlaceholder": "默认为提供商特定的 URL",
+        "healthCheckUseAuth": "健康检查时发送认证",
+        "healthCheckUseAuthTooltip": "探测健康检查 URL 时附带 API 密钥"
+      },
+      "test": {
+        "title": "测试：{name}",
+        "close": "关闭",
+        "running": "正在测试连通性…",
+        "failed": "连通性测试无法执行。",
+        "reachable": "可达",
+        "yes": "是",
+        "no": "否",
+        "unknown": "未知",
+        "modelExists": "模型存在",
+        "runtime": "耗时",
+        "error": "错误",
+        "models": "模型"
+      },
+      "healthDetail": {
+        "title": "健康状态：{name}",
+        "close": "关闭",
+        "noData": "此端点暂无健康数据。",
+        "status": "状态",
+        "uptime": "可用率（24 小时）",
+        "notAvailable": "N/A",
+        "lastChecked": "最近检查",
+        "consecutiveSuccesses": "连续成功次数",
+        "consecutiveFailures": "连续失败次数",
+        "lastError": "最近错误",
+        "historyTitle": "检查历史（最近 24 小时）",
+        "noHistory": "尚未记录任何检查。"
+      },
+      "deleteModal": {
+        "title": "删除端点“{name}”",
+        "body": "确定要删除此端点吗？以其为默认值的租户将无法聊天，直到配置其他端点。"
+      }
+    },
+    "history": {
+      "title": "聊天历史",
+      "subtitle": "此租户所有用户的全部会话。点击会话可查看其轮次。",
+      "untitledThread": "未命名会话",
+      "copyGuid": "复制 GUID",
+      "noGraph": "无",
+      "backToThreads": "返回会话列表",
+      "turnsTitle": "轮次 — {title}",
+      "columns": {
+        "title": "标题",
+        "titleDesc": "会话标题",
+        "user": "用户",
+        "userDesc": "所属用户的 GUID",
+        "graph": "图谱",
+        "graphDesc": "会话绑定的图谱",
+        "created": "创建时间",
+        "createdDesc": "创建时间（UTC）",
+        "updated": "更新时间",
+        "updatedDesc": "最近更新时间（UTC）",
+        "userMessage": "用户消息",
+        "userMessageDesc": "开启此轮的消息",
+        "success": "成功",
+        "successDesc": "此轮是否成功完成",
+        "tokens": "令牌（入/出）",
+        "tokensDesc": "提示 / 生成令牌数",
+        "duration": "耗时",
+        "durationDesc": "此轮总耗时",
+        "toolCalls": "工具调用",
+        "toolCallsDesc": "此轮中的工具调用次数",
+        "turnCreated": "创建时间",
+        "turnCreatedDesc": "此轮的创建时间（UTC）"
+      },
+      "turnDetail": {
+        "title": "轮次详情",
+        "close": "关闭",
+        "waterfallTitle": "阶段瀑布图",
+        "noTimings": "此轮未记录阶段耗时。",
+        "stageEmbedding": "嵌入",
+        "stageRetrieval": "检索",
+        "stageLimiter": "限流等待",
+        "stageTtft": "首个令牌",
+        "stageStreaming": "流式输出",
+        "promptTokens": "提示令牌",
+        "completionTokens": "生成令牌",
+        "tokensPerSecond": "令牌/秒",
+        "retries": "重试次数",
+        "totalDuration": "总耗时",
+        "status": "状态",
+        "success": "成功",
+        "failed": "失败",
+        "error": "错误",
+        "toolsTitle": "工具记录",
+        "toolName": "工具",
+        "toolIteration": "迭代",
+        "toolSuccess": "成功",
+        "toolRuntime": "耗时",
+        "userMessage": "用户消息",
+        "assistantResponse": "助手回复",
+        "copy": "复制"
+      }
+    },
+    "feedback": {
+      "title": "聊天反馈",
+      "deleteTooltip": "删除反馈",
+      "ratings": {
+        "thumbsUp": "点赞",
+        "thumbsDown": "点踩"
+      },
+      "columns": {
+        "rating": "评价",
+        "ratingDesc": "点赞或点踩",
+        "comment": "评论",
+        "commentDesc": "用户留下的可选评论",
+        "created": "创建时间",
+        "createdDesc": "提交时间（UTC）",
+        "thread": "会话",
+        "threadDesc": "在聊天历史中打开该会话",
+        "turn": "轮次",
+        "turnDesc": "被评价的轮次"
+      },
+      "toast": {
+        "deleted": "反馈已删除。",
+        "deleteFailed": "无法删除反馈。"
+      },
+      "deleteModal": {
+        "title": "删除反馈",
+        "body": "确定要删除此条反馈记录吗？"
+      },
+      "detail": {
+        "title": "反馈详情",
+        "close": "关闭",
+        "rating": "评价",
+        "created": "创建时间",
+        "comment": "评论",
+        "noComment": "未提供评论",
+        "userMessage": "用户消息",
+        "assistantResponse": "助手回复",
+        "turnMissing": "无法加载被评价的轮次（可能已被删除）。"
+      }
+    },
+    "settings": {
+      "title": "聊天设置",
+      "subtitle": "面向整个租户的 AI 聊天配置：默认端点、系统提示词、功能与限制。",
+      "loading": "正在加载聊天设置…",
+      "loadError": "无法加载聊天设置。",
+      "actions": {
+        "save": "保存",
+        "discard": "放弃更改"
+      },
+      "toast": {
+        "saved": "聊天设置已保存。",
+        "saveFailed": "无法保存聊天设置。"
+      },
+      "sections": {
+        "endpoints": "默认端点",
+        "prompt": "系统提示词",
+        "features": "功能",
+        "limits": "限制"
+      },
+      "fields": {
+        "defaultCompletionEndpoint": "默认补全端点",
+        "defaultCompletionEndpointPlaceholder": "选择补全端点…",
+        "defaultEmbeddingEndpoint": "默认嵌入端点",
+        "defaultEmbeddingEndpointPlaceholder": "选择嵌入端点…",
+        "systemPrompt": "系统提示词",
+        "systemPromptPlaceholder": "添加到每个会话开头的可选指令…",
+        "enableChat": "启用聊天",
+        "enableChatHint": "允许租户用户使用聊天面板",
+        "enableTools": "启用工具",
+        "enableToolsHint": "允许助手调用只读图谱工具",
+        "enableMutationTools": "启用变更工具",
+        "enableMutationToolsHint": "同时允许助手创建、更新和删除图谱数据",
+        "enableRag": "启用检索（RAG）",
+        "enableRagHint": "会话绑定到图谱时，检索相关向量作为上下文",
+        "maxToolIterations": "最大工具迭代次数",
+        "maxToolIterationsHint": "每轮工具循环的最大迭代次数（最小为 1）",
+        "ragTopK": "检索 Top K",
+        "ragTopKHint": "检索的向量搜索结果数量（1–100）",
+        "ragScoreThreshold": "检索得分阈值",
+        "ragScoreThresholdHint": "检索上下文的最低相似度得分（-1 到 1）",
+        "maxContextTokens": "最大上下文令牌数",
+        "maxContextTokensHint": "提示词中历史轮次的令牌预算（最小 1024）",
+        "historyRetentionDays": "历史保留（天）",
+        "historyRetentionDaysHint": "聊天轮次在清理前保留的天数；0 表示永久保留"
+      }
     }
   }
 }

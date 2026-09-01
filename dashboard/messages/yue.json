@@ -1337,7 +1337,8 @@
       "metadata": "元資料",
       "manage": "管理",
       "secure": "安全",
-      "administer": "管理"
+      "administer": "管理",
+      "ai": "AI"
     },
     "item": {
       "home": "首頁",
@@ -1369,7 +1370,17 @@
       "backups": "備份",
       "backupsTitle": "管理資料庫備份",
       "settings": "設定",
-      "settingsTitle": "伺服器組態"
+      "settingsTitle": "伺服器組態",
+      "aiChat": "傾偈",
+      "aiChatTitle": "同你嘅圖譜傾偈",
+      "aiEndpoints": "端點",
+      "aiEndpointsTitle": "管理 LLM 端點",
+      "aiHistory": "傾偈紀錄",
+      "aiHistoryTitle": "瀏覽傾偈對話同回合",
+      "aiFeedback": "意見回饋",
+      "aiFeedbackTitle": "查閱傾偈意見回饋",
+      "aiSettings": "傾偈設定",
+      "aiSettingsTitle": "租戶傾偈設定"
     }
   },
   "secure": {
@@ -1394,7 +1405,8 @@
       "debug": "偵錯",
       "rest": "REST 伺服器",
       "database": "資料庫",
-      "security": "安全"
+      "security": "安全",
+      "chat": "傾偈"
     },
     "fields": {
       "requestTimeoutSeconds": "請求逾時（秒）",
@@ -1435,7 +1447,14 @@
       "databaseMaxConnections": "最大連接數",
       "adminBearerToken": "管理員 bearer 權杖",
       "encryptionKey": "加密金鑰",
-      "encryptionIv": "加密 IV"
+      "encryptionIv": "加密 IV",
+      "chatEnable": "啟用傾偈",
+      "chatMaxRetries": "最多重試次數",
+      "chatRetryBackoffMs": "重試延遲（毫秒）",
+      "chatMaxToolIterationsCap": "工具迭代上限",
+      "chatMaxConcurrentChats": "最多同時傾偈數",
+      "chatSseKeepAliveSeconds": "SSE 保持連線（秒）",
+      "chatDefaultTimeoutMs": "預設逾時（毫秒）"
     },
     "status": {
       "appliedLive": "已即時套用",
@@ -1460,6 +1479,359 @@
       "restartFailed": "重新啟動唔到伺服器。",
       "reconnected": "伺服器已經重新上線。",
       "reconnectTimeout": "伺服器冇喺時限內恢復。請檢查佢嘅狀態。"
+    }
+  },
+  "ai": {
+    "chat": {
+      "title": "傾偈",
+      "threads": "對話",
+      "newThread": "新對話",
+      "noThreads": "仲未有對話",
+      "untitledThread": "未命名對話",
+      "boundToGraph": "已綁定圖譜",
+      "deleteThreadTooltip": "刪除對話",
+      "deleteThreadTitle": "刪除對話",
+      "deleteThreadBody": "你確定要刪除「{title}」？佢嘅回合同意見回饋都會一併刪除。",
+      "deleteThreadFailed": "無法刪除對話。",
+      "deleteThreadDone": "對話已刪除。",
+      "inputPlaceholder": "發送訊息…（Enter 發送，Shift+Enter 換行）",
+      "sendTooltip": "發送訊息",
+      "stopTooltip": "停止生成",
+      "stopped": "已停止生成。",
+      "emptyTitle": "開始對話",
+      "emptyBody": "就你嘅圖譜提問，或者建立一個綁定圖譜嘅新對話嚟啟用檢索。",
+      "thinking": "思考中",
+      "copyMessage": "複製訊息",
+      "errorTitle": "助手未能完成呢個回合",
+      "tools": {
+        "summaryTitle": "{count, plural, other {# 次工具呼叫}}",
+        "name": "工具",
+        "success": "成功",
+        "runtime": "耗時",
+        "running": "執行緊 {name}…",
+        "finished": "{name} 完成咗"
+      },
+      "sources": {
+        "title": "{count, plural, other {# 個來源}}",
+        "unnamedNode": "未命名節點",
+        "score": "分數 {score}"
+      },
+      "feedback": {
+        "up": "回答唔錯",
+        "down": "回答麻麻",
+        "title": "提交意見",
+        "submit": "提交",
+        "submitted": "意見已提交，多謝你！",
+        "failed": "無法提交意見。",
+        "ratedUp": "你認為呢個回答有幫助。",
+        "ratedDown": "你認為呢個回答冇幫助。",
+        "commentPlaceholder": "加個可選嘅留言…"
+      },
+      "newThreadModal": {
+        "title": "新對話",
+        "create": "建立",
+        "failed": "無法建立對話。",
+        "graphLabel": "綁定圖譜（可選）",
+        "graphPlaceholder": "揀一個圖譜…",
+        "graphHint": "綁定圖譜之後，助手可以檢索相關節點做上下文，仲可以用圖譜工具。"
+      },
+      "disabled": {
+        "chatOffTitle": "呢個租戶已停用傾偈",
+        "noEndpointTitle": "未設定補全端點",
+        "chatOffAdmin": "請喺租戶傾偈設定入面啟用傾偈，先可以使用助手。",
+        "chatOffUser": "你嘅管理員已經停用咗傾偈。",
+        "noEndpointAdmin": "請建立一個補全端點並設做租戶預設值，先可以開始傾偈。",
+        "noEndpointUser": "請搵你嘅管理員幫呢個租戶設定 LLM 端點。",
+        "goToEndpoints": "去端點",
+        "goToSettings": "去傾偈設定"
+      },
+      "status": {
+        "tokens": "權杖：提示 {prompt} / 生成 {completion}",
+        "ttft": "首個權杖：{ms} 毫秒",
+        "tps": "{tps} 權杖/秒",
+        "duration": "總計：{ms} 毫秒"
+      }
+    },
+    "endpoints": {
+      "title": "LLM 端點",
+      "createEndpoint": "建立端點",
+      "createTooltip": "登記新嘅 LLM 端點",
+      "copyGuid": "複製 GUID",
+      "columns": {
+        "name": "名稱",
+        "nameDesc": "端點嘅顯示名稱",
+        "type": "類型",
+        "typeDesc": "補全（傾偈）或者嵌入（檢索）",
+        "provider": "供應商",
+        "providerDesc": "上游 LLM 供應商",
+        "model": "模型",
+        "modelDesc": "發送畀供應商嘅模型識別碼",
+        "endpoint": "端點 URL",
+        "endpointDesc": "供應商 API 嘅基礎 URL",
+        "concurrency": "並發數",
+        "concurrencyDesc": "最大並發請求數",
+        "active": "啟用",
+        "activeDesc": "呢個端點可唔可以用",
+        "health": "健康狀態",
+        "healthDesc": "背景健康檢查狀態；撳一下睇詳情",
+        "created": "建立時間",
+        "createdDesc": "建立時間（UTC）"
+      },
+      "types": {
+        "completion": "補全",
+        "embedding": "嵌入"
+      },
+      "health": {
+        "notMonitored": "未監察",
+        "healthy": "健康",
+        "unhealthy": "異常",
+        "pending": "等緊"
+      },
+      "actions": {
+        "edit": "編輯",
+        "test": "測試連線",
+        "healthDetail": "健康詳情",
+        "activate": "啟用",
+        "deactivate": "停用",
+        "delete": "刪除",
+        "menu": "端點操作"
+      },
+      "toast": {
+        "updated": "端點已更新。",
+        "updateFailed": "無法更新端點。",
+        "created": "端點已建立。",
+        "createFailed": "無法建立端點。",
+        "deleted": "端點已刪除。",
+        "deleteFailed": "無法刪除端點。",
+        "activated": "端點已啟用。",
+        "deactivated": "端點已停用。"
+      },
+      "modal": {
+        "editTitle": "編輯端點",
+        "createTitle": "建立端點",
+        "groupGeneral": "一般",
+        "groupPerformance": "效能",
+        "groupHealth": "健康檢查"
+      },
+      "form": {
+        "name": "名稱",
+        "namePlaceholder": "例如：生產環境 GPT",
+        "nameRequired": "必須填名稱",
+        "type": "端點類型",
+        "typeTooltip": "補全端點負責傾偈；嵌入端點負責檢索",
+        "typeRequired": "必須揀端點類型",
+        "provider": "供應商",
+        "providerTooltip": "只會列出啱所揀類型嘅供應商",
+        "providerRequired": "必須揀供應商",
+        "comboAnthropicEmbedding": "Anthropic 冇提供嵌入 API。嵌入端點請揀第二個供應商。",
+        "comboVoyageCompletion": "VoyageAI 只提供嵌入。補全端點請揀第二個供應商。",
+        "endpoint": "端點 URL",
+        "endpointTooltip": "供應商 API 嘅絕對 http(s) 基礎 URL",
+        "endpointRequired": "必須填端點 URL",
+        "endpointInvalid": "必須係絕對嘅 http 或者 https URL",
+        "apiKey": "API 金鑰",
+        "apiKeyTooltip": "發送畀供應商嘅密鑰；儲存喺伺服器",
+        "apiKeyRedactedTooltip": "以遮蔽方式顯示；唔改就會保留已儲存嘅金鑰",
+        "apiKeyPlaceholder": "輸入 API 金鑰…",
+        "apiKeyRedactedHint": "金鑰以遮蔽方式顯示。唔改就保留已儲存嘅金鑰；輸入新值就會取代佢。",
+        "model": "模型",
+        "modelTooltip": "供應商要求嘅模型識別碼",
+        "modelPlaceholder": "例如：gpt-4o-mini",
+        "modelRequired": "必須填模型",
+        "maxOutputTokens": "最大輸出權杖數",
+        "maxOutputTokensTooltip": "模型每回合可以生成嘅權杖上限",
+        "timeoutMs": "逾時（毫秒）",
+        "timeoutMsTooltip": "每個請求嘅逾時時間（毫秒）",
+        "maxConcurrentRequests": "最大並發請求數",
+        "maxConcurrentRequestsTooltip": "對呢個端點強制執行嘅並發上限（最小 1）",
+        "maxConcurrentRequestsMin": "最少要係 1",
+        "active": "啟用",
+        "healthCheckEnabled": "啟用健康檢查",
+        "healthCheckEnabledTooltip": "喺背景定期探測呢個端點",
+        "healthCheckUrl": "健康檢查 URL",
+        "healthCheckUrlTooltip": "可選 URL，用嚟取代供應商預設嘅探測地址",
+        "healthCheckUrlPlaceholder": "預設係供應商特定嘅 URL",
+        "healthCheckUseAuth": "健康檢查時發送認證",
+        "healthCheckUseAuthTooltip": "探測健康檢查 URL 嗰陣附帶 API 金鑰"
+      },
+      "test": {
+        "title": "測試：{name}",
+        "close": "閂",
+        "running": "測試緊連線…",
+        "failed": "連線測試行唔到。",
+        "reachable": "可以連到",
+        "yes": "係",
+        "no": "唔係",
+        "unknown": "未知",
+        "modelExists": "模型存在",
+        "runtime": "耗時",
+        "error": "錯誤",
+        "models": "模型"
+      },
+      "healthDetail": {
+        "title": "健康狀態：{name}",
+        "close": "閂",
+        "noData": "呢個端點暫時未有健康數據。",
+        "status": "狀態",
+        "uptime": "可用率（24 小時）",
+        "notAvailable": "N/A",
+        "lastChecked": "最近檢查",
+        "consecutiveSuccesses": "連續成功次數",
+        "consecutiveFailures": "連續失敗次數",
+        "lastError": "最近錯誤",
+        "historyTitle": "檢查紀錄（最近 24 小時）",
+        "noHistory": "仲未有任何檢查紀錄。"
+      },
+      "deleteModal": {
+        "title": "刪除端點「{name}」",
+        "body": "你確定要刪除呢個端點？用佢做預設值嘅租戶會冇得傾偈，直至設定咗第二個端點。"
+      }
+    },
+    "history": {
+      "title": "傾偈紀錄",
+      "subtitle": "呢個租戶所有用戶嘅全部對話。撳對話可以睇佢嘅回合。",
+      "untitledThread": "未命名對話",
+      "copyGuid": "複製 GUID",
+      "noGraph": "冇",
+      "backToThreads": "返去對話列表",
+      "turnsTitle": "回合 — {title}",
+      "columns": {
+        "title": "標題",
+        "titleDesc": "對話標題",
+        "user": "用戶",
+        "userDesc": "擁有者用戶嘅 GUID",
+        "graph": "圖譜",
+        "graphDesc": "對話綁定嘅圖譜",
+        "created": "建立時間",
+        "createdDesc": "建立時間（UTC）",
+        "updated": "更新時間",
+        "updatedDesc": "最近更新時間（UTC）",
+        "userMessage": "用戶訊息",
+        "userMessageDesc": "開始呢個回合嘅訊息",
+        "success": "成功",
+        "successDesc": "呢個回合係咪成功完成",
+        "tokens": "權杖（入/出）",
+        "tokensDesc": "提示 / 生成權杖數",
+        "duration": "耗時",
+        "durationDesc": "呢個回合嘅總耗時",
+        "toolCalls": "工具呼叫",
+        "toolCallsDesc": "呢個回合入面嘅工具呼叫次數",
+        "turnCreated": "建立時間",
+        "turnCreatedDesc": "回合嘅建立時間（UTC）"
+      },
+      "turnDetail": {
+        "title": "回合詳情",
+        "close": "閂",
+        "waterfallTitle": "階段瀑布圖",
+        "noTimings": "呢個回合冇記錄階段時間。",
+        "stageEmbedding": "嵌入",
+        "stageRetrieval": "檢索",
+        "stageLimiter": "限流等候",
+        "stageTtft": "首個權杖",
+        "stageStreaming": "串流輸出",
+        "promptTokens": "提示權杖",
+        "completionTokens": "生成權杖",
+        "tokensPerSecond": "權杖/秒",
+        "retries": "重試次數",
+        "totalDuration": "總耗時",
+        "status": "狀態",
+        "success": "成功",
+        "failed": "失敗",
+        "error": "錯誤",
+        "toolsTitle": "工具紀錄",
+        "toolName": "工具",
+        "toolIteration": "迭代",
+        "toolSuccess": "成功",
+        "toolRuntime": "耗時",
+        "userMessage": "用戶訊息",
+        "assistantResponse": "助手回覆",
+        "copy": "複製"
+      }
+    },
+    "feedback": {
+      "title": "傾偈意見回饋",
+      "deleteTooltip": "刪除意見回饋",
+      "ratings": {
+        "thumbsUp": "讚",
+        "thumbsDown": "彈"
+      },
+      "columns": {
+        "rating": "評價",
+        "ratingDesc": "讚或者彈",
+        "comment": "留言",
+        "commentDesc": "用戶留低嘅可選留言",
+        "created": "建立時間",
+        "createdDesc": "提交時間（UTC）",
+        "thread": "對話",
+        "threadDesc": "喺傾偈紀錄開啟呢個對話",
+        "turn": "回合",
+        "turnDesc": "被評價嘅回合"
+      },
+      "toast": {
+        "deleted": "意見回饋已刪除。",
+        "deleteFailed": "無法刪除意見回饋。"
+      },
+      "deleteModal": {
+        "title": "刪除意見回饋",
+        "body": "你確定要刪除呢條意見回饋紀錄？"
+      },
+      "detail": {
+        "title": "意見回饋詳情",
+        "close": "閂",
+        "rating": "評價",
+        "created": "建立時間",
+        "comment": "留言",
+        "noComment": "冇留言",
+        "userMessage": "用戶訊息",
+        "assistantResponse": "助手回覆",
+        "turnMissing": "載入唔到被評價嘅回合（可能已經被刪除）。"
+      }
+    },
+    "settings": {
+      "title": "傾偈設定",
+      "subtitle": "成個租戶嘅 AI 傾偈設定：預設端點、系統提示、功能同限制。",
+      "loading": "載入緊傾偈設定…",
+      "loadError": "無法載入傾偈設定。",
+      "actions": {
+        "save": "儲存",
+        "discard": "放棄更改"
+      },
+      "toast": {
+        "saved": "傾偈設定已儲存。",
+        "saveFailed": "無法儲存傾偈設定。"
+      },
+      "sections": {
+        "endpoints": "預設端點",
+        "prompt": "系統提示",
+        "features": "功能",
+        "limits": "限制"
+      },
+      "fields": {
+        "defaultCompletionEndpoint": "預設補全端點",
+        "defaultCompletionEndpointPlaceholder": "揀一個補全端點…",
+        "defaultEmbeddingEndpoint": "預設嵌入端點",
+        "defaultEmbeddingEndpointPlaceholder": "揀一個嵌入端點…",
+        "systemPrompt": "系統提示",
+        "systemPromptPlaceholder": "加喺每個對話開頭嘅可選指示…",
+        "enableChat": "啟用傾偈",
+        "enableChatHint": "容許租戶用戶使用傾偈面板",
+        "enableTools": "啟用工具",
+        "enableToolsHint": "容許助手呼叫唯讀圖譜工具",
+        "enableMutationTools": "啟用變更工具",
+        "enableMutationToolsHint": "同時容許助手建立、更新同刪除圖譜數據",
+        "enableRag": "啟用檢索（RAG）",
+        "enableRagHint": "對話綁定圖譜嗰陣，檢索相關向量做上下文",
+        "maxToolIterations": "最大工具迭代次數",
+        "maxToolIterationsHint": "每回合工具循環嘅最大迭代次數（最小 1）",
+        "ragTopK": "檢索 Top K",
+        "ragTopKHint": "檢索嘅向量搜尋結果數量（1–100）",
+        "ragScoreThreshold": "檢索分數門檻",
+        "ragScoreThresholdHint": "檢索上下文嘅最低相似度分數（-1 至 1）",
+        "maxContextTokens": "最大上下文權杖數",
+        "maxContextTokensHint": "提示入面歷史回合嘅權杖預算（最小 1024）",
+        "historyRetentionDays": "紀錄保留（日）",
+        "historyRetentionDaysHint": "傾偈回合清理前保留嘅日數；0 即係永久保留"
+      }
     }
   }
 }

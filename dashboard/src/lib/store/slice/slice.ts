@@ -72,6 +72,33 @@ import {
   restartServer,
   updateServerSettings,
 } from '@/lib/sdk/settings';
+import {
+  ChatEndpoint,
+  ChatEndpointHealth,
+  ChatEndpointTestResult,
+  ChatEndpointType,
+  ChatFeedback,
+  ChatFeedbackRating,
+  ChatSettings,
+  ChatThread,
+  ChatTurn,
+  createChatEndpoint,
+  createChatThread,
+  deleteChatEndpoint,
+  deleteChatFeedback,
+  deleteChatThread,
+  getChatSettings,
+  listChatEndpointHealth,
+  listChatEndpoints,
+  listChatFeedback,
+  listChatThreadTurns,
+  listChatThreads,
+  readChatThread,
+  submitChatFeedback,
+  testChatEndpoint,
+  updateChatEndpoint,
+  updateChatSettings,
+} from '@/lib/sdk/chat';
 
 const enhancedSdk = sdkSlice.enhanceEndpoints({
   addTagTypes: [
@@ -88,6 +115,10 @@ const enhancedSdk = sdkSlice.enhanceEndpoints({
     SliceTags.AUTHORIZATION,
     SliceTags.SETTINGS,
     SliceTags.RESET,
+    SliceTags.CHAT_ENDPOINT,
+    SliceTags.CHAT_THREAD,
+    SliceTags.CHAT_FEEDBACK,
+    SliceTags.CHAT_SETTINGS,
   ],
 });
 
@@ -840,6 +871,137 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       providesTags: [SliceTags.AUTHORIZATION],
     }),
+    //endregion
+    //region Chat
+    listChatEndpoints: build.query<
+      ChatEndpoint[],
+      { tenantGuid: string; endpointType?: ChatEndpointType }
+    >({
+      query: ({ tenantGuid, endpointType }) => ({
+        callback: () => listChatEndpoints(tenantGuid, endpointType),
+      }),
+      providesTags: [SliceTags.CHAT_ENDPOINT],
+    }),
+    createChatEndpoint: build.mutation<
+      ChatEndpoint,
+      { tenantGuid: string; endpoint: Partial<ChatEndpoint> }
+    >({
+      query: ({ tenantGuid, endpoint }) => ({
+        callback: () => createChatEndpoint(tenantGuid, endpoint),
+      }),
+      invalidatesTags: [SliceTags.CHAT_ENDPOINT],
+    }),
+    updateChatEndpoint: build.mutation<
+      ChatEndpoint,
+      { tenantGuid: string; endpoint: ChatEndpoint }
+    >({
+      query: ({ tenantGuid, endpoint }) => ({
+        callback: () => updateChatEndpoint(tenantGuid, endpoint),
+      }),
+      invalidatesTags: [SliceTags.CHAT_ENDPOINT],
+    }),
+    deleteChatEndpoint: build.mutation<boolean, { tenantGuid: string; endpointGuid: string }>({
+      query: ({ tenantGuid, endpointGuid }) => ({
+        callback: async () => {
+          await deleteChatEndpoint(tenantGuid, endpointGuid);
+          return true;
+        },
+      }),
+      invalidatesTags: [SliceTags.CHAT_ENDPOINT],
+    }),
+    testChatEndpoint: build.mutation<
+      ChatEndpointTestResult,
+      { tenantGuid: string; endpointGuid: string }
+    >({
+      query: ({ tenantGuid, endpointGuid }) => ({
+        callback: () => testChatEndpoint(tenantGuid, endpointGuid),
+      }),
+    }),
+    listChatEndpointHealth: build.query<ChatEndpointHealth[], { tenantGuid: string }>({
+      query: ({ tenantGuid }) => ({
+        callback: () => listChatEndpointHealth(tenantGuid),
+      }),
+      providesTags: [SliceTags.CHAT_ENDPOINT],
+    }),
+    listChatThreads: build.query<ChatThread[], { tenantGuid: string; all?: boolean }>({
+      query: ({ tenantGuid, all }) => ({
+        callback: () => listChatThreads(tenantGuid, all),
+      }),
+      providesTags: [SliceTags.CHAT_THREAD],
+    }),
+    readChatThread: build.query<ChatThread, { tenantGuid: string; threadGuid: string }>({
+      query: ({ tenantGuid, threadGuid }) => ({
+        callback: () => readChatThread(tenantGuid, threadGuid),
+      }),
+      providesTags: [SliceTags.CHAT_THREAD],
+    }),
+    createChatThread: build.mutation<
+      ChatThread,
+      { tenantGuid: string; body?: { GraphGUID?: string | null; Title?: string | null } }
+    >({
+      query: ({ tenantGuid, body }) => ({
+        callback: () => createChatThread(tenantGuid, body),
+      }),
+      invalidatesTags: [SliceTags.CHAT_THREAD],
+    }),
+    deleteChatThread: build.mutation<boolean, { tenantGuid: string; threadGuid: string }>({
+      query: ({ tenantGuid, threadGuid }) => ({
+        callback: async () => {
+          await deleteChatThread(tenantGuid, threadGuid);
+          return true;
+        },
+      }),
+      invalidatesTags: [SliceTags.CHAT_THREAD],
+    }),
+    listChatThreadTurns: build.query<ChatTurn[], { tenantGuid: string; threadGuid: string }>({
+      query: ({ tenantGuid, threadGuid }) => ({
+        callback: () => listChatThreadTurns(tenantGuid, threadGuid),
+      }),
+      providesTags: [SliceTags.CHAT_THREAD],
+    }),
+    submitChatFeedback: build.mutation<
+      ChatFeedback,
+      {
+        tenantGuid: string;
+        turnGuid: string;
+        body: { Rating: ChatFeedbackRating; FeedbackText?: string | null };
+      }
+    >({
+      query: ({ tenantGuid, turnGuid, body }) => ({
+        callback: () => submitChatFeedback(tenantGuid, turnGuid, body),
+      }),
+      invalidatesTags: [SliceTags.CHAT_FEEDBACK],
+    }),
+    listChatFeedback: build.query<ChatFeedback[], { tenantGuid: string }>({
+      query: ({ tenantGuid }) => ({
+        callback: () => listChatFeedback(tenantGuid),
+      }),
+      providesTags: [SliceTags.CHAT_FEEDBACK],
+    }),
+    deleteChatFeedback: build.mutation<boolean, { tenantGuid: string; feedbackGuid: string }>({
+      query: ({ tenantGuid, feedbackGuid }) => ({
+        callback: async () => {
+          await deleteChatFeedback(tenantGuid, feedbackGuid);
+          return true;
+        },
+      }),
+      invalidatesTags: [SliceTags.CHAT_FEEDBACK],
+    }),
+    getChatSettings: build.query<ChatSettings, { tenantGuid: string }>({
+      query: ({ tenantGuid }) => ({
+        callback: () => getChatSettings(tenantGuid),
+      }),
+      providesTags: [SliceTags.CHAT_SETTINGS],
+    }),
+    updateChatSettings: build.mutation<ChatSettings, { tenantGuid: string; settings: ChatSettings }>(
+      {
+        query: ({ tenantGuid, settings }) => ({
+          callback: () => updateChatSettings(tenantGuid, settings),
+        }),
+        invalidatesTags: [SliceTags.CHAT_SETTINGS],
+      }
+    ),
+    //endregion
   }),
   overrideExisting: true,
 });
@@ -937,4 +1099,20 @@ export const {
   useGetServerSettingsQuery,
   useUpdateServerSettingsMutation,
   useRestartServerMutation,
+  useListChatEndpointsQuery,
+  useCreateChatEndpointMutation,
+  useUpdateChatEndpointMutation,
+  useDeleteChatEndpointMutation,
+  useTestChatEndpointMutation,
+  useListChatEndpointHealthQuery,
+  useListChatThreadsQuery,
+  useReadChatThreadQuery,
+  useCreateChatThreadMutation,
+  useDeleteChatThreadMutation,
+  useListChatThreadTurnsQuery,
+  useSubmitChatFeedbackMutation,
+  useListChatFeedbackQuery,
+  useDeleteChatFeedbackMutation,
+  useGetChatSettingsQuery,
+  useUpdateChatSettingsMutation,
 } = graphSlice;

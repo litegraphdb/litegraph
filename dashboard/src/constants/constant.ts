@@ -25,6 +25,11 @@ export const paths = {
   labels: `/dashboard/${dynamicSlugs.tenantId}/labels`,
   requestHistory: `/dashboard/${dynamicSlugs.tenantId}/request-history`,
   apiExplorer: `/dashboard/${dynamicSlugs.tenantId}/api-explorer`,
+  aiChat: `/dashboard/${dynamicSlugs.tenantId}/ai/chat`,
+  aiEndpoints: `/dashboard/${dynamicSlugs.tenantId}/ai/endpoints`,
+  aiHistory: `/dashboard/${dynamicSlugs.tenantId}/ai/history`,
+  aiFeedback: `/dashboard/${dynamicSlugs.tenantId}/ai/feedback`,
+  aiSettings: `/dashboard/${dynamicSlugs.tenantId}/ai/settings`,
   // Server-level surfaces (SECURE / ADMINISTER) — one consolidated dashboard,
   // permission-filtered, not bound to a single tenant path segment.
   tenants: `/dashboard/tenants`,

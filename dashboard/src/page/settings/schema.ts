@@ -107,6 +107,21 @@ export const SETTINGS_SCHEMA: SettingsSectionSchema[] = [
     ],
   },
   {
+    id: 'chat',
+    titleKey: 'chat',
+    applies: 'restart',
+    serverSection: 'Chat',
+    fields: [
+      { path: 'Chat.Enable', labelKey: 'chatEnable', type: 'boolean' },
+      { path: 'Chat.MaxRetries', labelKey: 'chatMaxRetries', type: 'number' },
+      { path: 'Chat.RetryBackoffMs', labelKey: 'chatRetryBackoffMs', type: 'number' },
+      { path: 'Chat.MaxToolIterationsCap', labelKey: 'chatMaxToolIterationsCap', type: 'number' },
+      { path: 'Chat.MaxConcurrentChats', labelKey: 'chatMaxConcurrentChats', type: 'number' },
+      { path: 'Chat.SseKeepAliveSeconds', labelKey: 'chatSseKeepAliveSeconds', type: 'number' },
+      { path: 'Chat.DefaultTimeoutMs', labelKey: 'chatDefaultTimeoutMs', type: 'number' },
+    ],
+  },
+  {
     id: 'rest',
     titleKey: 'rest',
     applies: 'restart',

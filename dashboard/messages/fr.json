@@ -1337,7 +1337,8 @@
       "metadata": "Métadonnées",
       "manage": "Gérer",
       "secure": "Sécuriser",
-      "administer": "Administrer"
+      "administer": "Administrer",
+      "ai": "IA"
     },
     "item": {
       "home": "Accueil",
@@ -1369,7 +1370,17 @@
       "backups": "Sauvegarde",
       "backupsTitle": "Gérer les sauvegardes de la base de données",
       "settings": "Paramètres",
-      "settingsTitle": "Configuration du serveur"
+      "settingsTitle": "Configuration du serveur",
+      "aiChat": "Chat",
+      "aiChatTitle": "Discutez avec vos graphes",
+      "aiEndpoints": "Points de terminaison",
+      "aiEndpointsTitle": "Gérer les points de terminaison LLM",
+      "aiHistory": "Historique du chat",
+      "aiHistoryTitle": "Parcourir les conversations et les tours de chat",
+      "aiFeedback": "Retours",
+      "aiFeedbackTitle": "Consulter les retours du chat",
+      "aiSettings": "Paramètres du chat",
+      "aiSettingsTitle": "Configuration du chat du locataire"
     }
   },
   "secure": {
@@ -1394,7 +1405,8 @@
       "debug": "Débogage",
       "rest": "Serveur REST",
       "database": "Base de données",
-      "security": "Sécurité"
+      "security": "Sécurité",
+      "chat": "Chat"
     },
     "fields": {
       "requestTimeoutSeconds": "Délai d'expiration des requêtes (secondes)",
@@ -1435,7 +1447,14 @@
       "databaseMaxConnections": "Connexions max",
       "adminBearerToken": "Jeton bearer administrateur",
       "encryptionKey": "Clé de chiffrement",
-      "encryptionIv": "IV de chiffrement"
+      "encryptionIv": "IV de chiffrement",
+      "chatEnable": "Activer le chat",
+      "chatMaxRetries": "Nouvelles tentatives max",
+      "chatRetryBackoffMs": "Délai entre tentatives (ms)",
+      "chatMaxToolIterationsCap": "Plafond d'itérations d'outils",
+      "chatMaxConcurrentChats": "Chats simultanés max",
+      "chatSseKeepAliveSeconds": "Keep-alive SSE (secondes)",
+      "chatDefaultTimeoutMs": "Délai d'attente par défaut (ms)"
     },
     "status": {
       "appliedLive": "Appliqué en direct",
@@ -1460,6 +1479,359 @@
       "restartFailed": "Impossible de redémarrer le serveur.",
       "reconnected": "Le serveur est de nouveau en ligne.",
       "reconnectTimeout": "Le serveur n'est pas revenu à temps. Veuillez vérifier son statut."
+    }
+  },
+  "ai": {
+    "chat": {
+      "title": "Chat",
+      "threads": "Conversations",
+      "newThread": "Nouvelle conversation",
+      "noThreads": "Aucune conversation pour le moment",
+      "untitledThread": "Conversation sans titre",
+      "boundToGraph": "Liée à un graphe",
+      "deleteThreadTooltip": "Supprimer la conversation",
+      "deleteThreadTitle": "Supprimer la conversation",
+      "deleteThreadBody": "Voulez-vous vraiment supprimer « {title} » ? Ses tours et ses retours seront également supprimés.",
+      "deleteThreadFailed": "Impossible de supprimer la conversation.",
+      "deleteThreadDone": "Conversation supprimée.",
+      "inputPlaceholder": "Envoyer un message… (Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne)",
+      "sendTooltip": "Envoyer le message",
+      "stopTooltip": "Arrêter la génération",
+      "stopped": "Génération arrêtée.",
+      "emptyTitle": "Démarrer une conversation",
+      "emptyBody": "Posez une question sur vos graphes, ou créez une conversation liée à un graphe pour activer la récupération.",
+      "thinking": "Réflexion",
+      "copyMessage": "Copier le message",
+      "errorTitle": "L'assistant n'a pas pu terminer ce tour",
+      "tools": {
+        "summaryTitle": "{count, plural, one {# appel d'outil} other {# appels d'outils}}",
+        "name": "Outil",
+        "success": "Succès",
+        "runtime": "Durée",
+        "running": "Exécution de {name}…",
+        "finished": "{name} terminé"
+      },
+      "sources": {
+        "title": "{count, plural, one {# source} other {# sources}}",
+        "unnamedNode": "Nœud sans nom",
+        "score": "score {score}"
+      },
+      "feedback": {
+        "up": "Bonne réponse",
+        "down": "Réponse insatisfaisante",
+        "title": "Partager un retour",
+        "submit": "Envoyer",
+        "submitted": "Retour envoyé. Merci !",
+        "failed": "Impossible d'envoyer le retour.",
+        "ratedUp": "Vous avez jugé cette réponse utile.",
+        "ratedDown": "Vous avez jugé cette réponse peu utile.",
+        "commentPlaceholder": "Ajouter un commentaire facultatif…"
+      },
+      "newThreadModal": {
+        "title": "Nouvelle conversation",
+        "create": "Créer",
+        "failed": "Impossible de créer la conversation.",
+        "graphLabel": "Lier à un graphe (facultatif)",
+        "graphPlaceholder": "Sélectionnez un graphe…",
+        "graphHint": "Lorsqu'elle est liée à un graphe, l'assistant peut récupérer des nœuds pertinents comme contexte et utiliser les outils de graphe."
+      },
+      "disabled": {
+        "chatOffTitle": "Le chat est désactivé pour ce locataire",
+        "noEndpointTitle": "Aucun point de terminaison de complétion configuré",
+        "chatOffAdmin": "Activez le chat dans les paramètres du chat du locataire pour utiliser l'assistant.",
+        "chatOffUser": "Le chat a été désactivé par votre administrateur.",
+        "noEndpointAdmin": "Créez un point de terminaison de complétion et définissez-le comme valeur par défaut du locataire pour discuter.",
+        "noEndpointUser": "Demandez à votre administrateur de configurer un point de terminaison LLM pour ce locataire.",
+        "goToEndpoints": "Aller aux points de terminaison",
+        "goToSettings": "Aller aux paramètres du chat"
+      },
+      "status": {
+        "tokens": "Jetons : {prompt} prompt / {completion} complétion",
+        "ttft": "Premier jeton : {ms} ms",
+        "tps": "{tps} jetons/s",
+        "duration": "Total : {ms} ms"
+      }
+    },
+    "endpoints": {
+      "title": "Points de terminaison LLM",
+      "createEndpoint": "Créer un point de terminaison",
+      "createTooltip": "Enregistrer un nouveau point de terminaison LLM",
+      "copyGuid": "Copier le GUID",
+      "columns": {
+        "name": "Nom",
+        "nameDesc": "Nom d'affichage du point de terminaison",
+        "type": "Type",
+        "typeDesc": "Complétion (chat) ou embedding (récupération)",
+        "provider": "Fournisseur",
+        "providerDesc": "Le fournisseur LLM en amont",
+        "model": "Modèle",
+        "modelDesc": "Identifiant de modèle envoyé au fournisseur",
+        "endpoint": "URL du point de terminaison",
+        "endpointDesc": "URL de base de l'API du fournisseur",
+        "concurrency": "Concurrence",
+        "concurrencyDesc": "Nombre maximal de requêtes simultanées",
+        "active": "Actif",
+        "activeDesc": "Si ce point de terminaison peut être utilisé",
+        "health": "Santé",
+        "healthDesc": "État du contrôle en arrière-plan ; cliquez pour les détails",
+        "created": "Créé",
+        "createdDesc": "Heure de création (UTC)"
+      },
+      "types": {
+        "completion": "Complétion",
+        "embedding": "Embedding"
+      },
+      "health": {
+        "notMonitored": "Non surveillé",
+        "healthy": "Sain",
+        "unhealthy": "Défaillant",
+        "pending": "En attente"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "test": "Tester la connectivité",
+        "healthDetail": "Détails de santé",
+        "activate": "Activer",
+        "deactivate": "Désactiver",
+        "delete": "Supprimer",
+        "menu": "Actions du point de terminaison"
+      },
+      "toast": {
+        "updated": "Point de terminaison mis à jour.",
+        "updateFailed": "Impossible de mettre à jour le point de terminaison.",
+        "created": "Point de terminaison créé.",
+        "createFailed": "Impossible de créer le point de terminaison.",
+        "deleted": "Point de terminaison supprimé.",
+        "deleteFailed": "Impossible de supprimer le point de terminaison.",
+        "activated": "Point de terminaison activé.",
+        "deactivated": "Point de terminaison désactivé."
+      },
+      "modal": {
+        "editTitle": "Modifier le point de terminaison",
+        "createTitle": "Créer un point de terminaison",
+        "groupGeneral": "Général",
+        "groupPerformance": "Performances",
+        "groupHealth": "Contrôles de santé"
+      },
+      "form": {
+        "name": "Nom",
+        "namePlaceholder": "p. ex. GPT de production",
+        "nameRequired": "Le nom est requis",
+        "type": "Type de point de terminaison",
+        "typeTooltip": "Les points de complétion répondent au chat ; ceux d’embedding alimentent la récupération",
+        "typeRequired": "Le type de point de terminaison est requis",
+        "provider": "Fournisseur",
+        "providerTooltip": "Seuls les fournisseurs valides pour le type sélectionné sont listés",
+        "providerRequired": "Le fournisseur est requis",
+        "comboAnthropicEmbedding": "Anthropic ne propose pas d'API d'embeddings. Choisissez un autre fournisseur pour les points d'embedding.",
+        "comboVoyageCompletion": "VoyageAI ne propose que des embeddings. Choisissez un autre fournisseur pour les points de complétion.",
+        "endpoint": "URL du point de terminaison",
+        "endpointTooltip": "URL de base absolue http(s) de l'API du fournisseur",
+        "endpointRequired": "L'URL du point de terminaison est requise",
+        "endpointInvalid": "Doit être une URL absolue http ou https",
+        "apiKey": "Clé API",
+        "apiKeyTooltip": "Clé secrète envoyée au fournisseur ; stockée côté serveur",
+        "apiKeyRedactedTooltip": "Affichée masquée ; laissez-la inchangée pour conserver la clé stockée",
+        "apiKeyPlaceholder": "Saisissez la clé API…",
+        "apiKeyRedactedHint": "La clé est affichée masquée. Ne pas la modifier conserve la clé stockée ; saisir une nouvelle valeur la remplace.",
+        "model": "Modèle",
+        "modelTooltip": "Identifiant de modèle tel qu'attendu par le fournisseur",
+        "modelPlaceholder": "p. ex. gpt-4o-mini",
+        "modelRequired": "Le modèle est requis",
+        "maxOutputTokens": "Jetons de sortie max.",
+        "maxOutputTokensTooltip": "Limite supérieure de jetons que le modèle peut générer par tour",
+        "timeoutMs": "Délai d'attente (ms)",
+        "timeoutMsTooltip": "Délai d'attente par requête en millisecondes",
+        "maxConcurrentRequests": "Requêtes simultanées max.",
+        "maxConcurrentRequestsTooltip": "Limite de concurrence appliquée à ce point de terminaison (minimum 1)",
+        "maxConcurrentRequestsMin": "Doit être au moins 1",
+        "active": "Actif",
+        "healthCheckEnabled": "Activer les contrôles de santé",
+        "healthCheckEnabledTooltip": "Sonder périodiquement le point de terminaison en arrière-plan",
+        "healthCheckUrl": "URL du contrôle de santé",
+        "healthCheckUrlTooltip": "URL facultative sondée à la place de la valeur par défaut du fournisseur",
+        "healthCheckUrlPlaceholder": "Par défaut, une URL propre au fournisseur",
+        "healthCheckUseAuth": "Envoyer l'authentification lors des contrôles",
+        "healthCheckUseAuthTooltip": "Inclure la clé API lors du sondage de l'URL de contrôle"
+      },
+      "test": {
+        "title": "Test : {name}",
+        "close": "Fermer",
+        "running": "Test de connectivité en cours…",
+        "failed": "Le test de connectivité n'a pas pu s'exécuter.",
+        "reachable": "Joignable",
+        "yes": "Oui",
+        "no": "Non",
+        "unknown": "Inconnu",
+        "modelExists": "Le modèle existe",
+        "runtime": "Durée",
+        "error": "Erreur",
+        "models": "Modèles"
+      },
+      "healthDetail": {
+        "title": "Santé : {name}",
+        "close": "Fermer",
+        "noData": "Aucune donnée de santé n'est encore disponible pour ce point de terminaison.",
+        "status": "État",
+        "uptime": "Disponibilité (24 h)",
+        "notAvailable": "N/A",
+        "lastChecked": "Dernier contrôle",
+        "consecutiveSuccesses": "Succès consécutifs",
+        "consecutiveFailures": "Échecs consécutifs",
+        "lastError": "Dernière erreur",
+        "historyTitle": "Historique des contrôles (dernières 24 h)",
+        "noHistory": "Aucun contrôle enregistré pour le moment."
+      },
+      "deleteModal": {
+        "title": "Supprimer le point de terminaison « {name} »",
+        "body": "Voulez-vous vraiment supprimer ce point de terminaison ? Les locataires qui l'utilisent par défaut perdront le chat jusqu'à ce qu'un autre soit configuré."
+      }
+    },
+    "history": {
+      "title": "Historique du chat",
+      "subtitle": "Toutes les conversations des utilisateurs de ce locataire. Cliquez sur une conversation pour examiner ses tours.",
+      "untitledThread": "Conversation sans titre",
+      "copyGuid": "Copier le GUID",
+      "noGraph": "Aucun",
+      "backToThreads": "Retour aux conversations",
+      "turnsTitle": "Tours — {title}",
+      "columns": {
+        "title": "Titre",
+        "titleDesc": "Titre de la conversation",
+        "user": "Utilisateur",
+        "userDesc": "GUID de l'utilisateur propriétaire",
+        "graph": "Graphe",
+        "graphDesc": "Graphe auquel la conversation est liée",
+        "created": "Créée",
+        "createdDesc": "Heure de création (UTC)",
+        "updated": "Mise à jour",
+        "updatedDesc": "Heure de la dernière mise à jour (UTC)",
+        "userMessage": "Message de l'utilisateur",
+        "userMessageDesc": "Le message qui a lancé le tour",
+        "success": "Succès",
+        "successDesc": "Si le tour s’est terminé avec succès",
+        "tokens": "Jetons (in/out)",
+        "tokensDesc": "Nombres de jetons prompt / complétion",
+        "duration": "Durée",
+        "durationDesc": "Durée totale du tour",
+        "toolCalls": "Appels d'outils",
+        "toolCallsDesc": "Nombre d'invocations d'outils dans le tour",
+        "turnCreated": "Créé",
+        "turnCreatedDesc": "Heure de création du tour (UTC)"
+      },
+      "turnDetail": {
+        "title": "Détails du tour",
+        "close": "Fermer",
+        "waterfallTitle": "Cascade des étapes",
+        "noTimings": "Aucun minutage d'étape n'a été enregistré pour ce tour.",
+        "stageEmbedding": "Embedding",
+        "stageRetrieval": "Récupération",
+        "stageLimiter": "Attente du limiteur",
+        "stageTtft": "Premier jeton",
+        "stageStreaming": "Streaming",
+        "promptTokens": "Jetons de prompt",
+        "completionTokens": "Jetons de complétion",
+        "tokensPerSecond": "Jetons/s",
+        "retries": "Nouvelles tentatives",
+        "totalDuration": "Durée totale",
+        "status": "État",
+        "success": "Succès",
+        "failed": "Échec",
+        "error": "Erreur",
+        "toolsTitle": "Transcription des outils",
+        "toolName": "Outil",
+        "toolIteration": "Itération",
+        "toolSuccess": "Succès",
+        "toolRuntime": "Durée",
+        "userMessage": "Message de l'utilisateur",
+        "assistantResponse": "Réponse de l'assistant",
+        "copy": "Copier"
+      }
+    },
+    "feedback": {
+      "title": "Retours du chat",
+      "deleteTooltip": "Supprimer le retour",
+      "ratings": {
+        "thumbsUp": "Pouce levé",
+        "thumbsDown": "Pouce baissé"
+      },
+      "columns": {
+        "rating": "Évaluation",
+        "ratingDesc": "Pouce levé ou baissé",
+        "comment": "Commentaire",
+        "commentDesc": "Commentaire facultatif laissé par l'utilisateur",
+        "created": "Créé",
+        "createdDesc": "Heure d'envoi (UTC)",
+        "thread": "Conversation",
+        "threadDesc": "Ouvrir la conversation dans l'historique du chat",
+        "turn": "Tour",
+        "turnDesc": "Le tour évalué"
+      },
+      "toast": {
+        "deleted": "Retour supprimé.",
+        "deleteFailed": "Impossible de supprimer le retour."
+      },
+      "deleteModal": {
+        "title": "Supprimer le retour",
+        "body": "Voulez-vous vraiment supprimer cet enregistrement de retour ?"
+      },
+      "detail": {
+        "title": "Détails du retour",
+        "close": "Fermer",
+        "rating": "Évaluation",
+        "created": "Créé",
+        "comment": "Commentaire",
+        "noComment": "Aucun commentaire fourni",
+        "userMessage": "Message de l'utilisateur",
+        "assistantResponse": "Réponse de l'assistant",
+        "turnMissing": "Le tour évalué n'a pas pu être chargé (il a peut-être été supprimé)."
+      }
+    },
+    "settings": {
+      "title": "Paramètres du chat",
+      "subtitle": "Configuration du chat IA à l'échelle du locataire : points de terminaison par défaut, prompt système, fonctionnalités et limites.",
+      "loading": "Chargement des paramètres du chat…",
+      "loadError": "Impossible de charger les paramètres du chat.",
+      "actions": {
+        "save": "Enregistrer",
+        "discard": "Annuler les modifications"
+      },
+      "toast": {
+        "saved": "Paramètres du chat enregistrés.",
+        "saveFailed": "Impossible d'enregistrer les paramètres du chat."
+      },
+      "sections": {
+        "endpoints": "Points de terminaison par défaut",
+        "prompt": "Prompt système",
+        "features": "Fonctionnalités",
+        "limits": "Limites"
+      },
+      "fields": {
+        "defaultCompletionEndpoint": "Point de complétion par défaut",
+        "defaultCompletionEndpointPlaceholder": "Sélectionnez un point de complétion…",
+        "defaultEmbeddingEndpoint": "Point d'embedding par défaut",
+        "defaultEmbeddingEndpointPlaceholder": "Sélectionnez un point d'embedding…",
+        "systemPrompt": "Prompt système",
+        "systemPromptPlaceholder": "Instructions facultatives ajoutées en tête de chaque conversation…",
+        "enableChat": "Activer le chat",
+        "enableChatHint": "Autoriser les utilisateurs du locataire à utiliser le panneau de chat",
+        "enableTools": "Activer les outils",
+        "enableToolsHint": "Laisser l'assistant appeler des outils de graphe en lecture seule",
+        "enableMutationTools": "Activer les outils de mutation",
+        "enableMutationToolsHint": "Laisser aussi l'assistant créer, modifier et supprimer des données de graphe",
+        "enableRag": "Activer la récupération (RAG)",
+        "enableRagHint": "Récupérer des vecteurs pertinents comme contexte quand une conversation est liée à un graphe",
+        "maxToolIterations": "Itérations d'outils max.",
+        "maxToolIterationsHint": "Nombre maximal d'itérations de la boucle d'outils par tour (minimum 1)",
+        "ragTopK": "Top K de récupération",
+        "ragTopKHint": "Nombre de résultats de recherche vectorielle récupérés (1–100)",
+        "ragScoreThreshold": "Seuil de score de récupération",
+        "ragScoreThresholdHint": "Score de similarité minimal pour le contexte récupéré (-1 à 1)",
+        "maxContextTokens": "Jetons de contexte max.",
+        "maxContextTokensHint": "Budget de jetons pour l'historique des tours précédents dans le prompt (minimum 1024)",
+        "historyRetentionDays": "Rétention de l'historique (jours)",
+        "historyRetentionDaysHint": "Jours de conservation des tours de chat avant purge ; 0 conserve indéfiniment"
+      }
     }
   }
 }
