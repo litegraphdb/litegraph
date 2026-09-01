@@ -609,3 +609,41 @@
 .ant-table-tbody > tr > td {
   padding: 8px 12px !important;
 }
+
+/* Every modal fits the viewport: at most 95% of each axis, anchored 2.5vh from
+   the top, with the body scrolling internally while header/footer stay pinned.
+   Covers LitegraphModal, direct antd Modals, and Modal.confirm dialogs alike. */
+.ant-modal {
+  top: 2.5vh;
+  max-width: 95vw;
+  padding-bottom: 0;
+}
+.ant-modal .ant-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 95vh;
+  overflow: hidden;
+}
+.ant-modal .ant-modal-header,
+.ant-modal .ant-modal-footer {
+  flex-shrink: 0;
+}
+.ant-modal .ant-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+/* Confirm-style dialogs put everything inside the body wrapper; keep the
+   buttons visible and let the message area scroll instead. */
+.ant-modal .ant-modal-confirm-body-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.ant-modal .ant-modal-confirm-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+.ant-modal .ant-modal-confirm-btns {
+  flex-shrink: 0;
+}
