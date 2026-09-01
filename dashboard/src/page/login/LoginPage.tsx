@@ -39,6 +39,7 @@ interface LoginFormData {
 
 const LoginPage = () => {
   const t = useTranslations('login');
+  const urlInputRef = useRef<InputRef | null>(null);
   const emailInputRef = useRef<InputRef | null>(null);
   const passwordInputRef = useRef<InputRef | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -209,6 +210,12 @@ const LoginPage = () => {
   }, [serverUrl]);
 
   useEffect(() => {
+    if (currentStep === 0 && urlInputRef.current) {
+      urlInputRef.current.focus({ cursor: 'end' });
+    }
+  }, [currentStep]);
+
+  useEffect(() => {
     if (currentStep === 1 && emailInputRef.current) {
       emailInputRef.current.focus({ cursor: 'start' });
     }
@@ -254,6 +261,7 @@ const LoginPage = () => {
             <LitegraphInput
               placeholder={t('serverUrlPlaceholder')}
               size="large"
+              ref={urlInputRef}
               disabled={isValidatingConnectivity || currentStep > 0}
               data-testid="litegraph-input"
             />
