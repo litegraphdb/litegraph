@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v8.0.0`.
+Current release: `v8.1.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -19,10 +19,25 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 - Graph-scoped transactions for nodes, edges, labels, tags, and vectors
 - HNSW vector indexing through `HnswLite` `2.0.1`
 - REST server with bearer-token authentication, request history, RBAC, and OpenAPI/Postman assets
+- LLM chat over graph data with five provider types, SSE streaming, an in-process graph tool loop, and vector retrieval
 - MCP server with HTTP, TCP, and WebSocket transports
 - Next.js/React dashboard
 - Official C#, Python, and JavaScript SDKs
 - Docker Compose deployment for PostgreSQL, LiteGraph, MCP, dashboard, Prometheus, and Grafana OSS
+
+## New In v8.1.0
+
+v8.1 lets you talk to your graphs. A chat surface built into the server connects any tenant to an LLM — and the LLM to the graph.
+
+- Bring your own model. Tenants register completion and embedding endpoints for OpenAI (and any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.0. API keys are stored server-side and always come back redacted.
+- The model queries the graph, not the other way around. A curated tool catalog — the same names as the MCP tools — is dispatched in-process under the caller's own tenant and RBAC. Mutations are off unless the tenant opts in; `vector/search` takes plain text and the server embeds it.
+- Grounded answers. Threads bound to a graph get automatic vector retrieval through the tenant's embedding endpoint, with the retrieved nodes visible in the stream and counted in the turn record.
+- Streaming with full telemetry. Responses stream over SSE with delta, thinking, retrieval, tool, usage, and error events. Every turn persists time to first token, tokens per second, per-stage timings, tool transcripts, retries, and a trace ID — even failed turns.
+- Operable from day one. Endpoint health checks with debounced state transitions, `litegraph_chat_*` Prometheus metrics, chat trace spans, a dedicated Grafana chat dashboard, per-tenant chat settings, and a server-side `Chat` policy block in `litegraph.json`.
+- The chat surface reaches the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs.
+- In-place upgrade: the chat tables are created on first boot and nothing existing changes.
+
+See [Chat](docs/CHAT.md) for the architecture and [REST API](docs/REST_API.md) for the routes.
 
 ## New In v8.0.0
 
@@ -88,6 +103,7 @@ See [Graph transactions](docs/TRANSACTIONS.md), [Storage configuration](docs/STO
 - [Native graph query language](docs/DSL.md)
 - [Graph transactions](docs/TRANSACTIONS.md)
 - [RBAC and scoped credentials](docs/RBAC.md)
+- [Chat](docs/CHAT.md)
 - [Observability](docs/OBSERVABILITY.md)
 - [REST API](docs/REST_API.md)
 - [MCP API](docs/MCP_API.md)

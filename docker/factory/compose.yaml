@@ -63,6 +63,13 @@ services:
   # See https://hub.docker.com/r/jchristn77/litegraph
   # and https://github.com/jchristn/LiteGraph
   #
+  # Chat/LLM connectivity: to reach an Ollama (or other OpenAI-compatible)
+  # server running on the Docker host, point chat endpoints at
+  # http://host.docker.internal:11434. Docker Desktop (Windows/macOS) resolves
+  # host.docker.internal automatically; on Linux add
+  # extra_hosts: ['host.docker.internal:host-gateway'] to this service
+  # (equivalent to --add-host=host.docker.internal:host-gateway).
+  #
 
   litegraph:
     container_name: 'litegraph'

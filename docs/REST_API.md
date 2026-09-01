@@ -1114,3 +1114,200 @@ The v2.0 enumeration routes accept an `Enumeration Query` as JSON on POST and eq
 | Vectors       | GET    | /v2.0/tenants/[tenantGuid]/vectors                    |
 | Vectors       | POST   | /v2.0/tenants/[tenantGuid]/vectors                    |
 | Graph vectors | POST   | /v2.0/tenants/[tenantGuid]/graphs/[graphGuid]/vectors |
+
+## Chat APIs
+
+Introduced in v8.1. Chat routes live under `/v1.0/tenants/[tenantGuid]/chat` and use the same authentication as every other route. Authorization splits along two lines: endpoint management, endpoint testing, health reads, feedback administration, chat settings updates, and all-users thread listing require a system administrator or a tenant administrator of the target tenant; completions, own-thread operations, feedback submission, and chat settings reads are open to any authenticated tenant principal. Completions, thread creation, and feedback submission additionally require a **user principal** — a user login or a user-linked credential — because threads and feedback are owned by a user. The break-glass administrator token has no user identity and is rejected with `400` on those routes.
+
+See [CHAT.md](CHAT.md) for the architecture: providers, the tool loop, retrieval, retries, telemetry, and health checking.
+
+### Chat Endpoints
+
+| API                     | Method | URL                                                             |
+|-------------------------|--------|-----------------------------------------------------------------|
+| Create                  | PUT    | /v1.0/tenants/[guid]/chat/endpoints                             |
+| Read many               | GET    | /v1.0/tenants/[guid]/chat/endpoints                             |
+| Read many by type       | GET    | /v1.0/tenants/[guid]/chat/endpoints?endpointType=[type]         |
+| Read health (all)       | GET    | /v1.0/tenants/[guid]/chat/endpoints/health                      |
+| Read health (one)       | GET    | /v1.0/tenants/[guid]/chat/endpoints/[guid]/health               |
+| Read                    | GET    | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
+| Update                  | PUT    | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
+| Delete                  | DELETE | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
+| Exists                  | HEAD   | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
+| Test connectivity       | POST   | /v1.0/tenants/[guid]/chat/endpoints/[guid]/test                 |
+
+`endpointType` is `Completion` or `Embedding`. Create and update take a `ChatEndpoint` body:
+
+```
+{
+    "Name": "Local Ollama",
+    "EndpointType": "Completion",
+    "Provider": "Ollama",
+    "Endpoint": "http://localhost:11434",
+    "ApiKey": null,
+    "Model": "gemma3:4b",
+    "MaxOutputTokens": 4096,
+    "Temperature": 0.7,
+    "TimeoutMs": 120000,
+    "MaxConcurrentRequests": 2,
+    "Active": true,
+    "HealthCheckEnabled": true,
+    "HealthCheckUrl": null,
+    "HealthCheckMethod": "GET",
+    "HealthCheckIntervalMs": 30000,
+    "HealthCheckTimeoutMs": 10000,
+    "HealthCheckExpectedStatusCode": 200,
+    "HealthyThreshold": 2,
+    "UnhealthyThreshold": 2,
+    "HealthCheckUseAuth": false
+}
+```
+
+Validation on create and update returns `400` with a `Description` explaining the failure when: `Name`, `Endpoint`, or `Model` is missing; `Endpoint` is not an absolute `http`/`https` URL; the provider is `Anthropic` with type `Embedding` (Anthropic is completion-only); or the provider is `VoyageAI` with type `Completion` (VoyageAI is embedding-only). Valid providers are `OpenAI` (which also covers any OpenAI-compatible server), `Ollama`, `Gemini`, `Anthropic`, and `VoyageAI`.
+
+**ApiKey redaction contract.** Every response — create, read, list, update — redacts `ApiKey` to eight asterisks plus its last four characters (`"********abcd"`). Sending that redacted placeholder back on update preserves the stored key unchanged; sending a new plaintext value replaces it; sending `null` clears it. Clients therefore never need to hold the plaintext key to round-trip an endpoint object.
+
+`POST .../test` probes the upstream and returns:
+
+```
+{
+    "Reachable": true,
+    "Models": [ "gemma3:4b", "llama3.2:3b" ],
+    "ModelExists": true,
+    "Error": null,
+    "RuntimeMs": 84.2
+}
+```
+
+`Models` and `ModelExists` are omitted for providers without a model-listing API (VoyageAI). The health routes return `ChatEndpointHealth` records with `Monitored`, `Healthy` (null until background monitoring reaches a verdict), `LastCheckedUtc`, `LastError`, consecutive success/failure counts, `UptimePercentage`, and a rolling 24-hour `CheckHistory`.
+
+### Chat Completions
+
+| API        | Method | URL                                     |
+|------------|--------|-----------------------------------------|
+| Completion | POST   | /v1.0/tenants/[guid]/chat/completions   |
+
+The request body:
+
+```
+{
+    "ThreadGUID": null,
+    "GraphGUID": "00000000-0000-0000-0000-000000000000",
+    "Message": "What are the most connected nodes in this graph?",
+    "Stream": false,
+    "CompletionEndpointGUID": null,
+    "EmbeddingEndpointGUID": null,
+    "Temperature": 0.7,
+    "MaxOutputTokens": 4096,
+    "EnableTools": true,
+    "EnableRag": true,
+    "RagTopK": 8,
+    "SystemPrompt": null
+}
+```
+
+A null `ThreadGUID` creates a new thread, bound to `GraphGUID` when supplied; a non-null `ThreadGUID` continues an existing thread (owner or administrator only) and `GraphGUID` is ignored. Endpoint GUIDs default to the tenant chat settings; every nullable field falls back to the endpoint or tenant-settings value. With `Stream` false the response is `200` with a `ChatCompletionResult`:
+
+```
+{
+    "ThreadGUID": "00000000-0000-0000-0000-000000000000",
+    "TurnGUID": "00000000-0000-0000-0000-000000000000",
+    "Message": "The most connected node is Ada (guid 11111111-...), with 14 edges.",
+    "Reasoning": null,
+    "Provider": "Ollama",
+    "Model": "gemma3:4b",
+    "PromptTokens": 812,
+    "CompletionTokens": 96,
+    "TimeToFirstTokenMs": 412.6,
+    "TimeToLastTokenMs": 1873.4,
+    "TotalDurationMs": 2405.1,
+    "TokensPerSecondOverall": 51.2,
+    "ToolCallCount": 2,
+    "ToolLoopIterations": 3,
+    "RetrievedChunkCount": 8,
+    "RetryCount": 0
+}
+```
+
+With `Stream` true the response is `200 text/event-stream`. Every frame is `data: <json>` where the JSON carries an `event` discriminator, and the stream always terminates with `data: [DONE]`:
+
+| Event | Payload | Meaning |
+|---|---|---|
+| `started` | `threadGuid`, `turnGuid` | First frame; identifies the thread and turn before any output |
+| `delta` | `content` | A fragment of assistant text |
+| `thinking` | `content` | A fragment of model reasoning text, when the model emits any |
+| `retrieval` | `chunks: [{nodeGuid, name, score}]` | The vector-retrieval results injected into the prompt |
+| `tool_call` | `name`, `arguments` (JSON string), `iteration` | The model invoked a tool |
+| `tool_result` | `name`, `success`, `error`, `runtimeMs` | The server executed the tool |
+| `usage` | `usage` (a `ChatCompletionResult`) | Final telemetry frame on success |
+| `error` | `message`, optional `statusCode` | The turn failed; `statusCode` carries the upstream status when known |
+
+Comment keep-alive frames are emitted every `SseKeepAliveSeconds` (server setting) so idle proxies do not sever long generations.
+
+Completion error responses:
+
+| Status | Cause |
+|---|---|
+| `400` | Missing `Message`, no user principal, or no completion endpoint resolves from the request or the tenant defaults (or it is missing, inactive, or not a completion endpoint) |
+| `403` | The tenant's chat settings have `EnableChat` false, or the thread belongs to another user |
+| `404` | The supplied `ThreadGUID` does not exist |
+| `429` | The server is at its `MaxConcurrentChats` capacity |
+| `502` | The upstream provider failed after all pre-first-token retries |
+| `503` | Chat is disabled server-wide (`Chat.Enable` false in `litegraph.json`) |
+
+On a streaming connection these surface as an `error` event rather than an HTTP status once the stream has opened. Failed turns are persisted with `Success=false` and the upstream status and error, so the failure is visible in the thread's turn history.
+
+### Chat Threads
+
+| API             | Method | URL                                              |
+|-----------------|--------|--------------------------------------------------|
+| Create          | PUT    | /v1.0/tenants/[guid]/chat/threads                |
+| Read many (own) | GET    | /v1.0/tenants/[guid]/chat/threads                |
+| Read many (all) | GET    | /v1.0/tenants/[guid]/chat/threads?all            |
+| Read            | GET    | /v1.0/tenants/[guid]/chat/threads/[guid]         |
+| Read turns      | GET    | /v1.0/tenants/[guid]/chat/threads/[guid]/turns   |
+| Delete          | DELETE | /v1.0/tenants/[guid]/chat/threads/[guid]         |
+
+Create takes an optional body of `{ "GraphGUID": ..., "Title": ... }`; the caller becomes the owner, and a missing title is generated from the first exchange. The plain list returns the caller's own threads; the valueless `all` flag returns every user's threads and requires an administrator. Read, turns, and delete are available to the owner or an administrator. Deleting a thread removes its turns and their feedback. Turns are returned ascending by `Sequence` as full `ChatTurn` objects, including all telemetry columns plus `ToolTranscriptJson` and `TelemetryJson` — see [CHAT.md](CHAT.md) for the field-by-field reference.
+
+### Chat Feedback
+
+| API       | Method | URL                                              |
+|-----------|--------|--------------------------------------------------|
+| Submit    | POST   | /v1.0/tenants/[guid]/chat/turns/[guid]/feedback  |
+| Read many | GET    | /v1.0/tenants/[guid]/chat/feedback               |
+| Read      | GET    | /v1.0/tenants/[guid]/chat/feedback/[guid]        |
+| Delete    | DELETE | /v1.0/tenants/[guid]/chat/feedback/[guid]        |
+
+Submission takes `{ "Rating": "ThumbsUp" | "ThumbsDown", "FeedbackText": "optional comment" }` and requires a user principal. Listing, reading, and deleting feedback are administrator operations.
+
+### Chat Settings
+
+| API    | Method | URL                                  |
+|--------|--------|--------------------------------------|
+| Read   | GET    | /v1.0/tenants/[guid]/chat/settings   |
+| Update | PUT    | /v1.0/tenants/[guid]/chat/settings   |
+
+One settings record exists per tenant. Read is open to any authenticated tenant principal and returns the defaults when no record has been saved:
+
+```
+{
+    "TenantGUID": "00000000-0000-0000-0000-000000000000",
+    "DefaultCompletionEndpointGUID": null,
+    "DefaultEmbeddingEndpointGUID": null,
+    "SystemPrompt": null,
+    "EnableChat": true,
+    "EnableTools": true,
+    "EnableMutationTools": false,
+    "MaxToolIterations": 10,
+    "EnableRag": true,
+    "RagTopK": 8,
+    "RagScoreThreshold": 0,
+    "MaxContextTokens": 16384,
+    "HistoryRetentionDays": 90,
+    "CreatedUtc": "2026-08-31T00:00:00.000000Z",
+    "LastUpdateUtc": "2026-08-31T00:00:00.000000Z"
+}
+```
+
+Update is an administrator upsert of the full object. The default endpoint GUIDs are validated for existence and type — the completion default must reference an existing `Completion` endpoint and the embedding default an existing `Embedding` endpoint, otherwise the update is rejected with `400`.

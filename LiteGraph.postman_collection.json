@@ -71,7 +71,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -91,7 +92,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -161,7 +163,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -232,7 +235,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -267,7 +271,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									],
 									"query": [
 										{
@@ -293,7 +298,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"export",
 										"gexf"
 									],
@@ -515,7 +521,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"existence"
 									]
 								}
@@ -541,7 +548,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes"
 									]
 								}
@@ -562,7 +570,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -584,7 +593,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"784cfa37-fb06-4f81-b10d-f1167dfe2b22"
 									]
@@ -621,7 +631,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes"
 									]
 								}
@@ -657,7 +668,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -694,7 +706,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -731,7 +744,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"search"
 									]
@@ -768,7 +782,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"ffffffff-ffff-ffff-ffff-ffffffffffff"
 									]
@@ -805,7 +820,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"all"
 									]
@@ -842,7 +858,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -869,7 +886,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges"
 									]
 								}
@@ -890,7 +908,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -912,7 +931,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"3a35b214-150e-442e-bb4e-3515b3fa7cfe"
 									]
@@ -949,7 +969,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges"
 									]
 								}
@@ -985,7 +1006,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"multiple"
 									]
@@ -1022,7 +1044,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"ffffffff-ffff-ffff-ffff-ffffffffffff"
 									]
@@ -1059,7 +1082,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"search"
 									]
@@ -1096,7 +1120,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -1133,7 +1158,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"all"
 									]
@@ -1170,7 +1196,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"all"
 									]
@@ -1212,7 +1239,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"routes"
 									]
 								}
@@ -1233,7 +1261,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"edges",
@@ -1257,7 +1286,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"22222222-2222-2222-2222-222222222222",
 										"edges",
@@ -1281,7 +1311,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"between"
 									],
@@ -1313,7 +1344,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"edges"
@@ -1336,7 +1368,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"neighbors"
@@ -1359,7 +1392,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"parents"
@@ -1382,7 +1416,8 @@
 									"port": "{{port}}",
 									"path": [
 										"v1.0",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"children"
@@ -2310,7 +2345,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -2385,7 +2421,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -2422,7 +2459,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									],
 									"query": [
 										{
@@ -2450,7 +2488,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"export",
 										"gexf"
 									],
@@ -2682,7 +2721,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"existence"
 									]
 								}
@@ -2710,7 +2750,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes"
 									]
 								}
@@ -2733,7 +2774,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -2757,7 +2799,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"784cfa37-fb06-4f81-b10d-f1167dfe2b22"
 									]
@@ -2796,7 +2839,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes"
 									]
 								}
@@ -2834,7 +2878,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -2873,7 +2918,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"d8b4c1b6-7913-4216-a326-2aedc57360f8"
 									]
@@ -2912,7 +2958,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"search"
 									]
@@ -2951,7 +2998,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"4e3ee872-26e1-4ca7-bcf7-cc439dbef954"
 									]
@@ -2990,7 +3038,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"all"
 									]
@@ -3029,7 +3078,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"multiple"
 									]
@@ -3058,7 +3108,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges"
 									]
 								}
@@ -3081,7 +3132,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -3105,7 +3157,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"3a35b214-150e-442e-bb4e-3515b3fa7cfe"
 									]
@@ -3144,7 +3197,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges"
 									]
 								}
@@ -3182,7 +3236,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"multiple"
 									]
@@ -3221,7 +3276,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"ffffffff-ffff-ffff-ffff-ffffffffffff"
 									]
@@ -3260,7 +3316,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"search"
 									]
@@ -3299,7 +3356,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"11111111-1111-1111-1111-111111111111"
 									]
@@ -3338,7 +3396,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"all"
 									]
@@ -3377,7 +3436,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"all"
 									]
@@ -3421,7 +3481,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"routes"
 									]
 								}
@@ -3444,7 +3505,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"3c741e8d-56c7-420d-a0d6-baf69b931bab",
 										"edges",
@@ -3470,7 +3532,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"22222222-2222-2222-2222-222222222222",
 										"edges",
@@ -3496,7 +3559,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"between"
 									],
@@ -3530,7 +3594,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"edges"
@@ -3555,7 +3620,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"neighbors"
@@ -3580,7 +3646,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"parents"
@@ -3605,7 +3672,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"11111111-1111-1111-1111-111111111111",
 										"children"
@@ -5066,7 +5134,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -5178,7 +5247,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -5215,7 +5285,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									],
 									"query": [
 										{
@@ -8050,7 +8121,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -8075,7 +8147,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -8153,7 +8226,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"labels",
 										"all"
 									]
@@ -8192,7 +8266,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"labels"
 									]
 								}
@@ -8230,7 +8305,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -8270,7 +8346,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"labels"
@@ -8718,7 +8795,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8743,7 +8821,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8821,7 +8900,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"tags",
 										"all"
 									]
@@ -8860,7 +8940,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"tags"
 									]
 								}
@@ -8898,7 +8979,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -8938,7 +9020,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
@@ -9374,7 +9457,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectors",
 										"all"
 									]
@@ -9398,7 +9482,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectors"
 									]
 								}
@@ -9421,7 +9506,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9446,7 +9532,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9524,7 +9611,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectors",
 										"all"
 									]
@@ -9563,7 +9651,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectors"
 									]
 								}
@@ -9601,7 +9690,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9641,7 +9731,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"edges",
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
@@ -9919,7 +10010,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -10069,7 +10161,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									]
 								}
 							},
@@ -10106,7 +10199,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}"
+										"graphs",
+										"{{graph}}"
 									],
 									"query": [
 										{
@@ -11094,7 +11188,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"all"
 									]
@@ -11118,7 +11213,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"mostconnected"
 									]
@@ -11142,7 +11238,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"leastconnected"
 									]
@@ -11835,7 +11932,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"nodes",
 										"00000000-0000-0000-0000-000000000000",
 										"edges"
@@ -12460,7 +12558,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectorindex",
 										"config"
 									]
@@ -12484,7 +12583,8 @@
 										"v1.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectorindex",
 										"stats"
 									]
@@ -12517,7 +12617,8 @@
 										"v2.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectorindex",
 										"enable"
 									]
@@ -12550,7 +12651,8 @@
 										"v2.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectorindex",
 										"rebuild"
 									]
@@ -12583,7 +12685,8 @@
 										"v2.0",
 										"tenants",
 										"{{tenant}}",
-										"graphs", "{{graph}}",
+										"graphs",
+										"{{graph}}",
 										"vectorindex"
 									]
 								}
@@ -12762,6 +12865,723 @@
 			]
 		},
 		{
+			"name": "v8.1",
+			"item": [
+				{
+					"name": "Chat",
+					"item": [
+						{
+							"name": "Endpoints",
+							"item": [
+								{
+									"name": "Create endpoint",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Creates a chat endpoint. EndpointType is Completion or Embedding; Provider is OpenAI (also any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion only), or VoyageAI (embedding only). Name, Endpoint (absolute http/https URL), and Model are required. Anthropic embedding endpoints and VoyageAI completion endpoints are rejected with 400. The ApiKey is stored but redacted to its last four characters in every response. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"Name\": \"Local Ollama\",\n  \"EndpointType\": \"Completion\",\n  \"Provider\": \"Ollama\",\n  \"Endpoint\": \"http://localhost:11434\",\n  \"ApiKey\": null,\n  \"Model\": \"gemma3:4b\",\n  \"MaxOutputTokens\": 4096,\n  \"Temperature\": 0.7,\n  \"TimeoutMs\": 120000,\n  \"MaxConcurrentRequests\": 2,\n  \"Active\": true,\n  \"HealthCheckEnabled\": true,\n  \"HealthCheckUrl\": null,\n  \"HealthCheckMethod\": \"GET\",\n  \"HealthCheckIntervalMs\": 30000,\n  \"HealthCheckTimeoutMs\": 10000,\n  \"HealthCheckExpectedStatusCode\": 200,\n  \"HealthyThreshold\": 2,\n  \"UnhealthyThreshold\": 2,\n  \"HealthCheckUseAuth\": false\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read all endpoints",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists every chat endpoint in the tenant with ApiKey values redacted. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read endpoints by type",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists chat endpoints filtered by type. Use endpointType=Completion or endpointType=Embedding. ApiKey values are redacted. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints?endpointType=Embedding",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints"
+											],
+											"query": [
+												{
+													"key": "endpointType",
+													"value": "Embedding",
+													"description": "Filter by endpoint type: Completion or Embedding."
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read endpoint",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads a single chat endpoint by GUID with the ApiKey redacted. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Endpoint exists",
+									"request": {
+										"method": "HEAD",
+										"header": [],
+										"description": "Checks whether a chat endpoint exists. Returns 200 with no body when present, 404 otherwise. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update endpoint",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Updates a chat endpoint with a full object. Sending back the redacted ApiKey placeholder (********abcd) preserves the stored key; supply a new plaintext value to replace it. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"Name\": \"Local Ollama\",\n  \"EndpointType\": \"Completion\",\n  \"Provider\": \"Ollama\",\n  \"Endpoint\": \"http://localhost:11434\",\n  \"ApiKey\": \"********abcd\",\n  \"Model\": \"gemma3:4b\",\n  \"MaxOutputTokens\": 4096,\n  \"Temperature\": 0.7,\n  \"TimeoutMs\": 120000,\n  \"MaxConcurrentRequests\": 2,\n  \"Active\": true,\n  \"HealthCheckEnabled\": true,\n  \"HealthCheckUrl\": null,\n  \"HealthCheckMethod\": \"GET\",\n  \"HealthCheckIntervalMs\": 30000,\n  \"HealthCheckTimeoutMs\": 10000,\n  \"HealthCheckExpectedStatusCode\": 200,\n  \"HealthyThreshold\": 2,\n  \"UnhealthyThreshold\": 2,\n  \"HealthCheckUseAuth\": false,\n  \"GUID\": \"{{chatEndpointGuid}}\",\n  \"TenantGUID\": \"{{tenant}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete endpoint",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"description": "Deletes a chat endpoint. Tenant chat settings that referenced it as a default no longer resolve, so completions fall back to explicit endpoint GUIDs in the request. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Test endpoint",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"description": "Probes the upstream endpoint and returns { Reachable, Models, ModelExists, Error, RuntimeMs }. Models and ModelExists are populated for providers with a model-listing API and omitted for VoyageAI. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}/test",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}",
+												"test"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read health (all endpoints)",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Returns background health status for every chat endpoint in the tenant: Monitored, Healthy (null until a verdict is reached), consecutive successes/failures, uptime percentage, and a 24-hour probe history. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/health",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"health"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read health (one endpoint)",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Returns background health status for a single chat endpoint. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}/health",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}",
+												"health"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Completions",
+							"item": [
+								{
+									"name": "Completion",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Runs a chat completion and returns a single JSON ChatCompletionResult with the assistant message, provider, model, token counts, timing, tool-call counts, retrieval counts, and retry count. A null ThreadGUID creates a new thread (bound to GraphGUID when supplied); endpoint GUIDs default to the tenant chat settings. Requires a user principal (user login or user-linked credential); the break-glass admin token is rejected with 400.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/completions",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"completions"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"ThreadGUID\": null,\n  \"GraphGUID\": \"{{graph}}\",\n  \"Message\": \"What are the most connected nodes in this graph?\",\n  \"Stream\": false,\n  \"CompletionEndpointGUID\": \"{{chatEndpointGuid}}\",\n  \"EmbeddingEndpointGUID\": null,\n  \"Temperature\": 0.7,\n  \"MaxOutputTokens\": 4096,\n  \"EnableTools\": true,\n  \"EnableRag\": true,\n  \"RagTopK\": 8,\n  \"SystemPrompt\": null\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Completion (streaming)",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Runs a chat completion with Stream=true and returns text/event-stream. Each SSE frame is 'data: <json>' where the json carries an 'event' discriminator: 'started' ({threadGuid, turnGuid}), 'delta' ({content}) for assistant text, 'thinking' ({content}) for model reasoning, 'retrieval' ({chunks:[{nodeGuid, name, score}]}) when vector RAG ran, 'tool_call' ({name, arguments, iteration}) and 'tool_result' ({name, success, error, runtimeMs}) for each tool invocation, 'usage' ({usage: ChatCompletionResult}) as the final telemetry frame, and 'error' ({message, statusCode}) on failure. The stream always ends with 'data: [DONE]'. Requires a user principal.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/completions",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"completions"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"ThreadGUID\": null,\n  \"GraphGUID\": \"{{graph}}\",\n  \"Message\": \"What are the most connected nodes in this graph?\",\n  \"Stream\": true,\n  \"CompletionEndpointGUID\": \"{{chatEndpointGuid}}\",\n  \"EmbeddingEndpointGUID\": null,\n  \"Temperature\": 0.7,\n  \"MaxOutputTokens\": 4096,\n  \"EnableTools\": true,\n  \"EnableRag\": true,\n  \"RagTopK\": 8,\n  \"SystemPrompt\": null\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Threads",
+							"item": [
+								{
+									"name": "Create thread",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Creates a chat thread owned by the caller. The body is optional; GraphGUID binds the conversation to a graph (enabling retrieval), and Title is generated from the first exchange when omitted. Requires a user principal.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/threads",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"threads"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"GraphGUID\": \"{{graph}}\",\n  \"Title\": \"Exploring the default graph\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read threads",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists the caller's own chat threads. Append the valueless 'all' flag (/chat/threads?all) to list every user's threads; that form requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/threads",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"threads"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read thread",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads a single chat thread. Accessible to the thread owner or an administrator.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/threads/{{chatThreadGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"threads",
+												"{{chatThreadGuid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read thread turns",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists the thread's turns ascending by Sequence. Each turn is the full ChatTurn record including per-stage telemetry (embedding, retrieval, limiter wait, TTFT, TTLT, tokens per second), token counts, retry count, ToolTranscriptJson, and TelemetryJson. Accessible to the thread owner or an administrator.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/threads/{{chatThreadGuid}}/turns",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"threads",
+												"{{chatThreadGuid}}",
+												"turns"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete thread",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"description": "Deletes a chat thread along with its turns and any feedback attached to them. Accessible to the thread owner or an administrator.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/threads/{{chatThreadGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"threads",
+												"{{chatThreadGuid}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Feedback",
+							"item": [
+								{
+									"name": "Submit feedback",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Submits a rating for a single assistant turn. Rating is ThumbsUp or ThumbsDown; FeedbackText is optional free text. Requires a user principal.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/turns/{{chatTurnGuid}}/feedback",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"turns",
+												"{{chatTurnGuid}}",
+												"feedback"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"Rating\": \"ThumbsUp\",\n  \"FeedbackText\": \"Accurate answer with correct node references.\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read all feedback",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists all feedback in the tenant. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/feedback",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"feedback"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read feedback",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads a single feedback record. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/feedback/{{chatFeedbackGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"feedback",
+												"{{chatFeedbackGuid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete feedback",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"description": "Deletes a feedback record. Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/feedback/{{chatFeedbackGuid}}",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"feedback",
+												"{{chatFeedbackGuid}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Chat Settings",
+							"item": [
+								{
+									"name": "Read chat settings",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads the tenant's chat settings. When no record exists yet, the defaults are returned (EnableChat true, EnableTools true, EnableMutationTools false, MaxToolIterations 10, EnableRag true, RagTopK 8, MaxContextTokens 16384, HistoryRetentionDays 90). Readable by any authenticated tenant principal.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/settings",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"settings"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update chat settings",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Upserts the tenant's chat settings. Default endpoint GUIDs are validated for existence and type (the completion default must be a Completion endpoint, the embedding default an Embedding endpoint). Requires SystemAdmin or TenantAdmin.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/settings",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"settings"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"TenantGUID\": \"{{tenant}}\",\n  \"DefaultCompletionEndpointGUID\": \"{{chatEndpointGuid}}\",\n  \"DefaultEmbeddingEndpointGUID\": null,\n  \"SystemPrompt\": null,\n  \"EnableChat\": true,\n  \"EnableTools\": true,\n  \"EnableMutationTools\": false,\n  \"MaxToolIterations\": 10,\n  \"EnableRag\": true,\n  \"RagTopK\": 8,\n  \"RagScoreThreshold\": 0,\n  \"MaxContextTokens\": 16384,\n  \"HistoryRetentionDays\": 90\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					],
+					"description": "LLM chat over graph data: tenant-managed completion and embedding endpoints (OpenAI and OpenAI-compatible, Ollama, Gemini, Anthropic completion-only, VoyageAI embedding-only), completions with SSE streaming, an in-process graph tool loop, optional vector retrieval, threads and turns with per-stage telemetry, feedback, and per-tenant settings."
+				}
+			]
+		},
+		{
 			"name": "Root",
 			"request": {
 				"method": "GET",
@@ -12905,6 +13725,26 @@
 			"value": "default",
 			"type": "string",
 			"disabled": true
+		},
+		{
+			"key": "chatEndpointGuid",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "chatThreadGuid",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "chatTurnGuid",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "chatFeedbackGuid",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
 		}
 	]
 }

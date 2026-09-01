@@ -1,5 +1,49 @@
 # LiteGraph Observability
 
+## v8.1 — Chat Metrics, Traces, And Dashboard
+
+The chat feature ships fully instrumented from day one: every completion, tool call, retrieval, embedding request, retry, feedback submission, and endpoint health probe is measured. Labels stay low-cardinality on purpose — `provider`, `model`, `tool` (a fixed catalog), `endpoint` (endpoint name, a small tenant-managed set), `streamed`, `status_class`, `success`, `rating`, `to_state` — while per-turn GUIDs, exact timings, and transcripts live on trace spans and the persisted `ChatTurn` record instead of metric labels.
+
+**Chat metric inventory.** All series carry the `component` label; the additional labels per family are listed below.
+
+| Metric | Type | Labels | Meaning |
+|---|---|---|---|
+| `litegraph_chat_requests_total` | counter | `provider`, `model`, `streamed`, `status_class` | Chat completion requests processed |
+| `litegraph_chat_request_errors_total` | counter | `provider`, `model`, `streamed`, `status_class` | Completion requests that ended in an error (status >= 400) |
+| `litegraph_chat_request_duration_ms` | histogram | `provider`, `model`, `streamed`, `status_class` | Total turn duration, all stages included |
+| `litegraph_chat_ttft_ms` | histogram | `provider`, `model` | Time to first token on the final inference call |
+| `litegraph_chat_tokens_prompt_total` | counter | `provider`, `model` | Prompt tokens consumed, as reported by the provider |
+| `litegraph_chat_tokens_completion_total` | counter | `provider`, `model` | Completion tokens produced, as reported by the provider |
+| `litegraph_chat_tokens_per_second` | histogram | `provider`, `model` | Overall tokens per second per turn |
+| `litegraph_chat_tool_iterations` | histogram | `provider`, `model` | Tool loop iterations per turn (1 means no tool use) |
+| `litegraph_chat_retries_total` | counter | `provider` | Pre-first-token provider retries |
+| `litegraph_chat_tool_calls_total` | counter | `tool`, `success` | Tool calls executed by the in-process dispatcher |
+| `litegraph_chat_tool_duration_ms` | histogram | `tool`, `success` | Tool call execution duration |
+| `litegraph_chat_rag_duration_ms` | histogram | — | Retrieval stage duration (embedding plus vector search) |
+| `litegraph_chat_embedding_requests_total` | counter | `provider`, `model`, `success` | Embedding requests (retrieval and the `vector/search` tool) |
+| `litegraph_chat_embedding_duration_ms` | histogram | `provider`, `model`, `success` | Embedding request duration |
+| `litegraph_chat_feedback_total` | counter | `rating` | Feedback submissions, split ThumbsUp/ThumbsDown |
+| `litegraph_chat_healthcheck_duration_ms` | histogram | `endpoint`, `endpoint_type`, `success` | Endpoint health probe duration |
+| `litegraph_chat_healthcheck_transitions_total` | counter | `endpoint`, `to_state` | Health state transitions (`healthy`/`unhealthy`) |
+| `litegraph_chat_endpoint_healthy` | gauge | `endpoint`, `endpoint_type` | Current health state, 1 healthy / 0 unhealthy; the series is removed when an endpoint is deleted or unmonitored |
+| `litegraph_chat_active` | gauge | — | Chat completions currently in flight |
+
+The same instruments are exposed through the .NET `Meter` under `litegraph.chat.*` names (`litegraph.chat.requests`, `litegraph.chat.ttft`, `litegraph.chat.tool.calls`, and so on) for OpenTelemetry consumers, including the built-in OTLP exporter.
+
+**Chat trace spans.** A completion turn produces a span tree under the REST request activity:
+
+- `chat.turn` (internal) — the whole turn. Tags: `litegraph.tenant.guid`, `litegraph.chat.thread.guid`, `litegraph.chat.turn.guid`, `litegraph.chat.provider`, `litegraph.chat.model`, `litegraph.chat.streamed`; on completion `litegraph.chat.success`, `litegraph.chat.tool.calls`, `litegraph.chat.tokens.prompt`, `litegraph.chat.tokens.completion`, `litegraph.chat.retries`, and `litegraph.chat.error` on failure.
+- `chat.rag.search` (internal) — the retrieval stage. Tags: `litegraph.chat.rag.results`, and `litegraph.chat.rag.error` when retrieval failed non-fatally.
+- `chat.rag.embed` (client) — each embedding request. Tags: `litegraph.chat.provider`, `litegraph.chat.model`.
+- `chat.llm.request` (client) — each provider inference call, one per attempt. Tags: `litegraph.chat.provider`, `litegraph.chat.model`, `litegraph.chat.attempt`.
+- `chat.tool.execute` (internal) — each tool call. Tags: `litegraph.chat.tool`, `litegraph.chat.tool.success`.
+
+The turn record stores the active trace ID as `TraceId`, so a slow or failed turn in the dashboard's history view links directly to its distributed trace.
+
+**Dashboard.** A dedicated **LiteGraph Chat** Grafana dashboard is provisioned alongside the existing observability dashboard, covering request rate and errors, TTFT and duration percentiles, token throughput and consumption, tool-call rate by tool, endpoint health and probe failures, retries, and the feedback ratio.
+
+---
+
 ## v8.0 — REST And MCP Metrics, And Logs In Grafana
 
 v8.0 closed the remaining gaps: every REST route and every MCP tool is measured, and logs reach Grafana.

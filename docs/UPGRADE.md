@@ -1,5 +1,13 @@
 # LiteGraph Upgrade Guide
 
+## Upgrading From v8.0 To v8.1 (In-Place)
+
+v8.1 adds the LLM chat feature and changes nothing that already exists, so this is a routine in-place upgrade: stop the server, deploy the new binaries (or bump the Docker image tags to `v8.1.0`), and start it again. On first boot the schema initializer creates the new chat tables — endpoints, threads, turns, feedback, and settings — alongside the existing schema on both SQLite and PostgreSQL. No existing table is altered and no data migration runs. A v8.0 database opened by v8.1 simply gains the empty chat tables. Rolling back is equally simple — restore the previous binaries; the extra tables sit unused. Take the usual pre-upgrade backup regardless.
+
+Chat is enabled by default but inert until configured: no completion runs until a tenant administrator creates a chat endpoint and either sets it as the tenant default or passes it explicitly. Operators who want the feature off entirely can set `Chat.Enable` to `false` in `litegraph.json` — the new `Chat` block and its defaults are documented in [SETTINGS.md](SETTINGS.md). A missing `Chat` block is fine; defaults apply.
+
+---
+
 ## Upgrading To v8.0 (Breaking)
 
 v8.0 changes the account model and the schema, so it is a clean break rather than an in-place migration. Plan for a fresh v8 deployment and move data across with the JSONL interchange that shipped in v7.1.

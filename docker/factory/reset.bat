@@ -81,6 +81,7 @@ copy /y "%FACTORY_DIR%grafana\\provisioning\\datasources\\litegraph-prometheus.y
 copy /y "%FACTORY_DIR%grafana\\provisioning\\dashboards\\litegraph.yml" "%DOCKER_DIR%grafana\\provisioning\\dashboards\\litegraph.yml" >nul
 mkdir "%REPO_DIR%assets\\grafana" 2>nul
 copy /y "%FACTORY_DIR%assets\\grafana\\litegraph-observability-dashboard.json" "%REPO_DIR%assets\\grafana\\litegraph-observability-dashboard.json" >nul
+copy /y "%FACTORY_DIR%assets\\grafana\\litegraph-chat.json" "%REPO_DIR%assets\\grafana\\litegraph-chat.json" >nul
 echo         Restored compose.yaml, Prometheus, Grafana, litegraph.json, and litegraph-mcp.json
 
 echo [4/5] Clearing runtime directories...

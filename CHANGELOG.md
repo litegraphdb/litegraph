@@ -2,6 +2,48 @@
 
 ## Current Version
 
+v8.1.0
+
+v8.1 adds LLM chat over graph data. It is a non-breaking, in-place upgrade: the chat tables are created on first boot and nothing existing is altered.
+
+- Chat endpoints
+  - Added tenant-managed completion and embedding endpoints across five provider types: OpenAI (covering any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.0.
+  - Validated provider/type pairings at create and update (Anthropic embedding and VoyageAI completion endpoints are rejected) and redacted stored API keys to their last four characters in every response; sending the redacted placeholder back on update preserves the stored key.
+  - Added on-demand connectivity testing with model listing and configured-model verification where the provider supports it.
+
+- Chat completions
+  - Added `POST /chat/completions` with buffered JSON and SSE streaming responses; the SSE vocabulary covers started, delta, thinking, retrieval, tool_call, tool_result, usage, and error events with a `[DONE]` terminator and keep-alive frames.
+  - Added an in-process tool loop over a curated catalog of 23 read tools and 9 opt-in mutation tools whose names mirror the MCP catalog; every tool call executes under the caller's tenant and RBAC, and `vector/search` accepts natural-language text that the server embeds.
+  - Added optional vector RAG: thread-bound graphs get automatic retrieval through the tenant embedding endpoint with configurable top-K and score threshold.
+  - Consumed providers streaming-first on every turn so token usage, time to first token, and tokens per second are captured even for buffered responses; retries apply only before the first token, with exponential backoff.
+  - Bounded concurrency with a server-wide cap (429 beyond it) and per-endpoint limiters.
+
+- Threads, turns, and feedback
+  - Added user-owned chat threads, optionally bound to a graph, with automatic title generation and history assembly under a per-tenant context token budget.
+  - Persisted every turn — including failed ones — with per-stage telemetry: embedding, retrieval, limiter wait, connection, TTFT, TTLT, tokens per second, tool transcript, retry count, and trace ID.
+  - Added per-turn thumbs-up/thumbs-down feedback with optional text, submitted by users and administered by admins.
+  - Added retention pruning of old turns per the tenant's `HistoryRetentionDays`.
+
+- Endpoint health
+  - Added background health checks per endpoint with configurable probe URL, method, interval, timeout, expected status, and debounced healthy/unhealthy thresholds, plus health read routes with uptime and 24-hour probe history.
+
+- Observability
+  - Added the `litegraph_chat_*` Prometheus metric family (requests, errors, durations, TTFT, token counters, tokens per second, tool calls and durations, iterations, RAG and embedding timings, retries, feedback, health probes and transitions, endpoint health gauge, in-flight gauge) with low-cardinality labels.
+  - Added chat trace spans (`chat.turn`, `chat.llm.request`, `chat.tool.execute`, `chat.rag.embed`, `chat.rag.search`) carrying the high-cardinality detail, and a dedicated LiteGraph Chat Grafana dashboard.
+
+- Settings
+  - Added per-tenant chat settings (default endpoints, system prompt, tool/mutation/RAG policy, context budget, retention) over `GET`/`PUT /chat/settings`, with defaults returned when no record exists.
+  - Added the server-side `Chat` block to `litegraph.json` (enable, retries, backoff, tool iteration cap, concurrency cap, SSE keep-alive, default timeout), read at startup.
+
+- Surfaces
+  - Exposed chat across the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs.
+  - Added chat coverage to the Postman collection and documented the feature in `docs/CHAT.md`, the REST API reference, and the observability, settings, and upgrade guides.
+
+- Dependencies
+  - Added PolyPrompt 2.4.0.
+
+## Previous Versions
+
 v8.0.0
 
 **Breaking change.** v8.0 replaces the separate administrator and user split with a single account model, unifies the two logins and two dashboards into one, and finishes the observability story. Existing v7 databases are not upgraded in place — see the upgrade notes below.
