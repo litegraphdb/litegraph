@@ -8355,6 +8355,46 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Enumerate in graph",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Enumerates labels scoped to a single graph using the v2.0 enumeration API. The request body is an enumeration query supporting ordering, paging via MaxResults/Skip/ContinuationToken, and optional Labels, Tags, and Expr filters. Returns an enumeration result containing matching label records within the specified graph only.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/labels",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"labels"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Ordering\": \"CreatedDescending\",\n  \"IncludeData\": false,\n  \"IncludeSubordinates\": false,\n  \"MaxResults\": 5,\n  \"Skip\": 0,\n  \"ContinuationToken\": null,\n  \"Labels\": [ ],\n  \"Tags\": { },\n  \"Expr\": { }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -8690,7 +8730,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/tags/00000000-0000-0000-0000-000000000000",
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/tags/bulk",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{hostname}}"
@@ -8701,7 +8741,7 @@
 										"tenants",
 										"{{tenant}}",
 										"tags",
-										"00000000-0000-0000-0000-000000000000"
+										"bulk"
 									]
 								}
 							},
@@ -9026,6 +9066,46 @@
 										"00000000-0000-0000-0000-000000000000",
 										"tags"
 									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate in graph",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Enumerates tags scoped to a single graph using the v2.0 enumeration API. The request body is an enumeration query supporting ordering, paging via MaxResults/Skip/ContinuationToken, and optional Labels, Tags, and Expr filters. Returns an enumeration result containing matching tag records within the specified graph only.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/tags",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"tags"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Ordering\": \"CreatedDescending\",\n  \"IncludeData\": false,\n  \"IncludeSubordinates\": false,\n  \"MaxResults\": 5,\n  \"Skip\": 0,\n  \"ContinuationToken\": null,\n  \"Labels\": [ ],\n  \"Tags\": { },\n  \"Expr\": { }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								}
 							},
 							"response": []
@@ -9737,6 +9817,87 @@
 										"00000000-0000-0000-0000-000000000000",
 										"vectors"
 									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enumerate in graph",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Enumerates vectors scoped to a single graph using the v2.0 enumeration API. The request body is an enumeration query supporting ordering, paging via MaxResults/Skip/ContinuationToken, and optional Labels, Tags, and Expr filters. Returns an enumeration result containing matching vector records within the specified graph only.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/vectors",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectors"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Ordering\": \"CreatedDescending\",\n  \"IncludeData\": false,\n  \"IncludeSubordinates\": false,\n  \"MaxResults\": 5,\n  \"Skip\": 0,\n  \"ContinuationToken\": null,\n  \"Labels\": [ ],\n  \"Tags\": { },\n  \"Expr\": { }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Search graph vectors",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Performs a vector similarity search scoped to the graph specified in the URL. The GraphGUID from the URL overrides any value supplied in the body, so only Domain (Graph, Node, or Edge), SearchType (CosineSimilarity, CosineDistance, EuclidianSimilarity, EuclidianDistance, DotProduct), the query Embeddings, and optional Labels, Tags, Expr, TopK, and score threshold properties are required. When the graph has an HNSW vector index enabled the search uses the index; otherwise a brute-force scan is performed.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectors/search",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectors",
+										"search"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Domain\": \"Node\",\n  \"SearchType\": \"CosineSimilarity\",\n  \"Labels\": [],\n  \"Tags\": {},\n  \"Expr\": null,\n  \"TopK\": 10,\n  \"MinimumScore\": 0.1,\n  \"Embeddings\": [ 0.1, 0.2, 0.3 ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								}
 							},
 							"response": []
@@ -12213,6 +12374,48 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Get node edges (filtered)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Retrieves all edges connected to the specified node, applying an optional search filter supplied in the request body. The body is a standard search request supporting Ordering, Labels, Tags, and an Expr expression filter evaluated against edge data; the tenant and graph GUIDs are taken from the URL. When the body is omitted the behavior is identical to the GET variant of this route.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/nodes/00000000-0000-0000-0000-000000000000/edges",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"nodes",
+										"00000000-0000-0000-0000-000000000000",
+										"edges"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Ordering\": \"CreatedDescending\",\n  \"Labels\": [],\n  \"Tags\": {},\n  \"Expr\": {\n    \"Left\": \"Hello\",\n    \"Operator\": \"Equals\",\n    \"Right\": \"World\"\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -12688,6 +12891,887 @@
 										"graphs",
 										"{{graph}}",
 										"vectorindex"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enable vector index (v1.0)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Enables HNSW vector indexing on the specified graph using the v1.0 route. This is the same operation as the v2.0 enable route; the body specifies the index type, backing file, optional threshold, vector dimensionality, and HNSW tuning parameters M, Ef, and EfConstruction.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/enable",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectorindex",
+										"enable"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"VectorIndexType\": \"HnswSqlite\",\n  \"VectorIndexFile\": \"graph-00000000-0000-0000-0000-000000000000-hnsw.db\",\n  \"VectorIndexThreshold\": null,\n  \"VectorDimensionality\": 384,\n  \"VectorIndexM\": 16,\n  \"VectorIndexEf\": 50,\n  \"VectorIndexEfConstruction\": 200\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Rebuild vector index (v1.0)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"description": "Rebuilds the HNSW vector index for the specified graph from the vectors currently stored in the database using the v1.0 route. This is the same operation as the v2.0 rebuild route and requires that vector indexing has already been enabled on the graph. No request body is required.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/rebuild",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectorindex",
+										"rebuild"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete vector index (v1.0)",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"description": "Disables vector indexing on the specified graph and removes the associated index using the v1.0 route. This is the same operation as the v2.0 delete route. Vector data itself is not deleted; subsequent vector searches fall back to brute-force scans until indexing is re-enabled.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectorindex"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read configuration (v2.0)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Retrieves the vector index configuration for the specified graph using the v2.0 route, including index type, backing file, threshold, dimensionality, and HNSW parameters. This returns the same data as the v1.0 configuration route.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/config",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectorindex",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics (v2.0)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Retrieves runtime statistics for the vector index of the specified graph using the v2.0 route, such as indexed vector counts and index state. This returns the same data as the v1.0 statistics route.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v2.0/tenants/{{tenant}}/graphs/{{graph}}/vectorindex/stats",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v2.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"vectorindex",
+										"stats"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "v6.0",
+			"item": [
+				{
+					"name": "Authorization",
+					"item": [
+						{
+							"name": "Roles",
+							"item": [
+								{
+									"name": "Create role",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Creates a custom authorization role within the tenant. The body specifies a unique Name, optional DisplayName and Description, the ResourceScope (Tenant or Graph), the Permissions granted (Read, Write, Delete, Admin), the ResourceTypes the role applies to (Admin, Graph, Node, Edge, Label, Tag, Vector, Query, Transaction, Chat), and whether tenant-scoped grants inherit to graphs via InheritsToGraphs. Returns 201 with the created role. Built-in roles cannot be created through this route.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/roles",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"roles"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"Name\": \"graph-readers\",\n  \"DisplayName\": \"Graph Readers\",\n  \"Description\": \"Read-only access to graph resources\",\n  \"ResourceScope\": \"Graph\",\n  \"Permissions\": [ \"Read\" ],\n  \"ResourceTypes\": [ \"Graph\", \"Node\", \"Edge\", \"Label\", \"Tag\", \"Vector\" ],\n  \"InheritsToGraphs\": true\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read all roles",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists all authorization roles visible to the tenant, including the immutable built-in roles and any custom roles created within the tenant. Returns a search result object containing the matching roles.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/roles",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"roles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read role",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads a single authorization role by GUID. Returns 404 if the role does not exist or is not visible to the tenant.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/roles/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"roles",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update role",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Updates an existing custom authorization role by GUID. The body has the same shape as role creation; the GUID and creation timestamp are preserved from the existing record. Built-in roles are immutable and attempts to update them return 409 Conflict.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/roles/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"roles",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"Name\": \"graph-readers\",\n  \"DisplayName\": \"Graph Readers\",\n  \"Description\": \"Read-only access to graph resources\",\n  \"ResourceScope\": \"Graph\",\n  \"Permissions\": [ \"Read\" ],\n  \"ResourceTypes\": [ \"Graph\", \"Node\", \"Edge\", \"Label\", \"Tag\", \"Vector\" ],\n  \"InheritsToGraphs\": true\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete role",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"description": "Deletes a custom authorization role by GUID and returns 204 No Content on success. Built-in roles are immutable and attempts to delete them return 409 Conflict; roles not visible to the tenant return 404.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/roles/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"roles",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "User Roles",
+							"item": [
+								{
+									"name": "Assign role to user",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Assigns an authorization role to the specified user. The body must reference a valid role by RoleGUID or RoleName, and specifies the ResourceScope (Tenant or Graph) plus the target GraphGUID when the scope is Graph. The tenant and user GUIDs are taken from the URL. Returns 201 with the created assignment.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/00000000-0000-0000-0000-000000000000/roles",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"users",
+												"00000000-0000-0000-0000-000000000000",
+												"roles"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"RoleGUID\": \"00000000-0000-0000-0000-000000000000\",\n  \"RoleName\": null,\n  \"ResourceScope\": \"Graph\",\n  \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read all user role assignments",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists all role assignments for the specified user. Returns a search result object containing the matching user role assignment records.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/00000000-0000-0000-0000-000000000000/roles",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"users",
+												"00000000-0000-0000-0000-000000000000",
+												"roles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read user role assignment",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads a single user role assignment by assignment GUID. Returns 404 if the assignment does not exist or does not belong to the specified tenant and user.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/00000000-0000-0000-0000-000000000000/roles/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"users",
+												"00000000-0000-0000-0000-000000000000",
+												"roles",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update user role assignment",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Updates an existing user role assignment by assignment GUID. The body has the same shape as assignment creation and must reference a valid role by RoleGUID or RoleName; the assignment GUID and creation timestamp are preserved.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/00000000-0000-0000-0000-000000000000/roles/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"users",
+												"00000000-0000-0000-0000-000000000000",
+												"roles",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"RoleGUID\": \"00000000-0000-0000-0000-000000000000\",\n  \"RoleName\": null,\n  \"ResourceScope\": \"Graph\",\n  \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Revoke user role assignment",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"description": "Revokes a user role assignment by assignment GUID and returns 204 No Content on success. Returns 404 if the assignment does not exist or does not belong to the specified tenant and user.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/00000000-0000-0000-0000-000000000000/roles/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"users",
+												"00000000-0000-0000-0000-000000000000",
+												"roles",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read user effective permissions",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Computes and returns the effective permissions for the specified user, aggregating all role assignments including built-in roles, tenant-scoped grants, and graph-scoped grants. Useful for auditing what a user can actually do.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/users/00000000-0000-0000-0000-000000000000/permissions",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"users",
+												"00000000-0000-0000-0000-000000000000",
+												"permissions"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Credential Scopes",
+							"item": [
+								{
+									"name": "Assign credential scope",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Assigns a scope to the specified credential, restricting or granting what requests made with that credential may do. The body must either reference a valid role by RoleGUID or RoleName, or supply direct Permissions and ResourceTypes; ResourceScope is Tenant or Graph, with GraphGUID required when the scope is Graph. The tenant and credential GUIDs are taken from the URL. Returns 201 with the created assignment.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials/00000000-0000-0000-0000-000000000000/scopes",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"credentials",
+												"00000000-0000-0000-0000-000000000000",
+												"scopes"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"RoleGUID\": null,\n  \"RoleName\": \"graph-readers\",\n  \"ResourceScope\": \"Graph\",\n  \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\n  \"Permissions\": [ \"Read\" ],\n  \"ResourceTypes\": [ \"Graph\", \"Node\", \"Edge\" ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read all credential scope assignments",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Lists all scope assignments for the specified credential. Returns a search result object containing the matching credential scope assignment records.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials/00000000-0000-0000-0000-000000000000/scopes",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"credentials",
+												"00000000-0000-0000-0000-000000000000",
+												"scopes"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read credential scope assignment",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Reads a single credential scope assignment by assignment GUID. Returns 404 if the assignment does not exist or does not belong to the specified tenant and credential.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials/00000000-0000-0000-0000-000000000000/scopes/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"credentials",
+												"00000000-0000-0000-0000-000000000000",
+												"scopes",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update credential scope assignment",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "content-type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"description": "Updates an existing credential scope assignment by assignment GUID. The body has the same shape as scope assignment creation and must either reference a valid role or supply direct permissions and resource types; the assignment GUID and creation timestamp are preserved.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials/00000000-0000-0000-0000-000000000000/scopes/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"credentials",
+												"00000000-0000-0000-0000-000000000000",
+												"scopes",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										},
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"RoleGUID\": null,\n  \"RoleName\": \"graph-readers\",\n  \"ResourceScope\": \"Graph\",\n  \"GraphGUID\": \"00000000-0000-0000-0000-000000000000\",\n  \"Permissions\": [ \"Read\" ],\n  \"ResourceTypes\": [ \"Graph\", \"Node\", \"Edge\" ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Revoke credential scope assignment",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"description": "Revokes a credential scope assignment by assignment GUID and returns 204 No Content on success. Returns 404 if the assignment does not exist or does not belong to the specified tenant and credential.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials/00000000-0000-0000-0000-000000000000/scopes/00000000-0000-0000-0000-000000000000",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"credentials",
+												"00000000-0000-0000-0000-000000000000",
+												"scopes",
+												"00000000-0000-0000-0000-000000000000"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Read credential effective permissions",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"description": "Computes and returns the effective permissions for the specified credential, aggregating its scope assignments and any referenced roles. Useful for auditing what requests made with the credential are actually permitted to do.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/credentials/00000000-0000-0000-0000-000000000000/permissions",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"credentials",
+												"00000000-0000-0000-0000-000000000000",
+												"permissions"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Graph Query",
+					"item": [
+						{
+							"name": "Execute query",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Executes a LiteGraph-native, Cypher/GQL-inspired graph query against the specified graph (see docs/DSL.md for the full language reference). The body contains the Query text, an optional Parameters dictionary for user input and large values, MaxResults (1-10000, default 100) applied when the query omits LIMIT, TimeoutSeconds (1-3600, default 30), and IncludeProfile to return parse, plan, and execution timing. Read-only queries require read scope while mutating queries require write scope; unauthorized queries return 401.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/query",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"query"
+									]
+								},
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Query\": \"MATCH (n:Person) WHERE n.data.age >= $age RETURN n LIMIT 10\",\n  \"Parameters\": {\n    \"age\": 21\n  },\n  \"MaxResults\": 100,\n  \"TimeoutSeconds\": 30,\n  \"IncludeProfile\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Request History",
+					"item": [
+						{
+							"name": "List request history",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Lists captured request history entries, paged and filterable via query parameters: requestId, correlationId, traceId, method, path, sourceIp, transactionId, statusCode, success, hasTransactionDiagnostics, fromUtc, toUtc, page, and pageSize (1-1000). System administrators see all tenants and may filter by tenant; other principals are automatically scoped to their own tenant.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/requesthistory?page=0&pageSize=100",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"requesthistory"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "100"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read request history summary",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Returns aggregate request history metrics such as request counts, success rates, and latency buckets over the captured window. Supports the same query string filters as the list route, including fromUtc and toUtc time bounds. Non-administrators are automatically scoped to their own tenant.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/requesthistory/summary",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"requesthistory",
+										"summary"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read request history entry",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Reads a single request history entry by request GUID, returning the captured metadata for that request such as method, path, status code, timing, and identifiers. Returns 404 if the entry does not exist or belongs to a tenant the caller cannot view.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/requesthistory/00000000-0000-0000-0000-000000000000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"requesthistory",
+										"00000000-0000-0000-0000-000000000000"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read request history detail",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Reads the detailed record for a single request history entry by request GUID, including extended capture data such as transaction diagnostics where available. Returns 404 if the entry does not exist or belongs to a tenant the caller cannot view.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/requesthistory/00000000-0000-0000-0000-000000000000/detail",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"requesthistory",
+										"00000000-0000-0000-0000-000000000000",
+										"detail"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete request history entry",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"description": "Deletes a single request history entry by request GUID and returns 204 No Content on success. Returns 404 if the entry does not exist or belongs to a tenant the caller cannot view.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/requesthistory/00000000-0000-0000-0000-000000000000",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"requesthistory",
+										"00000000-0000-0000-0000-000000000000"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete request history (bulk)",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"description": "Bulk-deletes request history entries matching the query string filters, which are the same as the list route (requestId, method, path, statusCode, success, fromUtc, toUtc, and so on). With no filters supplied, all visible entries are deleted, so filters such as toUtc are recommended. Non-administrators may only delete within their own tenant scope. Returns a JSON object with the number of deleted entries.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/requesthistory/bulk?toUtc=2026-01-01T00:00:00Z",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"requesthistory",
+										"bulk"
+									],
+									"query": [
+										{
+											"key": "toUtc",
+											"value": "2026-01-01T00:00:00Z"
+										}
 									]
 								}
 							},
@@ -13658,6 +14742,66 @@
 					"port": "{{port}}",
 					"path": [
 						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Health check",
+			"request": {
+				"method": "HEAD",
+				"header": [],
+				"description": "Lightweight unauthenticated health check against the server root. Returns 200 with no body when the server is up, making it suitable for load balancer and container liveness probes.",
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Favicon",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"description": "Retrieves the server favicon. This unauthenticated route exists so browsers hitting the REST listener do not generate 404 noise in logs.",
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/favicon.ico",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"favicon.ico"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prometheus metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"description": "Retrieves Prometheus-format metrics from the server. This unauthenticated route is only registered when observability metrics are enabled in the server settings, and its path is configurable via Observability.MetricsPath (default /metrics).",
+				"url": {
+					"raw": "{{protocol}}://{{hostname}}:{{port}}/metrics",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{hostname}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"metrics"
 					]
 				}
 			},

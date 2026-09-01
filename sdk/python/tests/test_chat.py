@@ -13,6 +13,7 @@ from litegraph_sdk.models.chat import (
     ChatEndpointModel,
     ChatEndpointTestResultModel,
     ChatFeedbackModel,
+    ChatModelSummaryModel,
     ChatSettingsModel,
     ChatThreadModel,
     ChatTurnModel,
@@ -48,6 +49,7 @@ def _endpoint_response(**overrides):
         "Endpoint": "https://api.openai.com/",
         "ApiKey": "********abcd",
         "Model": "gpt-4o-mini",
+        "ContextWindowTokens": 128000,
         "Active": True,
         "HealthCheckEnabled": True,
         "HealthCheckUrl": None,
@@ -97,11 +99,13 @@ class TestChatEndpoints:
             endpoint="https://api.openai.com/",
             api_key="sk-secret",
             model="gpt-4o-mini",
+            context_window_tokens=128000,
         )
         assert isinstance(result, ChatEndpointModel)
         assert result.guid == ENDPOINT_GUID
         assert result.api_key == "********abcd"
         assert result.provider == ChatProviderType_Enum.OpenAI
+        assert result.context_window_tokens == 128000
         method, url = mock_client.request.call_args[0]
         assert method == "PUT"
         assert url == f"{CHAT_BASE}/endpoints"
@@ -112,6 +116,7 @@ class TestChatEndpoints:
         assert body["Endpoint"] == "https://api.openai.com/"
         assert body["ApiKey"] == "sk-secret"
         assert body["Model"] == "gpt-4o-mini"
+        assert body["ContextWindowTokens"] == 128000
 
     def test_read_endpoints(self, mock_client):
         """read_endpoints returns a list of endpoint models."""
@@ -247,6 +252,40 @@ class TestChatEndpoints:
         mock_client.request.assert_called_once_with(
             "GET", f"{CHAT_BASE}/endpoints/health"
         )
+
+
+class TestChatModels:
+    def test_read_models(self, mock_client):
+        """read_models GETs the non-admin model catalog and parses summaries."""
+        mock_client.request.return_value = [
+            {
+                "GUID": ENDPOINT_GUID,
+                "Name": "openai-completion",
+                "Model": "gpt-4o-mini",
+                "Provider": "OpenAI",
+                "EndpointType": "Completion",
+                "IsDefault": True,
+            },
+            {
+                "GUID": "66666666-6666-6666-6666-666666666666",
+                "Name": "voyage-embedding",
+                "Model": "voyage-3.5",
+                "Provider": "VoyageAI",
+                "EndpointType": "Embedding",
+                "IsDefault": False,
+            },
+        ]
+        result = Chat.read_models()
+        assert len(result) == 2
+        assert isinstance(result[0], ChatModelSummaryModel)
+        assert result[0].guid == ENDPOINT_GUID
+        assert result[0].model == "gpt-4o-mini"
+        assert result[0].provider == ChatProviderType_Enum.OpenAI
+        assert result[0].endpoint_type == ChatEndpointType_Enum.Completion
+        assert result[0].is_default is True
+        assert result[1].endpoint_type == ChatEndpointType_Enum.Embedding
+        assert result[1].is_default is False
+        mock_client.request.assert_called_once_with("GET", f"{CHAT_BASE}/models")
 
 
 class TestChatThreads:

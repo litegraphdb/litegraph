@@ -32,6 +32,8 @@ export default class UserMetadata {
     Email: string;
     Password: string;
     Active: boolean;
+    IsSystemAdmin: any;
+    IsTenantAdmin: any;
     CreatedUtc: Date;
     LastUpdateUtc: Date;
 }

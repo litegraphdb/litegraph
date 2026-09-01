@@ -107,6 +107,13 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
+        public async Task<List<ChatModelSummary>> ReadModels(Guid tenantGuid, CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/models";
+            return await _Sdk.GetMany<ChatModelSummary>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task<ChatThread> CreateThread(ChatThread thread, CancellationToken token = default)
         {
             if (thread == null) throw new ArgumentNullException(nameof(thread));

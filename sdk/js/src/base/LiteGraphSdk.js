@@ -35,6 +35,7 @@ import ChatSettings from '../models/ChatSettings';
 import ChatEndpointHealth from '../models/ChatEndpointHealth';
 import ChatEndpointTestResult from '../models/ChatEndpointTestResult';
 import ChatCompletionResult from '../models/ChatCompletionResult';
+import ChatModelSummary from '../models/ChatModelSummary';
 
 const buildQueryString = (params = {}) => {
   const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
@@ -2729,6 +2730,20 @@ export default class LiteGraphSdk extends SdkBase {
     }
     const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/health`;
     return await this.getMany(url, ChatEndpointHealth, cancellationToken);
+  }
+
+  /**
+   * Read the model catalog: active chat endpoints projected as model summaries. Does not require administrator privileges.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatModelSummary[]>} - List of model summaries ({ GUID, Name, Model, Provider, EndpointType, IsDefault }).
+   */
+  async readChatModels(tenantGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/models`;
+    return await this.getMany(url, ChatModelSummary, cancellationToken);
   }
 
   /**

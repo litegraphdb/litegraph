@@ -12,6 +12,7 @@ export const chatEndpointData = {
   Endpoint: 'https://api.openai.com/v1/',
   ApiKey: '********cdef',
   Model: 'gpt-4o-mini',
+  ContextWindowTokens: 128000,
   Active: true,
   HealthCheckEnabled: true,
   HealthCheckUrl: null,
@@ -21,6 +22,17 @@ export const chatEndpointData = {
 };
 
 export const chatEndpointsMockApiResponse = [chatEndpointData];
+
+export const chatModelSummaryData = {
+  GUID: mockChatEndpointGuid,
+  Name: 'OpenAI completions',
+  Model: 'gpt-4o-mini',
+  Provider: 'OpenAI',
+  EndpointType: 'Completion',
+  IsDefault: true,
+};
+
+export const chatModelsMockApiResponse = [chatModelSummaryData];
 
 export const chatEndpointHealthData = {
   EndpointGUID: mockChatEndpointGuid,
@@ -113,7 +125,6 @@ export const chatSettingsData = {
   EnableRag: true,
   RagTopK: 8,
   RagScoreThreshold: 0,
-  MaxContextTokens: 16384,
   HistoryRetentionDays: 90,
   CreatedUtc: '2026-08-31T09:12:09.761247Z',
   LastUpdateUtc: '2026-08-31T09:12:09.761247Z',

@@ -97,6 +97,73 @@ export default class LiteGraphSdk extends SdkBase {
      */
     exportGraphToGexf(guid: string, cancellationToken?: AbortController): Promise<string>;
     /**
+     * Export an entire graph to JSONL format.
+     * @param {string} graphGuid - The GUID of the graph.
+     * @param {Object} [options] - Export options.
+     * @param {boolean} [options.includeData=false] - Include object data for graph, nodes, and edges.
+     * @param {boolean} [options.includeSubordinates=false] - Include subordinate labels, tags, and vectors.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<string>} - The JSONL data.
+     */
+    exportGraphToJsonl(graphGuid: string, { includeData, includeSubordinates }?: {
+        includeData?: boolean;
+        includeSubordinates?: boolean;
+    }, cancellationToken?: AbortController): Promise<string>;
+    /**
+     * Export a subgraph to JSONL format using a subgraph extraction request.
+     * @param {string} graphGuid - The GUID of the graph.
+     * @param {Object} subgraphExtractionRequest - The subgraph extraction request.
+     * @param {string[]} subgraphExtractionRequest.StartNodeGUIDs - Starting node GUIDs for extraction.
+     * @param {number} [subgraphExtractionRequest.MaxDepth=2] - Maximum traversal depth.
+     * @param {string} [subgraphExtractionRequest.Direction=Both] - Traversal direction: Outbound, Inbound, or Both.
+     * @param {number} [subgraphExtractionRequest.MaxNodes=0] - Maximum number of nodes (0 = unlimited).
+     * @param {number} [subgraphExtractionRequest.MaxEdges=0] - Maximum number of edges (0 = unlimited).
+     * @param {boolean} [subgraphExtractionRequest.IncludeData] - Include object data.
+     * @param {boolean} [subgraphExtractionRequest.IncludeSubordinates] - Include subordinate labels, tags, and vectors.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<string>} - The JSONL data.
+     */
+    exportSubgraphToJsonl(graphGuid: string, subgraphExtractionRequest: {
+        StartNodeGUIDs: string[];
+        MaxDepth?: number;
+        Direction?: string;
+        MaxNodes?: number;
+        MaxEdges?: number;
+        IncludeData?: boolean;
+        IncludeSubordinates?: boolean;
+    }, cancellationToken?: AbortController): Promise<string>;
+    /**
+     * Import JSONL data into an existing graph.
+     * @param {string} graphGuid - The GUID of the graph.
+     * @param {string} jsonlString - The raw JSONL data to import.
+     * @param {Object} [options] - Import options.
+     * @param {string} [options.guidStrategy] - GUID handling strategy: preserve, regenerate, skip, or overwrite.
+     * @param {string} [options.onError] - Error handling behavior: abort or skip.
+     * @param {number} [options.batchSize] - Batch size for import operations (positive integer).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<Object>} - The GraphImportResult.
+     */
+    importGraphFromJsonl(graphGuid: string, jsonlString: string, { guidStrategy, onError, batchSize }?: {
+        guidStrategy?: string;
+        onError?: string;
+        batchSize?: number;
+    }, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Import JSONL data as a new graph.
+     * @param {string} jsonlString - The raw JSONL data to import.
+     * @param {Object} [options] - Import options.
+     * @param {string} [options.guidStrategy] - GUID handling strategy: preserve, regenerate, skip, or overwrite.
+     * @param {string} [options.onError] - Error handling behavior: abort or skip.
+     * @param {number} [options.batchSize] - Batch size for import operations (positive integer).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<Object>} - The GraphImportResult.
+     */
+    importGraphAsNewFromJsonl(jsonlString: string, { guidStrategy, onError, batchSize }?: {
+        guidStrategy?: string;
+        onError?: string;
+        batchSize?: number;
+    }, cancellationToken?: AbortController): Promise<any>;
+    /**
      * Execute a batch existence request.
      * @param {string} graphGuid - The GUID of the graph.
      * @param {Object} existenceRequest - Optional initial data for the existence request.
@@ -975,6 +1042,26 @@ export default class LiteGraphSdk extends SdkBase {
      */
     flushDatabase(cancellationToken?: AbortController): Promise<void>;
     /**
+     * Read the server settings. Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} The server settings object.
+     */
+    readSettings(cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Update the server settings. Requires system administrator privileges.
+     * @param {Object} settings - The full settings object.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message }).
+     */
+    updateSettings(settings: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Request a server restart. The server exits so the container restart policy applies the new settings.
+     * Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>}
+     */
+    restartServer(cancellationToken?: AbortController): Promise<void>;
+    /**
      * Enable vector indexing on a graph.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
@@ -1220,6 +1307,250 @@ export default class LiteGraphSdk extends SdkBase {
      * @returns {Promise<void>}
      */
     deleteEdgeVectors(tenantGuid: string, graphGuid: string, edgeGuid: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Create a chat endpoint. Requires tenant administrator privileges.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {Object} endpoint - Information about the chat endpoint.
+     * @param {string} [endpoint.GUID] - Globally unique identifier (automatically generated if not provided).
+     * @param {string} endpoint.Name - Name of the chat endpoint.
+     * @param {string} endpoint.EndpointType - Endpoint type: Embedding or Completion.
+     * @param {string} endpoint.Provider - Provider type: OpenAI, Ollama, Gemini, Anthropic, or VoyageAI.
+     * @param {string} endpoint.Endpoint - Absolute http/https URL of the upstream provider endpoint.
+     * @param {string} [endpoint.ApiKey] - API key for the provider (returned redacted).
+     * @param {string} endpoint.Model - Model name to use with this endpoint.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpoint>} - The created chat endpoint (ApiKey redacted).
+     */
+    createChatEndpoint(tenantGuid: string, endpoint: {
+        GUID?: string;
+        Name: string;
+        EndpointType: string;
+        Provider: string;
+        Endpoint: string;
+        ApiKey?: string;
+        Model: string;
+    }, cancellationToken?: AbortController): Promise<ChatEndpoint>;
+    /**
+     * Read all chat endpoints, optionally filtered by endpoint type.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} [endpointType] - Optional endpoint type filter: Embedding or Completion.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpoint[]>} - List of chat endpoints (ApiKey redacted).
+     */
+    readChatEndpoints(tenantGuid: string, endpointType?: string, cancellationToken?: AbortController): Promise<ChatEndpoint[]>;
+    /**
+     * Read a specific chat endpoint.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} endpointGuid - Chat endpoint GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpoint>} - The requested chat endpoint (ApiKey redacted).
+     */
+    readChatEndpoint(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<ChatEndpoint>;
+    /**
+     * Check if a chat endpoint exists by GUID.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} endpointGuid - Chat endpoint GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<boolean>} - True if the chat endpoint exists.
+     */
+    chatEndpointExists(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<boolean>;
+    /**
+     * Update a chat endpoint. Sending back a redacted ApiKey preserves the stored key.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {Object} endpoint - Chat endpoint payload containing GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpoint>} - The updated chat endpoint (ApiKey redacted).
+     */
+    updateChatEndpoint(tenantGuid: string, endpoint: any, cancellationToken?: AbortController): Promise<ChatEndpoint>;
+    /**
+     * Delete a chat endpoint.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} endpointGuid - Chat endpoint GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<void>}
+     */
+    deleteChatEndpoint(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Test connectivity of a chat endpoint.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} endpointGuid - Chat endpoint GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpointTestResult>} - Connectivity test result ({ Reachable, Models, ModelExists, Error, RuntimeMs }).
+     */
+    testChatEndpoint(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointTestResult>;
+    /**
+     * Read health status for a specific chat endpoint.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} endpointGuid - Chat endpoint GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpointHealth>} - Health status for the endpoint.
+     */
+    readChatEndpointHealth(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointHealth>;
+    /**
+     * Read health status for all chat endpoints.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpointHealth[]>} - Health status list.
+     */
+    readAllChatEndpointHealth(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointHealth[]>;
+    /**
+     * Read the model catalog: active chat endpoints projected as model summaries. Does not require administrator privileges.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatModelSummary[]>} - List of model summaries ({ GUID, Name, Model, Provider, EndpointType, IsDefault }).
+     */
+    readChatModels(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatModelSummary[]>;
+    /**
+     * Create a chat thread. The caller becomes the thread owner; requires a user principal.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {Object} [thread] - Optional thread payload.
+     * @param {string} [thread.GraphGUID] - Optional graph GUID to bind the thread to.
+     * @param {string} [thread.Title] - Optional thread title.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatThread>} - The created chat thread.
+     */
+    createChatThread(tenantGuid: string, thread?: {
+        GraphGUID?: string;
+        Title?: string;
+    }, cancellationToken?: AbortController): Promise<ChatThread>;
+    /**
+     * Read chat threads owned by the caller, or all users' threads when allUsers is true (admin only).
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {boolean} [allUsers=false] - When true, list every user's threads (requires administrator privileges).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatThread[]>} - List of chat threads.
+     */
+    readChatThreads(tenantGuid: string, allUsers?: boolean, cancellationToken?: AbortController): Promise<ChatThread[]>;
+    /**
+     * Read a specific chat thread.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} threadGuid - Chat thread GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatThread>} - The requested chat thread.
+     */
+    readChatThread(tenantGuid: string, threadGuid: string, cancellationToken?: AbortController): Promise<ChatThread>;
+    /**
+     * Update (rename) a chat thread. Only the Title property is honored and it must be non-empty.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} threadGuid - Chat thread GUID.
+     * @param {Object} thread - Thread payload.
+     * @param {string} thread.Title - New thread title.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatThread>} - The updated chat thread.
+     */
+    updateChatThread(tenantGuid: string, threadGuid: string, thread: {
+        Title: string;
+    }, cancellationToken?: AbortController): Promise<ChatThread>;
+    /**
+     * Delete a chat thread along with its turns and feedback.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} threadGuid - Chat thread GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<void>}
+     */
+    deleteChatThread(tenantGuid: string, threadGuid: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Read the turns of a chat thread, ascending by sequence.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} threadGuid - Chat thread GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatTurn[]>} - List of chat turns.
+     */
+    readChatThreadTurns(tenantGuid: string, threadGuid: string, cancellationToken?: AbortController): Promise<ChatTurn[]>;
+    /**
+     * Execute a non-streaming chat completion. Requires a user principal.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {Object} request - Chat completion request.
+     * @param {string} [request.ThreadGUID] - Optional thread GUID; a new thread is created when omitted.
+     * @param {string} [request.GraphGUID] - Optional graph GUID for RAG and tool scope.
+     * @param {string} request.Message - The user's message.
+     * @param {string} [request.CompletionEndpointGUID] - Optional completion endpoint GUID (defaults to tenant settings).
+     * @param {string} [request.EmbeddingEndpointGUID] - Optional embedding endpoint GUID (defaults to tenant settings).
+     * @param {number} [request.Temperature] - Optional sampling temperature.
+     * @param {number} [request.MaxOutputTokens] - Optional maximum output tokens.
+     * @param {boolean} [request.EnableTools] - Optional tool use override.
+     * @param {boolean} [request.EnableRag] - Optional RAG override.
+     * @param {number} [request.RagTopK] - Optional RAG top-K override.
+     * @param {string} [request.SystemPrompt] - Optional system prompt override.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatCompletionResult>} - The chat completion result.
+     */
+    chatCompletion(tenantGuid: string, request: {
+        ThreadGUID?: string;
+        GraphGUID?: string;
+        Message: string;
+        CompletionEndpointGUID?: string;
+        EmbeddingEndpointGUID?: string;
+        Temperature?: number;
+        MaxOutputTokens?: number;
+        EnableTools?: boolean;
+        EnableRag?: boolean;
+        RagTopK?: number;
+        SystemPrompt?: string;
+    }, cancellationToken?: AbortController): Promise<ChatCompletionResult>;
+    /**
+     * Execute a streaming chat completion. Requires a user principal.
+     * Returns an async generator that yields parsed SSE event objects as they arrive. Each event
+     * carries an `event` discriminator: started, delta, thinking, retrieval, tool_call, tool_result,
+     * usage, or error. Iteration completes when the server sends the final `[DONE]` frame.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {Object} request - Chat completion request (see {@link LiteGraphSdk#chatCompletion}).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {AsyncGenerator<Object>} - Yields parsed streaming event objects.
+     */
+    chatCompletionStreaming(tenantGuid: string, request: any, cancellationToken?: AbortController): AsyncGenerator<any>;
+    /**
+     * Submit feedback for a chat turn. Requires a user principal.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} turnGuid - Chat turn GUID.
+     * @param {Object} feedback - Feedback payload.
+     * @param {string} feedback.Rating - Rating: ThumbsUp or ThumbsDown.
+     * @param {string} [feedback.FeedbackText] - Optional free-form feedback text.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatFeedback>} - The created feedback.
+     */
+    submitChatFeedback(tenantGuid: string, turnGuid: string, feedback: {
+        Rating: string;
+        FeedbackText?: string;
+    }, cancellationToken?: AbortController): Promise<ChatFeedback>;
+    /**
+     * Read all chat feedback for the tenant. Requires tenant administrator privileges.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatFeedback[]>} - List of feedback records.
+     */
+    readAllChatFeedback(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatFeedback[]>;
+    /**
+     * Read a specific chat feedback record. Requires tenant administrator privileges.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} feedbackGuid - Chat feedback GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatFeedback>} - The requested feedback record.
+     */
+    readChatFeedback(tenantGuid: string, feedbackGuid: string, cancellationToken?: AbortController): Promise<ChatFeedback>;
+    /**
+     * Delete a chat feedback record. Requires tenant administrator privileges.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} feedbackGuid - Chat feedback GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<void>}
+     */
+    deleteChatFeedback(tenantGuid: string, feedbackGuid: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Read tenant chat settings. Returns defaults when no settings record exists.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatSettings>} - The tenant chat settings.
+     */
+    readChatSettings(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatSettings>;
+    /**
+     * Upsert tenant chat settings. Requires tenant administrator privileges.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {Object} settings - Chat settings payload.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatSettings>} - The updated chat settings.
+     */
+    updateChatSettings(tenantGuid: string, settings: any, cancellationToken?: AbortController): Promise<ChatSettings>;
 }
 import SdkBase from './SdkBase';
 import { VectorMetadata } from '../models/VectorMetadata';
@@ -1246,3 +1577,12 @@ import TagMetaData from '../models/TagMetaData';
 import LabelMetadata from '../models/LabelMetadata';
 import { VectorSearchResult } from '../models/VectorSearchResult';
 import Token from '../models/Token';
+import ChatEndpoint from '../models/ChatEndpoint';
+import ChatEndpointTestResult from '../models/ChatEndpointTestResult';
+import ChatEndpointHealth from '../models/ChatEndpointHealth';
+import ChatModelSummary from '../models/ChatModelSummary';
+import ChatThread from '../models/ChatThread';
+import ChatTurn from '../models/ChatTurn';
+import ChatCompletionResult from '../models/ChatCompletionResult';
+import ChatFeedback from '../models/ChatFeedback';
+import ChatSettings from '../models/ChatSettings';

@@ -14,6 +14,7 @@ export default class ChatEndpoint {
    * @param {string} [endpoint.Endpoint] - Absolute http/https URL of the upstream provider endpoint.
    * @param {string} [endpoint.ApiKey] - API key for the provider (redacted in server responses).
    * @param {string} [endpoint.Model] - Model name to use with this endpoint.
+   * @param {number} [endpoint.ContextWindowTokens=0] - Context window size of the model in tokens; 0 means unspecified (default is 0, minimum is 0, maximum is 100000000).
    * @param {boolean} [endpoint.Active=true] - Indicates whether the endpoint is active (default is true).
    * @param {boolean} [endpoint.HealthCheckEnabled=true] - Indicates whether health checks are enabled (default is true).
    * @param {string} [endpoint.HealthCheckUrl] - Optional health check URL override.
@@ -31,6 +32,7 @@ export default class ChatEndpoint {
       Endpoint = null,
       ApiKey = null,
       Model = null,
+      ContextWindowTokens = 0,
       Active = true,
       HealthCheckEnabled = true,
       HealthCheckUrl = null,
@@ -47,6 +49,7 @@ export default class ChatEndpoint {
     this.Endpoint = Endpoint; // Upstream provider URL
     this.ApiKey = ApiKey; // API key (redacted in responses)
     this.Model = Model; // Model name
+    this.ContextWindowTokens = ContextWindowTokens; // Context window size in tokens (0 means unspecified)
     this.Active = Active; // Indicates if the endpoint is active
     this.HealthCheckEnabled = HealthCheckEnabled; // Indicates if health checks are enabled
     this.HealthCheckUrl = HealthCheckUrl; // Optional health check URL override

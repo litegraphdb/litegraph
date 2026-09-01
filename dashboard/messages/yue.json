@@ -1784,7 +1784,9 @@
         "toolCalls": "工具呼叫",
         "toolCallsDesc": "呢個回合入面嘅工具呼叫次數",
         "turnCreated": "建立時間",
-        "turnCreatedDesc": "回合嘅建立時間（UTC）"
+        "turnCreatedDesc": "回合嘅建立時間（UTC）",
+        "ttft": "TTFT",
+        "ttftDesc": "首個 token 時間"
       },
       "turnDetail": {
         "title": "回合詳情",

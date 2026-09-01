@@ -1784,7 +1784,9 @@
         "toolCalls": "ツール呼び出し",
         "toolCallsDesc": "ターン内のツール呼び出し回数",
         "turnCreated": "作成日時",
-        "turnCreatedDesc": "ターンの作成日時（UTC）"
+        "turnCreatedDesc": "ターンの作成日時（UTC）",
+        "ttft": "TTFT",
+        "ttftDesc": "最初のトークンまでの時間"
       },
       "turnDetail": {
         "title": "ターンの詳細",

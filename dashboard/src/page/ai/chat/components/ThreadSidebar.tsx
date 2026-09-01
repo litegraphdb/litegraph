@@ -105,19 +105,21 @@ const ThreadSidebar = ({
                   ]}
                 >
                   <LitegraphFlex vertical gap={0} style={{ minWidth: 0, flex: 1 }}>
-                    <LitegraphText
-                      style={{
-                        display: 'block',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        fontWeight: selected ? 600 : 400,
-                        fontSize: 13,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {thread.Title || t('untitledThread')}
-                    </LitegraphText>
+                    <LitegraphTooltip title={thread.Title || t('untitledThread')}>
+                      <LitegraphText
+                        style={{
+                          display: 'block',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontWeight: selected ? 600 : 400,
+                          fontSize: 13,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {thread.Title || t('untitledThread')}
+                      </LitegraphText>
+                    </LitegraphTooltip>
                     <LitegraphFlex align="center" gap={6}>
                       {thread.GraphGUID ? (
                         <LitegraphTooltip title={t('boundToGraph')}>

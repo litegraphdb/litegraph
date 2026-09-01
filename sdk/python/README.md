@@ -277,10 +277,12 @@ Chat endpoint CRUD/test/health, feedback administration, and settings updates re
 | Test Chat Endpoint       | POST   | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}/test`                     | Connectivity test                               |
 | Endpoint Health (all)    | GET    | `v1.0/tenants/{tenant_guid}/chat/endpoints/health`                          | Health status for every endpoint                |
 | Endpoint Health (one)    | GET    | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}/health`                   | Health status for one endpoint                  |
+| List Chat Models         | GET    | `v1.0/tenants/{tenant_guid}/chat/models`                                    | Non-admin model catalog (active endpoints projected as summaries) |
 | Chat Completion          | POST   | `v1.0/tenants/{tenant_guid}/chat/completions`                               | Non-streaming (JSON) or streaming (SSE)         |
 | Create Thread            | PUT    | `v1.0/tenants/{tenant_guid}/chat/threads`                                   | Create a chat thread                            |
 | List Threads             | GET    | `v1.0/tenants/{tenant_guid}/chat/threads[?all]`                             | Own threads, or every user's with `all` (admin) |
 | Read Thread              | GET    | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}`                            | Read a thread                                   |
+| Rename Thread            | PUT    | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}`                            | Rename a thread (body `{"Title": "..."}`)       |
 | Read Thread Turns        | GET    | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}/turns`                      | Turns ascending by sequence                     |
 | Delete Thread            | DELETE | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}`                            | Delete thread, turns, and feedback              |
 | Submit Feedback          | POST   | `v1.0/tenants/{tenant_guid}/chat/turns/{guid}/feedback`                     | ThumbsUp/ThumbsDown on a turn                   |
@@ -712,6 +714,8 @@ configure(
 
 # Create a completion endpoint (admin). The ApiKey is redacted in responses;
 # sending the redacted value back on update preserves the stored key.
+# context_window_tokens (default 0 = unspecified) lets the orchestrator cap
+# the conversation-history budget so history plus output fit the window.
 endpoint = Chat.create_endpoint(
     name="openai-completion",
     endpoint_type=ChatEndpointType_Enum.Completion,
@@ -719,17 +723,39 @@ endpoint = Chat.create_endpoint(
     endpoint="https://api.openai.com/",
     api_key="sk-...",
     model="gpt-4o-mini",
+    context_window_tokens=128000,
+)
+
+# Create an embedding endpoint the same way (used for RAG retrieval)
+embedding = Chat.create_endpoint(
+    name="voyage-embedding",
+    endpoint_type=ChatEndpointType_Enum.Embedding,
+    provider=ChatProviderType_Enum.VoyageAI,
+    endpoint="https://api.voyageai.com/",
+    api_key="pa-...",
+    model="voyage-3.5",
 )
 
 # List endpoints, optionally filtered by type
 endpoints = Chat.read_endpoints(endpoint_type=ChatEndpointType_Enum.Completion)
 
-# Test connectivity and read health
+# Test connectivity and read health (all endpoints, or one)
 test_result = Chat.test_endpoint(endpoint.guid)   # reachable, models, model_exists
 health = Chat.read_all_endpoint_health()
+one_health = Chat.read_endpoint_health(endpoint.guid)
+
+# Model catalog: active endpoints projected as summaries (guid, name, model,
+# provider, endpoint_type, is_default). Available to any chat user, no admin
+# role required; pass a summary's guid as completion_endpoint_guid or
+# embedding_endpoint_guid on completions.
+models = Chat.read_models()
 
 # Make chat settings defaults so completions do not need explicit endpoint GUIDs (admin)
-Chat.update_chat_settings(default_completion_endpoint_guid=endpoint.guid)
+Chat.update_chat_settings(
+    default_completion_endpoint_guid=endpoint.guid,
+    default_embedding_endpoint_guid=embedding.guid,
+)
+settings = Chat.read_chat_settings()        # defaults are returned when unset
 
 # Non-streaming completion (a new thread is created when thread_guid is omitted)
 result = Chat.completion("What nodes are in my graph?", graph_guid="graph-guid")
@@ -745,14 +771,17 @@ for event in Chat.completion_streaming("Tell me more", thread_guid=result.thread
 # Threads and turns
 threads = Chat.read_threads()               # own threads; all_users=True for admins
 turns = Chat.read_thread_turns(result.thread_guid)
+Chat.update_thread(result.thread_guid, "Graph exploration")  # rename (Title only)
 
 # Feedback
 Chat.submit_feedback(result.turn_guid, ChatFeedbackRating_Enum.ThumbsUp, feedback_text="Helpful!")
 feedback = Chat.read_feedback()             # list (admin); pass a GUID for a single record
+Chat.delete_feedback(feedback[0].guid)      # admin
 
 # Cleanup
 Chat.delete_thread(result.thread_guid)
 Chat.delete_endpoint(endpoint.guid)
+Chat.delete_endpoint(embedding.guid)
 ```
 
 ## Development

@@ -726,6 +726,7 @@ namespace Test.Automated
 			await RunTest("Chat.EndpointRead", TestChatEndpointRead).ConfigureAwait(false);
 			await RunTest("Chat.EndpointUpdate", TestChatEndpointUpdate).ConfigureAwait(false);
 			await RunTest("Chat.EndpointHealth", TestChatEndpointHealth).ConfigureAwait(false);
+			await RunTest("Chat.ModelCatalog", TestChatModelCatalog).ConfigureAwait(false);
 			await RunTest("Chat.SettingsRoundTrip", TestChatSettingsRoundTrip).ConfigureAwait(false);
 			await RunTest("Chat.ThreadLifecycle", TestChatThreadLifecycle).ConfigureAwait(false);
 			await RunTest("Chat.CompletionUnreachableEndpoint", TestChatCompletionUnreachableEndpoint).ConfigureAwait(false);
@@ -3984,6 +3985,20 @@ namespace Test.Automated
 			AssertNotNull(health, "Chat endpoint health list");
 		}
 
+		private static async Task TestChatModelCatalog()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			List<ChatModelSummary>? models = await sdk.Chat.ReadModels(_TenantGuid).ConfigureAwait(false);
+			AssertNotNull(models, "Chat model catalog list");
+
+			ChatModelSummary? summary = models!.Find(m => m.GUID.Equals(_ChatEndpointGuid));
+			AssertNotNull(summary, "The created endpoint appears in the model catalog");
+			AssertEqual(_ChatEndpointName, summary!.Name ?? string.Empty, "Model catalog endpoint name");
+			AssertEqual("sdk-fake-model", summary.Model ?? string.Empty, "Model catalog model identifier");
+			AssertTrue(summary.EndpointType == ChatEndpointTypeEnum.Completion, "Model catalog endpoint type");
+		}
+
 		private static async Task TestChatSettingsRoundTrip()
 		{
 			LiteGraphSdk sdk = RequireSdk();
@@ -4016,6 +4031,11 @@ namespace Test.Automated
 
 				ChatThread? read = await userSdk.Chat.ReadThread(_TenantGuid, created.GUID).ConfigureAwait(false);
 				AssertNotNull(read, "Chat thread read result");
+
+				string renamedTitle = UniqueName("sdk-chat-thread-renamed");
+				ChatThread? renamed = await userSdk.Chat.UpdateThread(_TenantGuid, created.GUID, new ChatThread { Title = renamedTitle }).ConfigureAwait(false);
+				AssertNotNull(renamed, "Chat thread rename result");
+				AssertEqual(renamedTitle, renamed!.Title ?? string.Empty, "Chat thread renamed title");
 
 				List<ChatTurn>? turns = await userSdk.Chat.ReadThreadTurns(_TenantGuid, created.GUID).ConfigureAwait(false);
 				AssertTrue(turns == null || turns.Count == 0, "A new thread has no turns");

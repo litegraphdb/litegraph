@@ -14,6 +14,7 @@ from ..models.chat import (
     ChatEndpointModel,
     ChatEndpointTestResultModel,
     ChatFeedbackModel,
+    ChatModelSummaryModel,
     ChatSettingsModel,
     ChatThreadModel,
     ChatTurnModel,
@@ -27,8 +28,8 @@ SSE_DONE_SENTINEL = "[DONE]"
 class Chat:
     """
     Chat resource class. Wraps the LiteGraph chat surface: endpoint CRUD and
-    health, completions (non-streaming and streaming SSE), threads, turns,
-    feedback, and tenant chat settings.
+    health, the model catalog, completions (non-streaming and streaming SSE),
+    threads, turns, feedback, and tenant chat settings.
     """
 
     @classmethod
@@ -130,6 +131,21 @@ class Chat:
         instances = client.request("GET", f"{cls._base_url()}/endpoints/health")
         return [
             ChatEndpointHealthModel.model_validate(instance) for instance in instances
+        ]
+
+    # endregion
+
+    # region Models
+
+    @classmethod
+    def read_models(cls) -> List[ChatModelSummaryModel]:
+        """Read the model catalog: active chat endpoints projected as
+        non-privileged model summaries (no administrator role required).
+        Endpoint URLs, keys, and health configuration are never included."""
+        client = get_client()
+        instances = client.request("GET", f"{cls._base_url()}/models")
+        return [
+            ChatModelSummaryModel.model_validate(instance) for instance in instances
         ]
 
     # endregion

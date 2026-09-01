@@ -1784,7 +1784,9 @@
         "toolCalls": "فراخوانی ابزار",
         "toolCallsDesc": "شمار فراخوانی‌های ابزار در نوبت",
         "turnCreated": "ایجاد",
-        "turnCreatedDesc": "زمان ایجاد نوبت (UTC)"
+        "turnCreatedDesc": "زمان ایجاد نوبت (UTC)",
+        "ttft": "TTFT",
+        "ttftDesc": "زمان تا اولین توکن"
       },
       "turnDetail": {
         "title": "جزئیات نوبت",

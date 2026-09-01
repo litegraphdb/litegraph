@@ -1784,7 +1784,9 @@
         "toolCalls": "Tool-Aufrufe",
         "toolCallsDesc": "Anzahl der Tool-Aufrufe im Zug",
         "turnCreated": "Erstellt",
-        "turnCreatedDesc": "Erstellungszeit des Zugs (UTC)"
+        "turnCreatedDesc": "Erstellungszeit des Zugs (UTC)",
+        "ttft": "TTFT",
+        "ttftDesc": "Zeit bis zum ersten Token"
       },
       "turnDetail": {
         "title": "Zugdetails",

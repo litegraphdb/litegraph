@@ -78,7 +78,7 @@ Console.WriteLine($"{result.Success} {result.State} {result.TransactionId} {resu
 
 ## Chat
 
-The `sdk.Chat` property wraps the LiteGraph chat surface: chat endpoints (upstream completion and embedding providers), completions, threads, feedback, endpoint health, and per-tenant chat settings. Completions, thread creation, and feedback submission require a user principal, so instantiate the SDK with email, password, and tenant GUID (or a user-linked credential) for those calls.
+The `sdk.Chat` property wraps the LiteGraph chat surface: chat endpoints (upstream completion and embedding providers), the model catalog, completions, threads, feedback, endpoint health, and per-tenant chat settings. Completions, thread creation, and feedback submission require a user principal, so instantiate the SDK with email, password, and tenant GUID (or a user-linked credential) for those calls.
 
 ### Endpoint management
 
@@ -90,17 +90,45 @@ ChatEndpoint endpoint = await sdk.Chat.CreateEndpoint(new ChatEndpoint
     EndpointType = ChatEndpointTypeEnum.Completion,
     Provider = ChatProviderTypeEnum.Ollama,
     Endpoint = "http://127.0.0.1:11434",
-    Model = "gemma3:4b"
+    Model = "gemma3:4b",
+    ContextWindowTokens = 131072    // optional; caps the conversation-history budget
+});
+
+ChatEndpoint embedding = await sdk.Chat.CreateEndpoint(new ChatEndpoint
+{
+    TenantGUID = tenantGuid,
+    Name = "Embeddings",
+    EndpointType = ChatEndpointTypeEnum.Embedding,
+    Provider = ChatProviderTypeEnum.OpenAI,
+    Endpoint = "https://api.openai.com",
+    ApiKey = "sk-...",
+    Model = "text-embedding-3-small"
 });
 
 List<ChatEndpoint> completionEndpoints = await sdk.Chat.ReadEndpoints(tenantGuid, ChatEndpointTypeEnum.Completion);
+ChatEndpoint read = await sdk.Chat.ReadEndpoint(tenantGuid, endpoint.GUID);
 ChatEndpointTestResult test = await sdk.Chat.TestEndpoint(tenantGuid, endpoint.GUID);
 Console.WriteLine($"Reachable: {test.Reachable}, model exists: {test.ModelExists}");
 
 List<ChatEndpointHealth> health = await sdk.Chat.ReadAllEndpointHealth(tenantGuid);
+ChatEndpointHealth one = await sdk.Chat.ReadEndpointHealth(tenantGuid, endpoint.GUID);
 ```
 
-API keys are redacted to their last four characters in every response; sending a redacted value back on update preserves the stored key.
+API keys are redacted to their last four characters in every response; sending a redacted value back on update preserves the stored key. `UpdateEndpoint` and `DeleteEndpoint` complete the management surface; `EndpointExists` performs a lightweight HEAD check.
+
+### Model catalog
+
+Non-admin callers can enumerate the active endpoints available to them, projected down to what a model picker needs (no URLs, keys, or health configuration):
+
+```csharp
+List<ChatModelSummary> models = await sdk.Chat.ReadModels(tenantGuid);
+foreach (ChatModelSummary model in models)
+{
+    Console.WriteLine($"{model.Name} ({model.Provider}/{model.Model}, {model.EndpointType}) default: {model.IsDefault}");
+}
+```
+
+Pass a summary's `GUID` as `CompletionEndpointGUID` or `EmbeddingEndpointGUID` on a completion request to select it.
 
 ### Non-streaming completion
 
@@ -138,10 +166,19 @@ await foreach (ChatStreamEvent ev in sdk.Chat.CompletionStreaming(tenantGuid, ne
 ```csharp
 List<ChatThread> threads = await sdk.Chat.ReadThreads(tenantGuid);
 List<ChatTurn> turns = await sdk.Chat.ReadThreadTurns(tenantGuid, threads[0].GUID);
-await sdk.Chat.SubmitFeedback(tenantGuid, turns[0].GUID, ChatFeedbackRatingEnum.ThumbsUp, "Great answer");
+
+// Rename a thread (only Title is honored)
+await sdk.Chat.UpdateThread(tenantGuid, threads[0].GUID, new ChatThread { Title = "Renamed thread" });
+await sdk.Chat.DeleteThread(tenantGuid, threads[0].GUID);
+
+// Feedback: submit as a user; read and delete require admin
+ChatFeedback feedback = await sdk.Chat.SubmitFeedback(tenantGuid, turns[0].GUID, ChatFeedbackRatingEnum.ThumbsUp, "Great answer");
+List<ChatFeedback> allFeedback = await sdk.Chat.ReadFeedback(tenantGuid);
+await sdk.Chat.DeleteFeedback(tenantGuid, feedback.GUID);
 
 ChatSettings settings = await sdk.Chat.ReadChatSettings(tenantGuid);
 settings.DefaultCompletionEndpointGUID = endpoint.GUID;
+settings.DefaultEmbeddingEndpointGUID = embedding.GUID;
 await sdk.Chat.UpdateChatSettings(settings);
 ```
 

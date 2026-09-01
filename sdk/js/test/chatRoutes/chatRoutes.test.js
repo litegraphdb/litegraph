@@ -18,6 +18,7 @@ import ChatSettings from '../../src/models/ChatSettings';
 import ChatEndpointHealth from '../../src/models/ChatEndpointHealth';
 import ChatEndpointTestResult from '../../src/models/ChatEndpointTestResult';
 import ChatCompletionResult from '../../src/models/ChatCompletionResult';
+import ChatModelSummary from '../../src/models/ChatModelSummary';
 import ApiErrorResponse from '../../src/models/ApiErrorResponse';
 
 const server = getServer(handlers);
@@ -78,6 +79,7 @@ describe('chatRoute Tests', () => {
       const response = await api.readChatEndpoint(mockTenantId, mockChatEndpointGuid);
       expect(response instanceof ChatEndpoint).toBe(true);
       expect(response.GUID).toBe(mockChatEndpointGuid);
+      expect(response.ContextWindowTokens).toBe(128000);
     });
 
     test('should check if a chat endpoint exists by GUID', async () => {
@@ -134,6 +136,30 @@ describe('chatRoute Tests', () => {
       response.forEach((health) => {
         expect(health instanceof ChatEndpointHealth).toBe(true);
       });
+    });
+  });
+
+  describe('Chat Model Catalog Routes', () => {
+    test('should read the model catalog', async () => {
+      const response = await api.readChatModels(mockTenantId);
+      response.forEach((summary) => {
+        expect(summary instanceof ChatModelSummary).toBe(true);
+      });
+      expect(response.length).toBe(1);
+      expect(response[0].GUID).toBe(mockChatEndpointGuid);
+      expect(response[0].Model).toBe('gpt-4o-mini');
+      expect(response[0].Provider).toBe('OpenAI');
+      expect(response[0].EndpointType).toBe('Completion');
+      expect(response[0].IsDefault).toBe(true);
+    });
+
+    it('throws error when reading the model catalog without a tenant GUID', async () => {
+      try {
+        await api.readChatModels();
+      } catch (err) {
+        expect(err instanceof Error).toBe(true);
+        expect(err.toString()).toBe('Error: ArgumentNullException: tenantGuid is null or empty');
+      }
     });
   });
 

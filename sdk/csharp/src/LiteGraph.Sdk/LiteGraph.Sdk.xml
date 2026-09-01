@@ -648,6 +648,49 @@
             Thumbs down.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ChatModelSummary">
+            <summary>
+            Non-privileged projection of a chat endpoint, exposing only what a chat
+            user needs to pick a model: identity, display name, model, provider,
+            type, and whether it is the tenant default.  Endpoint URLs, keys, and
+            health configuration are never included.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatModelSummary.GUID">
+            <summary>
+            Endpoint GUID, supplied as CompletionEndpointGUID or EmbeddingEndpointGUID on completion requests.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatModelSummary.Name">
+            <summary>
+            Human-readable endpoint name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatModelSummary.Model">
+            <summary>
+            Model identifier used by the provider.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatModelSummary.Provider">
+            <summary>
+            Provider type.  Default is OpenAI.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatModelSummary.EndpointType">
+            <summary>
+            Endpoint type (Completion or Embedding).  Default is Completion.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatModelSummary.IsDefault">
+            <summary>
+            True when this endpoint is the tenant default for its type.  Default is false.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatModelSummary.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.ChatProviderTypeEnum">
             <summary>
             Chat provider type.
@@ -2147,6 +2190,9 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadAllEndpointHealth(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadModels(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.CreateThread(LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -2986,6 +3032,15 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="token">Cancellation token.</param>
             <returns>Endpoint health list.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadModels(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read the model catalog: a non-privileged summary of every active chat endpoint in the tenant,
+            suitable for populating a model picker.  Endpoint URLs, keys, and health configuration are never included.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Model summaries.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.CreateThread(LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
             <summary>

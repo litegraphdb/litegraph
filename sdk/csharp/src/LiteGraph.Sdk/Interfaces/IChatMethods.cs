@@ -88,6 +88,15 @@ namespace LiteGraph.Sdk.Interfaces
         Task<List<ChatEndpointHealth>> ReadAllEndpointHealth(Guid tenantGuid, CancellationToken token = default);
 
         /// <summary>
+        /// Read the model catalog: a non-privileged summary of every active chat endpoint in the tenant,
+        /// suitable for populating a model picker.  Endpoint URLs, keys, and health configuration are never included.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Model summaries.</returns>
+        Task<List<ChatModelSummary>> ReadModels(Guid tenantGuid, CancellationToken token = default);
+
+        /// <summary>
         /// Create a chat thread.  The caller becomes the thread owner.
         /// </summary>
         /// <param name="thread">Chat thread.  GraphGUID and Title are optional.</param>

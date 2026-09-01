@@ -1784,7 +1784,9 @@
         "toolCalls": "Appels d'outils",
         "toolCallsDesc": "Nombre d'invocations d'outils dans le tour",
         "turnCreated": "Créé",
-        "turnCreatedDesc": "Heure de création du tour (UTC)"
+        "turnCreatedDesc": "Heure de création du tour (UTC)",
+        "ttft": "TTFT",
+        "ttftDesc": "Délai jusqu'au premier token"
       },
       "turnDetail": {
         "title": "Détails du tour",

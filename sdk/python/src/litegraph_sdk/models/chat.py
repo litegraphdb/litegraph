@@ -30,6 +30,7 @@ class ChatEndpointModel(BaseModel):
     endpoint: Optional[str] = Field(default=None, alias="Endpoint")
     api_key: Optional[str] = Field(default=None, alias="ApiKey")
     model: Optional[str] = Field(default=None, alias="Model")
+    context_window_tokens: int = Field(default=0, alias="ContextWindowTokens")
     active: bool = Field(default=True, alias="Active")
     health_check_enabled: bool = Field(default=True, alias="HealthCheckEnabled")
     health_check_url: Optional[str] = Field(default=None, alias="HealthCheckUrl")
@@ -40,6 +41,28 @@ class ChatEndpointModel(BaseModel):
     last_update_utc: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), alias="LastUpdateUtc"
     )
+
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
+
+
+class ChatModelSummaryModel(BaseModel):
+    """
+    Non-privileged projection of a chat endpoint, exposing only what a chat
+    user needs to pick a model: identity, display name, model, provider, type,
+    and whether it is the tenant default. Endpoint URLs, keys, and health
+    configuration are never included.
+    """
+
+    guid: str = Field(default_factory=lambda: str(uuid.uuid4()), alias="GUID")
+    name: Optional[str] = Field(default=None, alias="Name")
+    model: Optional[str] = Field(default=None, alias="Model")
+    provider: ChatProviderType_Enum = Field(
+        default=ChatProviderType_Enum.OpenAI, alias="Provider"
+    )
+    endpoint_type: ChatEndpointType_Enum = Field(
+        default=ChatEndpointType_Enum.Completion, alias="EndpointType"
+    )
+    is_default: bool = Field(default=False, alias="IsDefault")
 
     model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 

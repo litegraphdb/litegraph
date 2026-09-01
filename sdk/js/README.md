@@ -174,11 +174,11 @@ Requires system-administrator authentication.
 
 ### Chat Operations (v8.1)
 
-LLM chat against your graphs: endpoint management, threads, completions (streaming and non-streaming), feedback, and tenant chat settings. Endpoint CRUD, health, feedback administration, and settings updates require administrator privileges; completions, thread creation, and feedback submission require a user principal. `ApiKey` values are always returned redacted; sending a redacted value back on update preserves the stored key.
+LLM chat against your graphs: endpoint management (completion and embedding endpoints), endpoint health, a non-admin model catalog, threads (including rename), completions (streaming and non-streaming), feedback, and tenant chat settings. Endpoint CRUD, health, feedback administration, and settings updates require administrator privileges; the model catalog, completions, thread creation, and feedback submission require a user principal. `ApiKey` values are always returned redacted; sending a redacted value back on update preserves the stored key. Set `ContextWindowTokens` on an endpoint to let the server cap the conversation-history budget to the model's context window (0 means unspecified).
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `createChatEndpoint` | Creates an LLM endpoint (Embedding or Completion; OpenAI, Ollama, Gemini, Anthropic, or VoyageAI). | `tenantGuid` (string) <br> `endpoint` (Object) - Name, EndpointType, Provider, Endpoint, ApiKey, Model <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint>` | `PUT /v1.0/tenants/{tenantGuid}/chat/endpoints` |
+| `createChatEndpoint` | Creates an LLM endpoint (Embedding or Completion; OpenAI, Ollama, Gemini, Anthropic, or VoyageAI). | `tenantGuid` (string) <br> `endpoint` (Object) - Name, EndpointType, Provider, Endpoint, ApiKey, Model, ContextWindowTokens <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint>` | `PUT /v1.0/tenants/{tenantGuid}/chat/endpoints` |
 | `readChatEndpoints` | Lists chat endpoints, optionally filtered by type. | `tenantGuid` (string) <br> `endpointType` (optional) - `Embedding` or `Completion` <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints[?endpointType=]` |
 | `readChatEndpoint` | Reads a chat endpoint by GUID. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}` |
 | `chatEndpointExists` | Checks if a chat endpoint exists. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}` |
@@ -187,9 +187,11 @@ LLM chat against your graphs: endpoint management, threads, completions (streami
 | `testChatEndpoint` | Tests connectivity of a chat endpoint. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpointTestResult>` | `POST /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}/test` |
 | `readChatEndpointHealth` | Reads health status for one endpoint. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpointHealth>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}/health` |
 | `readAllChatEndpointHealth` | Reads health status for all endpoints. | `tenantGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpointHealth[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/health` |
+| `readChatModels` | Reads the model catalog: active endpoints projected as summaries ({ GUID, Name, Model, Provider, EndpointType, IsDefault }); no admin required. | `tenantGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatModelSummary[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/models` |
 | `createChatThread` | Creates a chat thread owned by the caller. | `tenantGuid` (string) <br> `thread` (optional Object) - GraphGUID, Title <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread>` | `PUT /v1.0/tenants/{tenantGuid}/chat/threads` |
 | `readChatThreads` | Lists own threads, or every user's with `allUsers` (admin only). | `tenantGuid` (string) <br> `allUsers` (optional boolean) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/threads[?all]` |
 | `readChatThread` | Reads a chat thread by GUID. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread>` | `GET /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}` |
+| `updateChatThread` | Renames a chat thread; only `Title` is honored and it must be non-empty. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `thread` (Object) - Title <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread>` | `PUT /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}` |
 | `deleteChatThread` | Deletes a thread with its turns and feedback. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}` |
 | `readChatThreadTurns` | Reads a thread's turns ascending by sequence. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatTurn[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}/turns` |
 | `chatCompletion` | Executes a non-streaming completion (`Stream` forced to `false`). | `tenantGuid` (string) <br> `request` (Object) - Message, plus optional ThreadGUID, GraphGUID, endpoint GUIDs, Temperature, MaxOutputTokens, EnableTools, EnableRag, RagTopK, SystemPrompt <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatCompletionResult>` | `POST /v1.0/tenants/{tenantGuid}/chat/completions` |
@@ -1016,12 +1018,32 @@ const endpoint = await api.createChatEndpoint(tenantGuid, {
     Endpoint: 'https://api.openai.com/v1/',
     ApiKey: 'sk-...',
     Model: 'gpt-4o-mini',
+    ContextWindowTokens: 128000,
+});
+
+// Embedding endpoints (for RAG) use EndpointType Embedding
+await api.createChatEndpoint(tenantGuid, {
+    Name: 'VoyageAI embeddings',
+    EndpointType: ChatEndpointTypeEnum.Embedding,
+    Provider: ChatProviderTypeEnum.VoyageAI,
+    Endpoint: 'https://api.voyageai.com/',
+    ApiKey: 'pa-...',
+    Model: 'voyage-3.5',
 });
 
 // Test connectivity and make it the tenant default (admin)
 const test = await api.testChatEndpoint(tenantGuid, endpoint.GUID);
 console.log(test.Reachable, test.Models);
 await api.updateChatSettings(tenantGuid, { DefaultCompletionEndpointGUID: endpoint.GUID, EnableChat: true });
+
+// Endpoint health (admin): all endpoints, or one by GUID
+const healthAll = await api.readAllChatEndpointHealth(tenantGuid);
+const health = await api.readChatEndpointHealth(tenantGuid, endpoint.GUID);
+console.log(health.Healthy, health.UptimePercentage);
+
+// Model catalog (any user): pick a model for completions
+const models = await api.readChatModels(tenantGuid);
+models.forEach((m) => console.log(m.Name, m.Model, m.Provider, m.EndpointType, m.IsDefault));
 
 // Non-streaming completion (requires a user principal; creates a thread when ThreadGUID is omitted)
 const result = await api.chatCompletion(tenantGuid, {
@@ -1057,6 +1079,9 @@ await api.submitChatFeedback(tenantGuid, turns[0].GUID, {
     Rating: ChatFeedbackRatingEnum.ThumbsUp,
     FeedbackText: 'Accurate answer',
 });
+
+// Rename a thread (only Title is honored)
+await api.updateChatThread(tenantGuid, result.ThreadGUID, { Title: 'Node inventory Q&A' });
 ```
 
 

@@ -152,7 +152,7 @@ const TurnDetailModal = ({ turn, onClose }: TurnDetailModalProps) => {
       onOk={onClose}
       cancelButtonProps={{ style: { display: 'none' } }}
       okText={t('turnDetail.close')}
-      width={680}
+      width={1020}
       data-testid="turn-detail-modal"
     >
       <LitegraphFlex vertical gap={16}>

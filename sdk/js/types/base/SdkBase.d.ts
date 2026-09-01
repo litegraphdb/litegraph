@@ -173,6 +173,37 @@ export default class SdkBase {
      */
     post(url: string, data: any | string, model: Class, cancellationToken?: AbortController, acceptedStatusCodes?: number[]): Promise<any>;
     /**
+     * Submits a POST request and resolves with the raw response text.
+     * @param {string} url - The URL to post data to.
+     * @param {Object|string} data - The data to send in the POST request body.
+     * @param {string} contentType - The Content-Type header value for the request body.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @return {Promise<string>} Resolves with the raw response text.
+     * @throws {Error} Rejects if the URL is invalid or if the request fails.
+     */
+    postForText(url: string, data: any | string, contentType: string, cancellationToken?: AbortController): Promise<string>;
+    /**
+     * Submits a POST request with a raw string body and resolves with the parsed JSON response object.
+     * @param {string} url - The URL to post data to.
+     * @param {string} data - The raw string body to send in the POST request.
+     * @param {string} contentType - The Content-Type header value for the request body.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @return {Promise<Object>} Resolves with the parsed JSON response object.
+     * @throws {Error} Rejects if the URL is invalid or if the request fails.
+     */
+    postRawForJson(url: string, data: string, contentType: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Submits a POST request and yields parsed server-sent event (SSE) frames as they arrive.
+     * Each frame is a `data: <json>` block terminated by a blank line; the stream ends at `data: [DONE]`.
+     * Frames that cannot be parsed as JSON are skipped with a warning log.
+     * @param {string} url - The URL to post data to.
+     * @param {Object|string} data - The data to send in the POST request body.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @return {AsyncGenerator<Object>} Yields parsed event objects from the SSE stream.
+     * @throws {Error} Throws if the URL is invalid or if the request fails with a non-success status.
+     */
+    postSse(url: string, data: any | string, cancellationToken?: AbortController): AsyncGenerator<any>;
+    /**
      * Sends a DELETE request to remove an object at a given URL.
      * @param {string} url - The URL of the object to delete.
      * @param {Object} obj - The object to be created.

@@ -10,12 +10,12 @@ export default class ChatSettings {
    * @param {string|null} [settings.SystemPrompt=null] - Default system prompt (default is null).
    * @param {boolean} [settings.EnableChat=true] - Indicates whether chat is enabled for the tenant (default is true).
    * @param {boolean} [settings.EnableTools=true] - Indicates whether tool use is enabled (default is true).
-   * @param {boolean} [settings.EnableMutationTools=false] - Indicates whether mutation tools are enabled (default is false).
-   * @param {number} [settings.MaxToolIterations=10] - Maximum tool loop iterations (default is 10).
+   * @param {boolean} [settings.EnableMutationTools=true] - Indicates whether mutation tools are enabled (default is true).
+   * @param {number} [settings.MaxToolIterations=50] - Maximum tool loop iterations (default is 50).
    * @param {boolean} [settings.EnableRag=true] - Indicates whether RAG is enabled (default is true).
    * @param {number} [settings.RagTopK=8] - Number of RAG chunks to retrieve (default is 8).
    * @param {number} [settings.RagScoreThreshold=0] - Minimum RAG score threshold (default is 0).
-   * @param {number} [settings.HistoryRetentionDays=90] - Chat history retention in days (default is 90).
+   * @param {number} [settings.HistoryRetentionDays=30] - Chat history retention in days (default is 30).
    * @param {Date|string} [settings.CreatedUtc] - Creation timestamp in UTC (defaults to current UTC time).
    * @param {Date|string} [settings.LastUpdateUtc] - Last update timestamp in UTC (defaults to current UTC time).
    */

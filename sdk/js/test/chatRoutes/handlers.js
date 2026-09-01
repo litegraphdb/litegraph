@@ -15,6 +15,7 @@ import {
   chatFeedbackData,
   chatFeedbackMockApiResponse,
   chatSettingsData,
+  chatModelsMockApiResponse,
   chatCompletionResultData,
   sseStreamBody,
 } from './mockData';
@@ -86,6 +87,11 @@ export const handlers = [
   // Test a chat endpoint
   http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/endpoints/${mockChatEndpointGuid}/test`, () => {
     return HttpResponse.json(chatEndpointTestResultData);
+  }),
+
+  // Read the model catalog
+  http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/models`, () => {
+    return HttpResponse.json(chatModelsMockApiResponse);
   }),
 
   // Chat completions (streaming and non-streaming, discriminated by Stream flag)

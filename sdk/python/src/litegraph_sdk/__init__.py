@@ -27,6 +27,7 @@ from .models.chat import (
     ChatEndpointModel,
     ChatEndpointTestResultModel,
     ChatFeedbackModel,
+    ChatModelSummaryModel,
     ChatSettingsModel,
     ChatThreadModel,
     ChatTurnModel,

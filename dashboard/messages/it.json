@@ -1784,7 +1784,9 @@
         "toolCalls": "Chiamate a strumenti",
         "toolCallsDesc": "Numero di invocazioni di strumenti nel turno",
         "turnCreated": "Creato",
-        "turnCreatedDesc": "Ora di creazione del turno (UTC)"
+        "turnCreatedDesc": "Ora di creazione del turno (UTC)",
+        "ttft": "TTFT",
+        "ttftDesc": "Tempo al primo token"
       },
       "turnDetail": {
         "title": "Dettagli del turno",

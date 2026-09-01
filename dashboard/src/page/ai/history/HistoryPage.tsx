@@ -12,9 +12,13 @@ import CopyButton from '@/components/base/copy-button/CopyButton';
 import FallBack from '@/components/base/fallback/FallBack';
 import { ChatThread, ChatTurn } from '@/lib/sdk/chat';
 import {
+  useGetAllGraphsQuery,
+  useGetAllUsersQuery,
   useListChatThreadTurnsQuery,
   useListChatThreadsQuery,
 } from '@/lib/store/slice/slice';
+import { useAppDynamicNavigation } from '@/hooks/hooks';
+import { paths } from '@/constants/constant';
 import { formatDateTime } from '@/utils/dateUtils';
 import { columnTooltip } from '@/utils/tooltipUtils';
 import TurnDetailModal from './components/TurnDetailModal';
@@ -54,7 +58,31 @@ const HistoryPage = () => {
     [threads, selectedThreadGuid]
   );
 
+  const { serializePath } = useAppDynamicNavigation();
+  const { data: users = [] } = useGetAllUsersQuery();
+  const { data: graphs = [] } = useGetAllGraphsQuery();
+
+  const userLabel = (userGuid: string): string => {
+    const user = users.find((candidate) => candidate.GUID === userGuid);
+    if (!user) return `${userGuid.slice(0, 8)}…`;
+    return user.Email || [user.FirstName, user.LastName].filter(Boolean).join(' ') || user.GUID;
+  };
+
   const threadColumns = [
+    {
+      title: columnTooltip(t('columns.updated'), t('columns.updatedDesc')),
+      dataIndex: 'LastUpdateUtc',
+      key: 'LastUpdateUtc',
+      width: 170,
+      render: (lastUpdateUtc: string) => formatDateTime(lastUpdateUtc),
+    },
+    {
+      title: columnTooltip(t('columns.created'), t('columns.createdDesc')),
+      dataIndex: 'CreatedUtc',
+      key: 'CreatedUtc',
+      width: 170,
+      render: (createdUtc: string) => formatDateTime(createdUtc),
+    },
     {
       title: columnTooltip(t('columns.title'), t('columns.titleDesc')),
       dataIndex: 'Title',
@@ -73,10 +101,17 @@ const HistoryPage = () => {
       title: columnTooltip(t('columns.user'), t('columns.userDesc')),
       dataIndex: 'UserGUID',
       key: 'UserGUID',
-      width: 200,
+      width: 210,
       ellipsis: true,
       render: (userGuid: string) => (
-        <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{userGuid}</span>
+        <a
+          href={`${paths.users}?user=${userGuid}`}
+          onClick={(e) => e.stopPropagation()}
+          style={{ fontSize: 12.5 }}
+          data-testid={`history-user-link-${userGuid}`}
+        >
+          {userLabel(userGuid)}
+        </a>
       ),
     },
     {
@@ -85,30 +120,31 @@ const HistoryPage = () => {
       key: 'GraphGUID',
       width: 200,
       ellipsis: true,
-      render: (graphGuid?: string | null) =>
-        graphGuid ? (
-          <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{graphGuid}</span>
-        ) : (
-          <Tag>{t('noGraph')}</Tag>
-        ),
+      render: (graphGuid?: string | null) => {
+        if (!graphGuid) return <Tag>{t('noGraph')}</Tag>;
+        const graph = graphs.find((candidate) => candidate.GUID === graphGuid);
+        return (
+          <a
+            href={`${serializePath(paths.graphs)}?graph=${graphGuid}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ fontSize: 12.5 }}
+            data-testid={`history-graph-link-${graphGuid}`}
+          >
+            {graph?.Name || `${graphGuid.slice(0, 8)}…`}
+          </a>
+        );
+      },
     },
+  ];
+
+  const turnColumns = [
     {
-      title: columnTooltip(t('columns.created'), t('columns.createdDesc')),
+      title: columnTooltip(t('columns.turnCreated'), t('columns.turnCreatedDesc')),
       dataIndex: 'CreatedUtc',
       key: 'CreatedUtc',
       width: 170,
       render: (createdUtc: string) => formatDateTime(createdUtc),
     },
-    {
-      title: columnTooltip(t('columns.updated'), t('columns.updatedDesc')),
-      dataIndex: 'LastUpdateUtc',
-      key: 'LastUpdateUtc',
-      width: 170,
-      render: (lastUpdateUtc: string) => formatDateTime(lastUpdateUtc),
-    },
-  ];
-
-  const turnColumns = [
     {
       title: columnTooltip(t('columns.userMessage'), t('columns.userMessageDesc')),
       dataIndex: 'UserMessage',
@@ -139,6 +175,13 @@ const HistoryPage = () => {
         `${record.PromptTokens ?? '—'} / ${record.CompletionTokens ?? '—'}`,
     },
     {
+      title: columnTooltip(t('columns.ttft'), t('columns.ttftDesc')),
+      dataIndex: 'TimeToFirstTokenMs',
+      key: 'TimeToFirstTokenMs',
+      width: 100,
+      render: (ttftMs?: number | null) => (ttftMs != null ? `${Math.round(ttftMs)} ms` : '—'),
+    },
+    {
       title: columnTooltip(t('columns.duration'), t('columns.durationDesc')),
       dataIndex: 'TotalDurationMs',
       key: 'TotalDurationMs',
@@ -151,13 +194,6 @@ const HistoryPage = () => {
       key: 'ToolCallCount',
       width: 100,
       align: 'center' as const,
-    },
-    {
-      title: columnTooltip(t('columns.turnCreated'), t('columns.turnCreatedDesc')),
-      dataIndex: 'CreatedUtc',
-      key: 'CreatedUtc',
-      width: 170,
-      render: (createdUtc: string) => formatDateTime(createdUtc),
     },
   ];
 

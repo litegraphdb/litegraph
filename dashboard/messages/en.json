@@ -1841,7 +1841,9 @@
         "toolCalls": "Tool calls",
         "toolCallsDesc": "Number of tool invocations in the turn",
         "turnCreated": "Created",
-        "turnCreatedDesc": "Turn creation time (UTC)"
+        "turnCreatedDesc": "Turn creation time (UTC)",
+        "ttft": "TTFT",
+        "ttftDesc": "Time to first token"
       },
       "turnDetail": {
         "title": "Turn details",

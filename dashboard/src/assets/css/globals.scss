@@ -647,3 +647,33 @@
 .ant-modal .ant-modal-confirm-btns {
   flex-shrink: 0;
 }
+
+/* Home: the graph viewer fills the space remaining below the overview rows
+   instead of using the generic fixed-height calc, which would push it past
+   the bottom edge of the viewport. */
+#homepage {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#homepage > [class*='pageContent'] {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#homepage [data-testid='home-overview'] {
+  flex-shrink: 0;
+}
+#homepage [data-testid='graph-viewer'] {
+  flex: 1;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+#homepage [data-testid='graph-viewer'] [class*='graphContainer'] {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}

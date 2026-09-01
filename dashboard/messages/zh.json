@@ -1784,7 +1784,9 @@
         "toolCalls": "工具调用",
         "toolCallsDesc": "此轮中的工具调用次数",
         "turnCreated": "创建时间",
-        "turnCreatedDesc": "此轮的创建时间（UTC）"
+        "turnCreatedDesc": "此轮的创建时间（UTC）",
+        "ttft": "TTFT",
+        "ttftDesc": "首个令牌耗时"
       },
       "turnDetail": {
         "title": "轮次详情",
