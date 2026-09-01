@@ -9,6 +9,7 @@ import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphTable from '@/components/base/table/Table';
 import ViewJsonModal from '@/components/base/view-json-modal/ViewJsonModal';
 import { globalToastId } from '@/constants/config';
+import { columnTooltip } from '@/utils/tooltipUtils';
 import RequestHistoryChart from './RequestHistoryChart';
 import RequestHistoryDetailModal from './RequestHistoryDetailModal';
 import {
@@ -275,7 +276,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const columns: ColumnsType<RequestHistoryEntry> = useMemo(
     () => [
       {
-        title: t('columns.time'),
+        title: columnTooltip(t('columns.time'), t('columns.timeDesc')),
         dataIndex: 'CreatedUtc',
         width: 170,
         onHeaderCell: () => ({ style: noWrapStyle }),
@@ -286,7 +287,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         ),
       },
       {
-        title: t('columns.method'),
+        title: columnTooltip(t('columns.method'), t('columns.methodDesc')),
         dataIndex: 'Method',
         width: 80,
         onHeaderCell: () => ({ style: noWrapStyle }),
@@ -297,19 +298,19 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         ),
       },
       {
-        title: t('columns.path'),
+        title: columnTooltip(t('columns.path'), t('columns.pathDesc')),
         dataIndex: 'Path',
         ellipsis: true,
         render: (v: string) => <Text code>{v}</Text>,
       },
       {
-        title: t('columns.status'),
+        title: columnTooltip(t('columns.status'), t('columns.statusDesc')),
         dataIndex: 'StatusCode',
         width: 80,
         render: (v: number) => <Tag color={statusColor(v)}>{v}</Tag>,
       },
       {
-        title: t('columns.transaction'),
+        title: columnTooltip(t('columns.transaction'), t('columns.transactionDesc')),
         dataIndex: 'TransactionDiagnosticsJson',
         width: 190,
         render: (v?: string | null) => {
@@ -353,13 +354,13 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         },
       },
       {
-        title: t('columns.duration'),
+        title: columnTooltip(t('columns.duration'), t('columns.durationDesc')),
         dataIndex: 'ProcessingTimeMs',
         width: 100,
         render: (v: number) => `${v.toFixed(1)} ms`,
       },
       {
-        title: t('columns.size'),
+        title: columnTooltip(t('columns.size'), t('columns.sizeDesc')),
         width: 140,
         render: (_: unknown, r: RequestHistoryEntry) =>
           `${r.RequestBodyLength} / ${r.ResponseBodyLength} B`,
@@ -367,7 +368,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
       ...(mode === 'admin'
         ? [
             {
-              title: t('columns.tenant'),
+              title: columnTooltip(t('columns.tenant'), t('columns.tenantDesc')),
               dataIndex: 'TenantGUID',
               width: 160,
               render: (v?: string | null) =>

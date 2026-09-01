@@ -463,7 +463,13 @@
   "home": {
     "pageTitle": "Início",
     "addNode": "Adicionar nó",
-    "addEdge": "Adicionar aresta"
+    "addEdge": "Adicionar aresta",
+    "observability": {
+      "title": "Observabilidade:",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "Solicitações de API"
+    }
   },
   "graphViewer": {
     "loadingNodes": "Carregando nós...",
@@ -828,7 +834,15 @@
       "duration": "Duração",
       "size": "Tamanho (req/resp)",
       "tenant": "Tenant",
-      "actions": "Ações"
+      "actions": "Ações",
+      "timeDesc": "Quando o servidor recebeu o pedido, no seu fuso horário local.",
+      "methodDesc": "Método HTTP do pedido.",
+      "pathDesc": "Caminho do pedido no servidor, sem a query string.",
+      "statusDesc": "Código de estado HTTP devolvido: 2xx sucesso, 4xx erro do cliente, 5xx erro do servidor.",
+      "transactionDesc": "Diagnóstico de transação para pedidos de escrita: identificador, resultado, nível de isolamento e fornecedor.",
+      "durationDesc": "Tempo de processamento no servidor desde a receção do pedido até à conclusão da resposta.",
+      "sizeDesc": "Tamanhos dos corpos do pedido e da resposta em bytes, como pedido / resposta.",
+      "tenantDesc": "Tenant que emitiu o pedido; vazio em pedidos administrativos."
     },
     "transaction": {
       "noId": "transação"
@@ -930,7 +944,10 @@
       "sse": {
         "reconstructed": "Saída reconstruída",
         "events": "{count} eventos transmitidos",
-        "raw": "Stream bruto"
+        "raw": "Stream bruto",
+        "reconstructedTooltip": "A mensagem final do assistente, remontada a partir dos fragmentos delta do stream.",
+        "eventsTooltip": "Cada evento server-sent por ordem, com o tipo de evento e um breve resumo do conteúdo.",
+        "rawTooltip": "O payload text/event-stream em bruto, exatamente como foi transmitido."
       }
     }
   },
@@ -1562,7 +1579,8 @@
         "modelDefault": "Modelo padrão",
         "defaultModelLabel": "{name} ({model}) — padrão",
         "streaming": "Streaming",
-        "streamingTooltip": "Transmitir tokens à medida que são gerados"
+        "streamingTooltip": "Mostrar a resposta token a token enquanto é gerada. Quando desativado, a resposta aparece apenas quando está completa.",
+        "modelTooltip": "Modelo que responde às novas mensagens desta conversa. Deixe vazio para usar o endpoint de completion predefinido do tenant."
       },
       "disclaimer": "A IA pode cometer erros. Verifique todas as respostas.",
       "renameThreadTooltip": "Renomear conversa",
@@ -1699,7 +1717,7 @@
         "maxOutputTokens": "Máx. tokens de saída",
         "maxOutputTokensTooltip": "Limite superior de tokens que o modelo pode gerar por turno",
         "timeoutMs": "Tempo limite (ms)",
-        "timeoutMsTooltip": "Tempo limite por pedido em milissegundos",
+        "timeoutMsTooltip": "Pedidos que demorem mais do que isto são interrompidos e reportados como erros (milissegundos).",
         "maxConcurrentRequests": "Máx. pedidos simultâneos",
         "maxConcurrentRequestsTooltip": "Limite de concorrência aplicado a este endpoint (mínimo 1)",
         "maxConcurrentRequestsMin": "Tem de ser pelo menos 1",
@@ -1715,7 +1733,9 @@
         "endpointNotBaseUrl": "Forneça apenas a URL base do provedor (sem caminho, consulta ou fragmento; /v1 é permitido para servidores compatíveis com OpenAI)",
         "contextWindowTokens": "Janela de contexto (tokens)",
         "contextWindowTokensTooltip": "Tamanho da janela de contexto do modelo; quando definido, o histórico é reduzido para que histórico mais saída caibam na janela. 0 = desconhecido.",
-        "contextWindowTokensPlaceholder": "0 = não especificado"
+        "contextWindowTokensPlaceholder": "0 = não especificado",
+        "nameTooltip": "Nome apresentado na lista de endpoints e no seletor de modelos do chat.",
+        "activeTooltip": "Endpoints inativos ficam ocultos do chat e nunca recebem pedidos."
       },
       "test": {
         "title": "Teste: {name}",
@@ -1764,29 +1784,29 @@
       "turnsTitle": "Turnos — {title}",
       "columns": {
         "title": "Título",
-        "titleDesc": "Título da conversa",
+        "titleDesc": "Título da conversa, gerado automaticamente após a primeira troca. Clique numa linha para inspecionar os seus turnos.",
         "user": "Utilizador",
-        "userDesc": "GUID do utilizador proprietário",
+        "userDesc": "O utilizador proprietário da conversa. Clique para abrir a ficha do utilizador.",
         "graph": "Grafo",
-        "graphDesc": "Grafo ao qual a conversa está vinculada",
+        "graphDesc": "Grafo ao qual a conversa está vinculada para recuperação e ferramentas de grafo. Clique para abrir o grafo.",
         "created": "Criada",
         "createdDesc": "Hora de criação (UTC)",
         "updated": "Atualizada",
-        "updatedDesc": "Hora da última atualização (UTC)",
+        "updatedDesc": "Hora da atividade mais recente na conversa (UTC).",
         "userMessage": "Mensagem do utilizador",
         "userMessageDesc": "A mensagem que iniciou o turno",
         "success": "Sucesso",
         "successDesc": "Se o turno foi concluído com sucesso",
         "tokens": "Tokens (in/out)",
-        "tokensDesc": "Contagens de tokens de prompt / completion",
+        "tokensDesc": "Uso de tokens como prompt / completion: o prompt conta tudo o que é enviado ao modelo e a completion conta a resposta gerada.",
         "duration": "Duração",
-        "durationDesc": "Duração total do turno",
+        "durationDesc": "Duração total do turno, incluindo chamadas de ferramentas e novas tentativas.",
         "toolCalls": "Chamadas de ferramentas",
-        "toolCallsDesc": "Número de invocações de ferramentas no turno",
+        "toolCallsDesc": "Número de ferramentas de grafo que o assistente invocou ao responder a este turno.",
         "turnCreated": "Criado",
         "turnCreatedDesc": "Hora de criação do turno (UTC)",
         "ttft": "TTFT",
-        "ttftDesc": "Tempo até o primeiro token"
+        "ttftDesc": "Tempo até o primeiro token: latência entre o envio do pedido e o primeiro token produzido pelo modelo."
       },
       "turnDetail": {
         "title": "Detalhes do turno",
@@ -1834,9 +1854,9 @@
         "thread": "Conversa",
         "threadDesc": "Abrir a conversa no histórico de chat",
         "turn": "Turno",
-        "turnDesc": "O turno classificado",
+        "turnDesc": "Identificador do turno avaliado. Clique na linha para ver a troca completa e o comentário.",
         "user": "Usuário",
-        "userDesc": "O usuário que enviou o feedback"
+        "userDesc": "O utilizador que avaliou a resposta do assistente."
       },
       "toast": {
         "deleted": "Feedback eliminado.",
@@ -1901,7 +1921,10 @@
         "maxContextTokens": "Máx. tokens de contexto",
         "maxContextTokensHint": "Orçamento de tokens para o histórico anterior no prompt (mínimo 1024)",
         "historyRetentionDays": "Retenção do histórico (dias)",
-        "historyRetentionDaysHint": "Dias de retenção dos turnos de chat antes da limpeza; 0 mantém para sempre"
+        "historyRetentionDaysHint": "Dias de retenção dos turnos de chat antes da limpeza; 0 mantém para sempre",
+        "defaultCompletionEndpointHint": "Responde ao chat quando o utilizador não escolheu um modelo na barra da conversa. O chat permanece desativado enquanto não estiver definido.",
+        "defaultEmbeddingEndpointHint": "Gera os embeddings de consulta usados na recuperação (RAG). Sem definição, a recuperação é ignorada.",
+        "systemPromptHint": "Anteposto a cada conversa para orientar o assistente. As instruções fixas do servidor sobre ferramentas e citações aplicam-se sempre adicionalmente."
       }
     }
   }

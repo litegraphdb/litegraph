@@ -205,7 +205,14 @@ const HistoryPage = () => {
       id="ai-history"
       pageTitle={
         selectedThreadGuid ? (
-          <span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+            <LitegraphButton
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setSelectedThreadGuid(null)}
+              data-testid="history-back"
+            >
+              {t('backToThreads')}
+            </LitegraphButton>
             {t('turnsTitle', {
               title: selectedThread?.Title || t('untitledThread'),
             })}
@@ -213,17 +220,6 @@ const HistoryPage = () => {
         ) : (
           t('title')
         )
-      }
-      pageTitleRightContent={
-        selectedThreadGuid ? (
-          <LitegraphButton
-            icon={<ArrowLeftOutlined />}
-            onClick={() => setSelectedThreadGuid(null)}
-            data-testid="history-back"
-          >
-            {t('backToThreads')}
-          </LitegraphButton>
-        ) : undefined
       }
     >
       {!selectedThreadGuid ? (

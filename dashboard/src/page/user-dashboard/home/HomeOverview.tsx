@@ -13,6 +13,7 @@ import {
 import { useTranslations } from 'next-intl';
 import LitegraphFlex from '@/components/base/flex/Flex';
 import LitegraphText from '@/components/base/typograpghy/Text';
+import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import { useAppSelector } from '@/lib/store/hooks';
 import { RootState } from '@/lib/store/store';
 import { useAppDynamicNavigation } from '@/hooks/hooks';
@@ -32,32 +33,36 @@ const COUNT_REQUEST = { MaxResults: 1 } as any;
 const KpiCard = ({
   label,
   scope,
+  scopeTooltip,
   value,
   loading,
 }: {
   label: string;
   scope: string;
+  scopeTooltip: string;
   value?: number;
   loading?: boolean;
 }) => (
-  <Card
-    size="small"
-    style={{ flex: '1 1 150px', minWidth: 140 }}
-    styles={{ body: { padding: '4px 10px' } }}
-    data-testid="home-kpi"
-  >
-    <Statistic
-      title={
-        <span style={{ fontSize: 11, lineHeight: 1.1 }}>
-          {label}{' '}
-          <span style={{ color: 'var(--ant-color-text-tertiary)' }}>· {scope}</span>
-        </span>
-      }
-      value={value ?? 0}
-      loading={loading}
-      valueStyle={{ fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}
-    />
-  </Card>
+  <LitegraphTooltip title={scopeTooltip}>
+    <Card
+      size="small"
+      style={{ flex: '1 1 150px', minWidth: 140 }}
+      styles={{ body: { padding: '4px 10px' } }}
+      data-testid="home-kpi"
+    >
+      <Statistic
+        title={
+          <span style={{ fontSize: 11, lineHeight: 1.1 }}>
+            {label}{' '}
+            <span style={{ color: 'var(--ant-color-text-tertiary)' }}>· {scope}</span>
+          </span>
+        }
+        value={value ?? 0}
+        loading={loading}
+        valueStyle={{ fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}
+      />
+    </Card>
+  </LitegraphTooltip>
 );
 
 /** A single navigational CTA card. */
@@ -125,18 +130,21 @@ const HomeOverview = () => {
 
   const inGraph = t('kpis.inSelectedGraph');
   const inTenant = t('kpis.inTenant');
+  const graphScopeTooltip = t('kpis.graphScopeTooltip');
+  const tenantScopeTooltip = t('kpis.tenantScopeTooltip');
 
   const kpis = useMemo(
     () => [
-      { label: t('kpis.graphs'), scope: inTenant, value: graphsList?.length, loading: graphsFetching },
-      { label: t('kpis.nodes'), scope: inGraph, value: nodes?.TotalRecords, loading: nodesFetching },
-      { label: t('kpis.edges'), scope: inGraph, value: edges?.TotalRecords, loading: edgesFetching },
-      { label: t('kpis.labels'), scope: inTenant, value: labels?.TotalRecords, loading: labelsFetching },
-      { label: t('kpis.tags'), scope: inTenant, value: tags?.TotalRecords, loading: tagsFetching },
-      { label: t('kpis.vectors'), scope: inTenant, value: vectors?.TotalRecords, loading: vectorsFetching },
+      { label: t('kpis.graphs'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: graphsList?.length, loading: graphsFetching },
+      { label: t('kpis.nodes'), scope: inGraph, scopeTooltip: graphScopeTooltip, value: nodes?.TotalRecords, loading: nodesFetching },
+      { label: t('kpis.edges'), scope: inGraph, scopeTooltip: graphScopeTooltip, value: edges?.TotalRecords, loading: edgesFetching },
+      { label: t('kpis.labels'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: labels?.TotalRecords, loading: labelsFetching },
+      { label: t('kpis.tags'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: tags?.TotalRecords, loading: tagsFetching },
+      { label: t('kpis.vectors'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: vectors?.TotalRecords, loading: vectorsFetching },
     ],
     [
-      t, inGraph, inTenant, graphsList, graphsFetching, nodes, nodesFetching, edges, edgesFetching,
+      t, inGraph, inTenant, graphScopeTooltip, tenantScopeTooltip, graphsList, graphsFetching,
+      nodes, nodesFetching, edges, edgesFetching,
       labels, labelsFetching, tags, tagsFetching, vectors, vectorsFetching,
     ]
   );
@@ -157,7 +165,14 @@ const HomeOverview = () => {
     <div style={{ marginBottom: 16 }} data-testid="home-overview">
       <LitegraphFlex gap={12} wrap="wrap" style={{ marginBottom: 16 }}>
         {kpis.map((kpi) => (
-          <KpiCard key={kpi.label} label={kpi.label} scope={kpi.scope} value={kpi.value} loading={kpi.loading} />
+          <KpiCard
+            key={kpi.label}
+            label={kpi.label}
+            scope={kpi.scope}
+            scopeTooltip={kpi.scopeTooltip}
+            value={kpi.value}
+            loading={kpi.loading}
+          />
         ))}
       </LitegraphFlex>
       <LitegraphFlex gap={12} wrap="wrap">

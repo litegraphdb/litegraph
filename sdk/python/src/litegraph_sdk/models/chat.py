@@ -31,9 +31,21 @@ class ChatEndpointModel(BaseModel):
     api_key: Optional[str] = Field(default=None, alias="ApiKey")
     model: Optional[str] = Field(default=None, alias="Model")
     context_window_tokens: int = Field(default=0, alias="ContextWindowTokens")
+    max_output_tokens: int = Field(default=4096, alias="MaxOutputTokens")
+    temperature: float = Field(default=0.7, alias="Temperature")
+    timeout_ms: int = Field(default=120000, alias="TimeoutMs")
+    max_concurrent_requests: int = Field(default=2, alias="MaxConcurrentRequests")
     active: bool = Field(default=True, alias="Active")
     health_check_enabled: bool = Field(default=True, alias="HealthCheckEnabled")
     health_check_url: Optional[str] = Field(default=None, alias="HealthCheckUrl")
+    health_check_method: str = Field(default="GET", alias="HealthCheckMethod")
+    health_check_interval_ms: int = Field(default=30000, alias="HealthCheckIntervalMs")
+    health_check_timeout_ms: int = Field(default=10000, alias="HealthCheckTimeoutMs")
+    health_check_expected_status_code: int = Field(
+        default=200, alias="HealthCheckExpectedStatusCode"
+    )
+    healthy_threshold: int = Field(default=2, alias="HealthyThreshold")
+    unhealthy_threshold: int = Field(default=2, alias="UnhealthyThreshold")
     health_check_use_auth: bool = Field(default=False, alias="HealthCheckUseAuth")
     created_utc: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), alias="CreatedUtc"

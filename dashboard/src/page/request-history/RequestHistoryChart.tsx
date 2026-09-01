@@ -269,7 +269,7 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
                 <text
                   x={PAD_LEFT - 8}
                   y={y + 3}
-                  fontSize={8}
+                  fontSize={5}
                   fill="var(--ant-color-text-secondary)"
                   textAnchor="end"
                 >
@@ -325,7 +325,7 @@ const RequestHistoryChart: React.FC<Props> = ({ tenantGuid, refreshKey }) => {
                   <text
                     x={centerX}
                     y={CHART_HEIGHT - 6}
-                    fontSize={8}
+                    fontSize={5}
                     fill="var(--ant-color-text-secondary)"
                     textAnchor="middle"
                   >

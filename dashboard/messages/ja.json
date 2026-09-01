@@ -463,7 +463,13 @@
   "home": {
     "pageTitle": "ホーム",
     "addNode": "ノードを追加",
-    "addEdge": "エッジを追加"
+    "addEdge": "エッジを追加",
+    "observability": {
+      "title": "可観測性:",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "API リクエスト"
+    }
   },
   "graphViewer": {
     "loadingNodes": "ノードを読み込み中...",
@@ -828,7 +834,15 @@
       "duration": "所要時間",
       "size": "サイズ (リクエスト/レスポンス)",
       "tenant": "テナント",
-      "actions": "操作"
+      "actions": "操作",
+      "timeDesc": "サーバーがリクエストを受信した時刻（お使いのローカルタイムゾーン）。",
+      "methodDesc": "リクエストの HTTP メソッド。",
+      "pathDesc": "サーバー上のリクエストパス（クエリ文字列を除く）。",
+      "statusDesc": "返された HTTP ステータスコード。2xx は成功、4xx はクライアントエラー、5xx はサーバーエラーです。",
+      "transactionDesc": "書き込みリクエストのトランザクション診断。識別子、結果、分離レベル、プロバイダーを表示します。",
+      "durationDesc": "リクエスト受信からレスポンス完了までのサーバー側処理時間。",
+      "sizeDesc": "リクエストとレスポンスの本文サイズ（バイト、リクエスト / レスポンスの順）。",
+      "tenantDesc": "リクエストを発行したテナント。管理リクエストでは空です。"
     },
     "transaction": {
       "noId": "トランザクション"
@@ -930,7 +944,10 @@
       "sse": {
         "reconstructed": "再構成した出力",
         "events": "ストリーミングイベント {count} 件",
-        "raw": "生ストリーム"
+        "raw": "生ストリーム",
+        "reconstructedTooltip": "ストリームのデルタフレームから再構成したアシスタントの最終メッセージです。",
+        "eventsTooltip": "各 Server-Sent Events フレームを順に、イベント種別と内容の短い要約とともに表示します。",
+        "rawTooltip": "送信されたままの未加工の text/event-stream ペイロードです。"
       }
     }
   },
@@ -1562,7 +1579,8 @@
         "modelDefault": "デフォルトモデル",
         "defaultModelLabel": "{name}（{model}）— デフォルト",
         "streaming": "ストリーミング",
-        "streamingTooltip": "生成されたトークンを逐次ストリーミングする"
+        "streamingTooltip": "生成中の応答をトークン単位で逐次表示します。オフにすると、応答は完成後にまとめて表示されます。",
+        "modelTooltip": "この会話の新しいメッセージに応答するモデルです。空のままにすると、テナントの既定の Completion エンドポイントが使われます。"
       },
       "disclaimer": "AI は間違えることがあります。すべての回答をご確認ください。",
       "renameThreadTooltip": "会話名を変更",
@@ -1699,7 +1717,7 @@
         "maxOutputTokens": "最大出力トークン",
         "maxOutputTokensTooltip": "1 ターンでモデルが生成できるトークン数の上限",
         "timeoutMs": "タイムアウト（ms）",
-        "timeoutMsTooltip": "リクエストごとのタイムアウト（ミリ秒）",
+        "timeoutMsTooltip": "これより長くかかるリクエストは中断され、エラーとして報告されます（ミリ秒）。",
         "maxConcurrentRequests": "最大同時リクエスト数",
         "maxConcurrentRequestsTooltip": "このエンドポイントに適用される同時実行の上限（最小 1）",
         "maxConcurrentRequestsMin": "1 以上である必要があります",
@@ -1715,7 +1733,9 @@
         "endpointNotBaseUrl": "プロバイダーのベース URL のみを指定してください（パス・クエリ・フラグメントは不可。OpenAI 互換サーバーでは /v1 を許可）",
         "contextWindowTokens": "コンテキストウィンドウ（トークン）",
         "contextWindowTokensTooltip": "モデルのコンテキストウィンドウサイズ。設定すると、履歴と出力がウィンドウに収まるよう履歴が切り詰められます。不明な場合は 0。",
-        "contextWindowTokensPlaceholder": "0 = 未指定"
+        "contextWindowTokensPlaceholder": "0 = 未指定",
+        "nameTooltip": "エンドポイント一覧とチャットのモデル選択に表示される名前です。",
+        "activeTooltip": "無効なエンドポイントはチャットに表示されず、リクエストも受け取りません。"
       },
       "test": {
         "title": "テスト: {name}",
@@ -1764,29 +1784,29 @@
       "turnsTitle": "ターン — {title}",
       "columns": {
         "title": "タイトル",
-        "titleDesc": "会話のタイトル",
+        "titleDesc": "最初のやり取りの後に自動生成される会話のタイトル。行をクリックするとターンを確認できます。",
         "user": "ユーザー",
-        "userDesc": "所有ユーザーの GUID",
+        "userDesc": "会話を所有するユーザー。クリックするとユーザー情報を開きます。",
         "graph": "グラフ",
-        "graphDesc": "会話が関連付けられているグラフ",
+        "graphDesc": "検索（RAG）とグラフツールのために会話が関連付けられているグラフ。クリックするとグラフを開きます。",
         "created": "作成日時",
         "createdDesc": "作成日時（UTC）",
         "updated": "更新日時",
-        "updatedDesc": "最終更新日時（UTC）",
+        "updatedDesc": "会話で最後に活動があった日時（UTC）。",
         "userMessage": "ユーザーメッセージ",
         "userMessageDesc": "ターンを開始したメッセージ",
         "success": "成功",
         "successDesc": "ターンが正常に完了したかどうか",
         "tokens": "トークン（入/出）",
-        "tokensDesc": "プロンプト / 生成のトークン数",
+        "tokensDesc": "トークン使用量（プロンプト / 生成）。プロンプトはモデルへ送信したすべてを、生成は生成された応答を数えます。",
         "duration": "所要時間",
-        "durationDesc": "ターンの合計時間",
+        "durationDesc": "ツール呼び出しやリトライを含む、ターン全体の所要時間。",
         "toolCalls": "ツール呼び出し",
-        "toolCallsDesc": "ターン内のツール呼び出し回数",
+        "toolCallsDesc": "このターンの応答中にアシスタントが呼び出したグラフツールの回数。",
         "turnCreated": "作成日時",
         "turnCreatedDesc": "ターンの作成日時（UTC）",
         "ttft": "TTFT",
-        "ttftDesc": "最初のトークンまでの時間"
+        "ttftDesc": "最初のトークンまでの時間。リクエスト送信からモデルが最初のトークンを生成するまでの待ち時間です。"
       },
       "turnDetail": {
         "title": "ターンの詳細",
@@ -1834,9 +1854,9 @@
         "thread": "会話",
         "threadDesc": "チャット履歴で会話を開く",
         "turn": "ターン",
-        "turnDesc": "評価対象のターン",
+        "turnDesc": "評価対象ターンの識別子。行をクリックするとやり取り全体とコメントを表示します。",
         "user": "ユーザー",
-        "userDesc": "フィードバックを送信したユーザー"
+        "userDesc": "アシスタントの応答を評価したユーザー。"
       },
       "toast": {
         "deleted": "フィードバックを削除しました。",
@@ -1901,7 +1921,10 @@
         "maxContextTokens": "最大コンテキストトークン",
         "maxContextTokensHint": "プロンプトに含める過去ターン履歴のトークン予算（最小 1024）",
         "historyRetentionDays": "履歴保持（日数）",
-        "historyRetentionDaysHint": "チャットターンを保持する日数。0 は無期限に保持します"
+        "historyRetentionDaysHint": "チャットターンを保持する日数。0 は無期限に保持します",
+        "defaultCompletionEndpointHint": "会話ツールバーでモデルが選ばれていないときにチャットへ応答します。未設定の間、チャットは無効のままです。",
+        "defaultEmbeddingEndpointHint": "検索（RAG）で使うクエリ埋め込みを生成します。未設定の場合、検索はスキップされます。",
+        "systemPromptHint": "アシスタントの挙動を導くため、すべての会話の先頭に追加されます。サーバー固定のツール・引用の指示は常に併せて適用されます。"
       }
     }
   }

@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Modal, Collapse, Typography, Tag, Space, Descriptions } from 'antd';
+import { Modal, Collapse, Typography, Tag, Space, Descriptions, Tooltip } from 'antd';
 import { toast } from 'react-hot-toast';
 import { globalToastId } from '@/constants/config';
 import CopyButton from '@/components/base/copy-button/CopyButton';
@@ -163,15 +163,19 @@ const SseEventsView: React.FC<{ body: string }> = ({ body }) => {
     <div data-testid="request-detail-sse">
       {reconstructed && (
         <>
-          <Text strong style={{ fontSize: 12.5, display: 'block', marginBottom: 4 }}>
-            {t('detail.sse.reconstructed')}
-          </Text>
+          <Tooltip title={t('detail.sse.reconstructedTooltip')}>
+            <Text strong style={{ fontSize: 12.5, display: 'inline-block', marginBottom: 4 }}>
+              {t('detail.sse.reconstructed')}
+            </Text>
+          </Tooltip>
           <CodeBlock text={reconstructed} />
         </>
       )}
-      <Text strong style={{ fontSize: 12.5, display: 'block', margin: '12px 0 4px' }}>
-        {t('detail.sse.events', { count: frames.length })}
-      </Text>
+      <Tooltip title={t('detail.sse.eventsTooltip')}>
+        <Text strong style={{ fontSize: 12.5, display: 'inline-block', margin: '12px 0 4px' }}>
+          {t('detail.sse.events', { count: frames.length })}
+        </Text>
+      </Tooltip>
       <div
         style={{
           border: '1px solid var(--ant-color-border)',
@@ -210,7 +214,11 @@ const SseEventsView: React.FC<{ body: string }> = ({ body }) => {
         items={[
           {
             key: 'raw-sse',
-            label: t('detail.sse.raw'),
+            label: (
+              <Tooltip title={t('detail.sse.rawTooltip')}>
+                <span>{t('detail.sse.raw')}</span>
+              </Tooltip>
+            ),
             children: <CodeBlock text={body} />,
           },
         ]}

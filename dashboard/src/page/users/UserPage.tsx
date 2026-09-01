@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
@@ -10,7 +11,7 @@ import DeleteUser from './components/DeleteUser';
 import { tableColumns } from './constant';
 import FallBack from '@/components/base/fallback/FallBack';
 import { usePagination } from '@/hooks/appHooks';
-import { useEnumerateUserQuery } from '@/lib/store/slice/slice';
+import { useEnumerateUserQuery, useGetUserByIdQuery } from '@/lib/store/slice/slice';
 import { tablePaginationConfig } from '@/constants/pagination';
 import { useSelectedTenant } from '@/hooks/entityHooks';
 import { UserMetadata } from 'litegraphdb/dist/types/types';
@@ -43,6 +44,21 @@ const UserPage = () => {
   );
   const isUsersLoading = isLoading || isFetching;
   const usersList = data?.Objects || [];
+
+  // Deep link: ?user=<guid> opens that user's record directly.
+  const searchParams = useSearchParams();
+  const deepLinkUserGuid = searchParams?.get('user') || null;
+  const { data: deepLinkedUser } = useGetUserByIdQuery(deepLinkUserGuid as string, {
+    skip: !deepLinkUserGuid || !selectedTenantRedux,
+  });
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkedUser && !deepLinkHandled.current) {
+      deepLinkHandled.current = true;
+      setSelectedUser(deepLinkedUser);
+      setIsAddEditUserVisible(true);
+    }
+  }, [deepLinkedUser]);
 
   const handleCreateUser = () => {
     setSelectedUser(null);

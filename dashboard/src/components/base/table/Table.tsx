@@ -166,7 +166,7 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
     tableLayout,
     onRefresh,
     isRefreshing,
-    refreshTooltip = 'Refresh',
+    refreshTooltip = 'Reload the table data now',
     persistKey,
     locale,
     ...rest
@@ -351,7 +351,7 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
           </Tooltip>
         )}
         {onRefresh && (
-          <Tooltip title="Auto-refresh interval">
+          <Tooltip title="Automatically reload the table at this interval; None disables auto-refresh">
             <Select
               size="small"
               aria-label="Auto-refresh interval"
@@ -388,20 +388,22 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
           Previous
         </Button>
         <LitegraphText>Page</LitegraphText>
-        <InputNumber
-          size="small"
-          aria-label="Jump to page"
-          data-testid="litegraph-table-page-jump"
-          min={1}
-          max={totalPages}
-          value={currentPage}
-          onChange={(value) => {
-            if (value !== null) {
-              changePage(Number(value));
-            }
-          }}
-          style={{ width: 72 }}
-        />
+        <Tooltip title="Type a page number to jump straight to that page">
+          <InputNumber
+            size="small"
+            aria-label="Jump to page"
+            data-testid="litegraph-table-page-jump"
+            min={1}
+            max={totalPages}
+            value={currentPage}
+            onChange={(value) => {
+              if (value !== null) {
+                changePage(Number(value));
+              }
+            }}
+            style={{ width: 72 }}
+          />
+        </Tooltip>
         <LitegraphText>of {totalPages.toLocaleString()}</LitegraphText>
         <Button
           size="small"
@@ -419,15 +421,17 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
         >
           Last
         </Button>
-        <Select
-          size="small"
-          aria-label="Records per page"
-          data-testid="litegraph-table-page-size"
-          value={pageSize}
-          options={pageSizeOptions}
-          onChange={changePageSize}
-          style={{ width: 96 }}
-        />
+        <Tooltip title="Number of records shown on each page; the choice is remembered for this table">
+          <Select
+            size="small"
+            aria-label="Records per page"
+            data-testid="litegraph-table-page-size"
+            value={pageSize}
+            options={pageSizeOptions}
+            onChange={changePageSize}
+            style={{ width: 96 }}
+          />
+        </Tooltip>
         <LitegraphText>per page</LitegraphText>
       </Space>
     </div>

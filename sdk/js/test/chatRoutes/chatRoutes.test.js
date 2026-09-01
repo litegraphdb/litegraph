@@ -80,6 +80,60 @@ describe('chatRoute Tests', () => {
       expect(response instanceof ChatEndpoint).toBe(true);
       expect(response.GUID).toBe(mockChatEndpointGuid);
       expect(response.ContextWindowTokens).toBe(128000);
+      expect(response.MaxOutputTokens).toBe(4096);
+      expect(response.Temperature).toBe(0.7);
+      expect(response.TimeoutMs).toBe(120000);
+      expect(response.MaxConcurrentRequests).toBe(2);
+      expect(response.HealthCheckMethod).toBe('GET');
+      expect(response.HealthCheckIntervalMs).toBe(30000);
+      expect(response.HealthCheckTimeoutMs).toBe(10000);
+      expect(response.HealthCheckExpectedStatusCode).toBe(200);
+      expect(response.HealthyThreshold).toBe(2);
+      expect(response.UnhealthyThreshold).toBe(2);
+    });
+
+    test('should default new ChatEndpoint fields to the server defaults', () => {
+      const endpoint = new ChatEndpoint({});
+      expect(endpoint.ContextWindowTokens).toBe(0);
+      expect(endpoint.MaxOutputTokens).toBe(4096);
+      expect(endpoint.Temperature).toBe(0.7);
+      expect(endpoint.TimeoutMs).toBe(120000);
+      expect(endpoint.MaxConcurrentRequests).toBe(2);
+      expect(endpoint.Active).toBe(true);
+      expect(endpoint.HealthCheckEnabled).toBe(true);
+      expect(endpoint.HealthCheckUrl).toBeNull();
+      expect(endpoint.HealthCheckMethod).toBe('GET');
+      expect(endpoint.HealthCheckIntervalMs).toBe(30000);
+      expect(endpoint.HealthCheckTimeoutMs).toBe(10000);
+      expect(endpoint.HealthCheckExpectedStatusCode).toBe(200);
+      expect(endpoint.HealthyThreshold).toBe(2);
+      expect(endpoint.UnhealthyThreshold).toBe(2);
+      expect(endpoint.HealthCheckUseAuth).toBe(false);
+    });
+
+    test('should carry constructor overrides for tuning and health-check fields', () => {
+      const endpoint = new ChatEndpoint({
+        MaxOutputTokens: 8192,
+        Temperature: 0.2,
+        TimeoutMs: 60000,
+        MaxConcurrentRequests: 4,
+        HealthCheckMethod: 'HEAD',
+        HealthCheckIntervalMs: 15000,
+        HealthCheckTimeoutMs: 5000,
+        HealthCheckExpectedStatusCode: 204,
+        HealthyThreshold: 3,
+        UnhealthyThreshold: 5,
+      });
+      expect(endpoint.MaxOutputTokens).toBe(8192);
+      expect(endpoint.Temperature).toBe(0.2);
+      expect(endpoint.TimeoutMs).toBe(60000);
+      expect(endpoint.MaxConcurrentRequests).toBe(4);
+      expect(endpoint.HealthCheckMethod).toBe('HEAD');
+      expect(endpoint.HealthCheckIntervalMs).toBe(15000);
+      expect(endpoint.HealthCheckTimeoutMs).toBe(5000);
+      expect(endpoint.HealthCheckExpectedStatusCode).toBe(204);
+      expect(endpoint.HealthyThreshold).toBe(3);
+      expect(endpoint.UnhealthyThreshold).toBe(5);
     });
 
     test('should check if a chat endpoint exists by GUID', async () => {

@@ -463,7 +463,13 @@
   "home": {
     "pageTitle": "首页",
     "addNode": "添加节点",
-    "addEdge": "添加边"
+    "addEdge": "添加边",
+    "observability": {
+      "title": "可观测性：",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "API 请求"
+    }
   },
   "graphViewer": {
     "loadingNodes": "正在加载节点……",
@@ -828,7 +834,15 @@
       "duration": "耗时",
       "size": "大小（请求/响应）",
       "tenant": "租户",
-      "actions": "操作"
+      "actions": "操作",
+      "timeDesc": "服务器收到请求的时间（您的本地时区）。",
+      "methodDesc": "请求的 HTTP 方法。",
+      "pathDesc": "请求在服务器上的路径（不含查询字符串）。",
+      "statusDesc": "返回的 HTTP 状态码：2xx 成功、4xx 客户端错误、5xx 服务器错误。",
+      "transactionDesc": "写入请求的事务诊断：标识符、结果、隔离级别和提供方。",
+      "durationDesc": "从收到请求到完成响应的服务器端处理时间。",
+      "sizeDesc": "请求与响应正文的大小（字节），按“请求 / 响应”显示。",
+      "tenantDesc": "发出请求的租户；管理请求为空。"
     },
     "transaction": {
       "noId": "事务"
@@ -930,7 +944,10 @@
       "sse": {
         "reconstructed": "重组后的输出",
         "events": "{count} 个流式事件",
-        "raw": "原始流"
+        "raw": "原始流",
+        "reconstructedTooltip": "由流的增量帧重组而成的助手最终消息。",
+        "eventsTooltip": "按顺序列出每个 server-sent 事件帧，附事件类型和内容摘要。",
+        "rawTooltip": "未经解析的 text/event-stream 负载，与传输时完全一致。"
       }
     }
   },
@@ -1562,7 +1579,8 @@
         "modelDefault": "默认模型",
         "defaultModelLabel": "{name}（{model}）— 默认",
         "streaming": "流式输出",
-        "streamingTooltip": "在生成过程中流式传输令牌"
+        "streamingTooltip": "在生成过程中逐个令牌显示回复。关闭后，回复将在完成后一次性显示。",
+        "modelTooltip": "用于回答此会话新消息的模型。留空则使用租户的默认补全端点。"
       },
       "disclaimer": "AI 可能会出错。请核实所有回答。",
       "renameThreadTooltip": "重命名会话",
@@ -1699,7 +1717,7 @@
         "maxOutputTokens": "最大输出令牌数",
         "maxOutputTokensTooltip": "模型每轮可生成令牌数的上限",
         "timeoutMs": "超时（毫秒）",
-        "timeoutMsTooltip": "每个请求的超时时间（毫秒）",
+        "timeoutMsTooltip": "超过该时长的请求将被中止并报告为错误（毫秒）。",
         "maxConcurrentRequests": "最大并发请求数",
         "maxConcurrentRequestsTooltip": "对此端点强制执行的并发上限（最小为 1）",
         "maxConcurrentRequestsMin": "必须至少为 1",
@@ -1715,7 +1733,9 @@
         "endpointNotBaseUrl": "仅提供提供商的基础 URL（不含路径、查询或片段；OpenAI 兼容服务器允许 /v1）",
         "contextWindowTokens": "上下文窗口（token）",
         "contextWindowTokensTooltip": "模型的上下文窗口大小；设置后会裁剪对话历史，使历史加输出适配窗口。未知则填 0。",
-        "contextWindowTokensPlaceholder": "0 = 未指定"
+        "contextWindowTokensPlaceholder": "0 = 未指定",
+        "nameTooltip": "在端点列表和聊天模型选择器中显示的名称。",
+        "activeTooltip": "停用的端点会从聊天中隐藏，并且不会收到任何请求。"
       },
       "test": {
         "title": "测试：{name}",
@@ -1764,29 +1784,29 @@
       "turnsTitle": "轮次 — {title}",
       "columns": {
         "title": "标题",
-        "titleDesc": "会话标题",
+        "titleDesc": "会话标题，在首次交流后自动生成。点击行可查看其各轮对话。",
         "user": "用户",
-        "userDesc": "所属用户的 GUID",
+        "userDesc": "拥有该会话的用户。点击可打开用户资料。",
         "graph": "图谱",
-        "graphDesc": "会话绑定的图谱",
+        "graphDesc": "会话为检索和图谱工具绑定的图谱。点击可打开该图谱。",
         "created": "创建时间",
         "createdDesc": "创建时间（UTC）",
         "updated": "更新时间",
-        "updatedDesc": "最近更新时间（UTC）",
+        "updatedDesc": "会话最近一次活动的时间（UTC）。",
         "userMessage": "用户消息",
         "userMessageDesc": "开启此轮的消息",
         "success": "成功",
         "successDesc": "此轮是否成功完成",
         "tokens": "令牌（入/出）",
-        "tokensDesc": "提示 / 生成令牌数",
+        "tokensDesc": "令牌用量，按“提示 / 生成”显示：提示统计发送给模型的全部内容，生成统计模型产生的回复。",
         "duration": "耗时",
-        "durationDesc": "此轮总耗时",
+        "durationDesc": "此轮的总耗时，包括工具调用和重试。",
         "toolCalls": "工具调用",
-        "toolCallsDesc": "此轮中的工具调用次数",
+        "toolCallsDesc": "助手在回答此轮时调用图谱工具的次数。",
         "turnCreated": "创建时间",
         "turnCreatedDesc": "此轮的创建时间（UTC）",
         "ttft": "TTFT",
-        "ttftDesc": "首个令牌耗时"
+        "ttftDesc": "首个令牌耗时：从发送请求到模型产生第一个令牌的延迟。"
       },
       "turnDetail": {
         "title": "轮次详情",
@@ -1834,9 +1854,9 @@
         "thread": "会话",
         "threadDesc": "在聊天历史中打开该会话",
         "turn": "轮次",
-        "turnDesc": "被评价的轮次",
+        "turnDesc": "被评价轮次的标识符。点击行可查看完整交流和评论。",
         "user": "用户",
-        "userDesc": "提交反馈的用户"
+        "userDesc": "评价助手回复的用户。"
       },
       "toast": {
         "deleted": "反馈已删除。",
@@ -1901,7 +1921,10 @@
         "maxContextTokens": "最大上下文令牌数",
         "maxContextTokensHint": "提示词中历史轮次的令牌预算（最小 1024）",
         "historyRetentionDays": "历史保留（天）",
-        "historyRetentionDaysHint": "聊天轮次在清理前保留的天数；0 表示永久保留"
+        "historyRetentionDaysHint": "聊天轮次在清理前保留的天数；0 表示永久保留",
+        "defaultCompletionEndpointHint": "当用户未在会话工具栏中选择模型时，由该端点回答聊天。未设置时聊天保持禁用。",
+        "defaultEmbeddingEndpointHint": "生成用于检索（RAG）的查询嵌入。未设置时将跳过检索。",
+        "systemPromptHint": "添加到每个会话的开头以引导助手。服务器固定的工具与引用指令始终会一并生效。"
       }
     }
   }

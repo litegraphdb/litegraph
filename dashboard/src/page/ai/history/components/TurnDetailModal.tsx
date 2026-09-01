@@ -61,7 +61,12 @@ export const buildWaterfallStages = (turn: ChatTurn, t: Translator): WaterfallSt
   return stages;
 };
 
-/** Hand-rolled SVG stage waterfall for one turn. */
+/**
+ * Stage duration bars for one turn, rendered as HTML rows so label and value
+ * text keep the modal's normal font size regardless of modal width. All bars
+ * share one starting position; widths are proportional to each stage's
+ * duration relative to the turn total.
+ */
 const TurnWaterfall = ({ turn }: { turn: ChatTurn }) => {
   const t = useTranslations('ai.history');
   const stages = buildWaterfallStages(turn, t as unknown as Translator);
@@ -76,61 +81,51 @@ const TurnWaterfall = ({ turn }: { turn: ChatTurn }) => {
     turn.TotalDurationMs || 0,
     stages[stages.length - 1].start + stages[stages.length - 1].duration
   );
-  const width = 560;
-  const labelWidth = 130;
-  const rowHeight = 26;
-  const barAreaWidth = width - labelWidth - 70;
-  const height = stages.length * rowHeight + 8;
-  const scale = (ms: number) => (total > 0 ? (ms / total) * barAreaWidth : 0);
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label={t('turnDetail.waterfallTitle')}
-        style={{ width: '100%', minWidth: 420, height: 'auto', display: 'block' }}
-        data-testid="turn-waterfall"
-      >
-        {stages.map((stage, index) => {
-          const y = index * rowHeight + 4;
-          // Bars share one starting x (a duration bar chart); the sequential
-          // offsets stay available in the tooltip via each stage's duration.
-          const x = labelWidth;
-          const barWidth = Math.max(2, scale(stage.duration));
-          return (
-            <g key={stage.key}>
-              <text
-                x={labelWidth - 8}
-                y={y + 14}
-                textAnchor="end"
-                style={{ fontSize: 11, fill: 'var(--ant-color-text-secondary)' }}
-              >
-                {stage.label}
-              </text>
-              <rect
-                x={x}
-                y={y}
-                width={barWidth}
-                height={rowHeight - 10}
-                rx={3}
-                fill={stage.color}
-                opacity={0.85}
-              >
-                <title>{`${stage.label}: ${stage.duration.toFixed(1)} ms`}</title>
-              </rect>
-              <text
-                x={x + barWidth + 6}
-                y={y + 12}
-                style={{ fontSize: 10, fill: 'var(--ant-color-text-tertiary)' }}
-              >
-                {`${stage.duration.toFixed(0)} ms`}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
+    <LitegraphFlex vertical gap={6} data-testid="turn-waterfall">
+      {stages.map((stage) => {
+        const pct = total > 0 ? Math.max(0.5, (stage.duration / total) * 100) : 0.5;
+        return (
+          <LitegraphFlex key={stage.key} align="center" gap={8}>
+            <LitegraphText
+              style={{
+                width: 150,
+                flexShrink: 0,
+                textAlign: 'end',
+                fontSize: 12,
+                color: 'var(--ant-color-text-secondary)',
+              }}
+            >
+              {stage.label}
+            </LitegraphText>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                title={`${stage.label}: ${stage.duration.toFixed(1)} ms`}
+                style={{
+                  width: `${pct}%`,
+                  height: 14,
+                  borderRadius: 3,
+                  backgroundColor: stage.color,
+                  opacity: 0.85,
+                }}
+              />
+            </div>
+            <LitegraphText
+              style={{
+                width: 72,
+                flexShrink: 0,
+                fontSize: 11,
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--ant-color-text-tertiary)',
+              }}
+            >
+              {`${stage.duration.toFixed(0)} ms`}
+            </LitegraphText>
+          </LitegraphFlex>
+        );
+      })}
+    </LitegraphFlex>
   );
 };
 

@@ -474,7 +474,9 @@
         "vectors": "Vectors",
         "inSelectedGraph": "in selected graph",
         "inTenant": "in tenant",
-        "selectGraphHint": "Select a graph to see counts"
+        "selectGraphHint": "Select a graph to see counts",
+        "tenantScopeTooltip": "Counted across the entire tenant, regardless of the graph selected in the sidebar.",
+        "graphScopeTooltip": "Counted within the graph currently selected in the sidebar."
       },
       "cta": {
         "heading": "Quick actions",
@@ -491,6 +493,12 @@
         "vectorSearch": "Vectors",
         "vectorSearchDesc": "Manage vectors and run similarity search"
       }
+    },
+    "observability": {
+      "title": "Observability:",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "API Requests"
     }
   },
   "graphViewer": {
@@ -856,7 +864,15 @@
       "duration": "Duration",
       "size": "Size (req/resp)",
       "tenant": "Tenant",
-      "actions": "Actions"
+      "actions": "Actions",
+      "timeDesc": "When the server received the request, shown in your local time zone.",
+      "methodDesc": "HTTP method of the request.",
+      "pathDesc": "Request path on the server, excluding the query string.",
+      "statusDesc": "HTTP status code returned: 2xx success, 4xx client error, 5xx server error.",
+      "transactionDesc": "Transaction diagnostics for write requests: identifier, outcome, isolation level, and provider.",
+      "durationDesc": "Server-side processing time from receiving the request to completing the response.",
+      "sizeDesc": "Request and response body sizes in bytes, shown as request / response.",
+      "tenantDesc": "Tenant that issued the request; empty for administrative requests."
     },
     "transaction": {
       "noId": "transaction"
@@ -958,7 +974,10 @@
       "sse": {
         "reconstructed": "Reconstructed output",
         "events": "{count} streamed events",
-        "raw": "Raw stream"
+        "raw": "Raw stream",
+        "reconstructedTooltip": "The assistant's final message, reassembled from the delta frames of the stream.",
+        "eventsTooltip": "Every server-sent event frame in order, with its event type and a short payload summary.",
+        "rawTooltip": "The unparsed text/event-stream payload exactly as sent over the wire."
       }
     }
   },
@@ -1619,7 +1638,8 @@
         "modelDefault": "Default model",
         "defaultModelLabel": "{name} ({model}) — default",
         "streaming": "Streaming",
-        "streamingTooltip": "Stream tokens as they are generated"
+        "streamingTooltip": "Show the reply token by token while it is generated. When off, the reply appears only once it is complete.",
+        "modelTooltip": "Model used to answer new messages in this conversation. Leave empty to fall back to the tenant's default completion endpoint."
       },
       "disclaimer": "AI can make mistakes. Please verify all answers.",
       "renameThreadTooltip": "Rename conversation",
@@ -1756,7 +1776,7 @@
         "maxOutputTokens": "Max output tokens",
         "maxOutputTokensTooltip": "Upper bound of tokens the model may generate per turn",
         "timeoutMs": "Timeout (ms)",
-        "timeoutMsTooltip": "Per-request timeout in milliseconds",
+        "timeoutMsTooltip": "Requests taking longer than this are aborted and reported as errors (milliseconds).",
         "maxConcurrentRequests": "Max concurrent requests",
         "maxConcurrentRequestsTooltip": "Concurrency limit enforced against this endpoint (minimum 1)",
         "maxConcurrentRequestsMin": "Must be at least 1",
@@ -1772,7 +1792,9 @@
         "endpointNotBaseUrl": "Supply only the provider base URL (no path, query, or fragment; /v1 is allowed for OpenAI-compatible servers)",
         "contextWindowTokens": "Context window (tokens)",
         "contextWindowTokensTooltip": "Model context window size; when set, conversation history is trimmed so history plus output fit the window. Leave 0 if unknown.",
-        "contextWindowTokensPlaceholder": "0 = unspecified"
+        "contextWindowTokensPlaceholder": "0 = unspecified",
+        "nameTooltip": "Display name shown in the endpoint list and in the chat model picker.",
+        "activeTooltip": "Inactive endpoints are hidden from chat and never receive requests."
       },
       "test": {
         "title": "Test: {name}",
@@ -1821,29 +1843,29 @@
       "turnsTitle": "Turns — {title}",
       "columns": {
         "title": "Title",
-        "titleDesc": "Conversation title",
+        "titleDesc": "Conversation title, generated automatically after the first exchange. Click a row to inspect its turns.",
         "user": "User",
-        "userDesc": "Owning user GUID",
+        "userDesc": "The user who owns the conversation. Click to open the user record.",
         "graph": "Graph",
-        "graphDesc": "Graph the conversation is bound to",
+        "graphDesc": "Graph the conversation is bound to for retrieval and graph tools. Click to open the graph.",
         "created": "Created",
         "createdDesc": "Creation time (UTC)",
         "updated": "Updated",
-        "updatedDesc": "Last update time (UTC)",
+        "updatedDesc": "Time of the most recent activity in the conversation (UTC).",
         "userMessage": "User message",
         "userMessageDesc": "The message that started the turn",
         "success": "Success",
         "successDesc": "Whether the turn completed successfully",
         "tokens": "Tokens (in/out)",
-        "tokensDesc": "Prompt / completion token counts",
+        "tokensDesc": "Token usage as prompt / completion: prompt counts everything sent to the model, completion counts the generated reply.",
         "duration": "Duration",
-        "durationDesc": "Total turn duration",
+        "durationDesc": "Total wall-clock time of the turn, including tool calls and retries.",
         "toolCalls": "Tool calls",
-        "toolCallsDesc": "Number of tool invocations in the turn",
+        "toolCallsDesc": "Number of graph tools the assistant invoked while answering this turn.",
         "turnCreated": "Created",
         "turnCreatedDesc": "Turn creation time (UTC)",
         "ttft": "TTFT",
-        "ttftDesc": "Time to first token"
+        "ttftDesc": "Time to first token: latency from sending the request until the model produced its first token."
       },
       "turnDetail": {
         "title": "Turn details",
@@ -1891,9 +1913,9 @@
         "thread": "Conversation",
         "threadDesc": "Open the conversation in Chat History",
         "turn": "Turn",
-        "turnDesc": "The rated turn",
+        "turnDesc": "Identifier of the rated turn. Click the row for the full exchange and comment.",
         "user": "User",
-        "userDesc": "The user who submitted the feedback"
+        "userDesc": "The user who rated the assistant's response."
       },
       "toast": {
         "deleted": "Feedback deleted.",
@@ -1958,7 +1980,10 @@
         "maxContextTokens": "Max context tokens",
         "maxContextTokensHint": "Token budget for prior-turn history in the prompt (minimum 1024)",
         "historyRetentionDays": "History retention (days)",
-        "historyRetentionDaysHint": "Days to retain chat turns before pruning; 0 retains forever"
+        "historyRetentionDaysHint": "Days to retain chat turns before pruning; 0 retains forever",
+        "defaultCompletionEndpointHint": "Answers chat when the user has not picked a model in the conversation toolbar. Chat stays disabled while this is unset.",
+        "defaultEmbeddingEndpointHint": "Generates the query embeddings used for retrieval (RAG). Retrieval is skipped while this is unset.",
+        "systemPromptHint": "Prepended to every conversation to steer the assistant. The server's fixed tool and citation instructions always apply as well."
       }
     }
   }

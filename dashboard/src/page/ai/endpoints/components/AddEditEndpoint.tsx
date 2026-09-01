@@ -130,6 +130,7 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
         <LitegraphFormItem
           label={t('form.name')}
           name="Name"
+          tooltip={t('form.nameTooltip')}
           rules={[{ required: true, message: t('form.nameRequired') }]}
         >
           <LitegraphInput placeholder={t('form.namePlaceholder')} data-testid="endpoint-name" />
@@ -284,7 +285,12 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
         >
           <InputNumber min={1} style={{ width: '100%' }} data-testid="endpoint-concurrency" />
         </LitegraphFormItem>
-        <LitegraphFormItem label={t('form.active')} name="Active" valuePropName="checked">
+        <LitegraphFormItem
+          label={t('form.active')}
+          name="Active"
+          valuePropName="checked"
+          tooltip={t('form.activeTooltip')}
+        >
           <Switch data-testid="endpoint-active" />
         </LitegraphFormItem>
 

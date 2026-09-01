@@ -1,5 +1,6 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams as useUrlSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ImportOutlined, PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
 import { tableColumns } from './constant';
@@ -25,7 +26,11 @@ import { convertTagsToRecord } from '@/components/inputs/tags-input/utils';
 import { SearchData } from '@/components/search/type';
 import { hasScoreOrDistanceInData } from '@/utils/dataUtils';
 import { usePagination } from '@/hooks/appHooks';
-import { useDeleteGraphMutation, useSearchAndEnumerateGraphQuery } from '@/lib/store/slice/slice';
+import {
+  useDeleteGraphMutation,
+  useGetGraphByIdQuery,
+  useSearchAndEnumerateGraphQuery,
+} from '@/lib/store/slice/slice';
 import { tablePaginationConfig } from '@/constants/pagination';
 import { EnumerateAndSearchRequest } from 'litegraphdb/dist/types/types';
 import AddEditGraph from './components/AddEditGraph';
@@ -98,6 +103,22 @@ const GraphPage = () => {
     setSelectedGraph(data);
     setIsAddEditGraphVisible(true);
   };
+
+  // Deep link: ?graph=<guid> opens that graph's record directly.
+  const urlParams = useUrlSearchParams();
+  const deepLinkGraphGuid = urlParams?.get('graph') || null;
+  const { data: deepLinkedGraph } = useGetGraphByIdQuery(
+    { graphId: deepLinkGraphGuid as string },
+    { skip: !deepLinkGraphGuid }
+  );
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkedGraph && !deepLinkHandled.current) {
+      deepLinkHandled.current = true;
+      setSelectedGraph(deepLinkedGraph as unknown as GraphData);
+      setIsAddEditGraphVisible(true);
+    }
+  }, [deepLinkedGraph]);
 
   const handleDelete = (record: GraphData) => {
     setSelectedGraph(record);

@@ -50,9 +50,19 @@ def _endpoint_response(**overrides):
         "ApiKey": "********abcd",
         "Model": "gpt-4o-mini",
         "ContextWindowTokens": 128000,
+        "MaxOutputTokens": 4096,
+        "Temperature": 0.7,
+        "TimeoutMs": 120000,
+        "MaxConcurrentRequests": 2,
         "Active": True,
         "HealthCheckEnabled": True,
         "HealthCheckUrl": None,
+        "HealthCheckMethod": "GET",
+        "HealthCheckIntervalMs": 30000,
+        "HealthCheckTimeoutMs": 10000,
+        "HealthCheckExpectedStatusCode": 200,
+        "HealthyThreshold": 2,
+        "UnhealthyThreshold": 2,
         "HealthCheckUseAuth": False,
         "CreatedUtc": "2026-08-31T00:00:00.000000Z",
         "LastUpdateUtc": "2026-08-31T00:00:00.000000Z",
@@ -100,12 +110,32 @@ class TestChatEndpoints:
             api_key="sk-secret",
             model="gpt-4o-mini",
             context_window_tokens=128000,
+            max_output_tokens=8192,
+            temperature=0.5,
+            timeout_ms=60000,
+            max_concurrent_requests=4,
+            health_check_method="HEAD",
+            health_check_interval_ms=15000,
+            health_check_timeout_ms=5000,
+            health_check_expected_status_code=204,
+            healthy_threshold=3,
+            unhealthy_threshold=5,
         )
         assert isinstance(result, ChatEndpointModel)
         assert result.guid == ENDPOINT_GUID
         assert result.api_key == "********abcd"
         assert result.provider == ChatProviderType_Enum.OpenAI
         assert result.context_window_tokens == 128000
+        assert result.max_output_tokens == 4096
+        assert result.temperature == 0.7
+        assert result.timeout_ms == 120000
+        assert result.max_concurrent_requests == 2
+        assert result.health_check_method == "GET"
+        assert result.health_check_interval_ms == 30000
+        assert result.health_check_timeout_ms == 10000
+        assert result.health_check_expected_status_code == 200
+        assert result.healthy_threshold == 2
+        assert result.unhealthy_threshold == 2
         method, url = mock_client.request.call_args[0]
         assert method == "PUT"
         assert url == f"{CHAT_BASE}/endpoints"
@@ -117,6 +147,35 @@ class TestChatEndpoints:
         assert body["ApiKey"] == "sk-secret"
         assert body["Model"] == "gpt-4o-mini"
         assert body["ContextWindowTokens"] == 128000
+        assert body["MaxOutputTokens"] == 8192
+        assert body["Temperature"] == 0.5
+        assert body["TimeoutMs"] == 60000
+        assert body["MaxConcurrentRequests"] == 4
+        assert body["HealthCheckMethod"] == "HEAD"
+        assert body["HealthCheckIntervalMs"] == 15000
+        assert body["HealthCheckTimeoutMs"] == 5000
+        assert body["HealthCheckExpectedStatusCode"] == 204
+        assert body["HealthyThreshold"] == 3
+        assert body["UnhealthyThreshold"] == 5
+
+    def test_endpoint_model_defaults_match_server(self):
+        """ChatEndpointModel defaults mirror the server-side C# defaults."""
+        model = ChatEndpointModel()
+        assert model.context_window_tokens == 0
+        assert model.max_output_tokens == 4096
+        assert model.temperature == 0.7
+        assert model.timeout_ms == 120000
+        assert model.max_concurrent_requests == 2
+        assert model.active is True
+        assert model.health_check_enabled is True
+        assert model.health_check_url is None
+        assert model.health_check_method == "GET"
+        assert model.health_check_interval_ms == 30000
+        assert model.health_check_timeout_ms == 10000
+        assert model.health_check_expected_status_code == 200
+        assert model.healthy_threshold == 2
+        assert model.unhealthy_threshold == 2
+        assert model.health_check_use_auth is False
 
     def test_read_endpoints(self, mock_client):
         """read_endpoints returns a list of endpoint models."""
@@ -170,6 +229,16 @@ class TestChatEndpoints:
             endpoint="https://api.openai.com/",
             api_key="********abcd",
             model="gpt-4o-mini",
+            max_output_tokens=2048,
+            temperature=1.1,
+            timeout_ms=90000,
+            max_concurrent_requests=8,
+            health_check_method="HEAD",
+            health_check_interval_ms=45000,
+            health_check_timeout_ms=20000,
+            health_check_expected_status_code=200,
+            healthy_threshold=1,
+            unhealthy_threshold=4,
         )
         assert result.name == "renamed"
         method, url = mock_client.request.call_args[0]
@@ -177,6 +246,16 @@ class TestChatEndpoints:
         assert url == f"{CHAT_BASE}/endpoints/{ENDPOINT_GUID}"
         body = mock_client.request.call_args[1]["json"]
         assert body["ApiKey"] == "********abcd"
+        assert body["MaxOutputTokens"] == 2048
+        assert body["Temperature"] == 1.1
+        assert body["TimeoutMs"] == 90000
+        assert body["MaxConcurrentRequests"] == 8
+        assert body["HealthCheckMethod"] == "HEAD"
+        assert body["HealthCheckIntervalMs"] == 45000
+        assert body["HealthCheckTimeoutMs"] == 20000
+        assert body["HealthCheckExpectedStatusCode"] == 200
+        assert body["HealthyThreshold"] == 1
+        assert body["UnhealthyThreshold"] == 4
 
     def test_delete_endpoint(self, mock_client):
         """delete_endpoint issues a DELETE against the endpoint URL."""

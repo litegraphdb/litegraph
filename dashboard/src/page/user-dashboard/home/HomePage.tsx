@@ -13,6 +13,10 @@ import LitegraphFlex from '@/components/base/flex/Flex';
 import { PlusSquareOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useAppSelector } from '@/lib/store/hooks';
 import { RootState } from '@/lib/store/store';
+import { useMemo } from 'react';
+import LitegraphText from '@/components/base/typograpghy/Text';
+import { useAppDynamicNavigation } from '@/hooks/hooks';
+import { paths } from '@/constants/constant';
 import HomeOverview from './HomeOverview';
 
 const GraphViewer = dynamic(() => import('@/components/base/graph/GraphViewer'), {
@@ -39,6 +43,14 @@ const HomePage = () => {
   }, []);
 
   const { isGraphsLoading, graphError, refetchGraphs } = useLayoutContext();
+  const { serializePath } = useAppDynamicNavigation();
+
+  // Default observability locations for the bundled docker compose stack:
+  // same host as the dashboard on each tool's default port.
+  const observabilityHost = useMemo(() => {
+    if (typeof window === 'undefined') return 'http://localhost';
+    return `${window.location.protocol}//${window.location.hostname}`;
+  }, []);
 
   if (isGraphsLoading) {
     return <PageLoading />;
@@ -108,6 +120,42 @@ const HomePage = () => {
           controlsPortalTarget={controlsPortalTarget}
         />
       </div>
+      <LitegraphFlex
+        align="center"
+        gap={16}
+        wrap="wrap"
+        style={{ paddingBlock: 8 }}
+        data-testid="home-observability-links"
+      >
+        <LitegraphText style={{ fontSize: 12, color: 'var(--ant-color-text-secondary)' }}>
+          {t('observability.title')}
+        </LitegraphText>
+        <a
+          href={`${observabilityHost}:3000`}
+          target="_blank"
+          rel="noreferrer"
+          style={{ fontSize: 12 }}
+          data-testid="home-link-grafana"
+        >
+          {t('observability.grafana')}
+        </a>
+        <a
+          href={`${observabilityHost}:9090`}
+          target="_blank"
+          rel="noreferrer"
+          style={{ fontSize: 12 }}
+          data-testid="home-link-prometheus"
+        >
+          {t('observability.prometheus')}
+        </a>
+        <a
+          href={serializePath(paths.requestHistory)}
+          style={{ fontSize: 12 }}
+          data-testid="home-link-requests"
+        >
+          {t('observability.requests')}
+        </a>
+      </LitegraphFlex>
     </PageContainer>
   );
 };

@@ -463,7 +463,13 @@
   "home": {
     "pageTitle": "首頁",
     "addNode": "新增節點",
-    "addEdge": "新增邊"
+    "addEdge": "新增邊",
+    "observability": {
+      "title": "可觀測性：",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "API 請求"
+    }
   },
   "graphViewer": {
     "loadingNodes": "載入緊節點…",
@@ -828,7 +834,15 @@
       "duration": "時長",
       "size": "大細（請求/回應）",
       "tenant": "租戶",
-      "actions": "操作"
+      "actions": "操作",
+      "timeDesc": "伺服器收到請求嘅時間（你嘅本地時區）。",
+      "methodDesc": "請求嘅 HTTP 方法。",
+      "pathDesc": "請求喺伺服器上嘅路徑（唔包括查詢字串）。",
+      "statusDesc": "回傳嘅 HTTP 狀態碼：2xx 成功、4xx 客戶端錯誤、5xx 伺服器錯誤。",
+      "transactionDesc": "寫入請求嘅交易診斷：識別碼、結果、隔離等級同提供者。",
+      "durationDesc": "由收到請求到完成回應嘅伺服器端處理時間。",
+      "sizeDesc": "請求同回應內文嘅大細（位元組），以「請求 / 回應」顯示。",
+      "tenantDesc": "發出請求嘅租戶；管理請求會留空。"
     },
     "transaction": {
       "noId": "交易"
@@ -930,7 +944,10 @@
       "sse": {
         "reconstructed": "重組後嘅輸出",
         "events": "{count} 個串流事件",
-        "raw": "原始串流"
+        "raw": "原始串流",
+        "reconstructedTooltip": "由串流嘅 delta 幀重組出嚟嘅助手最終訊息。",
+        "eventsTooltip": "按次序列出每個 server-sent 事件幀，連同事件類型同內容摘要。",
+        "rawTooltip": "未經解析嘅 text/event-stream 內容，同傳送時一模一樣。"
       }
     }
   },
@@ -1562,7 +1579,8 @@
         "modelDefault": "預設模型",
         "defaultModelLabel": "{name}（{model}）— 預設",
         "streaming": "串流輸出",
-        "streamingTooltip": "生成時即時串流傳送 token"
+        "streamingTooltip": "生成嗰陣逐個 token 顯示回覆。關咗就要等成個回覆完成先會顯示。",
+        "modelTooltip": "呢個對話新訊息用嘅模型。留空就會用租戶預設嘅補全端點。"
       },
       "disclaimer": "AI 可能會出錯。請核實所有回答。",
       "renameThreadTooltip": "重新命名對話",
@@ -1699,7 +1717,7 @@
         "maxOutputTokens": "最大輸出權杖數",
         "maxOutputTokensTooltip": "模型每回合可以生成嘅權杖上限",
         "timeoutMs": "逾時（毫秒）",
-        "timeoutMsTooltip": "每個請求嘅逾時時間（毫秒）",
+        "timeoutMsTooltip": "超過呢個時間嘅請求會被中止並報告為錯誤（毫秒）。",
         "maxConcurrentRequests": "最大並發請求數",
         "maxConcurrentRequestsTooltip": "對呢個端點強制執行嘅並發上限（最小 1）",
         "maxConcurrentRequestsMin": "最少要係 1",
@@ -1715,7 +1733,9 @@
         "endpointNotBaseUrl": "只需提供供應商嘅基礎 URL（唔可以有路徑、查詢或者片段；OpenAI 兼容伺服器可以用 /v1）",
         "contextWindowTokens": "上下文窗口（token）",
         "contextWindowTokensTooltip": "模型嘅上下文窗口大小；設定咗之後，對話歷史會裁剪到歷史加輸出啱啱好放得入窗口。唔知就填 0。",
-        "contextWindowTokensPlaceholder": "0 = 未指定"
+        "contextWindowTokensPlaceholder": "0 = 未指定",
+        "nameTooltip": "喺端點列表同傾偈模型選擇器度顯示嘅名稱。",
+        "activeTooltip": "停用咗嘅端點唔會喺傾偈度出現，亦唔會收到任何請求。"
       },
       "test": {
         "title": "測試：{name}",
@@ -1764,29 +1784,29 @@
       "turnsTitle": "回合 — {title}",
       "columns": {
         "title": "標題",
-        "titleDesc": "對話標題",
+        "titleDesc": "對話標題，第一次交流之後自動生成。撳一行可以查看入面嘅回合。",
         "user": "用戶",
-        "userDesc": "擁有者用戶嘅 GUID",
+        "userDesc": "擁有呢個對話嘅用戶。撳一下可以開啟用戶資料。",
         "graph": "圖譜",
-        "graphDesc": "對話綁定嘅圖譜",
+        "graphDesc": "對話為咗檢索同圖譜工具而綁定嘅圖譜。撳一下可以開啟圖譜。",
         "created": "建立時間",
         "createdDesc": "建立時間（UTC）",
         "updated": "更新時間",
-        "updatedDesc": "最近更新時間（UTC）",
+        "updatedDesc": "對話最近一次活動嘅時間（UTC）。",
         "userMessage": "用戶訊息",
         "userMessageDesc": "開始呢個回合嘅訊息",
         "success": "成功",
         "successDesc": "呢個回合係咪成功完成",
         "tokens": "權杖（入/出）",
-        "tokensDesc": "提示 / 生成權杖數",
+        "tokensDesc": "權杖用量，以「提示 / 生成」顯示：提示計送畀模型嘅全部內容，生成計產生嘅回覆。",
         "duration": "耗時",
-        "durationDesc": "呢個回合嘅總耗時",
+        "durationDesc": "呢個回合嘅總耗時，包括工具呼叫同重試。",
         "toolCalls": "工具呼叫",
-        "toolCallsDesc": "呢個回合入面嘅工具呼叫次數",
+        "toolCallsDesc": "助手回答呢個回合時呼叫圖譜工具嘅次數。",
         "turnCreated": "建立時間",
         "turnCreatedDesc": "回合嘅建立時間（UTC）",
         "ttft": "TTFT",
-        "ttftDesc": "首個 token 時間"
+        "ttftDesc": "首個 token 時間：由送出請求到模型產生第一個 token 嘅延遲。"
       },
       "turnDetail": {
         "title": "回合詳情",
@@ -1834,9 +1854,9 @@
         "thread": "對話",
         "threadDesc": "喺傾偈紀錄開啟呢個對話",
         "turn": "回合",
-        "turnDesc": "被評價嘅回合",
+        "turnDesc": "被評價回合嘅識別碼。撳一行可以睇完整交流同留言。",
         "user": "用戶",
-        "userDesc": "提交反饋嘅用戶"
+        "userDesc": "評價助手回覆嘅用戶。"
       },
       "toast": {
         "deleted": "意見回饋已刪除。",
@@ -1901,7 +1921,10 @@
         "maxContextTokens": "最大上下文權杖數",
         "maxContextTokensHint": "提示入面歷史回合嘅權杖預算（最小 1024）",
         "historyRetentionDays": "紀錄保留（日）",
-        "historyRetentionDaysHint": "傾偈回合清理前保留嘅日數；0 即係永久保留"
+        "historyRetentionDaysHint": "傾偈回合清理前保留嘅日數；0 即係永久保留",
+        "defaultCompletionEndpointHint": "用戶喺對話工具列冇揀模型嗰陣，由呢個端點回答傾偈。未設定嘅話，傾偈會一直停用。",
+        "defaultEmbeddingEndpointHint": "生成檢索（RAG）用嘅查詢嵌入。未設定嘅話會跳過檢索。",
+        "systemPromptHint": "會加喺每個對話嘅開頭嚟引導助手。伺服器固定嘅工具同引用指示始終都會一併套用。"
       }
     }
   }

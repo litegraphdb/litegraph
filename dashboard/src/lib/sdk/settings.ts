@@ -23,6 +23,9 @@ const getBaseUrl = (): string => {
 };
 
 const buildHeaders = (): Record<string, string> => {
+  // Rely on the SDK's defaultHeaders for authentication: session logins carry
+  // x-token there, break-glass carries Authorization. Appending a session
+  // token as a bearer credential makes the server reject it with 401.
   const headers: Record<string, string> = {
     Accept: 'application/json',
   };
@@ -30,11 +33,6 @@ const buildHeaders = (): Record<string, string> => {
     .defaultHeaders;
   if (defaults) {
     for (const key of Object.keys(defaults)) headers[key] = defaults[key];
-  }
-  const authConfig = sdk.config as unknown as { accessToken?: string; accessKey?: string };
-  const bearerToken = authConfig.accessToken || authConfig.accessKey;
-  if (bearerToken && !headers.Authorization) {
-    headers.Authorization = `Bearer ${bearerToken}`;
   }
   return headers;
 };

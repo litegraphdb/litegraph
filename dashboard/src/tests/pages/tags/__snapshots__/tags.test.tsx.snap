@@ -312,6 +312,7 @@ exports[`TagsPage renders the tags page: initial table state 1`] = `
                 class="ant-input-number-input-wrap"
               >
                 <input
+                  aria-describedby="test-id"
                   aria-label="Jump to page"
                   aria-valuemax="1"
                   aria-valuemin="1"
@@ -368,6 +369,7 @@ exports[`TagsPage renders the tags page: initial table state 1`] = `
             class="ant-space-item"
           >
             <div
+              aria-describedby="test-id"
               aria-label="Records per page"
               class="ant-select ant-select-sm ant-select-outlined css-dev-only-do-not-override-mncuj7 ant-select-single ant-select-show-arrow"
               data-testid="litegraph-table-page-size"
@@ -385,6 +387,7 @@ exports[`TagsPage renders the tags page: initial table state 1`] = `
                     <input
                       aria-autocomplete="list"
                       aria-controls="rc_select_TEST_OR_SSR_list"
+                      aria-describedby="test-id"
                       aria-expanded="false"
                       aria-haspopup="listbox"
                       aria-label="Records per page"

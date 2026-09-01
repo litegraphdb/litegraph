@@ -191,6 +191,12 @@ const ChatSettingsPage = () => {
               style={{ width: '100%' }}
               data-testid="chat-settings-completion-endpoint"
             />
+            <LitegraphText
+              fontSize={11.5}
+              style={{ display: 'block', marginTop: 2, color: 'var(--ant-color-text-tertiary)' }}
+            >
+              {t('fields.defaultCompletionEndpointHint')}
+            </LitegraphText>
           </div>
           <div style={{ marginBottom: 4 }}>
             <LitegraphText fontSize={13} style={{ display: 'block', marginBottom: 4 }}>
@@ -208,6 +214,12 @@ const ChatSettingsPage = () => {
               style={{ width: '100%' }}
               data-testid="chat-settings-embedding-endpoint"
             />
+            <LitegraphText
+              fontSize={11.5}
+              style={{ display: 'block', marginTop: 2, color: 'var(--ant-color-text-tertiary)' }}
+            >
+              {t('fields.defaultEmbeddingEndpointHint')}
+            </LitegraphText>
           </div>
         </Card>
 
@@ -222,6 +234,12 @@ const ChatSettingsPage = () => {
             autoSize={{ minRows: 4, maxRows: 12 }}
             data-testid="chat-settings-system-prompt"
           />
+          <LitegraphText
+            fontSize={11.5}
+            style={{ display: 'block', marginTop: 2, color: 'var(--ant-color-text-tertiary)' }}
+          >
+            {t('fields.systemPromptHint')}
+          </LitegraphText>
         </Card>
 
         <Card size="small" title={t('sections.features')} data-testid="chat-settings-features">

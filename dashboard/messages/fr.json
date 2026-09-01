@@ -463,7 +463,13 @@
   "home": {
     "pageTitle": "Accueil",
     "addNode": "Ajouter un nœud",
-    "addEdge": "Ajouter une arête"
+    "addEdge": "Ajouter une arête",
+    "observability": {
+      "title": "Observabilité :",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "Requêtes API"
+    }
   },
   "graphViewer": {
     "loadingNodes": "Chargement des nœuds...",
@@ -828,7 +834,15 @@
       "duration": "Durée",
       "size": "Taille (req/rép)",
       "tenant": "Locataire",
-      "actions": "Actions"
+      "actions": "Actions",
+      "timeDesc": "Moment où le serveur a reçu la requête, dans votre fuseau horaire local.",
+      "methodDesc": "Méthode HTTP de la requête.",
+      "pathDesc": "Chemin de la requête sur le serveur, sans la chaîne de requête.",
+      "statusDesc": "Code de statut HTTP renvoyé : 2xx succès, 4xx erreur client, 5xx erreur serveur.",
+      "transactionDesc": "Diagnostic de transaction pour les requêtes d'écriture : identifiant, résultat, niveau d'isolement et fournisseur.",
+      "durationDesc": "Temps de traitement côté serveur, de la réception de la requête à la fin de la réponse.",
+      "sizeDesc": "Tailles des corps de requête et de réponse en octets, au format requête / réponse.",
+      "tenantDesc": "Locataire à l'origine de la requête ; vide pour les requêtes administratives."
     },
     "transaction": {
       "noId": "transaction"
@@ -930,7 +944,10 @@
       "sse": {
         "reconstructed": "Sortie reconstituée",
         "events": "{count} événements diffusés",
-        "raw": "Flux brut"
+        "raw": "Flux brut",
+        "reconstructedTooltip": "Le message final de l'assistant, reconstitué à partir des fragments delta du flux.",
+        "eventsTooltip": "Chaque événement server-sent dans l'ordre, avec son type et un bref résumé de son contenu.",
+        "rawTooltip": "La charge text/event-stream brute, exactement telle qu'elle a été transmise."
       }
     }
   },
@@ -1562,7 +1579,8 @@
         "modelDefault": "Modèle par défaut",
         "defaultModelLabel": "{name} ({model}) — par défaut",
         "streaming": "Streaming",
-        "streamingTooltip": "Diffuser les tokens au fur et à mesure de leur génération"
+        "streamingTooltip": "Afficher la réponse token par token pendant sa génération. Désactivé, la réponse n'apparaît qu'une fois complète.",
+        "modelTooltip": "Modèle qui répond aux nouveaux messages de cette conversation. Laissez vide pour utiliser le point de complétion par défaut du locataire."
       },
       "disclaimer": "L'IA peut faire des erreurs. Veuillez vérifier toutes les réponses.",
       "renameThreadTooltip": "Renommer la conversation",
@@ -1699,7 +1717,7 @@
         "maxOutputTokens": "Jetons de sortie max.",
         "maxOutputTokensTooltip": "Limite supérieure de jetons que le modèle peut générer par tour",
         "timeoutMs": "Délai d'attente (ms)",
-        "timeoutMsTooltip": "Délai d'attente par requête en millisecondes",
+        "timeoutMsTooltip": "Les requêtes dépassant ce délai sont interrompues et signalées comme erreurs (millisecondes).",
         "maxConcurrentRequests": "Requêtes simultanées max.",
         "maxConcurrentRequestsTooltip": "Limite de concurrence appliquée à ce point de terminaison (minimum 1)",
         "maxConcurrentRequestsMin": "Doit être au moins 1",
@@ -1715,7 +1733,9 @@
         "endpointNotBaseUrl": "Indiquez uniquement l'URL de base du fournisseur (sans chemin, requête ni fragment ; /v1 est autorisé pour les serveurs compatibles OpenAI)",
         "contextWindowTokens": "Fenêtre de contexte (jetons)",
         "contextWindowTokensTooltip": "Taille de la fenêtre de contexte du modèle ; si définie, l'historique est tronqué pour que historique plus sortie tiennent dans la fenêtre. 0 = inconnue.",
-        "contextWindowTokensPlaceholder": "0 = non spécifié"
+        "contextWindowTokensPlaceholder": "0 = non spécifié",
+        "nameTooltip": "Nom affiché dans la liste des points de terminaison et dans le sélecteur de modèle du chat.",
+        "activeTooltip": "Les points de terminaison inactifs sont masqués du chat et ne reçoivent jamais de requêtes."
       },
       "test": {
         "title": "Test : {name}",
@@ -1764,29 +1784,29 @@
       "turnsTitle": "Tours — {title}",
       "columns": {
         "title": "Titre",
-        "titleDesc": "Titre de la conversation",
+        "titleDesc": "Titre de la conversation, généré automatiquement après le premier échange. Cliquez sur une ligne pour examiner ses tours.",
         "user": "Utilisateur",
-        "userDesc": "GUID de l'utilisateur propriétaire",
+        "userDesc": "L'utilisateur propriétaire de la conversation. Cliquez pour ouvrir sa fiche utilisateur.",
         "graph": "Graphe",
-        "graphDesc": "Graphe auquel la conversation est liée",
+        "graphDesc": "Graphe auquel la conversation est liée pour la récupération et les outils de graphe. Cliquez pour ouvrir le graphe.",
         "created": "Créée",
         "createdDesc": "Heure de création (UTC)",
         "updated": "Mise à jour",
-        "updatedDesc": "Heure de la dernière mise à jour (UTC)",
+        "updatedDesc": "Heure de la dernière activité de la conversation (UTC).",
         "userMessage": "Message de l'utilisateur",
         "userMessageDesc": "Le message qui a lancé le tour",
         "success": "Succès",
         "successDesc": "Si le tour s’est terminé avec succès",
         "tokens": "Jetons (in/out)",
-        "tokensDesc": "Nombres de jetons prompt / complétion",
+        "tokensDesc": "Consommation de jetons en prompt / complétion : le prompt compte tout ce qui est envoyé au modèle, la complétion compte la réponse générée.",
         "duration": "Durée",
-        "durationDesc": "Durée totale du tour",
+        "durationDesc": "Durée totale du tour, y compris les appels d'outils et les nouvelles tentatives.",
         "toolCalls": "Appels d'outils",
-        "toolCallsDesc": "Nombre d'invocations d'outils dans le tour",
+        "toolCallsDesc": "Nombre d'outils de graphe invoqués par l'assistant pour répondre à ce tour.",
         "turnCreated": "Créé",
         "turnCreatedDesc": "Heure de création du tour (UTC)",
         "ttft": "TTFT",
-        "ttftDesc": "Délai jusqu'au premier token"
+        "ttftDesc": "Délai jusqu'au premier token : latence entre l'envoi de la requête et le premier token produit par le modèle."
       },
       "turnDetail": {
         "title": "Détails du tour",
@@ -1834,9 +1854,9 @@
         "thread": "Conversation",
         "threadDesc": "Ouvrir la conversation dans l'historique du chat",
         "turn": "Tour",
-        "turnDesc": "Le tour évalué",
+        "turnDesc": "Identifiant du tour évalué. Cliquez sur la ligne pour voir l'échange complet et le commentaire.",
         "user": "Utilisateur",
-        "userDesc": "L'utilisateur qui a soumis le commentaire"
+        "userDesc": "L'utilisateur qui a évalué la réponse de l'assistant."
       },
       "toast": {
         "deleted": "Retour supprimé.",
@@ -1901,7 +1921,10 @@
         "maxContextTokens": "Jetons de contexte max.",
         "maxContextTokensHint": "Budget de jetons pour l'historique des tours précédents dans le prompt (minimum 1024)",
         "historyRetentionDays": "Rétention de l'historique (jours)",
-        "historyRetentionDaysHint": "Jours de conservation des tours de chat avant purge ; 0 conserve indéfiniment"
+        "historyRetentionDaysHint": "Jours de conservation des tours de chat avant purge ; 0 conserve indéfiniment",
+        "defaultCompletionEndpointHint": "Répond au chat quand l'utilisateur n'a pas choisi de modèle dans la barre de la conversation. Le chat reste désactivé tant que rien n'est défini.",
+        "defaultEmbeddingEndpointHint": "Génère les embeddings de requête utilisés pour la récupération (RAG). Sans valeur, la récupération est ignorée.",
+        "systemPromptHint": "Ajouté au début de chaque conversation pour orienter l'assistant. Les instructions fixes du serveur sur les outils et les citations s'appliquent toujours en plus."
       }
     }
   }

@@ -184,6 +184,9 @@ jest.mock('next/navigation', () => ({
   usePathname() {
     return '';
   },
+  useSearchParams() {
+    return new URLSearchParams();
+  },
 }));
 
 // Patch unsupported selector behavior in Ant Design

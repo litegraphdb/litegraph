@@ -542,24 +542,28 @@ const ChatPage = () => {
               <LitegraphText style={{ fontSize: 12, color: 'var(--ant-color-text-secondary)' }}>
                 {t('toolbar.model')}
               </LitegraphText>
-              <LitegraphSelect
-                size="small"
-                showSearch
-                optionFilterProp="label"
-                style={{ minWidth: 220 }}
-                placeholder={t('toolbar.modelDefault')}
-                value={completionEndpointGuid}
-                allowClear
-                onChange={(value) => setCompletionEndpointGuid((value as string) || undefined)}
-                options={completionModels.map((model) => ({
-                  label: model.IsDefault
-                    ? t('toolbar.defaultModelLabel', { name: model.Name, model: model.Model })
-                    : `${model.Name} (${model.Model})`,
-                  value: model.GUID,
-                }))}
-                disabled={!chatAvailable}
-                data-testid="chat-model-select"
-              />
+              <LitegraphTooltip title={t('toolbar.modelTooltip')}>
+                <span>
+                  <LitegraphSelect
+                    size="small"
+                    showSearch
+                    optionFilterProp="label"
+                    style={{ minWidth: 220 }}
+                    placeholder={t('toolbar.modelDefault')}
+                    value={completionEndpointGuid}
+                    allowClear
+                    onChange={(value) => setCompletionEndpointGuid((value as string) || undefined)}
+                    options={completionModels.map((model) => ({
+                      label: model.IsDefault
+                        ? t('toolbar.defaultModelLabel', { name: model.Name, model: model.Model })
+                        : `${model.Name} (${model.Model})`,
+                      value: model.GUID,
+                    }))}
+                    disabled={!chatAvailable}
+                    data-testid="chat-model-select"
+                  />
+                </span>
+              </LitegraphTooltip>
             </LitegraphFlex>
             <LitegraphFlex align="center" gap={6}>
               <LitegraphTooltip title={t('toolbar.streamingTooltip')}>

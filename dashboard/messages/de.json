@@ -463,7 +463,13 @@
   "home": {
     "pageTitle": "Startseite",
     "addNode": "Knoten hinzufügen",
-    "addEdge": "Kante hinzufügen"
+    "addEdge": "Kante hinzufügen",
+    "observability": {
+      "title": "Observability:",
+      "grafana": "Grafana",
+      "prometheus": "Prometheus",
+      "requests": "API-Anfragen"
+    }
   },
   "graphViewer": {
     "loadingNodes": "Knoten werden geladen...",
@@ -828,7 +834,15 @@
       "duration": "Dauer",
       "size": "Größe (Anf./Antw.)",
       "tenant": "Mandant",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "timeDesc": "Zeitpunkt, zu dem der Server die Anfrage empfangen hat, in Ihrer lokalen Zeitzone.",
+      "methodDesc": "HTTP-Methode der Anfrage.",
+      "pathDesc": "Anfragepfad auf dem Server ohne Query-String.",
+      "statusDesc": "Zurückgegebener HTTP-Statuscode: 2xx Erfolg, 4xx Client-Fehler, 5xx Server-Fehler.",
+      "transactionDesc": "Transaktionsdiagnose für Schreibanfragen: Kennung, Ergebnis, Isolationsstufe und Provider.",
+      "durationDesc": "Serverseitige Verarbeitungszeit vom Empfang der Anfrage bis zum Abschluss der Antwort.",
+      "sizeDesc": "Größe von Anfrage- und Antwortkörper in Bytes, als Anfrage / Antwort.",
+      "tenantDesc": "Mandant, der die Anfrage gestellt hat; leer bei administrativen Anfragen."
     },
     "transaction": {
       "noId": "Transaktion"
@@ -930,7 +944,10 @@
       "sse": {
         "reconstructed": "Rekonstruierte Ausgabe",
         "events": "{count} gestreamte Ereignisse",
-        "raw": "Roh-Stream"
+        "raw": "Roh-Stream",
+        "reconstructedTooltip": "Die endgültige Nachricht des Assistenten, aus den Delta-Frames des Streams zusammengesetzt.",
+        "eventsTooltip": "Jedes Server-Sent-Event-Frame in Reihenfolge, mit Ereignistyp und kurzer Zusammenfassung der Nutzdaten.",
+        "rawTooltip": "Die unverarbeitete text/event-stream-Nutzlast, genau wie sie übertragen wurde."
       }
     }
   },
@@ -1562,7 +1579,8 @@
         "modelDefault": "Standardmodell",
         "defaultModelLabel": "{name} ({model}) — Standard",
         "streaming": "Streaming",
-        "streamingTooltip": "Token beim Generieren streamen"
+        "streamingTooltip": "Die Antwort Token für Token während der Generierung anzeigen. Wenn deaktiviert, erscheint die Antwort erst, wenn sie vollständig ist.",
+        "modelTooltip": "Modell, mit dem neue Nachrichten in dieser Unterhaltung beantwortet werden. Leer lassen, um den Standard-Completion-Endpunkt des Mandanten zu verwenden."
       },
       "disclaimer": "KI kann Fehler machen. Bitte alle Antworten überprüfen.",
       "renameThreadTooltip": "Unterhaltung umbenennen",
@@ -1699,7 +1717,7 @@
         "maxOutputTokens": "Max. Ausgabetoken",
         "maxOutputTokensTooltip": "Obergrenze der Token, die das Modell pro Zug generieren darf",
         "timeoutMs": "Timeout (ms)",
-        "timeoutMsTooltip": "Timeout pro Anfrage in Millisekunden",
+        "timeoutMsTooltip": "Anfragen, die länger dauern, werden abgebrochen und als Fehler gemeldet (Millisekunden).",
         "maxConcurrentRequests": "Max. gleichzeitige Anfragen",
         "maxConcurrentRequestsTooltip": "Für diesen Endpunkt erzwungenes Parallelitätslimit (mindestens 1)",
         "maxConcurrentRequestsMin": "Muss mindestens 1 sein",
@@ -1715,7 +1733,9 @@
         "endpointNotBaseUrl": "Nur die Basis-URL des Anbieters angeben (kein Pfad, keine Query, kein Fragment; /v1 ist für OpenAI-kompatible Server erlaubt)",
         "contextWindowTokens": "Kontextfenster (Token)",
         "contextWindowTokensTooltip": "Kontextfenstergröße des Modells; wenn gesetzt, wird der Verlauf so gekürzt, dass Verlauf plus Ausgabe ins Fenster passen. 0 = unbekannt.",
-        "contextWindowTokensPlaceholder": "0 = nicht angegeben"
+        "contextWindowTokensPlaceholder": "0 = nicht angegeben",
+        "nameTooltip": "Anzeigename, der in der Endpunktliste und in der Modellauswahl des Chats erscheint.",
+        "activeTooltip": "Inaktive Endpunkte werden im Chat ausgeblendet und erhalten keine Anfragen."
       },
       "test": {
         "title": "Test: {name}",
@@ -1764,29 +1784,29 @@
       "turnsTitle": "Züge — {title}",
       "columns": {
         "title": "Titel",
-        "titleDesc": "Titel der Unterhaltung",
+        "titleDesc": "Titel der Unterhaltung, automatisch nach dem ersten Austausch erzeugt. Zeile anklicken, um die Züge einzusehen.",
         "user": "Benutzer",
-        "userDesc": "GUID des besitzenden Benutzers",
+        "userDesc": "Der Benutzer, dem die Unterhaltung gehört. Anklicken, um den Benutzereintrag zu öffnen.",
         "graph": "Graph",
-        "graphDesc": "Graph, an den die Unterhaltung gebunden ist",
+        "graphDesc": "Graph, an den die Unterhaltung für Abruf und Graph-Tools gebunden ist. Anklicken, um den Graphen zu öffnen.",
         "created": "Erstellt",
         "createdDesc": "Erstellungszeit (UTC)",
         "updated": "Aktualisiert",
-        "updatedDesc": "Zeit der letzten Aktualisierung (UTC)",
+        "updatedDesc": "Zeitpunkt der letzten Aktivität in der Unterhaltung (UTC).",
         "userMessage": "Benutzernachricht",
         "userMessageDesc": "Die Nachricht, die den Zug ausgelöst hat",
         "success": "Erfolg",
         "successDesc": "Ob der Zug erfolgreich abgeschlossen wurde",
         "tokens": "Token (ein/aus)",
-        "tokensDesc": "Prompt-/Completion-Tokenzahlen",
+        "tokensDesc": "Tokenverbrauch als Prompt / Completion: Prompt zählt alles, was an das Modell gesendet wurde, Completion die generierte Antwort.",
         "duration": "Dauer",
-        "durationDesc": "Gesamtdauer des Zugs",
+        "durationDesc": "Gesamtdauer des Zugs, einschließlich Tool-Aufrufen und Wiederholungen.",
         "toolCalls": "Tool-Aufrufe",
-        "toolCallsDesc": "Anzahl der Tool-Aufrufe im Zug",
+        "toolCallsDesc": "Anzahl der Graph-Tools, die der Assistent bei der Beantwortung dieses Zugs aufgerufen hat.",
         "turnCreated": "Erstellt",
         "turnCreatedDesc": "Erstellungszeit des Zugs (UTC)",
         "ttft": "TTFT",
-        "ttftDesc": "Zeit bis zum ersten Token"
+        "ttftDesc": "Zeit bis zum ersten Token: Latenz vom Absenden der Anfrage, bis das Modell sein erstes Token erzeugt hat."
       },
       "turnDetail": {
         "title": "Zugdetails",
@@ -1834,9 +1854,9 @@
         "thread": "Unterhaltung",
         "threadDesc": "Die Unterhaltung im Chatverlauf öffnen",
         "turn": "Zug",
-        "turnDesc": "Der bewertete Zug",
+        "turnDesc": "Kennung des bewerteten Zugs. Zeile anklicken für den vollständigen Austausch und Kommentar.",
         "user": "Benutzer",
-        "userDesc": "Der Benutzer, der das Feedback abgegeben hat"
+        "userDesc": "Der Benutzer, der die Antwort des Assistenten bewertet hat."
       },
       "toast": {
         "deleted": "Feedback gelöscht.",
@@ -1901,7 +1921,10 @@
         "maxContextTokens": "Max. Kontexttoken",
         "maxContextTokensHint": "Tokenbudget für den bisherigen Verlauf im Prompt (mindestens 1024)",
         "historyRetentionDays": "Verlaufsspeicherung (Tage)",
-        "historyRetentionDaysHint": "Tage, die Chat-Züge aufbewahrt werden; 0 bewahrt sie unbegrenzt auf"
+        "historyRetentionDaysHint": "Tage, die Chat-Züge aufbewahrt werden; 0 bewahrt sie unbegrenzt auf",
+        "defaultCompletionEndpointHint": "Beantwortet den Chat, wenn der Benutzer in der Werkzeugleiste der Unterhaltung kein Modell gewählt hat. Solange nichts gesetzt ist, bleibt der Chat deaktiviert.",
+        "defaultEmbeddingEndpointHint": "Erzeugt die Abfrage-Embeddings für den Abruf (RAG). Ohne Auswahl wird der Abruf übersprungen.",
+        "systemPromptHint": "Wird jeder Unterhaltung vorangestellt, um den Assistenten zu steuern. Die festen Tool- und Zitieranweisungen des Servers gelten immer zusätzlich."
       }
     }
   }
