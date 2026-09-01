@@ -36,52 +36,12 @@
             }
 
             //
-            // double dash
-            //
-            int doubleDash = 0;
-            while (true)
-            {
-                doubleDash = ret.IndexOf("--");
-                if (doubleDash < 0)
-                {
-                    break;
-                }
-                else
-                {
-                    ret = ret.Remove(doubleDash, 2);
-                }
-            }
-
-            //
-            // open comment
-            // 
-            int openComment = 0;
-            while (true)
-            {
-                openComment = ret.IndexOf("/*");
-                if (openComment < 0) break;
-                else
-                {
-                    ret = ret.Remove(openComment, 2);
-                }
-            }
-
-            //
-            // close comment
-            //
-            int closeComment = 0;
-            while (true)
-            {
-                closeComment = ret.IndexOf("*/");
-                if (closeComment < 0) break;
-                else
-                {
-                    ret = ret.Remove(closeComment, 2);
-                }
-            }
-
-            //
             // in-string replacement
+            //
+            // Quote doubling is the complete defense for values embedded in
+            // single-quoted literals; comment tokens (--, /*, */) are inert
+            // inside a quoted string and must be preserved so stored content
+            // (markdown tables, code, names) survives round-trips intact.
             //
             ret = ret.Replace("'", "''");
             return ret;

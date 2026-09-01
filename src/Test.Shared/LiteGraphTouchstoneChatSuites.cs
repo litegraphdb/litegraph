@@ -59,6 +59,7 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.HealthDedup", "Endpoints sharing a probe target share one healthcheck and verdict", TestChatRestHealthDedup),
                     ChatCase("Chat.Rest", "Chat.Rest.ThreadRename", "Thread rename honors ownership and validation", TestChatRestThreadRename),
                     ChatCase("Chat.Rest", "Chat.Rest.ModelsCatalog", "Non-admin users can list selectable models without secrets", TestChatRestModelsCatalog),
+                    ChatCase("Chat.Rest", "Chat.Rest.ContentRoundTrip", "Stored text preserves markdown separators and comment tokens", TestChatRestContentRoundTrip),
                     ChatCase("Chat.Rest", "Chat.Rest.ContextPrompt", "System prompt carries tenant and selected graph context", TestChatRestContextPrompt),
                     ChatCase("Chat.Rest", "Chat.Rest.RbacDelegation", "An [Admin] x [Chat] role delegates chat management without tenant admin", TestChatRestRbacDelegation)
                 });
@@ -783,6 +784,40 @@ namespace Test.Shared
                 {
                     await CleanupMcpServer().ConfigureAwait(false);
                 }
+            }
+        }
+
+        private static async Task TestChatRestContentRoundTrip(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+                string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatroundtrip@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                string threadsUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads";
+
+                // Markdown table separators, horizontal rules, SQL comment tokens, and quotes
+                // must all survive storage byte-for-byte.
+                string title = "a --- b -- c /* d */ e 'quoted' |---|---|";
+                string payload = "{\"Title\":" + System.Text.Json.JsonSerializer.Serialize(title) + "}";
+
+                HttpOutcome created = await AuthRestAsync(HttpMethod.Put, threadsUrl, userBearer, payload, cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, created.Status, "Thread with hostile-looking title created (body " + Truncate(created.Body, 200) + ")");
+                string threadGuid = ExtractGuid(created.Body);
+
+                HttpOutcome read = await AuthRestAsync(HttpMethod.Get, threadsUrl + "/" + threadGuid, userBearer, null, cancellationToken).ConfigureAwait(false);
+                using (System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(read.Body))
+                {
+                    string stored = doc.RootElement.GetProperty("Title").GetString() ?? String.Empty;
+                    AssertEqual(title, stored, "Title round-trips byte-for-byte (got \"" + stored + "\")");
+                }
+
+                await AuthRestAsync(HttpMethod.Delete, threadsUrl + "/" + threadGuid, userBearer, null, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
             }
         }
 

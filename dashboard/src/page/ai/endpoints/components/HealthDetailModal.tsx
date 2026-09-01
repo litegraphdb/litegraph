@@ -133,8 +133,21 @@ const statCardStyle: React.CSSProperties = {
 
 const StatCard = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div style={statCardStyle}>
-    <div style={statLabelStyle}>{label}</div>
-    <div style={{ fontSize: 18, fontWeight: 700 }}>{children}</div>
+    {/* Reserve two label lines so values stay vertically aligned across cards
+        even when some titles wrap. */}
+    <div
+      style={{
+        ...statLabelStyle,
+        minHeight: 28,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+      }}
+    >
+      {label}
+    </div>
+    <div style={{ fontSize: 18, fontWeight: 700, marginTop: 'auto' }}>{children}</div>
   </div>
 );
 

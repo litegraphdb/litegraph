@@ -24,6 +24,8 @@ const ConfirmationModal = ({
       title={title}
       okButtonProps={{ loading }}
       cancelButtonProps={{ disabled: loading }}
+      style={{ top: 16, paddingBottom: 0 }}
+      styles={{ body: { maxHeight: 'calc(100vh - 130px)', overflowY: 'auto' } }}
       maskClosable
     >
       {content}

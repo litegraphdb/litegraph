@@ -9,6 +9,7 @@ import LitegraphText from '@/components/base/typograpghy/Text';
 import CopyButton from '@/components/base/copy-button/CopyButton';
 import { ChatTurn } from '@/lib/sdk/chat';
 import { parseToolTranscript } from '@/page/ai/chat/chatStream';
+import Markdown from '@/page/ai/chat/components/Markdown';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -93,7 +94,9 @@ const TurnWaterfall = ({ turn }: { turn: ChatTurn }) => {
       >
         {stages.map((stage, index) => {
           const y = index * rowHeight + 4;
-          const x = labelWidth + scale(stage.start);
+          // Bars share one starting x (a duration bar chart); the sequential
+          // offsets stay available in the tooltip via each stage's duration.
+          const x = labelWidth;
           const barWidth = Math.max(2, scale(stage.duration));
           return (
             <g key={stage.key}>
@@ -276,12 +279,12 @@ const TurnDetailModal = ({ turn, onClose }: TurnDetailModalProps) => {
               borderRadius: 8,
               padding: 10,
               fontSize: 12.5,
-              whiteSpace: 'pre-wrap',
               maxHeight: 240,
               overflowY: 'auto',
             }}
+            data-testid="turn-assistant-markdown"
           >
-            {turn.AssistantResponse}
+            <Markdown content={turn.AssistantResponse || ''} />
           </div>
         </div>
       </LitegraphFlex>

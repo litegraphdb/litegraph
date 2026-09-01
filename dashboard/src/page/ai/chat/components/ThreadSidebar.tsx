@@ -68,6 +68,7 @@ const ThreadSidebar = ({
                     cursor: 'pointer',
                     borderRadius: 8,
                     paddingInline: 10,
+                    paddingBlock: 3,
                     marginBottom: 2,
                     border: 'none',
                     background: selected ? 'var(--ant-color-primary-bg)' : 'transparent',
@@ -103,36 +104,37 @@ const ThreadSidebar = ({
                     </LitegraphTooltip>,
                   ]}
                 >
-                  <List.Item.Meta
-                    title={
+                  <LitegraphFlex vertical gap={0} style={{ minWidth: 0, flex: 1 }}>
+                    <LitegraphText
+                      style={{
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        fontWeight: selected ? 600 : 400,
+                        fontSize: 13,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {thread.Title || t('untitledThread')}
+                    </LitegraphText>
+                    <LitegraphFlex align="center" gap={6}>
+                      {thread.GraphGUID ? (
+                        <LitegraphTooltip title={t('boundToGraph')}>
+                          <ShareAltOutlined style={{ fontSize: 11 }} />
+                        </LitegraphTooltip>
+                      ) : null}
                       <LitegraphText
                         style={{
-                          display: 'block',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          fontWeight: selected ? 600 : 400,
-                          fontSize: 13,
+                          fontSize: 11,
+                          lineHeight: 1.2,
+                          color: 'var(--ant-color-text-tertiary)',
                         }}
                       >
-                        {thread.Title || t('untitledThread')}
+                        {formatDateTime(thread.LastUpdateUtc)}
                       </LitegraphText>
-                    }
-                    description={
-                      <LitegraphFlex align="center" gap={6}>
-                        {thread.GraphGUID ? (
-                          <LitegraphTooltip title={t('boundToGraph')}>
-                            <ShareAltOutlined style={{ fontSize: 11 }} />
-                          </LitegraphTooltip>
-                        ) : null}
-                        <LitegraphText
-                          style={{ fontSize: 11, color: 'var(--ant-color-text-tertiary)' }}
-                        >
-                          {formatDateTime(thread.LastUpdateUtc)}
-                        </LitegraphText>
-                      </LitegraphFlex>
-                    }
-                  />
+                    </LitegraphFlex>
+                  </LitegraphFlex>
                 </List.Item>
               );
             }}

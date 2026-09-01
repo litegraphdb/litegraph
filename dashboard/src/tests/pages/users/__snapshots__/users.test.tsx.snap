@@ -1404,7 +1404,7 @@ exports[`UsersPage should create a user and should be visible in the table: crea
   aria-modal="true"
   class="ant-modal css-dev-only-do-not-override-mncuj7 ant-zoom-appear ant-zoom-appear-prepare ant-zoom"
   role="dialog"
-  style="width: 520px;"
+  style="top: 16px; padding-bottom: 0px; width: 520px;"
 >
   <div
     style="outline: none;"
@@ -1456,6 +1456,7 @@ exports[`UsersPage should create a user and should be visible in the table: crea
       </div>
       <div
         class="ant-modal-body"
+        style="max-height: calc(100vh - 130px); overflow-y: auto;"
       >
         <form
           class="ant-form ant-form-vertical css-dev-only-do-not-override-mncuj7"
@@ -2913,7 +2914,7 @@ exports[`UsersPage should delete user successfully: delete confirmation modal 1`
   aria-modal="true"
   class="ant-modal css-dev-only-do-not-override-mncuj7 ant-zoom-appear ant-zoom-appear-prepare ant-zoom"
   role="dialog"
-  style="width: 520px;"
+  style="top: 16px; padding-bottom: 0px; width: 520px;"
 >
   <div
     style="outline: none;"
@@ -2965,6 +2966,7 @@ exports[`UsersPage should delete user successfully: delete confirmation modal 1`
       </div>
       <div
         class="ant-modal-body"
+        style="max-height: calc(100vh - 130px); overflow-y: auto;"
       >
         <div
           class="ant-typography css-dev-only-do-not-override-mncuj7"

@@ -129,6 +129,8 @@ const VectorIndexStatsModal: React.FC<VectorIndexStatsModalProps> = ({
       onCancel={handleCancel}
       footer={null}
       width={900}
+      style={{ top: 16, paddingBottom: 0 }}
+      styles={{ body: { maxHeight: 'calc(100vh - 130px)', overflowY: 'auto' } }}
       maskClosable
     >
       {isStatsLoading ? (

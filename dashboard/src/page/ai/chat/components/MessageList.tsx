@@ -209,7 +209,10 @@ const TurnStatsButton = ({ stats }: { stats: ChatTurnStats }) => {
       trigger="click"
       placement="topLeft"
       content={
-        <table style={{ fontSize: 12, borderCollapse: 'collapse' }} data-testid="chat-turn-stats">
+        <table
+          style={{ fontSize: 12, borderCollapse: 'collapse', minWidth: 320 }}
+          data-testid="chat-turn-stats"
+        >
           <tbody>
             {rows.map((row) => (
               <tr key={row.label}>
