@@ -244,6 +244,7 @@
             ExecuteQuery(SetupQueries.CreateTablesAndIndices(), true);
             EnsureRequestHistoryTransactionDiagnosticsColumn();
             EnsureUserAdminFlagColumns();
+            EnsureChatEndpointContextWindowColumn();
             EnsureBuiltInAuthorizationRoles();
         }
 
@@ -256,6 +257,7 @@
             await ExecuteQueryAsync(SetupQueries.CreateTablesAndIndices(), true, token).ConfigureAwait(false);
             await EnsureRequestHistoryTransactionDiagnosticsColumnAsync(token).ConfigureAwait(false);
             await EnsureUserAdminFlagColumnsAsync(token).ConfigureAwait(false);
+            await EnsureChatEndpointContextWindowColumnAsync(token).ConfigureAwait(false);
             await EnsureBuiltInAuthorizationRolesAsync(token).ConfigureAwait(false);
         }
 

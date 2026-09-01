@@ -13,7 +13,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 "INSERT INTO 'chatsettings' "
                 + "(tenantguid, defaultcompletionendpointguid, defaultembeddingendpointguid, systemprompt, "
                 + "enablechat, enabletools, enablemutationtools, maxtooliterations, enablerag, ragtopk, "
-                + "ragscorethreshold, maxcontexttokens, historyretentiondays, createdutc, lastupdateutc) "
+                + "ragscorethreshold, historyretentiondays, createdutc, lastupdateutc) "
                 + "VALUES ("
                 + SqlString(settings.TenantGUID.ToString()) + ","
                 + SqlString(settings.DefaultCompletionEndpointGUID != null ? settings.DefaultCompletionEndpointGUID.Value.ToString() : null) + ","
@@ -26,7 +26,6 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 + (settings.EnableRag ? "1" : "0") + ","
                 + settings.RagTopK + ","
                 + settings.RagScoreThreshold.ToString(CultureInfo.InvariantCulture) + ","
-                + settings.MaxContextTokens + ","
                 + settings.HistoryRetentionDays + ","
                 + SqlString(settings.CreatedUtc.ToString(TimestampFormat)) + ","
                 + SqlString(settings.LastUpdateUtc.ToString(TimestampFormat))
@@ -56,7 +55,6 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 + "enablerag = " + (settings.EnableRag ? "1" : "0") + ","
                 + "ragtopk = " + settings.RagTopK + ","
                 + "ragscorethreshold = " + settings.RagScoreThreshold.ToString(CultureInfo.InvariantCulture) + ","
-                + "maxcontexttokens = " + settings.MaxContextTokens + ","
                 + "historyretentiondays = " + settings.HistoryRetentionDays + " "
                 + "WHERE tenantguid = '" + settings.TenantGUID + "' "
                 + "RETURNING *;";

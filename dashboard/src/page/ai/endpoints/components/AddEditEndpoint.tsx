@@ -12,6 +12,7 @@ import {
   ChatEndpoint,
   ChatEndpointType,
   ChatProviderType,
+  PROVIDER_BASE_URL_EXAMPLES,
   isRedactedApiKey,
   providersForType,
   validateProviderTypeCombo,
@@ -21,7 +22,7 @@ import {
   useUpdateChatEndpointMutation,
 } from '@/lib/store/slice/slice';
 import { globalToastId } from '@/constants/config';
-import { isAbsoluteHttpUrl } from '../validation';
+import { validateEndpointUrlForProvider } from '../validation';
 
 interface AddEditEndpointProps {
   tenantGuid: string;
@@ -171,18 +172,38 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
         <LitegraphFormItem
           label={t('form.endpoint')}
           name="Endpoint"
-          tooltip={t('form.endpointTooltip')}
+          tooltip={
+            <div>
+              <div>{t('form.endpointTooltip')}</div>
+              <div style={{ marginTop: 6 }}>{t('form.endpointExamplesIntro')}</div>
+              <ul style={{ margin: '4px 0 0', paddingInlineStart: 16 }}>
+                {(Object.keys(PROVIDER_BASE_URL_EXAMPLES) as ChatProviderType[]).map((p) => (
+                  <li key={p}>
+                    {p}: <code>{PROVIDER_BASE_URL_EXAMPLES[p]}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          }
           rules={[
             { required: true, message: t('form.endpointRequired') },
             {
-              validator: (_, value) =>
-                !value || isAbsoluteHttpUrl(value)
-                  ? Promise.resolve()
-                  : Promise.reject(new Error(t('form.endpointInvalid'))),
+              validator: (_, value) => {
+                const urlError = validateEndpointUrlForProvider(provider, value);
+                if (!urlError) return Promise.resolve();
+                return Promise.reject(
+                  new Error(
+                    urlError === 'notBaseUrl' ? t('form.endpointNotBaseUrl') : t('form.endpointInvalid')
+                  )
+                );
+              },
             },
           ]}
         >
-          <LitegraphInput placeholder="https://api.example.com/v1" data-testid="endpoint-url" />
+          <LitegraphInput
+            placeholder={provider ? PROVIDER_BASE_URL_EXAMPLES[provider] : 'https://api.openai.com'}
+            data-testid="endpoint-url"
+          />
         </LitegraphFormItem>
         <LitegraphFormItem
           label={t('form.apiKey')}
@@ -227,6 +248,20 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
         >
           <InputNumber min={1} style={{ width: '100%' }} />
         </LitegraphFormItem>
+        {endpointType === 'Completion' && (
+          <LitegraphFormItem
+            label={t('form.contextWindowTokens')}
+            name="ContextWindowTokens"
+            tooltip={t('form.contextWindowTokensTooltip')}
+          >
+            <InputNumber
+              min={0}
+              style={{ width: '100%' }}
+              placeholder={t('form.contextWindowTokensPlaceholder')}
+              data-testid="endpoint-context-window"
+            />
+          </LitegraphFormItem>
+        )}
         <LitegraphFormItem
           label={t('form.timeoutMs')}
           name="TimeoutMs"

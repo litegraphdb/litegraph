@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "URL opcional sondado em vez do predefinido do fornecedor",
         "healthCheckUrlPlaceholder": "Por predefinição, um URL específico do fornecedor",
         "healthCheckUseAuth": "Enviar autenticação nas verificações",
-        "healthCheckUseAuthTooltip": "Incluir a chave de API ao sondar o URL de verificação"
+        "healthCheckUseAuthTooltip": "Incluir a chave de API ao sondar o URL de verificação",
+        "endpointExamplesIntro": "Exemplos de URL base por provedor:",
+        "endpointNotBaseUrl": "Forneça apenas a URL base do provedor (sem caminho, consulta ou fragmento; /v1 é permitido para servidores compatíveis com OpenAI)",
+        "contextWindowTokens": "Janela de contexto (tokens)",
+        "contextWindowTokensTooltip": "Tamanho da janela de contexto do modelo; quando definido, o histórico é reduzido para que histórico mais saída caibam na janela. 0 = desconhecido.",
+        "contextWindowTokensPlaceholder": "0 = não especificado"
       },
       "test": {
         "title": "Teste: {name}",

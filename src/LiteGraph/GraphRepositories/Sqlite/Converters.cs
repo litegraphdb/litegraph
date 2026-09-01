@@ -1042,6 +1042,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 Endpoint = GetDataRowStringValue(row, "endpoint"),
                 ApiKey = GetDataRowStringValue(row, "apikey"),
                 Model = GetDataRowStringValue(row, "model"),
+                ContextWindowTokens = GetDataRowIntValue(row, "contextwindowtokens"),
                 MaxOutputTokens = GetDataRowIntValue(row, "maxoutputtokens"),
                 Temperature = GetDataRowDoubleValue(row, "temperature"),
                 TimeoutMs = GetDataRowIntValue(row, "timeoutms"),
@@ -1185,7 +1186,6 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 EnableRag = GetDataRowBooleanValue(row, "enablerag"),
                 RagTopK = GetDataRowIntValue(row, "ragtopk"),
                 RagScoreThreshold = GetDataRowDoubleValue(row, "ragscorethreshold"),
-                MaxContextTokens = GetDataRowIntValue(row, "maxcontexttokens"),
                 HistoryRetentionDays = GetDataRowIntValue(row, "historyretentiondays"),
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())

@@ -52,6 +52,24 @@ namespace LiteGraph.Sdk
         public string Model { get; set; } = null;
 
         /// <summary>
+        /// Context window size of the model in tokens.  Default is 0, meaning unspecified; when set,
+        /// the server caps the conversation-history budget so history plus output fit the window.
+        /// Minimum is 0, maximum is 100000000.
+        /// </summary>
+        public int ContextWindowTokens
+        {
+            get
+            {
+                return _ContextWindowTokens;
+            }
+            set
+            {
+                if (value < 0 || value > 100000000) throw new ArgumentOutOfRangeException(nameof(ContextWindowTokens));
+                _ContextWindowTokens = value;
+            }
+        }
+
+        /// <summary>
         /// Maximum output tokens per completion.  Default is 4096.  Minimum is 1, maximum is 10000000.
         /// </summary>
         public int MaxOutputTokens
@@ -248,6 +266,7 @@ namespace LiteGraph.Sdk
 
         #region Private-Members
 
+        private int _ContextWindowTokens = 0;
         private int _MaxOutputTokens = 4096;
         private double _Temperature = 0.7;
         private int _TimeoutMs = 120000;

@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "可選 URL，用嚟取代供應商預設嘅探測地址",
         "healthCheckUrlPlaceholder": "預設係供應商特定嘅 URL",
         "healthCheckUseAuth": "健康檢查時發送認證",
-        "healthCheckUseAuthTooltip": "探測健康檢查 URL 嗰陣附帶 API 金鑰"
+        "healthCheckUseAuthTooltip": "探測健康檢查 URL 嗰陣附帶 API 金鑰",
+        "endpointExamplesIntro": "每個供應商嘅基礎 URL 例子：",
+        "endpointNotBaseUrl": "只需提供供應商嘅基礎 URL（唔可以有路徑、查詢或者片段；OpenAI 兼容伺服器可以用 /v1）",
+        "contextWindowTokens": "上下文窗口（token）",
+        "contextWindowTokensTooltip": "模型嘅上下文窗口大小；設定咗之後，對話歷史會裁剪到歷史加輸出啱啱好放得入窗口。唔知就填 0。",
+        "contextWindowTokensPlaceholder": "0 = 未指定"
       },
       "test": {
         "title": "測試：{name}",

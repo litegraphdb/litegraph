@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "URL facoltativo sondato al posto del predefinito del provider",
         "healthCheckUrlPlaceholder": "Per impostazione predefinita un URL specifico del provider",
         "healthCheckUseAuth": "Invia autenticazione nei controlli",
-        "healthCheckUseAuthTooltip": "Includi la chiave API quando viene sondato l'URL di controllo"
+        "healthCheckUseAuthTooltip": "Includi la chiave API quando viene sondato l'URL di controllo",
+        "endpointExamplesIntro": "Esempi di URL di base per provider:",
+        "endpointNotBaseUrl": "Fornire solo l'URL di base del provider (senza percorso, query o frammento; /v1 è consentito per i server compatibili OpenAI)",
+        "contextWindowTokens": "Finestra di contesto (token)",
+        "contextWindowTokensTooltip": "Dimensione della finestra di contesto del modello; se impostata, la cronologia viene ridotta perché cronologia e output rientrino nella finestra. 0 = sconosciuta.",
+        "contextWindowTokensPlaceholder": "0 = non specificata"
       },
       "test": {
         "title": "Test: {name}",

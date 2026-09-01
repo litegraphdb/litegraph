@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "Optionale URL, die anstelle des Anbieterstandards geprüft wird",
         "healthCheckUrlPlaceholder": "Standardmäßig eine anbieterspezifische URL",
         "healthCheckUseAuth": "Authentifizierung bei Prüfungen senden",
-        "healthCheckUseAuthTooltip": "Den API-Schlüssel bei der Prüfung der Zustands-URL mitsenden"
+        "healthCheckUseAuthTooltip": "Den API-Schlüssel bei der Prüfung der Zustands-URL mitsenden",
+        "endpointExamplesIntro": "Basis-URL-Beispiele je Anbieter:",
+        "endpointNotBaseUrl": "Nur die Basis-URL des Anbieters angeben (kein Pfad, keine Query, kein Fragment; /v1 ist für OpenAI-kompatible Server erlaubt)",
+        "contextWindowTokens": "Kontextfenster (Token)",
+        "contextWindowTokensTooltip": "Kontextfenstergröße des Modells; wenn gesetzt, wird der Verlauf so gekürzt, dass Verlauf plus Ausgabe ins Fenster passen. 0 = unbekannt.",
+        "contextWindowTokensPlaceholder": "0 = nicht angegeben"
       },
       "test": {
         "title": "Test: {name}",

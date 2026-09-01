@@ -173,6 +173,16 @@
             await ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS istenantadmin INT NOT NULL DEFAULT 0;", true, token).ConfigureAwait(false);
         }
 
+        private void EnsureChatEndpointContextWindowColumn()
+        {
+            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("chatendpoints") + " ADD COLUMN IF NOT EXISTS contextwindowtokens INT NOT NULL DEFAULT 0;", true);
+        }
+
+        private Task EnsureChatEndpointContextWindowColumnAsync(CancellationToken token)
+        {
+            return ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("chatendpoints") + " ADD COLUMN IF NOT EXISTS contextwindowtokens INT NOT NULL DEFAULT 0;", true, token);
+        }
+
         private void EnsureBuiltInAuthorizationRoles()
         {
             bool changed = false;

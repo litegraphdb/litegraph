@@ -317,6 +317,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
             ExecuteQuery(SetupQueries.CreateTablesAndIndices());
             EnsureCredentialScopeColumns();
             EnsureUserAdminFlagColumns();
+            EnsureChatEndpointContextWindowColumn();
             EnsureGraphVectorIndexConsistencyColumns();
             EnsureBuiltInAuthorizationRoles();
             EnsureRequestHistoryCorrelationColumns();
@@ -1470,6 +1471,15 @@ namespace LiteGraph.GraphRepositories.Sqlite
             if (!ColumnExists(tableInfo, "istenantadmin"))
             {
                 ExecuteQuery("ALTER TABLE 'users' ADD COLUMN istenantadmin INT NOT NULL DEFAULT 0;");
+            }
+        }
+
+        private void EnsureChatEndpointContextWindowColumn()
+        {
+            DataTable tableInfo = ExecuteQuery("SELECT name FROM pragma_table_info('chatendpoints');");
+            if (!ColumnExists(tableInfo, "contextwindowtokens"))
+            {
+                ExecuteQuery("ALTER TABLE 'chatendpoints' ADD COLUMN contextwindowtokens INT NOT NULL DEFAULT 0;");
             }
         }
 

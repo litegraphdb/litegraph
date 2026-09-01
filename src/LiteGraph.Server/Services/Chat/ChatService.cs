@@ -34,6 +34,7 @@ namespace LiteGraph.Server.Services.Chat
         #region Private-Members
 
         private static string _Header = "[ChatService] ";
+        private const int _DefaultHistoryBudgetTokens = 16384;
         private readonly Settings _Settings;
         private readonly LoggingModule _Logging;
         private readonly LiteGraphClient _LiteGraph;
@@ -285,16 +286,20 @@ namespace LiteGraph.Server.Services.Chat
             #region Endpoints
 
             Guid? completionGuid = (request.CompletionEndpointGUID != null ? request.CompletionEndpointGUID : tenantSettings.DefaultCompletionEndpointGUID);
-            if (completionGuid == null)
+            ChatEndpoint completionEndpoint = null;
+
+            if (completionGuid != null)
             {
-                await SendJsonError(ctx, 400, ApiErrorEnum.BadRequest, "No completion endpoint is configured.  Set a tenant default or supply CompletionEndpointGUID.").ConfigureAwait(false);
-                return;
+                completionEndpoint = await _LiteGraph.ChatEndpoint.ReadByGuid(tenantGuid, completionGuid.Value, token).ConfigureAwait(false);
+            }
+            else
+            {
+                completionEndpoint = await FirstActiveEndpoint(tenantGuid, ChatEndpointTypeEnum.Completion, token).ConfigureAwait(false);
             }
 
-            ChatEndpoint completionEndpoint = await _LiteGraph.ChatEndpoint.ReadByGuid(tenantGuid, completionGuid.Value, token).ConfigureAwait(false);
             if (completionEndpoint == null || completionEndpoint.EndpointType != ChatEndpointTypeEnum.Completion || !completionEndpoint.Active)
             {
-                await SendJsonError(ctx, 400, ApiErrorEnum.BadRequest, "The completion endpoint is missing, inactive, or not a completion endpoint.").ConfigureAwait(false);
+                await SendJsonError(ctx, 400, ApiErrorEnum.BadRequest, "No usable completion endpoint is configured.  Create one, set a tenant default, or supply CompletionEndpointGUID.").ConfigureAwait(false);
                 return;
             }
 
@@ -303,8 +308,12 @@ namespace LiteGraph.Server.Services.Chat
             if (embeddingGuid != null)
             {
                 embeddingEndpoint = await _LiteGraph.ChatEndpoint.ReadByGuid(tenantGuid, embeddingGuid.Value, token).ConfigureAwait(false);
-                if (embeddingEndpoint != null && (embeddingEndpoint.EndpointType != ChatEndpointTypeEnum.Embedding || !embeddingEndpoint.Active)) embeddingEndpoint = null;
             }
+            else
+            {
+                embeddingEndpoint = await FirstActiveEndpoint(tenantGuid, ChatEndpointTypeEnum.Embedding, token).ConfigureAwait(false);
+            }
+            if (embeddingEndpoint != null && (embeddingEndpoint.EndpointType != ChatEndpointTypeEnum.Embedding || !embeddingEndpoint.Active)) embeddingEndpoint = null;
 
             #endregion
 
@@ -352,7 +361,10 @@ namespace LiteGraph.Server.Services.Chat
 
                     List<ChatMessage> messages = new List<ChatMessage>();
                     messages.Add(ChatMessage.System(BuildSystemPrompt(tenantSettings, request, thread)));
-                    await AppendHistory(messages, tenantGuid, thread.GUID, tenantSettings.MaxContextTokens, token).ConfigureAwait(false);
+                    int historyBudgetTokens = _DefaultHistoryBudgetTokens;
+                    if (completionEndpoint.ContextWindowTokens > 0)
+                        historyBudgetTokens = Math.Max(1024, completionEndpoint.ContextWindowTokens - completionEndpoint.MaxOutputTokens);
+                    await AppendHistory(messages, tenantGuid, thread.GUID, historyBudgetTokens, token).ConfigureAwait(false);
 
                     #endregion
 
@@ -784,6 +796,16 @@ namespace LiteGraph.Server.Services.Chat
                 sw.Stop();
                 _Observability?.RecordChatEmbedding(embeddingEndpoint.Provider.ToString(), embeddingEndpoint.Model, success, sw.Elapsed.TotalMilliseconds);
             }
+        }
+
+        private async Task<ChatEndpoint> FirstActiveEndpoint(Guid tenantGuid, ChatEndpointTypeEnum endpointType, CancellationToken token)
+        {
+            await foreach (ChatEndpoint candidate in _LiteGraph.ChatEndpoint.ReadAllInTenant(tenantGuid, endpointType, EnumerationOrderEnum.CreatedAscending, 0, token).ConfigureAwait(false))
+            {
+                if (candidate.Active) return candidate;
+            }
+
+            return null;
         }
 
         private ClientCacheEntry GetClient(ChatEndpoint endpoint)

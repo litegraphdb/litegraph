@@ -40,12 +40,12 @@ namespace LiteGraph
         public bool EnableTools { get; set; } = true;
 
         /// <summary>
-        /// Advertise mutation (create/update/delete) tools to the model.  Default is false.
+        /// Advertise mutation (create/update/delete) tools to the model.  Default is true.
         /// </summary>
-        public bool EnableMutationTools { get; set; } = false;
+        public bool EnableMutationTools { get; set; } = true;
 
         /// <summary>
-        /// Maximum tool loop iterations per turn.  Default is 10.  Minimum is 1.
+        /// Maximum tool loop iterations per turn.  Default is 50.  Minimum is 1.
         /// The server-level MaxToolIterationsCap in litegraph.json bounds the effective value.
         /// </summary>
         public int MaxToolIterations
@@ -99,23 +99,7 @@ namespace LiteGraph
         }
 
         /// <summary>
-        /// Token budget for prior-turn history included in the prompt.  Default is 16384.  Minimum is 1024.
-        /// </summary>
-        public int MaxContextTokens
-        {
-            get
-            {
-                return _MaxContextTokens;
-            }
-            set
-            {
-                if (value < 1024) throw new ArgumentOutOfRangeException(nameof(MaxContextTokens));
-                _MaxContextTokens = value;
-            }
-        }
-
-        /// <summary>
-        /// Days to retain chat turns before pruning.  Default is 90.  Minimum is 0; 0 retains forever.
+        /// Days to retain chat turns before pruning.  Default is 30.  Minimum is 0; 0 retains forever.
         /// </summary>
         public int HistoryRetentionDays
         {
@@ -144,11 +128,10 @@ namespace LiteGraph
 
         #region Private-Members
 
-        private int _MaxToolIterations = 10;
+        private int _MaxToolIterations = 50;
         private int _RagTopK = 8;
         private double _RagScoreThreshold = 0;
-        private int _MaxContextTokens = 16384;
-        private int _HistoryRetentionDays = 90;
+        private int _HistoryRetentionDays = 30;
 
         #endregion
 

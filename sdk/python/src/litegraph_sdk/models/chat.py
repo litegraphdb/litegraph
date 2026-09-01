@@ -177,13 +177,12 @@ class ChatSettingsModel(BaseModel):
     system_prompt: Optional[str] = Field(default=None, alias="SystemPrompt")
     enable_chat: bool = Field(default=True, alias="EnableChat")
     enable_tools: bool = Field(default=True, alias="EnableTools")
-    enable_mutation_tools: bool = Field(default=False, alias="EnableMutationTools")
+    enable_mutation_tools: bool = Field(default=True, alias="EnableMutationTools")
     max_tool_iterations: int = Field(default=5, alias="MaxToolIterations")
     enable_rag: bool = Field(default=True, alias="EnableRag")
     rag_top_k: int = Field(default=8, alias="RagTopK")
     rag_score_threshold: float = Field(default=0.0, alias="RagScoreThreshold")
-    max_context_tokens: int = Field(default=8192, alias="MaxContextTokens")
-    history_retention_days: int = Field(default=90, alias="HistoryRetentionDays")
+    history_retention_days: int = Field(default=30, alias="HistoryRetentionDays")
     created_utc: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), alias="CreatedUtc"
     )
@@ -272,6 +271,7 @@ class ChatCompletionRequestModel(BaseModel):
         default=None, alias="EmbeddingEndpointGUID"
     )
     temperature: Optional[float] = Field(default=None, alias="Temperature")
+    context_window_tokens: Optional[int] = Field(default=None, alias="ContextWindowTokens")
     max_output_tokens: Optional[int] = Field(default=None, alias="MaxOutputTokens")
     enable_tools: Optional[bool] = Field(default=None, alias="EnableTools")
     enable_rag: Optional[bool] = Field(default=None, alias="EnableRag")

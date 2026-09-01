@@ -303,6 +303,25 @@ namespace LiteGraph.Server.API.Agnostic
             if (!CanUseChat(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
             ChatSettings obj = await _LiteGraph.ChatSettings.ReadByTenant(req.TenantGUID.Value, token).ConfigureAwait(false);
             if (obj == null) obj = new ChatSettings { TenantGUID = req.TenantGUID.Value };
+
+            // Surface effective defaults: when no explicit default endpoint is stored, report the
+            // first active endpoint of each type, matching the orchestrator's own fallback.
+            if (obj.DefaultCompletionEndpointGUID == null)
+            {
+                await foreach (ChatEndpoint candidate in _LiteGraph.ChatEndpoint.ReadAllInTenant(req.TenantGUID.Value, ChatEndpointTypeEnum.Completion, EnumerationOrderEnum.CreatedAscending, 0, token).ConfigureAwait(false))
+                {
+                    if (candidate.Active) { obj.DefaultCompletionEndpointGUID = candidate.GUID; break; }
+                }
+            }
+
+            if (obj.DefaultEmbeddingEndpointGUID == null)
+            {
+                await foreach (ChatEndpoint candidate in _LiteGraph.ChatEndpoint.ReadAllInTenant(req.TenantGUID.Value, ChatEndpointTypeEnum.Embedding, EnumerationOrderEnum.CreatedAscending, 0, token).ConfigureAwait(false))
+                {
+                    if (candidate.Active) { obj.DefaultEmbeddingEndpointGUID = candidate.GUID; break; }
+                }
+            }
+
             return new ResponseContext(req, obj);
         }
 

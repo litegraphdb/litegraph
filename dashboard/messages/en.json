@@ -1709,7 +1709,12 @@
         "healthCheckUrlTooltip": "Optional URL probed instead of the provider default",
         "healthCheckUrlPlaceholder": "Defaults to a provider-specific URL",
         "healthCheckUseAuth": "Send auth on health checks",
-        "healthCheckUseAuthTooltip": "Include the API key when probing the health check URL"
+        "healthCheckUseAuthTooltip": "Include the API key when probing the health check URL",
+        "endpointExamplesIntro": "Base URL examples per provider:",
+        "endpointNotBaseUrl": "Supply only the provider base URL (no path, query, or fragment; /v1 is allowed for OpenAI-compatible servers)",
+        "contextWindowTokens": "Context window (tokens)",
+        "contextWindowTokensTooltip": "Model context window size; when set, conversation history is trimmed so history plus output fit the window. Leave 0 if unknown.",
+        "contextWindowTokensPlaceholder": "0 = unspecified"
       },
       "test": {
         "title": "Test: {name}",

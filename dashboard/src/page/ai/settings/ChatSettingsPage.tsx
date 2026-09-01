@@ -19,6 +19,13 @@ import {
 } from '@/lib/store/slice/slice';
 import { globalToastId } from '@/constants/config';
 
+/**
+ * Shown (and saved on first edit) when the tenant has not set its own prompt;
+ * the server always prepends its fixed tool/citation preamble regardless.
+ */
+export const DEFAULT_SYSTEM_PROMPT =
+  'You are a helpful assistant for exploring this LiteGraph tenant. Use the available graph tools to look up real data before answering, cite node and edge identifiers when referencing specific objects, and say so plainly when the graph does not contain the answer.';
+
 const ChatSettingsPage = () => {
   const t = useTranslations('ai.settings');
   const params = useParams();
@@ -209,7 +216,7 @@ const ChatSettingsPage = () => {
             {t('fields.systemPrompt')}
           </LitegraphText>
           <Input.TextArea
-            value={draft.SystemPrompt || ''}
+            value={draft.SystemPrompt ?? DEFAULT_SYSTEM_PROMPT}
             onChange={(e) => patchDraft({ SystemPrompt: e.target.value || null })}
             placeholder={t('fields.systemPromptPlaceholder')}
             autoSize={{ minRows: 4, maxRows: 12 }}
@@ -275,14 +282,6 @@ const ChatSettingsPage = () => {
             -1,
             1,
             0.05
-          )}
-          {renderNumber(
-            t('fields.maxContextTokens'),
-            t('fields.maxContextTokensHint'),
-            draft.MaxContextTokens,
-            (val) => patchDraft({ MaxContextTokens: val ?? 1024 }),
-            'chat-settings-max-context-tokens',
-            1024
           )}
           {renderNumber(
             t('fields.historyRetentionDays'),

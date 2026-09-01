@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "URL facultative sondée à la place de la valeur par défaut du fournisseur",
         "healthCheckUrlPlaceholder": "Par défaut, une URL propre au fournisseur",
         "healthCheckUseAuth": "Envoyer l'authentification lors des contrôles",
-        "healthCheckUseAuthTooltip": "Inclure la clé API lors du sondage de l'URL de contrôle"
+        "healthCheckUseAuthTooltip": "Inclure la clé API lors du sondage de l'URL de contrôle",
+        "endpointExamplesIntro": "Exemples d'URL de base par fournisseur :",
+        "endpointNotBaseUrl": "Indiquez uniquement l'URL de base du fournisseur (sans chemin, requête ni fragment ; /v1 est autorisé pour les serveurs compatibles OpenAI)",
+        "contextWindowTokens": "Fenêtre de contexte (jetons)",
+        "contextWindowTokensTooltip": "Taille de la fenêtre de contexte du modèle ; si définie, l'historique est tronqué pour que historique plus sortie tiennent dans la fenêtre. 0 = inconnue.",
+        "contextWindowTokensPlaceholder": "0 = non spécifié"
       },
       "test": {
         "title": "Test : {name}",

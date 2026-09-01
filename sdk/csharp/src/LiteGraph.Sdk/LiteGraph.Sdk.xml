@@ -346,6 +346,13 @@
             Model name, for example gpt-4o-mini, gemma3:4b, or voyage-3.5.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.ContextWindowTokens">
+            <summary>
+            Context window size of the model in tokens.  Default is 0, meaning unspecified; when set,
+            the server caps the conversation-history budget so history plus output fit the window.
+            Minimum is 0, maximum is 100000000.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.ChatEndpoint.MaxOutputTokens">
             <summary>
             Maximum output tokens per completion.  Default is 4096.  Minimum is 1, maximum is 10000000.
@@ -708,12 +715,12 @@
         </member>
         <member name="P:LiteGraph.Sdk.ChatSettings.EnableMutationTools">
             <summary>
-            Advertise mutation (create/update/delete) tools to the model.  Default is false.
+            Advertise mutation (create/update/delete) tools to the model.  Default is true.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.ChatSettings.MaxToolIterations">
             <summary>
-            Maximum tool loop iterations per turn.  Default is 10.  Minimum is 1.
+            Maximum tool loop iterations per turn.  Default is 50.  Minimum is 1.
             The server-level MaxToolIterationsCap bounds the effective value.
             </summary>
         </member>
@@ -732,14 +739,9 @@
             Minimum similarity score for retrieved context.  Default is 0.  Minimum is -1, maximum is 1.
             </summary>
         </member>
-        <member name="P:LiteGraph.Sdk.ChatSettings.MaxContextTokens">
-            <summary>
-            Token budget for prior-turn history included in the prompt.  Default is 16384.  Minimum is 1024.
-            </summary>
-        </member>
         <member name="P:LiteGraph.Sdk.ChatSettings.HistoryRetentionDays">
             <summary>
-            Days to retain chat turns before pruning.  Default is 90.  Minimum is 0; 0 retains forever.
+            Days to retain chat turns before pruning.  Default is 30.  Minimum is 0; 0 retains forever.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.ChatSettings.CreatedUtc">

@@ -150,6 +150,18 @@ namespace LiteGraph.Client.Implementations
                 || (parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeHttps))
                 throw new ArgumentException("Chat endpoint URL must be an absolute http or https URL.");
 
+            // PolyPrompt appends provider paths itself (/v1/... for OpenAI-compatible, /api/... for
+            // Ollama, and so on), so the endpoint must be a bare base URL.  OpenAI-compatible servers
+            // may end in /v1 because PolyPrompt detects and preserves that suffix.
+            if (!String.IsNullOrEmpty(parsed.Query) || !String.IsNullOrEmpty(parsed.Fragment))
+                throw new ArgumentException("Chat endpoint URL must be a base URL without a query string or fragment.");
+
+            string trimmedPath = parsed.AbsolutePath.TrimEnd('/');
+            bool pathAllowed = (trimmedPath.Length == 0)
+                || (endpoint.Provider == ChatProviderTypeEnum.OpenAI && String.Equals(trimmedPath, "/v1", StringComparison.OrdinalIgnoreCase));
+            if (!pathAllowed)
+                throw new ArgumentException("Chat endpoint URL must be the provider base URL without a path; the provider client appends API paths itself (/v1 is permitted for OpenAI-compatible servers).");
+
             if (endpoint.Provider == ChatProviderTypeEnum.Anthropic && endpoint.EndpointType == ChatEndpointTypeEnum.Embedding)
                 throw new ArgumentException("Anthropic has no embeddings API and cannot be used for an embedding endpoint.");
 

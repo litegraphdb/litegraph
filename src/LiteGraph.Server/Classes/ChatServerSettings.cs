@@ -49,7 +49,7 @@ namespace LiteGraph.Server.Classes
         }
 
         /// <summary>
-        /// Hard ceiling on per-tenant tool loop iterations.  Default is 25.  Minimum is 1, maximum is 100.
+        /// Hard ceiling on per-tenant tool loop iterations.  Default is 100.  Minimum is 1, maximum is 100.
         /// </summary>
         public int MaxToolIterationsCap
         {
@@ -119,7 +119,7 @@ namespace LiteGraph.Server.Classes
 
         private int _MaxRetries = 2;
         private int _RetryBackoffMs = 500;
-        private int _MaxToolIterationsCap = 25;
+        private int _MaxToolIterationsCap = 100;
         private int _MaxConcurrentChats = 50;
         private int _SseKeepAliveSeconds = 15;
         private int _DefaultTimeoutMs = 120000;

@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "可选 URL，用于替代提供商默认的探测地址",
         "healthCheckUrlPlaceholder": "默认为提供商特定的 URL",
         "healthCheckUseAuth": "健康检查时发送认证",
-        "healthCheckUseAuthTooltip": "探测健康检查 URL 时附带 API 密钥"
+        "healthCheckUseAuthTooltip": "探测健康检查 URL 时附带 API 密钥",
+        "endpointExamplesIntro": "各提供商的基础 URL 示例：",
+        "endpointNotBaseUrl": "仅提供提供商的基础 URL（不含路径、查询或片段；OpenAI 兼容服务器允许 /v1）",
+        "contextWindowTokens": "上下文窗口（token）",
+        "contextWindowTokensTooltip": "模型的上下文窗口大小；设置后会裁剪对话历史，使历史加输出适配窗口。未知则填 0。",
+        "contextWindowTokensPlaceholder": "0 = 未指定"
       },
       "test": {
         "title": "测试：{name}",

@@ -19,6 +19,7 @@ export type ChatEndpoint = {
   Endpoint: string;
   ApiKey?: string | null;
   Model: string;
+  ContextWindowTokens?: number;
   MaxOutputTokens?: number;
   TimeoutMs?: number;
   MaxConcurrentRequests?: number;
@@ -139,7 +140,6 @@ export type ChatSettings = {
   EnableRag: boolean;
   RagTopK: number;
   RagScoreThreshold: number;
-  MaxContextTokens: number;
   HistoryRetentionDays: number;
   CreatedUtc?: string;
   LastUpdateUtc?: string;
@@ -201,6 +201,15 @@ export const validateProviderTypeCombo = (
 };
 
 /** All providers valid for a given endpoint type. */
+/** Canonical base-URL example per provider, matching PolyPrompt's defaults. */
+export const PROVIDER_BASE_URL_EXAMPLES: Record<ChatProviderType, string> = {
+  OpenAI: 'https://api.openai.com',
+  Ollama: 'http://127.0.0.1:11434',
+  Gemini: 'https://generativelanguage.googleapis.com',
+  Anthropic: 'https://api.anthropic.com',
+  VoyageAI: 'https://api.voyageai.com',
+};
+
 export const providersForType = (endpointType: ChatEndpointType): ChatProviderType[] => {
   const all: ChatProviderType[] = ['OpenAI', 'Ollama', 'Gemini', 'Anthropic', 'VoyageAI'];
   return all.filter((p) => validateProviderTypeCombo(p, endpointType) === null);

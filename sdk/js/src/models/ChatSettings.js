@@ -15,7 +15,6 @@ export default class ChatSettings {
    * @param {boolean} [settings.EnableRag=true] - Indicates whether RAG is enabled (default is true).
    * @param {number} [settings.RagTopK=8] - Number of RAG chunks to retrieve (default is 8).
    * @param {number} [settings.RagScoreThreshold=0] - Minimum RAG score threshold (default is 0).
-   * @param {number} [settings.MaxContextTokens=16384] - Maximum context tokens (default is 16384).
    * @param {number} [settings.HistoryRetentionDays=90] - Chat history retention in days (default is 90).
    * @param {Date|string} [settings.CreatedUtc] - Creation timestamp in UTC (defaults to current UTC time).
    * @param {Date|string} [settings.LastUpdateUtc] - Last update timestamp in UTC (defaults to current UTC time).
@@ -28,13 +27,12 @@ export default class ChatSettings {
       SystemPrompt = null,
       EnableChat = true,
       EnableTools = true,
-      EnableMutationTools = false,
-      MaxToolIterations = 10,
+      EnableMutationTools = true,
+      MaxToolIterations = 50,
       EnableRag = true,
       RagTopK = 8,
       RagScoreThreshold = 0,
-      MaxContextTokens = 16384,
-      HistoryRetentionDays = 90,
+      HistoryRetentionDays = 30,
       CreatedUtc = new Date().toISOString(),
       LastUpdateUtc = new Date().toISOString(),
     } = settings;
@@ -50,7 +48,6 @@ export default class ChatSettings {
     this.EnableRag = EnableRag; // Indicates if RAG is enabled
     this.RagTopK = RagTopK; // Number of RAG chunks to retrieve
     this.RagScoreThreshold = RagScoreThreshold; // Minimum RAG score threshold
-    this.MaxContextTokens = MaxContextTokens; // Maximum context tokens
     this.HistoryRetentionDays = HistoryRetentionDays; // History retention in days
     this.CreatedUtc = new Date(CreatedUtc); // Creation timestamp
     this.LastUpdateUtc = new Date(LastUpdateUtc); // Last update timestamp

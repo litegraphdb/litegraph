@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "プロバイダー既定の代わりに確認する任意の URL",
         "healthCheckUrlPlaceholder": "既定ではプロバイダー固有の URL",
         "healthCheckUseAuth": "ヘルスチェックで認証を送信",
-        "healthCheckUseAuthTooltip": "ヘルスチェック URL の確認時に API キーを含めます"
+        "healthCheckUseAuthTooltip": "ヘルスチェック URL の確認時に API キーを含めます",
+        "endpointExamplesIntro": "プロバイダーごとのベース URL の例:",
+        "endpointNotBaseUrl": "プロバイダーのベース URL のみを指定してください（パス・クエリ・フラグメントは不可。OpenAI 互換サーバーでは /v1 を許可）",
+        "contextWindowTokens": "コンテキストウィンドウ（トークン）",
+        "contextWindowTokensTooltip": "モデルのコンテキストウィンドウサイズ。設定すると、履歴と出力がウィンドウに収まるよう履歴が切り詰められます。不明な場合は 0。",
+        "contextWindowTokensPlaceholder": "0 = 未指定"
       },
       "test": {
         "title": "テスト: {name}",

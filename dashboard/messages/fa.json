@@ -1652,7 +1652,12 @@
         "healthCheckUrlTooltip": "نشانی اختیاری که به‌جای پیش‌فرض ارائه‌دهنده بررسی می‌شود",
         "healthCheckUrlPlaceholder": "به‌طور پیش‌فرض یک نشانی مخصوص ارائه‌دهنده",
         "healthCheckUseAuth": "ارسال احراز هویت در بررسی‌ها",
-        "healthCheckUseAuthTooltip": "هنگام بررسی نشانی سلامت، کلید API را همراه کنید"
+        "healthCheckUseAuthTooltip": "هنگام بررسی نشانی سلامت، کلید API را همراه کنید",
+        "endpointExamplesIntro": "نمونه‌های URL پایه برای هر ارائه‌دهنده:",
+        "endpointNotBaseUrl": "فقط URL پایه ارائه‌دهنده را وارد کنید (بدون مسیر، کوئری یا قطعه؛ /v1 برای سرورهای سازگار با OpenAI مجاز است)",
+        "contextWindowTokens": "پنجره زمینه (توکن)",
+        "contextWindowTokensTooltip": "اندازه پنجره زمینه مدل؛ در صورت تنظیم، تاریخچه گفتگو طوری کوتاه می‌شود که تاریخچه و خروجی در پنجره جا شوند. ۰ = نامشخص.",
+        "contextWindowTokensPlaceholder": "۰ = تعیین‌نشده"
       },
       "test": {
         "title": "آزمایش: {name}",
