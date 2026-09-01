@@ -31,5 +31,4 @@ ECHO Done
 SET "EXIT_CODE=0"
 
 :Finish
-ECHO ON
 @EXIT /B %EXIT_CODE%

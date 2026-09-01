@@ -13,4 +13,3 @@ ECHO Example: build-server.bat v7.0.0
 :Done
 ECHO.
 ECHO Done
-@ECHO ON

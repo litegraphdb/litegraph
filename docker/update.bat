@@ -14,11 +14,9 @@ docker compose up -d
 IF ERRORLEVEL 1 GOTO :Failed
 
 POPD
-ECHO ON
 @EXIT /B 0
 
 :Failed
 SET "EXIT_CODE=%ERRORLEVEL%"
 POPD 2>NUL
-ECHO ON
 @EXIT /B %EXIT_CODE%

@@ -18,4 +18,3 @@ ECHO Example: dockerbuild.bat v7.0.0
 :Done
 IF DEFINED PUSHED POPD
 ECHO Done
-@ECHO ON

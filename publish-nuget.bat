@@ -69,4 +69,3 @@ EXIT /B 1
 :Done
 ECHO.
 ENDLOCAL
-@ECHO ON
