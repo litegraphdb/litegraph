@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "شکست‌های متوالی",
         "lastError": "آخرین خطا",
         "historyTitle": "تاریخچه بررسی‌ها (۲۴ ساعت اخیر)",
-        "noHistory": "هنوز بررسی‌ای ثبت نشده است."
+        "noHistory": "هنوز بررسی‌ای ثبت نشده است.",
+        "historySpan": "بازه تاریخچه",
+        "firstCheck": "اولین بررسی",
+        "lastHealthy": "آخرین وضعیت سالم",
+        "lastUnhealthy": "آخرین وضعیت ناسالم"
       },
       "deleteModal": {
         "title": "حذف نقطه پایانی «{name}»",

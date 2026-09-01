@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "Falhas consecutivas",
         "lastError": "Último erro",
         "historyTitle": "Histórico de verificações (últimas 24 h)",
-        "noHistory": "Ainda não foram registadas verificações."
+        "noHistory": "Ainda não foram registadas verificações.",
+        "historySpan": "Intervalo do histórico",
+        "firstCheck": "Primeira verificação",
+        "lastHealthy": "Último estado saudável",
+        "lastUnhealthy": "Último estado com falha"
       },
       "deleteModal": {
         "title": "Eliminar o endpoint \"{name}\"",

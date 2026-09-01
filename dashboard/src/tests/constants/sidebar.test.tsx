@@ -103,8 +103,8 @@ describe('buildNavForPrincipal — AI section', () => {
       const section = aiSection(admin);
       expect(section).toBeDefined();
       expect(section!.items.map((i) => i.key)).toEqual([
-        '/ai/chat',
         '/ai/endpoints',
+        '/ai/chat',
         '/ai/history',
         '/ai/feedback',
         '/ai/settings',

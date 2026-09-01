@@ -151,16 +151,6 @@ export const dashboardNavSections: NavSection[] = [
     label: 'AI',
     items: [
       {
-        key: '/ai/chat',
-        resource: 'aiChat',
-        icon: <CommentOutlined />,
-        label: 'Chat',
-        title: 'Chat with your graphs',
-        labelKey: 'nav.item.aiChat',
-        titleKey: 'nav.item.aiChatTitle',
-        path: paths.aiChat,
-      },
-      {
         key: '/ai/endpoints',
         resource: 'aiEndpoints',
         icon: <CloudServerOutlined />,
@@ -169,6 +159,16 @@ export const dashboardNavSections: NavSection[] = [
         labelKey: 'nav.item.aiEndpoints',
         titleKey: 'nav.item.aiEndpointsTitle',
         path: paths.aiEndpoints,
+      },
+      {
+        key: '/ai/chat',
+        resource: 'aiChat',
+        icon: <CommentOutlined />,
+        label: 'Chat',
+        title: 'Chat with your graphs',
+        labelKey: 'nav.item.aiChat',
+        titleKey: 'nav.item.aiChatTitle',
+        path: paths.aiChat,
       },
       {
         key: '/ai/history',

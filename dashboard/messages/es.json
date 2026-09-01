@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "Fallos consecutivos",
         "lastError": "Último error",
         "historyTitle": "Historial de comprobaciones (últimas 24 h)",
-        "noHistory": "Aún no se han registrado comprobaciones."
+        "noHistory": "Aún no se han registrado comprobaciones.",
+        "historySpan": "Intervalo del historial",
+        "firstCheck": "Primera comprobación",
+        "lastHealthy": "Última vez en buen estado",
+        "lastUnhealthy": "Última vez con errores"
       },
       "deleteModal": {
         "title": "Eliminar el endpoint «{name}»",

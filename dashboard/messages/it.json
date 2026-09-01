@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "Errori consecutivi",
         "lastError": "Ultimo errore",
         "historyTitle": "Cronologia controlli (ultime 24 h)",
-        "noHistory": "Nessun controllo registrato finora."
+        "noHistory": "Nessun controllo registrato finora.",
+        "historySpan": "Intervallo cronologia",
+        "firstCheck": "Primo controllo",
+        "lastHealthy": "Ultimo stato integro",
+        "lastUnhealthy": "Ultimo stato non integro"
       },
       "deleteModal": {
         "title": "Elimina endpoint \"{name}\"",

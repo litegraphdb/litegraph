@@ -39,10 +39,40 @@ interface LitegraphTableProps<T = any> extends TableProps<T> {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   refreshTooltip?: string;
+  /** Key under which auto-refresh interval and page size persist; defaults to the current pathname. */
+  persistKey?: string;
 }
 
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const AUTO_REFRESH_OPTIONS = [
+  { label: 'None', value: 0 },
+  { label: '10 seconds', value: 10 },
+  { label: '30 seconds', value: 30 },
+  { label: '60 seconds', value: 60 },
+  { label: '300 seconds', value: 300 },
+];
+
+const persistedTableValue = (persistKey: string | undefined, field: string): number | null => {
+  if (!persistKey || typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(`litegraph.table.${persistKey}.${field}`);
+    if (raw === null) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const persistTableValue = (persistKey: string | undefined, field: string, value: number) => {
+  if (!persistKey || typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(`litegraph.table.${persistKey}.${field}`, String(value));
+  } catch {
+    // Storage unavailable (private mode, quota) — persistence is best-effort.
+  }
+};
 
 const interactiveRowClickSelector = [
   'a[href]',
@@ -137,21 +167,29 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
     onRefresh,
     isRefreshing,
     refreshTooltip = 'Refresh',
+    persistKey,
     locale,
     ...rest
   } = props;
+  const effectivePersistKey =
+    persistKey ?? (typeof window !== 'undefined' ? window.location.pathname : undefined);
   const [columnsState, setColumnsState] = useState(columns);
   const paginationConfig = (
     typeof pagination === 'object' ? pagination : {}
   ) as TablePaginationConfig;
+  const storedPageSize = persistedTableValue(effectivePersistKey, 'pageSize');
   const initialPageSize = positiveNumberOrDefault(
-    paginationConfig.defaultPageSize ?? paginationConfig.pageSize,
+    storedPageSize ?? paginationConfig.defaultPageSize ?? paginationConfig.pageSize,
     DEFAULT_PAGE_SIZE
   );
   const [internalPage, setInternalPage] = useState(
     positiveNumberOrDefault(paginationConfig.defaultCurrent ?? paginationConfig.current, 1)
   );
   const [internalPageSize, setInternalPageSize] = useState(initialPageSize);
+  const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(() => {
+    const stored = persistedTableValue(effectivePersistKey, 'autoRefresh');
+    return stored !== null && AUTO_REFRESH_OPTIONS.some((o) => o.value === stored) ? stored : 0;
+  });
 
   const handleResize =
     (index: number) =>
@@ -244,9 +282,34 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
       setInternalPageSize(safePageSize);
     }
 
+    persistTableValue(effectivePersistKey, 'pageSize', safePageSize);
     paginationConfig.onShowSizeChange?.(1, safePageSize);
     paginationConfig.onChange?.(1, safePageSize);
   };
+
+  const changeAutoRefresh = (nextSeconds: number) => {
+    setAutoRefreshSeconds(nextSeconds);
+    persistTableValue(effectivePersistKey, 'autoRefresh', nextSeconds);
+  };
+
+  const appliedStoredPageSize = React.useRef(false);
+  useEffect(() => {
+    // Controlled tables own their page size; replay the persisted choice once on mount.
+    if (appliedStoredPageSize.current) return;
+    appliedStoredPageSize.current = true;
+    if (!controlledPagination || storedPageSize === null || storedPageSize === pageSize) return;
+    paginationConfig.onShowSizeChange?.(1, storedPageSize);
+    paginationConfig.onChange?.(1, storedPageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!onRefresh || autoRefreshSeconds <= 0) return undefined;
+    const interval = setInterval(() => {
+      onRefresh();
+    }, autoRefreshSeconds * 1000);
+    return () => clearInterval(interval);
+  }, [onRefresh, autoRefreshSeconds]);
 
   const paginationWithTotal: false | TablePaginationConfig = paginationEnabled
     ? {
@@ -284,6 +347,19 @@ const LitegraphTable = <T extends object = any>(props: LitegraphTableProps<T>) =
               icon={<ReloadOutlined spin={isRefreshing} />}
               onClick={onRefresh}
               disabled={isRefreshing}
+            />
+          </Tooltip>
+        )}
+        {onRefresh && (
+          <Tooltip title="Auto-refresh interval">
+            <Select
+              size="small"
+              aria-label="Auto-refresh interval"
+              data-testid="litegraph-table-auto-refresh"
+              value={autoRefreshSeconds}
+              options={AUTO_REFRESH_OPTIONS}
+              onChange={changeAutoRefresh}
+              style={{ width: 110 }}
             />
           </Tooltip>
         )}

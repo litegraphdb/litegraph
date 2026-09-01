@@ -55,7 +55,8 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointReadUpdateTest", "Endpoint read, exists, update, and connectivity test over HTTP", TestChatRestEndpointReadUpdateTest),
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointHealthRoutes", "Endpoint health routes report monitored state and reject unknown endpoints", TestChatRestEndpointHealthRoutes),
                     ChatCase("Chat.Rest", "Chat.Rest.FeedbackReadAndNegatives", "Single feedback read, unknown-GUID deletes, and cross-user turn denial", TestChatRestFeedbackReadAndNegatives),
-                    ChatCase("Chat.Rest", "Chat.Rest.McpChatTools", "MCP chat tools round-trip endpoint and settings operations", TestChatRestMcpChatTools)
+                    ChatCase("Chat.Rest", "Chat.Rest.McpChatTools", "MCP chat tools round-trip endpoint and settings operations", TestChatRestMcpChatTools),
+                    ChatCase("Chat.Rest", "Chat.Rest.HealthDedup", "Endpoints sharing a probe target share one healthcheck and verdict", TestChatRestHealthDedup)
                 });
         }
 
@@ -958,6 +959,77 @@ namespace Test.Shared
             finally
             {
                 await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestChatRestHealthDedup(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints";
+                    string healthUrl = fake.Endpoint + "/v1/models";
+                    List<string> endpointGuids = new List<string>();
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        HttpOutcome created = await AuthRestAsync(HttpMethod.Put, baseUrl, _AdminBearerToken,
+                            "{\"Name\":\"dedup-model-" + i + "\",\"EndpointType\":\"Completion\",\"Provider\":\"OpenAI\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"model-" + i + "\",\"HealthCheckEnabled\":true,\"HealthCheckIntervalMs\":1000,\"HealthCheckUrl\":\"" + healthUrl + "\",\"HealthyThreshold\":1}",
+                            cancellationToken).ConfigureAwait(false);
+                        AssertTrue(IsSuccess(created.Status), "Dedup endpoint " + i + " created (status " + created.Status + ")");
+                        endpointGuids.Add(ExtractGuid(created.Body));
+                    }
+
+                    bool allHealthy = false;
+                    string lastBody = String.Empty;
+
+                    for (int attempt = 0; attempt < 20 && !allHealthy; attempt++)
+                    {
+                        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                        HttpOutcome all = await AuthRestAsync(HttpMethod.Get, baseUrl + "/health", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                        lastBody = all.Body;
+
+                        using (System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(all.Body))
+                        {
+                            int healthyCount = 0;
+                            foreach (System.Text.Json.JsonElement entry in doc.RootElement.EnumerateArray())
+                            {
+                                if (entry.TryGetProperty("Healthy", out System.Text.Json.JsonElement h) && h.ValueKind == System.Text.Json.JsonValueKind.True) healthyCount++;
+                            }
+                            allHealthy = (healthyCount >= 3);
+                        }
+                    }
+
+                    AssertTrue(allHealthy, "All three endpoints report the shared healthy verdict (body " + Truncate(lastBody, 300) + ")");
+
+                    // Shared probe evidence: every subscriber reports the same last-checked instant.
+                    using (System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(lastBody))
+                    {
+                        HashSet<string> lastChecked = new HashSet<string>(StringComparer.Ordinal);
+                        int entries = 0;
+                        foreach (System.Text.Json.JsonElement entry in doc.RootElement.EnumerateArray())
+                        {
+                            if (!entry.GetProperty("Name").GetString()!.StartsWith("dedup-model-", StringComparison.Ordinal)) continue;
+                            entries++;
+                            lastChecked.Add(entry.GetProperty("LastCheckedUtc").GetRawText());
+                        }
+                        AssertEqual(3, entries, "All three dedup endpoints are monitored");
+                        AssertEqual(1, lastChecked.Count, "All three endpoints share a single probe (identical LastCheckedUtc)");
+                    }
+
+                    foreach (string guid in endpointGuids)
+                    {
+                        await AuthRestAsync(HttpMethod.Delete, baseUrl + "/" + guid, _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
             }
         }
 

@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "連續失敗次數",
         "lastError": "最近錯誤",
         "historyTitle": "檢查紀錄（最近 24 小時）",
-        "noHistory": "仲未有任何檢查紀錄。"
+        "noHistory": "仲未有任何檢查紀錄。",
+        "historySpan": "歷史時間範圍",
+        "firstCheck": "首次檢查",
+        "lastHealthy": "最後正常時間",
+        "lastUnhealthy": "最後異常時間"
       },
       "deleteModal": {
         "title": "刪除端點「{name}」",

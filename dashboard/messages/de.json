@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "Aufeinanderfolgende Fehler",
         "lastError": "Letzter Fehler",
         "historyTitle": "Prüfverlauf (letzte 24 h)",
-        "noHistory": "Noch keine Prüfungen aufgezeichnet."
+        "noHistory": "Noch keine Prüfungen aufgezeichnet.",
+        "historySpan": "Verlaufszeitraum",
+        "firstCheck": "Erste Prüfung",
+        "lastHealthy": "Zuletzt fehlerfrei",
+        "lastUnhealthy": "Zuletzt fehlerhaft"
       },
       "deleteModal": {
         "title": "Endpunkt „{name}\" löschen",

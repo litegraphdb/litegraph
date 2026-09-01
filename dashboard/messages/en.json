@@ -1742,7 +1742,11 @@
         "consecutiveFailures": "Consecutive failures",
         "lastError": "Last error",
         "historyTitle": "Check history (last 24h)",
-        "noHistory": "No checks recorded yet."
+        "noHistory": "No checks recorded yet.",
+        "historySpan": "History span",
+        "firstCheck": "First check",
+        "lastHealthy": "Last healthy",
+        "lastUnhealthy": "Last unhealthy"
       },
       "deleteModal": {
         "title": "Delete endpoint \"{name}\"",

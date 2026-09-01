@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "Échecs consécutifs",
         "lastError": "Dernière erreur",
         "historyTitle": "Historique des contrôles (dernières 24 h)",
-        "noHistory": "Aucun contrôle enregistré pour le moment."
+        "noHistory": "Aucun contrôle enregistré pour le moment.",
+        "historySpan": "Période de l'historique",
+        "firstCheck": "Première vérification",
+        "lastHealthy": "Dernier état sain",
+        "lastUnhealthy": "Dernier état défaillant"
       },
       "deleteModal": {
         "title": "Supprimer le point de terminaison « {name} »",

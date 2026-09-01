@@ -12,6 +12,10 @@ interface TestRecord {
 describe('LitegraphTable', () => {
   const dataSource: TestRecord[] = [{ key: '1', name: 'Alpha' }];
 
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it('calls onRowClick when a non-interactive row cell is clicked', () => {
     const onRowClick = jest.fn();
     const columns: TableProps<TestRecord>['columns'] = [
@@ -298,5 +302,122 @@ describe('LitegraphTable', () => {
 
     expect(screen.queryByText('Row 1')).not.toBeInTheDocument();
     expect(screen.getByText('Row 6')).toBeInTheDocument();
+  });
+
+  it('renders an auto-refresh selector defaulting to None and fires refresh on interval', () => {
+    jest.useFakeTimers();
+    const onRefresh = jest.fn();
+    const columns: TableProps<TestRecord>['columns'] = [
+      { title: 'Name', dataIndex: 'name', key: 'name' },
+    ];
+
+    render(
+      <LitegraphTable
+        columns={columns}
+        dataSource={dataSource}
+        onRefresh={onRefresh}
+        persistKey="test-table"
+        pagination={{ pageSize: 10 }}
+      />
+    );
+
+    const selector = screen.getByTestId('litegraph-table-auto-refresh');
+    expect(selector).toHaveTextContent('None');
+
+    fireEvent.mouseDown(selector.querySelector('.ant-select-selector')!);
+    fireEvent.click(screen.getByTitle('10 seconds'));
+
+    jest.advanceTimersByTime(10_000);
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(20_000);
+    expect(onRefresh).toHaveBeenCalledTimes(3);
+
+    expect(window.localStorage.getItem('litegraph.table.test-table.autoRefresh')).toBe('10');
+    jest.useRealTimers();
+  });
+
+  it('restores the persisted auto-refresh interval on mount', () => {
+    window.localStorage.setItem('litegraph.table.test-table.autoRefresh', '30');
+    const columns: TableProps<TestRecord>['columns'] = [
+      { title: 'Name', dataIndex: 'name', key: 'name' },
+    ];
+
+    render(
+      <LitegraphTable
+        columns={columns}
+        dataSource={dataSource}
+        onRefresh={jest.fn()}
+        persistKey="test-table"
+        pagination={{ pageSize: 10 }}
+      />
+    );
+
+    expect(screen.getByTestId('litegraph-table-auto-refresh')).toHaveTextContent('30 seconds');
+  });
+
+  it('persists page size and restores it across mounts', () => {
+    const columns: TableProps<TestRecord>['columns'] = [
+      { title: 'Name', dataIndex: 'name', key: 'name' },
+    ];
+    const localData = Array.from({ length: 12 }, (_, index) => ({
+      key: String(index + 1),
+      name: `Row ${index + 1}`,
+    }));
+
+    const { unmount } = render(
+      <LitegraphTable
+        columns={columns}
+        dataSource={localData}
+        persistKey="persist-table"
+        pagination={{ pageSize: 5, pageSizeOptions: [5, 10] }}
+      />
+    );
+
+    expect(screen.queryByText('Row 6')).not.toBeInTheDocument();
+
+    fireEvent.mouseDown(
+      screen.getByTestId('litegraph-table-page-size').querySelector('.ant-select-selector')!
+    );
+    fireEvent.click(screen.getByTitle('10'));
+
+    expect(screen.getByText('Row 6')).toBeInTheDocument();
+    expect(window.localStorage.getItem('litegraph.table.persist-table.pageSize')).toBe('10');
+
+    unmount();
+
+    render(
+      <LitegraphTable
+        columns={columns}
+        dataSource={localData}
+        persistKey="persist-table"
+        pagination={{ pageSize: 5, pageSizeOptions: [5, 10] }}
+      />
+    );
+
+    expect(screen.getByText('Row 6')).toBeInTheDocument();
+  });
+
+  it('replays the persisted page size to controlled pagination on mount', () => {
+    window.localStorage.setItem('litegraph.table.controlled-table.pageSize', '25');
+    const onChange = jest.fn();
+    const columns: TableProps<TestRecord>['columns'] = [
+      { title: 'Name', dataIndex: 'name', key: 'name' },
+    ];
+
+    render(
+      <LitegraphTable
+        columns={columns}
+        dataSource={dataSource}
+        persistKey="controlled-table"
+        pagination={{
+          current: 1,
+          pageSize: 10,
+          total: 100,
+          onChange,
+        }}
+      />
+    );
+
+    expect(onChange).toHaveBeenCalledWith(1, 25);
   });
 });

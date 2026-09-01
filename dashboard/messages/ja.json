@@ -1685,7 +1685,11 @@
         "consecutiveFailures": "連続失敗数",
         "lastError": "直近のエラー",
         "historyTitle": "チェック履歴（過去 24 時間）",
-        "noHistory": "まだチェックの記録はありません。"
+        "noHistory": "まだチェックの記録はありません。",
+        "historySpan": "履歴期間",
+        "firstCheck": "初回チェック",
+        "lastHealthy": "最終正常時刻",
+        "lastUnhealthy": "最終異常時刻"
       },
       "deleteModal": {
         "title": "エンドポイント「{name}」を削除",
