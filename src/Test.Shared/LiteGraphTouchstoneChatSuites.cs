@@ -51,7 +51,11 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.Feedback", "Feedback submit, admin list, and delete", TestChatRestFeedback),
                     ChatCase("Chat.Rest", "Chat.Rest.ThreadOwnership", "Threads are private to their owner", TestChatRestThreadOwnership),
                     ChatCase("Chat.Rest", "Chat.Rest.Metrics", "Chat metrics appear on the metrics endpoint", TestChatRestMetrics),
-                    ChatCase("Chat.Rest", "Chat.Rest.ToolCatalogParity", "Every chat-advertised tool exists in the MCP catalog", TestChatToolCatalogParity)
+                    ChatCase("Chat.Rest", "Chat.Rest.ToolCatalogParity", "Every chat-advertised tool exists in the MCP catalog", TestChatToolCatalogParity),
+                    ChatCase("Chat.Rest", "Chat.Rest.EndpointReadUpdateTest", "Endpoint read, exists, update, and connectivity test over HTTP", TestChatRestEndpointReadUpdateTest),
+                    ChatCase("Chat.Rest", "Chat.Rest.EndpointHealthRoutes", "Endpoint health routes report monitored state and reject unknown endpoints", TestChatRestEndpointHealthRoutes),
+                    ChatCase("Chat.Rest", "Chat.Rest.FeedbackReadAndNegatives", "Single feedback read, unknown-GUID deletes, and cross-user turn denial", TestChatRestFeedbackReadAndNegatives),
+                    ChatCase("Chat.Rest", "Chat.Rest.McpChatTools", "MCP chat tools round-trip endpoint and settings operations", TestChatRestMcpChatTools)
                 });
         }
 
@@ -775,6 +779,181 @@ namespace Test.Shared
                         }
                     }
                 }
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestChatRestEndpointReadUpdateTest(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints";
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+
+                    HttpOutcome read = await AuthRestAsync(HttpMethod.Get, baseUrl + "/" + endpointGuid, _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, read.Status, "Endpoint read over HTTP succeeds");
+                    AssertTrue(read.Body.Contains("fake-llm"), "The read endpoint carries its name");
+
+                    HttpOutcome exists = await AuthRestAsync(HttpMethod.Head, baseUrl + "/" + endpointGuid, _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, exists.Status, "Endpoint HEAD returns 200 for an existing endpoint");
+
+                    HttpOutcome missing = await AuthRestAsync(HttpMethod.Head, baseUrl + "/" + Guid.NewGuid(), _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, missing.Status, "Endpoint HEAD returns 404 for an unknown endpoint");
+
+                    HttpOutcome updated = await AuthRestAsync(HttpMethod.Put, baseUrl + "/" + endpointGuid, _AdminBearerToken,
+                        "{\"Name\":\"fake-llm-renamed\",\"EndpointType\":\"Completion\",\"Provider\":\"OpenAI\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"fake-model\",\"HealthCheckEnabled\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, updated.Status, "Endpoint update over HTTP succeeds (body " + updated.Body + ")");
+                    AssertTrue(updated.Body.Contains("fake-llm-renamed"), "The update response carries the new name");
+
+                    HttpOutcome tested = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + endpointGuid + "/test", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, tested.Status, "Endpoint connectivity test succeeds (body " + tested.Body + ")");
+                    AssertTrue(tested.Body.Contains("\"Reachable\":true") || tested.Body.Contains("\"Reachable\": true"), "The fake endpoint is reachable");
+                    AssertTrue(tested.Body.Contains("fake-model"), "The model list contains the fake model");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestEndpointHealthRoutes(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints";
+
+                    HttpOutcome created = await AuthRestAsync(HttpMethod.Put, baseUrl, _AdminBearerToken,
+                        "{\"Name\":\"monitored\",\"EndpointType\":\"Completion\",\"Provider\":\"OpenAI\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"fake-model\",\"HealthCheckEnabled\":true,\"HealthCheckIntervalMs\":1000,\"HealthCheckUrl\":\"" + fake.Endpoint + "/v1/models\",\"HealthyThreshold\":1}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(created.Status), "Monitored endpoint created (status " + created.Status + ")");
+                    string endpointGuid = ExtractGuid(created.Body);
+
+                    bool healthy = false;
+                    for (int i = 0; i < 20 && !healthy; i++)
+                    {
+                        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                        HttpOutcome single = await AuthRestAsync(HttpMethod.Get, baseUrl + "/" + endpointGuid + "/health", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                        AssertEqual(200, single.Status, "Single-endpoint health route responds");
+                        healthy = single.Body.Contains("\"Healthy\":true") || single.Body.Contains("\"Healthy\": true");
+                    }
+                    AssertTrue(healthy, "The monitored endpoint reaches a healthy verdict against the fake upstream");
+
+                    HttpOutcome all = await AuthRestAsync(HttpMethod.Get, baseUrl + "/health", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, all.Status, "All-endpoint health route responds");
+                    AssertTrue(all.Body.Contains("monitored"), "The health list carries the monitored endpoint");
+
+                    HttpOutcome unknown = await AuthRestAsync(HttpMethod.Get, baseUrl + "/" + Guid.NewGuid() + "/health", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, unknown.Status, "Health for an unknown endpoint returns 404");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestFeedbackReadAndNegatives(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatfbneg-owner@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string otherBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatfbneg-other@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+
+                    fake.EnqueueText("read me", 3, 2);
+
+                    HttpOutcome completion = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/completions",
+                        userBearer,
+                        "{\"Message\":\"single feedback\",\"CompletionEndpointGUID\":\"" + endpointGuid + "\",\"EnableTools\":false,\"EnableRag\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    string turnGuid = ChatExtractJsonString(completion.Body, "TurnGUID");
+                    string threadGuid = ChatExtractJsonString(completion.Body, "ThreadGUID");
+
+                    HttpOutcome submitted = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/turns/" + turnGuid + "/feedback",
+                        userBearer, "{\"Rating\":\"ThumbsUp\"}", cancellationToken).ConfigureAwait(false);
+                    string feedbackGuid = ExtractGuid(submitted.Body);
+
+                    HttpOutcome single = await AuthRestAsync(HttpMethod.Get,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/feedback/" + feedbackGuid,
+                        _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, single.Status, "Single feedback read succeeds");
+                    AssertTrue(single.Body.Contains("ThumbsUp"), "The feedback record carries its rating");
+
+                    HttpOutcome unknownDelete = await AuthRestAsync(HttpMethod.Delete,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/feedback/" + Guid.NewGuid(),
+                        _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, unknownDelete.Status, "Deleting unknown feedback returns 404");
+
+                    HttpOutcome unknownFeedbackTurn = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/turns/" + Guid.NewGuid() + "/feedback",
+                        userBearer, "{\"Rating\":\"ThumbsUp\"}", cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, unknownFeedbackTurn.Status, "Feedback against an unknown turn returns 404");
+
+                    HttpOutcome deniedTurns = await AuthRestAsync(HttpMethod.Get,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads/" + threadGuid + "/turns",
+                        otherBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertTrue(deniedTurns.Status == 401 || deniedTurns.Status == 403, "Another user cannot read the owner's turns (status " + deniedTurns.Status + ")");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestMcpChatTools(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+                string settingsJson = await _McpClient.CallAsync<string>("chat/settings/get", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                AssertNotNull(settingsJson, "chat/settings/get returns settings");
+                AssertTrue(settingsJson!.Contains("EnableChat"), "The settings payload carries EnableChat");
+
+                string createdJson = await _McpClient.CallAsync<string>("chat/endpoint/create", new
+                {
+                    tenantGuid = _DefaultTenantGuid,
+                    endpoint = "{\"Name\":\"mcp-created\",\"EndpointType\":\"Completion\",\"Provider\":\"Ollama\",\"Endpoint\":\"http://127.0.0.1:11434\",\"Model\":\"gemma3:4b\",\"HealthCheckEnabled\":false}"
+                }).ConfigureAwait(false);
+                AssertNotNull(createdJson, "chat/endpoint/create returns the endpoint");
+                string endpointGuid = ExtractGuid(createdJson!);
+
+                string listJson = await _McpClient.CallAsync<string>("chat/endpoint/all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                AssertTrue(listJson != null && listJson.Contains("mcp-created"), "chat/endpoint/all lists the created endpoint");
+
+                string threadsJson = await _McpClient.CallAsync<string>("chat/thread/all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                AssertNotNull(threadsJson, "chat/thread/all responds");
+
+                bool deleted = await _McpClient.CallAsync<bool>("chat/endpoint/delete", new { tenantGuid = _DefaultTenantGuid, endpointGuid = endpointGuid }).ConfigureAwait(false);
+                AssertTrue(deleted, "chat/endpoint/delete reports success");
+
+                string listAfterDelete = await _McpClient.CallAsync<string>("chat/endpoint/all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                AssertFalse(listAfterDelete != null && listAfterDelete.Contains("mcp-created"), "chat/endpoint/delete removes the endpoint");
             }
             finally
             {
