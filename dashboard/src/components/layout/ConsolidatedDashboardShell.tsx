@@ -30,7 +30,7 @@ const ConsolidatedDashboardShell = ({
     <DashboardLayout
       menuItems={menuItems}
       useGraphsSelector={useGraphsSelector}
-      useTenantSelector={true}
+      useTenantSelector={principal.isSystemAdmin || principal.isBreakGlass}
       isAdmin={principal.isSystemAdmin || principal.isBreakGlass}
     >
       {children}

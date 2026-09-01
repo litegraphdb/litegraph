@@ -243,6 +243,7 @@
             ExecuteQuery("CREATE SCHEMA IF NOT EXISTS " + QuoteIdentifier(Schema) + ";", true);
             ExecuteQuery(SetupQueries.CreateTablesAndIndices(), true);
             EnsureRequestHistoryTransactionDiagnosticsColumn();
+            EnsureUserAdminFlagColumns();
             EnsureBuiltInAuthorizationRoles();
         }
 
@@ -254,6 +255,7 @@
             await ExecuteQueryAsync("CREATE SCHEMA IF NOT EXISTS " + QuoteIdentifier(Schema) + ";", true, token).ConfigureAwait(false);
             await ExecuteQueryAsync(SetupQueries.CreateTablesAndIndices(), true, token).ConfigureAwait(false);
             await EnsureRequestHistoryTransactionDiagnosticsColumnAsync(token).ConfigureAwait(false);
+            await EnsureUserAdminFlagColumnsAsync(token).ConfigureAwait(false);
             await EnsureBuiltInAuthorizationRolesAsync(token).ConfigureAwait(false);
         }
 

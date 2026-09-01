@@ -316,6 +316,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
 
             ExecuteQuery(SetupQueries.CreateTablesAndIndices());
             EnsureCredentialScopeColumns();
+            EnsureUserAdminFlagColumns();
             EnsureGraphVectorIndexConsistencyColumns();
             EnsureBuiltInAuthorizationRoles();
             EnsureRequestHistoryCorrelationColumns();
@@ -1455,6 +1456,20 @@ namespace LiteGraph.GraphRepositories.Sqlite
             if (!ColumnExists(tableInfo, "graphguids"))
             {
                 ExecuteQuery("ALTER TABLE 'creds' ADD COLUMN graphguids TEXT;");
+            }
+        }
+
+        private void EnsureUserAdminFlagColumns()
+        {
+            DataTable tableInfo = ExecuteQuery("PRAGMA table_info('users');");
+            if (!ColumnExists(tableInfo, "issystemadmin"))
+            {
+                ExecuteQuery("ALTER TABLE 'users' ADD COLUMN issystemadmin INT NOT NULL DEFAULT 0;");
+            }
+
+            if (!ColumnExists(tableInfo, "istenantadmin"))
+            {
+                ExecuteQuery("ALTER TABLE 'users' ADD COLUMN istenantadmin INT NOT NULL DEFAULT 0;");
             }
         }
 

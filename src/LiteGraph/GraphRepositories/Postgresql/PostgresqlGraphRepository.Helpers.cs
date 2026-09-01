@@ -161,6 +161,18 @@
             return ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory") + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT;", true, token);
         }
 
+        private void EnsureUserAdminFlagColumns()
+        {
+            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS issystemadmin INT NOT NULL DEFAULT 0;", true);
+            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS istenantadmin INT NOT NULL DEFAULT 0;", true);
+        }
+
+        private async Task EnsureUserAdminFlagColumnsAsync(CancellationToken token)
+        {
+            await ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS issystemadmin INT NOT NULL DEFAULT 0;", true, token).ConfigureAwait(false);
+            await ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS istenantadmin INT NOT NULL DEFAULT 0;", true, token).ConfigureAwait(false);
+        }
+
         private void EnsureBuiltInAuthorizationRoles()
         {
             bool changed = false;
