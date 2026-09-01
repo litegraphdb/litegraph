@@ -4,6 +4,9 @@ __version__ = "8.1.0"
 
 from .base import BaseClient
 from .configuration import configure, get_client
+from .enums.chat_endpoint_type_enum import ChatEndpointType_Enum
+from .enums.chat_feedback_rating_enum import ChatFeedbackRating_Enum
+from .enums.chat_provider_type_enum import ChatProviderType_Enum
 from .enums.enumeration_order_enum import EnumerationOrder_Enum
 from .enums.operator_enum import Opertator_Enum
 from .models.authorization import (
@@ -15,6 +18,18 @@ from .models.authorization import (
     CredentialScopeAssignmentSearchResultModel,
     UserRoleAssignmentModel,
     UserRoleAssignmentSearchResultModel,
+)
+from .models.chat import (
+    ChatCompletionRequestModel,
+    ChatCompletionResultModel,
+    ChatEndpointHealthModel,
+    ChatEndpointHealthSampleModel,
+    ChatEndpointModel,
+    ChatEndpointTestResultModel,
+    ChatFeedbackModel,
+    ChatSettingsModel,
+    ChatThreadModel,
+    ChatTurnModel,
 )
 from .models.edge import EdgeModel
 from .models.expression import ExprModel
@@ -39,6 +54,7 @@ from .models.vector_search_request import VectorSearchRequestModel
 from .models.vector_search_result import VectorSearchResultModel
 from .resources.admin import Admin
 from .resources.authorization import Authorization
+from .resources.chat import Chat
 from .resources.credentials import Credential
 from .resources.edges import Edge
 from .resources.graphs import Graph, GraphModel

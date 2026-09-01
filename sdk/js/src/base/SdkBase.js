@@ -691,6 +691,107 @@ export default class SdkBase {
   }
 
   /**
+   * Submits a POST request and yields parsed server-sent event (SSE) frames as they arrive.
+   * Each frame is a `data: <json>` block terminated by a blank line; the stream ends at `data: [DONE]`.
+   * Frames that cannot be parsed as JSON are skipped with a warning log.
+   * @param {string} url - The URL to post data to.
+   * @param {Object|string} data - The data to send in the POST request body.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @return {AsyncGenerator<Object>} Yields parsed event objects from the SSE stream.
+   * @throws {Error} Throws if the URL is invalid or if the request fails with a non-success status.
+   */
+  // eslint-disable-next-line node/no-unsupported-features/es-syntax -- streaming requires Node 18+ (fetch); guarded at runtime below
+  async *postSse(url, data, cancellationToken) {
+    if (!url) throw new Error('URL cannot be null or empty.');
+    if (typeof fetch !== 'function') {
+      throw new Error('Streaming requires a fetch-capable environment (Node 18+ or a modern browser).');
+    }
+
+    const controller = new AbortController();
+    if (cancellationToken) {
+      cancellationToken.abort = () => {
+        controller.abort();
+        this.log(SeverityEnum.Debug, `Request aborted to ${url}.`);
+      };
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { ...this.defaultHeaders, 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      body: typeof data === 'string' ? data : JSON.stringify(data),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      this.log(SeverityEnum.Warn, `Non-success reported from ${url}: ${response.status}`);
+      let errorResponse = null;
+      try {
+        errorResponse = await response.json();
+      } catch (err) {
+        errorResponse = null;
+      }
+      if (errorResponse && errorResponse.Error) {
+        throw new ApiErrorResponse(errorResponse.Error, errorResponse.Context, errorResponse.Message);
+      }
+      throw new Error(`Request to ${url} failed with status ${response.status}.`);
+    }
+
+    this.log(SeverityEnum.Debug, `Success reported from ${url}: ${response.status}`);
+
+    const reader = response.body.getReader();
+    // eslint-disable-next-line node/no-unsupported-features/node-builtins -- available in all fetch-capable environments
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    const parseFrame = (frame) => {
+      const dataLines = frame
+        .split('\n')
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trim());
+      if (dataLines.length === 0) return { done: false, event: undefined };
+      const payload = dataLines.join('\n');
+      if (payload === '[DONE]') return { done: true, event: undefined };
+      try {
+        return { done: false, event: JSON.parse(payload) };
+      } catch (err) {
+        this.log(SeverityEnum.Warn, `Skipping malformed SSE frame from ${url}: ${payload}`);
+        return { done: false, event: undefined };
+      }
+    };
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        buffer = buffer.replace(/\r\n/g, '\n');
+
+        let separatorIndex;
+        while ((separatorIndex = buffer.indexOf('\n\n')) !== -1) {
+          const frame = buffer.slice(0, separatorIndex);
+          buffer = buffer.slice(separatorIndex + 2);
+          const parsed = parseFrame(frame);
+          if (parsed.done) return;
+          if (parsed.event !== undefined) yield parsed.event;
+        }
+      }
+
+      // Flush any trailing frame without a terminating blank line.
+      const remainder = buffer.trim();
+      if (remainder.length > 0) {
+        const parsed = parseFrame(remainder);
+        if (!parsed.done && parsed.event !== undefined) yield parsed.event;
+      }
+    } finally {
+      try {
+        await reader.cancel();
+      } catch (err) {
+        // Reader may already be closed; ignore.
+      }
+    }
+  }
+
+  /**
    * Sends a DELETE request to remove an object at a given URL.
    * @param {string} url - The URL of the object to delete.
    * @param {Object} obj - The object to be created.

@@ -27,6 +27,14 @@ import {
   UserRoleAssignment,
   UserRoleAssignmentSearchResult,
 } from '../models/AuthorizationModels';
+import ChatEndpoint from '../models/ChatEndpoint';
+import ChatThread from '../models/ChatThread';
+import ChatTurn from '../models/ChatTurn';
+import ChatFeedback from '../models/ChatFeedback';
+import ChatSettings from '../models/ChatSettings';
+import ChatEndpointHealth from '../models/ChatEndpointHealth';
+import ChatEndpointTestResult from '../models/ChatEndpointTestResult';
+import ChatCompletionResult from '../models/ChatCompletionResult';
 
 const buildQueryString = (params = {}) => {
   const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
@@ -2551,6 +2559,422 @@ export default class LiteGraphSdk extends SdkBase {
     }
     const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/graphs/${graphGuid}/edges/${edgeGuid}/vectors`;
     return await this.delete(url, cancellationToken);
+  }
+
+  //end region
+
+  //region Chat Routes
+
+  /**
+   * Create a chat endpoint. Requires tenant administrator privileges.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {Object} endpoint - Information about the chat endpoint.
+   * @param {string} [endpoint.GUID] - Globally unique identifier (automatically generated if not provided).
+   * @param {string} endpoint.Name - Name of the chat endpoint.
+   * @param {string} endpoint.EndpointType - Endpoint type: Embedding or Completion.
+   * @param {string} endpoint.Provider - Provider type: OpenAI, Ollama, Gemini, Anthropic, or VoyageAI.
+   * @param {string} endpoint.Endpoint - Absolute http/https URL of the upstream provider endpoint.
+   * @param {string} [endpoint.ApiKey] - API key for the provider (returned redacted).
+   * @param {string} endpoint.Model - Model name to use with this endpoint.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpoint>} - The created chat endpoint (ApiKey redacted).
+   */
+  async createChatEndpoint(tenantGuid, endpoint, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpoint) {
+      GenericExceptionHandlers.ArgumentNullException('endpoint');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints`;
+    return await this.putCreate(url, endpoint, ChatEndpoint, cancellationToken);
+  }
+
+  /**
+   * Read all chat endpoints, optionally filtered by endpoint type.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} [endpointType] - Optional endpoint type filter: Embedding or Completion.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpoint[]>} - List of chat endpoints (ApiKey redacted).
+   */
+  async readChatEndpoints(tenantGuid, endpointType, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    const query = buildQueryString({ endpointType });
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints${query}`;
+    return await this.getMany(url, ChatEndpoint, cancellationToken);
+  }
+
+  /**
+   * Read a specific chat endpoint.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} endpointGuid - Chat endpoint GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpoint>} - The requested chat endpoint (ApiKey redacted).
+   */
+  async readChatEndpoint(tenantGuid, endpointGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpointGuid) {
+      GenericExceptionHandlers.ArgumentNullException('endpointGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}`;
+    return await this.get(url, ChatEndpoint, cancellationToken);
+  }
+
+  /**
+   * Check if a chat endpoint exists by GUID.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} endpointGuid - Chat endpoint GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<boolean>} - True if the chat endpoint exists.
+   */
+  async chatEndpointExists(tenantGuid, endpointGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpointGuid) {
+      GenericExceptionHandlers.ArgumentNullException('endpointGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}`;
+    return await this.head(url, cancellationToken);
+  }
+
+  /**
+   * Update a chat endpoint. Sending back a redacted ApiKey preserves the stored key.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {Object} endpoint - Chat endpoint payload containing GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpoint>} - The updated chat endpoint (ApiKey redacted).
+   */
+  async updateChatEndpoint(tenantGuid, endpoint, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpoint) {
+      GenericExceptionHandlers.ArgumentNullException('endpoint');
+    }
+    if (!endpoint.GUID) {
+      GenericExceptionHandlers.ArgumentNullException('endpoint.GUID');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpoint.GUID}`;
+    return await this.putUpdate(url, endpoint, ChatEndpoint, cancellationToken);
+  }
+
+  /**
+   * Delete a chat endpoint.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} endpointGuid - Chat endpoint GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<void>}
+   */
+  async deleteChatEndpoint(tenantGuid, endpointGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpointGuid) {
+      GenericExceptionHandlers.ArgumentNullException('endpointGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}`;
+    return await this.delete(url, cancellationToken);
+  }
+
+  /**
+   * Test connectivity of a chat endpoint.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} endpointGuid - Chat endpoint GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpointTestResult>} - Connectivity test result ({ Reachable, Models, ModelExists, Error, RuntimeMs }).
+   */
+  async testChatEndpoint(tenantGuid, endpointGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpointGuid) {
+      GenericExceptionHandlers.ArgumentNullException('endpointGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}/test`;
+    return await this.post(url, null, ChatEndpointTestResult, cancellationToken);
+  }
+
+  /**
+   * Read health status for a specific chat endpoint.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} endpointGuid - Chat endpoint GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpointHealth>} - Health status for the endpoint.
+   */
+  async readChatEndpointHealth(tenantGuid, endpointGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpointGuid) {
+      GenericExceptionHandlers.ArgumentNullException('endpointGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}/health`;
+    return await this.get(url, ChatEndpointHealth, cancellationToken);
+  }
+
+  /**
+   * Read health status for all chat endpoints.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpointHealth[]>} - Health status list.
+   */
+  async readAllChatEndpointHealth(tenantGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/health`;
+    return await this.getMany(url, ChatEndpointHealth, cancellationToken);
+  }
+
+  /**
+   * Create a chat thread. The caller becomes the thread owner; requires a user principal.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {Object} [thread] - Optional thread payload.
+   * @param {string} [thread.GraphGUID] - Optional graph GUID to bind the thread to.
+   * @param {string} [thread.Title] - Optional thread title.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatThread>} - The created chat thread.
+   */
+  async createChatThread(tenantGuid, thread, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/threads`;
+    return await this.putCreate(url, thread || {}, ChatThread, cancellationToken);
+  }
+
+  /**
+   * Read chat threads owned by the caller, or all users' threads when allUsers is true (admin only).
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {boolean} [allUsers=false] - When true, list every user's threads (requires administrator privileges).
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatThread[]>} - List of chat threads.
+   */
+  async readChatThreads(tenantGuid, allUsers = false, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    let url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/threads`;
+    if (allUsers) url += '?all';
+    return await this.getMany(url, ChatThread, cancellationToken);
+  }
+
+  /**
+   * Read a specific chat thread.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} threadGuid - Chat thread GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatThread>} - The requested chat thread.
+   */
+  async readChatThread(tenantGuid, threadGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!threadGuid) {
+      GenericExceptionHandlers.ArgumentNullException('threadGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/threads/${threadGuid}`;
+    return await this.get(url, ChatThread, cancellationToken);
+  }
+
+  /**
+   * Delete a chat thread along with its turns and feedback.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} threadGuid - Chat thread GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<void>}
+   */
+  async deleteChatThread(tenantGuid, threadGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!threadGuid) {
+      GenericExceptionHandlers.ArgumentNullException('threadGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/threads/${threadGuid}`;
+    return await this.delete(url, cancellationToken);
+  }
+
+  /**
+   * Read the turns of a chat thread, ascending by sequence.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} threadGuid - Chat thread GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatTurn[]>} - List of chat turns.
+   */
+  async readChatThreadTurns(tenantGuid, threadGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!threadGuid) {
+      GenericExceptionHandlers.ArgumentNullException('threadGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/threads/${threadGuid}/turns`;
+    return await this.getMany(url, ChatTurn, cancellationToken);
+  }
+
+  /**
+   * Execute a non-streaming chat completion. Requires a user principal.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {Object} request - Chat completion request.
+   * @param {string} [request.ThreadGUID] - Optional thread GUID; a new thread is created when omitted.
+   * @param {string} [request.GraphGUID] - Optional graph GUID for RAG and tool scope.
+   * @param {string} request.Message - The user's message.
+   * @param {string} [request.CompletionEndpointGUID] - Optional completion endpoint GUID (defaults to tenant settings).
+   * @param {string} [request.EmbeddingEndpointGUID] - Optional embedding endpoint GUID (defaults to tenant settings).
+   * @param {number} [request.Temperature] - Optional sampling temperature.
+   * @param {number} [request.MaxOutputTokens] - Optional maximum output tokens.
+   * @param {boolean} [request.EnableTools] - Optional tool use override.
+   * @param {boolean} [request.EnableRag] - Optional RAG override.
+   * @param {number} [request.RagTopK] - Optional RAG top-K override.
+   * @param {string} [request.SystemPrompt] - Optional system prompt override.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatCompletionResult>} - The chat completion result.
+   */
+  async chatCompletion(tenantGuid, request, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!request) {
+      GenericExceptionHandlers.ArgumentNullException('request');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/completions`;
+    const payload = { ...request, Stream: false };
+    return await this.post(url, JSON.stringify(payload), ChatCompletionResult, cancellationToken);
+  }
+
+  /**
+   * Execute a streaming chat completion. Requires a user principal.
+   * Returns an async generator that yields parsed SSE event objects as they arrive. Each event
+   * carries an `event` discriminator: started, delta, thinking, retrieval, tool_call, tool_result,
+   * usage, or error. Iteration completes when the server sends the final `[DONE]` frame.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {Object} request - Chat completion request (see {@link LiteGraphSdk#chatCompletion}).
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {AsyncGenerator<Object>} - Yields parsed streaming event objects.
+   */
+  // eslint-disable-next-line node/no-unsupported-features/es-syntax -- streaming requires Node 18+ (fetch)
+  async *chatCompletionStreaming(tenantGuid, request, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!request) {
+      GenericExceptionHandlers.ArgumentNullException('request');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/completions`;
+    const payload = { ...request, Stream: true };
+    yield* this.postSse(url, payload, cancellationToken);
+  }
+
+  /**
+   * Submit feedback for a chat turn. Requires a user principal.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} turnGuid - Chat turn GUID.
+   * @param {Object} feedback - Feedback payload.
+   * @param {string} feedback.Rating - Rating: ThumbsUp or ThumbsDown.
+   * @param {string} [feedback.FeedbackText] - Optional free-form feedback text.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatFeedback>} - The created feedback.
+   */
+  async submitChatFeedback(tenantGuid, turnGuid, feedback, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!turnGuid) {
+      GenericExceptionHandlers.ArgumentNullException('turnGuid');
+    }
+    if (!feedback) {
+      GenericExceptionHandlers.ArgumentNullException('feedback');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/turns/${turnGuid}/feedback`;
+    return await this.post(url, JSON.stringify(feedback), ChatFeedback, cancellationToken);
+  }
+
+  /**
+   * Read all chat feedback for the tenant. Requires tenant administrator privileges.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatFeedback[]>} - List of feedback records.
+   */
+  async readAllChatFeedback(tenantGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/feedback`;
+    return await this.getMany(url, ChatFeedback, cancellationToken);
+  }
+
+  /**
+   * Read a specific chat feedback record. Requires tenant administrator privileges.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} feedbackGuid - Chat feedback GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatFeedback>} - The requested feedback record.
+   */
+  async readChatFeedback(tenantGuid, feedbackGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!feedbackGuid) {
+      GenericExceptionHandlers.ArgumentNullException('feedbackGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/feedback/${feedbackGuid}`;
+    return await this.get(url, ChatFeedback, cancellationToken);
+  }
+
+  /**
+   * Delete a chat feedback record. Requires tenant administrator privileges.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} feedbackGuid - Chat feedback GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<void>}
+   */
+  async deleteChatFeedback(tenantGuid, feedbackGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!feedbackGuid) {
+      GenericExceptionHandlers.ArgumentNullException('feedbackGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/feedback/${feedbackGuid}`;
+    return await this.delete(url, cancellationToken);
+  }
+
+  /**
+   * Read tenant chat settings. Returns defaults when no settings record exists.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatSettings>} - The tenant chat settings.
+   */
+  async readChatSettings(tenantGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/settings`;
+    return await this.get(url, ChatSettings, cancellationToken);
+  }
+
+  /**
+   * Upsert tenant chat settings. Requires tenant administrator privileges.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {Object} settings - Chat settings payload.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatSettings>} - The updated chat settings.
+   */
+  async updateChatSettings(tenantGuid, settings, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!settings) {
+      GenericExceptionHandlers.ArgumentNullException('settings');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/settings`;
+    return await this.putUpdate(url, settings, ChatSettings, cancellationToken);
   }
 
   //end region

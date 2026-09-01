@@ -13,6 +13,17 @@ import {
   UserRoleAssignment,
   UserRoleAssignmentSearchResult,
 } from './models/AuthorizationModels';
+import ChatEndpoint from './models/ChatEndpoint';
+import ChatThread from './models/ChatThread';
+import ChatTurn from './models/ChatTurn';
+import ChatFeedback from './models/ChatFeedback';
+import ChatSettings from './models/ChatSettings';
+import ChatEndpointHealth from './models/ChatEndpointHealth';
+import ChatEndpointTestResult from './models/ChatEndpointTestResult';
+import ChatCompletionResult from './models/ChatCompletionResult';
+import { ChatEndpointTypeEnum } from './enums/ChatEndpointTypeEnum';
+import { ChatProviderTypeEnum } from './enums/ChatProviderTypeEnum';
+import { ChatFeedbackRatingEnum } from './enums/ChatFeedbackRatingEnum';
 
 export {
   /**
@@ -32,4 +43,15 @@ export {
   CredentialScopeAssignmentSearchResult,
   UserRoleAssignment,
   UserRoleAssignmentSearchResult,
+  ChatEndpoint,
+  ChatThread,
+  ChatTurn,
+  ChatFeedback,
+  ChatSettings,
+  ChatEndpointHealth,
+  ChatEndpointTestResult,
+  ChatCompletionResult,
+  ChatEndpointTypeEnum,
+  ChatProviderTypeEnum,
+  ChatFeedbackRatingEnum,
 };

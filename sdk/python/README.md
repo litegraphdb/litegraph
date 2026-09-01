@@ -262,6 +262,34 @@ Admin.restart_server()
 | Get Node Parents        | GET    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/{node_id}/parents`    | Find parents of a node   |
 | Get Node Children       | GET    | `v1.0/tenants/{tenant_guid}/graphs/{graph_id}/nodes/{node_id}/children`   | Find children of a node  |
 
+### Chat Operations (v8.1)
+
+Chat endpoint CRUD/test/health, feedback administration, and settings updates require administrator privileges. Completions, thread creation, and feedback submission require a user principal (not the break-glass bearer token).
+
+| Operation                | Method | Endpoint                                                                    | Description                                     |
+| ------------------------ | ------ | --------------------------------------------------------------------------- | ----------------------------------------------- |
+| Create Chat Endpoint     | PUT    | `v1.0/tenants/{tenant_guid}/chat/endpoints`                                 | Create an LLM endpoint (ApiKey redacted in responses) |
+| List Chat Endpoints      | GET    | `v1.0/tenants/{tenant_guid}/chat/endpoints[?endpointType=]`                 | List endpoints, optionally by type              |
+| Read Chat Endpoint       | GET    | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}`                          | Read one endpoint                               |
+| Endpoint Exists          | HEAD   | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}`                          | Check whether an endpoint exists                |
+| Update Chat Endpoint     | PUT    | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}`                          | Update (full object; redacted ApiKey preserves the stored key) |
+| Delete Chat Endpoint     | DELETE | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}`                          | Delete an endpoint                              |
+| Test Chat Endpoint       | POST   | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}/test`                     | Connectivity test                               |
+| Endpoint Health (all)    | GET    | `v1.0/tenants/{tenant_guid}/chat/endpoints/health`                          | Health status for every endpoint                |
+| Endpoint Health (one)    | GET    | `v1.0/tenants/{tenant_guid}/chat/endpoints/{guid}/health`                   | Health status for one endpoint                  |
+| Chat Completion          | POST   | `v1.0/tenants/{tenant_guid}/chat/completions`                               | Non-streaming (JSON) or streaming (SSE)         |
+| Create Thread            | PUT    | `v1.0/tenants/{tenant_guid}/chat/threads`                                   | Create a chat thread                            |
+| List Threads             | GET    | `v1.0/tenants/{tenant_guid}/chat/threads[?all]`                             | Own threads, or every user's with `all` (admin) |
+| Read Thread              | GET    | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}`                            | Read a thread                                   |
+| Read Thread Turns        | GET    | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}/turns`                      | Turns ascending by sequence                     |
+| Delete Thread            | DELETE | `v1.0/tenants/{tenant_guid}/chat/threads/{guid}`                            | Delete thread, turns, and feedback              |
+| Submit Feedback          | POST   | `v1.0/tenants/{tenant_guid}/chat/turns/{guid}/feedback`                     | ThumbsUp/ThumbsDown on a turn                   |
+| List Feedback            | GET    | `v1.0/tenants/{tenant_guid}/chat/feedback`                                  | List feedback (admin)                           |
+| Read Feedback            | GET    | `v1.0/tenants/{tenant_guid}/chat/feedback/{guid}`                           | Read one feedback record (admin)                |
+| Delete Feedback          | DELETE | `v1.0/tenants/{tenant_guid}/chat/feedback/{guid}`                           | Delete a feedback record (admin)                |
+| Read Chat Settings       | GET    | `v1.0/tenants/{tenant_guid}/chat/settings`                                  | Tenant chat settings (defaults when unset)      |
+| Update Chat Settings     | PUT    | `v1.0/tenants/{tenant_guid}/chat/settings`                                  | Upsert tenant chat settings (admin)             |
+
 ## Core Components
 
 ### Base Models
@@ -666,6 +694,65 @@ Tenant.delete(tenant_guid="tenant-guid")
 
 # List all tenants
 tenants = Tenant.retrieve_all()
+```
+
+### Chat (v8.1)
+
+```python
+from litegraph_sdk import Chat, ChatEndpointType_Enum, ChatFeedbackRating_Enum, ChatProviderType_Enum
+from litegraph_sdk.configuration import configure
+
+# Configure with a user-linked credential (completions, threads, and
+# feedback submission require a user principal)
+configure(
+    endpoint="https://api.litegraph.com",
+    tenant_guid="tenant-guid",
+    access_key="your-access-key",
+)
+
+# Create a completion endpoint (admin). The ApiKey is redacted in responses;
+# sending the redacted value back on update preserves the stored key.
+endpoint = Chat.create_endpoint(
+    name="openai-completion",
+    endpoint_type=ChatEndpointType_Enum.Completion,
+    provider=ChatProviderType_Enum.OpenAI,
+    endpoint="https://api.openai.com/",
+    api_key="sk-...",
+    model="gpt-4o-mini",
+)
+
+# List endpoints, optionally filtered by type
+endpoints = Chat.read_endpoints(endpoint_type=ChatEndpointType_Enum.Completion)
+
+# Test connectivity and read health
+test_result = Chat.test_endpoint(endpoint.guid)   # reachable, models, model_exists
+health = Chat.read_all_endpoint_health()
+
+# Make chat settings defaults so completions do not need explicit endpoint GUIDs (admin)
+Chat.update_chat_settings(default_completion_endpoint_guid=endpoint.guid)
+
+# Non-streaming completion (a new thread is created when thread_guid is omitted)
+result = Chat.completion("What nodes are in my graph?", graph_guid="graph-guid")
+print(result.message, result.thread_guid, result.turn_guid)
+
+# Streaming completion: yields parsed SSE event dicts until [DONE]
+for event in Chat.completion_streaming("Tell me more", thread_guid=result.thread_guid):
+    if event["event"] == "delta":
+        print(event["content"], end="")
+    elif event["event"] == "usage":
+        print("\n", event["usage"])
+
+# Threads and turns
+threads = Chat.read_threads()               # own threads; all_users=True for admins
+turns = Chat.read_thread_turns(result.thread_guid)
+
+# Feedback
+Chat.submit_feedback(result.turn_guid, ChatFeedbackRating_Enum.ThumbsUp, feedback_text="Helpful!")
+feedback = Chat.read_feedback()             # list (admin); pass a GUID for a single record
+
+# Cleanup
+Chat.delete_thread(result.thread_guid)
+Chat.delete_endpoint(endpoint.guid)
 ```
 
 ## Development

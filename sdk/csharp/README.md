@@ -8,7 +8,11 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v7.0.0.
+Current release: v8.1.0.
+
+## New in v8.1.0
+
+- Added `sdk.Chat` methods covering the LiteGraph chat surface: endpoint management, completions (non-streaming and SSE streaming), threads, turns, feedback, endpoint health, and per-tenant chat settings
 
 ## New in v7.0.0
 
@@ -71,6 +75,75 @@ Console.WriteLine($"{result.Success} {result.State} {result.TransactionId} {resu
 ```
 
 `TransactionResult` includes lifecycle state, validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether the request used an isolated transaction repository or the legacy serialized fallback.
+
+## Chat
+
+The `sdk.Chat` property wraps the LiteGraph chat surface: chat endpoints (upstream completion and embedding providers), completions, threads, feedback, endpoint health, and per-tenant chat settings. Completions, thread creation, and feedback submission require a user principal, so instantiate the SDK with email, password, and tenant GUID (or a user-linked credential) for those calls.
+
+### Endpoint management
+
+```csharp
+ChatEndpoint endpoint = await sdk.Chat.CreateEndpoint(new ChatEndpoint
+{
+    TenantGUID = tenantGuid,
+    Name = "Local Ollama",
+    EndpointType = ChatEndpointTypeEnum.Completion,
+    Provider = ChatProviderTypeEnum.Ollama,
+    Endpoint = "http://127.0.0.1:11434",
+    Model = "gemma3:4b"
+});
+
+List<ChatEndpoint> completionEndpoints = await sdk.Chat.ReadEndpoints(tenantGuid, ChatEndpointTypeEnum.Completion);
+ChatEndpointTestResult test = await sdk.Chat.TestEndpoint(tenantGuid, endpoint.GUID);
+Console.WriteLine($"Reachable: {test.Reachable}, model exists: {test.ModelExists}");
+
+List<ChatEndpointHealth> health = await sdk.Chat.ReadAllEndpointHealth(tenantGuid);
+```
+
+API keys are redacted to their last four characters in every response; sending a redacted value back on update preserves the stored key.
+
+### Non-streaming completion
+
+```csharp
+ChatCompletionResult result = await sdk.Chat.Completion(tenantGuid, new ChatCompletionRequest
+{
+    Message = "What are the most connected nodes in this graph?",
+    GraphGUID = graph.GUID
+});
+
+Console.WriteLine(result.Message);
+Console.WriteLine($"Thread {result.ThreadGUID}, {result.CompletionTokens} tokens, {result.TotalDurationMs}ms");
+```
+
+Omitting `ThreadGUID` creates a new thread bound to `GraphGUID`; pass the returned `ThreadGUID` on the next call to continue the conversation.
+
+### Streaming completion
+
+```csharp
+await foreach (ChatStreamEvent ev in sdk.Chat.CompletionStreaming(tenantGuid, new ChatCompletionRequest
+{
+    Message = "Summarize this graph.",
+    GraphGUID = graph.GUID
+}))
+{
+    if (ev.Event == "delta") Console.Write(ev.Content);
+    else if (ev.Event == "tool_call") Console.WriteLine($"[tool: {ev.Name}]");
+    else if (ev.Event == "usage") Console.WriteLine($"\n{ev.Usage.CompletionTokens} tokens");
+    else if (ev.Event == "error") Console.WriteLine($"error: {ev.Message}");
+}
+```
+
+### Threads, feedback, and settings
+
+```csharp
+List<ChatThread> threads = await sdk.Chat.ReadThreads(tenantGuid);
+List<ChatTurn> turns = await sdk.Chat.ReadThreadTurns(tenantGuid, threads[0].GUID);
+await sdk.Chat.SubmitFeedback(tenantGuid, turns[0].GUID, ChatFeedbackRatingEnum.ThumbsUp, "Great answer");
+
+ChatSettings settings = await sdk.Chat.ReadChatSettings(tenantGuid);
+settings.DefaultCompletionEndpointGUID = endpoint.GUID;
+await sdk.Chat.UpdateChatSettings(settings);
+```
 
 ## Version History
 

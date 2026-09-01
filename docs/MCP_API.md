@@ -132,6 +132,20 @@ Operational and authentication utilities.
 | `batch/existence` | Batch existence check for nodes, edges, and edges-between |
 | `userauthentication/generatetoken`, `userauthentication/gettokendetails`, `userauthentication/gettenantsforemail` | Security token issuance and lookup |
 
+### chat/*
+
+The v8.1 LLM chat surface: upstream endpoint management, completions, threads, feedback, and per-tenant chat settings. See [Chat Tools](#chat-tools) below for arguments and examples.
+
+| Tool | Purpose |
+|------|---------|
+| `chat/endpoint/create`, `chat/endpoint/get`, `chat/endpoint/all`, `chat/endpoint/update`, `chat/endpoint/delete` | Chat endpoint CRUD |
+| `chat/endpoint/test` | Upstream connectivity test |
+| `chat/endpoint/health`, `chat/endpoint/healthall` | Background health-check status |
+| `chat/completions` | Non-streaming chat completion |
+| `chat/thread/all`, `chat/thread/get`, `chat/thread/delete`, `chat/thread/turns` | Thread listing, read, delete, and turn history |
+| `chat/feedback/create`, `chat/feedback/all`, `chat/feedback/delete` | Turn feedback |
+| `chat/settings/get`, `chat/settings/update` | Per-tenant chat settings |
+
 ## JSONL Export And Import Tools
 
 Three graph tools move a graph, or a slice of one, as newline-delimited JSON. They mirror the four REST JSONL endpoints, and the [REST API](REST_API.md) documents the record envelope, the `SubgraphExtractionRequest` fields, the `GraphImportResult` fields, and the GUID strategies in full. The notes below cover the MCP argument shape.
@@ -231,3 +245,189 @@ Reads a JSONL body back into the store and returns a `GraphImportResult` string.
 ```
 
 Under `regenerate`, the `GuidMap` in the result maps each original GUID to the fresh GUID it received, so a caller can correlate the source records with what landed in the new graph. Under `preserve`, a GUID that already exists in the store fails the import, which is why `preserve` fits a restore into an empty database rather than a merge.
+
+## Chat Tools
+
+The chat tools wrap the LiteGraph v8.1 chat REST surface (see the [REST API](REST_API.md)) and follow the same conventions as the rest of the catalog: every tool takes `tenantGuid`, complex bodies travel as a JSON string in a single argument, and results are the REST payload serialized as a JSON string. Server-side authorization applies as it does over REST: endpoint management, feedback listing and deletion, chat settings update, and all-users thread listing require an admin principal, while completions, thread creation, and feedback submission require a user principal — the admin break-glass token is rejected for those with a 400.
+
+### chat/endpoint/create, chat/endpoint/update
+
+Create or update a chat endpoint, the record describing an upstream completion or embedding provider (OpenAI or OpenAI-compatible, Ollama, Gemini, Anthropic for completions, VoyageAI for embeddings). The `endpoint` argument is a `ChatEndpoint` serialized to a JSON string; on update, its `GUID` identifies the endpoint to replace. API keys are redacted to their last four characters in every response, and sending a redacted value back on update preserves the stored key.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `endpoint` | string (JSON) | yes | Serialized `ChatEndpoint`; `Name`, `Endpoint`, and `Model` are required, `EndpointType` is `Embedding` or `Completion` |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "method": "chat/endpoint/create",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "endpoint": "{\"Name\":\"Local Ollama\",\"EndpointType\":\"Completion\",\"Provider\":\"Ollama\",\"Endpoint\":\"http://127.0.0.1:11434\",\"Model\":\"gemma3:4b\"}"
+  }
+}
+```
+
+### chat/endpoint/get, chat/endpoint/all, chat/endpoint/delete
+
+Read one endpoint, list endpoints, or delete an endpoint. Listing accepts an optional type filter.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `endpointGuid` | string (GUID) | get and delete only | Endpoint to read or delete |
+| `endpointType` | string | no (`all` only) | `Embedding` or `Completion`; omit for every type |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "method": "chat/endpoint/all",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "endpointType": "Completion"
+  }
+}
+```
+
+### chat/endpoint/test
+
+Probes the upstream provider from the LiteGraph server and returns a `ChatEndpointTestResult` string: `Reachable`, `Models` (omitted for providers without a model-listing API), `ModelExists`, `Error`, and `RuntimeMs`.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `endpointGuid` | string (GUID) | yes | Endpoint to test |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "method": "chat/endpoint/test",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "endpointGuid": "11111111-1111-1111-1111-111111111111"
+  }
+}
+```
+
+### chat/endpoint/health, chat/endpoint/healthall
+
+Read background health-check status — monitored flag, healthy verdict, consecutive successes and failures, uptime percentage, and the rolling probe history — for one endpoint or for every endpoint in the tenant.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `endpointGuid` | string (GUID) | `health` only | Endpoint to inspect; `healthall` takes only `tenantGuid` |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 23,
+  "method": "chat/endpoint/healthall",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000"
+  }
+}
+```
+
+### chat/completions
+
+Executes a chat completion and returns a `ChatCompletionResult` string: the assistant message plus thread and turn GUIDs, provider, model, token counts, timing, tool call counts, and retrieval counts. This tool is non-streaming only; SSE streaming is unavailable over MCP — use the REST `POST /chat/completions` endpoint with `Stream: true` when incremental delivery is needed. Omitting `threadGuid` creates a new thread, optionally bound to `graphGuid`; pass the returned `ThreadGUID` on the next call to continue the conversation. Endpoint GUIDs default to the tenant chat settings.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `message` | string | yes | User message |
+| `threadGuid` | string (GUID) | no | Existing thread to continue; omit to create a new thread |
+| `graphGuid` | string (GUID) | no | Graph to bind a newly created thread to |
+| `completionEndpointGuid` | string (GUID) | no | Completion endpoint override |
+| `embeddingEndpointGuid` | string (GUID) | no | Embedding endpoint override for retrieval |
+| `enableTools` | boolean | no | Tool advertisement override; defaults to the tenant chat settings |
+| `enableRag` | boolean | no | Retrieval override; defaults to the tenant chat settings |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 24,
+  "method": "chat/completions",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "message": "What are the most connected nodes in this graph?",
+    "graphGuid": "22222222-2222-2222-2222-222222222222",
+    "enableTools": true
+  }
+}
+```
+
+### chat/thread/all, chat/thread/get, chat/thread/delete, chat/thread/turns
+
+Thread management. `chat/thread/all` lists the caller's own threads, or every user's threads when `allUsers` is true (admin only). `chat/thread/turns` returns the thread's turns ascending by sequence as full `ChatTurn` objects, including per-stage metrics, the tool transcript, and telemetry. Deleting a thread also deletes its turns and feedback.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `threadGuid` | string (GUID) | `get`, `delete`, `turns` | Thread to read, delete, or read turns from |
+| `allUsers` | boolean | no (`all` only) | `true` lists every user's threads (admin only, default `false`) |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 25,
+  "method": "chat/thread/turns",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "threadGuid": "33333333-3333-3333-3333-333333333333"
+  }
+}
+```
+
+### chat/feedback/create, chat/feedback/all, chat/feedback/delete
+
+Submit a rating on an assistant turn, list all feedback in the tenant (admin only), or delete a feedback record (admin only).
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `turnGuid` | string (GUID) | `create` only | Turn being rated |
+| `rating` | string | `create` only | `ThumbsUp` or `ThumbsDown` |
+| `feedbackText` | string | no (`create` only) | Free-text comment |
+| `feedbackGuid` | string (GUID) | `delete` only | Feedback record to delete |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 26,
+  "method": "chat/feedback/create",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "turnGuid": "44444444-4444-4444-4444-444444444444",
+    "rating": "ThumbsUp",
+    "feedbackText": "Accurate and well grounded in the graph."
+  }
+}
+```
+
+### chat/settings/get, chat/settings/update
+
+Read or upsert the tenant's chat settings: default completion and embedding endpoints, system prompt, chat/tool/RAG enablement, tool iteration and retrieval limits, context token budget, and history retention. Reads return defaults when no record exists; updates require an admin principal, and default endpoint GUIDs are validated for existence and type. The `settings` argument is a `ChatSettings` serialized to a JSON string.
+
+| Argument | Type | Required | Notes |
+|----------|------|----------|-------|
+| `tenantGuid` | string (GUID) | yes | Owning tenant |
+| `settings` | string (JSON) | `update` only | Serialized `ChatSettings` |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 27,
+  "method": "chat/settings/update",
+  "params": {
+    "tenantGuid": "00000000-0000-0000-0000-000000000000",
+    "settings": "{\"DefaultCompletionEndpointGUID\":\"11111111-1111-1111-1111-111111111111\",\"EnableChat\":true,\"EnableTools\":true,\"EnableRag\":true,\"RagTopK\":8}"
+  }
+}
+```

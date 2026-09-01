@@ -4,6 +4,8 @@
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Runtime.CompilerServices;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Threading;
     using RestWrapper;
@@ -795,6 +797,87 @@
                     if (!resp.IsSuccessStatusCode)
                         Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + (int)resp.StatusCode);
                     return body;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Issue a POST with a raw body and consume the response as a server-sent event stream.
+        /// Yields the data payload of each SSE frame with the leading "data:" prefix removed.
+        /// Enumeration ends when the server emits a "[DONE]" sentinel frame or closes the stream.
+        /// On a non-success status code a warning is logged and no events are yielded.
+        /// </summary>
+        /// <param name="url">URL.</param>
+        /// <param name="bytes">Request body bytes.</param>
+        /// <param name="contentType">Request content type.  Default is application/json.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Async enumerable of SSE data payloads.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        public async IAsyncEnumerable<string> PostServerSentEvents(
+            string url,
+            byte[] bytes,
+            string contentType = "application/json",
+            [EnumeratorCancellation] CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
+            if (bytes == null) bytes = Array.Empty<byte>();
+
+            using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, url))
+            {
+                if (!String.IsNullOrEmpty(BearerToken)) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", BearerToken);
+                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+                req.Content = new ByteArrayContent(bytes);
+                req.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+
+                using (HttpResponseMessage resp = await _StreamingHttpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
+                {
+                    if (!resp.IsSuccessStatusCode)
+                    {
+                        string body = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + (int)resp.StatusCode + (!String.IsNullOrEmpty(body) ? ", " + body : String.Empty));
+                        yield break;
+                    }
+
+                    using (Stream stream = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        StringBuilder dataBuffer = new StringBuilder();
+
+                        while (true)
+                        {
+                            token.ThrowIfCancellationRequested();
+
+                            string line = await reader.ReadLineAsync().ConfigureAwait(false);
+                            if (line == null) break;
+
+                            if (line.Length == 0)
+                            {
+                                if (dataBuffer.Length > 0)
+                                {
+                                    string payload = dataBuffer.ToString();
+                                    dataBuffer.Clear();
+                                    if (payload.Equals("[DONE]", StringComparison.Ordinal)) yield break;
+                                    yield return payload;
+                                }
+
+                                continue;
+                            }
+
+                            if (line.StartsWith("data:", StringComparison.Ordinal))
+                            {
+                                string data = line.Substring(5);
+                                if (data.StartsWith(" ", StringComparison.Ordinal)) data = data.Substring(1);
+                                if (dataBuffer.Length > 0) dataBuffer.Append('\n');
+                                dataBuffer.Append(data);
+                            }
+                        }
+
+                        if (dataBuffer.Length > 0)
+                        {
+                            string payload = dataBuffer.ToString();
+                            if (!payload.Equals("[DONE]", StringComparison.Ordinal)) yield return payload;
+                        }
+                    }
                 }
             }
         }

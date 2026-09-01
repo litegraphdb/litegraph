@@ -25,6 +25,11 @@
         public IBatchMethods Batch { get; }
         
         /// <summary>
+        /// Chat methods.
+        /// </summary>
+        public IChatMethods Chat { get; }
+
+        /// <summary>
         /// Credential methods.
         /// </summary>
         public ICredentialMethods Credential { get; }
@@ -113,6 +118,7 @@
         {
             Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
+            Chat = new ChatMethods(this);
             Credential = new CredentialMethods(this);
             Edge = new EdgeMethods(this);
             Graph = new GraphMethods(this);
@@ -150,6 +156,7 @@
 
             Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
+            Chat = new ChatMethods(this);
             Credential = new CredentialMethods(this);
             Edge = new EdgeMethods(this);
             Graph = new GraphMethods(this);

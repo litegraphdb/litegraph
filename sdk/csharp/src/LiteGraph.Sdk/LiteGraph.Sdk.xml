@@ -139,6 +139,925 @@
             Return only top-level created objects and skip optional response hydration.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ChatCompletionRequest">
+            <summary>
+            Chat completion request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.ThreadGUID">
+            <summary>
+            Thread GUID.  Null creates a new thread.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.GraphGUID">
+            <summary>
+            Graph GUID to bind a newly created thread to.  Ignored when ThreadGUID is supplied.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.Message">
+            <summary>
+            User message.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.Stream">
+            <summary>
+            Stream the response as server-sent events.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.CompletionEndpointGUID">
+            <summary>
+            Completion endpoint GUID override.  Null uses the tenant default.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.EmbeddingEndpointGUID">
+            <summary>
+            Embedding endpoint GUID override.  Null uses the tenant default.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.Temperature">
+            <summary>
+            Sampling temperature override.  Null uses the endpoint default.  Minimum is 0, maximum is 2.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.MaxOutputTokens">
+            <summary>
+            Maximum output tokens override.  Null uses the endpoint default.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.EnableTools">
+            <summary>
+            Tool advertisement override.  Null uses the tenant chat settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.EnableRag">
+            <summary>
+            Retrieval override.  Null uses the tenant chat settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.RagTopK">
+            <summary>
+            Retrieval top-K override.  Null uses the tenant chat settings.  Minimum is 1, maximum is 100.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionRequest.SystemPrompt">
+            <summary>
+            System prompt override.  Null uses the tenant chat settings.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatCompletionRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatCompletionResult">
+            <summary>
+            Chat completion result, returned as the non-streaming response body and inside the streaming usage event.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.ThreadGUID">
+            <summary>
+            Thread GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.TurnGUID">
+            <summary>
+            Turn GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.Message">
+            <summary>
+            Assistant message.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.Reasoning">
+            <summary>
+            Model reasoning text.  Null when the model emitted none.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.Provider">
+            <summary>
+            Provider of the completion endpoint.  Default is OpenAI.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.Model">
+            <summary>
+            Model that generated the response.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.PromptTokens">
+            <summary>
+            Prompt tokens reported by the provider.  Null when unreported.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.CompletionTokens">
+            <summary>
+            Completion tokens reported by the provider.  Null when unreported.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.TimeToFirstTokenMs">
+            <summary>
+            Time to first token in milliseconds.  Null when unknown.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.TimeToLastTokenMs">
+            <summary>
+            Time to last token in milliseconds.  Null when unknown.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.TotalDurationMs">
+            <summary>
+            Total turn duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.TokensPerSecondOverall">
+            <summary>
+            Overall tokens per second.  Null when unknown.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.ToolCallCount">
+            <summary>
+            Number of tool calls executed within the turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.ToolLoopIterations">
+            <summary>
+            Number of tool loop iterations within the turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.RetrievedChunkCount">
+            <summary>
+            Number of retrieved context chunks injected into the prompt.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatCompletionResult.RetryCount">
+            <summary>
+            Retries performed before the response started.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatCompletionResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatEndpoint">
+            <summary>
+            Chat endpoint.  Defines an embedding or completion (inference) endpoint used by the chat feature.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.Name">
+            <summary>
+            Name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.EndpointType">
+            <summary>
+            Endpoint type.  Default is Completion.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.Provider">
+            <summary>
+            Provider type.  Default is OpenAI, which also covers any OpenAI-compatible server.
+            Anthropic is valid only for completion endpoints; VoyageAI is valid only for embedding endpoints.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.Endpoint">
+            <summary>
+            Base URL of the upstream endpoint, for example http://127.0.0.1:11434 or https://api.openai.com.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.ApiKey">
+            <summary>
+            API key.  Null when the upstream requires no authentication.
+            Redacted to its last four characters in API responses; sending a redacted value back on update preserves the stored key.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.Model">
+            <summary>
+            Model name, for example gpt-4o-mini, gemma3:4b, or voyage-3.5.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.MaxOutputTokens">
+            <summary>
+            Maximum output tokens per completion.  Default is 4096.  Minimum is 1, maximum is 10000000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.Temperature">
+            <summary>
+            Sampling temperature.  Default is 0.7.  Minimum is 0, maximum is 2.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.TimeoutMs">
+            <summary>
+            Request timeout in milliseconds.  Default is 120000.  Minimum is 1000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.MaxConcurrentRequests">
+            <summary>
+            Maximum concurrent requests to the upstream endpoint.  Default is 2.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.Active">
+            <summary>
+            Active.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckEnabled">
+            <summary>
+            Enable background health checks.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckUrl">
+            <summary>
+            Health check URL.  When null, the endpoint base URL is probed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckMethod">
+            <summary>
+            Health check HTTP method.  Valid values are GET and HEAD.  Default is GET.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckIntervalMs">
+            <summary>
+            Interval between health checks in milliseconds.  Default is 30000.  Minimum is 1000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckTimeoutMs">
+            <summary>
+            Health check timeout in milliseconds.  Default is 10000.  Minimum is 1000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckExpectedStatusCode">
+            <summary>
+            HTTP status code expected from a healthy endpoint.  Default is 200.  Minimum is 100, maximum is 599.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthyThreshold">
+            <summary>
+            Consecutive successful checks required to transition to healthy.  Default is 2.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.UnhealthyThreshold">
+            <summary>
+            Consecutive failed checks required to transition to unhealthy.  Default is 2.  Minimum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.HealthCheckUseAuth">
+            <summary>
+            Send the endpoint's API key with health check probes.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpoint.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatEndpoint.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatEndpointHealth">
+            <summary>
+            Chat endpoint health status.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.EndpointGUID">
+            <summary>
+            Endpoint GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.Name">
+            <summary>
+            Endpoint name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.EndpointType">
+            <summary>
+            Endpoint type.  Default is Completion.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.Monitored">
+            <summary>
+            Whether the endpoint is being monitored.  False when health checks are disabled or the endpoint is inactive.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.Healthy">
+            <summary>
+            Whether the endpoint is healthy.  Null while monitoring has not yet reached a verdict.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.LastCheckedUtc">
+            <summary>
+            Timestamp of the most recent probe, in UTC.  Null when no probe has run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.LastError">
+            <summary>
+            Most recent probe error.  Null when the last probe succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.ConsecutiveSuccesses">
+            <summary>
+            Consecutive successful probes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.ConsecutiveFailures">
+            <summary>
+            Consecutive failed probes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.UptimePercentage">
+            <summary>
+            Percentage of successful probes over the retained history window.  Null when no probes have run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealth.CheckHistory">
+            <summary>
+            Rolling probe history, oldest first.  Retained for 24 hours.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatEndpointHealth.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatEndpointHealthSample">
+            <summary>
+            One chat endpoint health probe result.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealthSample.TimestampUtc">
+            <summary>
+            Probe timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealthSample.Success">
+            <summary>
+            Whether the probe succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointHealthSample.DurationMs">
+            <summary>
+            Probe duration in milliseconds.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatEndpointHealthSample.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatEndpointTestResult">
+            <summary>
+            Chat endpoint connectivity test result.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointTestResult.Reachable">
+            <summary>
+            Whether the upstream endpoint responded to the connectivity probe.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointTestResult.Models">
+            <summary>
+            Models advertised by the upstream endpoint.  Null when the provider has no model listing endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointTestResult.ModelExists">
+            <summary>
+            Whether the endpoint's configured model appears in the model list.  Null when the provider has no model listing endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointTestResult.Error">
+            <summary>
+            Error message.  Null on success.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointTestResult.RuntimeMs">
+            <summary>
+            Probe runtime in milliseconds.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatEndpointTestResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatEndpointTypeEnum">
+            <summary>
+            Chat endpoint type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatEndpointTypeEnum.Embedding">
+            <summary>
+            Embedding endpoint, used to generate vector embeddings.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatEndpointTypeEnum.Completion">
+            <summary>
+            Completion (inference) endpoint, used to generate chat completions.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatFeedback">
+            <summary>
+            Chat feedback.  A user's rating of a single assistant turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.ThreadGUID">
+            <summary>
+            Thread GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.TurnGUID">
+            <summary>
+            Turn GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.UserGUID">
+            <summary>
+            GUID of the user that submitted the feedback.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.Rating">
+            <summary>
+            Rating.  Default is ThumbsUp.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.FeedbackText">
+            <summary>
+            Free-text feedback.  Null when the user supplied no comment.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatFeedback.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatFeedback.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatFeedbackRatingEnum">
+            <summary>
+            Chat feedback rating.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatFeedbackRatingEnum.ThumbsUp">
+            <summary>
+            Thumbs up.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatFeedbackRatingEnum.ThumbsDown">
+            <summary>
+            Thumbs down.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatProviderTypeEnum">
+            <summary>
+            Chat provider type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatProviderTypeEnum.OpenAI">
+            <summary>
+            OpenAI, or any OpenAI-compatible server (for example vLLM or LM Studio).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatProviderTypeEnum.Ollama">
+            <summary>
+            Ollama.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatProviderTypeEnum.Gemini">
+            <summary>
+            Google Gemini.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatProviderTypeEnum.Anthropic">
+            <summary>
+            Anthropic.  Completion endpoints only; Anthropic has no embeddings API.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ChatProviderTypeEnum.VoyageAI">
+            <summary>
+            VoyageAI.  Embedding endpoints only; VoyageAI has no completions API.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatSettings">
+            <summary>
+            Chat settings.  Per-tenant chat defaults; one record per tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.TenantGUID">
+            <summary>
+            Tenant GUID.  Keys the record; one settings record exists per tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.DefaultCompletionEndpointGUID">
+            <summary>
+            GUID of the default completion endpoint.  Null when no default has been chosen.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.DefaultEmbeddingEndpointGUID">
+            <summary>
+            GUID of the default embedding endpoint.  Null when no default has been chosen.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.SystemPrompt">
+            <summary>
+            Tenant system prompt, merged with the server's fixed preamble.  Null uses the preamble alone.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.EnableChat">
+            <summary>
+            Enable chat for the tenant.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.EnableTools">
+            <summary>
+            Advertise graph tools to the model.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.EnableMutationTools">
+            <summary>
+            Advertise mutation (create/update/delete) tools to the model.  Default is false.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.MaxToolIterations">
+            <summary>
+            Maximum tool loop iterations per turn.  Default is 10.  Minimum is 1.
+            The server-level MaxToolIterationsCap bounds the effective value.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.EnableRag">
+            <summary>
+            Enable automatic vector retrieval when a thread is bound to a graph.  Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.RagTopK">
+            <summary>
+            Number of vector search results retrieved for context.  Default is 8.  Minimum is 1, maximum is 100.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.RagScoreThreshold">
+            <summary>
+            Minimum similarity score for retrieved context.  Default is 0.  Minimum is -1, maximum is 1.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.MaxContextTokens">
+            <summary>
+            Token budget for prior-turn history included in the prompt.  Default is 16384.  Minimum is 1024.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.HistoryRetentionDays">
+            <summary>
+            Days to retain chat turns before pruning.  Default is 90.  Minimum is 0; 0 retains forever.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatSettings.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatSettings.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatStreamEvent">
+            <summary>
+            One event from a streaming chat completion.
+            Exactly which properties are populated depends on the value of Event; unused properties are null.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Event">
+            <summary>
+            Event discriminator.  One of started, delta, thinking, retrieval, tool_call, tool_result, usage, or error.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Content">
+            <summary>
+            Text content.  Populated for delta and thinking events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.ThreadGUID">
+            <summary>
+            Thread GUID.  Populated for started events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.TurnGUID">
+            <summary>
+            Turn GUID.  Populated for started events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Name">
+            <summary>
+            Tool name.  Populated for tool_call and tool_result events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Arguments">
+            <summary>
+            Tool arguments as a JSON string.  Populated for tool_call events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Success">
+            <summary>
+            Whether the tool call succeeded.  Populated for tool_result events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Error">
+            <summary>
+            Error message.  Populated for failed tool_result events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.RuntimeMs">
+            <summary>
+            Tool runtime in milliseconds.  Populated for tool_result events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Iteration">
+            <summary>
+            Tool loop iteration number.  Populated for tool_call events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Chunks">
+            <summary>
+            Retrieved context chunks as a raw JSON array string.  Populated for retrieval events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Usage">
+            <summary>
+            Final usage and timing summary.  Populated for usage events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.Message">
+            <summary>
+            Error message.  Populated for error events.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatStreamEvent.StatusCode">
+            <summary>
+            HTTP status code associated with an error event.  Null when not supplied.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatStreamEvent.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatThread">
+            <summary>
+            Chat thread.  A conversation owned by a user, optionally bound to a graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.UserGUID">
+            <summary>
+            GUID of the user that owns the thread.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.GraphGUID">
+            <summary>
+            GUID of the graph the conversation explores.  Null when the thread is not bound to a graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.Title">
+            <summary>
+            Title.  Generated from the first exchange when not supplied.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatThread.LastUpdateUtc">
+            <summary>
+            Timestamp from last update, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatThread.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ChatTurn">
+            <summary>
+            Chat turn.  One user message and its assistant response within a thread, with per-stage telemetry.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.GUID">
+            <summary>
+            GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.ThreadGUID">
+            <summary>
+            Thread GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.Sequence">
+            <summary>
+            Zero-based position of the turn within its thread.  Minimum is 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.UserMessage">
+            <summary>
+            User message.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.AssistantResponse">
+            <summary>
+            Assistant response.  Partial content is preserved when a turn fails mid-stream.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.Reasoning">
+            <summary>
+            Model reasoning ("thinking") text.  Null when the model emitted none.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.ToolTranscriptJson">
+            <summary>
+            Ordered record of tool calls and results within the turn, serialized as JSON.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TelemetryJson">
+            <summary>
+            Full per-stage timing detail, serialized as JSON.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TraceId">
+            <summary>
+            Trace identifier correlating the turn with distributed traces and request history.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.CompletionEndpointGUID">
+            <summary>
+            GUID of the completion endpoint used.  Null when the turn failed before endpoint resolution.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.EmbeddingEndpointGUID">
+            <summary>
+            GUID of the embedding endpoint used for retrieval.  Null when retrieval did not run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.Provider">
+            <summary>
+            Provider of the completion endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.Model">
+            <summary>
+            Model that generated the response.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.EmbeddingDurationMs">
+            <summary>
+            Time spent generating the query embedding, in milliseconds.  Null when retrieval did not run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.RetrievalDurationMs">
+            <summary>
+            Time spent on vector retrieval, in milliseconds.  Null when retrieval did not run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.RetrievedChunkCount">
+            <summary>
+            Number of retrieved context chunks injected into the prompt.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.ToolLoopIterations">
+            <summary>
+            Number of tool loop iterations (model calls) within the turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.ToolCallCount">
+            <summary>
+            Number of tool calls executed within the turn.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.LimiterWaitMs">
+            <summary>
+            Time spent waiting on the endpoint concurrency limiter, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.InferenceConnectionMs">
+            <summary>
+            Time from request start to response headers on the final inference call, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TimeToFirstTokenMs">
+            <summary>
+            Time to first token on the final inference call, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TimeToLastTokenMs">
+            <summary>
+            Time to last token on the final inference call, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TotalDurationMs">
+            <summary>
+            Total wall-clock duration of the turn, in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.PromptTokens">
+            <summary>
+            Prompt tokens reported by the provider.  Null when the provider reported no usage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.CompletionTokens">
+            <summary>
+            Completion tokens reported by the provider.  Null when the provider reported no usage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TokensPerSecondOverall">
+            <summary>
+            Tokens per second across the whole response, including time to first token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.TokensPerSecondGeneration">
+            <summary>
+            Tokens per second between the first and last token.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.RetryCount">
+            <summary>
+            Number of retries performed before the response started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.Success">
+            <summary>
+            Whether the turn completed successfully.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.HttpStatus">
+            <summary>
+            HTTP status returned by the upstream provider on failure.  Null on success.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.Error">
+            <summary>
+            Error message.  Null on success.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatTurn.CreatedUtc">
+            <summary>
+            Creation timestamp, in UTC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatTurn.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Credential">
             <summary>
             Credentials.
@@ -1188,6 +2107,83 @@
         <member name="M:LiteGraph.Sdk.Implementations.BatchMethods.Existence(System.Guid,System.Guid,LiteGraph.Sdk.ExistenceRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="T:LiteGraph.Sdk.Implementations.ChatMethods">
+            <summary>
+            Chat methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.#ctor(LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Chat methods.
+            </summary>
+            <param name="sdk">LiteGraph SDK.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.CreateEndpoint(LiteGraph.Sdk.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpoints(System.Guid,System.Nullable{LiteGraph.Sdk.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.EndpointExists(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.UpdateEndpoint(LiteGraph.Sdk.ChatEndpoint,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.DeleteEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.TestEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpointHealth(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadAllEndpointHealth(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.CreateThread(LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThreads(System.Guid,System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.DeleteThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThreadTurns(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.Completion(System.Guid,LiteGraph.Sdk.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.CompletionStreaming(System.Guid,LiteGraph.Sdk.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.SubmitFeedback(System.Guid,System.Guid,LiteGraph.Sdk.ChatFeedbackRatingEnum,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadFeedback(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadFeedback(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.DeleteFeedback(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadChatSettings(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.UpdateChatSettings(LiteGraph.Sdk.ChatSettings,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.CredentialMethods">
             <summary>
             Credential methods.
@@ -1903,6 +2899,202 @@
             <param name="req">Existence request.</param>
             <param name="token">Cancellation token.</param>
             <returns>Existence result.</returns>
+        </member>
+        <member name="T:LiteGraph.Sdk.Interfaces.IChatMethods">
+            <summary>
+            Interface for chat methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.CreateEndpoint(LiteGraph.Sdk.ChatEndpoint,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat endpoint.
+            </summary>
+            <param name="endpoint">Chat endpoint.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint with the API key redacted.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpoints(System.Guid,System.Nullable{LiteGraph.Sdk.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
+            <summary>
+            Read chat endpoints, optionally filtered by endpoint type.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointType">Endpoint type filter.  Null returns endpoints of every type.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoints with API keys redacted.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat endpoint by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointGuid">Chat endpoint GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat endpoint with the API key redacted.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.EndpointExists(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Check if a chat endpoint exists by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointGuid">Chat endpoint GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>True if exists.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.UpdateEndpoint(LiteGraph.Sdk.ChatEndpoint,System.Threading.CancellationToken)">
+            <summary>
+            Update a chat endpoint.  Sending back a redacted API key value preserves the stored key.
+            </summary>
+            <param name="endpoint">Chat endpoint.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Updated chat endpoint with the API key redacted.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.DeleteEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat endpoint.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointGuid">Chat endpoint GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.TestEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Test connectivity to a chat endpoint's upstream provider.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointGuid">Chat endpoint GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Connectivity test result.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpointHealth(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read health status for one chat endpoint.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointGuid">Chat endpoint GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Endpoint health.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadAllEndpointHealth(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read health status for every chat endpoint in the tenant.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Endpoint health list.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.CreateThread(LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
+            <summary>
+            Create a chat thread.  The caller becomes the thread owner.
+            </summary>
+            <param name="thread">Chat thread.  GraphGUID and Title are optional.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThreads(System.Guid,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Read chat threads.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="allUsers">True to read every user's threads (admin only).  Default is false, which reads the caller's own threads.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat threads.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat thread by GUID.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Chat thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat thread.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.DeleteThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat thread along with its turns and feedback.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Chat thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThreadTurns(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read the turns of a chat thread, ascending by sequence.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Chat thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.Completion(System.Guid,LiteGraph.Sdk.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Execute a non-streaming chat completion.  The request's Stream property is forced to false.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="request">Completion request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Completion result.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.CompletionStreaming(System.Guid,LiteGraph.Sdk.ChatCompletionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Execute a streaming chat completion.  The request's Stream property is forced to true.
+            Yields one event per server-sent event frame; enumeration ends at the [DONE] sentinel.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="request">Completion request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of stream events.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.SubmitFeedback(System.Guid,System.Guid,LiteGraph.Sdk.ChatFeedbackRatingEnum,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Submit feedback on a chat turn.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="turnGuid">Chat turn GUID.</param>
+            <param name="rating">Rating.</param>
+            <param name="feedbackText">Free-text feedback.  Null when no comment is supplied.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadFeedback(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read all chat feedback in the tenant (admin only).
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback list.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadFeedback(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read a chat feedback record by GUID (admin only).
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="feedbackGuid">Chat feedback GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat feedback.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.DeleteFeedback(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete a chat feedback record (admin only).
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="feedbackGuid">Chat feedback GUID.</param>
+            <param name="token">Cancellation token.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadChatSettings(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read the tenant's chat settings.  Defaults are returned when no record exists.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat settings.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.UpdateChatSettings(LiteGraph.Sdk.ChatSettings,System.Threading.CancellationToken)">
+            <summary>
+            Upsert the tenant's chat settings (admin only).
+            </summary>
+            <param name="settings">Chat settings.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Chat settings.</returns>
         </member>
         <member name="T:LiteGraph.Sdk.Interfaces.ICredentialMethods">
             <summary>
@@ -3620,6 +4812,11 @@
             Batch methods.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdk.Chat">
+            <summary>
+            Chat methods.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.Credential">
             <summary>
             Credential methods.
@@ -4060,6 +5257,20 @@
             <param name="contentType">Request content type.</param>
             <param name="token">Cancellation token.</param>
             <returns>Response body bytes on success; null otherwise.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.PostServerSentEvents(System.String,System.Byte[],System.String,System.Threading.CancellationToken)">
+            <summary>
+            Issue a POST with a raw body and consume the response as a server-sent event stream.
+            Yields the data payload of each SSE frame with the leading "data:" prefix removed.
+            Enumeration ends when the server emits a "[DONE]" sentinel frame or closes the stream.
+            On a non-success status code a warning is logged and no events are yielded.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="bytes">Request body bytes.</param>
+            <param name="contentType">Request content type.  Default is application/json.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of SSE data payloads.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
         </member>
         <member name="T:LiteGraph.Sdk.SearchRequest">

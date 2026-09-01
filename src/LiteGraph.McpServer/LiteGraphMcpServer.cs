@@ -515,6 +515,7 @@
             Registrations.QueryRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.TransactionRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.UserAuthenticationRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.ChatRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
@@ -532,6 +533,7 @@
             Registrations.QueryRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.TransactionRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.UserAuthenticationRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.ChatRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
@@ -549,6 +551,7 @@
             Registrations.QueryRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.TransactionRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.UserAuthenticationRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.ChatRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
         }
 
         private static void ShowHelp()
