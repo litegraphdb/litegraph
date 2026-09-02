@@ -165,6 +165,29 @@ Override the sample Docker PostgreSQL settings with `LITEGRAPH_POSTGRESQL_HOST_P
 
 SQLite remains available for local Docker experiments by changing [`docker/litegraph.json`](docker/litegraph.json) or setting `LITEGRAPH_DB_TYPE=Sqlite` with a SQLite filename. PostgreSQL is the default Compose provider because it is the provider that can scale parallel writes.
 
+### Load Generator
+
+`src/LoadGenerator` seeds a LiteGraph database with realistic synthetic activity — themed graphs with nodes, edges, and vectors, backdated API request history following a diurnal curve with bursts, and chat threads with turn telemetry and feedback — so the dashboard and Grafana render a fully hydrated system. It writes through the core library directly (not REST), so timestamps are spread organically across the chosen window rather than clustered at the current time.
+
+```bash
+# Seed a SQLite database with the defaults (3 graphs, 50 nodes each, 2000 requests, 7 days)
+dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db
+
+# Seed the docker-compose PostgreSQL stack (see docker/compose.yaml)
+dotnet run --project src/LoadGenerator --framework net8.0 -- \
+  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
+
+# Larger dataset with a fixed RNG seed, replacing prior synthetic data
+dotnet run --project src/LoadGenerator --framework net8.0 -- \
+  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph" \
+  --graphs 5 --nodes 200 --density 0.02 --days 14 --requests 10000 --wipe --seed 42
+
+# Remove previously generated synthetic data and exit
+dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db --wipe-only
+```
+
+Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen`, users under the `loadgen.synthetic` email domain, request-history correlation ID `loadgen-synthetic`), so `--wipe`/`--wipe-only` remove only generated data and leave real data untouched. Run with `--help` for the full argument list.
+
 ## Docker Images
 
 The Compose deployment uses these `v7.0.0` images:
@@ -308,44 +331,11 @@ client.InitializeRepository();
 client.Flush();
 ```
 
-## Running The Server Locally
-
-Run the REST server:
-
-```bash
-dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
-```
-
-By default the generated local server configuration listens on `http://localhost:8701` and uses SQLite unless you configure `LiteGraph.Database` or `LITEGRAPH_DB_*` environment variables. The Docker configuration listens on `0.0.0.0:8701` and uses PostgreSQL.
-
-Useful environment variables:
-
-| Variable | Purpose |
-| --- | --- |
-| `LITEGRAPH_DB_TYPE` | `Sqlite` or `Postgresql` |
-| `LITEGRAPH_DB_FILENAME` | SQLite database filename |
-| `LITEGRAPH_DB_CONNECTION_STRING` | Provider connection string |
-| `LITEGRAPH_DB_HOST` | PostgreSQL host |
-| `LITEGRAPH_DB_PORT` | PostgreSQL port |
-| `LITEGRAPH_DB_NAME` | PostgreSQL database |
-| `LITEGRAPH_DB_USERNAME` | PostgreSQL user |
-| `LITEGRAPH_DB_PASSWORD` | PostgreSQL password |
-| `LITEGRAPH_DB_SCHEMA` | PostgreSQL schema |
-| `LITEGRAPH_TRANSACTION_MAX_OPERATIONS` | REST transaction operation cap |
-| `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS` | REST transaction timeout cap |
-
 ## MCP And AI Agents
 
-LiteGraph includes an MCP server so Claude, Claude Code, Cursor, and other MCP-compatible clients can create, query, and manage graphs through AI-agent tool calls.
+LiteGraph includes an MCP server so Claude, Claude Code, Cursor, and other MCP-compatible clients can create, query, and manage graphs through AI-agent tool calls. The MCP server is part of the Docker Compose deployment and starts automatically.
 
-Start LiteGraph REST first, then start MCP:
-
-```bash
-dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
-dotnet run --project src/LiteGraph.McpServer/LiteGraph.McpServer.csproj
-```
-
-Default local MCP listeners:
+Default MCP listeners:
 
 | Transport | Endpoint |
 | --- | --- |
@@ -367,81 +357,6 @@ MCP configuration can be overridden with:
 | `MCP_WS_PORT` | WebSocket port |
 
 See [Using Claude with LiteGraph](docs/CLAUDE_MCP.md) for client setup.
-
-## Dashboard
-
-The dashboard lives in [`dashboard/`](dashboard/) and is included in the Docker Compose deployment. For local dashboard development:
-
-```bash
-cd dashboard
-npm install
-npm run dev
-```
-
-The dashboard includes graph management, node/edge/label/tag/vector screens, authorization management, request history, and an API Explorer with query and transaction examples.
-
-## Build And Test
-
-Build the full .NET solution:
-
-```bash
-dotnet build src/LiteGraph.sln -c Debug
-```
-
-Run the default .NET test wrapper on Windows:
-
-```bat
-test.bat
-```
-
-Run the transaction-concurrency gate:
-
-```bash
-dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
-```
-
-Run the PostgreSQL provider gate by setting a disposable test database connection string:
-
-```powershell
-$env:LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING = "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph;Maximum Pool Size=128;Timeout=15;Command Timeout=60"
-dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
-```
-
-SDK and dashboard tests:
-
-```bash
-cd sdk/js
-npm test -- --runInBand
-
-cd ../python
-python -m pytest
-
-cd ../../dashboard
-npm test -- --runInBand
-```
-
-### Load Generator
-
-`src/LoadGenerator` seeds a LiteGraph database with realistic synthetic activity — themed graphs with nodes, edges, and vectors, backdated API request history following a diurnal curve with bursts, and chat threads with turn telemetry and feedback — so the dashboard and Grafana render a fully hydrated system. It writes through the core library directly (not REST), so timestamps are spread organically across the chosen window rather than clustered at the current time.
-
-```bash
-# Seed a SQLite database with the defaults (3 graphs, 50 nodes each, 2000 requests, 7 days)
-dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db
-
-# Seed the docker-compose PostgreSQL stack (see docker/compose.yaml)
-dotnet run --project src/LoadGenerator --framework net8.0 -- \
-  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
-
-# Larger dataset with a fixed RNG seed, replacing prior synthetic data
-dotnet run --project src/LoadGenerator --framework net8.0 -- \
-  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph" \
-  --graphs 5 --nodes 200 --density 0.02 --days 14 --requests 10000 --wipe --seed 42
-
-# Remove previously generated synthetic data and exit
-dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db --wipe-only
-```
-
-Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen`, users under the `loadgen.synthetic` email domain, request-history correlation ID `loadgen-synthetic`), so `--wipe`/`--wipe-only` remove only generated data and leave real data untouched. Run with `--help` for the full argument list.
 
 ## Version History
 
