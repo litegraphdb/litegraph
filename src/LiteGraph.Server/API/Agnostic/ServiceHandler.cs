@@ -124,7 +124,7 @@
                 return ret;
             }).ConfigureAwait(false);
 
-            return new ResponseContext(req, files);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(files, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> BackupEnumerate(RequestContext req, CancellationToken token = default)
@@ -283,24 +283,20 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<TenantMetadata> objs = new List<TenantMetadata>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (TenantMetadata tenant in _LiteGraph.Tenant.ReadMany(req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(tenant);
-                }
-            }
-            else
-            {
-                await foreach (TenantMetadata tenant in _LiteGraph.Tenant.ReadByGuids(req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(tenant);
-                }
+                EnumerationResult<TenantMetadata> er = await _LiteGraph.Tenant.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<TenantMetadata> objs = new List<TenantMetadata>();
+
+            await foreach (TenantMetadata tenant in _LiteGraph.Tenant.ReadByGuids(req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(tenant);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> TenantEnumerate(RequestContext req, CancellationToken token = default)
@@ -377,24 +373,20 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<UserMaster> objs = new List<UserMaster>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (UserMaster user in _LiteGraph.User.ReadMany(req.TenantGUID.Value, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(user);
-                }
-            }
-            else
-            {
-                await foreach (UserMaster user in _LiteGraph.User.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(user);
-                }
+                EnumerationResult<UserMaster> er = await _LiteGraph.User.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<UserMaster> objs = new List<UserMaster>();
+
+            await foreach (UserMaster user in _LiteGraph.User.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(user);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> UserEnumerate(RequestContext req, CancellationToken token = default)
@@ -446,7 +438,7 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             List<TenantMetadata> tenants = await _LiteGraph.User.ReadTenantsByEmail(req.Authentication.Email, token).ConfigureAwait(false);
-            if (tenants != null && tenants.Count > 0) return new ResponseContext(req, tenants);
+            if (tenants != null && tenants.Count > 0) return new ResponseContext(req, EnumerationResultBuilder.FromList(tenants, req.Skip, req.MaxKeys));
             else return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
         }
 
@@ -477,24 +469,20 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!CanManageAccounts(req)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<Credential> objs = new List<Credential>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (Credential credential in _LiteGraph.Credential.ReadMany(req.TenantGUID.Value, null, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(credential);
-                }
-            }
-            else
-            {
-                await foreach (Credential credential in _LiteGraph.Credential.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(credential);
-                }
+                EnumerationResult<Credential> er = await _LiteGraph.Credential.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<Credential> objs = new List<Credential>();
+
+            await foreach (Credential credential in _LiteGraph.Credential.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(credential);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> CredentialEnumerate(RequestContext req, CancellationToken token = default)
@@ -605,35 +593,20 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<LabelMetadata> objs = null;
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                objs = new List<LabelMetadata>();
-                await foreach (LabelMetadata label in _LiteGraph.Label.ReadMany(
-                    req.TenantGUID.Value,
-                    req.GraphGUID,
-                    req.NodeGUID,
-                    req.EdgeGUID,
-                    null,
-                    req.Order,
-                    req.Skip,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(label);
-                }
-            }
-            else
-            {
-                objs = new List<LabelMetadata>();
-                await foreach (LabelMetadata label in _LiteGraph.Label.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(label);
-                }
+                EnumerationResult<LabelMetadata> er = await _LiteGraph.Label.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            if (objs == null) objs = new List<LabelMetadata>();
-            return new ResponseContext(req, objs);
+            List<LabelMetadata> objs = new List<LabelMetadata>();
+
+            await foreach (LabelMetadata label in _LiteGraph.Label.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(label);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> LabelRead(RequestContext req, CancellationToken token = default)
@@ -678,16 +651,8 @@
         internal async Task<ResponseContext> LabelReadAllInTenant(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<LabelMetadata> objs = new List<LabelMetadata>();
-            await foreach (LabelMetadata label in _LiteGraph.Label.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(label);
-            }
-            return new ResponseContext(req, objs);
+            EnumerationResult<LabelMetadata> er = await _LiteGraph.Label.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> LabelReadAllInGraph(RequestContext req, CancellationToken token = default)
@@ -699,12 +664,12 @@
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 objs.Add(label);
             }
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> LabelReadManyGraph(RequestContext req, CancellationToken token = default)
@@ -716,12 +681,12 @@
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 objs.Add(label);
             }
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> LabelReadManyNode(RequestContext req, CancellationToken token = default)
@@ -734,12 +699,12 @@
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 objs.Add(label);
             }
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> LabelReadManyEdge(RequestContext req, CancellationToken token = default)
@@ -752,12 +717,12 @@
                 req.GraphGUID.Value,
                 req.EdgeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 objs.Add(label);
             }
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> LabelDeleteAllInTenant(RequestContext req, CancellationToken token = default)
@@ -836,24 +801,20 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<TagMetadata> objs = new List<TagMetadata>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (TagMetadata tag in _LiteGraph.Tag.ReadMany(req.TenantGUID.Value, null, null, null, null, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(tag);
-                }
-            }
-            else
-            {
-                await foreach (TagMetadata tag in _LiteGraph.Tag.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(tag);
-                }
+                EnumerationResult<TagMetadata> er = await _LiteGraph.Tag.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<TagMetadata> objs = new List<TagMetadata>();
+
+            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(tag);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> TagRead(RequestContext req, CancellationToken token = default)
@@ -899,18 +860,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<TagMetadata> objs = new List<TagMetadata>();
-
-            await foreach (TagMetadata tag in _LiteGraph.Tag.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                token).ConfigureAwait(false))
-            {
-                objs.Add(tag);
-            }
-
-            return new ResponseContext(req, objs);
+            EnumerationResult<TagMetadata> er = await _LiteGraph.Tag.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> TagReadAllInGraph(RequestContext req, CancellationToken token = default)
@@ -923,13 +874,13 @@
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(tag);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> TagReadManyGraph(RequestContext req, CancellationToken token = default)
@@ -942,13 +893,13 @@
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(tag);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> TagReadManyNode(RequestContext req, CancellationToken token = default)
@@ -962,13 +913,13 @@
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(tag);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> TagReadManyEdge(RequestContext req, CancellationToken token = default)
@@ -982,13 +933,13 @@
                 req.GraphGUID.Value,
                 req.EdgeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(tag);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> TagDeleteAllInTenant(RequestContext req, CancellationToken token = default)
@@ -1062,24 +1013,20 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<VectorMetadata> objs = new List<VectorMetadata>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadMany(req.TenantGUID.Value, null, null, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(vector);
-                }
-            }
-            else
-            {
-                await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(vector);
-                }
+                EnumerationResult<VectorMetadata> er = await _LiteGraph.Vector.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<VectorMetadata> objs = new List<VectorMetadata>();
+
+            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadByGuids(req.TenantGUID.Value, req.GUIDs, token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(vector);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> VectorRead(RequestContext req, CancellationToken token = default)
@@ -1131,25 +1078,15 @@
             {
                 results.Add(result);
             }
-            return new ResponseContext(req, results);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(results, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> VectorReadAllInTenant(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<VectorMetadata> objs = new List<VectorMetadata>();
-
-            await foreach (VectorMetadata vector in _LiteGraph.Vector.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                token).ConfigureAwait(false))
-            {
-                objs.Add(vector);
-            }
-
-            return new ResponseContext(req, objs);
+            EnumerationResult<VectorMetadata> er = await _LiteGraph.Vector.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> VectorReadAllInGraph(RequestContext req, CancellationToken token = default)
@@ -1162,13 +1099,13 @@
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(vector);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> VectorReadManyGraph(RequestContext req, CancellationToken token = default)
@@ -1181,13 +1118,13 @@
                 req.TenantGUID.Value,
                 req.GraphGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(vector);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> VectorReadManyNode(RequestContext req, CancellationToken token = default)
@@ -1201,13 +1138,13 @@
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(vector);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> VectorReadManyEdge(RequestContext req, CancellationToken token = default)
@@ -1221,13 +1158,13 @@
                 req.GraphGUID.Value,
                 req.EdgeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).ConfigureAwait(false))
             {
                 objs.Add(vector);
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> VectorDeleteAllInTenant(RequestContext req, CancellationToken token = default)
@@ -1283,39 +1220,25 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<Graph> objs = new List<Graph>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (Graph graph in _LiteGraph.Graph.ReadMany(
-                    req.TenantGUID.Value,
-                    null,
-                    null,
-                    null,
-                    null,
-                    req.Order,
-                    req.Skip,
-                    req.IncludeData,
-                    req.IncludeSubordinates,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(graph);
-                }
-            }
-            else
-            {
-                await foreach (Graph graph in _LiteGraph.Graph.ReadByGuids(
-                    req.TenantGUID.Value,
-                    req.GUIDs,
-                    req.IncludeData,
-                    req.IncludeSubordinates,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(graph);
-                }
+                EnumerationResult<Graph> er = await _LiteGraph.Graph.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<Graph> objs = new List<Graph>();
+
+            await foreach (Graph graph in _LiteGraph.Graph.ReadByGuids(
+                req.TenantGUID.Value,
+                req.GUIDs,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(graph);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> GraphEnumerate(RequestContext req, CancellationToken token = default)
@@ -1509,20 +1432,8 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<Graph> objs = new List<Graph>();
-
-            await foreach (Graph graph in _LiteGraph.Graph.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                req.IncludeData,
-                req.IncludeSubordinates,
-                token).ConfigureAwait(false))
-            {
-                objs.Add(graph);
-            }
-
-            return new ResponseContext(req, objs);
+            EnumerationResult<Graph> er = await _LiteGraph.Graph.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> GraphDeleteAllInTenant(RequestContext req, CancellationToken token = default)
@@ -1570,40 +1481,25 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<Node> objs = new List<Node>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (Node node in _LiteGraph.Node.ReadMany(
-                    req.TenantGUID.Value,
-                    req.GraphGUID.Value,
-                    null,
-                    null,
-                    null,
-                    null,
-                    req.Order,
-                    req.Skip,
-                    req.IncludeData,
-                    req.IncludeSubordinates,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(node);
-                }
-            }
-            else
-            {
-                await foreach (Node node in _LiteGraph.Node.ReadByGuids(
-                    req.TenantGUID.Value,
-                    req.GUIDs,
-                    req.IncludeData,
-                    req.IncludeSubordinates,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(node);
-                }
+                EnumerationResult<Node> er = await _LiteGraph.Node.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<Node> objs = new List<Node>();
+
+            await foreach (Node node in _LiteGraph.Node.ReadByGuids(
+                req.TenantGUID.Value,
+                req.GUIDs,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(node);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> NodeEnumerate(RequestContext req, CancellationToken token = default)
@@ -1728,37 +1624,16 @@
         internal async Task<ResponseContext> NodeReadAllInTenant(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Node> objs = new List<Node>();
-            await foreach (Node node in _LiteGraph.Node.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                req.IncludeData,
-                req.IncludeSubordinates,
-                token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(node);
-            }
-            return new ResponseContext(req, objs);
+            EnumerationResult<Node> er = await _LiteGraph.Node.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> NodeReadAllInGraph(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Node> objs = new List<Node>();
-            await foreach (Node node in _LiteGraph.Node.ReadAllInGraph(
-                req.TenantGUID.Value,
-                req.GraphGUID.Value,
-                req.Order,
-                req.Skip,
-                req.IncludeData,
-                req.IncludeSubordinates,
-                token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(node);
-            }
-            return new ResponseContext(req, objs);
+            EnumerationResult<Node> er = await _LiteGraph.Node.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> NodeReadMostConnected(RequestContext req, CancellationToken token = default)
@@ -1772,14 +1647,14 @@
                 null,
                 null,
                 null,
-                req.Skip,
+                0,
                 req.IncludeData,
                 req.IncludeSubordinates,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 objs.Add(node);
             }
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> NodeReadLeastConnected(RequestContext req, CancellationToken token = default)
@@ -1793,14 +1668,14 @@
                 null,
                 null,
                 null,
-                req.Skip,
+                0,
                 req.IncludeData,
                 req.IncludeSubordinates,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 objs.Add(node);
             }
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> NodeDeleteAllInTenant(RequestContext req, CancellationToken token = default)
@@ -1852,40 +1727,25 @@
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
 
-            List<Edge> objs = new List<Edge>();
-
             if (req.GUIDs == null || req.GUIDs.Count < 1)
             {
-                await foreach (Edge edge in _LiteGraph.Edge.ReadMany(
-                    req.TenantGUID.Value,
-                    req.GraphGUID.Value,
-                    null,
-                    null,
-                    null,
-                    null,
-                    req.Order,
-                    req.Skip,
-                    req.IncludeData,
-                    req.IncludeSubordinates,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(edge);
-                }
-            }
-            else
-            {
-                await foreach (Edge edge in _LiteGraph.Edge.ReadByGuids(
-                    req.TenantGUID.Value,
-                    req.GUIDs,
-                    req.IncludeData,
-                    req.IncludeSubordinates,
-                    token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    objs.Add(edge);
-                }
+                EnumerationResult<Edge> er = await _LiteGraph.Edge.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+                return new ResponseContext(req, er);
             }
 
-            return new ResponseContext(req, objs);
+            List<Edge> objs = new List<Edge>();
+
+            await foreach (Edge edge in _LiteGraph.Edge.ReadByGuids(
+                req.TenantGUID.Value,
+                req.GUIDs,
+                req.IncludeData,
+                req.IncludeSubordinates,
+                token).WithCancellation(token).ConfigureAwait(false))
+            {
+                objs.Add(edge);
+            }
+
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, 0, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> EdgeEnumerate(RequestContext req, CancellationToken token = default)
@@ -1911,14 +1771,14 @@
                 null,
                 null,
                 req.Order,
-                req.Skip,
+                0,
                 false,
                 false,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 req.Edges.Add(edge);
             }
-            return new ResponseContext(req, req.Edges);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(req.Edges, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> EdgeSearch(RequestContext req, CancellationToken token = default)
@@ -2030,37 +1890,16 @@
         internal async Task<ResponseContext> EdgeReadAllInTenant(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            List<Edge> objs = new List<Edge>();
-            await foreach (Edge edge in _LiteGraph.Edge.ReadAllInTenant(
-                req.TenantGUID.Value,
-                req.Order,
-                req.Skip,
-                req.IncludeData,
-                req.IncludeSubordinates,
-                token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(edge);
-            }
-            return new ResponseContext(req, objs);
+            EnumerationResult<Edge> er = await _LiteGraph.Edge.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> EdgeReadAllInGraph(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await _LiteGraph.Graph.ExistsByGuid(req.TenantGUID.Value, req.GraphGUID.Value, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.NotFound);
-            List<Edge> objs = new List<Edge>();
-            await foreach (Edge edge in _LiteGraph.Edge.ReadAllInGraph(
-                req.TenantGUID.Value,
-                req.GraphGUID.Value,
-                req.Order,
-                req.Skip,
-                req.IncludeData,
-                req.IncludeSubordinates,
-                token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(edge);
-            }
-            return new ResponseContext(req, objs);
+            EnumerationResult<Edge> er = await _LiteGraph.Edge.Enumerate(EnumerationQueryFromRequest(req), token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> EdgeDeleteAllInTenant(RequestContext req, CancellationToken token = default)
@@ -2103,14 +1942,14 @@
                 null,
                 null,
                 req.Order,
-                req.Skip,
+                0,
                 req.IncludeData,
                 req.IncludeSubordinates,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 edgesFrom.Add(edge);
             }
-            return new ResponseContext(req, edgesFrom);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(edgesFrom, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> EdgesToNode(RequestContext req, CancellationToken token = default)
@@ -2125,14 +1964,14 @@
                 null,
                 null,
                 req.Order,
-                req.Skip,
+                0,
                 req.IncludeData,
                 req.IncludeSubordinates,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 edgesTo.Add(edge);
             }
-            return new ResponseContext(req, edgesTo);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(edgesTo, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> AllEdgesToNode(RequestContext req, CancellationToken token = default)
@@ -2148,14 +1987,14 @@
                 search?.Tags,
                 search?.Expr,
                 search?.Ordering ?? req.Order,
-                search?.Skip ?? req.Skip,
+                0,
                 search != null ? search.IncludeData || req.IncludeData : req.IncludeData,
                 search != null ? search.IncludeSubordinates || req.IncludeSubordinates : req.IncludeSubordinates,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 allEdges.Add(edge);
             }
-            return new ResponseContext(req, allEdges);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(allEdges, search?.Skip ?? req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> NodeChildren(RequestContext req, CancellationToken token = default)
@@ -2170,7 +2009,7 @@
             {
                 nodes.Add(node);
             }
-            return new ResponseContext(req, nodes);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(nodes, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> NodeParents(RequestContext req, CancellationToken token = default)
@@ -2185,7 +2024,7 @@
             {
                 parents.Add(node);
             }
-            return new ResponseContext(req, parents);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(parents, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> NodeNeighbors(RequestContext req, CancellationToken token = default)
@@ -2197,12 +2036,12 @@
                 req.GraphGUID.Value,
                 req.NodeGUID.Value,
                 req.Order,
-                req.Skip,
+                0,
                 token).WithCancellation(token).ConfigureAwait(false))
             {
                 neighbors.Add(node);
             }
-            return new ResponseContext(req, neighbors);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(neighbors, req.Skip, req.MaxKeys));
         }
 
         internal async Task<ResponseContext> GetRoutes(RequestContext req, CancellationToken token = default)
@@ -2239,6 +2078,22 @@
         #endregion
 
         #region Private-Methods
+
+        private static EnumerationRequest EnumerationQueryFromRequest(RequestContext req)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            return new EnumerationRequest
+            {
+                TenantGUID = req.TenantGUID,
+                GraphGUID = req.GraphGUID,
+                MaxResults = req.MaxKeys,
+                Skip = req.Skip,
+                Ordering = req.Order,
+                IncludeData = req.IncludeData,
+                IncludeSubordinates = req.IncludeSubordinates,
+                ContinuationToken = (!String.IsNullOrEmpty(req.ContinuationToken) ? Guid.Parse(req.ContinuationToken) : null)
+            };
+        }
 
         private static ResponseContext InvalidBulkCreateReturnModeResponse(RequestContext req)
         {

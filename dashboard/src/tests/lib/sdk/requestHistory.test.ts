@@ -7,11 +7,13 @@ import {
 import { setEndpoint } from '@/lib/sdk/litegraph.service';
 
 const mockSearchResult = {
+  Success: true,
+  Timestamp: { Start: '2026-01-01T00:00:00Z', End: '2026-01-01T00:00:00Z', TotalMs: 1, Messages: {} },
+  MaxResults: 25,
+  EndOfResults: true,
+  TotalRecords: 0,
+  RecordsRemaining: 0,
   Objects: [],
-  TotalCount: 0,
-  Page: 0,
-  PageSize: 25,
-  TotalPages: 0,
 };
 
 describe('requestHistory sdk', () => {
@@ -38,8 +40,8 @@ describe('requestHistory sdk', () => {
 
     const [url] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toContain('/v1.0/requesthistory');
-    expect(url).toContain('page=0');
-    expect(url).toContain('pageSize=25');
+    expect(url).toContain('max-keys=25');
+    expect(url).not.toContain('skip=');
     expect(url).toContain('success=false');
     expect(url).toContain('tenantGuid=tenant-1');
     expect(url).toContain('hasTransactionDiagnostics=true');
@@ -54,7 +56,7 @@ describe('requestHistory sdk', () => {
 
     const [url] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toContain('/v1.0/requesthistory');
-    expect(url).toContain('pageSize=10');
+    expect(url).toContain('max-keys=10');
     expect(url).toContain('path=%2Fv1.0%2Ftenants');
     expect(url).toContain('success=false');
   });

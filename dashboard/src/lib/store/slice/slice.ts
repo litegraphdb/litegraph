@@ -103,6 +103,23 @@ import {
   updateChatThread,
 } from '@/lib/sdk/chat';
 
+/**
+ * Every list-returning GET route on the server now responds with the
+ * EnumerationResult envelope ({ Success, Timestamp, MaxResults, ContinuationToken,
+ * EndOfResults, TotalRecords, RecordsRemaining, Objects }). The bundled litegraphdb
+ * npm SDK predates that change: its readAll/readMany-style methods still declare
+ * bare-array return types but pass the parsed JSON through untouched, so at runtime
+ * they yield the envelope. This helper re-types those calls to the envelope shape.
+ */
+const asEnvelope = <T>(promise: Promise<unknown>): Promise<EnumerateResponse<T>> =>
+  promise as Promise<EnumerateResponse<T>>;
+
+/**
+ * Explicit page-size request for "load all" reads used to populate tables and
+ * dropdowns. The server caps max-keys at 1000 (also its default).
+ */
+const READ_ALL_REQUEST: EnumerateRequest = { maxKeys: 1000 };
+
 const enhancedSdk = sdkSlice.enhanceEndpoints({
   addTagTypes: [
     SliceTags.GRAPH,
@@ -138,9 +155,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.GRAPH],
     }),
     //get all
-    getAllGraphs: build.query<Graph[], void>({
+    getAllGraphs: build.query<EnumerateResponse<Graph>, void>({
       query: () => ({
-        callback: () => sdk.Graph.readAll(),
+        callback: () => asEnvelope<Graph>(sdk.Graph.readAll(READ_ALL_REQUEST)),
       }),
       providesTags: [SliceTags.GRAPH],
     }),
@@ -235,15 +252,15 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.NODE, SliceTags.RESET],
     }),
     //get all nodes
-    getAllNodes: build.query<Node[], { graphId: string }>({
+    getAllNodes: build.query<EnumerateResponse<Node>, { graphId: string }>({
       query: ({ graphId }: { graphId: string }) => ({
-        callback: () => sdk.Node.readAll(graphId),
+        callback: () => asEnvelope<Node>(sdk.Node.readAll(graphId, READ_ALL_REQUEST)),
       }),
       providesTags: [SliceTags.NODE],
     }),
-    getManyNodes: build.query<Node[], { graphId: string; nodeIds: string[] }>({
+    getManyNodes: build.query<EnumerateResponse<Node>, { graphId: string; nodeIds: string[] }>({
       query: ({ graphId, nodeIds }: { graphId: string; nodeIds: string[] }) => ({
-        callback: () => sdk.Node.readMany(graphId, nodeIds),
+        callback: () => asEnvelope<Node>(sdk.Node.readMany(graphId, nodeIds)),
       }),
       providesTags: [SliceTags.NODE],
     }),
@@ -299,18 +316,15 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.EDGE, SliceTags.RESET],
     }),
     //get all edges
-    getAllEdges: build.query<Edge[], { graphId: string }>({
+    getAllEdges: build.query<EnumerateResponse<Edge>, { graphId: string }>({
       query: ({ graphId }: { graphId: string }) => ({
-        callback: () => sdk.Edge.readAll(graphId),
+        callback: () => asEnvelope<Edge>(sdk.Edge.readAll(graphId, READ_ALL_REQUEST)),
       }),
       providesTags: [SliceTags.EDGE],
-      transformResponse: (response: any) => {
-        return typeof response === 'object' ? response : [];
-      },
     }),
-    getManyEdges: build.query<Edge[], { graphId: string; edgeIds: string[] }>({
+    getManyEdges: build.query<EnumerateResponse<Edge>, { graphId: string; edgeIds: string[] }>({
       query: ({ graphId, edgeIds }: { graphId: string; edgeIds: string[] }) => ({
-        callback: () => sdk.Edge.readMany(graphId, edgeIds),
+        callback: () => asEnvelope<Edge>(sdk.Edge.readMany(graphId, edgeIds)),
       }),
       providesTags: [SliceTags.EDGE],
     }),
@@ -365,9 +379,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.TAG],
     }),
     //get all tags
-    getAllTags: build.query<TagMetaData[], void>({
+    getAllTags: build.query<EnumerateResponse<TagMetaData>, void>({
       query: () => ({
-        callback: () => sdk.Tag.readAll(),
+        callback: () => asEnvelope<TagMetaData>(sdk.Tag.readAll()),
       }),
       providesTags: [SliceTags.TAG],
     }),
@@ -412,9 +426,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.LABEL],
     }),
     //get all labels
-    getAllLabels: build.query<LabelMetadata[], void>({
+    getAllLabels: build.query<EnumerateResponse<LabelMetadata>, void>({
       query: () => ({
-        callback: () => sdk.Label.readAll(),
+        callback: () => asEnvelope<LabelMetadata>(sdk.Label.readAll()),
       }),
       providesTags: [SliceTags.LABEL],
     }),
@@ -459,9 +473,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.VECTOR],
     }),
     //get all vectors
-    getAllVectors: build.query<VectorMetadata[], void>({
+    getAllVectors: build.query<EnumerateResponse<VectorMetadata>, void>({
       query: () => ({
-        callback: () => sdk.Vector.readAll(),
+        callback: () => asEnvelope<VectorMetadata>(sdk.Vector.readAll()),
       }),
       providesTags: [SliceTags.VECTOR],
     }),
@@ -503,9 +517,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.CREDENTIAL],
     }),
     //get all credentials
-    getAllCredentials: build.query<CredentialMetadata[], void>({
+    getAllCredentials: build.query<EnumerateResponse<CredentialMetadata>, void>({
       query: () => ({
-        callback: () => sdk.Credential.readAll(),
+        callback: () => asEnvelope<CredentialMetadata>(sdk.Credential.readAll()),
       }),
       providesTags: [SliceTags.CREDENTIAL],
     }),
@@ -547,9 +561,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.TENANT],
     }),
     //get all tenants
-    getAllTenants: build.query<TenantMetaData[], void>({
+    getAllTenants: build.query<EnumerateResponse<TenantMetaData>, void>({
       query: () => ({
-        callback: () => sdk.Tenant.readAll(),
+        callback: () => asEnvelope<TenantMetaData>(sdk.Tenant.readAll()),
       }),
       providesTags: [SliceTags.TENANT],
     }),
@@ -591,9 +605,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
       providesTags: [SliceTags.USER],
     }),
     //get all users
-    getAllUsers: build.query<UserMetadata[], void>({
+    getAllUsers: build.query<EnumerateResponse<UserMetadata>, void>({
       query: () => ({
-        callback: () => sdk.User.readAll(),
+        callback: () => asEnvelope<UserMetadata>(sdk.User.readAll()),
       }),
       providesTags: [SliceTags.USER],
     }),
@@ -627,9 +641,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
     //endregion
     //region Backup
     //read all backups
-    readAllBackups: build.query<BackupMetaData[], void>({
+    readAllBackups: build.query<EnumerateResponse<BackupMetaData>, void>({
       query: () => ({
-        callback: () => sdk.Backup.readAll(),
+        callback: () => asEnvelope<BackupMetaData>(sdk.Backup.readAll()),
       }),
       providesTags: [SliceTags.BACKUP],
     }),
@@ -656,9 +670,9 @@ const graphSlice = enhancedSdk.injectEndpoints({
 
     //endregion
     //region Authentication
-    getTenantsForEmail: build.mutation<TenantMetaData[], string>({
+    getTenantsForEmail: build.mutation<EnumerateResponse<TenantMetaData>, string>({
       query: (email: string) => ({
-        callback: () => sdk.Authentication.getTenantsForEmail(email),
+        callback: () => asEnvelope<TenantMetaData>(sdk.Authentication.getTenantsForEmail(email)),
       }),
     }),
     generateToken: build.mutation<Token, { email: string; password: string; tenantId: string }>({
@@ -877,7 +891,7 @@ const graphSlice = enhancedSdk.injectEndpoints({
     //endregion
     //region Chat
     listChatEndpoints: build.query<
-      ChatEndpoint[],
+      EnumerateResponse<ChatEndpoint>,
       { tenantGuid: string; endpointType?: ChatEndpointType }
     >({
       query: ({ tenantGuid, endpointType }) => ({
@@ -920,19 +934,19 @@ const graphSlice = enhancedSdk.injectEndpoints({
         callback: () => testChatEndpoint(tenantGuid, endpointGuid),
       }),
     }),
-    listChatEndpointHealth: build.query<ChatEndpointHealth[], { tenantGuid: string }>({
+    listChatEndpointHealth: build.query<EnumerateResponse<ChatEndpointHealth>, { tenantGuid: string }>({
       query: ({ tenantGuid }) => ({
         callback: () => listChatEndpointHealth(tenantGuid),
       }),
       providesTags: [SliceTags.CHAT_ENDPOINT],
     }),
-    listChatModels: build.query<ChatModelSummary[], { tenantGuid: string }>({
+    listChatModels: build.query<EnumerateResponse<ChatModelSummary>, { tenantGuid: string }>({
       query: ({ tenantGuid }) => ({
         callback: () => listChatModels(tenantGuid),
       }),
       providesTags: [SliceTags.CHAT_ENDPOINT],
     }),
-    listChatThreads: build.query<ChatThread[], { tenantGuid: string; all?: boolean }>({
+    listChatThreads: build.query<EnumerateResponse<ChatThread>, { tenantGuid: string; all?: boolean }>({
       query: ({ tenantGuid, all }) => ({
         callback: () => listChatThreads(tenantGuid, all),
       }),
@@ -971,7 +985,7 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       invalidatesTags: [SliceTags.CHAT_THREAD],
     }),
-    listChatThreadTurns: build.query<ChatTurn[], { tenantGuid: string; threadGuid: string }>({
+    listChatThreadTurns: build.query<EnumerateResponse<ChatTurn>, { tenantGuid: string; threadGuid: string }>({
       query: ({ tenantGuid, threadGuid }) => ({
         callback: () => listChatThreadTurns(tenantGuid, threadGuid),
       }),
@@ -990,7 +1004,7 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       invalidatesTags: [SliceTags.CHAT_FEEDBACK],
     }),
-    listChatFeedback: build.query<ChatFeedback[], { tenantGuid: string }>({
+    listChatFeedback: build.query<EnumerateResponse<ChatFeedback>, { tenantGuid: string }>({
       query: ({ tenantGuid }) => ({
         callback: () => listChatFeedback(tenantGuid),
       }),

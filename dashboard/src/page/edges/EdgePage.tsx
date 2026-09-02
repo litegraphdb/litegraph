@@ -78,7 +78,7 @@ const EdgePage = () => {
 
   const transformedEdgesList = transformEdgeDataForTable(
     edgesList?.Objects || [],
-    nodesList || [],
+    nodesList?.Objects || [],
     tCommon
   );
 

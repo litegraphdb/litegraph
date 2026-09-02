@@ -1,10 +1,11 @@
 import { http, HttpResponse } from 'msw';
 import { mockGraphGuid, graphData, searchGraphData, graphGEXFData, graphMockApiResponse, graphMockSearchApiResponse, graphJsonlData, graphImportResult } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs`, ({ request, params, cookies }) => {
-        return HttpResponse.json(graphMockApiResponse);
+        return HttpResponse.json(toEnumerationEnvelope(graphMockApiResponse));
     }),
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}`, ({ request, params, cookies }) => {
         return HttpResponse.json(graphData[mockGraphGuid]);

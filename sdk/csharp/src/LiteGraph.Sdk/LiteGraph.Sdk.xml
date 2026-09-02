@@ -2114,7 +2114,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.Backup(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ListBackups(System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ListBackups(LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadBackup(System.String,System.Threading.CancellationToken)">
@@ -2166,7 +2166,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.CreateEndpoint(LiteGraph.Sdk.ChatEndpoint,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpoints(System.Guid,System.Nullable{LiteGraph.Sdk.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpoints(System.Guid,System.Nullable{LiteGraph.Sdk.ChatEndpointTypeEnum},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2187,16 +2187,16 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpointHealth(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadAllEndpointHealth(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadAllEndpointHealth(System.Guid,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadModels(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadModels(System.Guid,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.CreateThread(LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThreads(System.Guid,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThreads(System.Guid,System.Boolean,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2208,7 +2208,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.DeleteThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThreadTurns(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadThreadTurns(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.Completion(System.Guid,LiteGraph.Sdk.ChatCompletionRequest,System.Threading.CancellationToken)">
@@ -2220,7 +2220,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.SubmitFeedback(System.Guid,System.Guid,LiteGraph.Sdk.ChatFeedbackRatingEnum,System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadFeedback(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadFeedback(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadFeedback(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2249,7 +2249,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.CredentialMethods.Create(LiteGraph.Sdk.Credential,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.CredentialMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.CredentialMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.CredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2299,7 +2299,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Edge},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
@@ -2308,16 +2308,16 @@
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadByGuids(System.Guid,System.Guid,System.Collections.Generic.List{System.Guid},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.Update(LiteGraph.Sdk.Edge,System.Threading.CancellationToken)">
@@ -2347,10 +2347,10 @@
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.Enumerate(LiteGraph.Sdk.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.EdgeMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2373,7 +2373,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.Create(LiteGraph.Sdk.Graph,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ReadByGuid(System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
@@ -2442,7 +2442,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ImportGraphAsNewFromJsonl(System.Guid,System.String,LiteGraph.Sdk.GraphImportGuidStrategyEnum,LiteGraph.Sdk.GraphImportErrorPolicyEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.GraphMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2468,7 +2468,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.LabelMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2492,19 +2492,19 @@
         <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.Enumerate(LiteGraph.Sdk.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.LabelMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2542,7 +2542,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.CreateMany(System.Guid,System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.Node},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
@@ -2566,13 +2566,13 @@
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ExistsByGuid(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadChildren(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadChildren(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadNeighbors(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadNeighbors(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadRoutes(LiteGraph.Sdk.SearchTypeEnum,System.Guid,System.Guid,System.Guid,System.Guid,ExpressionTree.Expr,ExpressionTree.Expr,System.Threading.CancellationToken)">
@@ -2587,16 +2587,16 @@
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.Enumerate(LiteGraph.Sdk.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadMostConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.ReadLeastConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2622,7 +2622,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.TagMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.TagMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2646,19 +2646,19 @@
         <member name="M:LiteGraph.Sdk.Implementations.TagMethods.Enumerate(LiteGraph.Sdk.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadAllInGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadManyGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.TagMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2690,7 +2690,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.TenantMethods.Create(LiteGraph.Sdk.TenantMetadata,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.TenantMethods.ReadMany(LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.TenantMethods.ReadMany(LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.TenantMethods.ReadByGuid(System.Guid,System.Threading.CancellationToken)">
@@ -2768,7 +2768,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.UserMethods.Create(LiteGraph.Sdk.UserMaster,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.UserMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.UserMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.UserMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2809,7 +2809,7 @@
         <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.CreateMany(System.Guid,System.Collections.Generic.List{LiteGraph.Sdk.VectorMetadata},LiteGraph.Sdk.BulkCreateReturnModeEnum,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2836,19 +2836,19 @@
         <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.Enumerate(LiteGraph.Sdk.EnumerationRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadAllInGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadManyGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.VectorMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
@@ -2878,12 +2878,16 @@
             <param name="outputFilename">Output filename.</param>
             <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ListBackups(System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ListBackups(LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             List backups request.
             </summary>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Enumerable of backup files.</returns>
+            <returns>Enumeration result containing backup files.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadBackup(System.String,System.Threading.CancellationToken)">
             <summary>
@@ -2964,14 +2968,18 @@
             <param name="token">Cancellation token.</param>
             <returns>Chat endpoint with the API key redacted.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpoints(System.Guid,System.Nullable{LiteGraph.Sdk.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpoints(System.Guid,System.Nullable{LiteGraph.Sdk.ChatEndpointTypeEnum},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read chat endpoints, optionally filtered by endpoint type.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="endpointType">Endpoint type filter.  Null returns endpoints of every type.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Chat endpoints with API keys redacted.</returns>
+            <returns>Enumeration result containing chat endpoints with API keys redacted.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3025,22 +3033,28 @@
             <param name="token">Cancellation token.</param>
             <returns>Endpoint health.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadAllEndpointHealth(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadAllEndpointHealth(System.Guid,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read health status for every chat endpoint in the tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Endpoint health list.</returns>
+            <returns>Enumeration result containing endpoint health records.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadModels(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadModels(System.Guid,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read the model catalog: a non-privileged summary of every active chat endpoint in the tenant,
             suitable for populating a model picker.  Endpoint URLs, keys, and health configuration are never included.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Model summaries.</returns>
+            <returns>Enumeration result containing model summaries.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.CreateThread(LiteGraph.Sdk.ChatThread,System.Threading.CancellationToken)">
             <summary>
@@ -3050,14 +3064,18 @@
             <param name="token">Cancellation token.</param>
             <returns>Chat thread.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThreads(System.Guid,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThreads(System.Guid,System.Boolean,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read chat threads.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="allUsers">True to read every user's threads (admin only).  Default is false, which reads the caller's own threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Chat threads.</returns>
+            <returns>Enumeration result containing chat threads.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3086,14 +3104,18 @@
             <param name="threadGuid">Chat thread GUID.</param>
             <param name="token">Cancellation token.</param>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThreadTurns(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadThreadTurns(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read the turns of a chat thread, ascending by sequence.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="threadGuid">Chat thread GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Chat turns.</returns>
+            <returns>Enumeration result containing chat turns.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.Completion(System.Guid,LiteGraph.Sdk.ChatCompletionRequest,System.Threading.CancellationToken)">
             <summary>
@@ -3125,13 +3147,17 @@
             <param name="token">Cancellation token.</param>
             <returns>Chat feedback.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadFeedback(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadFeedback(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all chat feedback in the tenant (admin only).
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Chat feedback list.</returns>
+            <returns>Enumeration result containing chat feedback records.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadFeedback(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3179,15 +3205,17 @@
             <param name="token">Cancellation token.</param>
             <returns>Credential.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ICredentialMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ICredentialMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read credentials.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Credentials.</returns>
+            <returns>Enumeration result containing credentials.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ICredentialMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3205,7 +3233,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing credentials.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ICredentialMethods.Update(LiteGraph.Sdk.Credential,System.Threading.CancellationToken)">
             <summary>
@@ -3297,16 +3325,18 @@
             <param name="token">Cancellation token.</param>
             <returns>Edges.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read edges.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
             <summary>
@@ -3330,9 +3360,9 @@
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadNodeEdges(System.Guid,System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get edges connected to or initiated from a given node.
             </summary>
@@ -3349,10 +3379,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadEdgesFromNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get edges from a given node.
             </summary>
@@ -3363,10 +3395,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadEdgesToNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get edges to a given node.
             </summary>
@@ -3377,10 +3411,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadEdgesBetweenNodes(System.Guid,System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get edges between two neighboring nodes.
             </summary>
@@ -3389,9 +3425,11 @@
             <param name="fromNodeGuid">From node GUID.</param>
             <param name="toNodeGuid">To node GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.Update(LiteGraph.Sdk.Edge,System.Threading.CancellationToken)">
             <summary>
@@ -3470,7 +3508,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all edges in a tenant across all graphs.
             </summary>
@@ -3479,10 +3517,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all edges in a graph.
             </summary>
@@ -3492,8 +3532,10 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Edges.</returns>
+            <returns>Enumeration result containing edges.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IEdgeMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3524,15 +3566,17 @@
             <param name="token">Cancellation token.</param>
             <returns>Graph.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read graphs.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Graphs.</returns>
+            <returns>Enumeration result containing graphs.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ReadByGuid(System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
             <summary>
@@ -3554,7 +3598,7 @@
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing graphs.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.Update(LiteGraph.Sdk.Graph,System.Threading.CancellationToken)">
             <summary>
@@ -3755,13 +3799,17 @@
             <param name="token">Cancellation token.</param>
             <returns>Import result.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all graphs in tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Graphs.</returns>
+            <returns>Enumeration result containing graphs.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IGraphMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3802,15 +3850,17 @@
             <param name="token">Cancellation token.</param>
             <returns>Labels.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read labels.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Labels.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -3828,7 +3878,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.Update(LiteGraph.Sdk.LabelMetadata,System.Threading.CancellationToken)">
             <summary>
@@ -3871,39 +3921,45 @@
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all labels in a tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Labels.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all labels in a graph.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Labels.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read many labels for a graph.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Labels.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read many labels for a node.
             </summary>
@@ -3911,11 +3967,13 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Labels.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read many labels for an edge.
             </summary>
@@ -3923,9 +3981,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Labels.</returns>
+            <returns>Enumeration result containing labels.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ILabelMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4002,7 +4062,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadMany(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read nodes.
             </summary>
@@ -4012,8 +4072,10 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadByGuid(System.Guid,System.Guid,System.Guid,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
             <summary>
@@ -4037,7 +4099,7 @@
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.Update(LiteGraph.Sdk.Node,System.Threading.CancellationToken)">
             <summary>
@@ -4083,7 +4145,7 @@
             <param name="token">Cancellation token.</param>
             <returns>True if exists.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadParents(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get nodes that have edges connecting to the specified node.
             </summary>
@@ -4091,11 +4153,13 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadChildren(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadChildren(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get nodes to which the specified node has connecting edges connecting.
             </summary>
@@ -4103,11 +4167,13 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadNeighbors(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadNeighbors(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get neighbors for a given node.
             </summary>
@@ -4115,9 +4181,11 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadRoutes(LiteGraph.Sdk.SearchTypeEnum,System.Guid,System.Guid,System.Guid,System.Guid,ExpressionTree.Expr,ExpressionTree.Expr,System.Threading.CancellationToken)">
             <summary>
@@ -4163,7 +4231,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all nodes in a tenant across all graphs.
             </summary>
@@ -4172,10 +4240,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all nodes in a graph.
             </summary>
@@ -4185,10 +4255,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadMostConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read most connected nodes in a graph.
             </summary>
@@ -4198,10 +4270,12 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadLeastConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.ReadLeastConnected(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read least connected nodes in a graph.
             </summary>
@@ -4211,8 +4285,10 @@
             <param name="skip">The number of records to skip.</param>
             <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
             <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Nodes.</returns>
+            <returns>Enumeration result containing nodes.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.INodeMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4253,7 +4329,7 @@
             <param name="token">Cancellation token.</param>
             <returns>Tags.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadMany(System.Guid,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read tags.
             </summary>
@@ -4262,9 +4338,11 @@
             <param name="nodeGuid">Node GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tags.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4282,7 +4360,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.Update(LiteGraph.Sdk.TagMetadata,System.Threading.CancellationToken)">
             <summary>
@@ -4325,51 +4403,71 @@
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all tags across tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tags.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadAllInGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all tags in specific graph.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tags.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadManyGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read tags attached to graph object.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tags.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read tags attached to specific node.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tags.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read tags attached to specific edge.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tags.</returns>
+            <returns>Enumeration result containing tags.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ITagMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4425,14 +4523,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Tenant.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.ITenantMethods.ReadMany(LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.ITenantMethods.ReadMany(LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read tenants.
             </summary>
             <param name="order">Enumeration order.</param>
-            <param name="skip">The number of records to skip.</param>
+            <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Tenants.</returns>
+            <returns>Enumeration result containing tenants.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ITenantMethods.ReadByGuid(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4448,7 +4548,7 @@
             </summary>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing tenants.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.ITenantMethods.Update(LiteGraph.Sdk.TenantMetadata,System.Threading.CancellationToken)">
             <summary>
@@ -4528,7 +4628,7 @@
             Get tenants for the email address associated with this SDK instance.
             </summary>
             <param name="token">Cancellation token.</param>
-            <returns>List of tenants.</returns>
+            <returns>Enumeration result containing tenants.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IUserAuthentication.GenerateToken(System.Threading.CancellationToken)">
             <summary>
@@ -4558,15 +4658,17 @@
             <param name="token">Cancellation token.</param>
             <returns>User.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IUserMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IUserMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read users.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Users.</returns>
+            <returns>Enumeration result containing users.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IUserMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4584,7 +4686,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing users.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IUserMethods.Update(LiteGraph.Sdk.UserMaster,System.Threading.CancellationToken)">
             <summary>
@@ -4651,15 +4753,17 @@
             <param name="token">Cancellation token.</param>
             <returns>Vectors.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadMany(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read vectors.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="order">Enumeration order.</param>
-            <param name="skip">Number of records to skip.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vectors.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4677,7 +4781,7 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="guids">GUIDs.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.Update(LiteGraph.Sdk.VectorMetadata,System.Threading.CancellationToken)">
             <summary>
@@ -4720,7 +4824,7 @@
             <param name="graphGuid">Graph GUID.</param>
             <param name="searchReq">Search request.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vector search result.</returns>
+            <returns>Enumeration result containing vector search results.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.Enumerate(LiteGraph.Sdk.EnumerationRequest,System.Threading.CancellationToken)">
             <summary>
@@ -4730,51 +4834,71 @@
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadAllInTenant(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadAllInTenant(System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all vectors across tenant.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vectors.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadAllInGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadAllInGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read all vectors in specific graph.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vectors.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadManyGraph(System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadManyGraph(System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read vectors attached to graph object.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vectors.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadManyNode(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read vectors attached to specific node.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="nodeGuid">Node GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vectors.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.ReadManyEdge(System.Guid,System.Guid,System.Guid,LiteGraph.Sdk.EnumerationOrderEnum,System.Int32,System.Int32,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Read vectors attached to specific edge.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="graphGuid">Graph GUID.</param>
             <param name="edgeGuid">Edge GUID.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+            <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+            <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
             <param name="token">Cancellation token.</param>
-            <returns>Vectors.</returns>
+            <returns>Enumeration result containing vectors.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IVectorMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -4982,7 +5106,9 @@
             </summary>
             <param name="email">Email address.</param>
             <param name="endpoint">Endpoint URL. Defaults to http://localhost:8701</param>
-            <returns>List of tenant metadata.</returns>
+            <returns>Enumeration result containing tenant metadata.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the email or endpoint is null or empty.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when the server returns a non-success status code or no response.</exception>
         </member>
         <member name="T:LiteGraph.Sdk.Node">
             <summary>
@@ -5240,14 +5366,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Instance.</returns>
         </member>
-        <member name="M:LiteGraph.Sdk.SdkBase.GetMany``1(System.String,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Sdk.SdkBase.GetEnumeration``1(System.String,System.Threading.CancellationToken)">
             <summary>
-            Read objects.
+            Read an enumeration envelope from a GET URL.
+            All list-shaped GET routes on the LiteGraph server return an EnumerationResult envelope.
             </summary>
-            <typeparam name="T">Type.</typeparam>
+            <typeparam name="T">Type of the enumerated objects.</typeparam>
             <param name="url">URL.</param>
             <param name="token">Cancellation token.</param>
-            <returns>List.</returns>
+            <returns>Enumeration result containing the matching objects, or null if the request failed.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
         </member>
         <member name="M:LiteGraph.Sdk.SdkBase.PutUpdate``1(System.String,``0,System.Threading.CancellationToken)">
             <summary>

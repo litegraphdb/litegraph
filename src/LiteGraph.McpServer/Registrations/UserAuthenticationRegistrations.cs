@@ -2,7 +2,9 @@ namespace LiteGraph.McpServer.Registrations
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Text.Json;
+    using LiteGraph.McpServer.Classes;
     using LiteGraph.Sdk;
     using Voltaic;
 
@@ -11,6 +13,12 @@ namespace LiteGraph.McpServer.Registrations
     /// </summary>
     public static class UserAuthenticationRegistrations
     {
+        #region Private-Members
+
+        private static readonly HttpClient _Http = new HttpClient();
+
+        #endregion
+
         #region HTTP-Tools
 
         /// <summary>
@@ -22,14 +30,16 @@ namespace LiteGraph.McpServer.Registrations
         {
             server.RegisterTool(
                 "userauthentication/gettenantsforemail",
-                "Gets all tenants associated with an email address",
+                "Gets all tenants associated with an email address. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         email = new { type = "string", description = "Email address" },
-                        endpoint = new { type = "string", description = "Endpoint URL (optional, uses SDK endpoint if not provided)" }
+                        endpoint = new { type = "string", description = "Endpoint URL (optional, uses SDK endpoint if not provided)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "email" }
                 },
@@ -48,15 +58,8 @@ namespace LiteGraph.McpServer.Registrations
                             endpoint = endpointStr;
                     }
 
-                    try
-                    {
-                        List<TenantMetadata> tenants = LiteGraphSdk.GetTenantsForEmail(email, endpoint);
-                        return Serializer.SerializeJson(tenants, true);
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        return Serializer.SerializeJson(new List<TenantMetadata>(), true);
-                    }
+                    int skip = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0);
+                    return GetTenantsForEmail(endpoint, email, LiteGraphMcpServerHelpers.GetMaxResults(args), skip);
                 });
 
             server.RegisterTool(
@@ -189,8 +192,8 @@ namespace LiteGraph.McpServer.Registrations
                         endpoint = endpointStr;
                 }
 
-                List<TenantMetadata> tenants = LiteGraphSdk.GetTenantsForEmail(email, endpoint);
-                return Serializer.SerializeJson(tenants, true);
+                int skip = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0);
+                return GetTenantsForEmail(endpoint, email, LiteGraphMcpServerHelpers.GetMaxResults(args), skip);
             });
 
             server.RegisterMethod("userauthentication/generatetoken", (args) =>
@@ -289,8 +292,8 @@ namespace LiteGraph.McpServer.Registrations
                         endpoint = endpointStr;
                 }
 
-                List<TenantMetadata> tenants = LiteGraphSdk.GetTenantsForEmail(email, endpoint);
-                return Serializer.SerializeJson(tenants, true);
+                int skip = LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0);
+                return GetTenantsForEmail(endpoint, email, LiteGraphMcpServerHelpers.GetMaxResults(args), skip);
             });
 
             server.RegisterMethod("userauthentication/generatetoken", (args) =>
@@ -361,6 +364,40 @@ namespace LiteGraph.McpServer.Registrations
                     return Serializer.SerializeJson(tokenDetails, true);
                 }
             });
+        }
+
+        #endregion
+
+        #region Private-Methods
+
+        private static string GetTenantsForEmail(string endpoint, string email, int maxResults, int skip)
+        {
+            if (String.IsNullOrEmpty(endpoint)) throw new ArgumentNullException(nameof(endpoint));
+            if (String.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
+
+            string url = endpoint.TrimEnd('/') + "/v1.0/token/tenants?max-keys=" + maxResults + "&skip=" + skip;
+
+            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url))
+            {
+                request.Headers.Add("x-email", email);
+
+                using (HttpResponseMessage response = _Http.Send(request))
+                {
+                    string body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new InvalidOperationException(
+                            "LiteGraph endpoint returned "
+                            + (int)response.StatusCode
+                            + " "
+                            + response.ReasonPhrase
+                            + ": "
+                            + body);
+                    }
+
+                    return body;
+                }
+            }
         }
 
         #endregion

@@ -117,19 +117,18 @@ const ChatPage = () => {
     { skip: !tenantGuid }
   );
   const {
-    data: threads = [],
+    data: threadsEnvelope,
     isLoading: isThreadsLoading,
     refetch: refetchThreads,
   } = useListChatThreadsQuery({ tenantGuid }, { skip: !tenantGuid });
+  const threads = useMemo(() => threadsEnvelope?.Objects ?? [], [threadsEnvelope]);
 
   const [selectedThreadGuid, setSelectedThreadGuid] = useState<string | null>(null);
-  const {
-    data: serverTurns = [],
-    refetch: refetchTurns,
-  } = useListChatThreadTurnsQuery(
+  const { data: serverTurnsEnvelope, refetch: refetchTurns } = useListChatThreadTurnsQuery(
     { tenantGuid, threadGuid: selectedThreadGuid as string },
     { skip: !tenantGuid || !selectedThreadGuid }
   );
+  const serverTurns = useMemo(() => serverTurnsEnvelope?.Objects ?? [], [serverTurnsEnvelope]);
 
   const [streamState, dispatch] = useReducer(chatStreamReducer, initialChatStreamState);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -140,10 +139,14 @@ const ChatPage = () => {
   const selectedGraph = useAppSelector((state: RootState) => state.liteGraph.selectedGraph);
   const tenant = useAppSelector((state: RootState) => state.liteGraph.tenant);
 
-  const { data: chatModels = [] } = useListChatModelsQuery({ tenantGuid }, { skip: !tenantGuid });
+  const { data: chatModelsEnvelope } = useListChatModelsQuery(
+    { tenantGuid },
+    { skip: !tenantGuid }
+  );
   const completionModels = useMemo(
-    () => chatModels.filter((model) => model.EndpointType === 'Completion'),
-    [chatModels]
+    () =>
+      (chatModelsEnvelope?.Objects ?? []).filter((model) => model.EndpointType === 'Completion'),
+    [chatModelsEnvelope]
   );
   const [completionEndpointGuid, setCompletionEndpointGuid] = useState<string | undefined>(
     undefined

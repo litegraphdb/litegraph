@@ -67,7 +67,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "user/all",
-                "Lists all users in a tenant",
+                "Lists all users in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -75,7 +75,9 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -86,7 +88,7 @@ namespace LiteGraph.McpServer.Registrations
 
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadUsers(sdk, tenantGuid, order, skip);
+                    return ReadUsers(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
                 });
 
             server.RegisterTool(
@@ -180,14 +182,15 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "user/getmany",
-                "Reads multiple users by their GUIDs",
+                "Reads multiple users by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        userGuids = new { type = "array", items = new { type = "string" }, description = "Array of user GUIDs" }
+                        userGuids = new { type = "array", items = new { type = "string" }, description = "Array of user GUIDs" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "userGuids" }
                 },
@@ -199,7 +202,7 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("User GUIDs array is required");
                     
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                    return ReadUsersByGuids(sdk, tenantGuid, guids);
+                    return ReadUsersByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
         }
 
@@ -238,7 +241,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadUsers(sdk, tenantGuid, order, skip);
+                return ReadUsers(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("user/enumerate", (args) =>
@@ -288,7 +291,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("User GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadUsersByGuids(sdk, tenantGuid, guids);
+                return ReadUsersByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
         }
 
@@ -327,7 +330,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadUsers(sdk, tenantGuid, order, skip);
+                return ReadUsers(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("user/enumerate", (args) =>
@@ -377,7 +380,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("User GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadUsersByGuids(sdk, tenantGuid, guids);
+                return ReadUsersByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
         }
 
@@ -410,17 +413,20 @@ namespace LiteGraph.McpServer.Registrations
                 + LiteGraphMcpRestProxy.Escape(userGuid));
         }
 
-        private static string ReadUsers(LiteGraphSdk sdk, Guid tenantGuid, EnumerationOrderEnum order, int skip)
+        private static string ReadUsers(LiteGraphSdk sdk, Guid tenantGuid, EnumerationOrderEnum order, int skip, int maxResults, Guid? continuationToken)
         {
-            return LiteGraphMcpRestProxy.SendJson(
-                sdk,
-                HttpMethod.Get,
-                "/v1.0/tenants/"
+            string url = "/v1.0/tenants/"
                 + LiteGraphMcpRestProxy.Escape(tenantGuid)
                 + "/users?order="
                 + LiteGraphMcpRestProxy.Escape(order.ToString())
                 + "&skip="
-                + skip);
+                + skip
+                + "&max-keys="
+                + maxResults;
+
+            if (continuationToken != null) url += "&token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value);
+
+            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Get, url);
         }
 
         private static string EnumerateUsers(LiteGraphSdk sdk, EnumerationRequest query)
@@ -450,19 +456,20 @@ namespace LiteGraph.McpServer.Registrations
             return exists.ToString().ToLowerInvariant();
         }
 
-        private static string ReadUsersByGuids(LiteGraphSdk sdk, Guid tenantGuid, List<Guid> guids)
+        private static string ReadUsersByGuids(LiteGraphSdk sdk, Guid tenantGuid, List<Guid> guids, int maxResults)
         {
             if (guids == null) throw new ArgumentNullException(nameof(guids));
+            if (guids.Count == 0) throw new ArgumentException("At least one user GUID is required.");
 
-            List<UserMaster> users = new List<UserMaster>();
-            foreach (Guid guid in guids)
-            {
-                string body = ReadUser(sdk, tenantGuid, guid);
-                UserMaster user = Serializer.DeserializeJson<UserMaster>(body);
-                if (user != null) users.Add(user);
-            }
-
-            return Serializer.SerializeJson(users, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/users?guids="
+                + String.Join(",", guids)
+                + "&max-keys="
+                + maxResults);
         }
 
         private static string UpdateUser(LiteGraphSdk sdk, UserMaster user)

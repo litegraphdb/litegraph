@@ -1636,7 +1636,9 @@
                         await gate.Task.ConfigureAwait(false);
                         (int Status, string Body) response = await SendRestRequestAsync(http, HttpMethod.Get, nodesEndpoint, null, providerName + " REST concurrent reader " + index, cancellationToken).ConfigureAwait(false);
                         AssertEqual(200, response.Status, providerName + " REST concurrent reader " + index + " status");
-                        List<Node> nodes = _McpSerializer.DeserializeJson<List<Node>>(response.Body);
+                        EnumerationResult<Node> nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(response.Body);
+                        AssertTrue(nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+                        List<Node> nodes = nodesEnvelope.Objects;
                         AssertNotNull(nodes, providerName + " REST concurrent reader " + index + " nodes");
                         return response;
                     }).ToArray();
@@ -5084,8 +5086,9 @@
 
                 (int listRolesStatus, string listRolesBody) = await SendAdminAsync(HttpMethod.Get, endpointBase + "/roles?includeBuiltIns=true&pageSize=20").ConfigureAwait(false);
                 AssertEqual(200, listRolesStatus, "REST role list status");
-                AuthorizationRoleSearchResult listedRoles = _McpSerializer.DeserializeJson<AuthorizationRoleSearchResult>(listRolesBody);
+                EnumerationResult<AuthorizationRole> listedRoles = _McpSerializer.DeserializeJson<EnumerationResult<AuthorizationRole>>(listRolesBody);
                 AssertTrue(listedRoles.Objects.Any(role => role.Name == AuthorizationPolicyDefinitions.TenantAdminRoleName), "REST role list includes built-ins");
+                AssertTrue(listedRoles.TotalRecords >= listedRoles.Objects.Count, "REST role list envelope TotalRecords should cover returned objects");
 
                 AuthorizationRole customRole = new AuthorizationRole
                 {
@@ -5127,8 +5130,8 @@
 
                 (int filterRoleStatus, string filterRoleBody) = await SendAdminAsync(HttpMethod.Get, endpointBase + "/roles?includeBuiltIns=false&name=" + roleName + "&permission=Delete&resourceType=Edge").ConfigureAwait(false);
                 AssertEqual(200, filterRoleStatus, "REST role filtered list status");
-                AuthorizationRoleSearchResult filteredRoles = _McpSerializer.DeserializeJson<AuthorizationRoleSearchResult>(filterRoleBody);
-                AssertEqual(1L, filteredRoles.TotalCount, "REST role filtered count");
+                EnumerationResult<AuthorizationRole> filteredRoles = _McpSerializer.DeserializeJson<EnumerationResult<AuthorizationRole>>(filterRoleBody);
+                AssertEqual(1L, filteredRoles.TotalRecords, "REST role filtered count");
 
                 (int builtInUpdateStatus, _) = await SendAdminAsync(HttpMethod.Put, endpointBase + "/roles/" + editorRole.GUID, editorRole).ConfigureAwait(false);
                 AssertEqual(409, builtInUpdateStatus, "REST built-in role update is rejected");
@@ -5152,8 +5155,8 @@
 
                 (int listUserRoleStatus, string listUserRoleBody) = await SendAdminAsync(HttpMethod.Get, userRolesEndpoint + "?roleName=" + roleName + "&graphGuid=" + graph.GUID).ConfigureAwait(false);
                 AssertEqual(200, listUserRoleStatus, "REST user role assignment list status");
-                UserRoleAssignmentSearchResult listedUserRoles = _McpSerializer.DeserializeJson<UserRoleAssignmentSearchResult>(listUserRoleBody);
-                AssertEqual(1L, listedUserRoles.TotalCount, "REST user role assignment filtered count");
+                EnumerationResult<UserRoleAssignment> listedUserRoles = _McpSerializer.DeserializeJson<EnumerationResult<UserRoleAssignment>>(listUserRoleBody);
+                AssertEqual(1L, listedUserRoles.TotalRecords, "REST user role assignment filtered count");
 
                 createdUserRole.GraphGUID = null;
                 (int updateUserRoleStatus, string updateUserRoleBody) = await SendAdminAsync(HttpMethod.Put, userRolesEndpoint + "/" + createdUserRole.GUID, createdUserRole).ConfigureAwait(false);
@@ -5190,8 +5193,8 @@
 
                 (int listScopeStatus, string listScopeBody) = await SendAdminAsync(HttpMethod.Get, credentialScopesEndpoint + "?permission=Write&resourceType=Query&graphGuid=" + graph.GUID).ConfigureAwait(false);
                 AssertEqual(200, listScopeStatus, "REST credential scope list status");
-                CredentialScopeAssignmentSearchResult listedScopes = _McpSerializer.DeserializeJson<CredentialScopeAssignmentSearchResult>(listScopeBody);
-                AssertEqual(1L, listedScopes.TotalCount, "REST credential scope filtered count");
+                EnumerationResult<CredentialScopeAssignment> listedScopes = _McpSerializer.DeserializeJson<EnumerationResult<CredentialScopeAssignment>>(listScopeBody);
+                AssertEqual(1L, listedScopes.TotalRecords, "REST credential scope filtered count");
 
                 createdScope.Permissions = new List<AuthorizationPermissionEnum> { AuthorizationPermissionEnum.Delete };
                 createdScope.ResourceTypes = new List<AuthorizationResourceTypeEnum> { AuthorizationResourceTypeEnum.Edge };
@@ -5284,8 +5287,8 @@
                     resourceType = AuthorizationResourceTypeEnum.Edge.ToString(),
                     pageSize = 20
                 }).ConfigureAwait(false);
-                AuthorizationRoleSearchResult mcpRoleList = _McpSerializer.DeserializeJson<AuthorizationRoleSearchResult>(mcpRoleListBody);
-                AssertEqual(1L, mcpRoleList.TotalCount, "MCP role filtered count");
+                EnumerationResult<AuthorizationRole> mcpRoleList = _McpSerializer.DeserializeJson<EnumerationResult<AuthorizationRole>>(mcpRoleListBody);
+                AssertEqual(1L, mcpRoleList.TotalRecords, "MCP role filtered count");
 
                 UserRoleAssignment mcpUserAssignment = new UserRoleAssignment
                 {
@@ -5329,8 +5332,8 @@
                     roleGuid = mcpUpdatedRole.GUID.ToString(),
                     pageSize = 20
                 }).ConfigureAwait(false);
-                UserRoleAssignmentSearchResult mcpUserRoleList = _McpSerializer.DeserializeJson<UserRoleAssignmentSearchResult>(mcpUserRoleListBody);
-                AssertEqual(1L, mcpUserRoleList.TotalCount, "MCP user role filtered count");
+                EnumerationResult<UserRoleAssignment> mcpUserRoleList = _McpSerializer.DeserializeJson<EnumerationResult<UserRoleAssignment>>(mcpUserRoleListBody);
+                AssertEqual(1L, mcpUserRoleList.TotalRecords, "MCP user role filtered count");
 
                 string mcpUserEffectiveBody = await _McpClient.CallAsync<string>("authorization/user/permissions", new
                 {
@@ -5396,8 +5399,8 @@
                     graphGuid = graph.GUID.ToString(),
                     pageSize = 20
                 }).ConfigureAwait(false);
-                CredentialScopeAssignmentSearchResult mcpCredentialScopeList = _McpSerializer.DeserializeJson<CredentialScopeAssignmentSearchResult>(mcpCredentialScopeListBody);
-                AssertEqual(1L, mcpCredentialScopeList.TotalCount, "MCP credential scope filtered count");
+                EnumerationResult<CredentialScopeAssignment> mcpCredentialScopeList = _McpSerializer.DeserializeJson<EnumerationResult<CredentialScopeAssignment>>(mcpCredentialScopeListBody);
+                AssertEqual(1L, mcpCredentialScopeList.TotalRecords, "MCP credential scope filtered count");
 
                 string mcpCredentialEffectiveBody = await _McpClient.CallAsync<string>("authorization/credential/permissions", new
                 {
@@ -5692,7 +5695,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> edgeAll = _McpSerializer.DeserializeJson<List<Edge>>(edgeAllBody);
+                EnumerationResult<Edge> edgeAllEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(edgeAllBody);
+                AssertTrue(edgeAllEnvelope.TotalRecords >= edgeAllEnvelope.Objects.Count, "edgeAll envelope TotalRecords should cover returned objects");
+                List<Edge> edgeAll = edgeAllEnvelope.Objects;
                 AssertTrue(edgeAll.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can list allowed graph edges");
 
                 string edgeReadAllInGraphBody = await _McpClient.CallAsync<string>("edge/readallingraph", new
@@ -5700,14 +5705,18 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> graphEdges = _McpSerializer.DeserializeJson<List<Edge>>(edgeReadAllInGraphBody);
+                EnumerationResult<Edge> graphEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(edgeReadAllInGraphBody);
+                AssertTrue(graphEdgesEnvelope.TotalRecords >= graphEdgesEnvelope.Objects.Count, "graphEdges envelope TotalRecords should cover returned objects");
+                List<Edge> graphEdges = graphEdgesEnvelope.Objects;
                 AssertTrue(graphEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read all edges in allowed graph");
 
                 string edgeReadAllInTenantBody = await _McpClient.CallAsync<string>("edge/readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> tenantEdges = _McpSerializer.DeserializeJson<List<Edge>>(edgeReadAllInTenantBody);
+                EnumerationResult<Edge> tenantEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(edgeReadAllInTenantBody);
+                AssertTrue(tenantEdgesEnvelope.TotalRecords >= tenantEdgesEnvelope.Objects.Count, "tenantEdges envelope TotalRecords should cover returned objects");
+                List<Edge> tenantEdges = tenantEdgesEnvelope.Objects;
                 AssertTrue(tenantEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can invoke tenant edge listing");
 
                 string edgeGetManyBody = await _McpClient.CallAsync<string>("edge/getmany", new
@@ -5716,7 +5725,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     edgeGuids = new[] { edgeA.GUID.ToString() }
                 }).ConfigureAwait(false);
-                List<Edge> manyEdges = _McpSerializer.DeserializeJson<List<Edge>>(edgeGetManyBody);
+                EnumerationResult<Edge> manyEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(edgeGetManyBody);
+                AssertTrue(manyEdgesEnvelope.TotalRecords >= manyEdgesEnvelope.Objects.Count, "manyEdges envelope TotalRecords should cover returned objects");
+                List<Edge> manyEdges = manyEdgesEnvelope.Objects;
                 AssertEqual(1, manyEdges.Count, "MCP read-scoped credential can read many allowed edges");
 
                 string edgeExistsBody = await _McpClient.CallAsync<string>("edge/exists", new
@@ -5733,7 +5744,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> nodeEdges = _McpSerializer.DeserializeJson<List<Edge>>(nodeEdgesBody);
+                EnumerationResult<Edge> nodeEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(nodeEdgesBody);
+                AssertTrue(nodeEdgesEnvelope.TotalRecords >= nodeEdgesEnvelope.Objects.Count, "nodeEdges envelope TotalRecords should cover returned objects");
+                List<Edge> nodeEdges = nodeEdgesEnvelope.Objects;
                 AssertTrue(nodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed node edges");
 
                 string filteredNodeEdgesBody = await _McpClient.CallAsync<string>("edge/nodeedges", new
@@ -5743,7 +5756,9 @@
                     nodeGuid = nodeA.GUID.ToString(),
                     labels = _McpSerializer.SerializeJson(new List<string> { edgeLabelA.Label }, false)
                 }).ConfigureAwait(false);
-                List<Edge> filteredNodeEdges = _McpSerializer.DeserializeJson<List<Edge>>(filteredNodeEdgesBody);
+                EnumerationResult<Edge> filteredNodeEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(filteredNodeEdgesBody);
+                AssertTrue(filteredNodeEdgesEnvelope.TotalRecords >= filteredNodeEdgesEnvelope.Objects.Count, "filteredNodeEdges envelope TotalRecords should cover returned objects");
+                List<Edge> filteredNodeEdges = filteredNodeEdgesEnvelope.Objects;
                 AssertTrue(filteredNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read filtered allowed node edges");
 
                 string fromNodeEdgesBody = await _McpClient.CallAsync<string>("edge/fromnode", new
@@ -5752,7 +5767,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> fromNodeEdges = _McpSerializer.DeserializeJson<List<Edge>>(fromNodeEdgesBody);
+                EnumerationResult<Edge> fromNodeEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(fromNodeEdgesBody);
+                AssertTrue(fromNodeEdgesEnvelope.TotalRecords >= fromNodeEdgesEnvelope.Objects.Count, "fromNodeEdges envelope TotalRecords should cover returned objects");
+                List<Edge> fromNodeEdges = fromNodeEdgesEnvelope.Objects;
                 AssertTrue(fromNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed outgoing edges");
 
                 string toNodeEdgesBody = await _McpClient.CallAsync<string>("edge/tonode", new
@@ -5761,7 +5778,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA2.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> toNodeEdges = _McpSerializer.DeserializeJson<List<Edge>>(toNodeEdgesBody);
+                EnumerationResult<Edge> toNodeEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(toNodeEdgesBody);
+                AssertTrue(toNodeEdgesEnvelope.TotalRecords >= toNodeEdgesEnvelope.Objects.Count, "toNodeEdges envelope TotalRecords should cover returned objects");
+                List<Edge> toNodeEdges = toNodeEdgesEnvelope.Objects;
                 AssertTrue(toNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed incoming edges");
 
                 string betweenNodeEdgesBody = await _McpClient.CallAsync<string>("edge/betweennodes", new
@@ -5771,7 +5790,9 @@
                     fromNodeGuid = nodeA.GUID.ToString(),
                     toNodeGuid = nodeA2.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Edge> betweenNodeEdges = _McpSerializer.DeserializeJson<List<Edge>>(betweenNodeEdgesBody);
+                EnumerationResult<Edge> betweenNodeEdgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(betweenNodeEdgesBody);
+                AssertTrue(betweenNodeEdgesEnvelope.TotalRecords >= betweenNodeEdgesEnvelope.Objects.Count, "betweenNodeEdges envelope TotalRecords should cover returned objects");
+                List<Edge> betweenNodeEdges = betweenNodeEdgesEnvelope.Objects;
                 AssertTrue(betweenNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed edges between nodes");
 
                 SearchRequest edgeSearchRequest = new SearchRequest
@@ -5818,14 +5839,18 @@
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<LabelMetadata> labelAll = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelAllBody);
+                EnumerationResult<LabelMetadata> labelAllEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelAllBody);
+                AssertTrue(labelAllEnvelope.TotalRecords >= labelAllEnvelope.Objects.Count, "labelAll envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> labelAll = labelAllEnvelope.Objects;
                 AssertTrue(labelAll.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can list labels");
 
                 string labelReadAllInTenantBody = await _McpClient.CallAsync<string>("label/readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<LabelMetadata> tenantLabels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelReadAllInTenantBody);
+                EnumerationResult<LabelMetadata> tenantLabelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelReadAllInTenantBody);
+                AssertTrue(tenantLabelsEnvelope.TotalRecords >= tenantLabelsEnvelope.Objects.Count, "tenantLabels envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> tenantLabels = tenantLabelsEnvelope.Objects;
                 AssertTrue(tenantLabels.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can invoke tenant label listing");
 
                 string labelReadAllInGraphBody = await _McpClient.CallAsync<string>("label/readallingraph", new
@@ -5833,7 +5858,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<LabelMetadata> graphLabels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelReadAllInGraphBody);
+                EnumerationResult<LabelMetadata> graphLabelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelReadAllInGraphBody);
+                AssertTrue(graphLabelsEnvelope.TotalRecords >= graphLabelsEnvelope.Objects.Count, "graphLabels envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> graphLabels = graphLabelsEnvelope.Objects;
                 AssertTrue(graphLabels.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can read all labels in allowed graph");
 
                 string labelReadManyGraphBody = await _McpClient.CallAsync<string>("label/readmanygraph", new
@@ -5841,7 +5868,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<LabelMetadata> graphScopedLabels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelReadManyGraphBody);
+                EnumerationResult<LabelMetadata> graphScopedLabelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelReadManyGraphBody);
+                AssertTrue(graphScopedLabelsEnvelope.TotalRecords >= graphScopedLabelsEnvelope.Objects.Count, "graphScopedLabels envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> graphScopedLabels = graphScopedLabelsEnvelope.Objects;
                 AssertTrue(graphScopedLabels.Any(label => label.GUID == graphLabelA.GUID), "MCP read-scoped credential can read graph labels");
 
                 string labelReadManyNodeBody = await _McpClient.CallAsync<string>("label/readmanynode", new
@@ -5850,7 +5879,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<LabelMetadata> nodeLabels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelReadManyNodeBody);
+                EnumerationResult<LabelMetadata> nodeLabelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelReadManyNodeBody);
+                AssertTrue(nodeLabelsEnvelope.TotalRecords >= nodeLabelsEnvelope.Objects.Count, "nodeLabels envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> nodeLabels = nodeLabelsEnvelope.Objects;
                 AssertTrue(nodeLabels.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can read node labels");
 
                 string labelReadManyEdgeBody = await _McpClient.CallAsync<string>("label/readmanyedge", new
@@ -5859,7 +5890,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     edgeGuid = edgeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<LabelMetadata> edgeLabels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelReadManyEdgeBody);
+                EnumerationResult<LabelMetadata> edgeLabelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelReadManyEdgeBody);
+                AssertTrue(edgeLabelsEnvelope.TotalRecords >= edgeLabelsEnvelope.Objects.Count, "edgeLabels envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> edgeLabels = edgeLabelsEnvelope.Objects;
                 AssertTrue(edgeLabels.Any(label => label.GUID == edgeLabelA.GUID), "MCP read-scoped credential can read edge labels");
 
                 string labelGetManyBody = await _McpClient.CallAsync<string>("label/getmany", new
@@ -5867,7 +5900,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     labelGuids = new[] { labelA.GUID.ToString(), edgeLabelA.GUID.ToString() }
                 }).ConfigureAwait(false);
-                List<LabelMetadata> manyLabels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(labelGetManyBody);
+                EnumerationResult<LabelMetadata> manyLabelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelGetManyBody);
+                AssertTrue(manyLabelsEnvelope.TotalRecords >= manyLabelsEnvelope.Objects.Count, "manyLabels envelope TotalRecords should cover returned objects");
+                List<LabelMetadata> manyLabels = manyLabelsEnvelope.Objects;
                 AssertEqual(2, manyLabels.Count, "MCP read-scoped credential can read many allowed labels");
 
                 string labelExistsBody = await _McpClient.CallAsync<string>("label/exists", new
@@ -5902,14 +5937,18 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<TagMetadata> readManyTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagReadManyBody);
+                EnumerationResult<TagMetadata> readManyTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagReadManyBody);
+                AssertTrue(readManyTagsEnvelope.TotalRecords >= readManyTagsEnvelope.Objects.Count, "readManyTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> readManyTags = readManyTagsEnvelope.Objects;
                 AssertTrue(readManyTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can list allowed graph tags through readmany");
 
                 string tagReadAllInTenantBody = await _McpClient.CallAsync<string>("tag/readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<TagMetadata> tenantTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagReadAllInTenantBody);
+                EnumerationResult<TagMetadata> tenantTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagReadAllInTenantBody);
+                AssertTrue(tenantTagsEnvelope.TotalRecords >= tenantTagsEnvelope.Objects.Count, "tenantTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> tenantTags = tenantTagsEnvelope.Objects;
                 AssertTrue(tenantTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can invoke tenant tag listing");
 
                 string tagReadAllInGraphBody = await _McpClient.CallAsync<string>("tag/readallingraph", new
@@ -5917,7 +5956,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<TagMetadata> graphTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagReadAllInGraphBody);
+                EnumerationResult<TagMetadata> graphTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagReadAllInGraphBody);
+                AssertTrue(graphTagsEnvelope.TotalRecords >= graphTagsEnvelope.Objects.Count, "graphTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> graphTags = graphTagsEnvelope.Objects;
                 AssertTrue(graphTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can read all tags in allowed graph");
 
                 string tagReadManyGraphBody = await _McpClient.CallAsync<string>("tag/readmanygraph", new
@@ -5925,7 +5966,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<TagMetadata> graphScopedTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagReadManyGraphBody);
+                EnumerationResult<TagMetadata> graphScopedTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagReadManyGraphBody);
+                AssertTrue(graphScopedTagsEnvelope.TotalRecords >= graphScopedTagsEnvelope.Objects.Count, "graphScopedTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> graphScopedTags = graphScopedTagsEnvelope.Objects;
                 AssertTrue(graphScopedTags.Any(tag => tag.GUID == graphTagA.GUID), "MCP read-scoped credential can read graph tags");
 
                 string tagReadManyNodeBody = await _McpClient.CallAsync<string>("tag/readmanynode", new
@@ -5934,7 +5977,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<TagMetadata> nodeTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagReadManyNodeBody);
+                EnumerationResult<TagMetadata> nodeTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagReadManyNodeBody);
+                AssertTrue(nodeTagsEnvelope.TotalRecords >= nodeTagsEnvelope.Objects.Count, "nodeTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> nodeTags = nodeTagsEnvelope.Objects;
                 AssertTrue(nodeTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can read node tags");
 
                 string tagReadManyEdgeBody = await _McpClient.CallAsync<string>("tag/readmanyedge", new
@@ -5943,7 +5988,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     edgeGuid = edgeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<TagMetadata> edgeTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagReadManyEdgeBody);
+                EnumerationResult<TagMetadata> edgeTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagReadManyEdgeBody);
+                AssertTrue(edgeTagsEnvelope.TotalRecords >= edgeTagsEnvelope.Objects.Count, "edgeTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> edgeTags = edgeTagsEnvelope.Objects;
                 AssertTrue(edgeTags.Any(tag => tag.GUID == edgeTagA.GUID), "MCP read-scoped credential can read edge tags");
 
                 string tagGetManyBody = await _McpClient.CallAsync<string>("tag/getmany", new
@@ -5951,7 +5998,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     tagGuids = new[] { tagA.GUID.ToString(), edgeTagA.GUID.ToString() }
                 }).ConfigureAwait(false);
-                List<TagMetadata> manyTags = _McpSerializer.DeserializeJson<List<TagMetadata>>(tagGetManyBody);
+                EnumerationResult<TagMetadata> manyTagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagGetManyBody);
+                AssertTrue(manyTagsEnvelope.TotalRecords >= manyTagsEnvelope.Objects.Count, "manyTags envelope TotalRecords should cover returned objects");
+                List<TagMetadata> manyTags = manyTagsEnvelope.Objects;
                 AssertEqual(2, manyTags.Count, "MCP read-scoped credential can read many allowed tags");
 
                 string tagExistsBody = await _McpClient.CallAsync<string>("tag/exists", new
@@ -5985,14 +6034,18 @@
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<VectorMetadata> allVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorAllBody);
+                EnumerationResult<VectorMetadata> allVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorAllBody);
+                AssertTrue(allVectorsEnvelope.TotalRecords >= allVectorsEnvelope.Objects.Count, "allVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> allVectors = allVectorsEnvelope.Objects;
                 AssertTrue(allVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can list vectors");
 
                 string vectorReadAllInTenantBody = await _McpClient.CallAsync<string>("vector/readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<VectorMetadata> tenantVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorReadAllInTenantBody);
+                EnumerationResult<VectorMetadata> tenantVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorReadAllInTenantBody);
+                AssertTrue(tenantVectorsEnvelope.TotalRecords >= tenantVectorsEnvelope.Objects.Count, "tenantVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> tenantVectors = tenantVectorsEnvelope.Objects;
                 AssertTrue(tenantVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can invoke tenant vector listing");
 
                 string vectorReadAllInGraphBody = await _McpClient.CallAsync<string>("vector/readallingraph", new
@@ -6000,7 +6053,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<VectorMetadata> graphVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorReadAllInGraphBody);
+                EnumerationResult<VectorMetadata> graphVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorReadAllInGraphBody);
+                AssertTrue(graphVectorsEnvelope.TotalRecords >= graphVectorsEnvelope.Objects.Count, "graphVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> graphVectors = graphVectorsEnvelope.Objects;
                 AssertTrue(graphVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can read all vectors in allowed graph");
 
                 string vectorReadManyGraphBody = await _McpClient.CallAsync<string>("vector/readmanygraph", new
@@ -6008,7 +6063,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<VectorMetadata> graphScopedVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorReadManyGraphBody);
+                EnumerationResult<VectorMetadata> graphScopedVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorReadManyGraphBody);
+                AssertTrue(graphScopedVectorsEnvelope.TotalRecords >= graphScopedVectorsEnvelope.Objects.Count, "graphScopedVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> graphScopedVectors = graphScopedVectorsEnvelope.Objects;
                 AssertTrue(graphScopedVectors.Any(vector => vector.GUID == graphVectorA.GUID), "MCP read-scoped credential can read graph vectors");
 
                 string vectorReadManyNodeBody = await _McpClient.CallAsync<string>("vector/readmanynode", new
@@ -6017,7 +6074,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<VectorMetadata> nodeVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorReadManyNodeBody);
+                EnumerationResult<VectorMetadata> nodeVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorReadManyNodeBody);
+                AssertTrue(nodeVectorsEnvelope.TotalRecords >= nodeVectorsEnvelope.Objects.Count, "nodeVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> nodeVectors = nodeVectorsEnvelope.Objects;
                 AssertTrue(nodeVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can read node vectors");
 
                 string vectorReadManyEdgeBody = await _McpClient.CallAsync<string>("vector/readmanyedge", new
@@ -6026,7 +6085,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     edgeGuid = edgeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<VectorMetadata> edgeVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorReadManyEdgeBody);
+                EnumerationResult<VectorMetadata> edgeVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorReadManyEdgeBody);
+                AssertTrue(edgeVectorsEnvelope.TotalRecords >= edgeVectorsEnvelope.Objects.Count, "edgeVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> edgeVectors = edgeVectorsEnvelope.Objects;
                 AssertTrue(edgeVectors.Any(vector => vector.GUID == edgeVectorA.GUID), "MCP read-scoped credential can read edge vectors");
 
                 string vectorGetManyBody = await _McpClient.CallAsync<string>("vector/getmany", new
@@ -6034,7 +6095,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     vectorGuids = new[] { vectorA.GUID.ToString(), edgeVectorA.GUID.ToString() }
                 }).ConfigureAwait(false);
-                List<VectorMetadata> manyVectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(vectorGetManyBody);
+                EnumerationResult<VectorMetadata> manyVectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorGetManyBody);
+                AssertTrue(manyVectorsEnvelope.TotalRecords >= manyVectorsEnvelope.Objects.Count, "manyVectors envelope TotalRecords should cover returned objects");
+                List<VectorMetadata> manyVectors = manyVectorsEnvelope.Objects;
                 AssertEqual(2, manyVectors.Count, "MCP read-scoped credential can read many allowed vectors");
 
                 string vectorExistsBody = await _McpClient.CallAsync<string>("vector/exists", new
@@ -6068,7 +6131,9 @@
                         TopK = 5
                     }, false)
                 }).ConfigureAwait(false);
-                List<VectorSearchResult> vectorSearchResults = _McpSerializer.DeserializeJson<List<VectorSearchResult>>(vectorSearchBody);
+                EnumerationResult<VectorSearchResult> vectorSearchResultsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorSearchResult>>(vectorSearchBody);
+                AssertTrue(vectorSearchResultsEnvelope.TotalRecords >= vectorSearchResultsEnvelope.Objects.Count, "vectorSearchResults envelope TotalRecords should cover returned objects");
+                List<VectorSearchResult> vectorSearchResults = vectorSearchResultsEnvelope.Objects;
                 AssertTrue(vectorSearchResults.Any(result => result.Node != null && result.Node.GUID == nodeA.GUID), "MCP read-scoped credential can search allowed graph vectors");
 
                 string queryBody = await _McpClient.CallAsync<string>("graph/query", new
@@ -6145,14 +6210,18 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> nodeAll = _McpSerializer.DeserializeJson<List<Node>>(nodeAllBody);
+                EnumerationResult<Node> nodeAllEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeAllBody);
+                AssertTrue(nodeAllEnvelope.TotalRecords >= nodeAllEnvelope.Objects.Count, "nodeAll envelope TotalRecords should cover returned objects");
+                List<Node> nodeAll = nodeAllEnvelope.Objects;
                 AssertTrue(nodeAll.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can list allowed graph nodes");
 
                 string nodeReadAllInTenantBody = await _McpClient.CallAsync<string>("node/readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> tenantNodes = _McpSerializer.DeserializeJson<List<Node>>(nodeReadAllInTenantBody);
+                EnumerationResult<Node> tenantNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeReadAllInTenantBody);
+                AssertTrue(tenantNodesEnvelope.TotalRecords >= tenantNodesEnvelope.Objects.Count, "tenantNodes envelope TotalRecords should cover returned objects");
+                List<Node> tenantNodes = tenantNodesEnvelope.Objects;
                 AssertTrue(tenantNodes.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can invoke tenant node listing");
 
                 string nodeReadAllInGraphBody = await _McpClient.CallAsync<string>("node/readallingraph", new
@@ -6160,7 +6229,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> graphNodes = _McpSerializer.DeserializeJson<List<Node>>(nodeReadAllInGraphBody);
+                EnumerationResult<Node> graphNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeReadAllInGraphBody);
+                AssertTrue(graphNodesEnvelope.TotalRecords >= graphNodesEnvelope.Objects.Count, "graphNodes envelope TotalRecords should cover returned objects");
+                List<Node> graphNodes = graphNodesEnvelope.Objects;
                 AssertTrue(graphNodes.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can read all nodes in allowed graph");
 
                 string mostConnectedBody = await _McpClient.CallAsync<string>("node/readmostconnected", new
@@ -6168,7 +6239,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> mostConnectedNodes = _McpSerializer.DeserializeJson<List<Node>>(mostConnectedBody);
+                EnumerationResult<Node> mostConnectedNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(mostConnectedBody);
+                AssertTrue(mostConnectedNodesEnvelope.TotalRecords >= mostConnectedNodesEnvelope.Objects.Count, "mostConnectedNodes envelope TotalRecords should cover returned objects");
+                List<Node> mostConnectedNodes = mostConnectedNodesEnvelope.Objects;
                 AssertNotNull(mostConnectedNodes, "MCP read-scoped credential can read most-connected nodes in allowed graph");
 
                 string leastConnectedBody = await _McpClient.CallAsync<string>("node/readleastconnected", new
@@ -6176,7 +6249,9 @@
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> leastConnectedNodes = _McpSerializer.DeserializeJson<List<Node>>(leastConnectedBody);
+                EnumerationResult<Node> leastConnectedNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(leastConnectedBody);
+                AssertTrue(leastConnectedNodesEnvelope.TotalRecords >= leastConnectedNodesEnvelope.Objects.Count, "leastConnectedNodes envelope TotalRecords should cover returned objects");
+                List<Node> leastConnectedNodes = leastConnectedNodesEnvelope.Objects;
                 AssertNotNull(leastConnectedNodes, "MCP read-scoped credential can read least-connected nodes in allowed graph");
 
                 string nodeGetManyBody = await _McpClient.CallAsync<string>("node/getmany", new
@@ -6185,7 +6260,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuids = new[] { nodeA.GUID.ToString(), nodeA2.GUID.ToString() }
                 }).ConfigureAwait(false);
-                List<Node> manyNodes = _McpSerializer.DeserializeJson<List<Node>>(nodeGetManyBody);
+                EnumerationResult<Node> manyNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeGetManyBody);
+                AssertTrue(manyNodesEnvelope.TotalRecords >= manyNodesEnvelope.Objects.Count, "manyNodes envelope TotalRecords should cover returned objects");
+                List<Node> manyNodes = manyNodesEnvelope.Objects;
                 AssertEqual(2, manyNodes.Count, "MCP read-scoped credential can read many allowed nodes");
 
                 string nodeExistsBody = await _McpClient.CallAsync<string>("node/exists", new
@@ -6234,7 +6311,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA2.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> parentNodes = _McpSerializer.DeserializeJson<List<Node>>(nodeParentsBody);
+                EnumerationResult<Node> parentNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeParentsBody);
+                AssertTrue(parentNodesEnvelope.TotalRecords >= parentNodesEnvelope.Objects.Count, "parentNodes envelope TotalRecords should cover returned objects");
+                List<Node> parentNodes = parentNodesEnvelope.Objects;
                 AssertTrue(parentNodes.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can read allowed node parents");
 
                 string nodeChildrenBody = await _McpClient.CallAsync<string>("node/children", new
@@ -6243,7 +6322,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> childNodes = _McpSerializer.DeserializeJson<List<Node>>(nodeChildrenBody);
+                EnumerationResult<Node> childNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeChildrenBody);
+                AssertTrue(childNodesEnvelope.TotalRecords >= childNodesEnvelope.Objects.Count, "childNodes envelope TotalRecords should cover returned objects");
+                List<Node> childNodes = childNodesEnvelope.Objects;
                 AssertTrue(childNodes.Any(node => node.GUID == nodeA2.GUID), "MCP read-scoped credential can read allowed node children");
 
                 string nodeNeighborsBody = await _McpClient.CallAsync<string>("node/neighbors", new
@@ -6252,7 +6333,9 @@
                     graphGuid = graphA.GUID.ToString(),
                     nodeGuid = nodeA.GUID.ToString()
                 }).ConfigureAwait(false);
-                List<Node> neighborNodes = _McpSerializer.DeserializeJson<List<Node>>(nodeNeighborsBody);
+                EnumerationResult<Node> neighborNodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeNeighborsBody);
+                AssertTrue(neighborNodesEnvelope.TotalRecords >= neighborNodesEnvelope.Objects.Count, "neighborNodes envelope TotalRecords should cover returned objects");
+                List<Node> neighborNodes = neighborNodesEnvelope.Objects;
                 AssertTrue(neighborNodes.Any(node => node.GUID == nodeA2.GUID), "MCP read-scoped credential can read allowed node neighbors");
 
                 string nodeTraverseBody = await _McpClient.CallAsync<string>("node/traverse", new
@@ -7874,16 +7957,17 @@
                         nodeGuids = new[] { nodeB.GUID.ToString() }
                     }),
                     "MCP graph allow-list denies another graph node getmany").ConfigureAwait(false);
+                // v8.1: node/getmany proxies the graph-scoped GET nodes?guids= list route, so the denial is
+                // audited as a node list read rather than a per-node read.
                 await AssertMcpAuthorizationAudit(
                     credential.GUID,
                     tenant.GUID,
                     graphB.GUID,
-                    RequestTypeEnum.NodeRead,
+                    RequestTypeEnum.NodeReadAll,
                     "GraphDenied",
                     "read",
                     "MCP graph allow-list node getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("node/all", new
@@ -7900,7 +7984,8 @@
                     "GraphDenied",
                     "read",
                     "MCP graph allow-list node list denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    2).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("node/readallingraph", new
@@ -8130,16 +8215,17 @@
                         edgeGuids = new[] { edgeB.GUID.ToString() }
                     }),
                     "MCP graph allow-list denies another graph edge getmany").ConfigureAwait(false);
+                // v8.1: edge/getmany proxies the graph-scoped GET edges?guids= list route, so the denial is
+                // audited as an edge list read rather than a per-edge read.
                 await AssertMcpAuthorizationAudit(
                     credential.GUID,
                     tenant.GUID,
                     graphB.GUID,
-                    RequestTypeEnum.EdgeRead,
+                    RequestTypeEnum.EdgeReadMany,
                     "GraphDenied",
                     "read",
                     "MCP graph allow-list edge getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("edge/all", new
@@ -8156,7 +8242,8 @@
                     "GraphDenied",
                     "read",
                     "MCP graph allow-list edge list denial audit",
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    2).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("edge/readallingraph", new
@@ -8342,23 +8429,16 @@
                     "MCP graph allow-list label denial audit",
                     cancellationToken).ConfigureAwait(false);
 
-                await AssertMcpCallDenied(
-                    () => _McpClient.CallAsync<string>("label/getmany", new
-                    {
-                        tenantGuid = tenant.GUID.ToString(),
-                        labelGuids = new[] { labelB.GUID.ToString() }
-                    }),
-                    "MCP graph allow-list denies another graph label getmany").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    graphB.GUID,
-                    RequestTypeEnum.LabelRead,
-                    "GraphDenied",
-                    "read",
-                    "MCP graph allow-list label getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
+                // v8.1: label/getmany proxies the tenant-level GET /labels?guids= route, which carries no graph
+                // GUID; graph allow-list credentials are permitted tenant-level reads (matching label/all), so
+                // the call succeeds and returns the enumeration envelope.
+                string labelGetManyScopedBody = await _McpClient.CallAsync<string>("label/getmany", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    labelGuids = new[] { labelB.GUID.ToString() }
+                }).ConfigureAwait(false);
+                EnumerationResult<LabelMetadata> labelGetManyScoped = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelGetManyScopedBody);
+                AssertEqual(1, labelGetManyScoped.Objects.Count, "MCP graph allow-list label getmany returns the requested label via the tenant-level route");
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("label/exists", new
@@ -8502,23 +8582,16 @@
                     "MCP graph allow-list vector denial audit",
                     cancellationToken).ConfigureAwait(false);
 
-                await AssertMcpCallDenied(
-                    () => _McpClient.CallAsync<string>("tag/getmany", new
-                    {
-                        tenantGuid = tenant.GUID.ToString(),
-                        tagGuids = new[] { tagB.GUID.ToString() }
-                    }),
-                    "MCP graph allow-list denies another graph tag getmany").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    graphB.GUID,
-                    RequestTypeEnum.TagRead,
-                    "GraphDenied",
-                    "read",
-                    "MCP graph allow-list tag getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
+                // v8.1: tag/getmany proxies the tenant-level GET /tags?guids= route, which carries no graph
+                // GUID; graph allow-list credentials are permitted tenant-level reads, so the call succeeds
+                // and returns the enumeration envelope.
+                string tagGetManyScopedBody = await _McpClient.CallAsync<string>("tag/getmany", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    tagGuids = new[] { tagB.GUID.ToString() }
+                }).ConfigureAwait(false);
+                EnumerationResult<TagMetadata> tagGetManyScoped = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagGetManyScopedBody);
+                AssertEqual(1, tagGetManyScoped.Objects.Count, "MCP graph allow-list tag getmany returns the requested tag via the tenant-level route");
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("tag/exists", new
@@ -8628,23 +8701,16 @@
                     "MCP graph allow-list tag enumerate denial audit",
                     cancellationToken).ConfigureAwait(false);
 
-                await AssertMcpCallDenied(
-                    () => _McpClient.CallAsync<string>("vector/getmany", new
-                    {
-                        tenantGuid = tenant.GUID.ToString(),
-                        vectorGuids = new[] { vectorB.GUID.ToString() }
-                    }),
-                    "MCP graph allow-list denies another graph vector getmany").ConfigureAwait(false);
-                await AssertMcpAuthorizationAudit(
-                    credential.GUID,
-                    tenant.GUID,
-                    graphB.GUID,
-                    RequestTypeEnum.VectorRead,
-                    "GraphDenied",
-                    "read",
-                    "MCP graph allow-list vector getmany denial audit",
-                    cancellationToken,
-                    2).ConfigureAwait(false);
+                // v8.1: vector/getmany proxies the tenant-level GET /vectors?guids= route, which carries no
+                // graph GUID; graph allow-list credentials are permitted tenant-level reads, so the call
+                // succeeds and returns the enumeration envelope.
+                string vectorGetManyScopedBody = await _McpClient.CallAsync<string>("vector/getmany", new
+                {
+                    tenantGuid = tenant.GUID.ToString(),
+                    vectorGuids = new[] { vectorB.GUID.ToString() }
+                }).ConfigureAwait(false);
+                EnumerationResult<VectorMetadata> vectorGetManyScoped = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorGetManyScopedBody);
+                AssertEqual(1, vectorGetManyScoped.Objects.Count, "MCP graph allow-list vector getmany returns the requested vector via the tenant-level route");
 
                 await AssertMcpCallDenied(
                     () => _McpClient.CallAsync<string>("vector/exists", new

@@ -79,7 +79,9 @@ describe('NodeRoute Tests', () => {
 
     test('should read all nodes of a graph', async () => {
       const response = await api.readNodes(mockGraphGuid);
-      response.map((node) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      expect(response.TotalRecords).toBe(response.Objects.length);
+      response.Objects.map((node) => {
         expect(JSON.stringify(node)).toBe(JSON.stringify(new Node(nodeData[node.GUID])));
       });
     });

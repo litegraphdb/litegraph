@@ -236,24 +236,27 @@ const AuthorizationPage = () => {
   const roles = rolesResult?.Objects || [];
 
   const {
-    data: users = [],
+    data: usersEnvelope,
     isLoading: usersLoading,
     refetch: refetchUsers,
   } = useGetAllUsersQuery(undefined, {
     skip: !tenantGuid,
   });
+  const users = usersEnvelope?.Objects ?? [];
   const {
-    data: credentials = [],
+    data: credentialsEnvelope,
     isLoading: credentialsLoading,
     refetch: refetchCredentials,
   } = useGetAllCredentialsQuery(undefined, { skip: !tenantGuid });
+  const credentials = credentialsEnvelope?.Objects ?? [];
   const {
-    data: graphs = [],
+    data: graphsEnvelope,
     isLoading: graphsLoading,
     refetch: refetchGraphs,
   } = useGetAllGraphsQuery(undefined, {
     skip: !tenantGuid,
   });
+  const graphs = graphsEnvelope?.Objects ?? [];
 
   const effectiveUserGuid = selectedUserGuid || users[0]?.GUID || '';
   const effectiveCredentialGuid = selectedCredentialGuid || credentials[0]?.GUID || '';

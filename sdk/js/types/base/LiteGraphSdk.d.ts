@@ -40,11 +40,16 @@ export default class LiteGraphSdk extends SdkBase {
         Data: any;
     }, cancellationToken?: AbortController): Promise<Graph>;
     /**
-     * Read all graphs.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<Graph[]>} - An array of graphs.
+     * Read graphs as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Graph instances.
      */
-    readGraphs(cancellationToken?: AbortController): Promise<Graph[]>;
+    readGraphs(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Search graphs.
      * @param {Object} searchReq - Information about the search request.
@@ -231,21 +236,29 @@ export default class LiteGraphSdk extends SdkBase {
      */
     executeQuery(graphGuid: string, request: any | string, parameters?: any, options?: any, cancellationToken?: AbortController): Promise<GraphQueryResult>;
     /**
-     * List authorization roles for the configured tenant.
+     * List authorization roles for the configured tenant as a paginated enumeration result.
      * @param {Object} [options] - Role list options.
      * @param {number} [options.page=0] - Page index.
      * @param {number} [options.pageSize=1000] - Page size.
      * @param {boolean} [options.includeBuiltIns=true] - Include built-in roles.
      * @param {boolean} [options.builtIn] - Filter by built-in status.
+     * @param {number} [options.maxKeys] - Maximum number of results (1-1000). Sent as max-keys and overrides pageSize.
+     * @param {number} [options.skip] - Number of records to skip (default 0). Overrides page.
+     * @param {string} [options.order] - Enumeration ordering.
+     * @param {string} [options.token] - Continuation token GUID from a previous page.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
-     * @returns {Promise<AuthorizationRoleSearchResult>} - Role search result.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are AuthorizationRole instances.
      */
     listAuthorizationRoles(options?: {
         page?: number;
         pageSize?: number;
         includeBuiltIns?: boolean;
         builtIn?: boolean;
-    }, cancellationToken?: AbortController): Promise<AuthorizationRoleSearchResult>;
+        maxKeys?: number;
+        skip?: number;
+        order?: string;
+        token?: string;
+    }, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Create an authorization role.
      * @param {Object} role - Role payload.
@@ -275,13 +288,13 @@ export default class LiteGraphSdk extends SdkBase {
      */
     deleteAuthorizationRole(roleGuid: string, cancellationToken?: AbortController): Promise<void>;
     /**
-     * List user role assignments.
+     * List user role assignments as a paginated enumeration result.
      * @param {string} userGuid - User GUID.
-     * @param {Object} [options] - List filters.
+     * @param {Object} [options] - List filters, including pagination options ({ maxKeys, skip, order, token }).
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
-     * @returns {Promise<UserRoleAssignmentSearchResult>} - Assignment search result.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are UserRoleAssignment instances.
      */
-    listUserRoleAssignments(userGuid: string, options?: any, cancellationToken?: AbortController): Promise<UserRoleAssignmentSearchResult>;
+    listUserRoleAssignments(userGuid: string, options?: any, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Create a user role assignment.
      * @param {string} userGuid - User GUID.
@@ -323,13 +336,13 @@ export default class LiteGraphSdk extends SdkBase {
      */
     getUserEffectivePermissions(userGuid: string, graphGuid?: string, cancellationToken?: AbortController): Promise<AuthorizationEffectivePermissionsResult>;
     /**
-     * List credential scope assignments.
+     * List credential scope assignments as a paginated enumeration result.
      * @param {string} credentialGuid - Credential GUID.
-     * @param {Object} [options] - List filters.
+     * @param {Object} [options] - List filters, including pagination options ({ maxKeys, skip, order, token }).
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
-     * @returns {Promise<CredentialScopeAssignmentSearchResult>} - Scope search result.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are CredentialScopeAssignment instances.
      */
-    listCredentialScopeAssignments(credentialGuid: string, options?: any, cancellationToken?: AbortController): Promise<CredentialScopeAssignmentSearchResult>;
+    listCredentialScopeAssignments(credentialGuid: string, options?: any, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Create a credential scope assignment.
      * @param {string} credentialGuid - Credential GUID.
@@ -407,12 +420,17 @@ export default class LiteGraphSdk extends SdkBase {
         CreatedUtc: Date;
     }, cancellationToken?: AbortController): Promise<Node>;
     /**
-     * Read nodes for a specific graph.
+     * Read nodes for a specific graph as a paginated enumeration result.
      * @param {string} graphGuid - The GUID of the graph.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<Node[]>} - An array of nodes.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Node instances.
      */
-    readNodes(graphGuid: string, cancellationToken?: AbortController): Promise<Node[]>;
+    readNodes(graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Search nodes.
      * @param {Object} searchReq - Information about the search request.
@@ -517,12 +535,17 @@ export default class LiteGraphSdk extends SdkBase {
         Data?: any;
     }, cancellationToken?: AbortController): Promise<Edge>;
     /**
-     * Read edges.
+     * Read edges as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<Edge[]>} - List of edges.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Edge instances.
      */
-    readEdges(graphGuid: string, cancellationToken?: AbortController): Promise<Edge[]>;
+    readEdges(graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Search edges.
      * @param {string} graphGuid - Graph GUID.
@@ -592,62 +615,97 @@ export default class LiteGraphSdk extends SdkBase {
      */
     deleteMultipleEdges(graphGuid: string, edgeGuids: Array<string>, cancellationToken?: AbortController): Promise<any[]>;
     /**
-     * Get edges from a node.
+     * Get edges from a node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Edge[]>} - Edges.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Edge instances.
      */
-    getEdgesFromNode(graphGuid: string, nodeGuid: string, cancellationToken?: AbortSignal): Promise<Edge[]>;
+    getEdgesFromNode(graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get edges to a node.
+     * Get edges to a node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Edge[]>} - Edges.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Edge instances.
      */
-    getEdgesToNode(graphGuid: string, nodeGuid: string, cancellationToken?: AbortSignal): Promise<Edge[]>;
+    getEdgesToNode(graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get edges from a given node to a given node.
+     * Get edges from a given node to a given node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} fromNodeGuid - From node GUID.
      * @param {string} toNodeGuid - To node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Edge[]>} - Edges.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Edge instances.
      */
-    getEdgesBetween(graphGuid: string, fromNodeGuid: string, toNodeGuid: string, cancellationToken?: AbortSignal): Promise<Edge[]>;
+    getEdgesBetween(graphGuid: string, fromNodeGuid: string, toNodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get all edges to or from a node.
+     * Get all edges to or from a node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Edge[]>} - Edges.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Edge instances.
      */
-    getAllNodeEdges(graphGuid: string, nodeGuid: string, cancellationToken?: AbortSignal): Promise<Edge[]>;
+    getAllNodeEdges(graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get child nodes from a node.
+     * Get child nodes from a node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Node[]>} - Child nodes.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Node instances.
      */
-    getChildrenFromNode(graphGuid: string, nodeGuid: string, cancellationToken?: AbortSignal): Promise<Node[]>;
+    getChildrenFromNode(graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get parent nodes from a node.
+     * Get parent nodes from a node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Node[]>} - Parent nodes.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Node instances.
      */
-    getParentsFromNode(graphGuid: string, nodeGuid: string, cancellationToken?: AbortSignal): Promise<Node[]>;
+    getParentsFromNode(graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get neighboring nodes from a node.
+     * Get neighboring nodes from a node as a paginated enumeration result.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortSignal} [cancellationToken] - Abort signal for cancellation.
-     * @returns {Promise<Node[]>} - Neighboring nodes.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Node instances.
      */
-    getNodeNeighbors(graphGuid: string, nodeGuid: string, cancellationToken?: AbortSignal): Promise<Node[]>;
+    getNodeNeighbors(graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Get routes between two nodes.
      * @param {string} graphGuid - Graph GUID.
@@ -658,11 +716,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     getRoutes(graphGuid: string, fromNodeGuid: string, toNodeGuid: string, cancellationToken?: AbortSignal): Promise<RouteResult>;
     /**
-     * Read all tenants.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<TenantMetaData[]>} - An array of tenants.
+     * Read tenants as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are TenantMetaData instances.
      */
-    readTenants(cancellationToken?: AbortController): Promise<TenantMetaData[]>;
+    readTenants(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a tenant.
      * @param {string} tenantGuid - The GUID of the tenant.
@@ -711,11 +774,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     tenantDeleteForce(tenantGuid: string, cancellationToken?: AbortController): Promise<boolean>;
     /**
-     * Read all users.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<UserMetadata[]>} - An array of users.
+     * Read users as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are UserMetadata instances.
      */
-    readAllUsers(cancellationToken?: AbortController): Promise<UserMetadata[]>;
+    readAllUsers(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a user.
      * @param {string} userGuid - The GUID of the user.
@@ -763,11 +831,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     deleteUser(guid: string, cancellationToken?: AbortController): Promise<boolean>;
     /**
-     * Read all credentials.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<CredentialMetadata[]>} - An array of credentials.
+     * Read credentials as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are CredentialMetadata instances.
      */
-    readAllCredentials(cancellationToken?: AbortController): Promise<CredentialMetadata[]>;
+    readAllCredentials(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a credential.
      * @param {string} guid - The GUID of the credential.
@@ -811,11 +884,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     existsCredential(guid: string, cancellationToken?: AbortController): Promise<boolean>;
     /**
-     * Read all tags.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<TagMetaData[]>}
+     * Read tags as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are TagMetaData instances.
      */
-    readAllTags(cancellationToken?: AbortController): Promise<TagMetaData[]>;
+    readAllTags(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a tag.
      * @param {string} guid - The GUID of the tag.
@@ -862,11 +940,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     deleteTag(guid: string, cancellationToken?: AbortController): Promise<void>;
     /**
-     * Read all labels.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<LabelMetadata[]>}
+     * Read labels as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are LabelMetadata instances.
      */
-    readAllLabels(cancellationToken?: AbortController): Promise<LabelMetadata[]>;
+    readAllLabels(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a label.
      * @param {string} guid - The GUID of the label.
@@ -913,11 +996,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     deleteLabel(guid: string, cancellationToken?: AbortController): Promise<void>;
     /**
-     * Read all vectors.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<VectorMetadata[]>}
+     * Read vectors as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are VectorMetadata instances.
      */
-    readAllVectors(cancellationToken?: AbortController): Promise<VectorMetadata[]>;
+    readAllVectors(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a vector.
      * @param {string} guid - The GUID of the vector.
@@ -971,14 +1059,14 @@ export default class LiteGraphSdk extends SdkBase {
      * @param {String} searchReq.SearchType - Expression used for the search (default is null).
      * @param {Array<string>} searchReq.Labels - The domain of the search type.
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<VectorSearchResult>} - The search result.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are VectorSearchResult instances.
      */
     searchVectors(searchReq: {
         GraphGUID: string;
         Domain: string;
         SearchType: string;
         Labels: Array<string>;
-    }, cancellationToken?: AbortController): Promise<VectorSearchResult>;
+    }, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Generate an authentication token.
      * @param {string} email - The user's email address.
@@ -996,18 +1084,28 @@ export default class LiteGraphSdk extends SdkBase {
      */
     getTokenDetails(token: string, cancellationToken?: AbortController): Promise<Token>;
     /**
-     * Get tenants associated with an email address.
+     * Get tenants associated with an email address as a paginated enumeration result.
      * @param {string} email - The email address to lookup tenants for.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<TenantMetaData[]>} Array of tenants associated with the email
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are TenantMetaData instances.
      */
-    getTenantsForEmail(email: string, cancellationToken?: AbortController): Promise<TenantMetaData[]>;
+    getTenantsForEmail(email: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * List all available backups.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<Array>} List of backup metadata.
+     * List available backups as a paginated enumeration result.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are backup metadata objects.
      */
-    listBackups(cancellationToken?: AbortController): Promise<any[]>;
+    listBackups(optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Create a new database backup.
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
@@ -1136,47 +1234,60 @@ export default class LiteGraphSdk extends SdkBase {
      */
     getAllGraphStatistics(tenantGuid: string, cancellationToken?: AbortController): Promise<any>;
     /**
-     * Get the most connected nodes in a graph.
+     * Get the most connected nodes in a graph as a paginated enumeration result.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<Array>} List of most connected nodes.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Node instances.
      */
-    getMostConnectedNodes(tenantGuid: string, graphGuid: string, cancellationToken?: AbortController): Promise<any[]>;
+    getMostConnectedNodes(tenantGuid: string, graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Get the least connected nodes in a graph.
+     * Get the least connected nodes in a graph as a paginated enumeration result.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<Array>} List of least connected nodes.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options or cancellation token.
+     * @param {number} [optionsOrCancellationToken.maxKeys] - Maximum number of results (1-1000, default 1000). Sent as max-keys.
+     * @param {number} [optionsOrCancellationToken.skip] - Number of records to skip (default 0).
+     * @param {string} [optionsOrCancellationToken.order] - Enumeration ordering.
+     * @param {string} [optionsOrCancellationToken.token] - Continuation token GUID from a previous page.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are Node instances.
      */
-    getLeastConnectedNodes(tenantGuid: string, graphGuid: string, cancellationToken?: AbortController): Promise<any[]>;
+    getLeastConnectedNodes(tenantGuid: string, graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read labels for a specific graph.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<LabelMetadata[]>} List of labels.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are LabelMetadata instances.
      */
-    readGraphLabels(tenantGuid: string, graphGuid: string, cancellationToken?: AbortController): Promise<LabelMetadata[]>;
+    readGraphLabels(tenantGuid: string, graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read labels for a specific node.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<LabelMetadata[]>} List of labels.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are LabelMetadata instances.
      */
-    readNodeLabels(tenantGuid: string, graphGuid: string, nodeGuid: string, cancellationToken?: AbortController): Promise<LabelMetadata[]>;
+    readNodeLabels(tenantGuid: string, graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read labels for a specific edge.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} edgeGuid - Edge GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<LabelMetadata[]>} List of labels.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are LabelMetadata instances.
      */
-    readEdgeLabels(tenantGuid: string, graphGuid: string, edgeGuid: string, cancellationToken?: AbortController): Promise<LabelMetadata[]>;
+    readEdgeLabels(tenantGuid: string, graphGuid: string, edgeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Delete all labels for a specific graph.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1207,28 +1318,31 @@ export default class LiteGraphSdk extends SdkBase {
      * Read tags for a specific graph.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<TagMetaData[]>} List of tags.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are TagMetaData instances.
      */
-    readGraphTags(tenantGuid: string, graphGuid: string, cancellationToken?: AbortController): Promise<TagMetaData[]>;
+    readGraphTags(tenantGuid: string, graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read tags for a specific node.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<TagMetaData[]>} List of tags.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are TagMetaData instances.
      */
-    readNodeTags(tenantGuid: string, graphGuid: string, nodeGuid: string, cancellationToken?: AbortController): Promise<TagMetaData[]>;
+    readNodeTags(tenantGuid: string, graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read tags for a specific edge.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} edgeGuid - Edge GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<TagMetaData[]>} List of tags.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are TagMetaData instances.
      */
-    readEdgeTags(tenantGuid: string, graphGuid: string, edgeGuid: string, cancellationToken?: AbortController): Promise<TagMetaData[]>;
+    readEdgeTags(tenantGuid: string, graphGuid: string, edgeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Delete all tags for a specific graph.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1259,28 +1373,31 @@ export default class LiteGraphSdk extends SdkBase {
      * Read vectors for a specific graph.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<VectorMetadata[]>} List of vectors.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are VectorMetadata instances.
      */
-    readGraphVectors(tenantGuid: string, graphGuid: string, cancellationToken?: AbortController): Promise<VectorMetadata[]>;
+    readGraphVectors(tenantGuid: string, graphGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read vectors for a specific node.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} nodeGuid - Node GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<VectorMetadata[]>} List of vectors.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are VectorMetadata instances.
      */
-    readNodeVectors(tenantGuid: string, graphGuid: string, nodeGuid: string, cancellationToken?: AbortController): Promise<VectorMetadata[]>;
+    readNodeVectors(tenantGuid: string, graphGuid: string, nodeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read vectors for a specific edge.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.
      * @param {string} edgeGuid - Edge GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<VectorMetadata[]>} List of vectors.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are VectorMetadata instances.
      */
-    readEdgeVectors(tenantGuid: string, graphGuid: string, edgeGuid: string, cancellationToken?: AbortController): Promise<VectorMetadata[]>;
+    readEdgeVectors(tenantGuid: string, graphGuid: string, edgeGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Delete all vectors for a specific graph.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1331,13 +1448,14 @@ export default class LiteGraphSdk extends SdkBase {
         Model: string;
     }, cancellationToken?: AbortController): Promise<ChatEndpoint>;
     /**
-     * Read all chat endpoints, optionally filtered by endpoint type.
+     * Read chat endpoints as a paginated enumeration result, optionally filtered by endpoint type.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} [endpointType] - Optional endpoint type filter: Embedding or Completion.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<ChatEndpoint[]>} - List of chat endpoints (ApiKey redacted).
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are ChatEndpoint instances (ApiKey redacted).
      */
-    readChatEndpoints(tenantGuid: string, endpointType?: string, cancellationToken?: AbortController): Promise<ChatEndpoint[]>;
+    readChatEndpoints(tenantGuid: string, endpointType?: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a specific chat endpoint.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1387,19 +1505,22 @@ export default class LiteGraphSdk extends SdkBase {
      */
     readChatEndpointHealth(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointHealth>;
     /**
-     * Read health status for all chat endpoints.
+     * Read health status for all chat endpoints as a paginated enumeration result.
      * @param {string} tenantGuid - Tenant GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<ChatEndpointHealth[]>} - Health status list.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are ChatEndpointHealth instances.
      */
-    readAllChatEndpointHealth(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointHealth[]>;
+    readAllChatEndpointHealth(tenantGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
-     * Read the model catalog: active chat endpoints projected as model summaries. Does not require administrator privileges.
+     * Read the model catalog as a paginated enumeration result: active chat endpoints projected as model summaries.
+     * Does not require administrator privileges.
      * @param {string} tenantGuid - Tenant GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<ChatModelSummary[]>} - List of model summaries ({ GUID, Name, Model, Provider, EndpointType, IsDefault }).
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are ChatModelSummary instances ({ GUID, Name, Model, Provider, EndpointType, IsDefault }).
      */
-    readChatModels(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatModelSummary[]>;
+    readChatModels(tenantGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Create a chat thread. The caller becomes the thread owner; requires a user principal.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1414,13 +1535,14 @@ export default class LiteGraphSdk extends SdkBase {
         Title?: string;
     }, cancellationToken?: AbortController): Promise<ChatThread>;
     /**
-     * Read chat threads owned by the caller, or all users' threads when allUsers is true (admin only).
+     * Read chat threads owned by the caller as a paginated enumeration result, or all users' threads when allUsers is true (admin only).
      * @param {string} tenantGuid - Tenant GUID.
      * @param {boolean} [allUsers=false] - When true, list every user's threads (requires administrator privileges).
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<ChatThread[]>} - List of chat threads.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are ChatThread instances.
      */
-    readChatThreads(tenantGuid: string, allUsers?: boolean, cancellationToken?: AbortController): Promise<ChatThread[]>;
+    readChatThreads(tenantGuid: string, allUsers?: boolean, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a specific chat thread.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1450,13 +1572,14 @@ export default class LiteGraphSdk extends SdkBase {
      */
     deleteChatThread(tenantGuid: string, threadGuid: string, cancellationToken?: AbortController): Promise<void>;
     /**
-     * Read the turns of a chat thread, ascending by sequence.
+     * Read the turns of a chat thread as a paginated enumeration result, ascending by sequence.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} threadGuid - Chat thread GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<ChatTurn[]>} - List of chat turns.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are ChatTurn instances.
      */
-    readChatThreadTurns(tenantGuid: string, threadGuid: string, cancellationToken?: AbortController): Promise<ChatTurn[]>;
+    readChatThreadTurns(tenantGuid: string, threadGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Execute a non-streaming chat completion. Requires a user principal.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1514,12 +1637,13 @@ export default class LiteGraphSdk extends SdkBase {
         FeedbackText?: string;
     }, cancellationToken?: AbortController): Promise<ChatFeedback>;
     /**
-     * Read all chat feedback for the tenant. Requires tenant administrator privileges.
+     * Read chat feedback for the tenant as a paginated enumeration result. Requires tenant administrator privileges.
      * @param {string} tenantGuid - Tenant GUID.
-     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
-     * @returns {Promise<ChatFeedback[]>} - List of feedback records.
+     * @param {Object|AbortController} [optionsOrCancellationToken] - Optional pagination options ({ maxKeys, skip, order, token }) or cancellation token.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token when options are supplied.
+     * @returns {Promise<EnumerationResult>} - Enumeration result whose Objects are ChatFeedback instances.
      */
-    readAllChatFeedback(tenantGuid: string, cancellationToken?: AbortController): Promise<ChatFeedback[]>;
+    readAllChatFeedback(tenantGuid: string, optionsOrCancellationToken?: any | AbortController, cancellationToken?: AbortController): Promise<EnumerationResult>;
     /**
      * Read a specific chat feedback record. Requires tenant administrator privileges.
      * @param {string} tenantGuid - Tenant GUID.
@@ -1555,17 +1679,15 @@ export default class LiteGraphSdk extends SdkBase {
 import SdkBase from './SdkBase';
 import { VectorMetadata } from '../models/VectorMetadata';
 import Graph from '../models/Graph';
+import EnumerationResult from '../models/EnumerationResult';
 import SearchResult from '../models/SearchResult';
 import EdgeBetween from '../models/EdgeBetween';
 import GraphTransactionBuilder from '../models/GraphTransactionBuilder';
 import TransactionResult from '../models/TransactionResult';
 import GraphQueryResult from '../models/GraphQueryResult';
-import { AuthorizationRoleSearchResult } from '../models/AuthorizationModels';
 import { AuthorizationRole } from '../models/AuthorizationModels';
-import { UserRoleAssignmentSearchResult } from '../models/AuthorizationModels';
 import { UserRoleAssignment } from '../models/AuthorizationModels';
 import { AuthorizationEffectivePermissionsResult } from '../models/AuthorizationModels';
-import { CredentialScopeAssignmentSearchResult } from '../models/AuthorizationModels';
 import { CredentialScopeAssignment } from '../models/AuthorizationModels';
 import Node from '../models/Node';
 import Edge from '../models/Edge';
@@ -1575,14 +1697,11 @@ import UserMetadata from '../models/UserMetadata';
 import CredentialMetadata from '../models/CredentialMetadata';
 import TagMetaData from '../models/TagMetaData';
 import LabelMetadata from '../models/LabelMetadata';
-import { VectorSearchResult } from '../models/VectorSearchResult';
 import Token from '../models/Token';
 import ChatEndpoint from '../models/ChatEndpoint';
 import ChatEndpointTestResult from '../models/ChatEndpointTestResult';
 import ChatEndpointHealth from '../models/ChatEndpointHealth';
-import ChatModelSummary from '../models/ChatModelSummary';
 import ChatThread from '../models/ChatThread';
-import ChatTurn from '../models/ChatTurn';
 import ChatCompletionResult from '../models/ChatCompletionResult';
 import ChatFeedback from '../models/ChatFeedback';
 import ChatSettings from '../models/ChatSettings';

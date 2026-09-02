@@ -57,10 +57,11 @@ jest.mock('@/lib/sdk/requestHistory', () => {
             '{"TransactionId":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","State":"Faulted","Success":false,"ValidationFailure":true,"RolledBack":false,"IsolationLevel":"Serializable","Provider":"Sqlite","ProviderErrorCode":"SQLITE_BUSY","Retryable":true,"ConcurrencyConflict":true}',
         },
       ],
-      TotalCount: 2,
-      Page: 0,
-      PageSize: 25,
-      TotalPages: 1,
+      Success: true,
+      MaxResults: 25,
+      EndOfResults: true,
+      TotalRecords: 2,
+      RecordsRemaining: 0,
     }),
   };
 });

@@ -92,8 +92,8 @@ const LabelPage = () => {
 
   const transformedLabelsList = transformLabelsDataForTable(
     labelsList?.Objects || [],
-    nodesList || [],
-    edgesList || []
+    nodesList?.Objects || [],
+    edgesList?.Objects || []
   );
 
   const handleCreateLabel = () => {

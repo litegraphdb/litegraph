@@ -69,15 +69,19 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadMany(
+        public async Task<EnumerationResult<VectorMetadata>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/vectors?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<VectorMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/vectors?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -88,11 +92,11 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
+        public async Task<EnumerationResult<VectorMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/vectors?guids=" + string.Join(",", guids);
-            return await _Sdk.Get<List<VectorMetadata>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -126,10 +130,10 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorSearchResult>> SearchVectors(
-            Guid tenantGuid, 
-            Guid? graphGuid, 
-            VectorSearchRequest searchReq, 
+        public async Task<EnumerationResult<VectorSearchResult>> SearchVectors(
+            Guid tenantGuid,
+            Guid? graphGuid,
+            VectorSearchRequest searchReq,
             CancellationToken token = default)
         {
             if (searchReq == null) throw new ArgumentNullException(nameof(searchReq));
@@ -143,7 +147,7 @@
 
             if (bytes != null && bytes.Length > 0)
             {
-                List<VectorSearchResult> result = Serializer.DeserializeJson<List<VectorSearchResult>>(Encoding.UTF8.GetString(bytes));
+                EnumerationResult<VectorSearchResult> result = Serializer.DeserializeJson<EnumerationResult<VectorSearchResult>>(Encoding.UTF8.GetString(bytes));
                 return result;
             }
 
@@ -160,38 +164,89 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<VectorMetadata>> ReadAllInTenant(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/vectors/all";
-            return await _Sdk.GetMany<VectorMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/vectors/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<VectorMetadata>> ReadAllInGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/vectors/all";
-            return await _Sdk.GetMany<VectorMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/vectors/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadManyGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<VectorMetadata>> ReadManyGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/vectors";
-            return await _Sdk.GetMany<VectorMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/vectors?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<VectorMetadata>> ReadManyNode(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/vectors";
-            return await _Sdk.GetMany<VectorMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/vectors?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<VectorMetadata>> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<VectorMetadata>> ReadManyEdge(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid edgeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/" + edgeGuid + "/vectors";
-            return await _Sdk.GetMany<VectorMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/" + edgeGuid + "/vectors?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<VectorMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

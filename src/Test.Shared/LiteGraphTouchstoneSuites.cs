@@ -3174,7 +3174,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tenant/all", new { });
             AssertNotNull(result, "Result should not be null");
 
-            List<TenantMetadata>? tenants = _McpSerializer.DeserializeJson<List<TenantMetadata>>(result);
+            EnumerationResult<TenantMetadata>? tenantsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TenantMetadata>>(result);
+            AssertTrue(tenantsEnvelope == null || tenantsEnvelope.TotalRecords >= tenantsEnvelope.Objects.Count, "tenants envelope TotalRecords should cover returned objects");
+            List<TenantMetadata>? tenants = tenantsEnvelope?.Objects;
             AssertNotNull(tenants, "Tenants list should not be null");
             AssertTrue(tenants!.Count > 0, "Should have at least one tenant");
         }
@@ -3325,7 +3327,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("user/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<UserMaster>? users = _McpSerializer.DeserializeJson<List<UserMaster>>(result);
+            EnumerationResult<UserMaster>? usersEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
+            AssertTrue(usersEnvelope == null || usersEnvelope.TotalRecords >= usersEnvelope.Objects.Count, "users envelope TotalRecords should cover returned objects");
+            List<UserMaster>? users = usersEnvelope?.Objects;
             AssertNotNull(users, "Users list should not be null");
             AssertTrue(users!.Count > 0, "Should have at least one user");
         }
@@ -3408,7 +3412,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("user/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuids = new[] { _McpTestUserGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<UserMaster>? users = _McpSerializer.DeserializeJson<List<UserMaster>>(result);
+            EnumerationResult<UserMaster>? usersEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
+            AssertTrue(usersEnvelope == null || usersEnvelope.TotalRecords >= usersEnvelope.Objects.Count, "users envelope TotalRecords should cover returned objects");
+            List<UserMaster>? users = usersEnvelope?.Objects;
             AssertNotNull(users, "Users list should not be null");
             AssertTrue(users!.Count > 0, "Should have at least one user");
             AssertEqual(_McpTestUserGuid, users[0].GUID, "User GUID");
@@ -3491,7 +3497,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("credential/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Credential>? credentials = _McpSerializer.DeserializeJson<List<Credential>>(result);
+            EnumerationResult<Credential>? credentialsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
+            AssertTrue(credentialsEnvelope == null || credentialsEnvelope.TotalRecords >= credentialsEnvelope.Objects.Count, "credentials envelope TotalRecords should cover returned objects");
+            List<Credential>? credentials = credentialsEnvelope?.Objects;
             AssertNotNull(credentials, "Credentials list should not be null");
             AssertTrue(credentials!.Count > 0, "Should have at least one credential");
         }
@@ -3573,7 +3581,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("credential/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuids = new[] { _McpTestCredentialGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<Credential>? credentials = _McpSerializer.DeserializeJson<List<Credential>>(result);
+            EnumerationResult<Credential>? credentialsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
+            AssertTrue(credentialsEnvelope == null || credentialsEnvelope.TotalRecords >= credentialsEnvelope.Objects.Count, "credentials envelope TotalRecords should cover returned objects");
+            List<Credential>? credentials = credentialsEnvelope?.Objects;
             AssertNotNull(credentials, "Credentials list should not be null");
             AssertTrue(credentials!.Count > 0, "Should have at least one credential");
             AssertEqual(_McpTestCredentialGuid, credentials[0].GUID, "Credential GUID");
@@ -3703,7 +3713,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("graph/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Graph>? graphs = _McpSerializer.DeserializeJson<List<Graph>>(result);
+            EnumerationResult<Graph>? graphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
+            AssertTrue(graphsEnvelope == null || graphsEnvelope.TotalRecords >= graphsEnvelope.Objects.Count, "graphs envelope TotalRecords should cover returned objects");
+            List<Graph>? graphs = graphsEnvelope?.Objects;
             AssertNotNull(graphs, "Graphs list should not be null");
         }
 
@@ -3719,7 +3731,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Graph>? graphs = _McpSerializer.DeserializeJson<List<Graph>>(result);
+            EnumerationResult<Graph>? graphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
+            AssertTrue(graphsEnvelope == null || graphsEnvelope.TotalRecords >= graphsEnvelope.Objects.Count, "graphs envelope TotalRecords should cover returned objects");
+            List<Graph>? graphs = graphsEnvelope?.Objects;
             AssertNotNull(graphs, "Graphs list should not be null");
             AssertTrue(graphs!.Count > 0, "Graphs list should contain entries");
         }
@@ -3771,7 +3785,9 @@ namespace Test.Shared
 
             string existingResult = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(existingResult, "Existing graphs result should not be null");
-            List<Graph>? existingGraphs = _McpSerializer.DeserializeJson<List<Graph>>(existingResult);
+            EnumerationResult<Graph>? existingGraphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(existingResult);
+            AssertTrue(existingGraphsEnvelope == null || existingGraphsEnvelope.TotalRecords >= existingGraphsEnvelope.Objects.Count, "existingGraphs envelope TotalRecords should cover returned objects");
+            List<Graph>? existingGraphs = existingGraphsEnvelope?.Objects;
             AssertNotNull(existingGraphs, "Existing graphs list should not be null");
             AssertTrue(existingGraphs!.Count > 0, "Graphs should exist before delete all");
 
@@ -3788,7 +3804,9 @@ namespace Test.Shared
             AssertTrue(deleteResult, "graph/deleteallintenant should return true");
 
             string afterResult = await _McpClient!.CallAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
-            List<Graph>? remainingGraphs = _McpSerializer.DeserializeJson<List<Graph>>(afterResult);
+            EnumerationResult<Graph>? remainingGraphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(afterResult);
+            AssertTrue(remainingGraphsEnvelope == null || remainingGraphsEnvelope.TotalRecords >= remainingGraphsEnvelope.Objects.Count, "remainingGraphs envelope TotalRecords should cover returned objects");
+            List<Graph>? remainingGraphs = remainingGraphsEnvelope?.Objects;
             AssertTrue(remainingGraphs == null || remainingGraphs.Count == 0, "Graphs should not exist after delete all");
 
             _McpTestGraphGuid = Guid.Empty;
@@ -3900,7 +3918,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(nodesEnvelope == null || nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+            List<Node>? nodes = nodesEnvelope?.Objects;
             AssertNotNull(nodes, "Nodes list should not be null");
         }
 
@@ -3916,7 +3936,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? parents = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? parentsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(parentsEnvelope == null || parentsEnvelope.TotalRecords >= parentsEnvelope.Objects.Count, "parents envelope TotalRecords should cover returned objects");
+            List<Node>? parents = parentsEnvelope?.Objects;
             AssertNotNull(parents, "Parents list should not be null");
         }
 
@@ -3932,7 +3954,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? children = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? childrenEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(childrenEnvelope == null || childrenEnvelope.TotalRecords >= childrenEnvelope.Objects.Count, "children envelope TotalRecords should cover returned objects");
+            List<Node>? children = childrenEnvelope?.Objects;
             AssertNotNull(children, "Children list should not be null");
         }
 
@@ -3948,7 +3972,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? neighbors = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? neighborsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(neighborsEnvelope == null || neighborsEnvelope.TotalRecords >= neighborsEnvelope.Objects.Count, "neighbors envelope TotalRecords should cover returned objects");
+            List<Node>? neighbors = neighborsEnvelope?.Objects;
             AssertNotNull(neighbors, "Neighbors list should not be null");
         }
 
@@ -3964,7 +3990,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tenant/getmany", new { tenantGuids = new[] { _McpTestTenantGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<TenantMetadata>? tenants = _McpSerializer.DeserializeJson<List<TenantMetadata>>(result);
+            EnumerationResult<TenantMetadata>? tenantsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TenantMetadata>>(result);
+            AssertTrue(tenantsEnvelope == null || tenantsEnvelope.TotalRecords >= tenantsEnvelope.Objects.Count, "tenants envelope TotalRecords should cover returned objects");
+            List<TenantMetadata>? tenants = tenantsEnvelope?.Objects;
             AssertNotNull(tenants, "Tenants list should not be null");
             AssertTrue(tenants!.Count > 0, "Should have at least one tenant");
         }
@@ -3980,7 +4008,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("graph/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuids = new[] { _McpTestGraphGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<Graph>? graphs = _McpSerializer.DeserializeJson<List<Graph>>(result);
+            EnumerationResult<Graph>? graphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
+            AssertTrue(graphsEnvelope == null || graphsEnvelope.TotalRecords >= graphsEnvelope.Objects.Count, "graphs envelope TotalRecords should cover returned objects");
+            List<Graph>? graphs = graphsEnvelope?.Objects;
             AssertNotNull(graphs, "Graphs list should not be null");
             AssertTrue(graphs!.Count > 0, "Should have at least one graph");
         }
@@ -4228,7 +4258,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("node/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(nodesEnvelope == null || nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+            List<Node>? nodes = nodesEnvelope?.Objects;
             AssertNotNull(nodes, "Nodes list should not be null");
             AssertTrue(nodes!.Count > 0, "Should have at least one node");
         }
@@ -4365,7 +4397,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("node/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(nodesEnvelope == null || nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+            List<Node>? nodes = nodesEnvelope?.Objects;
             AssertNotNull(nodes, "Nodes list should not be null");
         }
 
@@ -4383,7 +4417,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("node/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(nodesEnvelope == null || nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+            List<Node>? nodes = nodesEnvelope?.Objects;
             AssertNotNull(nodes, "Nodes list should not be null");
         }
 
@@ -4403,7 +4439,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("node/readmostconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(nodesEnvelope == null || nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+            List<Node>? nodes = nodesEnvelope?.Objects;
             AssertNotNull(nodes, "Nodes list should not be null");
         }
 
@@ -4421,7 +4459,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("node/readleastconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Node>? nodes = _McpSerializer.DeserializeJson<List<Node>>(result);
+            EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
+            AssertTrue(nodesEnvelope == null || nodesEnvelope.TotalRecords >= nodesEnvelope.Objects.Count, "nodes envelope TotalRecords should cover returned objects");
+            List<Node>? nodes = nodesEnvelope?.Objects;
             AssertNotNull(nodes, "Nodes list should not be null");
         }
 
@@ -4531,7 +4571,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/all", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
             AssertTrue(edges!.Count > 0, "Should have at least one edge");
         }
@@ -4613,7 +4655,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuids = new[] { _McpTestEdgeGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
             AssertTrue(edges!.Count > 0, "Should have at least one edge");
             AssertEqual(_McpTestEdgeGuid, edges[0].GUID, "Edge GUID");
@@ -4658,7 +4702,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/nodeedges", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
         }
 
@@ -4674,7 +4720,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/fromnode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
         }
 
@@ -4690,7 +4738,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/tonode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode2Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
         }
 
@@ -4706,7 +4756,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/betweennodes", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), fromNodeGuid = _McpTestNode1Guid.ToString(), toNodeGuid = _McpTestNode2Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
         }
 
@@ -4803,7 +4855,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
             AssertTrue(edges!.Count >= 0, "Should return a list of edges");
         }
@@ -4824,7 +4878,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("edge/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<Edge>? edges = _McpSerializer.DeserializeJson<List<Edge>>(result);
+            EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
+            AssertTrue(edgesEnvelope == null || edgesEnvelope.TotalRecords >= edgesEnvelope.Objects.Count, "edges envelope TotalRecords should cover returned objects");
+            List<Edge>? edges = edgesEnvelope?.Objects;
             AssertNotNull(edges, "Edges list should not be null");
             AssertTrue(edges!.Count >= 0, "Should return a list of edges");
         }
@@ -4954,7 +5010,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
         }
 
@@ -5029,7 +5087,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = new[] { _McpTestLabelGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
             AssertTrue(labels!.Count > 0, "Should have at least one label");
             AssertEqual(_McpTestLabelGuid, labels[0].GUID, "Label GUID");
@@ -5119,7 +5179,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
             AssertTrue(labels!.Count >= 0, "Labels list should be returned");
         }
@@ -5136,7 +5198,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
             AssertTrue(labels!.Count >= 0, "Labels list should be returned");
         }
@@ -5153,7 +5217,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
         }
 
@@ -5183,7 +5249,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
             AssertTrue(labels!.Any(l => l.NodeGUID == _McpTestNode1Guid), "Node labels should be returned");
         }
@@ -5210,7 +5278,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("label/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertNotNull(labels, "Labels list should not be null");
             AssertTrue(labels!.Any(l => l.EdgeGUID == _McpTestEdgeGuid), "Edge labels should be returned");
         }
@@ -5245,7 +5315,9 @@ namespace Test.Shared
             AssertTrue(result, "Delete should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("label/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertTrue(labels == null || labels.Count == 0, "Graph labels should be removed");
             _McpTestLabelGuid = Guid.Empty;
         }
@@ -5260,7 +5332,9 @@ namespace Test.Shared
             AssertTrue(result, "Delete should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("label/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertTrue(labels == null || labels.Count == 0, "Graph labels should be removed");
             _McpTestLabelGuid = Guid.Empty;
         }
@@ -5288,7 +5362,9 @@ namespace Test.Shared
             AssertTrue(result, "Delete should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("label/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertTrue(labels == null || labels.Count == 0, "Node labels should be removed");
         }
 
@@ -5315,7 +5391,9 @@ namespace Test.Shared
             AssertTrue(result, "Delete should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("label/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
-            List<LabelMetadata>? labels = _McpSerializer.DeserializeJson<List<LabelMetadata>>(readResult);
+            EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
+            AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
+            List<LabelMetadata>? labels = labelsEnvelope?.Objects;
             AssertTrue(labels == null || labels.Count == 0, "Edge labels should be removed");
         }
 
@@ -5387,7 +5465,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
             AssertTrue(tags!.Count >= 1, "Should have at least 1 tag");
         }
@@ -5467,7 +5547,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
             AssertTrue(tags!.Count >= 1, "Should have at least 1 tag");
             AssertEqual(_McpTestTagGuid, tags[0].GUID, "Tag GUID");
@@ -5588,7 +5670,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tag/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
         }
 
@@ -5605,7 +5689,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tag/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
         }
 
@@ -5622,7 +5708,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tag/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
         }
 
@@ -5651,7 +5739,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tag/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
             AssertTrue(tags!.Any(t => t.NodeGUID == _McpTestNode1Guid), "Node tags should include created tag");
         }
@@ -5677,7 +5767,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("tag/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertNotNull(tags, "Tags list should not be null");
             AssertTrue(tags!.Any(t => t.EdgeGUID == _McpTestEdgeGuid), "Edge tags should include created tag");
         }
@@ -5698,7 +5790,9 @@ namespace Test.Shared
             AssertTrue(result, "tag/deleteallintenant should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("tag/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertTrue(tags == null || tags.Count == 0, "Tags should be removed");
             _McpTestTagGuid = Guid.Empty;
         }
@@ -5717,7 +5811,9 @@ namespace Test.Shared
             AssertTrue(result, "tag/deleteallingraph should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("tag/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertTrue(tags == null || tags.Count == 0, "Graph tags should be removed");
             _McpTestTagGuid = Guid.Empty;
         }
@@ -5732,7 +5828,9 @@ namespace Test.Shared
             AssertTrue(result, "tag/deletegraphlabels should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("tag/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertTrue(tags == null || tags.Count == 0, "Graph tags should be removed");
             _McpTestTagGuid = Guid.Empty;
         }
@@ -5759,7 +5857,9 @@ namespace Test.Shared
             AssertTrue(result, "tag/deletenodelabels should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("tag/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertTrue(tags == null || tags.Count == 0, "Node tags should be removed");
         }
 
@@ -5785,7 +5885,9 @@ namespace Test.Shared
             AssertTrue(result, "tag/deleteedgetags should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("tag/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
-            List<TagMetadata>? tags = _McpSerializer.DeserializeJson<List<TagMetadata>>(readResult);
+            EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
+            AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
+            List<TagMetadata>? tags = tagsEnvelope?.Objects;
             AssertTrue(tags == null || tags.Count == 0, "Edge tags should be removed");
         }
 
@@ -5871,7 +5973,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("vector/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
         }
 
@@ -5887,7 +5991,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("vector/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
             AssertTrue(vectors!.Count >= 1, "Should return at least one vector");
         }
@@ -5904,7 +6010,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
         }
 
@@ -5920,7 +6028,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
         }
 
@@ -5943,7 +6053,9 @@ namespace Test.Shared
                 });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
             AssertTrue(vectors!.Any(v => v.NodeGUID == _McpTestNode1Guid), "Should include node vectors");
         }
@@ -5980,7 +6092,9 @@ namespace Test.Shared
                 });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
             AssertTrue(vectors!.Any(v => v.EdgeGUID == _McpTestEdgeGuid), "Should include edge vectors");
         }
@@ -6061,7 +6175,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertNotNull(vectors, "Vectors list should not be null");
             AssertTrue(vectors!.Count >= 1, "Should have at least 1 vector");
             AssertEqual(_McpTestVectorGuid, vectors[0].GUID, "Vector GUID");
@@ -6210,7 +6326,9 @@ namespace Test.Shared
             });
             AssertNotNull(result, "Result should not be null");
 
-            List<VectorSearchResult>? results = _McpSerializer.DeserializeJson<List<VectorSearchResult>>(result);
+            EnumerationResult<VectorSearchResult>? resultsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorSearchResult>>(result);
+            AssertTrue(resultsEnvelope == null || resultsEnvelope.TotalRecords >= resultsEnvelope.Objects.Count, "results envelope TotalRecords should cover returned objects");
+            List<VectorSearchResult>? results = resultsEnvelope?.Objects;
             AssertNotNull(results, "Search results should not be null");
         }
 
@@ -6241,7 +6359,9 @@ namespace Test.Shared
             AssertTrue(result, "vector/deleteallintenant should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("vector/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertTrue(vectors == null || vectors.Count == 0, "Tenant vectors should be removed");
             _McpTestVectorGuid = Guid.Empty;
         }
@@ -6259,7 +6379,9 @@ namespace Test.Shared
             AssertTrue(result, "vector/deleteallingraph should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertTrue(vectors == null || vectors.Count == 0, "Graph vectors should be removed");
             _McpTestVectorGuid = Guid.Empty;
         }
@@ -6293,7 +6415,9 @@ namespace Test.Shared
             AssertTrue(result, "vector/deletegraphvectors should return true");
 
             string readResult = await _McpClient!.CallAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertTrue(vectors == null || !vectors.Any(v => v.NodeGUID == null && v.EdgeGUID == null), "Graph-level vectors should be removed");
         }
 
@@ -6333,7 +6457,9 @@ namespace Test.Shared
                 graphGuid = _McpTestGraphGuid.ToString(),
                 nodeGuid = _McpTestNode1Guid.ToString()
             });
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertTrue(vectors == null || vectors.Count == 0, "Node vectors should be removed");
         }
 
@@ -6373,7 +6499,9 @@ namespace Test.Shared
                 graphGuid = _McpTestGraphGuid.ToString(),
                 edgeGuid = _McpTestEdgeGuid.ToString()
             });
-            List<VectorMetadata>? vectors = _McpSerializer.DeserializeJson<List<VectorMetadata>>(readResult);
+            EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
+            AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
+            List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
             AssertTrue(vectors == null || vectors.Count == 0, "Edge vectors should be removed");
         }
 
@@ -6395,7 +6523,9 @@ namespace Test.Shared
             string result = await _McpClient!.CallAsync<string>("admin/backups", new { });
             AssertNotNull(result, "Result should not be null");
 
-            List<BackupFile>? backups = _McpSerializer.DeserializeJson<List<BackupFile>>(result);
+            EnumerationResult<BackupFile>? backupsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<BackupFile>>(result);
+            AssertTrue(backupsEnvelope == null || backupsEnvelope.TotalRecords >= backupsEnvelope.Objects.Count, "backups envelope TotalRecords should cover returned objects");
+            List<BackupFile>? backups = backupsEnvelope?.Objects;
             AssertNotNull(backups, "Backups list should not be null");
         }
 

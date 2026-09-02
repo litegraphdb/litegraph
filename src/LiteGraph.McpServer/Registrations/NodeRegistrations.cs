@@ -87,7 +87,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "node/all",
-                "Lists all nodes in a graph",
+                "Lists all nodes in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -97,6 +97,8 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
                         includeData = new { type = "boolean", description = "Include node data" },
                         includeSubordinates = new { type = "boolean", description = "Include labels, tags, vectors" }
                     },
@@ -110,7 +112,7 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
@@ -158,7 +160,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "node/parents",
-                "Gets parent nodes (nodes that have edges connecting to this node)",
+                "Gets parent nodes (nodes that have edges connecting to this node). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -168,7 +170,8 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         nodeGuid = new { type = "string", description = "Node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -179,13 +182,13 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadParents(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadParents(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
 
                 });
 
             server.RegisterTool(
                 "node/children",
-                "Gets child nodes (nodes to which this node has connecting edges)",
+                "Gets child nodes (nodes to which this node has connecting edges). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -195,7 +198,8 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         nodeGuid = new { type = "string", description = "Node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -206,7 +210,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadChildren(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadChildren(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
@@ -267,7 +271,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "node/readallintenant",
-                "Reads all nodes in a tenant across all graphs",
+                "Reads all nodes in a tenant across all graphs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -276,6 +280,8 @@ namespace LiteGraph.McpServer.Registrations
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
                         includeData = new { type = "boolean", description = "Include node data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
                     },
@@ -288,12 +294,12 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadAllNodesInTenant(sdk, tenantGuid, order, skip, includeData, includeSubordinates);
+                    return ReadAllNodesInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "node/readallingraph",
-                "Reads all nodes in a graph with optional data/subordinate inclusion",
+                "Reads all nodes in a graph with optional data/subordinate inclusion. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -303,6 +309,8 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
                         includeData = new { type = "boolean", description = "Include node data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
                     },
@@ -316,12 +324,12 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadAllNodesInGraph(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadAllNodesInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "node/readmostconnected",
-                "Reads the most connected nodes in a graph",
+                "Reads the most connected nodes in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -331,6 +339,7 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         includeData = new { type = "boolean", description = "Include node data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
                     },
@@ -344,12 +353,12 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadMostConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadMostConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "node/readleastconnected",
-                "Reads the least connected nodes in a graph",
+                "Reads the least connected nodes in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -359,6 +368,7 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         includeData = new { type = "boolean", description = "Include node data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
                     },
@@ -372,7 +382,7 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadLeastConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadLeastConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
@@ -397,7 +407,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "node/neighbors",
-                "Gets neighbor nodes (all connected nodes regardless of edge direction)",
+                "Gets neighbor nodes (all connected nodes regardless of edge direction). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -407,7 +417,8 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         nodeGuid = new { type = "string", description = "Node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -418,7 +429,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadNeighbors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadNeighbors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
@@ -450,7 +461,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "node/getmany",
-                "Reads multiple nodes by their GUIDs",
+                "Reads multiple nodes by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -459,6 +470,7 @@ namespace LiteGraph.McpServer.Registrations
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         nodeGuids = new { type = "array", items = new { type = "string" }, description = "Array of node GUIDs" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         includeData = new { type = "boolean", description = "Include node data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
                     },
@@ -475,7 +487,7 @@ namespace LiteGraph.McpServer.Registrations
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadNodesByGuids(sdk, tenantGuid, graphGuid, guids, includeData, includeSubordinates);
+                    return ReadNodesByGuids(sdk, tenantGuid, graphGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
@@ -668,7 +680,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/traverse", (args) =>
@@ -703,7 +715,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadParents(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadParents(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("node/children", (args) =>
@@ -713,7 +725,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadChildren(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadChildren(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("node/neighbors", (args) =>
@@ -723,7 +735,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadNeighbors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadNeighbors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("node/deleteall", (args) =>
@@ -756,7 +768,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadAllNodesInTenant(sdk, tenantGuid, order, skip, includeData, includeSubordinates);
+                    return ReadAllNodesInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/readallingraph", (args) =>
@@ -767,7 +779,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadAllNodesInGraph(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadAllNodesInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/readmostconnected", (args) =>
@@ -778,7 +790,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadMostConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadMostConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/readleastconnected", (args) =>
@@ -789,7 +801,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                    return ReadLeastConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadLeastConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/deleteallintenant", (args) =>
@@ -807,7 +819,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                return ReadAllNodesInTenant(sdk, tenantGuid, order, skip, includeData, includeSubordinates);
+                return ReadAllNodesInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/readallingraph", (args) =>
@@ -818,7 +830,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                return ReadAllNodesInGraph(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadAllNodesInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/readmostconnected", (args) =>
@@ -829,7 +841,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                return ReadMostConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadMostConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/readleastconnected", (args) =>
@@ -840,7 +852,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData");
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates");
-                return ReadLeastConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadLeastConnectedNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/deleteallintenant", (args) =>
@@ -875,7 +887,7 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadNodesByGuids(sdk, tenantGuid, graphGuid, guids, includeData, includeSubordinates);
+                    return ReadNodesByGuids(sdk, tenantGuid, graphGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/update", (args) =>
@@ -992,7 +1004,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadNodes(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadNodes(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/traverse", (args) =>
@@ -1027,7 +1039,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadParents(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                return ReadParents(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("node/children", (args) =>
@@ -1037,7 +1049,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadChildren(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                return ReadChildren(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("node/neighbors", (args) =>
@@ -1047,7 +1059,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadNeighbors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadNeighbors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("node/deleteall", (args) =>
@@ -1097,7 +1109,7 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadNodesByGuids(sdk, tenantGuid, graphGuid, guids, includeData, includeSubordinates);
+                    return ReadNodesByGuids(sdk, tenantGuid, graphGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("node/update", (args) =>
@@ -1211,13 +1223,15 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodeCollectionPath(tenantGuid, graphGuid) + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                NodeCollectionPath(tenantGuid, graphGuid) + BuildReadQuery(order, skip, maxResults, continuationToken, includeData, includeSubordinates));
         }
 
         private static string ReadRoutes(
@@ -1258,12 +1272,13 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodePath(tenantGuid, graphGuid, nodeGuid) + "/parents" + BuildReadQuery(order, skip, false, false));
+                NodePath(tenantGuid, graphGuid, nodeGuid) + "/parents" + BuildReadQuery(order, skip, maxResults, null, false, false));
         }
 
         private static string ReadChildren(
@@ -1272,12 +1287,13 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodePath(tenantGuid, graphGuid, nodeGuid) + "/children" + BuildReadQuery(order, skip, false, false));
+                NodePath(tenantGuid, graphGuid, nodeGuid) + "/children" + BuildReadQuery(order, skip, maxResults, null, false, false));
         }
 
         private static string ReadNeighbors(
@@ -1286,12 +1302,13 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodePath(tenantGuid, graphGuid, nodeGuid) + "/neighbors" + BuildReadQuery(order, skip, false, false));
+                NodePath(tenantGuid, graphGuid, nodeGuid) + "/neighbors" + BuildReadQuery(order, skip, maxResults, null, false, false));
         }
 
         private static string ReadAllNodesInTenant(
@@ -1299,6 +1316,8 @@ namespace LiteGraph.McpServer.Registrations
             Guid tenantGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
@@ -1308,7 +1327,7 @@ namespace LiteGraph.McpServer.Registrations
                 "/v1.0/tenants/"
                 + LiteGraphMcpRestProxy.Escape(tenantGuid)
                 + "/nodes/all"
-                + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                + BuildReadQuery(order, skip, maxResults, continuationToken, includeData, includeSubordinates));
         }
 
         private static string ReadAllNodesInGraph(
@@ -1317,13 +1336,15 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodeCollectionPath(tenantGuid, graphGuid) + "/all" + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                NodeCollectionPath(tenantGuid, graphGuid) + "/all" + BuildReadQuery(order, skip, maxResults, continuationToken, includeData, includeSubordinates));
         }
 
         private static string ReadMostConnectedNodes(
@@ -1332,13 +1353,14 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodeCollectionPath(tenantGuid, graphGuid) + "/mostconnected" + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                NodeCollectionPath(tenantGuid, graphGuid) + "/mostconnected" + BuildReadQuery(order, skip, maxResults, null, includeData, includeSubordinates));
         }
 
         private static string ReadLeastConnectedNodes(
@@ -1347,13 +1369,14 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodeCollectionPath(tenantGuid, graphGuid) + "/leastconnected" + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                NodeCollectionPath(tenantGuid, graphGuid) + "/leastconnected" + BuildReadQuery(order, skip, maxResults, null, includeData, includeSubordinates));
         }
 
         private static string CreateNodes(LiteGraphSdk sdk, Guid tenantGuid, Guid graphGuid, List<Node> nodes)
@@ -1371,20 +1394,25 @@ namespace LiteGraph.McpServer.Registrations
             Guid tenantGuid,
             Guid graphGuid,
             List<Guid> nodeGuids,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
-            if (nodeGuids == null || nodeGuids.Count == 0) return Serializer.SerializeJson(new List<Node>(), true);
+            if (nodeGuids == null) throw new ArgumentNullException(nameof(nodeGuids));
+            if (nodeGuids.Count == 0) throw new ArgumentException("At least one node GUID is required.");
 
-            List<Node> nodes = new List<Node>();
-            foreach (Guid nodeGuid in nodeGuids)
-            {
-                string nodeJson = ReadNode(sdk, tenantGuid, graphGuid, nodeGuid, includeData, includeSubordinates);
-                Node node = Serializer.DeserializeJson<Node>(nodeJson);
-                if (node != null) nodes.Add(node);
-            }
-
-            return Serializer.SerializeJson(nodes, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                NodeCollectionPath(tenantGuid, graphGuid)
+                + "?guids="
+                + String.Join(",", nodeGuids)
+                + "&max-keys="
+                + maxResults
+                + "&incldata="
+                + includeData.ToString().ToLowerInvariant()
+                + "&inclsub="
+                + includeSubordinates.ToString().ToLowerInvariant());
         }
 
         private static string SearchNodes(LiteGraphSdk sdk, SearchRequest request)
@@ -1509,15 +1537,19 @@ namespace LiteGraph.McpServer.Registrations
         private static string BuildReadQuery(
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
             List<string> query = new List<string>
             {
                 "order=" + LiteGraphMcpRestProxy.Escape(order.ToString()),
-                "skip=" + skip
+                "skip=" + skip,
+                "max-keys=" + maxResults
             };
 
+            if (continuationToken != null) query.Add("token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value));
             if (includeData) query.Add("incldata=true");
             if (includeSubordinates) query.Add("inclsub=true");
 

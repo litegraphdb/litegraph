@@ -197,18 +197,41 @@ def test_delete_resource(mock_client):
 
 def test_retrieve_all_resources(mock_client):
     """Test AllRetrievableAPIResource mixin."""
-    test_data = [
-        {"id": "test-id-1", "name": "Resource 1", "data": {"key": "value1"}},
-        {"id": "test-id-2", "name": "Resource 2", "data": {"key": "value2"}},
-    ]
+    test_data = {
+        "Success": True,
+        "Timestamp": {"Start": "2026-08-31T00:00:00.000000Z"},
+        "MaxResults": 1000,
+        "ContinuationToken": None,
+        "EndOfResults": True,
+        "TotalRecords": 2,
+        "RecordsRemaining": 0,
+        "Objects": [
+            {"id": "test-id-1", "name": "Resource 1", "data": {"key": "value1"}},
+            {"id": "test-id-2", "name": "Resource 2", "data": {"key": "value2"}},
+        ],
+    }
     mock_client.request.return_value = test_data
     mock_client.request.side_effect = None
 
-    # Test successful retrieval of all resources
-    results = ResourceModel.retrieve_all()
-    assert isinstance(results, list)
-    assert all(isinstance(item, MockModel) for item in results)
-    assert len(results) == 2
+    # Test successful retrieval of the enumeration envelope
+    result = ResourceModel.retrieve_all()
+    assert result.success is True
+    assert result.total_records == 2
+    assert result.end_of_results is True
+    assert result.continuation_token is None
+    assert all(isinstance(item, MockModel) for item in result.objects)
+    assert len(result.objects) == 2
+
+    # Test pagination query parameters are mapped to max-keys/skip/order/token
+    mock_client.request.reset_mock()
+    ResourceModel.retrieve_all(
+        max_keys=10, skip=5, order="CreatedDescending", continuation_token="token-1"
+    )
+    called_url = mock_client.request.call_args[0][1]
+    assert "max-keys=10" in called_url
+    assert "skip=5" in called_url
+    assert "order=CreatedDescending" in called_url
+    assert "token=token-1" in called_url
 
     # Test retrieve all without graph_guid when required
     mock_client.graph_guid = None
@@ -217,9 +240,8 @@ def test_retrieve_all_resources(mock_client):
 
     # Test retrieve all without graph_guid when not required
     mock_client.request.return_value = test_data
-    results = TestResourceNoGraphGuid.retrieve_all()
-    assert isinstance(results, list)
-    assert len(results) == 2
+    result = TestResourceNoGraphGuid.retrieve_all()
+    assert len(result.objects) == 2
 
 
 def test_search_resources(mock_client):

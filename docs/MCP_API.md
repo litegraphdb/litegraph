@@ -49,9 +49,43 @@ Response:
 
 Most tools return the REST payload as a JSON string in `result`; a handful return a bare `true`/`false` or an empty string for operations that have no body (deletes, flushes, index rebuilds). When a tool's arguments are invalid or the REST call fails, the server returns a JSON-RPC `error` object with a message describing the failure. Argument names are camelCase. Complex request bodies (search requests, enumeration queries, subgraph extraction, vector index configuration) are passed as a JSON string in a single argument rather than as nested objects, which keeps the tool schemas flat and predictable.
 
+## List Tools, Paging, And getmany
+
+As of v8.1 no tool returns a bare JSON array. Every list tool returns the REST `EnumerationResult` envelope, serialized as a JSON string in `result`:
+
+```json
+{
+  "Success": true,
+  "Timestamp": { ... },
+  "MaxResults": 1000,
+  "ContinuationToken": null,
+  "EndOfResults": true,
+  "TotalRecords": 17,
+  "RecordsRemaining": 0,
+  "Objects": [ ... ]
+}
+```
+
+`Objects` carries the page of records; `TotalRecords`, `RecordsRemaining`, and `EndOfResults` describe progress through the full result set; `ContinuationToken` is populated when marker-based continuation is available.
+
+Paging arguments follow one convention across the catalog:
+
+| Argument | Type | Default | Notes |
+|----------|------|---------|-------|
+| `maxResults` | integer | `1000` | Maximum results per page, 1-1000; accepted by every list tool |
+| `skip` | integer | `0` | Records to skip before the page begins, where the tool declares it |
+| `order` | string | `CreatedDescending` | Enumeration order, where the tool declares it |
+| `continuationToken` | string (GUID) | none | Marker-based continuation from a previous response's `ContinuationToken`, on marker-backed list tools (the `all` / `readallintenant` / `readallingraph` reads of the core record families and the chat list tools) |
+
+Tools that do not declare `continuationToken` page with `skip`. The `enumerate` tools carry the same controls inside their `Enumeration Query` JSON-string argument (`MaxResults`, `ContinuationToken`, `Ordering`). The `authorization/*/all` list tools retain their legacy `page`/`pageSize` filter arguments but still return the envelope.
+
+All nine `*/getmany` tools (`tenant`, `user`, `credential`, `graph`, `node`, `edge`, `label`, `tag`, `vector`) take an array of GUIDs, proxy it to the REST `?guids=` filter, accept `maxResults`, and return the envelope. Passing an empty GUID array is rejected with a JSON-RPC error — at least one GUID is required.
+
+The intentional exceptions mirror REST: single-object reads, statistics objects, settings, effective-permissions composites, export streams, vector index configuration/statistics, and the search tools (`graph/search`, `node/search`, `edge/search` return `SearchResult`-shaped objects; `vector/search` returns the envelope of scored matches).
+
 ## Tool Catalog
 
-Tools are grouped by resource. The name before the slash is the family; the name after it is the operation. Families follow the same verbs, so once you know `node/get`, `node/create`, `node/search`, and `node/enumerate`, the other families read the same way.
+Tools are grouped by resource. The name before the slash is the family; the name after it is the operation. Families follow the same verbs, so once you know `node/get`, `node/create`, `node/search`, and `node/enumerate`, the other families read the same way. Every tool described as listing or paging records returns the `EnumerationResult` envelope and takes the paging arguments described in [List Tools, Paging, And getmany](#list-tools-paging-and-getmany).
 
 ### graph/*
 
@@ -248,7 +282,7 @@ Under `regenerate`, the `GuidMap` in the result maps each original GUID to the f
 
 ## Chat Tools
 
-The chat tools wrap the LiteGraph v8.1 chat REST surface (see the [REST API](REST_API.md)) and follow the same conventions as the rest of the catalog: every tool takes `tenantGuid`, complex bodies travel as a JSON string in a single argument, and results are the REST payload serialized as a JSON string. Server-side authorization applies as it does over REST: endpoint management, feedback listing and deletion, chat settings update, and all-users thread listing require an admin principal, while completions, thread creation, and feedback submission require a user principal — the admin break-glass token is rejected for those with a 400.
+The chat tools wrap the LiteGraph v8.1 chat REST surface (see the [REST API](REST_API.md)) and follow the same conventions as the rest of the catalog: every tool takes `tenantGuid`, complex bodies travel as a JSON string in a single argument, and results are the REST payload serialized as a JSON string. The five list tools — `chat/endpoint/all`, `chat/endpoint/healthall`, `chat/thread/all`, `chat/thread/turns`, and `chat/feedback/all` — return the paginated `EnumerationResult` envelope and take `skip`, `maxResults`, and `continuationToken` per [List Tools, Paging, And getmany](#list-tools-paging-and-getmany). Server-side authorization applies as it does over REST: endpoint management, feedback listing and deletion, chat settings update, and all-users thread listing require an admin principal, while completions, thread creation, and feedback submission require a user principal — the admin break-glass token is rejected for those with a 400.
 
 ### chat/endpoint/create, chat/endpoint/update
 
@@ -273,13 +307,16 @@ Create or update a chat endpoint, the record describing an upstream completion o
 
 ### chat/endpoint/get, chat/endpoint/all, chat/endpoint/delete
 
-Read one endpoint, list endpoints, or delete an endpoint. Listing accepts an optional type filter.
+Read one endpoint, list endpoints, or delete an endpoint. Listing accepts an optional type filter and returns the `EnumerationResult` envelope of `ChatEndpoint` records.
 
 | Argument | Type | Required | Notes |
 |----------|------|----------|-------|
 | `tenantGuid` | string (GUID) | yes | Owning tenant |
 | `endpointGuid` | string (GUID) | get and delete only | Endpoint to read or delete |
 | `endpointType` | string | no (`all` only) | `Embedding` or `Completion`; omit for every type |
+| `skip` | integer | no (`all` only) | Records to skip (default 0) |
+| `maxResults` | integer | no (`all` only) | Maximum results, 1-1000, default 1000 |
+| `continuationToken` | string (GUID) | no (`all` only) | Marker-based continuation from a previous response |
 
 ```json
 {
@@ -316,12 +353,15 @@ Probes the upstream provider from the LiteGraph server and returns a `ChatEndpoi
 
 ### chat/endpoint/health, chat/endpoint/healthall
 
-Read background health-check status — monitored flag, healthy verdict, consecutive successes and failures, uptime percentage, and the rolling probe history — for one endpoint or for every endpoint in the tenant.
+Read background health-check status — monitored flag, healthy verdict, consecutive successes and failures, uptime percentage, and the rolling probe history — for one endpoint or for every endpoint in the tenant. `health` returns a single health object; `healthall` returns the `EnumerationResult` envelope of health records.
 
 | Argument | Type | Required | Notes |
 |----------|------|----------|-------|
 | `tenantGuid` | string (GUID) | yes | Owning tenant |
-| `endpointGuid` | string (GUID) | `health` only | Endpoint to inspect; `healthall` takes only `tenantGuid` |
+| `endpointGuid` | string (GUID) | `health` only | Endpoint to inspect |
+| `skip` | integer | no (`healthall` only) | Records to skip (default 0) |
+| `maxResults` | integer | no (`healthall` only) | Maximum results, 1-1000, default 1000 |
+| `continuationToken` | string (GUID) | no (`healthall` only) | Marker-based continuation from a previous response |
 
 ```json
 {
@@ -365,13 +405,16 @@ Executes a chat completion and returns a `ChatCompletionResult` string: the assi
 
 ### chat/thread/all, chat/thread/get, chat/thread/delete, chat/thread/turns
 
-Thread management. `chat/thread/all` lists the caller's own threads, or every user's threads when `allUsers` is true (admin only). `chat/thread/turns` returns the thread's turns ascending by sequence as full `ChatTurn` objects, including per-stage metrics, the tool transcript, and telemetry. Deleting a thread also deletes its turns and feedback.
+Thread management. `chat/thread/all` lists the caller's own threads, or every user's threads when `allUsers` is true (admin only). `chat/thread/turns` returns the thread's turns ascending by sequence as full `ChatTurn` objects, including per-stage metrics, the tool transcript, and telemetry. Both list tools return the `EnumerationResult` envelope. Deleting a thread also deletes its turns and feedback.
 
 | Argument | Type | Required | Notes |
 |----------|------|----------|-------|
 | `tenantGuid` | string (GUID) | yes | Owning tenant |
 | `threadGuid` | string (GUID) | `get`, `delete`, `turns` | Thread to read, delete, or read turns from |
 | `allUsers` | boolean | no (`all` only) | `true` lists every user's threads (admin only, default `false`) |
+| `skip` | integer | no (`all`, `turns`) | Records to skip (default 0) |
+| `maxResults` | integer | no (`all`, `turns`) | Maximum results, 1-1000, default 1000 |
+| `continuationToken` | string (GUID) | no (`all`, `turns`) | Marker-based continuation from a previous response |
 
 ```json
 {
@@ -387,7 +430,7 @@ Thread management. `chat/thread/all` lists the caller's own threads, or every us
 
 ### chat/feedback/create, chat/feedback/all, chat/feedback/delete
 
-Submit a rating on an assistant turn, list all feedback in the tenant (admin only), or delete a feedback record (admin only).
+Submit a rating on an assistant turn, list all feedback in the tenant (admin only), or delete a feedback record (admin only). `chat/feedback/all` returns the `EnumerationResult` envelope of feedback records.
 
 | Argument | Type | Required | Notes |
 |----------|------|----------|-------|
@@ -396,6 +439,9 @@ Submit a rating on an assistant turn, list all feedback in the tenant (admin onl
 | `rating` | string | `create` only | `ThumbsUp` or `ThumbsDown` |
 | `feedbackText` | string | no (`create` only) | Free-text comment |
 | `feedbackGuid` | string (GUID) | `delete` only | Feedback record to delete |
+| `skip` | integer | no (`all` only) | Records to skip (default 0) |
+| `maxResults` | integer | no (`all` only) | Maximum results, 1-1000, default 1000 |
+| `continuationToken` | string (GUID) | no (`all` only) | Marker-based continuation from a previous response |
 
 ```json
 {

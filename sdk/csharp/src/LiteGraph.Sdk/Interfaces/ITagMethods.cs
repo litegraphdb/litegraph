@@ -51,16 +51,20 @@
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Tags.</returns>
-        Task<List<TagMetadata>> ReadMany(
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
             Guid? edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -78,8 +82,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        Task<List<TagMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Update a tag.
@@ -126,27 +130,59 @@
         /// Read all tags across tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Tags.</returns>
-        Task<List<TagMetadata>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadAllInTenant(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read all tags in specific graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Tags.</returns>
-        Task<List<TagMetadata>> ReadAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadAllInGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read tags attached to graph object.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Tags.</returns>
-        Task<List<TagMetadata>> ReadManyGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadManyGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read tags attached to specific node.
@@ -154,9 +190,21 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Tags.</returns>
-        Task<List<TagMetadata>> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadManyNode(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read tags attached to specific edge.
@@ -164,9 +212,21 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Tags.</returns>
-        Task<List<TagMetadata>> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing tags.</returns>
+        Task<EnumerationResult<TagMetadata>> ReadManyEdge(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid edgeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Delete all tags in tenant.

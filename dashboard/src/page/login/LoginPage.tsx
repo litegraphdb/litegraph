@@ -94,7 +94,8 @@ const LoginPage = () => {
           if (values.email) {
             setCurrentStep(1);
             getTenantsForEmail(values.email)
-              .then(({ data: res = [] }) => {
+              .then(({ data }) => {
+                const res = data?.Objects ?? [];
                 if (res) {
                   setTenants(res);
                   if (res && res.length > 1) {

@@ -126,6 +126,111 @@ namespace LiteGraph.GraphRepositories.Postgresql.Implementations
         }
 
         /// <inheritdoc />
+        public async Task<EnumerationResult<ChatTurn>> Enumerate(EnumerationRequest query, Guid threadGuid, CancellationToken token = default)
+        {
+            if (query == null) throw new ArgumentNullException(nameof(query));
+            token.ThrowIfCancellationRequested();
+
+            ChatTurn marker = null;
+
+            if (query.TenantGUID != null && query.ContinuationToken != null)
+            {
+                marker = await ReadByGuid(query.TenantGUID.Value, query.ContinuationToken.Value, token).ConfigureAwait(false);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + query.ContinuationToken + " could not be found.");
+            }
+
+            EnumerationResult<ChatTurn> ret = new EnumerationResult<ChatTurn>
+            {
+                MaxResults = query.MaxResults
+            };
+
+            ret.Timestamp.Start = DateTime.UtcNow;
+
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, threadGuid, query.Ordering, null, token).ConfigureAwait(false);
+
+            if (ret.TotalRecords < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(ChatTurnQueries.GetRecordPage(
+                query.TenantGUID,
+                threadGuid,
+                query.MaxResults,
+                query.Skip,
+                query.Ordering,
+                marker), false, token).ConfigureAwait(false);
+
+            if (result == null || result.Rows.Count < 1)
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+                ret.RecordsRemaining = 0;
+                ret.Timestamp.End = DateTime.UtcNow;
+                return ret;
+            }
+
+            ret.Objects = Converters.ChatTurnsFromDataTable(result);
+
+            ChatTurn lastItem = ret.Objects[ret.Objects.Count - 1];
+
+            ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, threadGuid, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
+            if (ret.RecordsRemaining > 0)
+            {
+                ret.ContinuationToken = lastItem.GUID;
+                ret.EndOfResults = false;
+            }
+            else
+            {
+                ret.ContinuationToken = null;
+                ret.EndOfResults = true;
+            }
+
+            ret.Timestamp.End = DateTime.UtcNow;
+            return ret;
+        }
+
+        /// <inheritdoc />
+        public async Task<int> GetRecordCount(
+            Guid? tenantGuid,
+            Guid? threadGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null,
+            CancellationToken token = default)
+        {
+            token.ThrowIfCancellationRequested();
+            ChatTurn marker = null;
+
+            if (tenantGuid != null && markerGuid != null)
+            {
+                marker = await ReadByGuid(tenantGuid.Value, markerGuid.Value, token).ConfigureAwait(false);
+                if (marker == null) throw new KeyNotFoundException("The object associated with the supplied marker GUID " + markerGuid.Value + " could not be found.");
+            }
+
+            token.ThrowIfCancellationRequested();
+            DataTable result = await _Repo.ExecuteQueryAsync(ChatTurnQueries.GetRecordCount(
+                tenantGuid,
+                threadGuid,
+                order,
+                marker), false, token).ConfigureAwait(false);
+
+            if (result != null && result.Rows != null && result.Rows.Count > 0)
+            {
+                if (result.Columns.Contains("record_count"))
+                {
+                    return Convert.ToInt32(result.Rows[0]["record_count"]);
+                }
+            }
+
+            return 0;
+        }
+
+        /// <inheritdoc />
         public async Task<int> GetCountByThread(Guid tenantGuid, Guid threadGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();

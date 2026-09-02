@@ -52,14 +52,18 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<TenantMetadata>> ReadMany(
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending, 
-            int skip = 0, 
+        public async Task<EnumerationResult<TenantMetadata>> ReadMany(
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<TenantMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TenantMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -70,11 +74,11 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<TenantMetadata>> ReadByGuids(List<Guid> guids, CancellationToken token = default)
+        public async Task<EnumerationResult<TenantMetadata>> ReadByGuids(List<Guid> guids, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants?guids=" + string.Join(",", guids);
-            return await _Sdk.Get<List<TenantMetadata>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<TenantMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

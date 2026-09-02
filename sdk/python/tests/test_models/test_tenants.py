@@ -103,12 +103,20 @@ class TestTenantResource:
         mock_client.request.assert_called_once()
 
     def test_retrieve_all_tenants(self, mock_client, valid_tenant_data):
-        """Test retrieving all tenants."""
-        mock_client.request.return_value = [valid_tenant_data]
-        tenants = Tenant.retrieve_all()
-        assert isinstance(tenants, list)
-        assert len(tenants) == 1
-        assert isinstance(tenants[0], TenantMetadataModel)
+        """Test retrieving all tenants as an enumeration envelope."""
+        mock_client.request.return_value = {
+            "Success": True,
+            "MaxResults": 1000,
+            "ContinuationToken": None,
+            "EndOfResults": True,
+            "TotalRecords": 1,
+            "RecordsRemaining": 0,
+            "Objects": [valid_tenant_data],
+        }
+        result = Tenant.retrieve_all()
+        assert result.total_records == 1
+        assert len(result.objects) == 1
+        assert isinstance(result.objects[0], TenantMetadataModel)
         mock_client.request.assert_called_once()
 
     def test_create_tenant(self, mock_client, valid_tenant_data):

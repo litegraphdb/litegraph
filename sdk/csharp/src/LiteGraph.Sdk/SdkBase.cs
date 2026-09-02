@@ -428,50 +428,18 @@
         }
 
         /// <summary>
-        /// Read objects.
+        /// Read an enumeration envelope from a GET URL.
+        /// All list-shaped GET routes on the LiteGraph server return an EnumerationResult envelope.
         /// </summary>
-        /// <typeparam name="T">Type.</typeparam>
+        /// <typeparam name="T">Type of the enumerated objects.</typeparam>
         /// <param name="url">URL.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        public async Task<List<T>> GetMany<T>(string url, CancellationToken token = default) where T : class
+        /// <returns>Enumeration result containing the matching objects, or null if the request failed.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        public async Task<EnumerationResult<T>> GetEnumeration<T>(string url, CancellationToken token = default) where T : class
         {
             if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
-
-            using (RestRequest req = new RestRequest(url))
-            {
-                req.TimeoutMilliseconds = TimeoutMs;
-                req.Authorization.BearerToken = BearerToken;
-
-                using (RestResponse resp = await req.SendAsync(token).ConfigureAwait(false))
-                {
-                    if (resp != null)
-                    {
-                        if (resp.StatusCode >= 200 && resp.StatusCode <= 299)
-                        {
-                            Log(SeverityEnum.Debug, "success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
-                            if (!String.IsNullOrEmpty(resp.DataAsString))
-                            {
-                                return Serializer.DeserializeJson<List<T>>(resp.DataAsString);
-                            }
-                            else
-                            {
-                                return null;
-                            }
-                        }
-                        else
-                        {
-                            Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
-                            return null;
-                        }
-                    }
-                    else
-                    {
-                        Log(SeverityEnum.Warn, "no response from " + url);
-                        return null;
-                    }
-                }
-            }
+            return await Get<EnumerationResult<T>>(url, token).ConfigureAwait(false);
         }
 
         /// <summary>

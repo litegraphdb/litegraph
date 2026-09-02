@@ -4,7 +4,14 @@
 
 v8.1.0
 
-v8.1 adds LLM chat over graph data. It is a non-breaking, in-place upgrade: the chat tables are created on first boot and nothing existing is altered.
+v8.1 adds LLM chat over graph data and eliminates every get-all API in favor of paginated enumeration. Storage upgrades in place — the chat tables are created on first boot and nothing stored is altered — but the enumeration conversion is a **breaking change** for clients that consumed list responses as bare JSON arrays.
+
+- Enumeration everywhere (breaking)
+  - Converted every list-returning REST route to the paginated `EnumerationResult` envelope (`Success`, `Timestamp`, `MaxResults`, `ContinuationToken`, `EndOfResults`, `TotalRecords`, `RecordsRemaining`, `Objects`); zero routes return a bare JSON array. Affected families: backups, tenants (including `/v1.0/token/tenants`), users, credentials, roles, user-role assignments, credential scopes, labels, tags, vectors (including both vector search POST routes), graphs, nodes (including most/least connected), edges (including between/from/to/node-edges), traversal (neighbors, parents, children), request history, and the chat endpoints, health, models, threads, turns, and feedback lists.
+  - Added shared pagination query parameters to every list-shaped GET route: `max-keys` (1-1000, default 1000; `maxKeys` accepted), `skip`, `order` (`EnumerationOrderEnum`), and `token` for marker-based continuation where supported; authorization and request-history lists keep accepting legacy `page`/`pageSize`, with `max-keys`/`skip` taking precedence.
+  - Converted every MCP list tool to return the same envelope, with `maxResults` (and `skip`/`order` where applicable) arguments plus `continuationToken` on marker-backed tools; all nine `*/getmany` tools proxy the REST `?guids=` filter and reject empty GUID arrays with an error.
+  - Kept the intentional exceptions: single-object reads, statistics and settings objects, effective-permissions composites, export streams, `SearchResult`-shaped graph/node/edge search routes, and the graph-scoped OpenAI/Ollama-compatible chat routes, which preserve their wire formats.
+  - Added the permanent `Chat.Rest.ZeroGetAllGuard` test, which sweeps the live OpenAPI spec and fails by name on any list-shaped route that neither returns the envelope nor appears on the justified exception list.
 
 - Chat endpoints
   - Added tenant-managed completion and embedding endpoints across five provider types: OpenAI (covering any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.0.

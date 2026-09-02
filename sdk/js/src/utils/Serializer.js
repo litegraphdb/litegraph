@@ -1,4 +1,5 @@
 import util from 'util';
+import EnumerationResult from '../models/EnumerationResult';
 export default class Serializer {
   /**
    * Deserialize JSON to an instance of the specified type.
@@ -28,6 +29,28 @@ export default class Serializer {
         console.log(err, 'chk err');
         throw new Error('Invalid JSON input');
       }
+    }
+  }
+
+  /**
+   * Deserialize a paginated enumeration envelope, instantiating each entry of Objects with the item constructor.
+   * @param {string} json - JSON string of the enumeration envelope.
+   * @param {Function|null} ItemConstructor - Optional constructor used to instantiate each entry of Objects.
+   * @return {EnumerationResult} - The deserialized enumeration result.
+   */
+  static deserializeEnumeration(json, ItemConstructor) {
+    if (ArrayBuffer.isView(json)) {
+      return this.deserializeEnumeration(new util.TextDecoder().decode(json), ItemConstructor);
+    }
+    if (typeof json !== 'string') {
+      return new EnumerationResult(json || {}, ItemConstructor);
+    }
+    try {
+      const data = JSON.parse(json, this.jsonReviver);
+      return new EnumerationResult(data || {}, ItemConstructor);
+    } catch (err) {
+      return json;
+      //in case fails return data as it as
     }
   }
 

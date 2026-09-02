@@ -1564,10 +1564,10 @@
         <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.ChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
@@ -1604,7 +1604,10 @@
         <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.ChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -1707,6 +1710,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.Enumerate(LiteGraph.EnumerationRequest,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Client.Implementations.ChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -2554,19 +2563,21 @@
             <param name="token">Cancellation token.</param>
             <returns>Chat endpoint, or null if not found.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
             <summary>
-            Enumerate chat endpoints.
+            Enumerate chat endpoints, optionally filtered by endpoint type.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="endpointType">Endpoint type filter.  Null returns all types.</param>
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result containing a page of objects.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointType">Endpoint type filter.  Null counts all types.</param>
             <param name="order">Enumeration order.</param>
             <param name="markerGuid">Marker GUID.</param>
             <param name="token">Cancellation token.</param>
@@ -2639,12 +2650,25 @@
             <param name="token">Cancellation token.</param>
             <returns>Async enumerable of chat feedback records.</returns>
         </member>
-        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
-            Get the record count.
+            Enumerate chat feedback, optionally filtered by rating or thread.
+            </summary>
+            <param name="query">Enumeration query.  TenantGUID is required.</param>
+            <param name="rating">Rating filter.  Null returns all ratings.</param>
+            <param name="threadGuid">Thread GUID filter.  Null returns all threads.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="rating">Rating filter.  Null counts all ratings.</param>
+            <param name="threadGuid">Thread GUID filter.  Null counts all threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
             <param name="token">Cancellation token.</param>
             <returns>Number of records.</returns>
         </member>
@@ -2845,6 +2869,27 @@
             <param name="skip">Number of records to skip.</param>
             <param name="token">Cancellation token.</param>
             <returns>Async enumerable of chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.Enumerate(LiteGraph.EnumerationRequest,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate the turns of a thread.
+            Creation-time orderings map to the turn sequence so pages follow conversational order.
+            </summary>
+            <param name="query">Enumeration query.  TenantGUID is required.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID filter.  Null counts all threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
         </member>
         <member name="M:LiteGraph.Client.Interfaces.IChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -6872,19 +6917,21 @@
             <param name="token">Cancellation token.</param>
             <returns>Chat endpoint, or null if not found.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
             <summary>
-            Enumerate chat endpoints.
+            Enumerate chat endpoints, optionally filtered by endpoint type.
             </summary>
             <param name="query">Enumeration query.</param>
+            <param name="endpointType">Endpoint type filter.  Null returns all types.</param>
             <param name="token">Cancellation token.</param>
             <returns>Enumeration result containing a page of objects.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointType">Endpoint type filter.  Null counts all types.</param>
             <param name="order">Enumeration order.</param>
             <param name="markerGuid">Marker GUID.</param>
             <param name="token">Cancellation token.</param>
@@ -6957,12 +7004,25 @@
             <param name="token">Cancellation token.</param>
             <returns>Async enumerable of chat feedback records.</returns>
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
-            Get the record count.
+            Enumerate chat feedback, optionally filtered by rating or thread.
+            </summary>
+            <param name="query">Enumeration query.  TenantGUID is required.</param>
+            <param name="rating">Rating filter.  Null returns all ratings.</param>
+            <param name="threadGuid">Thread GUID filter.  Null returns all threads.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
             </summary>
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="rating">Rating filter.  Null counts all ratings.</param>
+            <param name="threadGuid">Thread GUID filter.  Null counts all threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
             <param name="token">Cancellation token.</param>
             <returns>Number of records.</returns>
         </member>
@@ -7163,6 +7223,27 @@
             <param name="skip">Number of records to skip.</param>
             <param name="token">Cancellation token.</param>
             <returns>Async enumerable of chat turns.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.Enumerate(LiteGraph.EnumerationRequest,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate the turns of a thread.
+            Creation-time orderings map to the turn sequence so pages follow conversational order.
+            </summary>
+            <param name="query">Enumeration query.  TenantGUID is required.</param>
+            <param name="threadGuid">Thread GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Enumeration result containing a page of objects.</returns>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="threadGuid">Thread GUID filter.  Null counts all threads.</param>
+            <param name="order">Enumeration order.</param>
+            <param name="markerGuid">Marker GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of records.</returns>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Interfaces.IChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>
@@ -9352,10 +9433,10 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
@@ -9391,7 +9472,10 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -9491,6 +9575,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.Enumerate(LiteGraph.EnumerationRequest,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.ChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -10613,10 +10703,10 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.ReadByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatEndpointTypeEnum},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatEndpointTypeEnum},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatEndpointMethods.Update(LiteGraph.ChatEndpoint,System.Threading.CancellationToken)">
@@ -10652,7 +10742,10 @@
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.ReadAllInTenant(System.Guid,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Threading.CancellationToken)">
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.Enumerate(LiteGraph.EnumerationRequest,System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{LiteGraph.ChatFeedbackRatingEnum},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatFeedbackMethods.DeleteByGuid(System.Guid,System.Guid,System.Threading.CancellationToken)">
@@ -10752,6 +10845,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.ReadAllInTenant(System.Guid,LiteGraph.EnumerationOrderEnum,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.Enumerate(LiteGraph.EnumerationRequest,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.GetRecordCount(System.Nullable{System.Guid},System.Nullable{System.Guid},LiteGraph.EnumerationOrderEnum,System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Sqlite.Implementations.ChatTurnMethods.GetCountByThread(System.Guid,System.Guid,System.Threading.CancellationToken)">

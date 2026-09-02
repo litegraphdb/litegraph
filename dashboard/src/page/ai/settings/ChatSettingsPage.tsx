@@ -38,10 +38,11 @@ const ChatSettingsPage = () => {
     error,
     refetch,
   } = useGetChatSettingsQuery({ tenantGuid }, { skip: !tenantGuid });
-  const { data: endpoints = [], isLoading: isEndpointsLoading } = useListChatEndpointsQuery(
+  const { data: endpointsEnvelope, isLoading: isEndpointsLoading } = useListChatEndpointsQuery(
     { tenantGuid },
     { skip: !tenantGuid }
   );
+  const endpoints = endpointsEnvelope?.Objects ?? [];
   const [updateSettings, { isLoading: isSaving }] = useUpdateChatSettingsMutation();
 
   const [draft, setDraft] = useState<ChatSettings | null>(null);

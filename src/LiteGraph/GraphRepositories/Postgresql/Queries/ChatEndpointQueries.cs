@@ -73,6 +73,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
 
         internal static string GetRecordPage(
             Guid? tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
             int batchSize = 100,
             int skip = 0,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
@@ -82,6 +83,9 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
 
             if (tenantGuid != null)
                 ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (endpointType != null)
+                ret += "AND endpointtype = '" + endpointType.Value.ToString() + "' ";
 
             if (marker != null)
                 ret += "AND " + MarkerWhereClause(order, marker);
@@ -95,6 +99,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
 
         internal static string GetRecordCount(
             Guid? tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             ChatEndpoint marker = null)
         {
@@ -102,6 +107,9 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
 
             if (tenantGuid != null)
                 ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (endpointType != null)
+                ret += "AND endpointtype = '" + endpointType.Value.ToString() + "' ";
 
             if (marker != null)
                 ret += "AND " + MarkerWhereClause(order, marker);

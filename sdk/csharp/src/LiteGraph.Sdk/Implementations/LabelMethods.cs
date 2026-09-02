@@ -61,15 +61,19 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadMany(
+        public async Task<EnumerationResult<LabelMetadata>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/labels?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<LabelMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/labels?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -80,11 +84,11 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
+        public async Task<EnumerationResult<LabelMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/labels?guids=" + string.Join(",", guids);
-            return await _Sdk.Get<List<LabelMetadata>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -127,94 +131,89 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadAllInTenant(
+        public async Task<EnumerationResult<LabelMetadata>> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/labels/all";
-            
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) url += (hasQuery ? "&" : "?") + "order=" + order.ToString();
-            
-            return await _Sdk.GetMany<LabelMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/labels/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadAllInGraph(
-            Guid tenantGuid,
-            Guid graphGuid,
-            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0,
-            CancellationToken token = default)
-        {
-            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/labels/all";
-            
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) url += (hasQuery ? "&" : "?") + "order=" + order.ToString();
-            
-            return await _Sdk.GetMany<LabelMetadata>(url, token).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadManyGraph(
+        public async Task<EnumerationResult<LabelMetadata>> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/labels";
-            
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) url += (hasQuery ? "&" : "?") + "order=" + order.ToString();
-            
-            return await _Sdk.GetMany<LabelMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/labels/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadManyNode(
+        public async Task<EnumerationResult<LabelMetadata>> ReadManyGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
+        {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/labels?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<EnumerationResult<LabelMetadata>> ReadManyNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/labels";
-            
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) url += (hasQuery ? "&" : "?") + "order=" + order.ToString();
-            
-            return await _Sdk.GetMany<LabelMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/labels?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<LabelMetadata>> ReadManyEdge(
+        public async Task<EnumerationResult<LabelMetadata>> ReadManyEdge(
             Guid tenantGuid,
             Guid graphGuid,
             Guid edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/" + edgeGuid + "/labels";
-            
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) url += (hasQuery ? "&" : "?") + "order=" + order.ToString();
-            
-            return await _Sdk.GetMany<LabelMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/" + edgeGuid + "/labels?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<LabelMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

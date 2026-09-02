@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockLabelGuid, labelMockApiResponse, labelData } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a label exists by GUID
@@ -19,10 +20,10 @@ export const handlers = [
         return HttpResponse.json(labelMockApiResponse);
     }),
 
-    // Read all tenants
+    // Read all labels (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/labels`, ({ request, params, cookies }) => {
-        // Return an array of tenants
-        return HttpResponse.json(labelMockApiResponse);
+        // Return an enumeration envelope of labels
+        return HttpResponse.json(toEnumerationEnvelope(labelMockApiResponse));
     }),
 
     // Read a specific label by GUID

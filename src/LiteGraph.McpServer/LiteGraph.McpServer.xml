@@ -189,6 +189,18 @@
             Gets enumeration order and skip parameters from JSON element.
             </summary>
         </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetMaxResults(System.Nullable{System.Text.Json.JsonElement})">
+            <summary>
+            Gets the maxResults parameter from an optional JSON element.
+            Returns 1000 when not present or outside the 1-1000 range.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Classes.LiteGraphMcpServerHelpers.GetContinuationToken(System.Nullable{System.Text.Json.JsonElement})">
+            <summary>
+            Gets the continuationToken parameter (GUID) from an optional JSON element.
+            Returns null when not present or invalid.
+            </summary>
+        </member>
         <member name="T:LiteGraph.McpServer.Classes.LiteGraphMcpServerSettings">
             <summary>
             LiteGraph MCP Server settings.

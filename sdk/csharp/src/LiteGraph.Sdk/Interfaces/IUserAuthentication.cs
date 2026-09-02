@@ -15,8 +15,8 @@ namespace LiteGraph.Sdk.Interfaces
         /// Get tenants for the email address associated with this SDK instance.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List of tenants.</returns>
-        Task<List<TenantMetadata>> GetTenantsForEmail(CancellationToken token = default);
+        /// <returns>Enumeration result containing tenants.</returns>
+        Task<EnumerationResult<TenantMetadata>> GetTenantsForEmail(CancellationToken token = default);
 
         /// <summary>
         /// Get details for the current bearer token.

@@ -48,15 +48,35 @@ namespace LiteGraph.GraphRepositories.Interfaces
             CancellationToken token = default);
 
         /// <summary>
-        /// Get the record count.
+        /// Enumerate chat feedback, optionally filtered by rating or thread.
+        /// </summary>
+        /// <param name="query">Enumeration query.  TenantGUID is required.</param>
+        /// <param name="rating">Rating filter.  Null returns all ratings.</param>
+        /// <param name="threadGuid">Thread GUID filter.  Null returns all threads.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Enumeration result containing a page of objects.</returns>
+        Task<EnumerationResult<ChatFeedback>> Enumerate(
+            EnumerationRequest query,
+            ChatFeedbackRatingEnum? rating = null,
+            Guid? threadGuid = null,
+            CancellationToken token = default);
+
+        /// <summary>
+        /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="rating">Rating filter.  Null counts all ratings.</param>
+        /// <param name="threadGuid">Thread GUID filter.  Null counts all threads.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="markerGuid">Marker GUID.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Number of records.</returns>
         Task<int> GetRecordCount(
             Guid? tenantGuid,
             ChatFeedbackRatingEnum? rating = null,
+            Guid? threadGuid = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null,
             CancellationToken token = default);
 
         /// <summary>

@@ -9,12 +9,10 @@ from ..mixins import JSON_CONTENT_TYPE
 from ..models.authorization import (
     AuthorizationEffectivePermissionsResultModel,
     AuthorizationRoleModel,
-    AuthorizationRoleSearchResultModel,
     CredentialScopeAssignmentModel,
-    CredentialScopeAssignmentSearchResultModel,
     UserRoleAssignmentModel,
-    UserRoleAssignmentSearchResultModel,
 )
+from ..models.enumeration_result import EnumerationResultModel, parse_enumeration_result
 
 
 def _to_json(payload: Union[BaseModel, Dict[str, Any]]) -> Dict[str, Any]:
@@ -59,7 +57,15 @@ class Authorization:
         resource_scope: Optional[str] = None,
         permission: Optional[str] = None,
         resource_type: Optional[str] = None,
-    ) -> AuthorizationRoleSearchResultModel:
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+    ) -> EnumerationResultModel:
+        """
+        List authorization roles as an EnumerationResult envelope whose
+        ``objects`` are AuthorizationRoleModel items. The enumeration-style
+        ``max_keys`` and ``skip`` parameters take precedence over the legacy
+        ``page`` and ``page_size`` parameters on the server.
+        """
         client = get_client()
         tid = cls._tenant_guid(tenant_guid)
         url = f"v1.0/tenants/{tid}/roles" + _query(
@@ -72,10 +78,12 @@ class Authorization:
                 "resourceScope": resource_scope,
                 "permission": permission,
                 "resourceType": resource_type,
+                "max-keys": max_keys,
+                "skip": skip,
             }
         )
-        return AuthorizationRoleSearchResultModel.model_validate(
-            client.request("GET", url)
+        return parse_enumeration_result(
+            client.request("GET", url), AuthorizationRoleModel
         )
 
     @classmethod
@@ -143,7 +151,15 @@ class Authorization:
         role_name: Optional[str] = None,
         resource_scope: Optional[str] = None,
         graph_guid: Optional[str] = None,
-    ) -> UserRoleAssignmentSearchResultModel:
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+    ) -> EnumerationResultModel:
+        """
+        List a user's role assignments as an EnumerationResult envelope whose
+        ``objects`` are UserRoleAssignmentModel items. The enumeration-style
+        ``max_keys`` and ``skip`` parameters take precedence over the legacy
+        ``page`` and ``page_size`` parameters on the server.
+        """
         client = get_client()
         tid = cls._tenant_guid(tenant_guid)
         url = f"v1.0/tenants/{tid}/users/{user_guid}/roles" + _query(
@@ -153,10 +169,12 @@ class Authorization:
                 "roleName": role_name,
                 "resourceScope": resource_scope,
                 "graphGuid": graph_guid,
+                "max-keys": max_keys,
+                "skip": skip,
             }
         )
-        return UserRoleAssignmentSearchResultModel.model_validate(
-            client.request("GET", url)
+        return parse_enumeration_result(
+            client.request("GET", url), UserRoleAssignmentModel
         )
 
     @classmethod
@@ -256,7 +274,15 @@ class Authorization:
         graph_guid: Optional[str] = None,
         permission: Optional[str] = None,
         resource_type: Optional[str] = None,
-    ) -> CredentialScopeAssignmentSearchResultModel:
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+    ) -> EnumerationResultModel:
+        """
+        List a credential's scope assignments as an EnumerationResult envelope
+        whose ``objects`` are CredentialScopeAssignmentModel items. The
+        enumeration-style ``max_keys`` and ``skip`` parameters take precedence
+        over the legacy ``page`` and ``page_size`` parameters on the server.
+        """
         client = get_client()
         tid = cls._tenant_guid(tenant_guid)
         url = f"v1.0/tenants/{tid}/credentials/{credential_guid}/scopes" + _query(
@@ -268,10 +294,12 @@ class Authorization:
                 "graphGuid": graph_guid,
                 "permission": permission,
                 "resourceType": resource_type,
+                "max-keys": max_keys,
+                "skip": skip,
             }
         )
-        return CredentialScopeAssignmentSearchResultModel.model_validate(
-            client.request("GET", url)
+        return parse_enumeration_result(
+            client.request("GET", url), CredentialScopeAssignmentModel
         )
 
     @classmethod

@@ -135,13 +135,43 @@ console.log(result.Success, result.State, result.TransactionId, result.DurationM
 
 `TransactionResult` includes lifecycle state, validation-failure state, provider, isolation, commit/rollback timing, retryability, concurrency-conflict, provider error code, and whether LiteGraph used an isolated transaction repository or the legacy serialized fallback.
 
+## Paginated Enumeration Results
+
+Every list-returning GET method (and the v1 vector-search POST) resolves with an `EnumerationResult` envelope rather than a raw array:
+
+```javascript
+{
+  Success: true,
+  Timestamp: { /* start and end timestamps */ },
+  MaxResults: 1000,          // page size used by the server (1-1000)
+  ContinuationToken: null,   // GUID for the next page, or null when exhausted
+  EndOfResults: true,
+  TotalRecords: 42,          // total matching records
+  RecordsRemaining: 0,       // records left after this page
+  Objects: [ /* model instances, e.g. Graph, Node, Edge, ... */ ]
+}
+```
+
+Access the records via `result.Objects` and the total count via `result.TotalRecords`. All of these methods accept an optional pagination options object before the cancellation token:
+
+```javascript
+const page = await api.readGraphs({ maxKeys: 100, skip: 0, order: 'CreatedDescending' });
+console.log(page.TotalRecords, page.Objects.length);
+if (!page.EndOfResults) {
+  const next = await api.readGraphs({ maxKeys: 100, token: page.ContinuationToken });
+  console.log(next.Objects.length);
+}
+```
+
+`maxKeys` maps to the `max-keys` query parameter (1-1000, default 1000), `skip` to `skip` (default 0), `order` to `order`, and `token` to the continuation `token`.
+
 ## API Endpoints Reference
 
 ### Tenant Operations
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readTenants` | Retrieves a list of all tenants. | `cancellationToken` (optional) - `AbortController` | `Promise<TenantMetaData[]>` - Array of tenants | `GET /v1.0/tenants` |
+| `readTenants` | Retrieves a list of all tenants. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` (Objects are `TenantMetaData`) | `GET /v1.0/tenants` |
 | `readTenant` | Retrieves a specific tenant by GUID. | `tenantGuid` (string) - The GUID of the tenant <br> `cancellationToken` (optional) - `AbortController` | `Promise<TenantMetaData>` - The tenant | `GET /v1.0/tenants/{tenantGuid}` |
 | `createTenant` | Creates a new tenant. | `tenant` (TenantMetaData) - The tenant object <br> `tenant.name` (string) - Name of the tenant <br> `tenant.Active` (boolean) - Active status <br> `cancellationToken` (optional) - `AbortController` | `Promise<TenantMetaData>` - Created tenant | `PUT /v1.0/tenants` |
 | `updateTenant` | Updates an existing tenant. | `tenant` (TenantMetaData) - The tenant object <br> `tenant.name` (string) - Name of the tenant <br> `tenant.Active` (boolean) - Active status <br> `guid` (string) - The GUID of the tenant <br> `cancellationToken` (optional) - `AbortController` | `Promise<TenantMetaData>` - Updated tenant | `PUT /v1.0/tenants/{guid}` |
@@ -153,7 +183,7 @@ console.log(result.Success, result.State, result.TransactionId, result.DurationM
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readAllUsers` | Retrieves all users. | `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata[]>` | `GET /v1.0/tenants/{tenantGuid}/users` |
+| `readAllUsers` | Retrieves all users. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/users` |
 | `readUser` | Retrieves a specific user by GUID. | `userGuid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `GET /v1.0/tenants/{tenantGuid}/users/{userGuid}` |
 | `createUser` | Creates a new user. | `user` (Object) - User object with FirstName, LastName, Active, Email, Password, and (v8.0) optional IsSystemAdmin, IsTenantAdmin <br> `cancellationToken` (optional) - `AbortController` | `Promise<UserMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/users` |
 | `existsUser` | Checks if a user exists by GUID. | `guid` (string) - User GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/users/{guid}` |
@@ -179,25 +209,25 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
 | `createChatEndpoint` | Creates an LLM endpoint (Embedding or Completion; OpenAI, Ollama, Gemini, Anthropic, or VoyageAI). | `tenantGuid` (string) <br> `endpoint` (Object) - Name, EndpointType, Provider, Endpoint, ApiKey, Model, ContextWindowTokens <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint>` | `PUT /v1.0/tenants/{tenantGuid}/chat/endpoints` |
-| `readChatEndpoints` | Lists chat endpoints, optionally filtered by type. | `tenantGuid` (string) <br> `endpointType` (optional) - `Embedding` or `Completion` <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints[?endpointType=]` |
+| `readChatEndpoints` | Lists chat endpoints, optionally filtered by type. | `tenantGuid` (string) <br> `endpointType` (optional) - `Embedding` or `Completion` <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints[?endpointType=]` |
 | `readChatEndpoint` | Reads a chat endpoint by GUID. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}` |
 | `chatEndpointExists` | Checks if a chat endpoint exists. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}` |
 | `updateChatEndpoint` | Updates a chat endpoint (full object with GUID). | `tenantGuid` (string) <br> `endpoint` (Object) - Endpoint object containing GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpoint>` | `PUT /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}` |
 | `deleteChatEndpoint` | Deletes a chat endpoint. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}` |
 | `testChatEndpoint` | Tests connectivity of a chat endpoint. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpointTestResult>` | `POST /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}/test` |
 | `readChatEndpointHealth` | Reads health status for one endpoint. | `tenantGuid` (string) <br> `endpointGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpointHealth>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/{endpointGuid}/health` |
-| `readAllChatEndpointHealth` | Reads health status for all endpoints. | `tenantGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatEndpointHealth[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/health` |
-| `readChatModels` | Reads the model catalog: active endpoints projected as summaries ({ GUID, Name, Model, Provider, EndpointType, IsDefault }); no admin required. | `tenantGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatModelSummary[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/models` |
+| `readAllChatEndpointHealth` | Reads health status for all endpoints. | `tenantGuid` (string) <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/chat/endpoints/health` |
+| `readChatModels` | Reads the model catalog: active endpoints projected as summaries ({ GUID, Name, Model, Provider, EndpointType, IsDefault }); no admin required. | `tenantGuid` (string) <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/chat/models` |
 | `createChatThread` | Creates a chat thread owned by the caller. | `tenantGuid` (string) <br> `thread` (optional Object) - GraphGUID, Title <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread>` | `PUT /v1.0/tenants/{tenantGuid}/chat/threads` |
-| `readChatThreads` | Lists own threads, or every user's with `allUsers` (admin only). | `tenantGuid` (string) <br> `allUsers` (optional boolean) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/threads[?all]` |
+| `readChatThreads` | Lists own threads, or every user's with `allUsers` (admin only). | `tenantGuid` (string) <br> `allUsers` (optional boolean) <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/chat/threads[?all]` |
 | `readChatThread` | Reads a chat thread by GUID. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread>` | `GET /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}` |
 | `updateChatThread` | Renames a chat thread; only `Title` is honored and it must be non-empty. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `thread` (Object) - Title <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatThread>` | `PUT /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}` |
 | `deleteChatThread` | Deletes a thread with its turns and feedback. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}` |
-| `readChatThreadTurns` | Reads a thread's turns ascending by sequence. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatTurn[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}/turns` |
+| `readChatThreadTurns` | Reads a thread's turns ascending by sequence. | `tenantGuid` (string) <br> `threadGuid` (string) <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/chat/threads/{threadGuid}/turns` |
 | `chatCompletion` | Executes a non-streaming completion (`Stream` forced to `false`). | `tenantGuid` (string) <br> `request` (Object) - Message, plus optional ThreadGUID, GraphGUID, endpoint GUIDs, Temperature, MaxOutputTokens, EnableTools, EnableRag, RagTopK, SystemPrompt <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatCompletionResult>` | `POST /v1.0/tenants/{tenantGuid}/chat/completions` |
 | `chatCompletionStreaming` | Executes a streaming completion; async generator yielding parsed SSE events (`started`, `delta`, `thinking`, `retrieval`, `tool_call`, `tool_result`, `usage`, `error`). Requires Node 18+ or a browser (uses `fetch`). | `tenantGuid` (string) <br> `request` (Object) - Same as `chatCompletion` <br> `cancellationToken` (optional) - `AbortController` | `AsyncGenerator<Object>` | `POST /v1.0/tenants/{tenantGuid}/chat/completions` |
 | `submitChatFeedback` | Submits feedback for a chat turn. | `tenantGuid` (string) <br> `turnGuid` (string) <br> `feedback` (Object) - Rating (`ThumbsUp`/`ThumbsDown`), FeedbackText <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatFeedback>` | `POST /v1.0/tenants/{tenantGuid}/chat/turns/{turnGuid}/feedback` |
-| `readAllChatFeedback` | Lists all feedback records (admin). | `tenantGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatFeedback[]>` | `GET /v1.0/tenants/{tenantGuid}/chat/feedback` |
+| `readAllChatFeedback` | Lists all feedback records (admin). | `tenantGuid` (string) <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/chat/feedback` |
 | `readChatFeedback` | Reads a feedback record by GUID (admin). | `tenantGuid` (string) <br> `feedbackGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatFeedback>` | `GET /v1.0/tenants/{tenantGuid}/chat/feedback/{feedbackGuid}` |
 | `deleteChatFeedback` | Deletes a feedback record (admin). | `tenantGuid` (string) <br> `feedbackGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/chat/feedback/{feedbackGuid}` |
 | `readChatSettings` | Reads tenant chat settings (defaults when no record exists). | `tenantGuid` (string) <br> `cancellationToken` (optional) - `AbortController` | `Promise<ChatSettings>` | `GET /v1.0/tenants/{tenantGuid}/chat/settings` |
@@ -212,14 +242,14 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 |--------|-------------|------------|---------|----------|
 | `generateToken` | Generates an authentication token. | `email` (string) - User's email <br> `password` (string) - User's password <br> `tenantId` (string) - Tenant ID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Token>` | `GET /v1.0/token` |
 | `getTokenDetails` | Fetches details about an authentication token. | `token` (string) - Authentication token <br> `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `GET /v1.0/token/details` |
-| `getTenantsForEmail` | Retrieves tenants associated with an email address. | `email` (string) - The email address to lookup tenants for. <br> `cancellationToken` (optional) - `AbortController` | `Promise<TenantMetaData[]>` | `GET /v1.0/token/tenants` |
+| `getTenantsForEmail` | Retrieves tenants associated with an email address. | `email` (string) - The email address to lookup tenants for. <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/token/tenants` |
 
 
 ### Credential Operations
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readAllCredentials` | Retrieves all credentials. | `cancellationToken` (optional) - `AbortController` | `Promise<CredentialMetadata[]>` | `GET /v1.0/tenants/{tenantGuid}/credentials` |
+| `readAllCredentials` | Retrieves all credentials. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/credentials` |
 | `readCredential` | Retrieves a specific credential by GUID. | `guid` (string) - Credential GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<CredentialMetadata>` | `GET /v1.0/tenants/{tenantGuid}/credentials/{guid}` |
 | `createCredential` | Creates a new credential. | `credential` (Object) - Credential object with Name, BearerToken, Active <br> `cancellationToken` (optional) - `AbortController` | `Promise<CredentialMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/credentials` |
 | `updateCredential` | Updates an existing credential. | `credential` (Object) - Credential object with Name, BearerToken, Active <br> `guid` (string) - Credential GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<CredentialMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/credentials/{guid}` |
@@ -232,7 +262,7 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readAllLabels` | Retrieves all labels. | `cancellationToken` (optional) - `AbortController` | `Promise<LabelMetadata[]>` | `GET /v1.0/tenants/{tenantGuid}/labels` |
+| `readAllLabels` | Retrieves all labels. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/labels` |
 | `readLabel` | Retrieves a specific label by GUID. | `guid` (string) - Label GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<LabelMetadata>` | `GET /v1.0/tenants/{tenantGuid}/labels/{guid}` |
 | `existsLabel` | Checks if a label exists by GUID. | `guid` (string) - Label GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/labels/{guid}` |
 | `createLabel` | Creates a new label. | `label` (Object) - Label object <br> `cancellationToken` (optional) - `AbortController` | `Promise<LabelMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/labels` |
@@ -247,7 +277,7 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readAllTags` | Retrieves all tags. | `cancellationToken` (optional) - `AbortController` | `Promise<TagMetaData[]>` | `GET /v1.0/tenants/{tenantGuid}/tags` |
+| `readAllTags` | Retrieves all tags. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/tags` |
 | `readTag` | Retrieves a specific tag by GUID. | `guid` (string) - Tag GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<TagMetaData>` | `GET /v1.0/tenants/{tenantGuid}/tags/{guid}` |
 | `existsTag` | Checks if a tag exists by GUID. | `guid` (string) - Tag GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/tags/{guid}` |
 | `createTag` | Creates a new tag. | `tag` (Object) - Tag object <br> `cancellationToken` (optional) - `AbortController` | `Promise<TagMetaData>` | `PUT /v1.0/tenants/{tenantGuid}/tags` |
@@ -260,14 +290,14 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readAllVectors` | Retrieves all vectors. | `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata[]>` | `GET /v1.0/tenants/{tenantGuid}/vectors` |
+| `readAllVectors` | Retrieves all vectors. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/vectors` |
 | `readVector` | Retrieves a specific vector by GUID. | `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata>` | `GET /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `existsVector` | Checks if a vector exists by GUID. | `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `createVector` | Creates a new vector. | `vector` (Object) - Vector object <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/vectors` |
 | `createVectors` | Creates multiple vectors. | `vectors` (Array<Object>) - List of vector objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/vectors/bulk?return=minimal` |
 | `updateVector` | Updates an existing vector. | `vector` (Object) - Vector object <br> `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorMetadata>` | `PUT /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
 | `deleteVector` | Deletes a vector by GUID. | `guid` (string) - Vector GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `DELETE /v1.0/tenants/{tenantGuid}/vectors/{guid}` |
-| `searchVectors` | Searches vectors based on criteria. | `searchReq` (Object) - Search request with GraphGUID, Domain, SearchType, Labels <br> `cancellationToken` (optional) - `AbortController` | `Promise<VectorSearchResult>` | `POST /v1.0/tenants/{tenantGuid}/vectors` |
+| `searchVectors` | Searches vectors based on criteria. | `searchReq` (Object) - Search request with GraphGUID, Domain, SearchType, Labels <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope whose `Objects` are `VectorSearchResult` items | `POST /v1.0/tenants/{tenantGuid}/vectors` |
 
 
 ### Graph Operations
@@ -276,7 +306,7 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 |--------|-------------|------------|---------|----------|
 | `graphExists` | Checks if a graph exists by GUID. | `guid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/graphs/{guid}` |
 | `createGraph` | Creates a new graph. | `guid` (string) - Graph GUID <br> `name` (string) - Name of the graph <br> `data` (Object) - Graph metadata (optional) <br> `cancellationToken` (optional) - `AbortController` | `Promise<Graph>` | `PUT /v1.0/tenants/{tenantGuid}/graphs` |
-| `readGraphs` | Retrieves all graphs. | `cancellationToken` (optional) - `AbortController` | `Promise<Graph[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs` |
+| `readGraphs` | Retrieves all graphs. | `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs` |
 | `searchGraphs` | Searches for graphs based on criteria. | `searchReq` (Object) - Search request with filters <br> `cancellationToken` (optional) - `AbortController` | `Promise<SearchResult>` | `POST /v1.0/tenants/{tenantGuid}/graphs/search` |
 | `readGraph` | Retrieves a specific graph by GUID. | `guid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Graph>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{guid}` |
 | `updateGraph` | Updates an existing graph. | `graph` (Object) - Graph object with GUID, name, metadata <br> `cancellationToken` (optional) - `AbortController` | `Promise<Graph>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graph.GUID}` |
@@ -297,7 +327,7 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 | `nodeExists` | Checks if a node exists by GUID. | `graphGuid` (string) - Graph GUID <br> `guid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{guid}` |
 | `createNodes` | Creates multiple nodes. | `graphGuid` (string) - Graph GUID <br> `nodes` (Array<Object>) - List of node objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/bulk?return=minimal` |
 | `createNode` | Creates a single node. | `node` (Object) - Node object with GUID, GraphGUID, name, data, CreatedUtc <br> `cancellationToken` (optional) - `AbortController` | `Promise<Node>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{node.GraphGUID}/nodes` |
-| `readNodes` | Retrieves all nodes in a graph. | `graphGuid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Node[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes` |
+| `readNodes` | Retrieves all nodes in a graph. | `graphGuid` (string) - Graph GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes` |
 | `searchNodes` | Searches for nodes based on criteria. | `searchReq` (Object) - Search request object with GraphGUID, Ordering, Expr <br> `cancellationToken` (optional) - `AbortController` | `Promise<SearchResult>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{searchReq.GraphGUID}/nodes/search` |
 | `readNode` | Retrieves a specific node by GUID. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Node>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}` |
 | `updateNode` | Updates an existing node. | `node` (Object) - Node object with GUID, GraphGUID, name, data, CreatedUtc <br> `cancellationToken` (optional) - `AbortController` | `Promise<Node>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{node.GraphGUID}/nodes/{node.GUID}` |
@@ -313,7 +343,7 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 | `edgeExists` | Checks if an edge exists by GUID. | `graphGuid` (string) - Graph GUID <br> `guid` (string) - Edge GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<boolean>` | `HEAD /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{guid}` |
 | `createEdges` | Creates multiple edges. | `graphGuid` (string) - The GUID of the graph <br> `edges` (Array<Object>) - List of edge objects <br> `options.returnMode` (optional) - `full` or `minimal` <br> `cancellationToken` (optional) - `AbortController` | `Promise<Array<Object>>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/bulk?return=minimal` |
 | `createEdge` | Creates an edge. | `edge` (Object) - Edge object with GUID, GraphGUID, Name, From, To, Cost, CreatedUtc, Data <br> `cancellationToken` (optional) - `AbortController` | `Promise<Edge>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{edge.GraphGUID}/edges` |
-| `readEdges` | Retrieves all edges in a graph. | `graphGuid` (string) - Graph GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Edge[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges` |
+| `readEdges` | Retrieves all edges in a graph. | `graphGuid` (string) - Graph GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortController` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges` |
 | `searchEdges` | Searches for edges based on criteria. | `searchReq` (Object) - Search request object containing GraphGUID, Ordering, Expr <br> `cancellationToken` (optional) - `AbortController` | `Promise<SearchResult>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{searchReq.GraphGUID}/edges/search` |
 | `readEdge` | Retrieves an edge by GUID. | `graphGuid` (string) - Graph GUID <br> `edgeGuid` (string) - Edge GUID <br> `cancellationToken` (optional) - `AbortController` | `Promise<Edge>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/{edgeGuid}` |
 | `updateEdge` | Updates an edge. | `edge` (Object) - Edge object with GUID, GraphGUID, Name, From, To, Cost, CreatedUtc, Data <br> `cancellationToken` (optional) - `AbortController` | `Promise<Edge>` | `PUT /v1.0/tenants/{tenantGuid}/graphs/{edge.GraphGUID}/edges/{edge.GUID}` |
@@ -326,13 +356,13 @@ LLM chat against your graphs: endpoint management (completion and embedding endp
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `getEdgesFromNode` | Retrieves edges from a given node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Edge[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/from` |
-| `getEdgesToNode` | Retrieves edges to a given node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Edge[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/to` |
-| `getEdgesBetween` | Retrieves edges from one node to another. | `graphGuid` (string) - Graph GUID <br> `fromNodeGuid` (string) - From node GUID <br> `toNodeGuid` (string) - To node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Edge[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/between?from={fromNodeGuid}&to={toNodeGuid}` |
-| `getAllNodeEdges` | Retrieves all edges to or from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Edge[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges` |
-| `getChildrenFromNode` | Retrieves child nodes from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Node[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/children` |
-| `getParentsFromNode` | Retrieves parent nodes from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Node[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/parents` |
-| `getNodeNeighbors` | Retrieves neighboring nodes from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<Node[]>` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/neighbors` |
+| `getEdgesFromNode` | Retrieves edges from a given node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/from` |
+| `getEdgesToNode` | Retrieves edges to a given node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges/to` |
+| `getEdgesBetween` | Retrieves edges from one node to another. | `graphGuid` (string) - Graph GUID <br> `fromNodeGuid` (string) - From node GUID <br> `toNodeGuid` (string) - To node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges/between?from={fromNodeGuid}&to={toNodeGuid}` |
+| `getAllNodeEdges` | Retrieves all edges to or from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/edges` |
+| `getChildrenFromNode` | Retrieves child nodes from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/children` |
+| `getParentsFromNode` | Retrieves parent nodes from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/parents` |
+| `getNodeNeighbors` | Retrieves neighboring nodes from a node. | `graphGuid` (string) - Graph GUID <br> `nodeGuid` (string) - Node GUID <br> `options` (optional) - pagination `{ maxKeys, skip, order, token }` <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<EnumerationResult>` - envelope with `Objects`, `TotalRecords`, `ContinuationToken` | `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes/{nodeGuid}/neighbors` |
 | `getRoutes` | Retrieves routes between two nodes. | `graphGuid` (string) - Graph GUID <br> `fromNodeGuid` (string) - From node GUID <br> `toNodeGuid` (string) - To node GUID <br> `cancellationToken` (optional) - `AbortSignal` | `Promise<RouteResult>` | `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/routes` |
 
 
@@ -383,8 +413,8 @@ api.readGraph('graph-guid')
     .catch(err => console.error(err));
 
 // Retrieve all graphs for tenant
-api.readGraphs()
-    .then(graphs => console.log(graphs))
+api.readGraphs({ maxKeys: 100, skip: 0 })
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Update a graph
@@ -480,8 +510,8 @@ api.readNode('graph-guid', 'node-guid')
     .catch(err => console.error(err));
 
 // Retrieve all nodes in a graph
-api.readNodes('graph-guid')
-    .then(nodes => console.log(nodes))
+api.readNodes('graph-guid', { maxKeys: 100 })
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Update a node
@@ -599,7 +629,7 @@ api.searchEdges('graph-guid', searchRequest)
 
 // Read all edges in a graph
 api.readEdges('graph-guid')
-    .then(edges => console.log(edges))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Delete all edges
@@ -615,7 +645,7 @@ api.deleteEdges('graph-guid')
 
 // Retrieve all vectors
 api.readAllVectors()
-    .then(vectors => console.log(vectors))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Retrieve a specific vector
@@ -662,7 +692,7 @@ const searchRequest = {
     Labels: ['search-label1', 'search-label2']
 };
 api.searchVectors(searchRequest)
-    .then(searchResults => console.log(searchResults))
+    .then(result => console.log(result.Objects)) // Objects are VectorSearchResult items
     .catch(err => console.error(err));
 ```
 
@@ -685,37 +715,37 @@ api.getRoutes('graph-guid', routeRequest)
 
 // Get Edges From
 api.getEdgesFromNode('graph-guid', 'node-guid')
-    .then(edges => console.log(edges))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 
 // Get Edges To
 api.getEdgesToNode('graph-guid', 'node-guid')
-    .then(edges => console.log(edges))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 
 // Get Edges Between
 api.getEdgesBetween('graph-guid', 'node-guid-1', 'node-guid-2')
-    .then(edges => console.log(edges))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 
 // Get All Node Edges
 api.getAllNodeEdges('graph-guid', 'node-guid')
-    .then(edges => console.log(edges))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 
 // Get Children Node
 api.getChildrenFromNode('graph-guid', 'node-guid')
-    .then(nodes => console.log(nodes))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 
 // Get Parent  Node
 api.getParentsFromNode('graph-guid', 'node-guid')
-    .then(nodes => console.log(nodes))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 
 // Get Node Neighbors
 api.getNodeNeighbors('graph-guid', 'node-guid')
-    .then(neighbors => console.log(neighbors))
+    .then(result => console.log(result.Objects))
     .catch(err => console.error(err));
 ```
 
@@ -724,7 +754,7 @@ api.getNodeNeighbors('graph-guid', 'node-guid')
 ```javascript
 // Retrieve all tenants
 api.readTenants()
-    .then(tenants => console.log(tenants))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Retrieve a specific tenant
@@ -772,7 +802,7 @@ api.tenantDeleteForce('tenant-guid')
 ```javascript
 // Retrieve all users
 api.readAllUsers()
-    .then(users => console.log(users))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Retrieve a specific user
@@ -821,7 +851,7 @@ api.deleteUser('user-guid')
 ```javascript
 // Retrieve all credentials
 api.readAllCredentials()
-    .then(credentials => console.log(credentials))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Retrieve a specific credential
@@ -869,7 +899,7 @@ api.deleteCredential('credential-guid')
 
 // Retrieve all tags
 api.readAllTags()
-    .then(tags => console.log(tags))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Retrieve a specific tag
@@ -916,7 +946,7 @@ api.deleteTag('tag-guid')
 
 // Retrieve all labels
 api.readAllLabels()
-    .then(labels => console.log(labels))
+    .then(result => console.log(result.Objects, result.TotalRecords))
     .catch(err => console.error(err));
 
 // Retrieve a specific label
@@ -1036,14 +1066,15 @@ const test = await api.testChatEndpoint(tenantGuid, endpoint.GUID);
 console.log(test.Reachable, test.Models);
 await api.updateChatSettings(tenantGuid, { DefaultCompletionEndpointGUID: endpoint.GUID, EnableChat: true });
 
-// Endpoint health (admin): all endpoints, or one by GUID
+// Endpoint health (admin): all endpoints (enumeration envelope), or one by GUID
 const healthAll = await api.readAllChatEndpointHealth(tenantGuid);
+healthAll.Objects.forEach((h) => console.log(h.EndpointGUID, h.Healthy));
 const health = await api.readChatEndpointHealth(tenantGuid, endpoint.GUID);
 console.log(health.Healthy, health.UptimePercentage);
 
-// Model catalog (any user): pick a model for completions
+// Model catalog (any user): pick a model for completions (enumeration envelope)
 const models = await api.readChatModels(tenantGuid);
-models.forEach((m) => console.log(m.Name, m.Model, m.Provider, m.EndpointType, m.IsDefault));
+models.Objects.forEach((m) => console.log(m.Name, m.Model, m.Provider, m.EndpointType, m.IsDefault));
 
 // Non-streaming completion (requires a user principal; creates a thread when ThreadGUID is omitted)
 const result = await api.chatCompletion(tenantGuid, {
@@ -1073,9 +1104,9 @@ for await (const event of api.chatCompletionStreaming(tenantGuid, {
     }
 }
 
-// Thread history and feedback
+// Thread history and feedback (turns come back in an enumeration envelope)
 const turns = await api.readChatThreadTurns(tenantGuid, result.ThreadGUID);
-await api.submitChatFeedback(tenantGuid, turns[0].GUID, {
+await api.submitChatFeedback(tenantGuid, turns.Objects[0].GUID, {
     Rating: ChatFeedbackRatingEnum.ThumbsUp,
     FeedbackText: 'Accurate answer',
 });

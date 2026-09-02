@@ -13,11 +13,8 @@ from .models.authorization import (
     AuthorizationEffectiveGrantModel,
     AuthorizationEffectivePermissionsResultModel,
     AuthorizationRoleModel,
-    AuthorizationRoleSearchResultModel,
     CredentialScopeAssignmentModel,
-    CredentialScopeAssignmentSearchResultModel,
     UserRoleAssignmentModel,
-    UserRoleAssignmentSearchResultModel,
 )
 from .models.chat import (
     ChatCompletionRequestModel,
@@ -33,6 +30,10 @@ from .models.chat import (
     ChatTurnModel,
 )
 from .models.edge import EdgeModel
+from .models.enumeration_result import (
+    EnumerationResultModel,
+    parse_enumeration_result,
+)
 from .models.expression import ExprModel
 from .models.import_export import (
     GraphImportResultModel,

@@ -20,6 +20,8 @@ Endpoints are managed by administrators (system or tenant); threads belong to th
 
 The turn record is deliberately heavyweight. Beyond the message pair it stores the reasoning text, a JSON transcript of every tool call, and a column per timing stage (see the telemetry reference below). The high-cardinality detail lives here and on trace spans, never on metric labels, which is the same division of labor v8.0 established for the rest of the server.
 
+The list surfaces over these entities — endpoint listing, endpoint health (all), the model catalog, thread listing, thread turns, and feedback listing — follow the server-wide v8.1 rule: they return the paginated `EnumerationResult` envelope with `max-keys`/`skip`/`order`/`token` query parameters (see [REST_API.md](REST_API.md)), never a bare array. The graph-scoped OpenAI/Ollama-compatible routes described below are the deliberate exception, keeping their protocols' wire shapes.
+
 ## Providers
 
 Chat speaks to model providers through [PolyPrompt](https://www.nuget.org/packages/PolyPrompt) `2.4.0`, which gives every provider the same streaming tool-chat and embedding interface. Five provider types are supported:

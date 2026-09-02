@@ -64,7 +64,9 @@ describe('tagRoute Tests', () => {
 
     test('should read all tags', async () => {
       const response = await api.readAllTags();
-      response.forEach((tag) => {
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((tag) => {
         expect(tag instanceof TagMetaData).toBe(true);
       });
     });

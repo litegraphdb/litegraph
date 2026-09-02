@@ -180,8 +180,10 @@
         /// </summary>
         /// <param name="email">Email address.</param>
         /// <param name="endpoint">Endpoint URL. Defaults to http://localhost:8701</param>
-        /// <returns>List of tenant metadata.</returns>
-        public static List<TenantMetadata> GetTenantsForEmail(string email, string endpoint = "http://localhost:8701")
+        /// <returns>Enumeration result containing tenant metadata.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the email or endpoint is null or empty.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the server returns a non-success status code or no response.</exception>
+        public static EnumerationResult<TenantMetadata> GetTenantsForEmail(string email, string endpoint = "http://localhost:8701")
         {
             if (String.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
             if (String.IsNullOrEmpty(endpoint)) throw new ArgumentNullException(nameof(endpoint));
@@ -203,11 +205,11 @@
                         {
                             if (!String.IsNullOrEmpty(resp.DataAsString))
                             {
-                                return Serializer.DeserializeJson<List<TenantMetadata>>(resp.DataAsString);
+                                return Serializer.DeserializeJson<EnumerationResult<TenantMetadata>>(resp.DataAsString);
                             }
                             else
                             {
-                                return new List<TenantMetadata>();
+                                return new EnumerationResult<TenantMetadata>();
                             }
                         }
                         else

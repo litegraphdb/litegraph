@@ -35,15 +35,16 @@ const HistoryPage = () => {
   const [turnDetail, setTurnDetail] = useState<ChatTurn | null>(null);
 
   const {
-    data: threads = [],
+    data: threadsEnvelope,
     isLoading: isThreadsLoading,
     isFetching: isThreadsFetching,
     error: threadsError,
     refetch: refetchThreads,
   } = useListChatThreadsQuery({ tenantGuid, all: true }, { skip: !tenantGuid });
+  const threads = useMemo(() => threadsEnvelope?.Objects ?? [], [threadsEnvelope]);
 
   const {
-    data: turns = [],
+    data: turnsEnvelope,
     isLoading: isTurnsLoading,
     isFetching: isTurnsFetching,
     error: turnsError,
@@ -52,6 +53,7 @@ const HistoryPage = () => {
     { tenantGuid, threadGuid: selectedThreadGuid as string },
     { skip: !tenantGuid || !selectedThreadGuid }
   );
+  const turns = useMemo(() => turnsEnvelope?.Objects ?? [], [turnsEnvelope]);
 
   const selectedThread = useMemo(
     () => threads.find((thread) => thread.GUID === selectedThreadGuid) || null,
@@ -59,8 +61,10 @@ const HistoryPage = () => {
   );
 
   const { serializePath } = useAppDynamicNavigation();
-  const { data: users = [] } = useGetAllUsersQuery();
-  const { data: graphs = [] } = useGetAllGraphsQuery();
+  const { data: usersEnvelope } = useGetAllUsersQuery();
+  const users = usersEnvelope?.Objects ?? [];
+  const { data: graphsEnvelope } = useGetAllGraphsQuery();
+  const graphs = graphsEnvelope?.Objects ?? [];
 
   const userLabel = (userGuid: string): string => {
     const user = users.find((candidate) => candidate.GUID === userGuid);

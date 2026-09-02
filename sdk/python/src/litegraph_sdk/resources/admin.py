@@ -1,14 +1,26 @@
 from ..configuration import get_client
+from ..models.enumeration_result import EnumerationResultModel, parse_enumeration_result
+from ..utils.url_helper import _append_query, _pagination_params
 
 
 class Admin:
     """Administrative operations for LiteGraph server."""
 
     @classmethod
-    def list_backups(cls):
-        """List all available backups."""
+    def list_backups(
+        cls,
+        max_keys: int = None,
+        skip: int = None,
+        order: str = None,
+        continuation_token: str = None,
+    ) -> EnumerationResultModel:
+        """List available backups as an EnumerationResult envelope."""
         client = get_client()
-        return client.request("GET", "v1.0/backups")
+        url = _append_query(
+            "v1.0/backups",
+            _pagination_params(max_keys, skip, order, continuation_token),
+        )
+        return parse_enumeration_result(client.request("GET", url))
 
     @classmethod
     def create_backup(cls):

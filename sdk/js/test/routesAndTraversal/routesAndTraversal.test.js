@@ -16,40 +16,40 @@ describe('Node Routes and Traversal', () => {
 
     it('should get edges from a node (success)', async () => {
         const response = await api.getEdgesFromNode(mockGraphGuid, mockNodeGuid);
-        // expect(response).toEqual(edgeMockApiResponse);
-        response.map((edge) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((edge) => {
             expect(JSON.stringify(edge)).toBe(JSON.stringify(new Edge(edgeData[edge.GUID])));
         });
     });
 
     it('should get edges to a node (success)', async () => {
         const response = await api.getEdgesToNode(mockGraphGuid, mockNodeGuid);
-        // expect(response).toEqual(edgeMockApiResponse);
-        response.map((edge) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((edge) => {
             expect(JSON.stringify(edge)).toBe(JSON.stringify(new Edge(edgeData[edge.GUID])));
         });
     });
 
     it('should get edges between nodes (success)', async () => {
         const response = await api.getEdgesBetween(mockGraphGuid, fromNodeGuid, toNodeGuid);
-        // expect(response).toEqual(edgeMockApiResponse);
-        response.map((edge) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((edge) => {
             expect(JSON.stringify(edge)).toBe(JSON.stringify(new Edge(edgeData[edge.GUID])));
         });
     });
 
     it('should get all edges for a node (success)', async () => {
         const response = await api.getAllNodeEdges(mockGraphGuid, mockNodeGuid);
-        // expect(response).toEqual(edgeMockApiResponse);
-        response.map((edge) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((edge) => {
             expect(JSON.stringify(edge)).toBe(JSON.stringify(new Edge(edgeData[edge.GUID])));
         });
     });
 
     it('should get child nodes from a node (success)', async () => {
         const response = await api.getChildrenFromNode(mockGraphGuid, mockNodeGuid);
-        // expect(response).toEqual(nodeMockApiResponse);
-        response.map((node) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((node) => {
             expect(JSON.stringify(node)).toBe(JSON.stringify(new Node(nodeData[node.GUID])));
         });
 
@@ -57,16 +57,16 @@ describe('Node Routes and Traversal', () => {
 
     it('should get parent nodes from a node (success)', async () => {
         const response = await api.getParentsFromNode(mockGraphGuid, mockNodeGuid);
-        // expect(response).toEqual(nodeMockApiResponse);
-        response.map((node) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((node) => {
             expect(JSON.stringify(node)).toBe(JSON.stringify(new Node(nodeData[node.GUID])));
         });
     });
 
     it('should get neighboring nodes (success)', async () => {
         const response = await api.getNodeNeighbors(mockGraphGuid, mockNodeGuid);
-        // expect(response).toEqual(nodeMockApiResponse);
-        response.map((node) => {
+        expect(Array.isArray(response.Objects)).toBe(true);
+        response.Objects.map((node) => {
             expect(JSON.stringify(node)).toBe(JSON.stringify(new Node(nodeData[node.GUID])));
         });
     });

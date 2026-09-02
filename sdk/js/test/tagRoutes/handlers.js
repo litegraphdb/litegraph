@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockTagGuid, tagData, tagMockApiResponse } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a tag exists by GUID
@@ -19,10 +20,10 @@ export const handlers = [
         return HttpResponse.json(tagMockApiResponse);
     }),
 
-    // Read all tags
+    // Read all tags (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/tags`, ({ request, params, cookies }) => {
-        // Return an array of tags
-        return HttpResponse.json(tagMockApiResponse);
+        // Return an enumeration envelope of tags
+        return HttpResponse.json(toEnumerationEnvelope(tagMockApiResponse));
     }),
 
     // Read a specific tag by GUID

@@ -38,9 +38,9 @@ namespace LiteGraph.Sdk.Implementations
         #region Public-Methods
 
         /// <inheritdoc />
-        public async Task<List<TenantMetadata>> GetTenantsForEmail(CancellationToken token = default)
+        public async Task<EnumerationResult<TenantMetadata>> GetTenantsForEmail(CancellationToken token = default)
         {
-            if (String.IsNullOrEmpty(_Sdk.Email)) 
+            if (String.IsNullOrEmpty(_Sdk.Email))
                 throw new InvalidOperationException("Email is not set. Use the constructor with email/password/tenantGuid to set the email.");
 
             string url = _Sdk.Endpoint + "v1.0/token/tenants";
@@ -50,7 +50,7 @@ namespace LiteGraph.Sdk.Implementations
                 { "x-email", _Sdk.Email }
             };
 
-            return await _Sdk.Get<List<TenantMetadata>>(url, headers, token).ConfigureAwait(false);
+            return await _Sdk.Get<EnumerationResult<TenantMetadata>>(url, headers, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

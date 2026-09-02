@@ -69,18 +69,19 @@ const DashboardLayout = ({
   const selectedGraphRedux = useSelectedGraph();
   const selectedTenantRedux = useSelectedTenant();
   const {
-    data: graphsList,
+    data: graphsEnvelope,
     isLoading: isGraphsLoading,
     error: graphError,
     refetch: fetchGraphsList,
   } = useGetAllGraphsQuery(undefined, { skip: !useGraphsSelector });
-  const graphOptions = transformToOptions(graphsList);
+  const graphOptions = transformToOptions(graphsEnvelope?.Objects);
   const {
-    data: tenantsList = [],
+    data: tenantsEnvelope,
     isLoading: isTenantsLoading,
     isError: tenantsError,
     refetch: fetchTenantsList,
   } = useGetAllTenantsQuery(undefined, { skip: !useTenantSelector });
+  const tenantsList = useMemo(() => tenantsEnvelope?.Objects ?? [], [tenantsEnvelope]);
   const tenantOptions = transformToOptions(tenantsList);
 
   useEffect(() => {

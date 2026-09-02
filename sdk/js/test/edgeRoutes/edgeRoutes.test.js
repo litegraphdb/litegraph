@@ -54,7 +54,9 @@ describe('EdgeRoute Tests', () => {
 
     test('should read all edges of a graph', async () => {
       const response = await api.readEdges(mockGraphGuid);
-      response.map((edge) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      expect(response.TotalRecords).toBe(response.Objects.length);
+      response.Objects.map((edge) => {
         expect(JSON.stringify(edge)).toBe(JSON.stringify(new Edge(edgeData[edge.GUID])));
       });
     });

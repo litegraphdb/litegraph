@@ -51,7 +51,9 @@ describe('userRoute Tests', () => {
 
     test('should read all users', async () => {
       const response = await api.readAllUsers();
-      response.forEach((user) => {
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((user) => {
         expect(user instanceof UserMetadata).toBe(true);
       });
     });

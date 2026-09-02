@@ -47,7 +47,9 @@ describe('TenantRoute Tests', () => {
 
     test('should read all tenants', async () => {
       const response = await api.readTenants();
-      response.forEach((tenant) => {
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((tenant) => {
         expect(tenant instanceof TenantMetaData).toBe(true);
       });
     });

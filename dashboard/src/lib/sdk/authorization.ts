@@ -1,3 +1,4 @@
+import type { EnumerateResponse } from 'litegraphdb/dist/types/types';
 import { sdk } from './litegraph.service';
 
 export type AuthorizationPermission = 'Read' | 'Write' | 'Delete' | 'Admin';
@@ -81,13 +82,12 @@ export type AuthorizationEffectivePermissionsResult = {
   Roles: AuthorizationRole[];
 };
 
-export type AuthorizationSearchResult<T> = {
-  Objects: T[];
-  Page: number;
-  PageSize: number;
-  TotalCount: number;
-  TotalPages: number;
-};
+/**
+ * Authorization list routes now return the standard EnumerationResult envelope
+ * ({ Success, Timestamp, MaxResults, ContinuationToken, EndOfResults,
+ * TotalRecords, RecordsRemaining, Objects }).
+ */
+export type AuthorizationSearchResult<T> = EnumerateResponse<T>;
 
 export type AuthorizationListParams = {
   page?: number;
@@ -154,9 +154,10 @@ const request = async <T>(method: string, url: string, body?: unknown): Promise<
 };
 
 export const listAuthorizationRoles = (tenantGuid: string, params: RoleListParams = {}) => {
+  const pageSize = params.pageSize ?? 1000;
   const url = `${getBaseUrl()}/v1.0/tenants/${encodeURIComponent(tenantGuid)}/roles${buildQuery({
-    page: params.page ?? 0,
-    pageSize: params.pageSize ?? 1000,
+    'max-keys': pageSize,
+    skip: (params.page ?? 0) * pageSize || undefined,
     includeBuiltIns: params.includeBuiltIns ?? true,
     builtIn: params.builtIn,
   })}`;
@@ -190,8 +191,8 @@ export const listUserRoleAssignments = (
   const url = `${getBaseUrl()}/v1.0/tenants/${encodeURIComponent(
     tenantGuid
   )}/users/${encodeURIComponent(userGuid)}/roles${buildQuery({
-    page: params.page ?? 0,
-    pageSize: params.pageSize ?? 1000,
+    'max-keys': params.pageSize ?? 1000,
+    skip: (params.page ?? 0) * (params.pageSize ?? 1000) || undefined,
   })}`;
   return request<AuthorizationSearchResult<UserRoleAssignment>>('GET', url);
 };
@@ -226,8 +227,8 @@ export const listCredentialScopeAssignments = (
   const url = `${getBaseUrl()}/v1.0/tenants/${encodeURIComponent(
     tenantGuid
   )}/credentials/${encodeURIComponent(credentialGuid)}/scopes${buildQuery({
-    page: params.page ?? 0,
-    pageSize: params.pageSize ?? 1000,
+    'max-keys': params.pageSize ?? 1000,
+    skip: (params.page ?? 0) * (params.pageSize ?? 1000) || undefined,
   })}`;
   return request<AuthorizationSearchResult<CredentialScopeAssignment>>('GET', url);
 };

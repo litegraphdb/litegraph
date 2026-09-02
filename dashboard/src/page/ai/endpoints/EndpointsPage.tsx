@@ -32,16 +32,18 @@ const EndpointsPage = () => {
   const tenantGuid = (params?.tenantId as string) || '';
 
   const {
-    data: endpoints = [],
+    data: endpointsEnvelope,
     isLoading,
     isFetching,
     error,
     refetch,
   } = useListChatEndpointsQuery({ tenantGuid }, { skip: !tenantGuid });
-  const { data: healthList = [] } = useListChatEndpointHealthQuery(
+  const endpoints = useMemo(() => endpointsEnvelope?.Objects ?? [], [endpointsEnvelope]);
+  const { data: healthEnvelope } = useListChatEndpointHealthQuery(
     { tenantGuid },
     { skip: !tenantGuid, pollingInterval: HEALTH_POLL_INTERVAL_MS }
   );
+  const healthList = useMemo(() => healthEnvelope?.Objects ?? [], [healthEnvelope]);
   const [updateEndpoint] = useUpdateChatEndpointMutation();
   const [deleteEndpoint, { isLoading: isDeleting }] = useDeleteChatEndpointMutation();
 

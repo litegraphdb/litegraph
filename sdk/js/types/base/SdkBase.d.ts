@@ -134,15 +134,16 @@ export default class SdkBase {
      */
     getDataInBytes(url: string, cancellationToken?: AbortController): Promise<any>;
     /**
-     * Retrieves a list of objects from a given URL using a GET request.
+     * Retrieves a paginated enumeration envelope from a given URL using a GET request.
+     * The response body is an EnumerationResult envelope whose Objects entries are instantiated with the supplied model.
      * @param {string} url - The URL of the objects.
-     * @param {Class} model - Modal to deserialize on
+     * @param {Class} model - Model used to instantiate each entry of the envelope's Objects array.
      * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
      * @param {Object} [headers] - Additional headers.
-     * @return {Promise<Array>} Resolves with the list of retrieved objects.
+     * @return {Promise<import('../models/EnumerationResult').default>} Resolves with the enumeration result envelope.
      * @throws {Error} Rejects if the URL is invalid or if the request fails.
      */
-    getMany(url: string, model: Class, cancellationToken?: AbortController, headers?: any): Promise<any[]>;
+    getMany(url: string, model: Class, cancellationToken?: AbortController, headers?: any): Promise<import("../models/EnumerationResult").default>;
     /**
      * Sends a PUT request to update an object at a given URL.
      * @param {string} url - The URL where the object is created.
@@ -172,6 +173,17 @@ export default class SdkBase {
      * @throws {Error} Rejects if the URL or data is invalid or if the request fails.
      */
     post(url: string, data: any | string, model: Class, cancellationToken?: AbortController, acceptedStatusCodes?: number[]): Promise<any>;
+    /**
+     * Submits a POST request whose response is a paginated enumeration envelope.
+     * The response body is an EnumerationResult envelope whose Objects entries are instantiated with the supplied model.
+     * @param {string} url - The URL to post data to.
+     * @param {Object|string} data - The data to send in the POST request.
+     * @param {Class} model - Model used to instantiate each entry of the envelope's Objects array.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @return {Promise<import('../models/EnumerationResult').default>} Resolves with the enumeration result envelope.
+     * @throws {Error} Rejects if the URL or data is invalid or if the request fails.
+     */
+    postEnumeration(url: string, data: any | string, model: Class, cancellationToken?: AbortController): Promise<import("../models/EnumerationResult").default>;
     /**
      * Submits a POST request and resolves with the raw response text.
      * @param {string} url - The URL to post data to.

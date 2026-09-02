@@ -23,12 +23,13 @@ const BackupPage = () => {
   const [isAddEditBackupVisible, setIsAddEditBackupVisible] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupMetaData | null>(null);
   const {
-    data: backupsList = [],
+    data: backupsEnvelope,
     refetch: fetchBackupsList,
     isLoading,
     isFetching,
     error,
   } = useReadAllBackupsQuery();
+  const backupsList = backupsEnvelope?.Objects ?? [];
   const [fetchBackupByFilename, { isLoading: isDownloading }] = useReadBackupMutation();
   const isBackupsLoading = isLoading || isFetching;
   const handleCreateBackup = () => {

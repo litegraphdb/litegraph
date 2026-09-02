@@ -59,10 +59,18 @@ describe('EdgeTooltip Component', () => {
     Data: { key: 'value' },
   };
 
-  const mockNodes = [
-    { GUID: 'node-1', Name: 'Node 1' },
-    { GUID: 'node-2', Name: 'Node 2' },
-  ];
+  // GET /nodes?guids=... now returns the EnumerationResult envelope.
+  const mockNodes = {
+    Success: true,
+    MaxResults: 1000,
+    EndOfResults: true,
+    TotalRecords: 2,
+    RecordsRemaining: 0,
+    Objects: [
+      { GUID: 'node-1', Name: 'Node 1' },
+      { GUID: 'node-2', Name: 'Node 2' },
+    ],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();

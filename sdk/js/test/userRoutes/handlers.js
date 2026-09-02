@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockUserId, userData, userMockApiResponse } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a user exists by GUID
@@ -14,10 +15,10 @@ export const handlers = [
         return HttpResponse.json(userData);
     }),
 
-    // Read all users
+    // Read all users (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/users`, ({ request, params, cookies }) => {
-        // Return an array of users
-        return HttpResponse.json(userMockApiResponse);
+        // Return an enumeration envelope of users
+        return HttpResponse.json(toEnumerationEnvelope(userMockApiResponse));
     }),
 
     // Read a specific user by GUID

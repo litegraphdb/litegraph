@@ -94,11 +94,12 @@ jest.mock('litegraphdb', () => {
   });
 
   const resource = (objects) => ({
-    readAll: jest.fn().mockResolvedValue(objects),
+    // Every list-returning GET route now responds with the EnumerationResult envelope.
+    readAll: jest.fn().mockImplementation(() => Promise.resolve(enumerate(objects))),
     enumerate: jest.fn().mockImplementation(() => Promise.resolve(enumerate(objects))),
     enumerateAndSearch: jest.fn().mockImplementation(() => Promise.resolve(enumerate(objects))),
     read: jest.fn().mockImplementation(() => Promise.resolve(objects[0] || null)),
-    readMany: jest.fn().mockResolvedValue(objects),
+    readMany: jest.fn().mockImplementation(() => Promise.resolve(enumerate(objects))),
     search: jest.fn().mockResolvedValue(objects),
     create: jest.fn().mockImplementation((value) => Promise.resolve(value || objects[0] || {})),
     update: jest.fn().mockImplementation((value) => Promise.resolve(value || objects[0] || {})),
@@ -131,7 +132,9 @@ jest.mock('litegraphdb', () => {
         flush: jest.fn().mockResolvedValue(true),
       };
       this.Authentication = {
-        getTenantsForEmail: jest.fn().mockResolvedValue(mockData.mockTenantData),
+        getTenantsForEmail: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve(enumerate(mockData.mockTenantData))),
         generateToken: jest.fn().mockResolvedValue(mockData.mockToken),
         getTokenDetails: jest.fn().mockResolvedValue(mockData.mockToken),
       };

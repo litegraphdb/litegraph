@@ -41,18 +41,20 @@ export const useSelectedTenant = () => {
 
 export const useNodeAndEdge = (graphId: string) => {
   const {
-    data: nodesList,
+    data: nodesEnvelope,
     refetch: fetchNodesList,
     isLoading: isNodesLoading,
     error: nodesError,
   } = useGetAllNodesQuery({ graphId });
+  const nodesList = nodesEnvelope?.Objects;
   const nodeOptions = transformToOptions(nodesList);
   const {
-    data: edgesList,
+    data: edgesEnvelope,
     refetch: fetchEdgesList,
     isLoading: isEdgesLoading,
     error: edgesError,
   } = useGetAllEdgesQuery({ graphId });
+  const edgesList = edgesEnvelope?.Objects;
   const edgeOptions = transformToOptions(edgesList);
 
   const fetchNodesAndEdges = async () => {

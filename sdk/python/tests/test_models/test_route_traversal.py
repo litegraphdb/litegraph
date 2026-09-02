@@ -7,6 +7,19 @@ from litegraph_sdk.resources.route_traversal import RouteNodes
 from pydantic import ValidationError
 
 
+def _envelope(objects):
+    """Wrap objects in an EnumerationResult envelope."""
+    return {
+        "Success": True,
+        "MaxResults": 1000,
+        "ContinuationToken": None,
+        "EndOfResults": True,
+        "TotalRecords": len(objects),
+        "RecordsRemaining": 0,
+        "Objects": objects,
+    }
+
+
 # Create test class with required graph_guid
 class TestRoutesWithGraphGuid(RouteNodes):
     REQUIRE_GRAPH_GUID = True
@@ -24,7 +37,7 @@ def mock_client(monkeypatch):
         def request(self, method, url):
             if self.graph_guid is None and TestRoutesWithGraphGuid.REQUIRE_GRAPH_GUID:
                 raise ValueError("Graph Id is required for this operation")
-            return []
+            return _envelope([])
 
     client = MockClient()
     monkeypatch.setattr("litegraph_sdk.configuration._client", client)
@@ -49,18 +62,20 @@ def test_model_validation_edges(mock_client):
 
     def mock_request(method, url):
         # Return data that will fail EdgeModel validation
-        return [
-            {
-                "GUID": None,  # Invalid: GUID cannot be None
-                "GraphGUID": "",  # Invalid: GraphGUID cannot be empty
-                "Name": None,
-                "From": None,  # Invalid: From cannot be None
-                "To": None,  # Invalid: To cannot be None
-                "Cost": "invalid",  # Invalid: Cost must be integer
-                "CreatedUtc": "invalid-date",  # Invalid: CreatedUtc must be valid datetime
-                "Data": None,
-            }
-        ]
+        return _envelope(
+            [
+                {
+                    "GUID": None,  # Invalid: GUID cannot be None
+                    "GraphGUID": "",  # Invalid: GraphGUID cannot be empty
+                    "Name": None,
+                    "From": None,  # Invalid: From cannot be None
+                    "To": None,  # Invalid: To cannot be None
+                    "Cost": "invalid",  # Invalid: Cost must be integer
+                    "CreatedUtc": "invalid-date",  # Invalid: CreatedUtc must be valid datetime
+                    "Data": None,
+                }
+            ]
+        )
 
     mock_client.request = mock_request
     mock_client.graph_guid = "test-graph-guid"
@@ -74,15 +89,17 @@ def test_model_validation_nodes(mock_client):
 
     def mock_request(method, url):
         # Return data that will fail NodeModel validation
-        return [
-            {
-                "GUID": None,  # Invalid: GUID cannot be None
-                "GraphGUID": "",  # Invalid: GraphGUID cannot be empty
-                "Name": None,
-                "CreatedUtc": "invalid-date",  # Invalid: CreatedUtc must be valid datetime
-                "Data": "invalid-data",  # Invalid: Data must be dict or None
-            }
-        ]
+        return _envelope(
+            [
+                {
+                    "GUID": None,  # Invalid: GUID cannot be None
+                    "GraphGUID": "",  # Invalid: GraphGUID cannot be empty
+                    "Name": None,
+                    "CreatedUtc": "invalid-date",  # Invalid: CreatedUtc must be valid datetime
+                    "Data": "invalid-data",  # Invalid: Data must be dict or None
+                }
+            ]
+        )
 
     mock_client.request = mock_request
     mock_client.graph_guid = "test-graph-guid"
@@ -96,17 +113,17 @@ def test_edges(mock_client, sample_edge_data):
 
     def mock_request(method, url):
         assert method == "GET"
-        return [sample_edge_data]
+        return _envelope([sample_edge_data])
 
     mock_client.request = mock_request
     mock_client.graph_guid = "test-graph-guid"
 
     # Test successful case
     result = RouteNodes.edges("test-graph-guid", "test-node")
-    assert isinstance(result, list)
-    assert len(result) == 1
-    assert isinstance(result[0], EdgeModel)
-    assert result[0].guid == sample_edge_data["GUID"]
+    assert result.total_records == 1
+    assert len(result.objects) == 1
+    assert isinstance(result.objects[0], EdgeModel)
+    assert result.objects[0].guid == sample_edge_data["GUID"]
 
 
 def test_parents(mock_client, sample_node_data):
@@ -114,36 +131,36 @@ def test_parents(mock_client, sample_node_data):
 
     def mock_request(method, url):
         assert method == "GET"
-        return [sample_node_data]
+        return _envelope([sample_node_data])
 
     mock_client.request = mock_request
     mock_client.graph_guid = "test-graph-guid"
 
     # Test successful case
     result = RouteNodes.parents("test-graph-guid", "test-node")
-    assert isinstance(result, list)
-    assert len(result) == 1
-    assert isinstance(result[0], NodeModel)
-    assert result[0].guid == sample_node_data["GUID"]
+    assert result.total_records == 1
+    assert len(result.objects) == 1
+    assert isinstance(result.objects[0], NodeModel)
+    assert result.objects[0].guid == sample_node_data["GUID"]
 
 
 def test_empty_responses(mock_client):
     """Test handling of empty responses."""
 
     def mock_request(method, url):
-        return []
+        return _envelope([])
 
     mock_client.request = mock_request
     mock_client.graph_guid = "test-graph-guid"
 
     # Test various methods with empty responses
-    assert RouteNodes.get_edges_from("test-graph-guid", "test-node") == []
-    assert RouteNodes.get_edges_to("test-graph-guid", "test-node") == []
-    assert RouteNodes.edges("test-graph-guid", "test-node") == []
-    assert RouteNodes.parents("test-graph-guid", "test-node") == []
-    assert RouteNodes.children("test-graph-guid", "test-node") == []
-    assert RouteNodes.neighbors("test-graph-guid", "test-node") == []
-    assert RouteNodes.between("test-graph-guid", "test-node") == []
+    assert RouteNodes.get_edges_from("test-graph-guid", "test-node").objects == []
+    assert RouteNodes.get_edges_to("test-graph-guid", "test-node").objects == []
+    assert RouteNodes.edges("test-graph-guid", "test-node").objects == []
+    assert RouteNodes.parents("test-graph-guid", "test-node").objects == []
+    assert RouteNodes.children("test-graph-guid", "test-node").objects == []
+    assert RouteNodes.neighbors("test-graph-guid", "test-node").objects == []
+    assert RouteNodes.between("test-graph-guid", "test-node").objects == []
 
 
 def test_error_handling(mock_client):

@@ -66,18 +66,22 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadMany(
+        public async Task<EnumerationResult<TagMetadata>> ReadMany(
             Guid tenantGuid,
             Guid? graphGuid,
             Guid? nodeGuid,
             Guid? edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/tags?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<TagMetadata>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/tags?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -88,11 +92,11 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
+        public async Task<EnumerationResult<TagMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/tags?guids=" + string.Join(",", guids);
-            return await _Sdk.Get<List<TagMetadata>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -135,38 +139,89 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<TagMetadata>> ReadAllInTenant(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/tags/all";
-            return await _Sdk.GetMany<TagMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/tags/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<TagMetadata>> ReadAllInGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/tags/all";
-            return await _Sdk.GetMany<TagMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/tags/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadManyGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<TagMetadata>> ReadManyGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/tags";
-            return await _Sdk.GetMany<TagMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/tags?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<TagMetadata>> ReadManyNode(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/tags";
-            return await _Sdk.GetMany<TagMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/tags?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<TagMetadata>> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<TagMetadata>> ReadManyEdge(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid edgeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/" + edgeGuid + "/tags";
-            return await _Sdk.GetMany<TagMetadata>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/" + edgeGuid + "/tags?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<TagMetadata>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

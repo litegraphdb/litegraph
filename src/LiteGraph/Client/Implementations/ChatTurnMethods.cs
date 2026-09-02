@@ -95,6 +95,26 @@ namespace LiteGraph.Client.Implementations
         }
 
         /// <inheritdoc />
+        public async Task<EnumerationResult<ChatTurn>> Enumerate(EnumerationRequest query, Guid threadGuid, CancellationToken token = default)
+        {
+            if (query == null) query = new EnumerationRequest();
+            token.ThrowIfCancellationRequested();
+            return await _Repo.ChatTurn.Enumerate(query, threadGuid, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<int> GetRecordCount(
+            Guid? tenantGuid,
+            Guid? threadGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null,
+            CancellationToken token = default)
+        {
+            token.ThrowIfCancellationRequested();
+            return await _Repo.ChatTurn.GetRecordCount(tenantGuid, threadGuid, order, markerGuid, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task<int> GetCountByThread(Guid tenantGuid, Guid threadGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();

@@ -22,6 +22,7 @@ import ChatEndpointHealth from './models/ChatEndpointHealth';
 import ChatEndpointTestResult from './models/ChatEndpointTestResult';
 import ChatCompletionResult from './models/ChatCompletionResult';
 import ChatModelSummary from './models/ChatModelSummary';
+import EnumerationResult from './models/EnumerationResult';
 import { ChatEndpointTypeEnum } from './enums/ChatEndpointTypeEnum';
 import { ChatProviderTypeEnum } from './enums/ChatProviderTypeEnum';
 import { ChatFeedbackRatingEnum } from './enums/ChatFeedbackRatingEnum';
@@ -53,6 +54,7 @@ export {
   ChatEndpointTestResult,
   ChatCompletionResult,
   ChatModelSummary,
+  EnumerationResult,
   ChatEndpointTypeEnum,
   ChatProviderTypeEnum,
   ChatFeedbackRatingEnum,

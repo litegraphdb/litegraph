@@ -31,6 +31,16 @@ const mockSettings = {
   HistoryRetentionDays: 90,
 };
 
+const envelope = (objects: unknown[]) => ({
+  Success: true,
+  Timestamp: { Start: '2026-01-01T00:00:00Z', End: '2026-01-01T00:00:00Z', TotalMs: 1, Messages: {} },
+  MaxResults: 1000,
+  EndOfResults: true,
+  TotalRecords: objects.length,
+  RecordsRemaining: 0,
+  Objects: objects,
+});
+
 const mockFetchJson = (payload: unknown, status = 200) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: status < 400,
@@ -72,11 +82,12 @@ describe('chat sdk', () => {
   });
 
   it('lists endpoints and passes the endpointType filter', async () => {
-    mockFetchJson([{ GUID: 'e1', ApiKey: '********abcd' }]);
+    mockFetchJson(envelope([{ GUID: 'e1', ApiKey: '********abcd' }]));
     const endpoints = await listChatEndpoints(TENANT, 'Completion');
-    expect(endpoints).toHaveLength(1);
+    expect(endpoints.Objects).toHaveLength(1);
+    expect(endpoints.TotalRecords).toBe(1);
     expect(lastCall().url).toBe(
-      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/endpoints?endpointType=Completion`
+      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/endpoints?max-keys=1000&endpointType=Completion`
     );
   });
 
@@ -87,11 +98,15 @@ describe('chat sdk', () => {
   });
 
   it('lists own threads, and all threads with the admin flag', async () => {
-    mockFetchJson([]);
+    mockFetchJson(envelope([]));
     await listChatThreads(TENANT);
-    expect(lastCall().url).toBe(`http://localhost:8701/v1.0/tenants/${TENANT}/chat/threads`);
+    expect(lastCall().url).toBe(
+      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/threads?max-keys=1000`
+    );
     await listChatThreads(TENANT, true);
-    expect(lastCall().url).toBe(`http://localhost:8701/v1.0/tenants/${TENANT}/chat/threads?all`);
+    expect(lastCall().url).toBe(
+      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/threads?max-keys=1000&all`
+    );
   });
 
   it('creates a thread bound to a graph with PUT', async () => {
@@ -104,11 +119,11 @@ describe('chat sdk', () => {
   });
 
   it('reads turns and deletes a thread', async () => {
-    mockFetchJson([{ GUID: 'u1' }]);
+    mockFetchJson(envelope([{ GUID: 'u1' }]));
     const turns = await listChatThreadTurns(TENANT, 't1');
-    expect(turns).toHaveLength(1);
+    expect(turns.Objects).toHaveLength(1);
     expect(lastCall().url).toBe(
-      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/threads/t1/turns`
+      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/threads/t1/turns?max-keys=1000`
     );
     await deleteChatThread(TENANT, 't1');
     expect(lastCall().init.method).toBe('DELETE');
@@ -128,10 +143,12 @@ describe('chat sdk', () => {
   });
 
   it('lists feedback for admins', async () => {
-    mockFetchJson([{ GUID: 'f1' }]);
+    mockFetchJson(envelope([{ GUID: 'f1' }]));
     const feedback = await listChatFeedback(TENANT);
-    expect(feedback).toHaveLength(1);
-    expect(lastCall().url).toBe(`http://localhost:8701/v1.0/tenants/${TENANT}/chat/feedback`);
+    expect(feedback.Objects).toHaveLength(1);
+    expect(lastCall().url).toBe(
+      `http://localhost:8701/v1.0/tenants/${TENANT}/chat/feedback?max-keys=1000`
+    );
   });
 
   it('surfaces the server Description on errors', async () => {

@@ -64,20 +64,24 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadMany(
+        public async Task<EnumerationResult<Node>> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
-            if (skip < 0) throw new ArgumentNullException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes?skip=" + skip + "&order=" + order.ToString();
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
             if (includeData) url += "&incldata";
             if (includeSubordinates) url += "&inclsub";
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -90,13 +94,13 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadByGuids(Guid tenantGuid, Guid graphGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default)
+        public async Task<EnumerationResult<Node>> ReadByGuids(Guid tenantGuid, Guid graphGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes?guids=" + string.Join(",", guids);
             if (includeData) url += "&incldata";
             if (includeSubordinates) url += "&inclsub";
-            return await _Sdk.Get<List<Node>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -137,45 +141,57 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadParents(
+        public async Task<EnumerationResult<Node>> ReadParents(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/parents?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/parents?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadChildren(
+        public async Task<EnumerationResult<Node>> ReadChildren(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/children?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/children?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadNeighbors(
+        public async Task<EnumerationResult<Node>> ReadNeighbors(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/neighbors?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/neighbors?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -235,90 +251,86 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadAllInTenant(
+        public async Task<EnumerationResult<Node>> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/nodes/all";
-
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/nodes/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadAllInGraph(
+        public async Task<EnumerationResult<Node>> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/all";
-
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadMostConnected(
+        public async Task<EnumerationResult<Node>> ReadMostConnected(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/mostconnected";
-
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/mostconnected?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Node>> ReadLeastConnected(
+        public async Task<EnumerationResult<Node>> ReadLeastConnected(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/leastconnected";
-
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-
-            return await _Sdk.GetMany<Node>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/leastconnected?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Node>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

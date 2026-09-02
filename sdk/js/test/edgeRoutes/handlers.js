@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockGraphGuid, mockEdgeGuid, edgeData, searchEdgeData, edgeMockApiResponse, edgeMockSearchApiResponse } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a edge exists by GUID
@@ -20,10 +21,10 @@ export const handlers = [
         return HttpResponse.json(edgeData[mockEdgeGuid]);
     }),
 
-    // Read all edges for a specific graph
+    // Read all edges for a specific graph (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/edges`, ({ request, params, cookies }) => {
-        // Return an array of edges related to the graph
-        return HttpResponse.json(edgeMockApiResponse);
+        // Return an enumeration envelope of edges related to the graph
+        return HttpResponse.json(toEnumerationEnvelope(edgeMockApiResponse));
     }),
 
     // Search edges

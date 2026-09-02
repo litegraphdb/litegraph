@@ -48,13 +48,17 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Labels.</returns>
-        Task<List<LabelMetadata>> ReadMany(
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -72,8 +76,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        Task<List<LabelMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Update a label.
@@ -121,13 +125,17 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Labels.</returns>
-        Task<List<LabelMetadata>> ReadAllInTenant(
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -136,14 +144,18 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Labels.</returns>
-        Task<List<LabelMetadata>> ReadAllInGraph(
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -152,14 +164,18 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Labels.</returns>
-        Task<List<LabelMetadata>> ReadManyGraph(
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadManyGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -169,15 +185,19 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Labels.</returns>
-        Task<List<LabelMetadata>> ReadManyNode(
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadManyNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -187,15 +207,19 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Labels.</returns>
-        Task<List<LabelMetadata>> ReadManyEdge(
+        /// <returns>Enumeration result containing labels.</returns>
+        Task<EnumerationResult<LabelMetadata>> ReadManyEdge(
             Guid tenantGuid,
             Guid graphGuid,
             Guid edgeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>

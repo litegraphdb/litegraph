@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockCredentialGuid, credentialMockApiResponse, credentialData } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a credential exists by GUID
@@ -14,10 +15,10 @@ export const handlers = [
         return HttpResponse.json(credentialData);
     }),
 
-    // Read all credentials
+    // Read all credentials (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/credentials`, ({ request, params, cookies }) => {
-        // Return an array of credentials
-        return HttpResponse.json(credentialMockApiResponse);
+        // Return an enumeration envelope of credentials
+        return HttpResponse.json(toEnumerationEnvelope(credentialMockApiResponse));
     }),
 
     // Read a specific credential by GUID

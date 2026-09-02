@@ -48,7 +48,9 @@ describe('credentialRoute Tests', () => {
 
     test('should read all credentials', async () => {
       const response = await api.readAllCredentials();
-      response.forEach((credential) => {
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((credential) => {
         expect(credential instanceof CredentialMetaData).toBe(true);
       });
     });

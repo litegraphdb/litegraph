@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
-import { mockVectorGuid, vectorMockApiResponse, vectorData } from './mockData';
+import { mockVectorGuid, vectorMockApiResponse, vectorData, vectorSearchResultData } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a vector exists by GUID
@@ -19,10 +20,15 @@ export const handlers = [
         return HttpResponse.json(vectorMockApiResponse);
     }),
 
-    // Read all vectors
+    // Read all vectors (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/vectors`, ({ request, params, cookies }) => {
-        // Return an array of vectors
-        return HttpResponse.json(vectorMockApiResponse);
+        // Return an enumeration envelope of vectors
+        return HttpResponse.json(toEnumerationEnvelope(vectorMockApiResponse));
+    }),
+
+    // Vector search (enumeration envelope of VectorSearchResult objects)
+    http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/vectors`, ({ request, params, cookies }) => {
+        return HttpResponse.json(toEnumerationEnvelope(vectorSearchResultData));
     }),
 
     // Read a specific vector by GUID

@@ -20,6 +20,7 @@ import {
   sseStreamBody,
 } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 const encoder = new TextEncoder();
 
@@ -44,19 +45,19 @@ export const handlers = [
     return HttpResponse.json(chatEndpointData);
   }),
 
-  // Read all chat endpoints (optionally filtered by endpointType)
+  // Read all chat endpoints (enumeration envelope, optionally filtered by endpointType)
   http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/endpoints`, ({ request }) => {
     const url = new URL(request.url);
     const endpointType = url.searchParams.get('endpointType');
     if (endpointType && endpointType !== chatEndpointData.EndpointType) {
-      return HttpResponse.json([]);
+      return HttpResponse.json(toEnumerationEnvelope([]));
     }
-    return HttpResponse.json(chatEndpointsMockApiResponse);
+    return HttpResponse.json(toEnumerationEnvelope(chatEndpointsMockApiResponse));
   }),
 
-  // Read health for all chat endpoints
+  // Read health for all chat endpoints (enumeration envelope)
   http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/endpoints/health`, () => {
-    return HttpResponse.json(chatEndpointHealthMockApiResponse);
+    return HttpResponse.json(toEnumerationEnvelope(chatEndpointHealthMockApiResponse));
   }),
 
   // Read health for one chat endpoint
@@ -89,9 +90,9 @@ export const handlers = [
     return HttpResponse.json(chatEndpointTestResultData);
   }),
 
-  // Read the model catalog
+  // Read the model catalog (enumeration envelope)
   http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/models`, () => {
-    return HttpResponse.json(chatModelsMockApiResponse);
+    return HttpResponse.json(toEnumerationEnvelope(chatModelsMockApiResponse));
   }),
 
   // Chat completions (streaming and non-streaming, discriminated by Stream flag)
@@ -108,9 +109,9 @@ export const handlers = [
     return HttpResponse.json(chatThreadData);
   }),
 
-  // Read chat threads (optionally all users')
+  // Read chat threads (enumeration envelope, optionally all users')
   http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/threads`, () => {
-    return HttpResponse.json(chatThreadsMockApiResponse);
+    return HttpResponse.json(toEnumerationEnvelope(chatThreadsMockApiResponse));
   }),
 
   // Read a specific chat thread
@@ -118,9 +119,9 @@ export const handlers = [
     return HttpResponse.json(chatThreadData);
   }),
 
-  // Read turns of a chat thread
+  // Read turns of a chat thread (enumeration envelope)
   http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/threads/${mockThreadGuid}/turns`, () => {
-    return HttpResponse.json(chatTurnsMockApiResponse);
+    return HttpResponse.json(toEnumerationEnvelope(chatTurnsMockApiResponse));
   }),
 
   // Update a chat thread
@@ -138,9 +139,9 @@ export const handlers = [
     return HttpResponse.json(chatFeedbackData);
   }),
 
-  // Read all chat feedback
+  // Read all chat feedback (enumeration envelope)
   http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/feedback`, () => {
-    return HttpResponse.json(chatFeedbackMockApiResponse);
+    return HttpResponse.json(toEnumerationEnvelope(chatFeedbackMockApiResponse));
   }),
 
   // Read a specific chat feedback record

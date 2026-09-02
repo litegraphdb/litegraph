@@ -40,6 +40,12 @@ def test_authorization_role_model_serializes_permissions():
 
 def test_list_roles_includes_built_ins_by_default(mock_client):
     mock_client.request.return_value = {
+        "Success": True,
+        "MaxResults": 1000,
+        "ContinuationToken": None,
+        "EndOfResults": True,
+        "TotalRecords": 1,
+        "RecordsRemaining": 0,
         "Objects": [
             {
                 "GUID": "role-1",
@@ -51,10 +57,6 @@ def test_list_roles_includes_built_ins_by_default(mock_client):
                 "ResourceTypes": ["Graph"],
             }
         ],
-        "Page": 0,
-        "PageSize": 1000,
-        "TotalCount": 1,
-        "TotalPages": 1,
     }
 
     result = Authorization.list_roles()
@@ -65,8 +67,30 @@ def test_list_roles_includes_built_ins_by_default(mock_client):
         "v1.0/tenants/tenant-1/roles?"
         "page=0&pageSize=1000&includeBuiltIns=true"
     )
+    assert result.total_records == 1
+    assert result.end_of_results is True
     assert result.objects[0].name == "Viewer"
     assert result.objects[0].built_in is True
+
+
+def test_list_roles_enumeration_paging_params(mock_client):
+    mock_client.request.return_value = {
+        "Success": True,
+        "MaxResults": 10,
+        "ContinuationToken": None,
+        "EndOfResults": False,
+        "TotalRecords": 25,
+        "RecordsRemaining": 5,
+        "Objects": [],
+    }
+
+    result = Authorization.list_roles(max_keys=10, skip=10)
+
+    args, _ = mock_client.request.call_args
+    assert "max-keys=10" in args[1]
+    assert "skip=10" in args[1]
+    assert result.records_remaining == 5
+    assert result.end_of_results is False
 
 
 def test_create_and_update_user_role_assignment_routes(mock_client):

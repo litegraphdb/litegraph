@@ -49,17 +49,21 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "admin/backups",
-                "Lists all backup files",
+                "Lists all backup files. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
-                    properties = new { },
+                    properties = new
+                    {
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
+                    },
                     required = new string[] { }
                 },
                 (args) =>
                 {
-                    List<BackupFile> backups = sdk.Admin.ListBackups().GetAwaiter().GetResult();
-                    return Serializer.SerializeJson(backups, true);
+                    int skip = args.HasValue ? LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0) : 0;
+                    return ListBackups(sdk, LiteGraphMcpServerHelpers.GetMaxResults(args), skip);
                 });
 
             server.RegisterTool(
@@ -178,8 +182,8 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("admin/backups", (args) =>
             {
-                List<BackupFile> backups = sdk.Admin.ListBackups().GetAwaiter().GetResult();
-                return Serializer.SerializeJson(backups, true);
+                int skip = args.HasValue ? LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0) : 0;
+                return ListBackups(sdk, LiteGraphMcpServerHelpers.GetMaxResults(args), skip);
             });
 
             server.RegisterMethod("admin/backupread", (args) =>
@@ -253,8 +257,8 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterMethod("admin/backups", (args) =>
             {
-                List<BackupFile> backups = sdk.Admin.ListBackups().GetAwaiter().GetResult();
-                return Serializer.SerializeJson(backups, true);
+                int skip = args.HasValue ? LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0) : 0;
+                return ListBackups(sdk, LiteGraphMcpServerHelpers.GetMaxResults(args), skip);
             });
 
             server.RegisterMethod("admin/backupread", (args) =>
@@ -305,6 +309,14 @@ namespace LiteGraph.McpServer.Registrations
         #endregion
 
         #region Private-Methods
+
+        private static string ListBackups(LiteGraphSdk sdk, int maxResults, int skip)
+        {
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/backups?max-keys=" + maxResults + "&skip=" + skip);
+        }
 
         private static string FlushDatabase(LiteGraphSdk sdk)
         {

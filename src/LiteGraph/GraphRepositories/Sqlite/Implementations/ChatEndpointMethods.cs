@@ -95,7 +95,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<EnumerationResult<ChatEndpoint>> Enumerate(EnumerationRequest query, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatEndpoint>> Enumerate(EnumerationRequest query, ChatEndpointTypeEnum? endpointType = null, CancellationToken token = default)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
             token.ThrowIfCancellationRequested();
@@ -115,7 +115,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
 
             ret.Timestamp.Start = DateTime.UtcNow;
 
-            ret.TotalRecords = await GetRecordCount(query.TenantGUID, query.Ordering, null, token).ConfigureAwait(false);
+            ret.TotalRecords = await GetRecordCount(query.TenantGUID, endpointType, query.Ordering, null, token).ConfigureAwait(false);
 
             if (ret.TotalRecords < 1)
             {
@@ -129,6 +129,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
             token.ThrowIfCancellationRequested();
             DataTable result = await _Repo.ExecuteQueryAsync(ChatEndpointQueries.GetRecordPage(
                 query.TenantGUID,
+                endpointType,
                 query.MaxResults,
                 query.Skip,
                 query.Ordering,
@@ -147,7 +148,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
 
             ChatEndpoint lastItem = ret.Objects.Last();
 
-            ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
+            ret.RecordsRemaining = await GetRecordCount(query.TenantGUID, endpointType, query.Ordering, lastItem.GUID, token).ConfigureAwait(false);
             if (ret.RecordsRemaining > 0)
             {
                 ret.ContinuationToken = lastItem.GUID;
@@ -166,6 +167,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
         /// <inheritdoc />
         public async Task<int> GetRecordCount(
             Guid? tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Guid? markerGuid = null,
             CancellationToken token = default)
@@ -182,6 +184,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Implementations
             token.ThrowIfCancellationRequested();
             DataTable result = await _Repo.ExecuteQueryAsync(ChatEndpointQueries.GetRecordCount(
                 tenantGuid,
+                endpointType,
                 order,
                 marker), false, token).ConfigureAwait(false);
 

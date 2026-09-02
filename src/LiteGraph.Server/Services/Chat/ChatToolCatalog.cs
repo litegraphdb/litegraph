@@ -35,10 +35,10 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "graph/all",
-                Description = "Lists all graphs in the tenant",
+                Description = "Lists graphs in the tenant as a paginated enumeration result (Objects, TotalRecords, RecordsRemaining)",
                 RequestType = RequestTypeEnum.GraphReadAllInTenant,
-                Schema = SchemaOf(new { }),
-                Bind = (args, req) => { },
+                Schema = SchemaOf(PaginationProperties()),
+                Bind = (args, req) => { BindPagination(args, req); },
                 Handler = handler.GraphReadAllInTenant
             });
 
@@ -97,13 +97,10 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "node/readallingraph",
-                Description = "Lists all nodes in a graph",
+                Description = "Lists nodes in a graph as a paginated enumeration result (Objects, TotalRecords, RecordsRemaining)",
                 RequestType = RequestTypeEnum.NodeReadAllInGraph,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" }
-                }, "graphGuid"),
-                Bind = (args, req) => { req.GraphGUID = GetGuid(args, "graphGuid"); },
+                Schema = GraphScopedPagedSchema(),
+                Bind = BindGraphScopedPaged,
                 Handler = handler.NodeReadAllInGraph
             });
 
@@ -152,30 +149,30 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "node/neighbors",
-                Description = "Lists the neighbors of a node",
+                Description = "Lists the neighbors of a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.NodeNeighbors,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.NodeNeighbors
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "node/children",
-                Description = "Lists the child nodes of a node",
+                Description = "Lists the child nodes of a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.NodeChildren,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.NodeChildren
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "node/parents",
-                Description = "Lists the parent nodes of a node",
+                Description = "Lists the parent nodes of a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.NodeParents,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.NodeParents
             });
 
@@ -186,13 +183,10 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "edge/readallingraph",
-                Description = "Lists all edges in a graph",
+                Description = "Lists edges in a graph as a paginated enumeration result (Objects, TotalRecords, RecordsRemaining)",
                 RequestType = RequestTypeEnum.EdgeReadAllInGraph,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" }
-                }, "graphGuid"),
-                Bind = (args, req) => { req.GraphGUID = GetGuid(args, "graphGuid"); },
+                Schema = GraphScopedPagedSchema(),
+                Bind = BindGraphScopedPaged,
                 Handler = handler.EdgeReadAllInGraph
             });
 
@@ -237,19 +231,22 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "edge/betweennodes",
-                Description = "Lists edges between two nodes",
+                Description = "Lists edges between two nodes as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgeBetween,
                 Schema = SchemaOf(new
                 {
                     graphGuid = new { type = "string", description = "Graph GUID" },
                     fromNodeGuid = new { type = "string", description = "Source node GUID" },
-                    toNodeGuid = new { type = "string", description = "Destination node GUID" }
+                    toNodeGuid = new { type = "string", description = "Destination node GUID" },
+                    maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
+                    skip = new { type = "integer", description = "Number of records to skip (default 0)" }
                 }, "graphGuid", "fromNodeGuid", "toNodeGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
                     req.FromGUID = GetGuid(args, "fromNodeGuid");
                     req.ToGUID = GetGuid(args, "toNodeGuid");
+                    BindPagination(args, req);
                 },
                 Handler = handler.EdgesBetween
             });
@@ -257,20 +254,20 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "edge/fromnode",
-                Description = "Lists edges originating from a node",
+                Description = "Lists edges originating from a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgesFromNode,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.EdgesFromNode
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "edge/tonode",
-                Description = "Lists edges terminating at a node",
+                Description = "Lists edges terminating at a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgesToNode,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.EdgesToNode
             });
 
@@ -281,7 +278,7 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "vector/search",
-                Description = "Semantic similarity search over graph vectors.  Provide natural-language text; the server embeds it and returns the most similar nodes with scores.",
+                Description = "Semantic similarity search over graph vectors.  Provide natural-language text; the server embeds it and returns the most similar nodes with scores as a paginated enumeration result.",
                 RequestType = RequestTypeEnum.VectorSearch,
                 RequiresEmbedding = true,
                 Schema = SchemaOf(new
@@ -289,7 +286,9 @@ namespace LiteGraph.Server.Services.Chat
                     graphGuid = new { type = "string", description = "Graph GUID to search within" },
                     text = new { type = "string", description = "Natural-language text to search for" },
                     topK = new { type = "integer", description = "Number of results to return (default 8)" },
-                    minScore = new { type = "number", description = "Minimum similarity score between -1 and 1" }
+                    minScore = new { type = "number", description = "Minimum similarity score between -1 and 1" },
+                    maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
+                    skip = new { type = "integer", description = "Number of records to skip (default 0)" }
                 }, "graphGuid", "text"),
                 Bind = (args, req) =>
                 {
@@ -301,6 +300,7 @@ namespace LiteGraph.Server.Services.Chat
                     double? minScore = GetDouble(args, "minScore");
                     if (minScore != null) vsr.MinimumScore = (float)minScore.Value;
                     req.VectorSearchRequest = vsr;
+                    BindPagination(args, req);
                 },
                 Handler = handler.VectorSearch
             });
@@ -312,66 +312,60 @@ namespace LiteGraph.Server.Services.Chat
             tools.Add(new ChatToolDefinition
             {
                 Name = "label/readallingraph",
-                Description = "Lists all labels in a graph",
+                Description = "Lists labels in a graph as a paginated enumeration result",
                 RequestType = RequestTypeEnum.LabelReadAllInGraph,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" }
-                }, "graphGuid"),
-                Bind = (args, req) => { req.GraphGUID = GetGuid(args, "graphGuid"); },
+                Schema = GraphScopedPagedSchema(),
+                Bind = BindGraphScopedPaged,
                 Handler = handler.LabelReadAllInGraph
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "label/readmanynode",
-                Description = "Lists the labels attached to a node",
+                Description = "Lists the labels attached to a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.LabelReadManyNode,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.LabelReadManyNode
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "label/readmanyedge",
-                Description = "Lists the labels attached to an edge",
+                Description = "Lists the labels attached to an edge as a paginated enumeration result",
                 RequestType = RequestTypeEnum.LabelReadManyEdge,
-                Schema = EdgeTargetSchema(),
-                Bind = BindEdgeTarget,
+                Schema = EdgeTargetPagedSchema(),
+                Bind = BindEdgeTargetPaged,
                 Handler = handler.LabelReadManyEdge
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "tag/readallingraph",
-                Description = "Lists all tags in a graph",
+                Description = "Lists tags in a graph as a paginated enumeration result",
                 RequestType = RequestTypeEnum.TagReadAllInGraph,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" }
-                }, "graphGuid"),
-                Bind = (args, req) => { req.GraphGUID = GetGuid(args, "graphGuid"); },
+                Schema = GraphScopedPagedSchema(),
+                Bind = BindGraphScopedPaged,
                 Handler = handler.TagReadAllInGraph
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "tag/readmanynode",
-                Description = "Lists the tags attached to a node",
+                Description = "Lists the tags attached to a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.TagReadManyNode,
-                Schema = NodeTargetSchema(),
-                Bind = BindNodeTarget,
+                Schema = NodeTargetPagedSchema(),
+                Bind = BindNodeTargetPaged,
                 Handler = handler.TagReadManyNode
             });
 
             tools.Add(new ChatToolDefinition
             {
                 Name = "tag/readmanyedge",
-                Description = "Lists the tags attached to an edge",
+                Description = "Lists the tags attached to an edge as a paginated enumeration result",
                 RequestType = RequestTypeEnum.TagReadManyEdge,
-                Schema = EdgeTargetSchema(),
-                Bind = BindEdgeTarget,
+                Schema = EdgeTargetPagedSchema(),
+                Bind = BindEdgeTargetPaged,
                 Handler = handler.TagReadManyEdge
             });
 
@@ -575,6 +569,47 @@ namespace LiteGraph.Server.Services.Chat
             }, "graphGuid", "edgeGuid");
         }
 
+        private static object PaginationProperties()
+        {
+            return new
+            {
+                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
+                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
+            };
+        }
+
+        private static object GraphScopedPagedSchema()
+        {
+            return SchemaOf(new
+            {
+                graphGuid = new { type = "string", description = "Graph GUID" },
+                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
+                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
+            }, "graphGuid");
+        }
+
+        private static object NodeTargetPagedSchema()
+        {
+            return SchemaOf(new
+            {
+                graphGuid = new { type = "string", description = "Graph GUID" },
+                nodeGuid = new { type = "string", description = "Node GUID" },
+                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
+                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
+            }, "graphGuid", "nodeGuid");
+        }
+
+        private static object EdgeTargetPagedSchema()
+        {
+            return SchemaOf(new
+            {
+                graphGuid = new { type = "string", description = "Graph GUID" },
+                edgeGuid = new { type = "string", description = "Edge GUID" },
+                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
+                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
+            }, "graphGuid", "edgeGuid");
+        }
+
         private static void BindNodeTarget(JsonElement? args, RequestContext req)
         {
             req.GraphGUID = GetGuid(args, "graphGuid");
@@ -585,6 +620,33 @@ namespace LiteGraph.Server.Services.Chat
         {
             req.GraphGUID = GetGuid(args, "graphGuid");
             req.EdgeGUID = GetGuid(args, "edgeGuid");
+        }
+
+        private static void BindGraphScopedPaged(JsonElement? args, RequestContext req)
+        {
+            req.GraphGUID = GetGuid(args, "graphGuid");
+            BindPagination(args, req);
+        }
+
+        private static void BindNodeTargetPaged(JsonElement? args, RequestContext req)
+        {
+            BindNodeTarget(args, req);
+            BindPagination(args, req);
+        }
+
+        private static void BindEdgeTargetPaged(JsonElement? args, RequestContext req)
+        {
+            BindEdgeTarget(args, req);
+            BindPagination(args, req);
+        }
+
+        private static void BindPagination(JsonElement? args, RequestContext req)
+        {
+            int? maxResults = GetInt(args, "maxResults");
+            if (maxResults != null && maxResults.Value >= 1 && maxResults.Value <= 1000) req.MaxKeys = maxResults.Value;
+
+            int? skip = GetInt(args, "skip");
+            if (skip != null && skip.Value >= 0) req.Skip = skip.Value;
         }
 
         private static SearchRequest BindSearch(JsonElement? args)

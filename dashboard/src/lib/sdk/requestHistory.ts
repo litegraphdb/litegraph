@@ -1,3 +1,4 @@
+import type { EnumerateResponse } from 'litegraphdb/dist/types/types';
 import { sdk } from './litegraph.service';
 
 export type RequestHistoryEntry = {
@@ -29,13 +30,12 @@ export type RequestHistoryDetail = RequestHistoryEntry & {
   ResponseBody?: string | null;
 };
 
-export type RequestHistorySearchResult = {
-  Objects: RequestHistoryEntry[];
-  TotalCount: number;
-  Page: number;
-  PageSize: number;
-  TotalPages: number;
-};
+/**
+ * GET /v1.0/requesthistory now returns the standard EnumerationResult envelope
+ * ({ Success, Timestamp, MaxResults, ContinuationToken, EndOfResults,
+ * TotalRecords, RecordsRemaining, Objects }).
+ */
+export type RequestHistorySearchResult = EnumerateResponse<RequestHistoryEntry>;
 
 export type RequestHistorySummaryBucket = {
   TimestampUtc: string;
@@ -128,7 +128,15 @@ const request = async <T>(method: string, url: string, body?: unknown): Promise<
 };
 
 export const listRequestHistory = (params: RequestHistoryListParams = {}) => {
-  const url = `${getBaseUrl()}/v1.0/requesthistory${buildQuery(params as Record<string, string | number | boolean | undefined>)}`;
+  // Translate the page/pageSize paging model into the enumeration paging
+  // parameters (max-keys and skip); the remaining filters pass through as-is.
+  const { page, pageSize, ...filters } = params;
+  const effectivePageSize = pageSize ?? 1000;
+  const url = `${getBaseUrl()}/v1.0/requesthistory${buildQuery({
+    ...(filters as Record<string, string | number | boolean | undefined>),
+    'max-keys': effectivePageSize,
+    skip: (page ?? 0) * effectivePageSize || undefined,
+  })}`;
   return request<RequestHistorySearchResult>('GET', url);
 };
 

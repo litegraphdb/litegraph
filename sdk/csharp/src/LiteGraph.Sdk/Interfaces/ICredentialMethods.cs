@@ -29,13 +29,17 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Credentials.</returns>
-        Task<List<Credential>> ReadMany(
+        /// <returns>Enumeration result containing credentials.</returns>
+        Task<EnumerationResult<Credential>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -53,8 +57,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        Task<List<Credential>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
+        /// <returns>Enumeration result containing credentials.</returns>
+        Task<EnumerationResult<Credential>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Update a credential.

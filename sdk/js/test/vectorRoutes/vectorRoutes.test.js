@@ -3,6 +3,7 @@ import { api } from '../setupTest'; // Adjust paths as needed
 import { handlers } from './handlers';
 import { getServer } from '../server';
 import { VectorMetadata } from '../../src/models/VectorMetadata';
+import { VectorSearchResult } from '../../src/models/VectorSearchResult';
 
 const server = getServer(handlers);
 
@@ -72,9 +73,27 @@ describe('vectorRoute Tests', () => {
 
     test('should read all vectors', async () => {
       const response = await api.readAllVectors();
-      response.forEach((vector) => {
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((vector) => {
         expect(vector instanceof VectorMetadata).toBe(true);
       });
+    });
+
+    test('should search vectors and receive an enumeration envelope of results', async () => {
+      const response = await api.searchVectors({
+        GraphGUID: '321e6543-a21b-45c3-b678-789012345679',
+        Domain: 'Node',
+        SearchType: 'CosineSimilarity',
+        Labels: [],
+        Embeddings: [0.1, 0.2, 0.3, 0.4, 0.5],
+      });
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((result) => {
+        expect(result instanceof VectorSearchResult).toBe(true);
+      });
+      expect(response.Objects[0].Score).toBe(0.95);
     });
 
     test('should read a specific vector by GUID', async () => {

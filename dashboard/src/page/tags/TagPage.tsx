@@ -85,7 +85,11 @@ const TagPage = () => {
     fetchEdgesList();
   };
   const tagsList = data?.Objects || [];
-  const transformedTagsList = transformTagsDataForTable(tagsList, nodesList || [], edgesList || []);
+  const transformedTagsList = transformTagsDataForTable(
+    tagsList,
+    nodesList?.Objects || [],
+    edgesList?.Objects || []
+  );
   const [selectedTag, setSelectedTag] = useState<TagType | null | undefined>(null);
   const [isAddEditTagVisible, setIsAddEditTagVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);

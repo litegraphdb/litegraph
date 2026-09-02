@@ -88,13 +88,17 @@ namespace LiteGraph.Server.API.Agnostic
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<ChatEndpoint> objs = new List<ChatEndpoint>();
-            await foreach (ChatEndpoint endpoint in _LiteGraph.ChatEndpoint.ReadAllInTenant(req.TenantGUID.Value, req.ChatEndpointTypeFilter, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
+            EnumerationResult<ChatEndpoint> er = await _LiteGraph.ChatEndpoint.Enumerate(EnumerationQueryFromRequest(req), req.ChatEndpointTypeFilter, token).ConfigureAwait(false);
+
+            if (er.Objects != null)
             {
-                objs.Add(endpoint.Redact());
+                for (int i = 0; i < er.Objects.Count; i++)
+                {
+                    er.Objects[i] = er.Objects[i].Redact();
+                }
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> ChatEndpointRead(RequestContext req, CancellationToken token = default)
@@ -179,7 +183,7 @@ namespace LiteGraph.Server.API.Agnostic
                 if (first != null) first.IsDefault = true;
             }
 
-            return new ResponseContext(req, objs);
+            return new ResponseContext(req, EnumerationResultBuilder.FromList(objs, req.Skip, req.MaxKeys));
         }
 
         #endregion
@@ -233,13 +237,10 @@ namespace LiteGraph.Server.API.Agnostic
                 }
             }
 
-            List<ChatThread> objs = new List<ChatThread>();
-            await foreach (ChatThread thread in _LiteGraph.ChatThread.ReadAllInTenant(req.TenantGUID.Value, userFilter, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(thread);
-            }
-
-            return new ResponseContext(req, objs);
+            EnumerationRequest query = EnumerationQueryFromRequest(req);
+            query.UserGUID = userFilter;
+            EnumerationResult<ChatThread> er = await _LiteGraph.ChatThread.Enumerate(query, token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> ChatThreadRead(RequestContext req, CancellationToken token = default)
@@ -291,13 +292,10 @@ namespace LiteGraph.Server.API.Agnostic
             if (!IsOwnChatPrincipal(req, thread.UserGUID) && !await CanManageChat(req, token).ConfigureAwait(false))
                 return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<ChatTurn> objs = new List<ChatTurn>();
-            await foreach (ChatTurn turn in _LiteGraph.ChatTurn.ReadByThread(req.TenantGUID.Value, req.ChatThreadGUID.Value, true, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(turn);
-            }
-
-            return new ResponseContext(req, objs);
+            EnumerationRequest query = EnumerationQueryFromRequest(req);
+            if (String.IsNullOrEmpty(req.Query[Constants.EnumerationOrderQuerystring])) query.Ordering = EnumerationOrderEnum.CreatedAscending;
+            EnumerationResult<ChatTurn> er = await _LiteGraph.ChatTurn.Enumerate(query, req.ChatThreadGUID.Value, token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         #endregion
@@ -332,13 +330,8 @@ namespace LiteGraph.Server.API.Agnostic
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!await CanManageChat(req, token).ConfigureAwait(false)) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
 
-            List<ChatFeedback> objs = new List<ChatFeedback>();
-            await foreach (ChatFeedback feedback in _LiteGraph.ChatFeedback.ReadAllInTenant(req.TenantGUID.Value, null, null, req.Order, req.Skip, token).WithCancellation(token).ConfigureAwait(false))
-            {
-                objs.Add(feedback);
-            }
-
-            return new ResponseContext(req, objs);
+            EnumerationResult<ChatFeedback> er = await _LiteGraph.ChatFeedback.Enumerate(EnumerationQueryFromRequest(req), null, null, token).ConfigureAwait(false);
+            return new ResponseContext(req, er);
         }
 
         internal async Task<ResponseContext> ChatFeedbackRead(RequestContext req, CancellationToken token = default)

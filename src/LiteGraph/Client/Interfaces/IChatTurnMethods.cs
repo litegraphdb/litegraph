@@ -60,6 +60,32 @@ namespace LiteGraph.Client.Interfaces
             CancellationToken token = default);
 
         /// <summary>
+        /// Enumerate the turns of a thread.
+        /// Creation-time orderings map to the turn sequence so pages follow conversational order.
+        /// </summary>
+        /// <param name="query">Enumeration query.  TenantGUID is required.</param>
+        /// <param name="threadGuid">Thread GUID.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Enumeration result containing a page of objects.</returns>
+        Task<EnumerationResult<ChatTurn>> Enumerate(EnumerationRequest query, Guid threadGuid, CancellationToken token = default);
+
+        /// <summary>
+        /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="threadGuid">Thread GUID filter.  Null counts all threads.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="markerGuid">Marker GUID.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Number of records.</returns>
+        Task<int> GetRecordCount(
+            Guid? tenantGuid,
+            Guid? threadGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null,
+            CancellationToken token = default);
+
+        /// <summary>
         /// Get the number of turns in a thread.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

@@ -67,22 +67,63 @@ Response:
 }
 ```
 
-If you do not know the tenant GUID ahead of time, use the API to retrieve tenants for a given email by calling `GET /v1.0/token/tenants` with the `x-email` header set.  It will return the list of tenants associated with the supplied email address.
+If you do not know the tenant GUID ahead of time, use the API to retrieve tenants for a given email by calling `GET /v1.0/token/tenants` with the `x-email` header set.  It returns the tenants associated with the supplied email address inside the standard [enumeration envelope](#enumeration-and-pagination).
 ```
 GET /v1.0/token/tenants
 x-email: default@user.com
 
 Response:
-[
-    {
-        "GUID": "00000000-0000-0000-0000-000000000000",
-        "Name": "Default tenant",
-        "Active": true,
-        "CreatedUtc": "2025-02-06T18:22:56.789353Z",
-        "LastUpdateUtc": "2025-02-06T18:22:56.788994Z"
-    }
-]
+{
+    "Success": true,
+    "Timestamp": { "Start": "2026-08-31T00:00:00.000000Z", "End": "2026-08-31T00:00:00.004120Z", "TotalMs": 4.12, "Messages": {} },
+    "MaxResults": 1000,
+    "ContinuationToken": null,
+    "EndOfResults": true,
+    "TotalRecords": 1,
+    "RecordsRemaining": 0,
+    "Objects": [
+        {
+            "GUID": "00000000-0000-0000-0000-000000000000",
+            "Name": "Default tenant",
+            "Active": true,
+            "CreatedUtc": "2025-02-06T18:22:56.789353Z",
+            "LastUpdateUtc": "2025-02-06T18:22:56.788994Z"
+        }
+    ]
+}
 ```
+
+## Enumeration And Pagination
+
+As of v8.1 there are **zero get-all APIs**. Every list-returning route — every `GET` that reads more than one record and every `POST` that enumerates or searches vectors — responds with the paginated `EnumerationResult` envelope shown under [Enumeration Result](#enumeration-result), never a bare JSON array:
+
+```
+{
+    "Success": true,
+    "Timestamp": { ... },
+    "MaxResults": 1000,
+    "ContinuationToken": null,
+    "EndOfResults": true,
+    "TotalRecords": 17,
+    "RecordsRemaining": 0,
+    "Objects": [ ... ]
+}
+```
+
+`Objects` carries the page of records; `TotalRecords` and `RecordsRemaining` describe the full result set; `EndOfResults` is `true` on the final page; `ContinuationToken` is non-null when marker-based continuation is available for the route.
+
+All list-shaped `GET` routes accept the same query parameters:
+
+| Parameter  | Type    | Default            | Meaning |
+|------------|---------|--------------------|---------|
+| `max-keys` | integer | `1000`             | Maximum records per page; valid range 1-1000. `maxKeys` is accepted as an alternate spelling |
+| `skip`     | integer | `0`                | Number of records to skip before the page begins |
+| `order`    | string  | `CreatedDescending` | Sort order; an `EnumerationOrderEnum` value such as `CreatedAscending`, `CreatedDescending`, `NameAscending`, `NameDescending`, `GuidAscending`, `GuidDescending`, `CostAscending`, `CostDescending`, `MostConnected`, `LeastConnected` |
+| `token`    | GUID    | none               | Continuation token from a previous response, where marker-based continuation is supported |
+
+Use either `skip` (offset paging) or `token` (marker paging, where a previous response returned a `ContinuationToken`); the v2.0 enumeration `POST` routes carry the same controls in the `Enumeration Query` body (`MaxResults`, `ContinuationToken`, `Ordering`). The authorization and request-history list routes additionally accept their legacy `page`/`pageSize` parameters, but `max-keys` and `skip` take precedence when supplied.
+
+A small set of routes intentionally does **not** return the envelope, because they are not record lists: single-object reads, statistics objects (`.../stats`, tenant/graph statistics), server and chat settings, effective-permissions composites, token issuance, export streams (GEXF, JSONL), vector index configuration/statistics, node subgraph reads (a `SearchResult`-shaped composite), the graph/node/edge `search` POST routes (which return `SearchResult`-shaped envelopes, also never bare arrays), and the graph-scoped OpenAI/Ollama-compatible chat routes, which keep their respective wire formats by design.
 
 ## Data Structures
 
@@ -187,6 +228,10 @@ A whole-graph export carries the `graph-backup` kind; a subgraph export carries 
 ```
 
 Import reconciles incoming GUIDs according to `guidstrategy`. `preserve` keeps original GUIDs and errors on any collision, which suits a restore into a fresh database because node and edge GUIDs are globally unique in the store. `regenerate` assigns fresh GUIDs everywhere, remaps every reference through the `GuidMap`, and cannot collide, so it is the default for merging one graph into another. `skip` leaves existing records untouched and imports only what is new. `overwrite` updates existing records in place and creates the rest. When a file references a node that already exists in the target graph but is not present in the file, the bridging edge still imports; an edge whose endpoint resolves to neither the file nor the store is dropped with a warning. Imports stream through node batches and a buffered edge pass, and a failure triggers compensating rollback of the records written so far.
+
+### Enumeration Query
+
+The body accepted by the v2.0 enumeration `POST` routes. `MaxResults` and `ContinuationToken` play the same roles as the `max-keys` and `token` query parameters described under [Enumeration And Pagination](#enumeration-and-pagination).
 ```
 {
     "Ordering": "CreatedDescending",
@@ -585,18 +630,29 @@ Valid search types are `CosineSimilarity` `CosineDistance` `EuclidianSimilarity`
 
 ### Vector Search Result
 
+Both vector search `POST` routes return the standard [enumeration envelope](#enumeration-and-pagination); each entry in `Objects` is a scored match. The number of entries is bounded by the request's `TopK`.
+
 ```
-[
-    {
-        "Score": 0.874456,
-        "Distance": null,
-        "InnerProduct": null,
-        "Graph": { ... },
-        "Node": { ... },
-        "Edge": { ... }
-    },
-    ...
-]
+{
+    "Success": true,
+    "Timestamp": { ... },
+    "MaxResults": 1000,
+    "ContinuationToken": null,
+    "EndOfResults": true,
+    "TotalRecords": 2,
+    "RecordsRemaining": 0,
+    "Objects": [
+        {
+            "Score": 0.874456,
+            "Distance": null,
+            "InnerProduct": null,
+            "Graph": { ... },
+            "Node": { ... },
+            "Edge": { ... }
+        },
+        ...
+    ]
+}
 ```
 
 ### Graph Query Request
@@ -797,7 +853,7 @@ Introduced in v8.0. Settings APIs require system-administrator authentication. S
 
 ## Backup APIs
 
-Backup APIs require administrator bearer token authentication.
+Backup APIs require administrator bearer token authentication. `GET /v1.0/backups` returns the [enumeration envelope](#enumeration-and-pagination) of backup files and accepts the shared pagination query parameters.
 
 | API                | Method | URL                        |
 |--------------------|--------|----------------------------|
@@ -812,6 +868,8 @@ Backup APIs require administrator bearer token authentication.
 Tenant create and delete require system-administrator authentication. Tenant read/exists and update are additionally available to a tenant-administrator of that tenant (`IsTenantAdmin`), and any authenticated user may read the tenants associated with their email via `GET /v1.0/token/tenants`.
 
 When specifying multiple GUIDs to retrieve, i.e. `?guids=...`, use a comma-separated list of values, i.e. `?guids=00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111`.
+
+Throughout this document, every `Read many`, `Read all in ...`, `Read ... [labels|tags|vectors]`, and `?guids=` filtered read returns the [enumeration envelope](#enumeration-and-pagination) and accepts the shared `max-keys`, `skip`, `order`, and (where supported) `token` query parameters. This applies to the backup, tenant, user, credential, role/assignment/scope, label, tag, vector, graph, node, edge, traversal, request history, and chat list routes alike.
 
 | API                | Method | URL                        |
 |--------------------|--------|----------------------------|
@@ -860,6 +918,8 @@ Credential APIs require system-administrator authentication or a tenant-administ
 ## Authorization APIs
 
 Authorization APIs require an administrator bearer token or an authenticated user/credential with an effective admin grant for the requested scope. Built-in roles are readable but immutable.
+
+The role, user-role-assignment, and credential-scope list routes return the [enumeration envelope](#enumeration-and-pagination). They continue to accept their legacy `page`/`pageSize` parameters, but `max-keys` and `skip` take precedence when supplied. The two effective-permissions routes return a composite object (assignments, roles, and grants), not a record list, and are intentionally not enveloped.
 
 | API                                   | Method | URL                                                                                 |
 |---------------------------------------|--------|-------------------------------------------------------------------------------------|
@@ -963,6 +1023,8 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 | Search                   | POST   | /v1.0/tenants/[guid]/vectors                             |
 | Search in graph          | POST   | /v1.0/tenants/[guid]/graphs/[guid]/vectors/search        |
 
+Both vector search `POST` routes return the [enumeration envelope](#enumeration-and-pagination) whose `Objects` are [Vector Search Results](#vector-search-result).
+
 ## Graph APIs
 
 | API                  | Method | URL                                                        |
@@ -994,6 +1056,8 @@ Vector APIs require administrator bearer token authentication, aside from the ve
 
 Native graph query and graph transaction endpoints are graph scoped. They cannot cross tenants or graphs.
 
+The graph `Read many` and `Read all in tenant` routes return the [enumeration envelope](#enumeration-and-pagination). The `search` route (like node and edge `search`) returns a `SearchResult`-shaped object (`Graphs`/`Nodes`/`Edges` arrays inside an object) and is intentionally not enveloped; the statistics, GEXF, and JSONL export routes likewise keep their own shapes.
+
 The four JSONL endpoints move a graph (or a slice of one) as newline-delimited JSON. Export needs read scope; import needs write scope. Both directions stream: exports send a chunked `application/x-ndjson` body so the server never buffers the whole graph in memory, and imports read the request body line by line. `GET .../export/jsonl` renders an entire graph and doubles as a provider-agnostic per-graph backup; `incldata` and `inclsub` are valueless flags that pull in the `Data` object and subordinate labels, tags, and vectors. `POST .../export/jsonl` takes a `SubgraphExtractionRequest` body and streams only the traversed subgraph. The `.../import/jsonl` endpoints accept a raw JSONL body and return a `GraphImportResult`; the graph-scoped form merges into an existing graph, and the tenant-scoped `graphs/import/jsonl` form creates a new graph. A missing graph returns `404`; a malformed request or JSONL line under `onerror=abort` returns `400`; a GUID collision under the `preserve` strategy returns `409`.
 
 Import query parameters:
@@ -1024,16 +1088,18 @@ Import query parameters:
 | Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
 | Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes                 |
 | Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes?guids=...       |
-| Read all in tenant       | GET    | /v1.0/tenants/[guid]/nodes                               |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/nodes/all                           |
 | Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/all             |
 | Read most connected      | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/mostconnected   |
 | Read least connected     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/leastconnected  |
 | Delete                   | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
 | Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/all             |
-| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/nodes                               |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/nodes/all                           |
 | Delete multiple          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/bulk            |
 | Exists                   | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]          |
 | Search                   | POST   | /v1.0/tenants/[guid]/graphs/[guid]/nodes/search          |
+
+The node list routes — `Read many`, both `Read all` variants, `mostconnected`, and `leastconnected` — return the [enumeration envelope](#enumeration-and-pagination) and accept the shared pagination query parameters.
 
 ## Edge APIs
 
@@ -1045,17 +1111,19 @@ Import query parameters:
 | Read                     | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
 | Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges                  |
 | Read many                | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges?guids=...        |
-| Read all in tenant       | GET    | /v1.0/tenants/[guid]/edges                                |
+| Read all in tenant       | GET    | /v1.0/tenants/[guid]/edges/all                            |
 | Read all in graph        | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/all              |
 | Read between nodes       | GET    | /v1.0/tenants/[guid]/graphs/[guid]/edges/between          |
 | Delete                   | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
 | Delete all in graph      | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/all              |
-| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/edges                                |
+| Delete all in tenant     | DELETE | /v1.0/tenants/[guid]/edges/all                            |
 | Delete multiple          | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/edges/bulk             |
 | Delete node edges        | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/edges     |
 | Delete node edges (bulk) | DELETE | /v1.0/tenants/[guid]/graphs/[guid]/nodes/edges            |
 | Exists                   | HEAD   | /v1.0/tenants/[guid]/graphs/[guid]/edges/[guid]           |
 | Search                   | POST   | /v1.0/tenants/[guid]/graphs/[guid]/edges/search           |
+
+The edge list routes — `Read many`, both `Read all` variants, and `Read between nodes` (`?from=[guid]&to=[guid]`) — return the [enumeration envelope](#enumeration-and-pagination) and accept the shared pagination query parameters.
 
 ## Traversal and Networking
 
@@ -1068,6 +1136,8 @@ Import query parameters:
 | Get node parents               | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/parents     |
 | Get node children              | GET    | /v1.0/tenants/[guid]/graphs/[guid]/nodes/[guid]/children    |
 | Get routes between nodes       | POST   | /v1.0/tenants/[guid]/graphs/[guid]/routes                   |
+
+Every traversal `GET` route returns the [enumeration envelope](#enumeration-and-pagination) (of edges or of nodes, as appropriate) and accepts the shared pagination query parameters. The node-edges route also accepts `POST` with a filter body and returns the same envelope.
 
 ## Request History APIs
 
@@ -1082,14 +1152,14 @@ Request history APIs require read/admin access according to the authenticated pr
 | Delete entry            | DELETE | /v1.0/requesthistory/[requestGuid]        |
 | Bulk delete             | DELETE | /v1.0/requesthistory/bulk                 |
 
-Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `hasTransactionDiagnostics`, `transactionId`, paging, and time-range filters. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
+`GET /v1.0/requesthistory` returns the [enumeration envelope](#enumeration-and-pagination) of request history entries. Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `hasTransactionDiagnostics`, `transactionId`, paging (legacy `page`/`pageSize` remain accepted, with `max-keys` and `skip` taking precedence), and time-range filters. The summary and per-entry reads return single objects. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
 
 Graph transaction entries include `TransactionDiagnosticsJson` when LiteGraph can parse the transaction result body. The compact JSON includes transaction ID, operation count, isolation level, provider, rollback and validation state, retry/conflict fields, and provider error code.
 Use `hasTransactionDiagnostics=true` to list only graph transaction rows, `hasTransactionDiagnostics=false` to exclude them, and `transactionId=[full-or-partial-id]` to find entries for a known transaction ID.
 
 ## Enumeration APIs
 
-The v2.0 enumeration routes accept an `Enumeration Query` as JSON on POST and equivalent query-string filters on GET where supported.
+The v2.0 enumeration routes accept an [Enumeration Query](#enumeration-query) as JSON on POST and the shared pagination query parameters (`max-keys`, `skip`, `order`, `token`) on GET where supported. All of them return the [enumeration envelope](#enumeration-and-pagination).
 
 | Resource      | Method | URL                                                    |
 |---------------|--------|--------------------------------------------------------|
@@ -1136,7 +1206,7 @@ See [CHAT.md](CHAT.md) for the architecture: providers, the tool loop, retrieval
 | Exists                  | HEAD   | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
 | Test connectivity       | POST   | /v1.0/tenants/[guid]/chat/endpoints/[guid]/test                 |
 
-`endpointType` is `Completion` or `Embedding`. Create and update take a `ChatEndpoint` body:
+`endpointType` is `Completion` or `Embedding`. Both `Read many` variants and `Read health (all)` return the [enumeration envelope](#enumeration-and-pagination) — of `ChatEndpoint` and `ChatEndpointHealth` records respectively — and accept the shared pagination query parameters; `Read health (one)` returns a single health object. Create and update take a `ChatEndpoint` body:
 
 ```
 {
@@ -1263,7 +1333,7 @@ On a streaming connection these surface as an `error` event rather than an HTTP 
 |-----------|--------|-----------------------------------------|
 | Read many | GET    | /v1.0/tenants/[guid]/chat/models        |
 
-Lists the tenant's selectable chat models for any tenant member: each entry is an active endpoint projected to `GUID`, `Name`, `Model`, `Provider`, `EndpointType`, and `IsDefault`. Endpoint URLs, API keys, and health configuration are never included, so the full endpoint listing can stay administrator-only while chat users still pick a model. Supply an entry's `GUID` as `CompletionEndpointGUID` (or `EmbeddingEndpointGUID`) on completion requests to override the tenant default.
+Lists the tenant's selectable chat models for any tenant member, inside the [enumeration envelope](#enumeration-and-pagination): each entry in `Objects` is an active endpoint projected to `GUID`, `Name`, `Model`, `Provider`, `EndpointType`, and `IsDefault`. Endpoint URLs, API keys, and health configuration are never included, so the full endpoint listing can stay administrator-only while chat users still pick a model. Supply an entry's `GUID` as `CompletionEndpointGUID` (or `EmbeddingEndpointGUID`) on completion requests to override the tenant default.
 
 ### Graph-Scoped Compatible Chat
 
@@ -1273,7 +1343,7 @@ Lists the tenant's selectable chat models for any tenant member: each entry is a
 | Ollama-format chat         | POST   | /v1.0/tenants/[guid]/graphs/[guid]/chat/ollama             |
 | OpenAI-format model list   | GET    | /v1.0/tenants/[guid]/graphs/[guid]/chat/models             |
 
-These routes let any application that already speaks the OpenAI chat completions protocol or the Ollama `/api/chat` protocol point at LiteGraph and chat with a specific graph, without knowing LiteGraph's own chat API. The URLs are LiteGraph's; the request and response bodies are wire-compatible with the respective protocol. Authentication is normal LiteGraph authentication (bearer credential or `x-token`), and authorization is member-level chat, identical to the native completion route.
+These routes let any application that already speaks the OpenAI chat completions protocol or the Ollama `/api/chat` protocol point at LiteGraph and chat with a specific graph, without knowing LiteGraph's own chat API. The URLs are LiteGraph's; the request and response bodies are wire-compatible with the respective protocol. For that reason these three routes — including the model list — are the deliberate exception to the [enumeration envelope](#enumeration-and-pagination) mandate: they keep the OpenAI and Ollama wire shapes exactly. Authentication is normal LiteGraph authentication (bearer credential or `x-token`), and authorization is member-level chat, identical to the native completion route.
 
 The routes are stateless at the protocol level: the client supplies the entire `messages` transcript on every call. System messages from the request are appended after LiteGraph's own system prompt, earlier user and assistant messages are replayed as history, and the final user message is treated as the current message. The graph in the URL must exist in the tenant (`404` otherwise) and becomes the bound context for the exchange — the tool loop and retrieval run per tenant chat settings with that graph as the retrieval target. Each exchange is persisted as a turn in an implicit per-user, per-graph thread titled `OpenAI-compatible: <graph name>`, so telemetry and history remain visible through the normal thread APIs.
 
@@ -1376,7 +1446,7 @@ The model list returns the OpenAI models shape, with one entry per active comple
 | Update (rename) | PUT    | /v1.0/tenants/[guid]/chat/threads/[guid]         |
 | Delete          | DELETE | /v1.0/tenants/[guid]/chat/threads/[guid]         |
 
-Create takes an optional body of `{ "GraphGUID": ..., "Title": ... }`; the caller becomes the owner, and a missing title is generated from the first exchange. The plain list returns the caller's own threads; the valueless `all` flag returns every user's threads and requires an administrator. Update renames a thread — the body is `{ "Title": ... }`, only `Title` is honored, and a blank title is rejected with `400`. Read, turns, update, and delete are available to the owner or an administrator. Deleting a thread removes its turns and their feedback. Turns are returned ascending by `Sequence` as full `ChatTurn` objects, including all telemetry columns plus `ToolTranscriptJson` and `TelemetryJson` — see [CHAT.md](CHAT.md) for the field-by-field reference.
+Create takes an optional body of `{ "GraphGUID": ..., "Title": ... }`; the caller becomes the owner, and a missing title is generated from the first exchange. The plain list returns the caller's own threads; the valueless `all` flag returns every user's threads and requires an administrator. Both thread listings and the turns listing return the [enumeration envelope](#enumeration-and-pagination) and accept the shared pagination query parameters, including marker-based continuation via `token`. Update renames a thread — the body is `{ "Title": ... }`, only `Title` is honored, and a blank title is rejected with `400`. Read, turns, update, and delete are available to the owner or an administrator. Deleting a thread removes its turns and their feedback. Turns are returned ascending by `Sequence` as full `ChatTurn` objects in the envelope's `Objects` array, including all telemetry columns plus `ToolTranscriptJson` and `TelemetryJson` — see [CHAT.md](CHAT.md) for the field-by-field reference.
 
 ### Chat Feedback
 
@@ -1387,7 +1457,7 @@ Create takes an optional body of `{ "GraphGUID": ..., "Title": ... }`; the calle
 | Read      | GET    | /v1.0/tenants/[guid]/chat/feedback/[guid]        |
 | Delete    | DELETE | /v1.0/tenants/[guid]/chat/feedback/[guid]        |
 
-Submission takes `{ "Rating": "ThumbsUp" | "ThumbsDown", "FeedbackText": "optional comment" }` and requires a user principal. Listing, reading, and deleting feedback are administrator operations.
+Submission takes `{ "Rating": "ThumbsUp" | "ThumbsDown", "FeedbackText": "optional comment" }` and requires a user principal. Listing, reading, and deleting feedback are administrator operations. The `Read many` route returns the [enumeration envelope](#enumeration-and-pagination) and accepts the shared pagination query parameters, including marker-based continuation via `token`.
 
 ### Chat Settings
 

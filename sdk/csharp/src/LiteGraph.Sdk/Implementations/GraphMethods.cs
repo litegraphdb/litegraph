@@ -46,15 +46,19 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Graph>> ReadMany(
+        public async Task<EnumerationResult<Graph>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<Graph>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Graph>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -67,13 +71,13 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Graph>> ReadByGuids(Guid tenantGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default)
+        public async Task<EnumerationResult<Graph>> ReadByGuids(Guid tenantGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs?guids=" + string.Join(",", guids);
             if (includeData) url += "&incldata";
             if (includeSubordinates) url += "&inclsub";
-            return await _Sdk.Get<List<Graph>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<Graph>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -326,10 +330,19 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Graph>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<Graph>> ReadAllInTenant(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/all";
-            return await _Sdk.GetMany<Graph>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Graph>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

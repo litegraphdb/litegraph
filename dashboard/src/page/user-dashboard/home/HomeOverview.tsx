@@ -135,7 +135,7 @@ const HomeOverview = () => {
 
   const kpis = useMemo(
     () => [
-      { label: t('kpis.graphs'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: graphsList?.length, loading: graphsFetching },
+      { label: t('kpis.graphs'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: graphsList?.TotalRecords, loading: graphsFetching },
       { label: t('kpis.nodes'), scope: inGraph, scopeTooltip: graphScopeTooltip, value: nodes?.TotalRecords, loading: nodesFetching },
       { label: t('kpis.edges'), scope: inGraph, scopeTooltip: graphScopeTooltip, value: edges?.TotalRecords, loading: edgesFetching },
       { label: t('kpis.labels'), scope: inTenant, scopeTooltip: tenantScopeTooltip, value: labels?.TotalRecords, loading: labelsFetching },

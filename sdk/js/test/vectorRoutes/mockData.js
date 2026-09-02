@@ -17,3 +17,14 @@ export const vectorData = {
 export const vectorMockApiResponse = [
     vectorData
 ];
+
+export const vectorSearchResultData = [
+    {
+        "Score": 0.95,
+        "Distance": 0.05,
+        "InnerProduct": 0.9,
+        "GraphGUID": "321e6543-a21b-45c3-b678-789012345679",
+        "NodeGUID": "123e4567-e89b-12d3-a456-426614174001",
+        "EdgeGUID": "123e4567-e89b-12d3-a456-426614174002"
+    }
+];

@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockGraphGuid, mockNodeGuid, nodeData, searchNodeData, nodeMockApiResponse, nodeMockSearchApiResponse } from './mockData';
 import { mockEndpoint, mockTenantId } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a node exists by GUID
@@ -20,10 +21,10 @@ export const handlers = [
         return HttpResponse.json(nodeData[mockNodeGuid]);
     }),
 
-    // Read all nodes for a specific graph
+    // Read all nodes for a specific graph (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants/${mockTenantId}/graphs/${mockGraphGuid}/nodes`, ({ request, params, cookies }) => {
-        // Return an array of nodes related to the graph
-        return HttpResponse.json(nodeMockApiResponse);
+        // Return an enumeration envelope of nodes related to the graph
+        return HttpResponse.json(toEnumerationEnvelope(nodeMockApiResponse));
     }),
 
     // Search nodes

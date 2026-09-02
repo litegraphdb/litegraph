@@ -38,12 +38,14 @@ jest.mock('@/lib/store/slice/slice', () => ({
 
 const sliceHooks = jest.requireMock('@/lib/store/slice/slice');
 
+// Authorization list routes now return the EnumerationResult envelope.
 const searchResult = <T,>(objects: T[]) => ({
+  Success: true,
+  MaxResults: 1000,
+  EndOfResults: true,
+  TotalRecords: objects.length,
+  RecordsRemaining: 0,
   Objects: objects,
-  Page: 0,
-  PageSize: 1000,
-  TotalCount: objects.length,
-  TotalPages: 1,
 });
 
 const mutationHook = () => [

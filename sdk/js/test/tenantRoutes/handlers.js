@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { mockTenantId, tenantData, tenantMockApiResponse } from './mockData';
 import { mockEndpoint } from '../setupTest';
+import { toEnumerationEnvelope } from '../enumerationEnvelope';
 
 export const handlers = [
     // Check if a tenant exists by GUID
@@ -14,10 +15,10 @@ export const handlers = [
         return HttpResponse.json(tenantData);
     }),
 
-    // Read all tenants
+    // Read all tenants (enumeration envelope)
     http.get(`${mockEndpoint}v1.0/tenants`, ({ request, params, cookies }) => {
-        // Return an array of tenants
-        return HttpResponse.json(tenantMockApiResponse);
+        // Return an enumeration envelope of tenants
+        return HttpResponse.json(toEnumerationEnvelope(tenantMockApiResponse));
     }),
 
     // Read a specific tenant by GUID

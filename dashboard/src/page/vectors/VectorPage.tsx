@@ -88,8 +88,8 @@ const VectorPage = () => {
   };
   const transformedVectorsList = transformVectorsDataForTable(
     vectorsList,
-    nodesList || [],
-    edgesList || []
+    nodesList?.Objects || [],
+    edgesList?.Objects || []
   );
   const [selectedVector, setSelectedVector] = useState<VectorType | null | undefined>(null);
   const [isAddEditVectorVisible, setIsAddEditVectorVisible] = useState<boolean>(false);

@@ -68,7 +68,8 @@ v8.1 lets you talk to your graphs. A chat surface built into the server connects
 - Delegable administration. A `Chat` authorization resource and built-in `ChatAdmin` role let endpoint, settings, feedback, and history administration be granted through roles or credential scopes without full tenant admin.
 - The chat surface reaches the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs — including a non-privileged model catalog (`GET /chat/models`) and thread rename.
 - OpenAI- and Ollama-compatible graph chat. Point any OpenAI or Ollama chat client at `/v1.0/tenants/{t}/graphs/{g}/chat/completions`, `/chat/ollama`, or `/chat/models` and chat with a specific graph using those wire formats — model selection by endpoint name, model, or GUID, streaming included, with each exchange persisted for telemetry.
-- In-place upgrade: the chat tables are created on first boot and nothing existing changes.
+- Zero get-all APIs. Every list-returning REST route and MCP list tool now responds with a paginated `EnumerationResult` envelope (`Objects`, `TotalRecords`, `RecordsRemaining`, `ContinuationToken`) — never a bare array. GET routes take `max-keys` (1-1000), `skip`, `order`, and `token` where supported; MCP list tools take `maxResults` and `continuationToken`; a permanent guard test sweeps the OpenAPI spec so no future route can regress. Only the protocol-compatible chat routes keep their foreign wire shapes.
+- In-place storage upgrade: the chat tables are created on first boot and nothing stored changes. Clients that consumed list responses as bare arrays must adopt the enumeration envelope.
 
 See [Chat](docs/CHAT.md) for the architecture and [REST API](docs/REST_API.md) for the routes.
 

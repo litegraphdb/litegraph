@@ -89,6 +89,52 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             return ret;
         }
 
+        internal static string GetRecordPage(
+            Guid? tenantGuid,
+            Guid? threadGuid,
+            int batchSize = 100,
+            int skip = 0,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            ChatTurn marker = null)
+        {
+            string ret = "SELECT * FROM 'chatturns' WHERE guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (threadGuid != null)
+                ret += "AND threadguid = '" + threadGuid.Value.ToString() + "' ";
+
+            if (marker != null)
+                ret += "AND " + MarkerWhereClause(order, marker);
+
+            ret += OrderByClause(order);
+            ret += "LIMIT " + batchSize;
+            if (marker == null && skip > 0) ret += " OFFSET " + skip;
+            ret += ";";
+            return ret;
+        }
+
+        internal static string GetRecordCount(
+            Guid? tenantGuid,
+            Guid? threadGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            ChatTurn marker = null)
+        {
+            string ret = "SELECT COUNT(*) AS record_count FROM 'chatturns' WHERE guid IS NOT NULL ";
+
+            if (tenantGuid != null)
+                ret += "AND tenantguid = '" + tenantGuid.Value.ToString() + "' ";
+
+            if (threadGuid != null)
+                ret += "AND threadguid = '" + threadGuid.Value.ToString() + "' ";
+
+            if (marker != null)
+                ret += "AND " + MarkerWhereClause(order, marker);
+
+            return ret;
+        }
+
         internal static string GetCountByThread(Guid tenantGuid, Guid threadGuid)
         {
             return
@@ -124,6 +170,36 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 "DELETE FROM 'chatturns' "
                 + "WHERE tenantguid = '" + tenantGuid + "' "
                 + "AND createdutc < '" + olderThanUtc.ToString(TimestampFormat) + "';";
+        }
+
+        private static string OrderByClause(EnumerationOrderEnum order)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "ORDER BY sequence ASC, createdutc ASC ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "ORDER BY guid ASC ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "ORDER BY guid DESC ";
+                default:
+                    return "ORDER BY sequence DESC, createdutc DESC ";
+            }
+        }
+
+        private static string MarkerWhereClause(EnumerationOrderEnum order, ChatTurn marker)
+        {
+            switch (order)
+            {
+                case EnumerationOrderEnum.CreatedAscending:
+                    return "sequence > " + marker.Sequence + " ";
+                case EnumerationOrderEnum.GuidAscending:
+                    return "guid > '" + marker.GUID + "' ";
+                case EnumerationOrderEnum.GuidDescending:
+                    return "guid < '" + marker.GUID + "' ";
+                default:
+                    return "sequence < " + marker.Sequence + " ";
+            }
         }
 
         private static string SqlString(string val)

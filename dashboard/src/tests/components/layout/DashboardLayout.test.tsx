@@ -24,6 +24,16 @@ jest.mock('@/lib/store/slice/slice', () => ({
 
 const server = getServer([...commonHandlers, ...handlers]);
 
+// getAll-style hooks now return the EnumerationResult envelope rather than bare arrays.
+const envelope = <T,>(objects: T[]) => ({
+  Success: true,
+  MaxResults: 1000,
+  EndOfResults: true,
+  TotalRecords: objects.length,
+  RecordsRemaining: 0,
+  Objects: objects,
+});
+
 const defaultProps = {
   children: <div data-testid="layout-children">Test Content</div>,
   menuItems: [
@@ -47,13 +57,13 @@ describe('DashboardLayout', () => {
   it('should render graph selector when useGraphsSelector is true', async () => {
     const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
     useGetAllGraphsQuery.mockReturnValue({
-      data: mockGraphData,
+      data: envelope(mockGraphData),
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     });
     useGetAllTenantsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -71,13 +81,13 @@ describe('DashboardLayout', () => {
   it('should render tenant selector when useTenantSelector is true', async () => {
     const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
     useGetAllGraphsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     });
     useGetAllTenantsQuery.mockReturnValue({
-      data: mockTenantData,
+      data: envelope(mockTenantData),
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -98,13 +108,13 @@ describe('DashboardLayout', () => {
 
     useLogout.mockReturnValue(mockLogout);
     useGetAllGraphsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     });
     useGetAllTenantsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -128,13 +138,13 @@ describe('DashboardLayout', () => {
 
     useLogout.mockReturnValue(mockLogout);
     useGetAllGraphsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     });
     useGetAllTenantsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -159,13 +169,13 @@ describe('DashboardLayout', () => {
   it('should show loading state for graphs', () => {
     const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
     useGetAllGraphsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: true,
       error: null,
       refetch: jest.fn(),
     });
     useGetAllTenantsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -182,13 +192,13 @@ describe('DashboardLayout', () => {
     const mockRefetch = jest.fn();
     const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
     useGetAllGraphsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     });
     useGetAllTenantsQuery.mockReturnValue({
-      data: [],
+      data: envelope([]),
       isLoading: false,
       isError: true,
       refetch: mockRefetch,

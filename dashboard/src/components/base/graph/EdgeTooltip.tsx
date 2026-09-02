@@ -91,8 +91,8 @@ const EdgeToolTip = ({
     refetch: refetchNodes,
   } = useGetManyNodesQuery({ graphId, nodeIds }, { skip: !nodeIds.length });
   const isNodesLoadingOrFetching = isNodesLoading || isNodesFetching;
-  const fromNode = nodesList?.find((node) => node.GUID === displayEdge?.From);
-  const toNode = nodesList?.find((node) => node.GUID === displayEdge?.To);
+  const fromNode = nodesList?.Objects?.find((node) => node.GUID === displayEdge?.From);
+  const toNode = nodesList?.Objects?.find((node) => node.GUID === displayEdge?.To);
 
   // Callback for handling edge update
   const handleEdgeUpdate = async () => {

@@ -35,8 +35,11 @@ const AddEditCredential = ({
   const [formValid, setFormValid] = useState(false);
   const [createCredentialService, { isLoading: isCreateLoading }] = useCreateCredentialMutation();
   const [updateCredentialById, { isLoading: isUpdateLoading }] = useUpdateCredentialMutation();
-  const { data: usersList = [], isLoading: isUsersLoading } = useGetAllUsersQuery();
-  const userOptions = usersList.map((user) => ({ label: user.FirstName, value: user.GUID }));
+  const { data: usersEnvelope, isLoading: isUsersLoading } = useGetAllUsersQuery();
+  const userOptions = (usersEnvelope?.Objects ?? []).map((user) => ({
+    label: user.FirstName,
+    value: user.GUID,
+  }));
 
   // Add form validation watcher
   const [formValues, setFormValues] = useState({});

@@ -371,8 +371,17 @@ graph = Graph.create(name="New Graph")
 # Retrieve a graph
 graph = Graph.retrieve(graph_guid="graph-guid")
 
-# Retrieve all graphs for tenant
-graphs = Graph.retrieve_all()
+# Retrieve graphs for tenant as a paginated EnumerationResult envelope.
+# Every list-shaped read returns the envelope: use .objects for the items,
+# plus .total_records, .records_remaining, .continuation_token, .end_of_results.
+result = Graph.retrieve_all()
+for graph in result.objects:
+    print(graph.name)
+
+# Pagination: max_keys (1-1000), skip, order, continuation_token
+page = Graph.retrieve_all(max_keys=100, skip=0, order="CreatedDescending")
+while not page.end_of_results:
+    page = Graph.retrieve_all(max_keys=100, continuation_token=page.continuation_token)
 
 # Update a graph
 graph = Graph.update(graph_guid="graph-guid", name="Updated Graph")
@@ -494,8 +503,9 @@ node = Node.create(
 # Retrieve a node
 node = Node.retrieve(graph_guid="graph-guid", node_guid="node-guid")
 
-# Retrieve all nodes in a graph
-nodes = Node.retrieve_all(graph_guid="graph-guid")
+# Retrieve nodes in a graph (paginated EnumerationResult envelope)
+result = Node.retrieve_all(max_keys=100)
+nodes = result.objects
 
 # Update a node
 node = Node.update(
@@ -570,8 +580,9 @@ edge = Edge.create(
 # Retrieve an edge
 edge = Edge.retrieve(graph_guid="graph-guid", edge_guid="edge-guid")
 
-# Retrieve all edges in a graph
-edges = Edge.retrieve_all(graph_guid="graph-guid")
+# Retrieve edges in a graph (paginated EnumerationResult envelope)
+result = Edge.retrieve_all(max_keys=100)
+edges = result.objects
 
 # Update an edge
 edge = Edge.update(
@@ -614,29 +625,33 @@ from litegraph_sdk.configuration import configure
 base = "URL"
 configure(base_url,"graph_guid")
 
+# Every traversal read returns a paginated EnumerationResult envelope;
+# access the items via .objects (EdgeModel or NodeModel instances).
+
 # Edges from node
-get_edges_from_node = RouteNodes.get_edges_from("graph_guid","node_guid")
+edges_from_node = RouteNodes.get_edges_from("graph_guid","node_guid").objects
 
 # Edges to node
-get_edges_to_node = RouteNodes.get_edges_to("graph_guid","node_guid")
+edges_to_node = RouteNodes.get_edges_to("graph_guid","node_guid").objects
 
-# Specific Edge
-specific_edge = RouteNodes.edges("graph_guid","node_guid")
+# Edges of a node
+node_edges = RouteNodes.edges("graph_guid","node_guid").objects
 
 # Find parent of a Node
-parent_node = RouteNodes.parents("graph_guid","node_guid")
+parent_nodes = RouteNodes.parents("graph_guid","node_guid").objects
 
 # Find children of a Node
-children_node = RouteNodes.children("graph_guid","node_guid")
+children_nodes = RouteNodes.children("graph_guid","node_guid").objects
 
 # Find neighbors of a Node
-neighbors_node = RouteNodes.neighbors("graph_guid","node_guid")
+neighbor_nodes = RouteNodes.neighbors("graph_guid","node_guid").objects
 
 
 
 # Find Edges in between of a Node
 from litegraph_sdk.resources.routes_between import RouteEdges
-between_nodes = RouteEdges.between("graph_guid","node_guid(from)","node_guid(to)")
+between_result = RouteEdges.between("graph_guid","node_guid(from)","node_guid(to)")
+between_edges = between_result.objects
 
 # Find Routes
 from litegraph_sdk.resources.routes import Routes
@@ -694,8 +709,8 @@ tenant = Tenant.update(tenant_guid="tenant-guid", name="Updated Tenant")
 # Delete tenant
 Tenant.delete(tenant_guid="tenant-guid")
 
-# List all tenants
-tenants = Tenant.retrieve_all()
+# List tenants (paginated EnumerationResult envelope)
+tenants = Tenant.retrieve_all().objects
 ```
 
 ### Chat (v8.1)
@@ -736,19 +751,21 @@ embedding = Chat.create_endpoint(
     model="voyage-3.5",
 )
 
-# List endpoints, optionally filtered by type
-endpoints = Chat.read_endpoints(endpoint_type=ChatEndpointType_Enum.Completion)
+# List endpoints, optionally filtered by type. All chat list reads return a
+# paginated EnumerationResult envelope; the items are in .objects and
+# max_keys/skip/order/continuation_token paginate.
+endpoints = Chat.read_endpoints(endpoint_type=ChatEndpointType_Enum.Completion).objects
 
 # Test connectivity and read health (all endpoints, or one)
 test_result = Chat.test_endpoint(endpoint.guid)   # reachable, models, model_exists
-health = Chat.read_all_endpoint_health()
+health = Chat.read_all_endpoint_health().objects
 one_health = Chat.read_endpoint_health(endpoint.guid)
 
 # Model catalog: active endpoints projected as summaries (guid, name, model,
 # provider, endpoint_type, is_default). Available to any chat user, no admin
 # role required; pass a summary's guid as completion_endpoint_guid or
 # embedding_endpoint_guid on completions.
-models = Chat.read_models()
+models = Chat.read_models().objects
 
 # Make chat settings defaults so completions do not need explicit endpoint GUIDs (admin)
 Chat.update_chat_settings(
@@ -768,15 +785,15 @@ for event in Chat.completion_streaming("Tell me more", thread_guid=result.thread
     elif event["event"] == "usage":
         print("\n", event["usage"])
 
-# Threads and turns
-threads = Chat.read_threads()               # own threads; all_users=True for admins
-turns = Chat.read_thread_turns(result.thread_guid)
+# Threads and turns (EnumerationResult envelopes; items in .objects)
+threads = Chat.read_threads().objects       # own threads; all_users=True for admins
+turns = Chat.read_thread_turns(result.thread_guid).objects
 Chat.update_thread(result.thread_guid, "Graph exploration")  # rename (Title only)
 
 # Feedback
 Chat.submit_feedback(result.turn_guid, ChatFeedbackRating_Enum.ThumbsUp, feedback_text="Helpful!")
-feedback = Chat.read_feedback()             # list (admin); pass a GUID for a single record
-Chat.delete_feedback(feedback[0].guid)      # admin
+feedback = Chat.read_feedback()             # envelope (admin); pass a GUID for a single record
+Chat.delete_feedback(feedback.objects[0].guid)  # admin
 
 # Cleanup
 Chat.delete_thread(result.thread_guid)

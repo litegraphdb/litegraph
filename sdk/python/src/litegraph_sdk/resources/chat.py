@@ -1,5 +1,5 @@
 import json
-from typing import Generator, List, Optional, Union
+from typing import Generator, Optional, Union
 
 from ..configuration import get_client
 from ..enums.chat_endpoint_type_enum import ChatEndpointType_Enum
@@ -19,7 +19,9 @@ from ..models.chat import (
     ChatThreadModel,
     ChatTurnModel,
 )
+from ..models.enumeration_result import EnumerationResultModel, parse_enumeration_result
 from ..sdk_logging import log_warning
+from ..utils.url_helper import _append_query, _pagination_params
 
 SSE_DATA_PREFIX = "data:"
 SSE_DONE_SENTINEL = "[DONE]"
@@ -53,9 +55,15 @@ class Chat:
 
     @classmethod
     def read_endpoints(
-        cls, endpoint_type: Optional[Union[ChatEndpointType_Enum, str]] = None
-    ) -> List[ChatEndpointModel]:
-        """Read all chat endpoints, optionally filtered by endpoint type."""
+        cls,
+        endpoint_type: Optional[Union[ChatEndpointType_Enum, str]] = None,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> EnumerationResultModel:
+        """Read chat endpoints as an EnumerationResult envelope, optionally
+        filtered by endpoint type."""
         client = get_client()
         url = f"{cls._base_url()}/endpoints"
         if endpoint_type is not None:
@@ -65,8 +73,11 @@ class Chat:
                 else str(endpoint_type)
             )
             url = f"{url}?endpointType={type_value}"
+        url = _append_query(
+            url, _pagination_params(max_keys, skip, order, continuation_token)
+        )
         instances = client.request("GET", url)
-        return [ChatEndpointModel.model_validate(instance) for instance in instances]
+        return parse_enumeration_result(instances, ChatEndpointModel)
 
     @classmethod
     def read_endpoint(cls, endpoint_guid: str) -> ChatEndpointModel:
@@ -125,28 +136,46 @@ class Chat:
         return ChatEndpointHealthModel.model_validate(instance)
 
     @classmethod
-    def read_all_endpoint_health(cls) -> List[ChatEndpointHealthModel]:
-        """Read health status for every chat endpoint in the tenant."""
+    def read_all_endpoint_health(
+        cls,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> EnumerationResultModel:
+        """Read health status for every chat endpoint in the tenant as an
+        EnumerationResult envelope."""
         client = get_client()
-        instances = client.request("GET", f"{cls._base_url()}/endpoints/health")
-        return [
-            ChatEndpointHealthModel.model_validate(instance) for instance in instances
-        ]
+        url = _append_query(
+            f"{cls._base_url()}/endpoints/health",
+            _pagination_params(max_keys, skip, order, continuation_token),
+        )
+        instances = client.request("GET", url)
+        return parse_enumeration_result(instances, ChatEndpointHealthModel)
 
     # endregion
 
     # region Models
 
     @classmethod
-    def read_models(cls) -> List[ChatModelSummaryModel]:
-        """Read the model catalog: active chat endpoints projected as
-        non-privileged model summaries (no administrator role required).
-        Endpoint URLs, keys, and health configuration are never included."""
+    def read_models(
+        cls,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> EnumerationResultModel:
+        """Read the model catalog as an EnumerationResult envelope: active
+        chat endpoints projected as non-privileged model summaries (no
+        administrator role required). Endpoint URLs, keys, and health
+        configuration are never included."""
         client = get_client()
-        instances = client.request("GET", f"{cls._base_url()}/models")
-        return [
-            ChatModelSummaryModel.model_validate(instance) for instance in instances
-        ]
+        url = _append_query(
+            f"{cls._base_url()}/models",
+            _pagination_params(max_keys, skip, order, continuation_token),
+        )
+        instances = client.request("GET", url)
+        return parse_enumeration_result(instances, ChatModelSummaryModel)
 
     # endregion
 
@@ -167,15 +196,25 @@ class Chat:
         return ChatThreadModel.model_validate(instance)
 
     @classmethod
-    def read_threads(cls, all_users: bool = False) -> List[ChatThreadModel]:
-        """Read the caller's chat threads, or every user's threads when
-        all_users is True (administrators only)."""
+    def read_threads(
+        cls,
+        all_users: bool = False,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> EnumerationResultModel:
+        """Read the caller's chat threads as an EnumerationResult envelope,
+        or every user's threads when all_users is True (administrators only)."""
         client = get_client()
         url = f"{cls._base_url()}/threads"
         if all_users:
             url = f"{url}?all"
+        url = _append_query(
+            url, _pagination_params(max_keys, skip, order, continuation_token)
+        )
         instances = client.request("GET", url)
-        return [ChatThreadModel.model_validate(instance) for instance in instances]
+        return parse_enumeration_result(instances, ChatThreadModel)
 
     @classmethod
     def read_thread(cls, thread_guid: str) -> ChatThreadModel:
@@ -202,13 +241,23 @@ class Chat:
         client.request("DELETE", f"{cls._base_url()}/threads/{thread_guid}")
 
     @classmethod
-    def read_thread_turns(cls, thread_guid: str) -> List[ChatTurnModel]:
-        """Read the turns for a thread, ascending by sequence."""
+    def read_thread_turns(
+        cls,
+        thread_guid: str,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> EnumerationResultModel:
+        """Read the turns for a thread as an EnumerationResult envelope,
+        ascending by sequence."""
         client = get_client()
-        instances = client.request(
-            "GET", f"{cls._base_url()}/threads/{thread_guid}/turns"
+        url = _append_query(
+            f"{cls._base_url()}/threads/{thread_guid}/turns",
+            _pagination_params(max_keys, skip, order, continuation_token),
         )
-        return [ChatTurnModel.model_validate(instance) for instance in instances]
+        instances = client.request("GET", url)
+        return parse_enumeration_result(instances, ChatTurnModel)
 
     # endregion
 
@@ -312,18 +361,28 @@ class Chat:
 
     @classmethod
     def read_feedback(
-        cls, feedback_guid: Optional[str] = None
-    ) -> Union[ChatFeedbackModel, List[ChatFeedbackModel]]:
-        """Read a single feedback record by GUID, or all feedback records when
-        no GUID is supplied (administrators only)."""
+        cls,
+        feedback_guid: Optional[str] = None,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> Union[ChatFeedbackModel, EnumerationResultModel]:
+        """Read a single feedback record by GUID, or an EnumerationResult
+        envelope of feedback records when no GUID is supplied
+        (administrators only)."""
         client = get_client()
         if feedback_guid is not None:
             instance = client.request(
                 "GET", f"{cls._base_url()}/feedback/{feedback_guid}"
             )
             return ChatFeedbackModel.model_validate(instance)
-        instances = client.request("GET", f"{cls._base_url()}/feedback")
-        return [ChatFeedbackModel.model_validate(instance) for instance in instances]
+        url = _append_query(
+            f"{cls._base_url()}/feedback",
+            _pagination_params(max_keys, skip, order, continuation_token),
+        )
+        instances = client.request("GET", url)
+        return parse_enumeration_result(instances, ChatFeedbackModel)
 
     @classmethod
     def delete_feedback(cls, feedback_guid: str) -> None:

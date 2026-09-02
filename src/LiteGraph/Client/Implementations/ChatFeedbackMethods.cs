@@ -82,13 +82,28 @@ namespace LiteGraph.Client.Implementations
         }
 
         /// <inheritdoc />
+        public async Task<EnumerationResult<ChatFeedback>> Enumerate(
+            EnumerationRequest query,
+            ChatFeedbackRatingEnum? rating = null,
+            Guid? threadGuid = null,
+            CancellationToken token = default)
+        {
+            if (query == null) query = new EnumerationRequest();
+            token.ThrowIfCancellationRequested();
+            return await _Repo.ChatFeedback.Enumerate(query, rating, threadGuid, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task<int> GetRecordCount(
             Guid? tenantGuid,
             ChatFeedbackRatingEnum? rating = null,
+            Guid? threadGuid = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            Guid? markerGuid = null,
             CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            return await _Repo.ChatFeedback.GetRecordCount(tenantGuid, rating, token).ConfigureAwait(false);
+            return await _Repo.ChatFeedback.GetRecordCount(tenantGuid, rating, threadGuid, order, markerGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

@@ -68,15 +68,20 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadMany(
+        public async Task<EnumerationResult<Edge>> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, CancellationToken token = default)
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            if (skip < 0) throw new ArgumentNullException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges?skip=" + skip + "&order=" + order.ToString();
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -89,17 +94,17 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadByGuids(Guid tenantGuid, Guid graphGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default)
+        public async Task<EnumerationResult<Edge>> ReadByGuids(Guid tenantGuid, Guid graphGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default)
         {
             if (guids == null || guids.Count < 1) throw new ArgumentNullException(nameof(guids));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges?guids=" + string.Join(",", guids);
             if (includeData) url += "&incldata";
             if (includeSubordinates) url += "&inclsub";
-            return await _Sdk.Get<List<Edge>>(url, token).ConfigureAwait(false);
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadNodeEdges(
+        public async Task<EnumerationResult<Edge>> ReadNodeEdges(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -110,19 +115,21 @@
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/edges";
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/edges?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadEdgesFromNode(
+        public async Task<EnumerationResult<Edge>> ReadEdgesFromNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -130,19 +137,21 @@
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/edges/from";
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/edges/from?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadEdgesToNode(
+        public async Task<EnumerationResult<Edge>> ReadEdgesToNode(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
@@ -150,29 +159,37 @@
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/edges/to";
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/nodes/" + nodeGuid + "/edges/to?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadEdgesBetweenNodes(
+        public async Task<EnumerationResult<Edge>> ReadEdgesBetweenNodes(
             Guid tenantGuid,
             Guid graphGuid,
             Guid fromNodeGuid,
             Guid toNodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
-            int skip = 0, 
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/between?from=" + fromNodeGuid + "&to=" + toNodeGuid;
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            url += "&max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -246,46 +263,44 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadAllInTenant(
+        public async Task<EnumerationResult<Edge>> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/edges/all";
-
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/edges/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<Edge>> ReadAllInGraph(
+        public async Task<EnumerationResult<Edge>> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default)
         {
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/all";
-
-            bool hasQuery = false;
-            if (skip > 0) { url += "?skip=" + skip; hasQuery = true; }
-            if (order != EnumerationOrderEnum.CreatedDescending) { url += (hasQuery ? "&" : "?") + "order=" + order.ToString(); hasQuery = true; }
-            if (includeData) { url += (hasQuery ? "&" : "?") + "incldata"; hasQuery = true; }
-            if (includeSubordinates) url += (hasQuery ? "&" : "?") + "inclsub";
-
-            return await _Sdk.GetMany<Edge>(url, token).ConfigureAwait(false);
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/edges/all?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (includeData) url += "&incldata";
+            if (includeSubordinates) url += "&inclsub";
+            return await _Sdk.GetEnumeration<Edge>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

@@ -67,7 +67,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "credential/all",
-                "Lists all credentials in a tenant",
+                "Lists all credentials in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -75,7 +75,9 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -86,7 +88,7 @@ namespace LiteGraph.McpServer.Registrations
 
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadCredentials(sdk, tenantGuid, order, skip);
+                    return ReadCredentials(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
                 });
 
             server.RegisterTool(
@@ -180,14 +182,15 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "credential/getmany",
-                "Reads multiple credentials by their GUIDs",
+                "Reads multiple credentials by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        credentialGuids = new { type = "array", items = new { type = "string" }, description = "Array of credential GUIDs" }
+                        credentialGuids = new { type = "array", items = new { type = "string" }, description = "Array of credential GUIDs" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "credentialGuids" }
                 },
@@ -199,7 +202,7 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Credential GUIDs array is required");
                     
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                    return ReadCredentialsByGuids(sdk, tenantGuid, guids);
+                    return ReadCredentialsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
@@ -301,7 +304,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadCredentials(sdk, tenantGuid, order, skip);
+                return ReadCredentials(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("credential/enumerate", (args) =>
@@ -351,7 +354,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Credential GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadCredentialsByGuids(sdk, tenantGuid, guids);
+                return ReadCredentialsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("credential/getbybearertoken", (args) =>
@@ -416,7 +419,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUID is required");
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadCredentials(sdk, tenantGuid, order, skip);
+                return ReadCredentials(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("credential/enumerate", (args) =>
@@ -466,7 +469,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Credential GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadCredentialsByGuids(sdk, tenantGuid, guids);
+                return ReadCredentialsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("credential/getbybearertoken", (args) =>
@@ -525,17 +528,20 @@ namespace LiteGraph.McpServer.Registrations
                 + LiteGraphMcpRestProxy.Escape(credentialGuid));
         }
 
-        private static string ReadCredentials(LiteGraphSdk sdk, Guid tenantGuid, EnumerationOrderEnum order, int skip)
+        private static string ReadCredentials(LiteGraphSdk sdk, Guid tenantGuid, EnumerationOrderEnum order, int skip, int maxResults, Guid? continuationToken)
         {
-            return LiteGraphMcpRestProxy.SendJson(
-                sdk,
-                HttpMethod.Get,
-                "/v1.0/tenants/"
+            string url = "/v1.0/tenants/"
                 + LiteGraphMcpRestProxy.Escape(tenantGuid)
                 + "/credentials?order="
                 + LiteGraphMcpRestProxy.Escape(order.ToString())
                 + "&skip="
-                + skip);
+                + skip
+                + "&max-keys="
+                + maxResults;
+
+            if (continuationToken != null) url += "&token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value);
+
+            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Get, url);
         }
 
         private static string EnumerateCredentials(LiteGraphSdk sdk, EnumerationRequest query)
@@ -565,19 +571,20 @@ namespace LiteGraph.McpServer.Registrations
             return exists.ToString().ToLowerInvariant();
         }
 
-        private static string ReadCredentialsByGuids(LiteGraphSdk sdk, Guid tenantGuid, List<Guid> guids)
+        private static string ReadCredentialsByGuids(LiteGraphSdk sdk, Guid tenantGuid, List<Guid> guids, int maxResults)
         {
             if (guids == null) throw new ArgumentNullException(nameof(guids));
+            if (guids.Count == 0) throw new ArgumentException("At least one credential GUID is required.");
 
-            List<Credential> credentials = new List<Credential>();
-            foreach (Guid guid in guids)
-            {
-                string body = ReadCredential(sdk, tenantGuid, guid);
-                Credential credential = Serializer.DeserializeJson<Credential>(body);
-                if (credential != null) credentials.Add(credential);
-            }
-
-            return Serializer.SerializeJson(credentials, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/credentials?guids="
+                + String.Join(",", guids)
+                + "&max-keys="
+                + maxResults);
         }
 
         private static string ReadCredentialByBearerToken(LiteGraphSdk sdk, string bearerToken)

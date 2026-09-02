@@ -50,6 +50,16 @@ jest.mock('react-hot-toast', () => ({
 const tenantA = { GUID: 't-1', Name: 'Tenant One' };
 const tenantB = { GUID: 't-2', Name: 'Tenant Two' };
 
+// GET /v1.0/token/tenants now returns the EnumerationResult envelope.
+const envelope = (objects: unknown[]) => ({
+  Success: true,
+  MaxResults: 1000,
+  EndOfResults: true,
+  TotalRecords: objects.length,
+  RecordsRemaining: 0,
+  Objects: objects,
+});
+
 const clickNext = () => fireEvent.click(screen.getByRole('button', { name: /next/i }));
 
 const advanceToTenantResolution = async () => {
@@ -71,7 +81,7 @@ describe('Unified login flow', () => {
   });
 
   it('skips the tenant picker for a single-tenant email', async () => {
-    mockGetTenantsForEmail.mockResolvedValue({ data: [tenantA] });
+    mockGetTenantsForEmail.mockResolvedValue({ data: envelope([tenantA]) });
     render(<LoginPage />);
 
     await advanceToTenantResolution();
@@ -81,7 +91,7 @@ describe('Unified login flow', () => {
   });
 
   it('shows the tenant picker for a multi-tenant email', async () => {
-    mockGetTenantsForEmail.mockResolvedValue({ data: [tenantA, tenantB] });
+    mockGetTenantsForEmail.mockResolvedValue({ data: envelope([tenantA, tenantB]) });
     render(<LoginPage />);
 
     await advanceToTenantResolution();
@@ -91,7 +101,7 @@ describe('Unified login flow', () => {
   });
 
   it('surfaces a localized error on wrong password', async () => {
-    mockGetTenantsForEmail.mockResolvedValue({ data: [tenantA] });
+    mockGetTenantsForEmail.mockResolvedValue({ data: envelope([tenantA]) });
     mockGenerateToken.mockResolvedValue({ error: { status: 401 } });
     render(<LoginPage />);
 

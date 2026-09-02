@@ -43,7 +43,7 @@ namespace LiteGraph.Server.API.REST
             using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
             AuthorizationRoleSearchResult result = await SearchTenantVisibleRoles(req, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result));
+            await ctx.Response.Send(_Serializer.SerializeJson(EnumerationFromPagedResult(result.Objects, result.TotalCount, result.Page, result.PageSize)));
         }
 
         private async Task AuthorizationRoleReadRoute(HttpContextBase ctx)
@@ -154,7 +154,7 @@ namespace LiteGraph.Server.API.REST
             UserRoleAssignmentSearchRequest search = BuildUserRoleAssignmentSearch(req);
             UserRoleAssignmentSearchResult result = await _LiteGraph.AuthorizationRoles.SearchUserRoles(search, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result));
+            await ctx.Response.Send(_Serializer.SerializeJson(EnumerationFromPagedResult(result.Objects, result.TotalCount, result.Page, result.PageSize)));
         }
 
         private async Task UserRoleAssignmentReadRoute(HttpContextBase ctx)
@@ -255,7 +255,7 @@ namespace LiteGraph.Server.API.REST
             CredentialScopeAssignmentSearchRequest search = BuildCredentialScopeAssignmentSearch(req);
             CredentialScopeAssignmentSearchResult result = await _LiteGraph.AuthorizationRoles.SearchCredentialScopes(search, timeoutCts.Token).ConfigureAwait(false);
             ctx.Response.StatusCode = 200;
-            await ctx.Response.Send(_Serializer.SerializeJson(result));
+            await ctx.Response.Send(_Serializer.SerializeJson(EnumerationFromPagedResult(result.Objects, result.TotalCount, result.Page, result.PageSize)));
         }
 
         private async Task CredentialScopeAssignmentReadRoute(HttpContextBase ctx)
@@ -541,6 +541,41 @@ namespace LiteGraph.Server.API.REST
             pageSize = 100;
             if (!String.IsNullOrEmpty(q?["page"]) && Int32.TryParse(q["page"], out int parsedPage) && parsedPage >= 0) page = parsedPage;
             if (!String.IsNullOrEmpty(q?["pageSize"]) && Int32.TryParse(q["pageSize"], out int parsedPageSize) && parsedPageSize >= 1 && parsedPageSize <= 1000) pageSize = parsedPageSize;
+            ApplyEnumerationPagingOverrides(q, ref page, ref pageSize);
+        }
+
+        private static void ApplyEnumerationPagingOverrides(NameValueCollection q, ref int page, ref int pageSize)
+        {
+            // Enumeration-style paging parameters (max-keys and skip) take precedence over legacy page and pageSize.
+            // Skip values are aligned down to the nearest page boundary.
+            string maxKeys = q?[Constants.MaxKeysQuerystring];
+            if (String.IsNullOrEmpty(maxKeys)) maxKeys = q?[Constants.MaxKeysQuerystringAlternate];
+            if (!String.IsNullOrEmpty(maxKeys) && Int32.TryParse(maxKeys, out int parsedMaxKeys) && parsedMaxKeys >= 1 && parsedMaxKeys <= 1000) pageSize = parsedMaxKeys;
+
+            string skip = q?[Constants.SkipQuerystring];
+            if (!String.IsNullOrEmpty(skip) && Int32.TryParse(skip, out int parsedSkip) && parsedSkip >= 0 && pageSize > 0) page = parsedSkip / pageSize;
+        }
+
+        private static EnumerationResult<T> EnumerationFromPagedResult<T>(List<T> objects, long totalCount, int page, int pageSize)
+        {
+            if (totalCount < 0) totalCount = 0;
+            if (page < 0) page = 0;
+            if (pageSize < 1) pageSize = 1;
+
+            EnumerationResult<T> ret = new EnumerationResult<T>
+            {
+                MaxResults = pageSize
+            };
+
+            ret.TotalRecords = totalCount;
+            ret.Objects = objects ?? new List<T>();
+
+            long consumed = ((long)page * pageSize) + ret.Objects.Count;
+            ret.RecordsRemaining = Math.Max(0, totalCount - consumed);
+            ret.EndOfResults = (ret.RecordsRemaining < 1);
+            ret.ContinuationToken = null;
+            ret.Timestamp.End = DateTime.UtcNow;
+            return ret;
         }
 
         private static void NormalizeAuthorizationRoleForTenant(AuthorizationRole role, Guid tenantGuid, bool forceCustom)

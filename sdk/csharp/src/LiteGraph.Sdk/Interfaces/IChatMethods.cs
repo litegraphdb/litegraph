@@ -23,9 +23,20 @@ namespace LiteGraph.Sdk.Interfaces
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="endpointType">Endpoint type filter.  Null returns endpoints of every type.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Chat endpoints with API keys redacted.</returns>
-        Task<List<ChatEndpoint>> ReadEndpoints(Guid tenantGuid, ChatEndpointTypeEnum? endpointType = null, CancellationToken token = default);
+        /// <returns>Enumeration result containing chat endpoints with API keys redacted.</returns>
+        Task<EnumerationResult<ChatEndpoint>> ReadEndpoints(
+            Guid tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read a chat endpoint by GUID.
@@ -83,18 +94,34 @@ namespace LiteGraph.Sdk.Interfaces
         /// Read health status for every chat endpoint in the tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Endpoint health list.</returns>
-        Task<List<ChatEndpointHealth>> ReadAllEndpointHealth(Guid tenantGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing endpoint health records.</returns>
+        Task<EnumerationResult<ChatEndpointHealth>> ReadAllEndpointHealth(
+            Guid tenantGuid,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read the model catalog: a non-privileged summary of every active chat endpoint in the tenant,
         /// suitable for populating a model picker.  Endpoint URLs, keys, and health configuration are never included.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Model summaries.</returns>
-        Task<List<ChatModelSummary>> ReadModels(Guid tenantGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing model summaries.</returns>
+        Task<EnumerationResult<ChatModelSummary>> ReadModels(
+            Guid tenantGuid,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Create a chat thread.  The caller becomes the thread owner.
@@ -109,9 +136,20 @@ namespace LiteGraph.Sdk.Interfaces
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="allUsers">True to read every user's threads (admin only).  Default is false, which reads the caller's own threads.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Chat threads.</returns>
-        Task<List<ChatThread>> ReadThreads(Guid tenantGuid, bool allUsers = false, CancellationToken token = default);
+        /// <returns>Enumeration result containing chat threads.</returns>
+        Task<EnumerationResult<ChatThread>> ReadThreads(
+            Guid tenantGuid,
+            bool allUsers = false,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read a chat thread by GUID.
@@ -145,9 +183,20 @@ namespace LiteGraph.Sdk.Interfaces
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="threadGuid">Chat thread GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Chat turns.</returns>
-        Task<List<ChatTurn>> ReadThreadTurns(Guid tenantGuid, Guid threadGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing chat turns.</returns>
+        Task<EnumerationResult<ChatTurn>> ReadThreadTurns(
+            Guid tenantGuid,
+            Guid threadGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Execute a non-streaming chat completion.  The request's Stream property is forced to false.
@@ -183,9 +232,19 @@ namespace LiteGraph.Sdk.Interfaces
         /// Read all chat feedback in the tenant (admin only).
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Chat feedback list.</returns>
-        Task<List<ChatFeedback>> ReadFeedback(Guid tenantGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing chat feedback records.</returns>
+        Task<EnumerationResult<ChatFeedback>> ReadFeedback(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read a chat feedback record by GUID (admin only).

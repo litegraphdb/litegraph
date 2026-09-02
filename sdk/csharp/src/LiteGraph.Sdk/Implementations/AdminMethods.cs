@@ -55,10 +55,18 @@
         }
 
         /// <inheritdoc />
-        public async Task<List<BackupFile>> ListBackups(CancellationToken token = default)
+        public async Task<EnumerationResult<BackupFile>> ListBackups(
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/backups";
-            List<BackupFile> ret = await _Sdk.Get<List<BackupFile>>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/backups?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            EnumerationResult<BackupFile> ret = await _Sdk.GetEnumeration<BackupFile>(url, token).ConfigureAwait(false);
             return ret;
         }
 

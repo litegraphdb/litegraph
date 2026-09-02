@@ -24,9 +24,16 @@ describe('authorization sdk helpers', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        text: jest
-          .fn()
-          .mockResolvedValue(JSON.stringify({ Objects: [], Page: 0, PageSize: 1000, TotalCount: 0 })),
+        text: jest.fn().mockResolvedValue(
+          JSON.stringify({
+            Success: true,
+            MaxResults: 1000,
+            EndOfResults: true,
+            TotalRecords: 0,
+            RecordsRemaining: 0,
+            Objects: [],
+          })
+        ),
       })
     );
   });
@@ -40,7 +47,7 @@ describe('authorization sdk helpers', () => {
     await listAuthorizationRoles(mockTenantGUID);
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${mockEndpoint}v1.0/tenants/${mockTenantGUID}/roles?page=0&pageSize=1000&includeBuiltIns=true`,
+      `${mockEndpoint}v1.0/tenants/${mockTenantGUID}/roles?max-keys=1000&includeBuiltIns=true`,
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({

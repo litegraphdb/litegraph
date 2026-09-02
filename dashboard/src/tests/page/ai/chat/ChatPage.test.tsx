@@ -25,19 +25,29 @@ jest.mock('@/lib/sdk/chatSse', () => ({
 const mockRefetchThreads = jest.fn();
 const mockRefetchTurns = jest.fn();
 
+// List hooks now return the EnumerationResult envelope rather than bare arrays.
+const mockEnvelope = (objects: unknown[]) => ({
+  Success: true,
+  MaxResults: 1000,
+  EndOfResults: true,
+  TotalRecords: objects.length,
+  RecordsRemaining: 0,
+  Objects: objects,
+});
+
 jest.mock('@/lib/store/slice/slice', () => ({
   useGetChatSettingsQuery: () => ({
     data: { EnableChat: true, DefaultCompletionEndpointGUID: 'endpoint-1' },
     isLoading: false,
   }),
   useListChatThreadsQuery: () => ({
-    data: [],
+    data: mockEnvelope([]),
     isLoading: false,
     refetch: mockRefetchThreads,
   }),
-  useListChatThreadTurnsQuery: () => ({ data: [], refetch: mockRefetchTurns }),
+  useListChatThreadTurnsQuery: () => ({ data: mockEnvelope([]), refetch: mockRefetchTurns }),
   useListChatModelsQuery: () => ({
-    data: [
+    data: mockEnvelope([
       {
         GUID: 'model-1',
         Name: 'Primary',
@@ -54,7 +64,7 @@ jest.mock('@/lib/store/slice/slice', () => ({
         EndpointType: 'Embedding',
         IsDefault: false,
       },
-    ],
+    ]),
   }),
   useDeleteChatThreadMutation: () => [jest.fn(), { isLoading: false }],
   useUpdateChatThreadMutation: () => [jest.fn(), { isLoading: false }],

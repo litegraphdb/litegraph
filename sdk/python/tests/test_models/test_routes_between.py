@@ -33,6 +33,19 @@ def setup_sdk():
     _client = None
 
 
+def _envelope(objects):
+    """Wrap objects in an EnumerationResult envelope."""
+    return {
+        "Success": True,
+        "MaxResults": 1000,
+        "ContinuationToken": None,
+        "EndOfResults": True,
+        "TotalRecords": len(objects),
+        "RecordsRemaining": 0,
+        "Objects": objects,
+    }
+
+
 @pytest.fixture
 def sample_edges_response():
     """Sample response for edges between nodes"""
@@ -65,7 +78,7 @@ def test_between_successful(mock_http_client, sample_edges_response):
     # Arrange
     mock_response = Mock()
     mock_response.status_code = 200
-    mock_response.json.return_value = sample_edges_response
+    mock_response.json.return_value = _envelope(sample_edges_response)
     mock_http_client.request.return_value = mock_response
 
     # Act
@@ -74,11 +87,11 @@ def test_between_successful(mock_http_client, sample_edges_response):
     )
 
     # Assert
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert all(isinstance(edge, EdgeModel) for edge in result)
-    assert result[0].guid == "edge-1"
-    assert result[1].guid == "edge-2"
+    assert result.total_records == 2
+    assert len(result.objects) == 2
+    assert all(isinstance(edge, EdgeModel) for edge in result.objects)
+    assert result.objects[0].guid == "edge-1"
+    assert result.objects[1].guid == "edge-2"
 
     # Verify the request was made correctly
     mock_http_client.request.assert_called_once()
@@ -94,7 +107,7 @@ def test_between_empty_response(mock_http_client):
     # Arrange
     mock_response = Mock()
     mock_response.status_code = 200
-    mock_response.json.return_value = []
+    mock_response.json.return_value = _envelope([])
     mock_http_client.request.return_value = mock_response
 
     # Act
@@ -103,8 +116,8 @@ def test_between_empty_response(mock_http_client):
     )
 
     # Assert
-    assert isinstance(result, list)
-    assert len(result) == 0
+    assert result.end_of_results is True
+    assert len(result.objects) == 0
 
 
 def test_between_invalid_graph(mock_http_client):
@@ -156,7 +169,7 @@ def test_between_url_construction(mock_http_client):
     # Arrange
     mock_response = Mock()
     mock_response.status_code = 200
-    mock_response.json.return_value = []
+    mock_response.json.return_value = _envelope([])
     mock_http_client.request.return_value = mock_response
 
     # Act
@@ -187,17 +200,19 @@ def test_between_response_validation(mock_http_client):
     mock_response = Mock()
     mock_response.status_code = 200
     # Missing required fields for EdgeModel
-    mock_response.json.return_value = [
-        {
-            "GUID": "edge-1",
-            # Missing GraphGUID
-            "From": "node-1",
-            # Missing To
-            "Cost": "invalid-cost",  # Invalid type for Cost (should be int)
-            # Missing CreatedUtc
-            "Data": {"key": "value1"},
-        }
-    ]
+    mock_response.json.return_value = _envelope(
+        [
+            {
+                "GUID": "edge-1",
+                # Missing GraphGUID
+                "From": "node-1",
+                # Missing To
+                "Cost": "invalid-cost",  # Invalid type for Cost (should be int)
+                # Missing CreatedUtc
+                "Data": {"key": "value1"},
+            }
+        ]
+    )
     mock_http_client.request.return_value = mock_response
 
     # Act & Assert

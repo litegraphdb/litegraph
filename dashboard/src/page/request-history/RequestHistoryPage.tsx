@@ -581,7 +581,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         pagination={{
           current: page + 1,
           pageSize,
-          total: result?.TotalCount || 0,
+          total: result?.TotalRecords || 0,
           showSizeChanger: true,
           pageSizeOptions: ['10', '25', '50', '100'],
           onChange: (p, ps) => {

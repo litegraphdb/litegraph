@@ -30,7 +30,11 @@ namespace Test.Shared
                     ChatCase("Chat.Storage", "Chat.Storage.Settings", "Tenant chat settings upsert and validation", TestChatSettingsStorage),
                     ChatCase("Chat.Storage", "Chat.Storage.Retention", "Turn retention pruning by cutoff", TestChatRetention),
                     ChatCase("Chat.Storage", "Chat.Storage.TenantIsolation", "Chat objects are invisible across tenants", TestChatTenantIsolation),
-                    ChatCase("Chat.Storage", "Chat.Storage.TenantCascade", "Force-deleting a tenant removes its chat objects", TestChatTenantCascade)
+                    ChatCase("Chat.Storage", "Chat.Storage.TenantCascade", "Force-deleting a tenant removes its chat objects", TestChatTenantCascade),
+                    ChatCase("Chat.Storage", "Chat.Storage.EndpointEnumerationPaging", "Endpoint enumeration pages with MaxResults, skip, continuation, and type filter", TestChatEndpointEnumerationPaging),
+                    ChatCase("Chat.Storage", "Chat.Storage.ThreadEnumerationPaging", "Thread enumeration pages and honors the user filter", TestChatThreadEnumerationPaging),
+                    ChatCase("Chat.Storage", "Chat.Storage.TurnEnumerationPaging", "Turn enumeration pages within a thread in sequence order", TestChatTurnEnumerationPaging),
+                    ChatCase("Chat.Storage", "Chat.Storage.FeedbackEnumerationPaging", "Feedback enumeration pages with MaxResults and skip", TestChatFeedbackEnumerationPaging)
                 });
         }
 
@@ -68,7 +72,8 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.CompatModelSelection", "Compatible model selector matches name, model, and GUID; unknown models yield 404", TestChatRestCompatModelSelection),
                     ChatCase("Chat.Rest", "Chat.Rest.CompatOllamaCompletion", "Graph-scoped Ollama-format completion reports done true with counters", TestChatRestCompatOllama),
                     ChatCase("Chat.Rest", "Chat.Rest.CompatAuthRequired", "Compatible chat routes reject unauthenticated requests", TestChatRestCompatAuthRequired),
-                    ChatCase("Chat.Rest", "Chat.Rest.CompatUnknownGraph", "Compatible chat routes return 404 for unknown graphs", TestChatRestCompatUnknownGraph)
+                    ChatCase("Chat.Rest", "Chat.Rest.CompatUnknownGraph", "Compatible chat routes return 404 for unknown graphs", TestChatRestCompatUnknownGraph),
+                    ChatCase("Chat.Rest", "Chat.Rest.ZeroGetAllGuard", "Every list-shaped route in the OpenAPI spec returns an EnumerationResult envelope", TestZeroGetAllGuard)
                 });
         }
 
@@ -347,6 +352,266 @@ namespace Test.Shared
             ChatCleanup(db);
         }
 
+        private static async Task TestChatEndpointEnumerationPaging(CancellationToken token)
+        {
+            string db = ChatDbName("ep-enum-paging");
+            using (LiteGraphClient client = ChatNewClient(db))
+            {
+                Guid tenant = await ChatSeedTenant(client).ConfigureAwait(false);
+
+                for (int i = 0; i < 5; i++)
+                {
+                    await client.ChatEndpoint.Create(ChatCompletionEndpoint(tenant, "ep-" + i), token).ConfigureAwait(false);
+                }
+
+                await client.ChatEndpoint.Create(ChatEmbeddingEndpoint(tenant, "ep-embed"), token).ConfigureAwait(false);
+
+                EnumerationResult<ChatEndpoint> page1 = await client.ChatEndpoint.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 2,
+                    Ordering = EnumerationOrderEnum.NameAscending
+                }, null, token).ConfigureAwait(false);
+
+                AssertEqual(6L, page1.TotalRecords, "TotalRecords covers all six endpoints");
+                AssertEqual(2, page1.Objects.Count, "Page one carries MaxResults objects");
+                AssertEqual("ep-0", page1.Objects[0].Name, "Name-ascending ordering starts at ep-0");
+                AssertEqual("ep-1", page1.Objects[1].Name, "Name-ascending ordering continues at ep-1");
+                AssertFalse(page1.EndOfResults, "Page one is not the end of results");
+                AssertNotNull(page1.ContinuationToken, "Page one supplies a continuation token");
+                AssertEqual(4L, page1.RecordsRemaining, "Four records remain after page one");
+
+                EnumerationResult<ChatEndpoint> page2 = await client.ChatEndpoint.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 2,
+                    Ordering = EnumerationOrderEnum.NameAscending,
+                    ContinuationToken = page1.ContinuationToken
+                }, null, token).ConfigureAwait(false);
+
+                AssertEqual(2, page2.Objects.Count, "Continuation page carries two objects");
+                AssertEqual("ep-2", page2.Objects[0].Name, "Continuation resumes at ep-2");
+                AssertEqual("ep-3", page2.Objects[1].Name, "Continuation continues at ep-3");
+
+                EnumerationResult<ChatEndpoint> skipped = await client.ChatEndpoint.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 10,
+                    Skip = 4,
+                    Ordering = EnumerationOrderEnum.NameAscending
+                }, null, token).ConfigureAwait(false);
+
+                AssertEqual(2, skipped.Objects.Count, "Skip-based paging returns the final two records");
+                AssertEqual("ep-4", skipped.Objects[0].Name, "Skip resumes at ep-4");
+                AssertTrue(skipped.EndOfResults, "Skip page reaching the end reports EndOfResults");
+
+                EnumerationResult<ChatEndpoint> embeddings = await client.ChatEndpoint.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 10
+                }, ChatEndpointTypeEnum.Embedding, token).ConfigureAwait(false);
+
+                AssertEqual(1L, embeddings.TotalRecords, "Type filter narrows TotalRecords to embedding endpoints");
+                AssertEqual(1, embeddings.Objects.Count, "Type filter returns only the embedding endpoint");
+                AssertEqual("ep-embed", embeddings.Objects[0].Name, "The filtered endpoint is the embedding endpoint");
+            }
+            ChatCleanup(db);
+        }
+
+        private static async Task TestChatThreadEnumerationPaging(CancellationToken token)
+        {
+            string db = ChatDbName("thread-enum-paging");
+            using (LiteGraphClient client = ChatNewClient(db))
+            {
+                Guid tenant = await ChatSeedTenant(client).ConfigureAwait(false);
+                Guid userA = await ChatSeedUser(client, tenant).ConfigureAwait(false);
+                Guid userB = await ChatSeedUser(client, tenant).ConfigureAwait(false);
+
+                for (int i = 0; i < 7; i++)
+                {
+                    await client.ChatThread.Create(new ChatThread { TenantGUID = tenant, UserGUID = userA, Title = "a-" + i }, token).ConfigureAwait(false);
+                }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    await client.ChatThread.Create(new ChatThread { TenantGUID = tenant, UserGUID = userB, Title = "b-" + i }, token).ConfigureAwait(false);
+                }
+
+                EnumerationResult<ChatThread> pageA = await client.ChatThread.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    UserGUID = userA,
+                    MaxResults = 3
+                }, token).ConfigureAwait(false);
+
+                AssertEqual(7L, pageA.TotalRecords, "User filter narrows TotalRecords to user A's threads");
+                AssertEqual(3, pageA.Objects.Count, "Page one carries MaxResults threads");
+                AssertFalse(pageA.EndOfResults, "More of user A's threads remain");
+                AssertEqual(4L, pageA.RecordsRemaining, "Four of user A's threads remain after page one");
+                AssertTrue(pageA.Objects.All(t => t.UserGUID.Equals(userA)), "Every returned thread belongs to user A");
+
+                HashSet<Guid> seen = new HashSet<Guid>();
+                foreach (ChatThread t in pageA.Objects) seen.Add(t.GUID);
+
+                EnumerationResult<ChatThread> pageA2 = await client.ChatThread.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    UserGUID = userA,
+                    MaxResults = 3,
+                    Skip = 3
+                }, token).ConfigureAwait(false);
+
+                EnumerationResult<ChatThread> pageA3 = await client.ChatThread.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    UserGUID = userA,
+                    MaxResults = 3,
+                    Skip = 6
+                }, token).ConfigureAwait(false);
+
+                foreach (ChatThread t in pageA2.Objects) seen.Add(t.GUID);
+                foreach (ChatThread t in pageA3.Objects) seen.Add(t.GUID);
+                AssertEqual(7, seen.Count, "Skip pages cover all of user A's threads exactly once");
+                AssertTrue(pageA3.EndOfResults, "The final page reports EndOfResults");
+
+                EnumerationResult<ChatThread> all = await client.ChatThread.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 1000
+                }, token).ConfigureAwait(false);
+
+                AssertEqual(10L, all.TotalRecords, "Without a user filter TotalRecords spans every thread");
+            }
+            ChatCleanup(db);
+        }
+
+        private static async Task TestChatTurnEnumerationPaging(CancellationToken token)
+        {
+            string db = ChatDbName("turn-enum-paging");
+            using (LiteGraphClient client = ChatNewClient(db))
+            {
+                Guid tenant = await ChatSeedTenant(client).ConfigureAwait(false);
+                Guid user = await ChatSeedUser(client, tenant).ConfigureAwait(false);
+
+                ChatThread thread = await client.ChatThread.Create(new ChatThread { TenantGUID = tenant, UserGUID = user, Title = "paged" }, token).ConfigureAwait(false);
+                ChatThread otherThread = await client.ChatThread.Create(new ChatThread { TenantGUID = tenant, UserGUID = user, Title = "other" }, token).ConfigureAwait(false);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    await client.ChatTurn.Create(new ChatTurn
+                    {
+                        TenantGUID = tenant,
+                        ThreadGUID = thread.GUID,
+                        Sequence = i,
+                        UserMessage = "q" + i,
+                        AssistantResponse = "a" + i
+                    }, token).ConfigureAwait(false);
+                }
+
+                await client.ChatTurn.Create(new ChatTurn { TenantGUID = tenant, ThreadGUID = otherThread.GUID, Sequence = 0, UserMessage = "elsewhere" }, token).ConfigureAwait(false);
+
+                EnumerationResult<ChatTurn> page1 = await client.ChatTurn.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 4,
+                    Ordering = EnumerationOrderEnum.CreatedAscending
+                }, thread.GUID, token).ConfigureAwait(false);
+
+                AssertEqual(6L, page1.TotalRecords, "TotalRecords is scoped to the requested thread");
+                AssertEqual(4, page1.Objects.Count, "Page one carries MaxResults turns");
+                AssertEqual("q0", page1.Objects[0].UserMessage, "Ascending pages begin at sequence zero");
+                AssertEqual("q3", page1.Objects[3].UserMessage, "Page one ends at sequence three");
+                AssertFalse(page1.EndOfResults, "Two turns remain after page one");
+                AssertNotNull(page1.ContinuationToken, "Page one supplies a continuation token");
+
+                EnumerationResult<ChatTurn> page2 = await client.ChatTurn.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 4,
+                    Ordering = EnumerationOrderEnum.CreatedAscending,
+                    ContinuationToken = page1.ContinuationToken
+                }, thread.GUID, token).ConfigureAwait(false);
+
+                AssertEqual(2, page2.Objects.Count, "Continuation page carries the remaining turns");
+                AssertEqual("q4", page2.Objects[0].UserMessage, "Continuation resumes at sequence four");
+                AssertEqual("q5", page2.Objects[1].UserMessage, "Continuation ends at sequence five");
+                AssertTrue(page2.EndOfResults, "The final page reports EndOfResults");
+
+                EnumerationResult<ChatTurn> newestFirst = await client.ChatTurn.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 1,
+                    Ordering = EnumerationOrderEnum.CreatedDescending
+                }, thread.GUID, token).ConfigureAwait(false);
+
+                AssertEqual("q5", newestFirst.Objects[0].UserMessage, "Descending ordering yields the newest turn first");
+            }
+            ChatCleanup(db);
+        }
+
+        private static async Task TestChatFeedbackEnumerationPaging(CancellationToken token)
+        {
+            string db = ChatDbName("feedback-enum-paging");
+            using (LiteGraphClient client = ChatNewClient(db))
+            {
+                Guid tenant = await ChatSeedTenant(client).ConfigureAwait(false);
+                Guid user = await ChatSeedUser(client, tenant).ConfigureAwait(false);
+
+                ChatThread thread = await client.ChatThread.Create(new ChatThread { TenantGUID = tenant, UserGUID = user }, token).ConfigureAwait(false);
+
+                for (int i = 0; i < 5; i++)
+                {
+                    ChatTurn turn = await client.ChatTurn.Create(new ChatTurn { TenantGUID = tenant, ThreadGUID = thread.GUID, Sequence = i, UserMessage = "q" + i }, token).ConfigureAwait(false);
+                    await client.ChatFeedback.Create(new ChatFeedback
+                    {
+                        TenantGUID = tenant,
+                        TurnGUID = turn.GUID,
+                        UserGUID = user,
+                        Rating = (i % 2 == 0 ? ChatFeedbackRatingEnum.ThumbsUp : ChatFeedbackRatingEnum.ThumbsDown),
+                        FeedbackText = "fb-" + i
+                    }, token).ConfigureAwait(false);
+                }
+
+                EnumerationResult<ChatFeedback> page1 = await client.ChatFeedback.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 2
+                }, null, null, token).ConfigureAwait(false);
+
+                AssertEqual(5L, page1.TotalRecords, "TotalRecords covers all feedback records");
+                AssertEqual(2, page1.Objects.Count, "Page one carries MaxResults feedback records");
+                AssertFalse(page1.EndOfResults, "More feedback remains after page one");
+                AssertEqual(3L, page1.RecordsRemaining, "Three feedback records remain after page one");
+
+                HashSet<Guid> seen = new HashSet<Guid>();
+                foreach (ChatFeedback f in page1.Objects) seen.Add(f.GUID);
+
+                for (int skip = 2; skip < 5; skip += 2)
+                {
+                    EnumerationResult<ChatFeedback> page = await client.ChatFeedback.Enumerate(new EnumerationRequest
+                    {
+                        TenantGUID = tenant,
+                        MaxResults = 2,
+                        Skip = skip
+                    }, null, null, token).ConfigureAwait(false);
+
+                    foreach (ChatFeedback f in page.Objects) seen.Add(f.GUID);
+                }
+
+                AssertEqual(5, seen.Count, "Skip pages cover every feedback record exactly once");
+
+                EnumerationResult<ChatFeedback> thumbsUp = await client.ChatFeedback.Enumerate(new EnumerationRequest
+                {
+                    TenantGUID = tenant,
+                    MaxResults = 10
+                }, ChatFeedbackRatingEnum.ThumbsUp, null, token).ConfigureAwait(false);
+
+                AssertEqual(3L, thumbsUp.TotalRecords, "Rating filter narrows TotalRecords to thumbs-up records");
+                AssertTrue(thumbsUp.Objects.All(f => f.Rating == ChatFeedbackRatingEnum.ThumbsUp), "Every returned record is thumbs-up");
+            }
+            ChatCleanup(db);
+        }
+
         #endregion
 
         #region Chat-Rest-Cases
@@ -559,8 +824,10 @@ namespace Test.Shared
                     string threadGuid;
                     using (JsonDocument threadsDoc = JsonDocument.Parse(threads.Body))
                     {
-                        AssertTrue(threadsDoc.RootElement.GetArrayLength() > 0, "The failed completion still created a thread");
-                        threadGuid = threadsDoc.RootElement[0].GetProperty("GUID").GetString() ?? String.Empty;
+                        JsonElement threadObjects = threadsDoc.RootElement.GetProperty("Objects");
+                        AssertTrue(threadsDoc.RootElement.GetProperty("TotalRecords").GetInt64() > 0, "The thread enumeration reports total records");
+                        AssertTrue(threadObjects.GetArrayLength() > 0, "The failed completion still created a thread");
+                        threadGuid = threadObjects[0].GetProperty("GUID").GetString() ?? String.Empty;
                     }
                     HttpOutcome turns = await AuthRestAsync(HttpMethod.Get,
                         endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads/" + threadGuid + "/turns",
@@ -1161,7 +1428,7 @@ namespace Test.Shared
                         using (System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(all.Body))
                         {
                             int healthyCount = 0;
-                            foreach (System.Text.Json.JsonElement entry in doc.RootElement.EnumerateArray())
+                            foreach (System.Text.Json.JsonElement entry in doc.RootElement.GetProperty("Objects").EnumerateArray())
                             {
                                 if (entry.TryGetProperty("Healthy", out System.Text.Json.JsonElement h) && h.ValueKind == System.Text.Json.JsonValueKind.True) healthyCount++;
                             }
@@ -1176,7 +1443,7 @@ namespace Test.Shared
                     {
                         HashSet<string> lastChecked = new HashSet<string>(StringComparer.Ordinal);
                         int entries = 0;
-                        foreach (System.Text.Json.JsonElement entry in doc.RootElement.EnumerateArray())
+                        foreach (System.Text.Json.JsonElement entry in doc.RootElement.GetProperty("Objects").EnumerateArray())
                         {
                             if (!entry.GetProperty("Name").GetString()!.StartsWith("dedup-model-", StringComparison.Ordinal)) continue;
                             entries++;
@@ -1202,6 +1469,310 @@ namespace Test.Shared
         {
             if (String.IsNullOrEmpty(value) || value.Length <= maxLength) return value;
             return value.Substring(0, maxLength);
+        }
+
+        /// <summary>
+        /// Permanent guard for the v8.1 zero-get-all mandate: every GET route in the live OpenAPI spec whose
+        /// path does not end in a path-parameter segment (i.e. every list-shaped route) must either return the
+        /// EnumerationResult envelope (a JSON object carrying Objects and TotalRecords) or appear on the
+        /// explicit exception list below with a justification.  Any spec route that is neither verified nor
+        /// excepted fails this test by name, so a future get-all route cannot dodge the rule silently.
+        /// Known enumeration and search POST routes are additionally asserted never to return a bare array.
+        /// </summary>
+        private static async Task TestZeroGetAllGuard(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+                string tenant = _DefaultTenantGuid.ToString();
+
+                #region Fixtures
+
+                HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put,
+                    endpoint + "/v1.0/tenants/" + tenant + "/graphs",
+                    _AdminBearerToken, "{\"Name\":\"zero-getall-guard\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(graphCreated.Status), "Guard graph created (status " + graphCreated.Status + ")");
+                string graphGuid = ExtractGuid(graphCreated.Body);
+
+                HttpOutcome nodeACreated = await AuthRestAsync(HttpMethod.Put,
+                    endpoint + "/v1.0/tenants/" + tenant + "/graphs/" + graphGuid + "/nodes",
+                    _AdminBearerToken, "{\"Name\":\"guard-node-a\"}", cancellationToken).ConfigureAwait(false);
+                string nodeAGuid = ExtractGuid(nodeACreated.Body);
+
+                HttpOutcome nodeBCreated = await AuthRestAsync(HttpMethod.Put,
+                    endpoint + "/v1.0/tenants/" + tenant + "/graphs/" + graphGuid + "/nodes",
+                    _AdminBearerToken, "{\"Name\":\"guard-node-b\"}", cancellationToken).ConfigureAwait(false);
+                string nodeBGuid = ExtractGuid(nodeBCreated.Body);
+
+                HttpOutcome edgeCreated = await AuthRestAsync(HttpMethod.Put,
+                    endpoint + "/v1.0/tenants/" + tenant + "/graphs/" + graphGuid + "/edges",
+                    _AdminBearerToken, "{\"Name\":\"guard-edge\",\"From\":\"" + nodeAGuid + "\",\"To\":\"" + nodeBGuid + "\"}", cancellationToken).ConfigureAwait(false);
+                string edgeGuid = ExtractGuid(edgeCreated.Body);
+
+                string? guardUserGuid = null;
+                string guardUserBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "zero-getall-guard@chat.test", false, false, cancellationToken, capturedGuid => guardUserGuid = capturedGuid).ConfigureAwait(false);
+                AssertNotNull(guardUserGuid, "Guard user GUID captured");
+
+                HttpOutcome credentialCreated = await AuthRestAsync(HttpMethod.Put,
+                    endpoint + "/v1.0/tenants/" + tenant + "/credentials",
+                    _AdminBearerToken,
+                    "{\"UserGUID\":\"" + guardUserGuid + "\",\"Name\":\"zero-getall-guard\",\"BearerToken\":\"guard-" + Guid.NewGuid().ToString("N") + "\"}",
+                    cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(credentialCreated.Status), "Guard credential created (status " + credentialCreated.Status + ")");
+                string credentialGuid = ExtractGuid(credentialCreated.Body);
+
+                HttpOutcome threadCreated = await AuthRestAsync(HttpMethod.Put,
+                    endpoint + "/v1.0/tenants/" + tenant + "/chat/threads",
+                    guardUserBearer, "{\"Title\":\"zero-getall-guard\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(threadCreated.Status), "Guard chat thread created (status " + threadCreated.Status + ")");
+                string threadGuid = ExtractGuid(threadCreated.Body);
+
+                #endregion
+
+                #region Route-Maps
+
+                // Every list-shaped GET route the mandate converted, mapped from its spec template to a
+                // concrete invocable URL suffix (path parameters filled from the fixtures above).
+                Dictionary<string, string> verified = new Dictionary<string, string>(StringComparer.Ordinal);
+
+                void Verify(string template, string concrete)
+                {
+                    verified[template] = concrete;
+                }
+
+                string t = "/v1.0/tenants/{tenantGuid}";
+                string g = t + "/graphs/{graphGuid}";
+                string n = g + "/nodes/{nodeGuid}";
+                string e = g + "/edges/{edgeGuid}";
+                string ct = "/v1.0/tenants/" + tenant;
+                string cg = ct + "/graphs/" + graphGuid;
+                string cn = cg + "/nodes/" + nodeAGuid;
+                string ce = cg + "/edges/" + edgeGuid;
+
+                Verify("/v1.0/backups", "/v1.0/backups");
+                Verify("/v1.0/requesthistory", "/v1.0/requesthistory");
+                Verify("/v1.0/tenants", "/v1.0/tenants");
+                Verify("/v2.0/tenants", "/v2.0/tenants");
+                Verify(t + "/users", ct + "/users");
+                Verify("/v2.0/tenants/{tenantGuid}/users", "/v2.0/tenants/" + tenant + "/users");
+                Verify(t + "/users/{userGuid}/roles", ct + "/users/" + guardUserGuid + "/roles");
+                Verify(t + "/credentials", ct + "/credentials");
+                Verify("/v2.0/tenants/{tenantGuid}/credentials", "/v2.0/tenants/" + tenant + "/credentials");
+                Verify(t + "/credentials/{credentialGuid}/scopes", ct + "/credentials/" + credentialGuid + "/scopes");
+                Verify(t + "/roles", ct + "/roles");
+                Verify(t + "/labels", ct + "/labels");
+                Verify(t + "/labels/all", ct + "/labels/all");
+                Verify("/v2.0/tenants/{tenantGuid}/labels", "/v2.0/tenants/" + tenant + "/labels");
+                Verify(t + "/tags", ct + "/tags");
+                Verify(t + "/tags/all", ct + "/tags/all");
+                Verify("/v2.0/tenants/{tenantGuid}/tags", "/v2.0/tenants/" + tenant + "/tags");
+                Verify(t + "/vectors", ct + "/vectors");
+                Verify(t + "/vectors/all", ct + "/vectors/all");
+                Verify("/v2.0/tenants/{tenantGuid}/vectors", "/v2.0/tenants/" + tenant + "/vectors");
+                Verify(t + "/graphs", ct + "/graphs");
+                Verify(t + "/graphs/all", ct + "/graphs/all");
+                Verify("/v2.0/tenants/{tenantGuid}/graphs", "/v2.0/tenants/" + tenant + "/graphs");
+                Verify(t + "/nodes/all", ct + "/nodes/all");
+                Verify(t + "/edges/all", ct + "/edges/all");
+                Verify(g + "/labels", cg + "/labels");
+                Verify(g + "/labels/all", cg + "/labels/all");
+                Verify(g + "/tags", cg + "/tags");
+                Verify(g + "/tags/all", cg + "/tags/all");
+                Verify(g + "/vectors", cg + "/vectors");
+                Verify(g + "/vectors/all", cg + "/vectors/all");
+                Verify(g + "/nodes", cg + "/nodes");
+                Verify(g + "/nodes/all", cg + "/nodes/all");
+                Verify("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/nodes", "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/nodes");
+                Verify(g + "/nodes/mostconnected", cg + "/nodes/mostconnected");
+                Verify(g + "/nodes/leastconnected", cg + "/nodes/leastconnected");
+                Verify(g + "/edges", cg + "/edges");
+                Verify(g + "/edges/all", cg + "/edges/all");
+                Verify("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/edges", "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/edges");
+                Verify(g + "/edges/between", cg + "/edges/between?from=" + nodeAGuid + "&to=" + nodeBGuid);
+                Verify(n + "/labels", cn + "/labels");
+                Verify(n + "/tags", cn + "/tags");
+                Verify(n + "/vectors", cn + "/vectors");
+                Verify(n + "/edges", cn + "/edges");
+                Verify(n + "/edges/from", cn + "/edges/from");
+                Verify(n + "/edges/to", cn + "/edges/to");
+                Verify(n + "/neighbors", cn + "/neighbors");
+                Verify(n + "/parents", cn + "/parents");
+                Verify(n + "/children", cn + "/children");
+                Verify(e + "/labels", ce + "/labels");
+                Verify(e + "/tags", ce + "/tags");
+                Verify(e + "/vectors", ce + "/vectors");
+                Verify(t + "/chat/endpoints", ct + "/chat/endpoints");
+                Verify(t + "/chat/endpoints/health", ct + "/chat/endpoints/health");
+                Verify(t + "/chat/models", ct + "/chat/models");
+                Verify(t + "/chat/threads", ct + "/chat/threads");
+                Verify(t + "/chat/threads/{chatThreadGuid}/turns", ct + "/chat/threads/" + threadGuid + "/turns");
+                Verify(t + "/chat/feedback", ct + "/chat/feedback");
+
+                // List-shaped GET routes that are exempt from the envelope mandate, with justification.
+                Dictionary<string, string> exceptions = new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["/"] = "Server information object (pre-authentication).",
+                    ["/favicon.ico"] = "Static favicon asset.",
+                    ["/metrics"] = "Prometheus text exposition format by design.",
+                    ["/openapi.json"] = "OpenAPI specification document.",
+                    ["/swagger"] = "Swagger UI HTML page.",
+                    ["/v1.0/settings"] = "Server settings object (single-object read).",
+                    ["/v1.0/requesthistory/summary"] = "Aggregated summary object, not a record list.",
+                    ["/v1.0/requesthistory/{requestGuid}/detail"] = "Single request-history detail object.",
+                    ["/v1.0/tenants/stats"] = "Statistics dictionary object.",
+                    [t + "/stats"] = "Statistics object.",
+                    [t + "/graphs/stats"] = "Statistics dictionary object.",
+                    [g + "/stats"] = "Statistics object.",
+                    [t + "/chat/endpoints/{chatEndpointGuid}/health"] = "Single endpoint health object.",
+                    [t + "/chat/settings"] = "Tenant chat settings object (single-object read).",
+                    [t + "/users/{userGuid}/permissions"] = "Composite effective-permissions object (assignments, roles, and grants).",
+                    [t + "/credentials/{credentialGuid}/permissions"] = "Composite effective-permissions object (assignments, roles, and grants).",
+                    [g + "/chat/models"] = "OpenAI wire-format model list by design (protocol compatibility).",
+                    [g + "/export/gexf"] = "GEXF XML export stream.",
+                    [g + "/export/jsonl"] = "JSONL export stream.",
+                    [g + "/vectorindex/config"] = "Vector index configuration object.",
+                    [g + "/vectorindex/stats"] = "Vector index statistics object.",
+                    ["/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config"] = "Vector index configuration object.",
+                    ["/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats"] = "Vector index statistics object.",
+                    [n + "/subgraph"] = "Subgraph SearchResult envelope (graph plus nodes plus edges), not a flat record list.",
+                    [n + "/subgraph/stats"] = "Subgraph statistics object.",
+                    ["/v1.0/token"] = "Token issuance object (header-based authentication).",
+                    ["/v1.0/token/details"] = "Token details object (header-based authentication).",
+                    ["/v1.0/token/tenants"] = "Returns the EnumerationResult envelope but authenticates via the email header rather than a bearer token; exercised by dedicated token tests."
+                };
+
+                #endregion
+
+                #region Spec-Sweep
+
+                HttpOutcome spec = await AuthRestAsync(HttpMethod.Get, endpoint + "/openapi.json", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, spec.Status, "OpenAPI specification is served");
+
+                List<string> unaccounted = new List<string>();
+                List<string> toInvoke = new List<string>();
+
+                using (JsonDocument doc = JsonDocument.Parse(spec.Body))
+                {
+                    JsonElement paths = doc.RootElement.GetProperty("paths");
+                    foreach (JsonProperty path in paths.EnumerateObject())
+                    {
+                        bool hasGet = false;
+                        foreach (JsonProperty method in path.Value.EnumerateObject())
+                        {
+                            if (method.Name.Equals("get", StringComparison.OrdinalIgnoreCase)) hasGet = true;
+                        }
+                        if (!hasGet) continue;
+
+                        string[] segments = path.Name.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                        string last = segments.Length > 0 ? segments[segments.Length - 1] : String.Empty;
+                        bool listShaped = !(last.StartsWith("{", StringComparison.Ordinal) && last.EndsWith("}", StringComparison.Ordinal));
+                        if (!listShaped) continue;
+
+                        if (exceptions.ContainsKey(path.Name)) continue;
+                        if (verified.ContainsKey(path.Name))
+                        {
+                            toInvoke.Add(path.Name);
+                            continue;
+                        }
+
+                        unaccounted.Add(path.Name);
+                    }
+                }
+
+                AssertTrue(unaccounted.Count == 0,
+                    "Every list-shaped GET route must be verified as an EnumerationResult envelope or added to the guard's exception list with a justification. Unaccounted routes: "
+                    + String.Join(", ", unaccounted));
+
+                foreach (string template in toInvoke)
+                {
+                    HttpOutcome outcome = await AuthRestAsync(HttpMethod.Get, endpoint + verified[template], _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEnumerationEnvelope(template, outcome);
+                }
+
+                #endregion
+
+                #region Post-Routes
+
+                // Known enumeration POST routes must return the envelope; search POST routes must never
+                // return a bare array (they return SearchResult or single-object envelopes).
+                List<string> enumerationPosts = new List<string>
+                {
+                    "/v2.0/tenants",
+                    "/v2.0/tenants/" + tenant + "/users",
+                    "/v2.0/tenants/" + tenant + "/credentials",
+                    "/v2.0/tenants/" + tenant + "/labels",
+                    "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/labels",
+                    "/v2.0/tenants/" + tenant + "/tags",
+                    "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/tags",
+                    "/v2.0/tenants/" + tenant + "/vectors",
+                    "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/vectors",
+                    "/v2.0/tenants/" + tenant + "/graphs",
+                    "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/nodes",
+                    "/v2.0/tenants/" + tenant + "/graphs/" + graphGuid + "/edges"
+                };
+
+                foreach (string post in enumerationPosts)
+                {
+                    HttpOutcome outcome = await AuthRestAsync(HttpMethod.Post, endpoint + post, _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEnumerationEnvelope("POST " + post, outcome);
+                }
+
+                HttpOutcome nodeEdgesPost = await AuthRestAsync(HttpMethod.Post,
+                    endpoint + cn + "/edges", _AdminBearerToken, "{}", cancellationToken).ConfigureAwait(false);
+                AssertEnumerationEnvelope("POST " + n + "/edges", nodeEdgesPost);
+
+                HttpOutcome vectorSearchPost = await AuthRestAsync(HttpMethod.Post,
+                    endpoint + ct + "/vectors", _AdminBearerToken,
+                    "{\"GraphGUID\":\"" + graphGuid + "\",\"Embeddings\":[0.1,0.2,0.3]}", cancellationToken).ConfigureAwait(false);
+                AssertEnumerationEnvelope("POST " + t + "/vectors (vector search)", vectorSearchPost);
+
+                List<string> searchPosts = new List<string>
+                {
+                    ct + "/graphs/search",
+                    cg + "/nodes/search",
+                    cg + "/edges/search"
+                };
+
+                foreach (string post in searchPosts)
+                {
+                    HttpOutcome outcome = await AuthRestAsync(HttpMethod.Post, endpoint + post, _AdminBearerToken, "{}", cancellationToken).ConfigureAwait(false);
+                    using (JsonDocument doc = JsonDocument.Parse(outcome.Body))
+                    {
+                        AssertTrue(doc.RootElement.ValueKind == JsonValueKind.Object, "POST " + post + " returns a JSON object, never a bare array");
+                    }
+                }
+
+                #endregion
+
+                #region Cleanup
+
+                await AuthRestAsync(HttpMethod.Delete, endpoint + ct + "/chat/threads/" + threadGuid, guardUserBearer, null, cancellationToken).ConfigureAwait(false);
+                await AuthRestAsync(HttpMethod.Delete, endpoint + ct + "/credentials/" + credentialGuid, _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                await AuthRestAsync(HttpMethod.Delete, endpoint + cg + "?force", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+
+                #endregion
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static void AssertEnumerationEnvelope(string routeTemplate, HttpOutcome outcome)
+        {
+            AssertEqual(200, outcome.Status, "Zero get-all guard: " + routeTemplate + " returns 200 (body " + Truncate(outcome.Body, 300) + ")");
+
+            using (JsonDocument doc = JsonDocument.Parse(outcome.Body))
+            {
+                AssertTrue(doc.RootElement.ValueKind == JsonValueKind.Object,
+                    "Zero get-all guard: " + routeTemplate + " returns a JSON object, never a bare array");
+                AssertTrue(doc.RootElement.TryGetProperty("Objects", out JsonElement objects) && objects.ValueKind == JsonValueKind.Array,
+                    "Zero get-all guard: " + routeTemplate + " carries an Objects array (body " + Truncate(outcome.Body, 300) + ")");
+                AssertTrue(doc.RootElement.TryGetProperty("TotalRecords", out JsonElement total) && total.ValueKind == JsonValueKind.Number,
+                    "Zero get-all guard: " + routeTemplate + " carries TotalRecords (body " + Truncate(outcome.Body, 300) + ")");
+            }
         }
 
         private static async Task TestChatRestRbacDelegation(CancellationToken cancellationToken)
@@ -1384,7 +1955,7 @@ namespace Test.Shared
                     string? threadGuid = null;
                     using (JsonDocument threadsDoc = JsonDocument.Parse(threads.Body))
                     {
-                        foreach (JsonElement thread in threadsDoc.RootElement.EnumerateArray())
+                        foreach (JsonElement thread in threadsDoc.RootElement.GetProperty("Objects").EnumerateArray())
                         {
                             string title = (thread.TryGetProperty("Title", out JsonElement titleProp) ? titleProp.GetString() ?? String.Empty : String.Empty);
                             if (title.StartsWith("OpenAI-compatible:", StringComparison.Ordinal))

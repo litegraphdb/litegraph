@@ -64,7 +64,9 @@ describe('labelRoute Tests', () => {
 
     test('should read all labels', async () => {
       const response = await api.readAllLabels();
-      response.forEach((label) => {
+      expect(response.TotalRecords).toBe(1);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((label) => {
         expect(label instanceof LabelMetaData).toBe(true);
       });
     });

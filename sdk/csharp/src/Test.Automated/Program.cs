@@ -124,13 +124,13 @@ namespace Test.Automated
 			// DeleteNodeVectors
 			await CreateVectorAsync(_EdgeNode1Guid, null, "vector-node-delete").ConfigureAwait(false);
 			await sdk.Vector.DeleteNodeVectors(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
-			List<VectorMetadata>? nodeVectors = await sdk.Vector.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+			List<VectorMetadata>? nodeVectors = (await sdk.Vector.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 			AssertTrue(nodeVectors == null || nodeVectors.Count == 0, "Node vectors deleted");
 
 			// DeleteEdgeVectors
 			await CreateVectorAsync(null, _EdgeGuidPrimary, "vector-edge-delete").ConfigureAwait(false);
 			await sdk.Vector.DeleteEdgeVectors(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
-			List<VectorMetadata>? edgeVectors = await sdk.Vector.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
+			List<VectorMetadata>? edgeVectors = (await sdk.Vector.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false))?.Objects;
 			AssertTrue(edgeVectors == null || edgeVectors.Count == 0, "Edge vectors deleted");
 
 			// DeleteGraphVectors
@@ -139,7 +139,7 @@ namespace Test.Automated
 			AssertNotNull(createdGraphVector, "Graph-level vector for DeleteGraphVectors");
 
 			await sdk.Vector.DeleteGraphVectors(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<VectorMetadata>? graphVectors = await sdk.Vector.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<VectorMetadata>? graphVectors = (await sdk.Vector.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(
 				graphVectors == null ||
 				graphVectors.All(v => v.NodeGUID.HasValue || v.EdgeGUID.HasValue),
@@ -148,13 +148,13 @@ namespace Test.Automated
 			// DeleteAllInGraph
 			await CreateVectorAsync(_NodePrimaryGuid, null, "vector-all-graph").ConfigureAwait(false);
 			await sdk.Vector.DeleteAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<VectorMetadata>? allGraphVectors = await sdk.Vector.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<VectorMetadata>? allGraphVectors = (await sdk.Vector.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(allGraphVectors == null || allGraphVectors.Count == 0, "Vectors deleted via DeleteAllInGraph");
 
 			// DeleteAllInTenant
 			await CreateVectorAsync(_NodePrimaryGuid, null, "vector-all-tenant").ConfigureAwait(false);
 			await sdk.Vector.DeleteAllInTenant(_TenantGuid).ConfigureAwait(false);
-			List<VectorMetadata>? tenantVectors = await sdk.Vector.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<VectorMetadata>? tenantVectors = (await sdk.Vector.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(tenantVectors == null || tenantVectors.Count == 0, "Vectors deleted via DeleteAllInTenant");
 
 			_VectorNodePrimaryGuid = Guid.Empty;
@@ -203,31 +203,31 @@ namespace Test.Automated
 			// DeleteNodeTags
 			await CreateTagAsync(_EdgeNode1Guid, null, "delete-node-tags").ConfigureAwait(false);
 			await sdk.Tag.DeleteNodeTags(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
-			List<TagMetadata>? nodeTags = await sdk.Tag.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+			List<TagMetadata>? nodeTags = (await sdk.Tag.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 			AssertTrue(nodeTags == null || nodeTags.Count == 0, "Node tags deleted");
 
 			// DeleteEdgeTags
 			await CreateTagAsync(null, _EdgeGuidPrimary, "delete-edge-tags").ConfigureAwait(false);
 			await sdk.Tag.DeleteEdgeTags(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
-			List<TagMetadata>? edgeTags = await sdk.Tag.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
+			List<TagMetadata>? edgeTags = (await sdk.Tag.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false))?.Objects;
 			AssertTrue(edgeTags == null || edgeTags.Count == 0, "Edge tags deleted");
 
 			// DeleteGraphTags
 			await CreateTagAsync(null, null, "delete-graph-tags").ConfigureAwait(false);
 			await sdk.Tag.DeleteGraphTags(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<TagMetadata>? graphTags = await sdk.Tag.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<TagMetadata>? graphTags = (await sdk.Tag.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(graphTags == null || graphTags.Count == 0, "Graph tags deleted via DeleteGraphTags");
 
 			// DeleteAllInGraph
 			await CreateTagAsync(_EdgeNode1Guid, null, "delete-all-graph").ConfigureAwait(false);
 			await sdk.Tag.DeleteAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<TagMetadata>? tagsInGraph = await sdk.Tag.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<TagMetadata>? tagsInGraph = (await sdk.Tag.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(tagsInGraph == null || tagsInGraph.Count == 0, "Graph tags deleted via DeleteAllInGraph");
 
 			// DeleteAllInTenant
 			await CreateTagAsync(_EdgeNode1Guid, null, "delete-all-tenant").ConfigureAwait(false);
 			await sdk.Tag.DeleteAllInTenant(_TenantGuid).ConfigureAwait(false);
-			List<TagMetadata>? tagsInTenant = await sdk.Tag.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<TagMetadata>? tagsInTenant = (await sdk.Tag.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(tagsInTenant == null || tagsInTenant.Count == 0, "Tenant tags deleted via DeleteAllInTenant");
 
 			_TagNodePrimaryGuid = Guid.Empty;
@@ -279,31 +279,31 @@ namespace Test.Automated
 			// DeleteNodeLabels
 			await CreateLabelAsync(_EdgeNode1Guid, null, "label-node-delete").ConfigureAwait(false);
 			await sdk.Label.DeleteNodeLabels(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
-			List<LabelMetadata>? nodeLabels = await sdk.Label.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+			List<LabelMetadata>? nodeLabels = (await sdk.Label.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 			AssertTrue(nodeLabels == null || nodeLabels.Count == 0, "Node labels deleted");
 
 			// DeleteEdgeLabels
 			await CreateLabelAsync(null, _EdgeGuidPrimary, "label-edge-delete").ConfigureAwait(false);
 			await sdk.Label.DeleteEdgeLabels(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
-			List<LabelMetadata>? edgeLabels = await sdk.Label.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
+			List<LabelMetadata>? edgeLabels = (await sdk.Label.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false))?.Objects;
 			AssertTrue(edgeLabels == null || edgeLabels.Count == 0, "Edge labels deleted");
 
 			// DeleteGraphLabels
 			await CreateLabelAsync(null, null, "label-graph-delete").ConfigureAwait(false);
 			await sdk.Label.DeleteGraphLabels(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<LabelMetadata>? graphLabels = await sdk.Label.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<LabelMetadata>? graphLabels = (await sdk.Label.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(graphLabels == null || graphLabels.Count == 0, "Graph labels deleted via DeleteGraphLabels");
 
 			// DeleteAllInGraph
 			await CreateLabelAsync(_EdgeNode1Guid, null, "label-all-graph").ConfigureAwait(false);
 			await sdk.Label.DeleteAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<LabelMetadata>? labelsInGraph = await sdk.Label.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<LabelMetadata>? labelsInGraph = (await sdk.Label.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(labelsInGraph == null || labelsInGraph.Count == 0, "Labels deleted via DeleteAllInGraph");
 
 			// DeleteAllInTenant
 			await CreateLabelAsync(_EdgeNode1Guid, null, "label-all-tenant").ConfigureAwait(false);
 			await sdk.Label.DeleteAllInTenant(_TenantGuid).ConfigureAwait(false);
-			List<LabelMetadata>? labelsInTenant = await sdk.Label.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<LabelMetadata>? labelsInTenant = (await sdk.Label.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(labelsInTenant == null || labelsInTenant.Count == 0, "Labels deleted via DeleteAllInTenant");
 
 			_LabelNodePrimaryGuid = Guid.Empty;
@@ -352,27 +352,27 @@ namespace Test.Automated
 			// DeleteNodeEdges
 			await CreateEdgeAsync(_EdgeNode1Guid, _EdgeNode2Guid, "edge-node-delete").ConfigureAwait(false);
 			await sdk.Edge.DeleteNodeEdges(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
-			List<Edge>? nodeEdges = await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+			List<Edge>? nodeEdges = (await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 			AssertTrue(nodeEdges == null || nodeEdges.Count == 0, "Node edges deleted");
 
 			// DeleteNodeEdgesMany
 			await CreateEdgeAsync(_EdgeNode2Guid, _EdgeNode3Guid, "edge-node-many-1").ConfigureAwait(false);
 			await CreateEdgeAsync(_EdgeNode3Guid, _EdgeNode1Guid, "edge-node-many-2").ConfigureAwait(false);
 			await sdk.Edge.DeleteNodeEdgesMany(_TenantGuid, _GraphGuid, new List<Guid> { _EdgeNode2Guid, _EdgeNode3Guid }).ConfigureAwait(false);
-			List<Edge>? fromNode2 = await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode2Guid).ConfigureAwait(false);
-			List<Edge>? fromNode3 = await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode3Guid).ConfigureAwait(false);
+			List<Edge>? fromNode2 = (await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode2Guid).ConfigureAwait(false))?.Objects;
+			List<Edge>? fromNode3 = (await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode3Guid).ConfigureAwait(false))?.Objects;
 			AssertTrue((fromNode2 == null || fromNode2.Count == 0) && (fromNode3 == null || fromNode3.Count == 0), "Node edges deleted via DeleteNodeEdgesMany");
 
 			// DeleteAllInGraph
 			await CreateEdgeAsync(_EdgeNode1Guid, _EdgeNode2Guid, "edge-all-graph").ConfigureAwait(false);
 			await sdk.Edge.DeleteAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<Edge>? graphEdges = await sdk.Edge.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<Edge>? graphEdges = (await sdk.Edge.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(graphEdges == null || graphEdges.Count == 0, "Edges deleted via DeleteAllInGraph");
 
 			// DeleteAllInTenant
 			await CreateEdgeAsync(_EdgeNode1Guid, _EdgeNode2Guid, "edge-all-tenant").ConfigureAwait(false);
 			await sdk.Edge.DeleteAllInTenant(_TenantGuid).ConfigureAwait(false);
-			List<Edge>? tenantEdges = await sdk.Edge.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<Edge>? tenantEdges = (await sdk.Edge.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(tenantEdges == null || tenantEdges.Count == 0, "Edges deleted via DeleteAllInTenant");
 
 			_EdgeGuidPrimary = Guid.Empty;
@@ -420,13 +420,13 @@ namespace Test.Automated
 			// DeleteAllInGraph
 			await CreateNodeAsync("node-delete-all-graph").ConfigureAwait(false);
 			await sdk.Node.DeleteAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
-			List<Node>? graphNodes = await sdk.Node.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<Node>? graphNodes = (await sdk.Node.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(graphNodes == null || graphNodes.Count == 0, "Nodes deleted via DeleteAllInGraph");
 
 			// DeleteAllInTenant
 			await CreateNodeAsync("node-delete-all-tenant").ConfigureAwait(false);
 			await sdk.Node.DeleteAllInTenant(_TenantGuid).ConfigureAwait(false);
-			List<Node>? tenantNodes = await sdk.Node.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<Node>? tenantNodes = (await sdk.Node.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(tenantNodes == null || tenantNodes.Count == 0, "Nodes deleted via DeleteAllInTenant");
 
 			_NodePrimaryGuid = Guid.Empty;
@@ -455,7 +455,7 @@ namespace Test.Automated
 			await sdk.Graph.DeleteByGuid(_TenantGuid, createdTemp!.GUID, true).ConfigureAwait(false);
 
 			await sdk.Graph.DeleteAllInTenant(_TenantGuid).ConfigureAwait(false);
-			List<Graph>? remainingGraphs = await sdk.Graph.ReadMany(_TenantGuid).ConfigureAwait(false);
+			List<Graph>? remainingGraphs = (await sdk.Graph.ReadMany(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertTrue(remainingGraphs == null || remainingGraphs.Count == 0, "All graphs deleted in tenant");
 
 			_GraphGuid = Guid.Empty;
@@ -845,11 +845,13 @@ namespace Test.Automated
 		private static async Task TestTenantReadMany()
 		{
 			LiteGraphSdk sdk = RequireSdk();
-			List<TenantMetadata>? tenants = await sdk.Tenant.ReadMany().ConfigureAwait(false);
+			EnumerationResult<TenantMetadata>? result = await sdk.Tenant.ReadMany().ConfigureAwait(false);
 
-			AssertNotNull(tenants, "Tenant list");
-			AssertTrue(tenants!.Count > 0, "Tenant list count");
-			AssertTrue(tenants.Any(t => t.GUID == _TenantGuid), "Tenant list contains created tenant");
+			AssertNotNull(result, "Tenant read many envelope");
+			AssertTrue(result!.Success, "Tenant read many envelope success");
+			AssertTrue(result.TotalRecords > 0, "Tenant read many envelope total records");
+			AssertTrue(result.Objects.Count > 0, "Tenant list count");
+			AssertTrue(result.Objects.Any(t => t.GUID == _TenantGuid), "Tenant list contains created tenant");
 		}
 
 		private static async Task TestTenantReadByGuids()
@@ -857,7 +859,7 @@ namespace Test.Automated
 			AssertNotEmpty(_TenantGuid, "Tenant GUID for TestTenantReadByGuids");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<TenantMetadata>? tenants = await sdk.Tenant.ReadByGuids(new List<Guid> { _TenantGuid }).ConfigureAwait(false);
+			List<TenantMetadata>? tenants = (await sdk.Tenant.ReadByGuids(new List<Guid> { _TenantGuid }).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(tenants, "Tenant list by GUIDs");
 			AssertEqual(1, tenants!.Count, "Tenant list count");
@@ -973,7 +975,7 @@ namespace Test.Automated
 			AssertNotEmpty(_TenantGuid, "Tenant GUID for TestGraphReadAllInTenant");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Graph>? graphs = await sdk.Graph.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<Graph>? graphs = (await sdk.Graph.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(graphs, "Graphs read all result");
 			AssertTrue(graphs!.Count > 0, "Graphs count");
@@ -985,10 +987,12 @@ namespace Test.Automated
 			AssertNotEmpty(_TenantGuid, "Tenant GUID for TestGraphReadMany");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Graph>? graphs = await sdk.Graph.ReadMany(_TenantGuid).ConfigureAwait(false);
+			EnumerationResult<Graph>? result = await sdk.Graph.ReadMany(_TenantGuid).ConfigureAwait(false);
 
-			AssertNotNull(graphs, "Graphs read many result");
-			AssertTrue(graphs!.Count > 0, "Graphs count");
+			AssertNotNull(result, "Graphs read many envelope");
+			AssertTrue(result!.Success, "Graphs read many envelope success");
+			AssertTrue(result.TotalRecords > 0, "Graphs read many envelope total records");
+			AssertTrue(result.Objects.Count > 0, "Graphs count");
 		}
 
 		private static async Task TestGraphReadByGuids()
@@ -997,10 +1001,10 @@ namespace Test.Automated
 			AssertNotEmpty(_TenantGuid, "Tenant GUID for TestGraphReadByGuids");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Graph>? graphs = await sdk.Graph.ReadByGuids(
+			List<Graph>? graphs = (await sdk.Graph.ReadByGuids(
 				_TenantGuid,
 				new List<Guid> { _GraphGuid },
-				includeData: true).ConfigureAwait(false);
+				includeData: true).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(graphs, "Graphs read by GUIDs");
 			AssertEqual(1, graphs!.Count, "Graphs count");
@@ -1309,7 +1313,7 @@ namespace Test.Automated
 		private static async Task TestEdgeReadMany()
 		{
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadMany(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadMany(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edge list");
 			AssertTrue(edges!.Count > 0, "Edge list count");
@@ -1321,7 +1325,7 @@ namespace Test.Automated
 			AssertNotEmpty(_EdgeGuidSecondary, "Edge secondary GUID for TestEdgeReadByGuids");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadByGuids(_TenantGuid, _GraphGuid, new List<Guid> { _EdgeGuidPrimary, _EdgeGuidSecondary }).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadByGuids(_TenantGuid, _GraphGuid, new List<Guid> { _EdgeGuidPrimary, _EdgeGuidSecondary }).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edges by GUIDs");
 			AssertEqual(2, edges!.Count, "Edges by GUID count");
@@ -1332,7 +1336,7 @@ namespace Test.Automated
 			await EnsureEdgeTestNodesAsync().ConfigureAwait(false);
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadNodeEdges(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadNodeEdges(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Node edges");
 			AssertTrue(edges!.Count > 0, "Node edges count");
@@ -1343,7 +1347,7 @@ namespace Test.Automated
 			await EnsureEdgeTestNodesAsync().ConfigureAwait(false);
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadEdgesFromNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edges from node");
 			AssertTrue(edges!.Any(e => e.From == _EdgeNode1Guid), "Edges from node contain expected edge");
@@ -1354,7 +1358,7 @@ namespace Test.Automated
 			await EnsureEdgeTestNodesAsync().ConfigureAwait(false);
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadEdgesToNode(_TenantGuid, _GraphGuid, _EdgeNode2Guid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadEdgesToNode(_TenantGuid, _GraphGuid, _EdgeNode2Guid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edges to node");
 			AssertTrue(edges!.Any(e => e.To == _EdgeNode2Guid), "Edges to node contain expected edge");
@@ -1365,7 +1369,7 @@ namespace Test.Automated
 			await EnsureEdgeTestNodesAsync().ConfigureAwait(false);
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadEdgesBetweenNodes(_TenantGuid, _GraphGuid, _EdgeNode1Guid, _EdgeNode2Guid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadEdgesBetweenNodes(_TenantGuid, _GraphGuid, _EdgeNode1Guid, _EdgeNode2Guid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edges between nodes");
 			AssertTrue(edges!.Count > 0, "Edges between nodes count");
@@ -1374,7 +1378,7 @@ namespace Test.Automated
 		private static async Task TestEdgeReadAllInTenant()
 		{
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edges in tenant");
 			AssertTrue(edges!.Count > 0, "Edges in tenant count");
@@ -1383,7 +1387,7 @@ namespace Test.Automated
 		private static async Task TestEdgeReadAllInGraph()
 		{
 			LiteGraphSdk sdk = RequireSdk();
-			List<Edge>? edges = await sdk.Edge.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+			List<Edge>? edges = (await sdk.Edge.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(edges, "Edges in graph");
 			AssertTrue(edges!.Count > 0, "Edges in graph count");
@@ -1520,7 +1524,7 @@ namespace Test.Automated
 			AssertNotEmpty(_TenantGuid, "Tenant GUID for TestUserReadMany");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<UserMaster>? users = await sdk.User.ReadMany(_TenantGuid).ConfigureAwait(false);
+			List<UserMaster>? users = (await sdk.User.ReadMany(_TenantGuid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(users, "User list");
 			AssertTrue(users!.Count > 0, "User list count");
@@ -1533,7 +1537,7 @@ namespace Test.Automated
 			AssertNotEmpty(_UserGuid, "User GUID for TestUserReadByGuids");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<UserMaster>? users = await sdk.User.ReadByGuids(_TenantGuid, new List<Guid> { _UserGuid }).ConfigureAwait(false);
+			List<UserMaster>? users = (await sdk.User.ReadByGuids(_TenantGuid, new List<Guid> { _UserGuid }).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(users, "Users by GUIDs");
 			AssertEqual(1, users!.Count, "User list count");
@@ -1568,7 +1572,7 @@ namespace Test.Automated
 			AssertFalse(string.IsNullOrEmpty(_UserPassword), "User password for auth tests");
 
 			using LiteGraphSdk authSdk = new LiteGraphSdk(_UserEmail, _UserPassword, _TenantGuid, _Endpoint, _BearerToken);
-			List<TenantMetadata>? tenants = await authSdk.UserAuthentication.GetTenantsForEmail().ConfigureAwait(false);
+			List<TenantMetadata>? tenants = (await authSdk.UserAuthentication.GetTenantsForEmail().ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(tenants, "Auth tenants result");
 			AssertTrue(tenants!.Any(t => t.GUID == _TenantGuid), "Auth tenants contains current tenant");
@@ -1673,7 +1677,7 @@ namespace Test.Automated
 			AssertNotEmpty(_TenantGuid, "Tenant GUID for TestCredentialReadMany");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Credential>? credentials = await sdk.Credential.ReadMany(_TenantGuid).ConfigureAwait(false);
+			List<Credential>? credentials = (await sdk.Credential.ReadMany(_TenantGuid).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(credentials, "Credential list");
 			AssertTrue(credentials!.Count > 0, "Credential list count");
@@ -1686,7 +1690,7 @@ namespace Test.Automated
 			AssertNotEmpty(_CredentialGuid, "Credential GUID for TestCredentialReadByGuids");
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<Credential>? credentials = await sdk.Credential.ReadByGuids(_TenantGuid, new List<Guid> { _CredentialGuid }).ConfigureAwait(false);
+			List<Credential>? credentials = (await sdk.Credential.ReadByGuids(_TenantGuid, new List<Guid> { _CredentialGuid }).ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(credentials, "Credentials by GUIDs");
 			AssertEqual(1, credentials!.Count, "Credentials count");
@@ -1743,7 +1747,7 @@ namespace Test.Automated
 			string filename = await EnsureBackupAsync().ConfigureAwait(false);
 
 			LiteGraphSdk sdk = RequireSdk();
-			List<BackupFile>? backups = await sdk.Admin.ListBackups().ConfigureAwait(false);
+			List<BackupFile>? backups = (await sdk.Admin.ListBackups().ConfigureAwait(false))?.Objects;
 
 			AssertNotNull(backups, "Backup listing");
 			AssertTrue(backups!.Any(b => string.Equals(b.Filename, filename, StringComparison.OrdinalIgnoreCase)), "Backup list contains created file");
@@ -1800,7 +1804,7 @@ namespace Test.Automated
 			bool exists = await sdk.Admin.BackupExists(filename).ConfigureAwait(false);
 			AssertFalse(exists, "Unsupported backup provider should not create backup files");
 
-			List<BackupFile>? backups = await sdk.Admin.ListBackups().ConfigureAwait(false);
+			List<BackupFile>? backups = (await sdk.Admin.ListBackups().ConfigureAwait(false))?.Objects;
 			AssertTrue(
 				backups == null || backups.All(b => !string.Equals(b.Filename, filename, StringComparison.OrdinalIgnoreCase)),
 				"Unsupported backup provider should not list backup files");
@@ -2075,7 +2079,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadMany(_TenantGuid, _GraphGuid, _EdgeNode1Guid, null).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadMany(_TenantGuid, _GraphGuid, _EdgeNode1Guid, null).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tag read many");
             AssertTrue(tags!.Count > 0, "Tag read many count");
@@ -2086,7 +2090,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadByGuids(_TenantGuid, new List<Guid> { _TagNodePrimaryGuid, _TagEdgePrimaryGuid }).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadByGuids(_TenantGuid, new List<Guid> { _TagNodePrimaryGuid, _TagEdgePrimaryGuid }).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tags by GUIDs");
             AssertEqual(2, tags!.Count, "Tags by GUID count");
@@ -2097,7 +2101,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tags in tenant");
             AssertTrue(tags!.Count > 0, "Tags in tenant count");
@@ -2108,7 +2112,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tags in graph");
             AssertTrue(tags!.Count > 0, "Tags in graph count");
@@ -2119,7 +2123,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tags read many graph");
             AssertTrue(tags!.Any(t =>
@@ -2134,7 +2138,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tags read many node");
             AssertTrue(tags!.Any(t => t.GUID == _TagNodePrimaryGuid), "Tags read many node contains node tag");
@@ -2145,7 +2149,7 @@ namespace Test.Automated
             await EnsureTagTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<TagMetadata>? tags = await sdk.Tag.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
+            List<TagMetadata>? tags = (await sdk.Tag.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(tags, "Tags read many edge");
             AssertTrue(tags!.Any(t =>
@@ -2295,7 +2299,7 @@ namespace Test.Automated
             await EnsureVectorDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadMany(_TenantGuid).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadMany(_TenantGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vector list");
             AssertTrue(vectors!.Count > 0, "Vector list count");
@@ -2306,7 +2310,7 @@ namespace Test.Automated
             await EnsureVectorDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadByGuids(_TenantGuid, new List<Guid> { _VectorNodePrimaryGuid, _VectorEdgePrimaryGuid }).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadByGuids(_TenantGuid, new List<Guid> { _VectorNodePrimaryGuid, _VectorEdgePrimaryGuid }).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vectors by GUIDs");
             AssertEqual(2, vectors!.Count, "Vectors by GUID count");
@@ -2317,7 +2321,7 @@ namespace Test.Automated
             await EnsureVectorDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vectors in tenant");
             AssertTrue(vectors!.Count > 0, "Vectors in tenant count");
@@ -2328,7 +2332,7 @@ namespace Test.Automated
             await EnsureVectorDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vectors in graph");
             AssertTrue(vectors!.Count > 0, "Vectors in graph count");
@@ -2339,7 +2343,7 @@ namespace Test.Automated
             await EnsureVectorDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vectors read many graph");
             AssertTrue(vectors!.Count > 0, "Vectors read many graph count");
@@ -2350,7 +2354,7 @@ namespace Test.Automated
             await EnsureVectorNodePrimaryAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadManyNode(_TenantGuid, _GraphGuid, _NodePrimaryGuid).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadManyNode(_TenantGuid, _GraphGuid, _NodePrimaryGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vectors read many node");
             AssertTrue(vectors!.Any(v => v.GUID == _VectorNodePrimaryGuid), "Vectors read many node contains primary vector");
@@ -2361,7 +2365,7 @@ namespace Test.Automated
             await EnsureVectorEdgePrimaryAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorMetadata>? vectors = await sdk.Vector.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
+            List<VectorMetadata>? vectors = (await sdk.Vector.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(vectors, "Vectors read many edge");
         }
@@ -2399,10 +2403,12 @@ namespace Test.Automated
             };
 
             LiteGraphSdk sdk = RequireSdk();
-            List<VectorSearchResult>? results = await sdk.Vector.SearchVectors(_TenantGuid, _GraphGuid, request).ConfigureAwait(false);
+            EnumerationResult<VectorSearchResult>? searchResult = await sdk.Vector.SearchVectors(_TenantGuid, _GraphGuid, request).ConfigureAwait(false);
 
-            AssertNotNull(results, "Vector search results");
-            AssertTrue(results!.Count >= 0, "Vector search results returned");
+            AssertNotNull(searchResult, "Vector search envelope");
+            AssertTrue(searchResult!.Success, "Vector search envelope success");
+            AssertNotNull(searchResult.Objects, "Vector search results");
+            AssertTrue(searchResult.Objects.Count >= 0, "Vector search results returned");
         }
 
         #endregion
@@ -2691,7 +2697,7 @@ namespace Test.Automated
             await EnsureNodeTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? nodes = await sdk.Node.ReadMany(_TenantGuid, _GraphGuid, includeData: true).ConfigureAwait(false);
+            List<Node>? nodes = (await sdk.Node.ReadMany(_TenantGuid, _GraphGuid, includeData: true).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(nodes, "Node list");
             AssertTrue(nodes!.Count > 0, "Node list count");
@@ -2702,7 +2708,7 @@ namespace Test.Automated
             await EnsureNodeTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? nodes = await sdk.Node.ReadByGuids(_TenantGuid, _GraphGuid, new List<Guid> { _NodePrimaryGuid, _NodeSecondaryGuid }, includeData: true).ConfigureAwait(false);
+            List<Node>? nodes = (await sdk.Node.ReadByGuids(_TenantGuid, _GraphGuid, new List<Guid> { _NodePrimaryGuid, _NodeSecondaryGuid }, includeData: true).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(nodes, "Nodes by GUIDs");
             AssertEqual(2, nodes!.Count, "Nodes by GUID count");
@@ -2713,7 +2719,7 @@ namespace Test.Automated
             await EnsureNodeRelationshipsAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? parents = await sdk.Node.ReadParents(_TenantGuid, _GraphGuid, _NodeSecondaryGuid).ConfigureAwait(false);
+            List<Node>? parents = (await sdk.Node.ReadParents(_TenantGuid, _GraphGuid, _NodeSecondaryGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(parents, "Node parents");
             AssertTrue(parents!.Any(n => n.GUID == _NodePrimaryGuid), "Parents contain primary node");
@@ -2724,7 +2730,7 @@ namespace Test.Automated
             await EnsureNodeRelationshipsAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? children = await sdk.Node.ReadChildren(_TenantGuid, _GraphGuid, _NodePrimaryGuid).ConfigureAwait(false);
+            List<Node>? children = (await sdk.Node.ReadChildren(_TenantGuid, _GraphGuid, _NodePrimaryGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(children, "Node children");
             AssertTrue(children!.Any(n => n.GUID == _NodeSecondaryGuid), "Children contain secondary node");
@@ -2735,7 +2741,7 @@ namespace Test.Automated
             await EnsureNodeRelationshipsAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? neighbors = await sdk.Node.ReadNeighbors(_TenantGuid, _GraphGuid, _NodePrimaryGuid).ConfigureAwait(false);
+            List<Node>? neighbors = (await sdk.Node.ReadNeighbors(_TenantGuid, _GraphGuid, _NodePrimaryGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(neighbors, "Node neighbors");
             AssertTrue(neighbors!.Count > 0, "Node neighbors count");
@@ -2762,7 +2768,7 @@ namespace Test.Automated
             await EnsureNodeTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? nodes = await sdk.Node.ReadAllInTenant(_TenantGuid, includeData: true).ConfigureAwait(false);
+            List<Node>? nodes = (await sdk.Node.ReadAllInTenant(_TenantGuid, includeData: true).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(nodes, "Nodes in tenant");
             AssertTrue(nodes!.Count > 0, "Nodes in tenant count");
@@ -2773,7 +2779,7 @@ namespace Test.Automated
             await EnsureNodeTestDataAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? nodes = await sdk.Node.ReadAllInGraph(_TenantGuid, _GraphGuid, includeData: true).ConfigureAwait(false);
+            List<Node>? nodes = (await sdk.Node.ReadAllInGraph(_TenantGuid, _GraphGuid, includeData: true).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(nodes, "Nodes in graph");
             AssertTrue(nodes!.Count > 0, "Nodes in graph count");
@@ -2784,7 +2790,7 @@ namespace Test.Automated
             await EnsureNodeRelationshipsAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? nodes = await sdk.Node.ReadMostConnected(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<Node>? nodes = (await sdk.Node.ReadMostConnected(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(nodes, "Most connected nodes");
             AssertTrue(nodes!.Count > 0, "Most connected nodes count");
@@ -2795,7 +2801,7 @@ namespace Test.Automated
             await EnsureNodeRelationshipsAsync().ConfigureAwait(false);
 
             LiteGraphSdk sdk = RequireSdk();
-            List<Node>? nodes = await sdk.Node.ReadLeastConnected(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<Node>? nodes = (await sdk.Node.ReadLeastConnected(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(nodes, "Least connected nodes");
             AssertTrue(nodes!.Count > 0, "Least connected nodes count");
@@ -2980,7 +2986,7 @@ namespace Test.Automated
         private static async Task TestLabelReadMany()
         {
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadMany(_TenantGuid).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadMany(_TenantGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Label list");
             AssertTrue(labels!.Count > 0, "Label list count");
@@ -2992,7 +2998,7 @@ namespace Test.Automated
             AssertNotEmpty(_LabelEdgePrimaryGuid, "Label edge GUID for TestLabelReadByGuids");
 
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadByGuids(_TenantGuid, new List<Guid> { _LabelNodePrimaryGuid, _LabelEdgePrimaryGuid }).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadByGuids(_TenantGuid, new List<Guid> { _LabelNodePrimaryGuid, _LabelEdgePrimaryGuid }).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Labels by GUIDs");
             AssertEqual(2, labels!.Count, "Labels by GUID count");
@@ -3001,7 +3007,7 @@ namespace Test.Automated
         private static async Task TestLabelReadAllInTenant()
         {
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadAllInTenant(_TenantGuid).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadAllInTenant(_TenantGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Labels in tenant");
             AssertTrue(labels!.Count > 0, "Labels in tenant count");
@@ -3010,7 +3016,7 @@ namespace Test.Automated
         private static async Task TestLabelReadAllInGraph()
         {
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadAllInGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Labels in graph");
             AssertTrue(labels!.Count > 0, "Labels in graph count");
@@ -3019,7 +3025,7 @@ namespace Test.Automated
         private static async Task TestLabelReadManyGraph()
         {
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadManyGraph(_TenantGuid, _GraphGuid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Labels read many graph");
             AssertTrue(labels!.Count > 0, "Labels read many graph count");
@@ -3030,7 +3036,7 @@ namespace Test.Automated
             AssertNotEmpty(_EdgeNode1Guid, "Node GUID for TestLabelReadManyNode");
 
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadManyNode(_TenantGuid, _GraphGuid, _EdgeNode1Guid).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Labels read many node");
             AssertTrue(labels!.Any(l => l.GUID == _LabelNodePrimaryGuid), "Labels read many node contains target");
@@ -3041,7 +3047,7 @@ namespace Test.Automated
             AssertNotEmpty(_EdgeGuidPrimary, "Edge GUID for TestLabelReadManyEdge");
 
             LiteGraphSdk sdk = RequireSdk();
-            List<LabelMetadata>? labels = await sdk.Label.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false);
+            List<LabelMetadata>? labels = (await sdk.Label.ReadManyEdge(_TenantGuid, _GraphGuid, _EdgeGuidPrimary).ConfigureAwait(false))?.Objects;
 
             AssertNotNull(labels, "Labels read many edge");
         }
@@ -3952,11 +3958,11 @@ namespace Test.Automated
 			bool exists = await sdk.Chat.EndpointExists(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
 			AssertTrue(exists, "Chat endpoint exists");
 
-			List<ChatEndpoint>? completions = await sdk.Chat.ReadEndpoints(_TenantGuid, ChatEndpointTypeEnum.Completion).ConfigureAwait(false);
+			List<ChatEndpoint>? completions = (await sdk.Chat.ReadEndpoints(_TenantGuid, ChatEndpointTypeEnum.Completion).ConfigureAwait(false))?.Objects;
 			AssertNotNull(completions, "Chat endpoint filtered list");
 			AssertTrue(completions!.Count >= 1, "Filtered list contains the completion endpoint");
 
-			List<ChatEndpoint>? embeddings = await sdk.Chat.ReadEndpoints(_TenantGuid, ChatEndpointTypeEnum.Embedding).ConfigureAwait(false);
+			List<ChatEndpoint>? embeddings = (await sdk.Chat.ReadEndpoints(_TenantGuid, ChatEndpointTypeEnum.Embedding).ConfigureAwait(false))?.Objects;
 			AssertTrue(embeddings == null || embeddings.Count == 0 || !embeddings.Exists(e => e.GUID.Equals(_ChatEndpointGuid)), "Embedding filter excludes the completion endpoint");
 		}
 
@@ -3981,7 +3987,7 @@ namespace Test.Automated
 		{
 			LiteGraphSdk sdk = RequireSdk();
 
-			List<ChatEndpointHealth>? health = await sdk.Chat.ReadAllEndpointHealth(_TenantGuid).ConfigureAwait(false);
+			List<ChatEndpointHealth>? health = (await sdk.Chat.ReadAllEndpointHealth(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertNotNull(health, "Chat endpoint health list");
 		}
 
@@ -3989,7 +3995,7 @@ namespace Test.Automated
 		{
 			LiteGraphSdk sdk = RequireSdk();
 
-			List<ChatModelSummary>? models = await sdk.Chat.ReadModels(_TenantGuid).ConfigureAwait(false);
+			List<ChatModelSummary>? models = (await sdk.Chat.ReadModels(_TenantGuid).ConfigureAwait(false))?.Objects;
 			AssertNotNull(models, "Chat model catalog list");
 
 			ChatModelSummary? summary = models!.Find(m => m.GUID.Equals(_ChatEndpointGuid));
@@ -4025,7 +4031,7 @@ namespace Test.Automated
 				AssertNotNull(created, "Chat thread create result");
 				AssertNotEmpty(created!.GUID, "Chat thread GUID");
 
-				List<ChatThread>? threads = await userSdk.Chat.ReadThreads(_TenantGuid).ConfigureAwait(false);
+				List<ChatThread>? threads = (await userSdk.Chat.ReadThreads(_TenantGuid).ConfigureAwait(false))?.Objects;
 				AssertNotNull(threads, "Chat thread list");
 				AssertTrue(threads!.Exists(t => t.GUID.Equals(created.GUID)), "The created thread is listed");
 
@@ -4037,7 +4043,7 @@ namespace Test.Automated
 				AssertNotNull(renamed, "Chat thread rename result");
 				AssertEqual(renamedTitle, renamed!.Title ?? string.Empty, "Chat thread renamed title");
 
-				List<ChatTurn>? turns = await userSdk.Chat.ReadThreadTurns(_TenantGuid, created.GUID).ConfigureAwait(false);
+				List<ChatTurn>? turns = (await userSdk.Chat.ReadThreadTurns(_TenantGuid, created.GUID).ConfigureAwait(false))?.Objects;
 				AssertTrue(turns == null || turns.Count == 0, "A new thread has no turns");
 
 				await userSdk.Chat.DeleteThread(_TenantGuid, created.GUID).ConfigureAwait(false);

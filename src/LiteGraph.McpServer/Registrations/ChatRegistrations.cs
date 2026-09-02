@@ -2,6 +2,7 @@ namespace LiteGraph.McpServer.Registrations
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Text.Json;
     using LiteGraph.McpServer.Classes;
     using LiteGraph.Sdk;
@@ -53,14 +54,17 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "chat/endpoint/all",
-                "Lists chat endpoints in a tenant, optionally filtered by endpoint type",
+                "Lists chat endpoints in a tenant, optionally filtered by endpoint type. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpointType = new { type = "string", description = "Optional endpoint type filter: Embedding or Completion" }
+                        endpointType = new { type = "string", description = "Optional endpoint type filter: Embedding or Completion" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -128,13 +132,16 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "chat/endpoint/healthall",
-                "Reads background health-check status for every chat endpoint in a tenant",
+                "Reads background health-check status for every chat endpoint in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -163,14 +170,17 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "chat/thread/all",
-                "Lists chat threads in a tenant; the caller's own threads by default, or every user's threads with allUsers (admin only)",
+                "Lists chat threads in a tenant; the caller's own threads by default, or every user's threads with allUsers (admin only). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        allUsers = new { type = "boolean", description = "True to list every user's threads (admin only, default: false)" }
+                        allUsers = new { type = "boolean", description = "True to list every user's threads (admin only, default: false)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -208,14 +218,17 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "chat/thread/turns",
-                "Reads the turns of a chat thread ascending by sequence, including metrics and tool transcripts",
+                "Reads the turns of a chat thread ascending by sequence, including metrics and tool transcripts. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        threadGuid = new { type = "string", description = "Chat thread GUID" }
+                        threadGuid = new { type = "string", description = "Chat thread GUID" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid", "threadGuid" }
                 },
@@ -240,13 +253,16 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "chat/feedback/all",
-                "Lists all chat feedback in a tenant (admin only)",
+                "Lists all chat feedback in a tenant (admin only). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -403,8 +419,14 @@ namespace LiteGraph.McpServer.Registrations
                 }
             }
 
-            List<ChatEndpoint> endpoints = sdk.Chat.ReadEndpoints(tenantGuid, endpointType).GetAwaiter().GetResult();
-            return Serializer.SerializeJson(endpoints, true);
+            string url = "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/chat/endpoints"
+                + BuildChatListQuery(args);
+
+            if (endpointType != null) url += "&endpointType=" + LiteGraphMcpRestProxy.Escape(endpointType.Value.ToString());
+
+            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Get, url);
         }
 
         private static string EndpointUpdate(LiteGraphSdk sdk, JsonElement? args)
@@ -452,8 +474,13 @@ namespace LiteGraph.McpServer.Registrations
         {
             if (!args.HasValue) throw new ArgumentException("Parameters required");
             Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-            List<ChatEndpointHealth> health = sdk.Chat.ReadAllEndpointHealth(tenantGuid).GetAwaiter().GetResult();
-            return Serializer.SerializeJson(health, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/chat/endpoints/health"
+                + BuildChatListQuery(args));
         }
 
         private static string Completions(LiteGraphSdk sdk, JsonElement? args)
@@ -490,8 +517,15 @@ namespace LiteGraph.McpServer.Registrations
             if (!args.HasValue) throw new ArgumentException("Parameters required");
             Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
             bool allUsers = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "allUsers", false);
-            List<ChatThread> threads = sdk.Chat.ReadThreads(tenantGuid, allUsers).GetAwaiter().GetResult();
-            return Serializer.SerializeJson(threads, true);
+
+            string url = "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/chat/threads"
+                + BuildChatListQuery(args);
+
+            if (allUsers) url += "&all=true";
+
+            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Get, url);
         }
 
         private static string ThreadGet(LiteGraphSdk sdk, JsonElement? args)
@@ -517,8 +551,15 @@ namespace LiteGraph.McpServer.Registrations
             if (!args.HasValue) throw new ArgumentException("Parameters required");
             Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
             Guid threadGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "threadGuid");
-            List<ChatTurn> turns = sdk.Chat.ReadThreadTurns(tenantGuid, threadGuid).GetAwaiter().GetResult();
-            return Serializer.SerializeJson(turns, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/chat/threads/"
+                + LiteGraphMcpRestProxy.Escape(threadGuid)
+                + "/turns"
+                + BuildChatListQuery(args));
         }
 
         private static string FeedbackCreate(LiteGraphSdk sdk, JsonElement? args)
@@ -545,8 +586,13 @@ namespace LiteGraph.McpServer.Registrations
         {
             if (!args.HasValue) throw new ArgumentException("Parameters required");
             Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-            List<ChatFeedback> feedback = sdk.Chat.ReadFeedback(tenantGuid).GetAwaiter().GetResult();
-            return Serializer.SerializeJson(feedback, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/tenants/"
+                + LiteGraphMcpRestProxy.Escape(tenantGuid)
+                + "/chat/feedback"
+                + BuildChatListQuery(args));
         }
 
         private static bool FeedbackDelete(LiteGraphSdk sdk, JsonElement? args)
@@ -578,6 +624,17 @@ namespace LiteGraph.McpServer.Registrations
             settings.TenantGUID = tenantGuid;
             ChatSettings updated = sdk.Chat.UpdateChatSettings(settings).GetAwaiter().GetResult();
             return Serializer.SerializeJson(updated, true);
+        }
+
+        private static string BuildChatListQuery(JsonElement? args)
+        {
+            int skip = args.HasValue ? LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0) : 0;
+            int maxResults = LiteGraphMcpServerHelpers.GetMaxResults(args);
+            Guid? continuationToken = LiteGraphMcpServerHelpers.GetContinuationToken(args);
+
+            string query = "?skip=" + skip + "&max-keys=" + maxResults;
+            if (continuationToken != null) query += "&token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value);
+            return query;
         }
 
         #endregion

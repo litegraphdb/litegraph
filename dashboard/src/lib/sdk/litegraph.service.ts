@@ -1,4 +1,5 @@
 import { LiteGraphSdk } from 'litegraphdb';
+import type { EnumerateResponse, TenantMetaData } from 'litegraphdb/dist/types/types';
 import { useState } from 'react';
 import { useAppDispatch } from '../store/hooks';
 import toast from 'react-hot-toast';
@@ -32,9 +33,13 @@ export const useGetTenants = () => {
     setIsLoading(true);
     setError(null);
     try {
+      // GET /v1.0/tenants now returns the EnumerationResult envelope; the bundled
+      // npm SDK passes the parsed JSON through untyped, so unwrap Objects here to
+      // keep returning a plain tenant array to callers.
       const data = await sdk.Tenant.readAll();
+      const envelope = data as unknown as EnumerateResponse<TenantMetaData>;
       setIsLoading(false);
-      return data;
+      return envelope?.Objects ?? [];
     } catch (err) {
       toast.error(toastMessage || 'Unable to fetch tenants.', { id: globalToastId });
       setIsLoading(false);

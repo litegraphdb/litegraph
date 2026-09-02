@@ -29,6 +29,19 @@ FEEDBACK_GUID = "44444444-4444-4444-4444-444444444444"
 CHAT_BASE = f"v1.0/tenants/{TENANT_GUID}/chat"
 
 
+def _envelope(objects):
+    """Wrap objects in an EnumerationResult envelope."""
+    return {
+        "Success": True,
+        "MaxResults": 1000,
+        "ContinuationToken": None,
+        "EndOfResults": True,
+        "TotalRecords": len(objects),
+        "RecordsRemaining": 0,
+        "Objects": objects,
+    }
+
+
 @pytest.fixture
 def mock_client(monkeypatch):
     """Create a mock client and register it as the active SDK client."""
@@ -178,20 +191,30 @@ class TestChatEndpoints:
         assert model.health_check_use_auth is False
 
     def test_read_endpoints(self, mock_client):
-        """read_endpoints returns a list of endpoint models."""
-        mock_client.request.return_value = [_endpoint_response()]
+        """read_endpoints returns an enumeration envelope of endpoint models."""
+        mock_client.request.return_value = _envelope([_endpoint_response()])
         result = Chat.read_endpoints()
-        assert len(result) == 1
-        assert isinstance(result[0], ChatEndpointModel)
+        assert result.total_records == 1
+        assert len(result.objects) == 1
+        assert isinstance(result.objects[0], ChatEndpointModel)
         mock_client.request.assert_called_once_with("GET", f"{CHAT_BASE}/endpoints")
 
     def test_read_endpoints_filtered_by_type(self, mock_client):
         """read_endpoints appends the endpointType query parameter."""
-        mock_client.request.return_value = []
+        mock_client.request.return_value = _envelope([])
         Chat.read_endpoints(endpoint_type=ChatEndpointType_Enum.Embedding)
         mock_client.request.assert_called_once_with(
             "GET", f"{CHAT_BASE}/endpoints?endpointType=Embedding"
         )
+
+    def test_read_endpoints_pagination(self, mock_client):
+        """read_endpoints maps pagination args to max-keys/skip/order/token."""
+        mock_client.request.return_value = _envelope([])
+        Chat.read_endpoints(max_keys=5, skip=10, order="CreatedDescending")
+        called_url = mock_client.request.call_args[0][1]
+        assert "max-keys=5" in called_url
+        assert "skip=10" in called_url
+        assert "order=CreatedDescending" in called_url
 
     def test_read_endpoint(self, mock_client):
         """read_endpoint GETs a single endpoint by GUID."""
@@ -314,20 +337,23 @@ class TestChatEndpoints:
         )
 
     def test_read_all_endpoint_health(self, mock_client):
-        """read_all_endpoint_health GETs the health list."""
-        mock_client.request.return_value = [
-            {
-                "EndpointGUID": ENDPOINT_GUID,
-                "TenantGUID": TENANT_GUID,
-                "Name": "openai-completion",
-                "EndpointType": "Completion",
-                "Monitored": False,
-                "Healthy": None,
-            }
-        ]
+        """read_all_endpoint_health GETs the health envelope."""
+        mock_client.request.return_value = _envelope(
+            [
+                {
+                    "EndpointGUID": ENDPOINT_GUID,
+                    "TenantGUID": TENANT_GUID,
+                    "Name": "openai-completion",
+                    "EndpointType": "Completion",
+                    "Monitored": False,
+                    "Healthy": None,
+                }
+            ]
+        )
         result = Chat.read_all_endpoint_health()
-        assert len(result) == 1
-        assert result[0].healthy is None
+        assert result.total_records == 1
+        assert len(result.objects) == 1
+        assert result.objects[0].healthy is None
         mock_client.request.assert_called_once_with(
             "GET", f"{CHAT_BASE}/endpoints/health"
         )
@@ -336,34 +362,37 @@ class TestChatEndpoints:
 class TestChatModels:
     def test_read_models(self, mock_client):
         """read_models GETs the non-admin model catalog and parses summaries."""
-        mock_client.request.return_value = [
-            {
-                "GUID": ENDPOINT_GUID,
-                "Name": "openai-completion",
-                "Model": "gpt-4o-mini",
-                "Provider": "OpenAI",
-                "EndpointType": "Completion",
-                "IsDefault": True,
-            },
-            {
-                "GUID": "66666666-6666-6666-6666-666666666666",
-                "Name": "voyage-embedding",
-                "Model": "voyage-3.5",
-                "Provider": "VoyageAI",
-                "EndpointType": "Embedding",
-                "IsDefault": False,
-            },
-        ]
+        mock_client.request.return_value = _envelope(
+            [
+                {
+                    "GUID": ENDPOINT_GUID,
+                    "Name": "openai-completion",
+                    "Model": "gpt-4o-mini",
+                    "Provider": "OpenAI",
+                    "EndpointType": "Completion",
+                    "IsDefault": True,
+                },
+                {
+                    "GUID": "66666666-6666-6666-6666-666666666666",
+                    "Name": "voyage-embedding",
+                    "Model": "voyage-3.5",
+                    "Provider": "VoyageAI",
+                    "EndpointType": "Embedding",
+                    "IsDefault": False,
+                },
+            ]
+        )
         result = Chat.read_models()
-        assert len(result) == 2
-        assert isinstance(result[0], ChatModelSummaryModel)
-        assert result[0].guid == ENDPOINT_GUID
-        assert result[0].model == "gpt-4o-mini"
-        assert result[0].provider == ChatProviderType_Enum.OpenAI
-        assert result[0].endpoint_type == ChatEndpointType_Enum.Completion
-        assert result[0].is_default is True
-        assert result[1].endpoint_type == ChatEndpointType_Enum.Embedding
-        assert result[1].is_default is False
+        assert result.total_records == 2
+        assert len(result.objects) == 2
+        assert isinstance(result.objects[0], ChatModelSummaryModel)
+        assert result.objects[0].guid == ENDPOINT_GUID
+        assert result.objects[0].model == "gpt-4o-mini"
+        assert result.objects[0].provider == ChatProviderType_Enum.OpenAI
+        assert result.objects[0].endpoint_type == ChatEndpointType_Enum.Completion
+        assert result.objects[0].is_default is True
+        assert result.objects[1].endpoint_type == ChatEndpointType_Enum.Embedding
+        assert result.objects[1].is_default is False
         mock_client.request.assert_called_once_with("GET", f"{CHAT_BASE}/models")
 
 
@@ -387,14 +416,15 @@ class TestChatThreads:
         )
 
     def test_read_threads(self, mock_client):
-        """read_threads GETs the caller's threads."""
-        mock_client.request.return_value = []
-        Chat.read_threads()
+        """read_threads GETs the caller's threads as an envelope."""
+        mock_client.request.return_value = _envelope([])
+        result = Chat.read_threads()
+        assert result.objects == []
         mock_client.request.assert_called_once_with("GET", f"{CHAT_BASE}/threads")
 
     def test_read_threads_all_users(self, mock_client):
         """read_threads with all_users appends the all flag."""
-        mock_client.request.return_value = []
+        mock_client.request.return_value = _envelope([])
         Chat.read_threads(all_users=True)
         mock_client.request.assert_called_once_with("GET", f"{CHAT_BASE}/threads?all")
 
@@ -437,28 +467,31 @@ class TestChatThreads:
         )
 
     def test_read_thread_turns(self, mock_client):
-        """read_thread_turns GETs the turns and parses metrics."""
-        mock_client.request.return_value = [
-            {
-                "GUID": TURN_GUID,
-                "TenantGUID": TENANT_GUID,
-                "ThreadGUID": THREAD_GUID,
-                "UserMessage": "hello",
-                "AssistantResponse": "hi there",
-                "Provider": "Ollama",
-                "Model": "llama3",
-                "TotalDurationMs": 1234.5,
-                "PromptTokens": 12,
-                "CompletionTokens": 34,
-                "Success": True,
-                "CreatedUtc": "2026-08-31T00:00:00.000000Z",
-            }
-        ]
+        """read_thread_turns GETs the turns envelope and parses metrics."""
+        mock_client.request.return_value = _envelope(
+            [
+                {
+                    "GUID": TURN_GUID,
+                    "TenantGUID": TENANT_GUID,
+                    "ThreadGUID": THREAD_GUID,
+                    "UserMessage": "hello",
+                    "AssistantResponse": "hi there",
+                    "Provider": "Ollama",
+                    "Model": "llama3",
+                    "TotalDurationMs": 1234.5,
+                    "PromptTokens": 12,
+                    "CompletionTokens": 34,
+                    "Success": True,
+                    "CreatedUtc": "2026-08-31T00:00:00.000000Z",
+                }
+            ]
+        )
         result = Chat.read_thread_turns(THREAD_GUID)
-        assert len(result) == 1
-        assert isinstance(result[0], ChatTurnModel)
-        assert result[0].provider == ChatProviderType_Enum.Ollama
-        assert result[0].completion_tokens == 34
+        assert result.total_records == 1
+        assert len(result.objects) == 1
+        assert isinstance(result.objects[0], ChatTurnModel)
+        assert result.objects[0].provider == ChatProviderType_Enum.Ollama
+        assert result.objects[0].completion_tokens == 34
         mock_client.request.assert_called_once_with(
             "GET", f"{CHAT_BASE}/threads/{THREAD_GUID}/turns"
         )
@@ -591,20 +624,23 @@ class TestChatFeedback:
         )
 
     def test_read_feedback_list(self, mock_client):
-        """read_feedback without a GUID lists all feedback records."""
-        mock_client.request.return_value = [
-            {
-                "GUID": FEEDBACK_GUID,
-                "TenantGUID": TENANT_GUID,
-                "ThreadGUID": THREAD_GUID,
-                "TurnGUID": TURN_GUID,
-                "UserGUID": "55555555-5555-5555-5555-555555555555",
-                "Rating": "ThumbsDown",
-            }
-        ]
+        """read_feedback without a GUID lists all feedback records as an envelope."""
+        mock_client.request.return_value = _envelope(
+            [
+                {
+                    "GUID": FEEDBACK_GUID,
+                    "TenantGUID": TENANT_GUID,
+                    "ThreadGUID": THREAD_GUID,
+                    "TurnGUID": TURN_GUID,
+                    "UserGUID": "55555555-5555-5555-5555-555555555555",
+                    "Rating": "ThumbsDown",
+                }
+            ]
+        )
         result = Chat.read_feedback()
-        assert isinstance(result, list)
-        assert result[0].rating == ChatFeedbackRating_Enum.ThumbsDown
+        assert result.total_records == 1
+        assert isinstance(result.objects[0], ChatFeedbackModel)
+        assert result.objects[0].rating == ChatFeedbackRating_Enum.ThumbsDown
         mock_client.request.assert_called_once_with("GET", f"{CHAT_BASE}/feedback")
 
     def test_read_feedback_single(self, mock_client):

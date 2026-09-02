@@ -26,9 +26,18 @@
         /// <summary>
         /// List backups request.
         /// </summary>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Enumerable of backup files.</returns>
-        Task<List<BackupFile>> ListBackups(CancellationToken token = default);
+        /// <returns>Enumeration result containing backup files.</returns>
+        Task<EnumerationResult<BackupFile>> ListBackups(
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read the contents of a backup file.

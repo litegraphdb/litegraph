@@ -19,7 +19,8 @@ interface NewThreadModalProps {
 const NewThreadModal = ({ tenantGuid, onClose, onCreated }: NewThreadModalProps) => {
   const t = useTranslations('ai.chat');
   const [graphGuid, setGraphGuid] = useState<string | undefined>(undefined);
-  const { data: graphs = [], isLoading: isGraphsLoading } = useGetAllGraphsQuery();
+  const { data: graphsEnvelope, isLoading: isGraphsLoading } = useGetAllGraphsQuery();
+  const graphs = graphsEnvelope?.Objects ?? [];
   const [createThread, { isLoading }] = useCreateChatThreadMutation();
 
   const handleCreate = async () => {

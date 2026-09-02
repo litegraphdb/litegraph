@@ -3431,6 +3431,7 @@
                 GraphGUID = req.GraphGUID,
                 MaxResults = req.MaxKeys,
                 Skip = req.Skip,
+                Ordering = req.Order,
                 IncludeData = req.IncludeData,
                 IncludeSubordinates = req.IncludeSubordinates,
                 ContinuationToken = (!String.IsNullOrEmpty(req.ContinuationToken) ? Guid.Parse(req.ContinuationToken) : null)
@@ -3552,6 +3553,12 @@
             if (!string.IsNullOrEmpty(q?["page"]) && int.TryParse(q["page"], out int page) && page >= 0) search.Page = page;
             if (!string.IsNullOrEmpty(q?["pageSize"]) && int.TryParse(q["pageSize"], out int pageSize) && pageSize >= 1 && pageSize <= 1000) search.PageSize = pageSize;
 
+            int searchPage = search.Page;
+            int searchPageSize = search.PageSize;
+            ApplyEnumerationPagingOverrides(q, ref searchPage, ref searchPageSize);
+            search.Page = searchPage;
+            search.PageSize = searchPageSize;
+
             return search;
         }
 
@@ -3564,7 +3571,7 @@
             {
                 RequestHistorySearchResult result = await _LiteGraph.RequestHistory.Search(search, timeoutCts.Token).ConfigureAwait(false);
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(result));
+                await ctx.Response.Send(_Serializer.SerializeJson(EnumerationFromPagedResult(result.Objects, result.TotalCount, result.Page, result.PageSize)));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {

@@ -67,7 +67,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "tag/readmany",
-                "Reads tags with optional filters",
+                "Reads tags with optional filters. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -78,7 +78,9 @@ namespace LiteGraph.McpServer.Registrations
                         nodeGuid = new { type = "string", description = "Node GUID (optional)" },
                         edgeGuid = new { type = "string", description = "Edge GUID (optional)" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -93,7 +95,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid? edgeGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "edgeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     
-                    return ReadTags(sdk, tenantGuid, graphGuid, nodeGuid, edgeGuid, order, skip);
+                    return ReadTags(sdk, tenantGuid, graphGuid, nodeGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
                 });
 
             server.RegisterTool(
@@ -187,14 +189,15 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "tag/getmany",
-                "Reads multiple tags by their GUIDs",
+                "Reads multiple tags by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        tagGuids = new { type = "array", items = new { type = "string" }, description = "Array of tag GUIDs" }
+                        tagGuids = new { type = "array", items = new { type = "string" }, description = "Array of tag GUIDs" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "tagGuids" }
                 },
@@ -206,7 +209,7 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Tag GUIDs array is required");
                     
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                    return ReadTagsByGuids(sdk, tenantGuid, guids);
+                    return ReadTagsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
@@ -261,13 +264,17 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "tag/readallintenant",
-                "Reads all tags in a tenant",
+                "Reads all tags in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid" }
                 },
@@ -276,56 +283,12 @@ namespace LiteGraph.McpServer.Registrations
                     if (!args.HasValue) throw new ArgumentException("Parameters required");
                     Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadAllTagsInTenant(sdk, tenantGuid, order, skip);
+                    return ReadAllTagsInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
                 });
 
             server.RegisterTool(
                 "tag/readallingraph",
-                "Reads all tags in a graph",
-                new
-                {
-                    type = "object",
-                    properties = new
-                    {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
-                (args) =>
-                {
-                    if (!args.HasValue) throw new ArgumentException("Parameters required");
-                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid, order, skip);
-                });
-
-            server.RegisterTool(
-                "tag/readmanygraph",
-                "Reads tags attached to a graph",
-                new
-                {
-                    type = "object",
-                    properties = new
-                    {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
-                (args) =>
-                {
-                    if (!args.HasValue) throw new ArgumentException("Parameters required");
-                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
-                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
-                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadGraphTags(sdk, tenantGuid, graphGuid, order, skip);
-                });
-
-            server.RegisterTool(
-                "tag/readmanynode",
-                "Reads tags attached to a node",
+                "Reads all tags in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -333,7 +296,60 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" }
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
+                });
+
+            server.RegisterTool(
+                "tag/readmanygraph",
+                "Reads tags attached to a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
+                    },
+                    required = new[] { "tenantGuid", "graphGuid" }
+                },
+                (args) =>
+                {
+                    if (!args.HasValue) throw new ArgumentException("Parameters required");
+                    Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
+                    Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
+                    (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
+                    return ReadGraphTags(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
+                });
+
+            server.RegisterTool(
+                "tag/readmanynode",
+                "Reads tags attached to a node. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
+                new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        tenantGuid = new { type = "string", description = "Tenant GUID" },
+                        graphGuid = new { type = "string", description = "Graph GUID" },
+                        nodeGuid = new { type = "string", description = "Node GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
                 },
@@ -344,12 +360,12 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadNodeTags(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                    return ReadNodeTags(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
                 "tag/readmanyedge",
-                "Reads tags attached to an edge",
+                "Reads tags attached to an edge. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -357,7 +373,10 @@ namespace LiteGraph.McpServer.Registrations
                     {
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
-                        edgeGuid = new { type = "string", description = "Edge GUID" }
+                        edgeGuid = new { type = "string", description = "Edge GUID" },
+                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "edgeGuid" }
                 },
@@ -368,7 +387,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                     Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadEdgeTags(sdk, tenantGuid, graphGuid, edgeGuid, order, skip);
+                    return ReadEdgeTags(sdk, tenantGuid, graphGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
@@ -522,7 +541,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid? nodeGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "nodeGuid");
                 Guid? edgeGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "edgeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadTags(sdk, tenantGuid, graphGuid, nodeGuid, edgeGuid, order, skip);
+                return ReadTags(sdk, tenantGuid, graphGuid, nodeGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("tag/enumerate", (args) =>
@@ -572,7 +591,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tag GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadTagsByGuids(sdk, tenantGuid, guids);
+                return ReadTagsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/createmany", (args) =>
@@ -604,7 +623,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadAllTagsInTenant(sdk, tenantGuid, order, skip);
+                return ReadAllTagsInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("tag/readallingraph", (args) =>
@@ -613,7 +632,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid, order, skip);
+                return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/readmanygraph", (args) =>
@@ -622,7 +641,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadGraphTags(sdk, tenantGuid, graphGuid, order, skip);
+                return ReadGraphTags(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/readmanynode", (args) =>
@@ -632,7 +651,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadNodeTags(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                return ReadNodeTags(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/readmanyedge", (args) =>
@@ -642,7 +661,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadEdgeTags(sdk, tenantGuid, graphGuid, edgeGuid, order, skip);
+                return ReadEdgeTags(sdk, tenantGuid, graphGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/deleteallintenant", (args) =>
@@ -730,7 +749,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid? nodeGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "nodeGuid");
                 Guid? edgeGuid = LiteGraphMcpServerHelpers.GetGuidOptional(args.Value, "edgeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadTags(sdk, tenantGuid, graphGuid, nodeGuid, edgeGuid, order, skip);
+                return ReadTags(sdk, tenantGuid, graphGuid, nodeGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("tag/enumerate", (args) =>
@@ -780,7 +799,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tag GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadTagsByGuids(sdk, tenantGuid, guids);
+                return ReadTagsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/createmany", (args) =>
@@ -812,7 +831,7 @@ namespace LiteGraph.McpServer.Registrations
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadAllTagsInTenant(sdk, tenantGuid, order, skip);
+                return ReadAllTagsInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("tag/readallingraph", (args) =>
@@ -821,7 +840,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid, order, skip);
+                return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/readmanygraph", (args) =>
@@ -830,7 +849,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "tenantGuid");
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadGraphTags(sdk, tenantGuid, graphGuid, order, skip);
+                return ReadGraphTags(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/readmanynode", (args) =>
@@ -840,7 +859,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid nodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "nodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadNodeTags(sdk, tenantGuid, graphGuid, nodeGuid, order, skip);
+                return ReadNodeTags(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/readmanyedge", (args) =>
@@ -850,7 +869,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid graphGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "graphGuid");
                 Guid edgeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "edgeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadEdgeTags(sdk, tenantGuid, graphGuid, edgeGuid, order, skip);
+                return ReadEdgeTags(sdk, tenantGuid, graphGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("tag/deleteallintenant", (args) =>
@@ -933,26 +952,28 @@ namespace LiteGraph.McpServer.Registrations
             Guid? nodeGuid,
             Guid? edgeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults,
+            Guid? continuationToken)
         {
             if (nodeGuid.HasValue)
             {
                 if (!graphGuid.HasValue) throw new ArgumentException("Graph GUID is required when node GUID is provided.");
-                return ReadNodeTags(sdk, tenantGuid, graphGuid.Value, nodeGuid.Value, order, skip);
+                return ReadNodeTags(sdk, tenantGuid, graphGuid.Value, nodeGuid.Value, order, skip, maxResults);
             }
 
             if (edgeGuid.HasValue)
             {
                 if (!graphGuid.HasValue) throw new ArgumentException("Graph GUID is required when edge GUID is provided.");
-                return ReadEdgeTags(sdk, tenantGuid, graphGuid.Value, edgeGuid.Value, order, skip);
+                return ReadEdgeTags(sdk, tenantGuid, graphGuid.Value, edgeGuid.Value, order, skip, maxResults);
             }
 
-            if (graphGuid.HasValue) return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid.Value, order, skip);
+            if (graphGuid.HasValue) return ReadAllTagsInGraph(sdk, tenantGuid, graphGuid.Value, order, skip, maxResults);
 
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                TagCollectionPath(tenantGuid) + BuildReadQuery(order, skip));
+                TagCollectionPath(tenantGuid) + BuildReadQuery(order, skip, maxResults, continuationToken));
         }
 
         private static string EnumerateTags(LiteGraphSdk sdk, EnumerationRequest query)
@@ -981,19 +1002,19 @@ namespace LiteGraph.McpServer.Registrations
             return LiteGraphMcpRestProxy.HeadExists(sdk, TagPath(tenantGuid, tagGuid));
         }
 
-        private static string ReadTagsByGuids(LiteGraphSdk sdk, Guid tenantGuid, List<Guid> tagGuids)
+        private static string ReadTagsByGuids(LiteGraphSdk sdk, Guid tenantGuid, List<Guid> tagGuids, int maxResults)
         {
-            if (tagGuids == null || tagGuids.Count == 0) return Serializer.SerializeJson(new List<TagMetadata>(), true);
+            if (tagGuids == null) throw new ArgumentNullException(nameof(tagGuids));
+            if (tagGuids.Count == 0) throw new ArgumentException("At least one tag GUID is required.");
 
-            List<TagMetadata> tags = new List<TagMetadata>();
-            foreach (Guid tagGuid in tagGuids)
-            {
-                string tagJson = ReadTag(sdk, tenantGuid, tagGuid);
-                TagMetadata tag = Serializer.DeserializeJson<TagMetadata>(tagJson);
-                if (tag != null) tags.Add(tag);
-            }
-
-            return Serializer.SerializeJson(tags, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                TagCollectionPath(tenantGuid)
+                + "?guids="
+                + String.Join(",", tagGuids)
+                + "&max-keys="
+                + maxResults);
         }
 
         private static string CreateTags(LiteGraphSdk sdk, Guid tenantGuid, List<TagMetadata> tags)
@@ -1020,12 +1041,14 @@ namespace LiteGraph.McpServer.Registrations
             LiteGraphSdk sdk,
             Guid tenantGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults,
+            Guid? continuationToken)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                TagCollectionPath(tenantGuid) + "/all" + BuildReadQuery(order, skip));
+                TagCollectionPath(tenantGuid) + "/all" + BuildReadQuery(order, skip, maxResults, continuationToken));
         }
 
         private static string ReadAllTagsInGraph(
@@ -1033,12 +1056,13 @@ namespace LiteGraph.McpServer.Registrations
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                GraphTagCollectionPath(tenantGuid, graphGuid) + "/all" + BuildReadQuery(order, skip));
+                GraphTagCollectionPath(tenantGuid, graphGuid) + "/all" + BuildReadQuery(order, skip, maxResults, null));
         }
 
         private static string ReadGraphTags(
@@ -1046,12 +1070,13 @@ namespace LiteGraph.McpServer.Registrations
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                GraphTagCollectionPath(tenantGuid, graphGuid) + BuildReadQuery(order, skip));
+                GraphTagCollectionPath(tenantGuid, graphGuid) + BuildReadQuery(order, skip, maxResults, null));
         }
 
         private static string ReadNodeTags(
@@ -1060,7 +1085,8 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
@@ -1072,7 +1098,7 @@ namespace LiteGraph.McpServer.Registrations
                 + "/nodes/"
                 + LiteGraphMcpRestProxy.Escape(nodeGuid)
                 + "/tags"
-                + BuildReadQuery(order, skip));
+                + BuildReadQuery(order, skip, maxResults, null));
         }
 
         private static string ReadEdgeTags(
@@ -1081,7 +1107,8 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             Guid edgeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
@@ -1093,7 +1120,7 @@ namespace LiteGraph.McpServer.Registrations
                 + "/edges/"
                 + LiteGraphMcpRestProxy.Escape(edgeGuid)
                 + "/tags"
-                + BuildReadQuery(order, skip));
+                + BuildReadQuery(order, skip, maxResults, null));
         }
 
         private static string UpdateTag(LiteGraphSdk sdk, TagMetadata tag)
@@ -1194,13 +1221,16 @@ namespace LiteGraph.McpServer.Registrations
                 + "/tags";
         }
 
-        private static string BuildReadQuery(EnumerationOrderEnum order, int skip)
+        private static string BuildReadQuery(EnumerationOrderEnum order, int skip, int maxResults, Guid? continuationToken)
         {
             List<string> query = new List<string>
             {
                 "order=" + LiteGraphMcpRestProxy.Escape(order.ToString()),
-                "skip=" + skip
+                "skip=" + skip,
+                "max-keys=" + maxResults
             };
+
+            if (continuationToken != null) query.Add("token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value));
 
             return "?" + String.Join("&", query);
         }

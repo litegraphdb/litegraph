@@ -13,6 +13,33 @@ Current release: v8.1.0.
 ## New in v8.1.0
 
 - Added `sdk.Chat` methods covering the LiteGraph chat surface: endpoint management, completions (non-streaming and SSE streaming), threads, turns, feedback, endpoint health, and per-tenant chat settings
+- **Breaking**: every list-returning read method (`ReadMany`, `ReadAllInTenant`, `ReadAllInGraph`, `ReadByGuids`, `ReadNodeEdges`, `ReadParents`, `ReadChildren`, `ReadNeighbors`, `ReadMostConnected`, `ReadLeastConnected`, `ReadEdgesFromNode`, `ReadEdgesToNode`, `ReadEdgesBetweenNodes`, chat reads, `ListBackups`, `GetTenantsForEmail`, and `SearchVectors`) now returns an `EnumerationResult<T>` pagination envelope instead of a raw `List<T>`.  Access records via `.Objects`, and use `TotalRecords`, `RecordsRemaining`, `EndOfResults`, and `ContinuationToken` for paging.  Most read methods accept optional `maxKeys` (1-1000, default 1000), `skip`, `order`, and `continuationToken` parameters.
+
+### Paginated reads
+
+All list-shaped GET routes return the enumeration envelope:
+
+```csharp
+EnumerationResult<Node> page = await sdk.Node.ReadMany(
+    tenantGuid,
+    graphGuid,
+    order: EnumerationOrderEnum.CreatedDescending,
+    skip: 0,
+    maxKeys: 100);
+
+foreach (Node node in page.Objects) Console.WriteLine(node.Name);
+Console.WriteLine($"{page.TotalRecords} total, {page.RecordsRemaining} remaining, end: {page.EndOfResults}");
+
+// Continue the enumeration with the returned token
+if (!page.EndOfResults && page.ContinuationToken != null)
+{
+    EnumerationResult<Node> next = await sdk.Node.ReadMany(
+        tenantGuid,
+        graphGuid,
+        maxKeys: 100,
+        continuationToken: page.ContinuationToken);
+}
+```
 
 ## New in v7.0.0
 
@@ -105,12 +132,13 @@ ChatEndpoint embedding = await sdk.Chat.CreateEndpoint(new ChatEndpoint
     Model = "text-embedding-3-small"
 });
 
-List<ChatEndpoint> completionEndpoints = await sdk.Chat.ReadEndpoints(tenantGuid, ChatEndpointTypeEnum.Completion);
+EnumerationResult<ChatEndpoint> completionEndpoints = await sdk.Chat.ReadEndpoints(tenantGuid, ChatEndpointTypeEnum.Completion);
+Console.WriteLine($"{completionEndpoints.TotalRecords} completion endpoints");
 ChatEndpoint read = await sdk.Chat.ReadEndpoint(tenantGuid, endpoint.GUID);
 ChatEndpointTestResult test = await sdk.Chat.TestEndpoint(tenantGuid, endpoint.GUID);
 Console.WriteLine($"Reachable: {test.Reachable}, model exists: {test.ModelExists}");
 
-List<ChatEndpointHealth> health = await sdk.Chat.ReadAllEndpointHealth(tenantGuid);
+EnumerationResult<ChatEndpointHealth> health = await sdk.Chat.ReadAllEndpointHealth(tenantGuid);
 ChatEndpointHealth one = await sdk.Chat.ReadEndpointHealth(tenantGuid, endpoint.GUID);
 ```
 
@@ -121,8 +149,8 @@ API keys are redacted to their last four characters in every response; sending a
 Non-admin callers can enumerate the active endpoints available to them, projected down to what a model picker needs (no URLs, keys, or health configuration):
 
 ```csharp
-List<ChatModelSummary> models = await sdk.Chat.ReadModels(tenantGuid);
-foreach (ChatModelSummary model in models)
+EnumerationResult<ChatModelSummary> models = await sdk.Chat.ReadModels(tenantGuid);
+foreach (ChatModelSummary model in models.Objects)
 {
     Console.WriteLine($"{model.Name} ({model.Provider}/{model.Model}, {model.EndpointType}) default: {model.IsDefault}");
 }
@@ -164,8 +192,8 @@ await foreach (ChatStreamEvent ev in sdk.Chat.CompletionStreaming(tenantGuid, ne
 ### Threads, feedback, and settings
 
 ```csharp
-List<ChatThread> threads = await sdk.Chat.ReadThreads(tenantGuid);
-List<ChatTurn> turns = await sdk.Chat.ReadThreadTurns(tenantGuid, threads[0].GUID);
+List<ChatThread> threads = (await sdk.Chat.ReadThreads(tenantGuid)).Objects;
+List<ChatTurn> turns = (await sdk.Chat.ReadThreadTurns(tenantGuid, threads[0].GUID)).Objects;
 
 // Rename a thread (only Title is honored)
 await sdk.Chat.UpdateThread(tenantGuid, threads[0].GUID, new ChatThread { Title = "Renamed thread" });
@@ -173,7 +201,7 @@ await sdk.Chat.DeleteThread(tenantGuid, threads[0].GUID);
 
 // Feedback: submit as a user; read and delete require admin
 ChatFeedback feedback = await sdk.Chat.SubmitFeedback(tenantGuid, turns[0].GUID, ChatFeedbackRatingEnum.ThumbsUp, "Great answer");
-List<ChatFeedback> allFeedback = await sdk.Chat.ReadFeedback(tenantGuid);
+EnumerationResult<ChatFeedback> allFeedback = await sdk.Chat.ReadFeedback(tenantGuid);
 await sdk.Chat.DeleteFeedback(tenantGuid, feedback.GUID);
 
 ChatSettings settings = await sdk.Chat.ReadChatSettings(tenantGuid);

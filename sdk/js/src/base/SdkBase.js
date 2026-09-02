@@ -391,12 +391,13 @@ export default class SdkBase {
   }
 
   /**
-   * Retrieves a list of objects from a given URL using a GET request.
+   * Retrieves a paginated enumeration envelope from a given URL using a GET request.
+   * The response body is an EnumerationResult envelope whose Objects entries are instantiated with the supplied model.
    * @param {string} url - The URL of the objects.
-   * @param {Class} model - Modal to deserialize on
+   * @param {Class} model - Model used to instantiate each entry of the envelope's Objects array.
    * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
    * @param {Object} [headers] - Additional headers.
-   * @return {Promise<Array>} Resolves with the list of retrieved objects.
+   * @return {Promise<import('../models/EnumerationResult').default>} Resolves with the enumeration result envelope.
    * @throws {Error} Rejects if the URL is invalid or if the request fails.
    */
   getMany(url, model, cancellationToken, headers) {
@@ -417,7 +418,7 @@ export default class SdkBase {
       request
         .then((res) => {
           this.log(SeverityEnum.Debug, `Success reported from ${url}: ${res.status}`);
-          resolve(Serializer.deserializeJson(res.text, model));
+          resolve(Serializer.deserializeEnumeration(res.text, model));
         })
         .catch((err) => {
           this.log(SeverityEnum.Warn, `Failed to retrieve object from ${url}: ${err.message}`);
@@ -567,6 +568,50 @@ export default class SdkBase {
             return;
           }
 
+          this.log(SeverityEnum.Warn, `Failed to retrieve object from ${url}: ${err.message}`);
+          const errorResponse = err?.response?.body || null;
+          if (errorResponse && errorResponse?.Error) {
+            const apiErrorResponse = new ApiErrorResponse(
+              errorResponse?.Error,
+              errorResponse?.Context,
+              errorResponse?.Message
+            );
+            reject(apiErrorResponse);
+          } else {
+            reject(err.message ? err.message : err);
+          }
+        });
+    });
+  }
+
+  /**
+   * Submits a POST request whose response is a paginated enumeration envelope.
+   * The response body is an EnumerationResult envelope whose Objects entries are instantiated with the supplied model.
+   * @param {string} url - The URL to post data to.
+   * @param {Object|string} data - The data to send in the POST request.
+   * @param {Class} model - Model used to instantiate each entry of the envelope's Objects array.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @return {Promise<import('../models/EnumerationResult').default>} Resolves with the enumeration result envelope.
+   * @throws {Error} Rejects if the URL or data is invalid or if the request fails.
+   */
+  postEnumeration(url, data, model, cancellationToken) {
+    return new Promise((resolve, reject) => {
+      if (!url) return reject(new Error('URL cannot be null or empty.'));
+
+      const request = superagent.post(url).set(this.defaultHeaders).send(data).timeout({ response: this._timeoutMs });
+      // If a cancelToken is provided, attach the abort method
+      if (cancellationToken) {
+        cancellationToken.abort = () => {
+          request.abort();
+          this.log(SeverityEnum.Debug, `Request aborted to ${url}.`);
+        };
+      }
+      request
+        .then((res) => {
+          this.log(SeverityEnum.Debug, `Success reported from ${url}: ${res.status}`);
+          resolve(Serializer.deserializeEnumeration(res.text, model));
+        })
+        .catch((err) => {
           this.log(SeverityEnum.Warn, `Failed to retrieve object from ${url}: ${err.message}`);
           const errorResponse = err?.response?.body || null;
           if (errorResponse && errorResponse?.Error) {

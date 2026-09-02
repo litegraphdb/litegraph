@@ -36,14 +36,16 @@ const FeedbackPage = () => {
   const { serializePath } = useAppDynamicNavigation();
 
   const {
-    data: feedbackList = [],
+    data: feedbackEnvelope,
     isLoading,
     isFetching,
     error,
     refetch,
   } = useListChatFeedbackQuery({ tenantGuid }, { skip: !tenantGuid });
+  const feedbackList = feedbackEnvelope?.Objects ?? [];
   const [deleteFeedback, { isLoading: isDeleting }] = useDeleteChatFeedbackMutation();
-  const { data: users = [] } = useGetAllUsersQuery();
+  const { data: usersEnvelope } = useGetAllUsersQuery();
+  const users = usersEnvelope?.Objects ?? [];
   const userLabel = (userGuid: string): string => {
     const user = users.find((candidate) => candidate.GUID === userGuid);
     if (!user) return `${userGuid.slice(0, 8)}…`;

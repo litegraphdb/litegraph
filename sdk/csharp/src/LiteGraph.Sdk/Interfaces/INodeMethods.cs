@@ -54,15 +54,19 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadMany(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadMany(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -86,8 +90,8 @@
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        Task<List<Node>> ReadByGuids(Guid tenantGuid, Guid graphGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default);
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadByGuids(Guid tenantGuid, Guid graphGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default);
 
         /// <summary>
         /// Update node.
@@ -140,15 +144,19 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">The number of records to skip.</param>
+        /// <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadParents(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadParents(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -158,15 +166,19 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">The number of records to skip.</param>
+        /// <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadChildren(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadChildren(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -176,15 +188,19 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">The number of records to skip.</param>
+        /// <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadNeighbors(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadNeighbors(
             Guid tenantGuid,
             Guid graphGuid,
             Guid nodeGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -247,14 +263,18 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadAllInTenant(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadAllInTenant(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -266,15 +286,19 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadAllInGraph(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadAllInGraph(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -286,15 +310,19 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadMostConnected(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadMostConnected(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -306,15 +334,19 @@
         /// <param name="skip">The number of records to skip.</param>
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Nodes.</returns>
-        Task<List<Node>> ReadLeastConnected(
+        /// <returns>Enumeration result containing nodes.</returns>
+        Task<EnumerationResult<Node>> ReadLeastConnected(
             Guid tenantGuid,
             Guid graphGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
             bool includeData = false,
             bool includeSubordinates = false,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>

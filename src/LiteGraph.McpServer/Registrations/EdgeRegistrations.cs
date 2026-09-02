@@ -76,7 +76,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "edge/all",
-                "Lists all edges in a graph",
+                "Lists all edges in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -85,7 +85,9 @@ namespace LiteGraph.McpServer.Registrations
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new[] { "tenantGuid", "graphGuid" }
                 },
@@ -98,7 +100,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                     Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadEdges(sdk, tenantGuid, graphGuid, order, skip, false, false);
+                    return ReadEdges(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), false, false);
                 });
 
             server.RegisterTool(
@@ -200,7 +202,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "edge/getmany",
-                "Reads multiple edges by their GUIDs",
+                "Reads multiple edges by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -209,6 +211,7 @@ namespace LiteGraph.McpServer.Registrations
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         edgeGuids = new { type = "array", items = new { type = "string" }, description = "Array of edge GUIDs" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         includeData = new { type = "boolean", description = "Include edge data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate objects (default: false)" }
                     },
@@ -225,7 +228,7 @@ namespace LiteGraph.McpServer.Registrations
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadEdgesByGuids(sdk, tenantGuid, graphGuid, guids, includeData, includeSubordinates);
+                    return ReadEdgesByGuids(sdk, tenantGuid, graphGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
@@ -257,7 +260,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "edge/nodeedges",
-                "Gets edges connected to a given node",
+                "Gets edges connected to a given node. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -268,6 +271,7 @@ namespace LiteGraph.McpServer.Registrations
                         nodeGuid = new { type = "string", description = "Node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         labels = new { type = "string", description = "Array of labels serialized as JSON string using Serializer (optional)" },
                         tags = new { type = "string", description = "Name-value collection serialized as JSON string using Serializer (optional)" },
                         edgeFilter = new { type = "string", description = "Edge filter expression serialized as JSON string using Serializer (optional)" },
@@ -307,12 +311,12 @@ namespace LiteGraph.McpServer.Registrations
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
 
-                    return ReadNodeEdges(sdk, tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, includeData, includeSubordinates);
+                    return ReadNodeEdges(sdk, tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "edge/fromnode",
-                "Gets edges from a given node",
+                "Gets edges from a given node. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -323,6 +327,7 @@ namespace LiteGraph.McpServer.Registrations
                         nodeGuid = new { type = "string", description = "Node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         includeData = new { type = "boolean", description = "Include edge data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate objects (default: false)" }
                     },
@@ -337,12 +342,12 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadEdgesFromNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, includeData, includeSubordinates);
+                    return ReadEdgesFromNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "edge/tonode",
-                "Gets edges to a given node",
+                "Gets edges to a given node. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -353,6 +358,7 @@ namespace LiteGraph.McpServer.Registrations
                         nodeGuid = new { type = "string", description = "Node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
                         includeData = new { type = "boolean", description = "Include edge data (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate objects (default: false)" }
                     },
@@ -367,12 +373,12 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadEdgesToNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, includeData, includeSubordinates);
+                    return ReadEdgesToNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "edge/betweennodes",
-                "Gets edges between two nodes",
+                "Gets edges between two nodes. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -383,7 +389,8 @@ namespace LiteGraph.McpServer.Registrations
                         fromNodeGuid = new { type = "string", description = "From node GUID" },
                         toNodeGuid = new { type = "string", description = "To node GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuid", "graphGuid", "fromNodeGuid", "toNodeGuid" }
                 },
@@ -395,7 +402,7 @@ namespace LiteGraph.McpServer.Registrations
                     Guid fromNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "fromNodeGuid");
                     Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                    return ReadEdgesBetweenNodes(sdk, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, order, skip);
+                    return ReadEdgesBetweenNodes(sdk, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
 
             server.RegisterTool(
@@ -526,7 +533,7 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "edge/readallintenant",
-                "Reads all edges in a tenant across all graphs",
+                "Reads all edges in a tenant across all graphs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -535,6 +542,8 @@ namespace LiteGraph.McpServer.Registrations
                         tenantGuid = new { type = "string", description = "Tenant GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
                         includeData = new { type = "boolean", description = "Include data property (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate properties (default: false)" }
                     },
@@ -547,12 +556,12 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadAllEdgesInTenant(sdk, tenantGuid, order, skip, includeData, includeSubordinates);
+                    return ReadAllEdgesInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
                 "edge/readallingraph",
-                "Reads all edges in a graph",
+                "Reads all edges in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
@@ -562,6 +571,8 @@ namespace LiteGraph.McpServer.Registrations
                         graphGuid = new { type = "string", description = "Graph GUID" },
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
                         skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
                         includeData = new { type = "boolean", description = "Include data property (default: false)" },
                         includeSubordinates = new { type = "boolean", description = "Include subordinate properties (default: false)" }
                     },
@@ -575,7 +586,7 @@ namespace LiteGraph.McpServer.Registrations
                     (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                     bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                     bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                    return ReadAllEdgesInGraph(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                    return ReadAllEdgesInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
                 });
 
             server.RegisterTool(
@@ -667,7 +678,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadEdges(sdk, tenantGuid, graphGuid, order, skip, false, false);
+                return ReadEdges(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), false, false);
             });
 
             server.RegisterMethod("edge/enumerate", (args) =>
@@ -726,7 +737,7 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadEdgesByGuids(sdk, tenantGuid, graphGuid, guids, includeData, includeSubordinates);
+                return ReadEdgesByGuids(sdk, tenantGuid, graphGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/createmany", (args) =>
@@ -773,7 +784,7 @@ namespace LiteGraph.McpServer.Registrations
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
 
-                return ReadNodeEdges(sdk, tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, includeData, includeSubordinates);
+                return ReadNodeEdges(sdk, tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/fromnode", (args) =>
@@ -785,7 +796,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadEdgesFromNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, includeData, includeSubordinates);
+                return ReadEdgesFromNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/tonode", (args) =>
@@ -797,7 +808,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadEdgesToNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, includeData, includeSubordinates);
+                return ReadEdgesToNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/betweennodes", (args) =>
@@ -808,7 +819,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid fromNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "fromNodeGuid");
                 Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadEdgesBetweenNodes(sdk, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, order, skip);
+                return ReadEdgesBetweenNodes(sdk, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("edge/search", (args) =>
@@ -871,7 +882,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadAllEdgesInTenant(sdk, tenantGuid, order, skip, includeData, includeSubordinates);
+                return ReadAllEdgesInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/readallingraph", (args) =>
@@ -882,7 +893,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadAllEdgesInGraph(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadAllEdgesInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/deleteallintenant", (args) =>
@@ -948,7 +959,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid tenantGuid = Guid.Parse(tenantGuidProp.GetString()!);
                 Guid graphGuid = Guid.Parse(graphGuidProp.GetString()!);
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadEdges(sdk, tenantGuid, graphGuid, order, skip, false, false);
+                return ReadEdges(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), false, false);
             });
 
             server.RegisterMethod("edge/enumerate", (args) =>
@@ -1007,7 +1018,7 @@ namespace LiteGraph.McpServer.Registrations
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadEdgesByGuids(sdk, tenantGuid, graphGuid, guids, includeData, includeSubordinates);
+                return ReadEdgesByGuids(sdk, tenantGuid, graphGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/createmany", (args) =>
@@ -1054,7 +1065,7 @@ namespace LiteGraph.McpServer.Registrations
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
 
-                return ReadNodeEdges(sdk, tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, includeData, includeSubordinates);
+                return ReadNodeEdges(sdk, tenantGuid, graphGuid, nodeGuid, labels, tags, edgeFilter, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/fromnode", (args) =>
@@ -1066,7 +1077,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadEdgesFromNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, includeData, includeSubordinates);
+                return ReadEdgesFromNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/tonode", (args) =>
@@ -1078,7 +1089,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadEdgesToNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, includeData, includeSubordinates);
+                return ReadEdgesToNode(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/betweennodes", (args) =>
@@ -1089,7 +1100,7 @@ namespace LiteGraph.McpServer.Registrations
                 Guid fromNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "fromNodeGuid");
                 Guid toNodeGuid = LiteGraphMcpServerHelpers.GetGuidRequired(args.Value, "toNodeGuid");
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
-                return ReadEdgesBetweenNodes(sdk, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, order, skip);
+                return ReadEdgesBetweenNodes(sdk, tenantGuid, graphGuid, fromNodeGuid, toNodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
             server.RegisterMethod("edge/search", (args) =>
@@ -1152,7 +1163,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadAllEdgesInTenant(sdk, tenantGuid, order, skip, includeData, includeSubordinates);
+                return ReadAllEdgesInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/readallingraph", (args) =>
@@ -1163,7 +1174,7 @@ namespace LiteGraph.McpServer.Registrations
                 (EnumerationOrderEnum order, int skip) = LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value);
                 bool includeData = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeData", false);
                 bool includeSubordinates = LiteGraphMcpServerHelpers.GetBoolOrDefault(args.Value, "includeSubordinates", false);
-                return ReadAllEdgesInGraph(sdk, tenantGuid, graphGuid, order, skip, includeData, includeSubordinates);
+                return ReadAllEdgesInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args), includeData, includeSubordinates);
             });
 
             server.RegisterMethod("edge/deleteallintenant", (args) =>
@@ -1237,13 +1248,15 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                EdgeCollectionPath(tenantGuid, graphGuid) + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                EdgeCollectionPath(tenantGuid, graphGuid) + BuildReadQuery(order, skip, maxResults, continuationToken, includeData, includeSubordinates));
         }
 
         private static string EnumerateEdges(LiteGraphSdk sdk, EnumerationRequest query)
@@ -1274,20 +1287,25 @@ namespace LiteGraph.McpServer.Registrations
             Guid tenantGuid,
             Guid graphGuid,
             List<Guid> edgeGuids,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
-            if (edgeGuids == null || edgeGuids.Count == 0) return Serializer.SerializeJson(new List<Edge>(), true);
+            if (edgeGuids == null) throw new ArgumentNullException(nameof(edgeGuids));
+            if (edgeGuids.Count == 0) throw new ArgumentException("At least one edge GUID is required.");
 
-            List<Edge> edges = new List<Edge>();
-            foreach (Guid edgeGuid in edgeGuids)
-            {
-                string edgeJson = ReadEdge(sdk, tenantGuid, graphGuid, edgeGuid, includeData, includeSubordinates);
-                Edge edge = Serializer.DeserializeJson<Edge>(edgeJson);
-                if (edge != null) edges.Add(edge);
-            }
-
-            return Serializer.SerializeJson(edges, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                EdgeCollectionPath(tenantGuid, graphGuid)
+                + "?guids="
+                + String.Join(",", edgeGuids)
+                + "&max-keys="
+                + maxResults
+                + "&incldata="
+                + includeData.ToString().ToLowerInvariant()
+                + "&inclsub="
+                + includeSubordinates.ToString().ToLowerInvariant());
         }
 
         private static string CreateEdges(LiteGraphSdk sdk, Guid tenantGuid, Guid graphGuid, List<Edge> edges)
@@ -1310,6 +1328,7 @@ namespace LiteGraph.McpServer.Registrations
             Expr? edgeFilter,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
@@ -1320,7 +1339,7 @@ namespace LiteGraph.McpServer.Registrations
                 return LiteGraphMcpRestProxy.SendJson(
                     sdk,
                     HttpMethod.Get,
-                    path + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                    path + BuildReadQuery(order, skip, maxResults, null, includeData, includeSubordinates));
             }
 
             SearchRequest request = new SearchRequest
@@ -1335,7 +1354,7 @@ namespace LiteGraph.McpServer.Registrations
             };
 
             string body = Serializer.SerializeJson(request, false);
-            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Post, path + BuildReadQuery(order, skip, includeData, includeSubordinates), body);
+            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Post, path + BuildReadQuery(order, skip, maxResults, null, includeData, includeSubordinates), body);
         }
 
         private static string ReadEdgesFromNode(
@@ -1345,13 +1364,14 @@ namespace LiteGraph.McpServer.Registrations
             Guid nodeGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodeEdgesPath(tenantGuid, graphGuid, nodeGuid) + "/from" + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                NodeEdgesPath(tenantGuid, graphGuid, nodeGuid) + "/from" + BuildReadQuery(order, skip, maxResults, null, includeData, includeSubordinates));
         }
 
         private static string ReadEdgesToNode(
@@ -1361,13 +1381,14 @@ namespace LiteGraph.McpServer.Registrations
             Guid nodeGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                NodeEdgesPath(tenantGuid, graphGuid, nodeGuid) + "/to" + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                NodeEdgesPath(tenantGuid, graphGuid, nodeGuid) + "/to" + BuildReadQuery(order, skip, maxResults, null, includeData, includeSubordinates));
         }
 
         private static string ReadEdgesBetweenNodes(
@@ -1377,7 +1398,8 @@ namespace LiteGraph.McpServer.Registrations
             Guid fromNodeGuid,
             Guid toNodeGuid,
             EnumerationOrderEnum order,
-            int skip)
+            int skip,
+            int maxResults)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
@@ -1390,7 +1412,9 @@ namespace LiteGraph.McpServer.Registrations
                 + "&order="
                 + LiteGraphMcpRestProxy.Escape(order.ToString())
                 + "&skip="
-                + skip);
+                + skip
+                + "&max-keys="
+                + maxResults);
         }
 
         private static string SearchEdges(LiteGraphSdk sdk, SearchRequest request)
@@ -1482,6 +1506,8 @@ namespace LiteGraph.McpServer.Registrations
             Guid tenantGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
@@ -1491,7 +1517,7 @@ namespace LiteGraph.McpServer.Registrations
                 "/v1.0/tenants/"
                 + LiteGraphMcpRestProxy.Escape(tenantGuid)
                 + "/edges/all"
-                + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                + BuildReadQuery(order, skip, maxResults, continuationToken, includeData, includeSubordinates));
         }
 
         private static string ReadAllEdgesInGraph(
@@ -1500,13 +1526,15 @@ namespace LiteGraph.McpServer.Registrations
             Guid graphGuid,
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
             return LiteGraphMcpRestProxy.SendJson(
                 sdk,
                 HttpMethod.Get,
-                EdgeCollectionPath(tenantGuid, graphGuid) + "/all" + BuildReadQuery(order, skip, includeData, includeSubordinates));
+                EdgeCollectionPath(tenantGuid, graphGuid) + "/all" + BuildReadQuery(order, skip, maxResults, continuationToken, includeData, includeSubordinates));
         }
 
         private static void DeleteAllEdgesInTenant(LiteGraphSdk sdk, Guid tenantGuid)
@@ -1563,15 +1591,19 @@ namespace LiteGraph.McpServer.Registrations
         private static string BuildReadQuery(
             EnumerationOrderEnum order,
             int skip,
+            int maxResults,
+            Guid? continuationToken,
             bool includeData,
             bool includeSubordinates)
         {
             List<string> query = new List<string>
             {
                 "order=" + LiteGraphMcpRestProxy.Escape(order.ToString()),
-                "skip=" + skip
+                "skip=" + skip,
+                "max-keys=" + maxResults
             };
 
+            if (continuationToken != null) query.Add("token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value));
             if (includeData) query.Add("incldata=true");
             if (includeSubordinates) query.Add("inclsub=true");
 

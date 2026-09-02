@@ -7,8 +7,9 @@ from pydantic import BaseModel
 from .configuration import get_client
 from .enums.severity_enum import Severity_Enum
 from .exceptions import GRAPH_REQUIRED_ERROR, TENANT_REQUIRED_ERROR, SdkException
+from .models.enumeration_result import EnumerationResultModel, parse_enumeration_result
 from .sdk_logging import log_error
-from .utils.url_helper import _get_url
+from .utils.url_helper import _get_url, _pagination_params
 
 JSON_CONTENT_TYPE = {"Content-Type": "application/json"}
 
@@ -354,9 +355,28 @@ class AllRetrievableAPIResource:
     REQUIRE_TENANT: bool = True
 
     @classmethod
-    def retrieve_all(cls) -> list["BaseModel"]:
+    def retrieve_all(
+        cls,
+        max_keys: Optional[int] = None,
+        skip: Optional[int] = None,
+        order: Optional[str] = None,
+        continuation_token: Optional[str] = None,
+    ) -> EnumerationResultModel:
         """
-        Retrieve all instances of the resource.
+        Retrieve instances of the resource as a paginated EnumerationResult envelope.
+
+        Args:
+            max_keys (int, optional): Maximum number of results (1-1000,
+                server default 1000). Maps to the ``max-keys`` query parameter.
+            skip (int, optional): Number of records to skip (server default 0).
+            order (str | EnumerationOrder_Enum, optional): Enumeration order.
+            continuation_token (str, optional): Continuation token GUID from a
+                previous page. Maps to the ``token`` query parameter.
+
+        Returns:
+            EnumerationResultModel: Envelope whose ``objects`` are validated
+            against MODEL when defined; also carries ``total_records``,
+            ``records_remaining``, ``continuation_token``, and ``end_of_results``.
         """
         client = get_client()
         if cls.REQUIRE_TENANT and client.tenant_guid is None:
@@ -365,18 +385,15 @@ class AllRetrievableAPIResource:
         if cls.REQUIRE_GRAPH_GUID and not graph_id:
             raise ValueError(GRAPH_REQUIRED_ERROR)
         tenant = client.tenant_guid if cls.REQUIRE_TENANT else None
+        params = _pagination_params(max_keys, skip, order, continuation_token)
         url = (
-            _get_url(cls, tenant, graph_id)
+            _get_url(cls, tenant, graph_id, **params)
             if graph_id and cls.REQUIRE_GRAPH_GUID
-            else _get_url(cls, tenant)
+            else _get_url(cls, tenant, **params)
         )
         instances = client.request("GET", url)
 
-        return (
-            [cls.MODEL.model_validate(instance) for instance in instances]
-            if cls.MODEL
-            else instances
-        )
+        return parse_enumeration_result(instances, cls.MODEL)
 
 
 class SearchableAPIResource:

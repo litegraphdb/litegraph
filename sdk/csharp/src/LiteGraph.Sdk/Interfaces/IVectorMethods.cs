@@ -55,13 +55,17 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">Number of records to skip.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vectors.</returns>
-        Task<List<VectorMetadata>> ReadMany(
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -79,8 +83,8 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="guids">GUIDs.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        Task<List<VectorMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadByGuids(Guid tenantGuid, List<Guid> guids, CancellationToken token = default);
 
         /// <summary>
         /// Update a vector.
@@ -122,11 +126,11 @@
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="searchReq">Search request.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vector search result.</returns>
-        Task<List<VectorSearchResult>> SearchVectors(
+        /// <returns>Enumeration result containing vector search results.</returns>
+        Task<EnumerationResult<VectorSearchResult>> SearchVectors(
             Guid tenantGuid,
-            Guid? graphGuid, 
-            VectorSearchRequest searchReq, 
+            Guid? graphGuid,
+            VectorSearchRequest searchReq,
             CancellationToken token = default);
 
         /// <summary>
@@ -141,27 +145,59 @@
         /// Read all vectors across tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vectors.</returns>
-        Task<List<VectorMetadata>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadAllInTenant(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read all vectors in specific graph.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vectors.</returns>
-        Task<List<VectorMetadata>> ReadAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadAllInGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read vectors attached to graph object.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vectors.</returns>
-        Task<List<VectorMetadata>> ReadManyGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadManyGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read vectors attached to specific node.
@@ -169,9 +205,21 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="nodeGuid">Node GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vectors.</returns>
-        Task<List<VectorMetadata>> ReadManyNode(Guid tenantGuid, Guid graphGuid, Guid nodeGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadManyNode(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid nodeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Read vectors attached to specific edge.
@@ -179,9 +227,21 @@
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="graphGuid">Graph GUID.</param>
         /// <param name="edgeGuid">Edge GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">Number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Vectors.</returns>
-        Task<List<VectorMetadata>> ReadManyEdge(Guid tenantGuid, Guid graphGuid, Guid edgeGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing vectors.</returns>
+        Task<EnumerationResult<VectorMetadata>> ReadManyEdge(
+            Guid tenantGuid,
+            Guid graphGuid,
+            Guid edgeGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Delete all vectors in tenant.

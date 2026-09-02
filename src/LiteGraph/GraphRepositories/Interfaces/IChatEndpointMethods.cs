@@ -46,23 +46,26 @@ namespace LiteGraph.GraphRepositories.Interfaces
         Task<ChatEndpoint> ReadByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default);
 
         /// <summary>
-        /// Enumerate chat endpoints.
+        /// Enumerate chat endpoints, optionally filtered by endpoint type.
         /// </summary>
         /// <param name="query">Enumeration query.</param>
+        /// <param name="endpointType">Endpoint type filter.  Null returns all types.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Enumeration result containing a page of objects.</returns>
-        Task<EnumerationResult<ChatEndpoint>> Enumerate(EnumerationRequest query, CancellationToken token = default);
+        Task<EnumerationResult<ChatEndpoint>> Enumerate(EnumerationRequest query, ChatEndpointTypeEnum? endpointType = null, CancellationToken token = default);
 
         /// <summary>
         /// Get the record count.  Optionally supply a marker object GUID to indicate that only records from that marker record should be counted.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="endpointType">Endpoint type filter.  Null counts all types.</param>
         /// <param name="order">Enumeration order.</param>
         /// <param name="markerGuid">Marker GUID.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Number of records.</returns>
         Task<int> GetRecordCount(
             Guid? tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Guid? markerGuid = null,
             CancellationToken token = default);

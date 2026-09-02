@@ -16,9 +16,19 @@ jest.mock('react-hot-toast', () => ({
   default: { error: jest.fn(), success: jest.fn() },
 }));
 
+// List hooks now return the EnumerationResult envelope rather than bare arrays.
+const mockEnvelope = (objects: unknown[]) => ({
+  Success: true,
+  MaxResults: 1000,
+  EndOfResults: true,
+  TotalRecords: objects.length,
+  RecordsRemaining: 0,
+  Objects: objects,
+});
+
 jest.mock('@/lib/store/slice/slice', () => ({
   useListChatFeedbackQuery: () => ({
-    data: [
+    data: mockEnvelope([
       {
         GUID: 'feedback-1',
         TenantGUID: 'tenant-1',
@@ -29,7 +39,7 @@ jest.mock('@/lib/store/slice/slice', () => ({
         FeedbackText: 'Great answer',
         CreatedUtc: '2026-01-15T10:00:00Z',
       },
-    ],
+    ]),
     isLoading: false,
     isFetching: false,
     error: undefined,
@@ -37,16 +47,16 @@ jest.mock('@/lib/store/slice/slice', () => ({
   }),
   useDeleteChatFeedbackMutation: () => [jest.fn(), { isLoading: false }],
   useGetAllUsersQuery: () => ({
-    data: [
+    data: mockEnvelope([
       {
         GUID: 'user-1',
         Email: 'jane@example.com',
         FirstName: 'Jane',
         LastName: 'Doe',
       },
-    ],
+    ]),
   }),
-  useListChatThreadTurnsQuery: () => ({ data: [], isLoading: false }),
+  useListChatThreadTurnsQuery: () => ({ data: mockEnvelope([]), isLoading: false }),
 }));
 
 describe('FeedbackPage', () => {

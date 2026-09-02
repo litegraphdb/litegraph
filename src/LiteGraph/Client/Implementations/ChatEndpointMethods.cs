@@ -80,22 +80,23 @@ namespace LiteGraph.Client.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<EnumerationResult<ChatEndpoint>> Enumerate(EnumerationRequest query, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatEndpoint>> Enumerate(EnumerationRequest query, ChatEndpointTypeEnum? endpointType = null, CancellationToken token = default)
         {
-            if (query == null) throw new ArgumentNullException(nameof(query));
+            if (query == null) query = new EnumerationRequest();
             token.ThrowIfCancellationRequested();
-            return await _Repo.ChatEndpoint.Enumerate(query, token).ConfigureAwait(false);
+            return await _Repo.ChatEndpoint.Enumerate(query, endpointType, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<int> GetRecordCount(
             Guid? tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             Guid? markerGuid = null,
             CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            return await _Repo.ChatEndpoint.GetRecordCount(tenantGuid, order, markerGuid, token).ConfigureAwait(false);
+            return await _Repo.ChatEndpoint.GetRecordCount(tenantGuid, endpointType, order, markerGuid, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

@@ -1,3 +1,4 @@
+import type { EnumerateResponse } from 'litegraphdb/dist/types/types';
 import { sdk } from './litegraph.service';
 
 /** Provider types supported by chat endpoints. */
@@ -266,13 +267,16 @@ const request = async <T>(method: string, url: string, body?: unknown): Promise<
 
 // region Endpoints
 
-/** List chat endpoints, optionally filtered by type (admin only). */
+/** List chat endpoints, optionally filtered by type (admin only). Returns the enumeration envelope. */
 export const listChatEndpoints = (
   tenantGuid: string,
   endpointType?: ChatEndpointType
-): Promise<ChatEndpoint[]> => {
-  const query = endpointType ? `?endpointType=${endpointType}` : '';
-  return request<ChatEndpoint[]>('GET', `${tenantBase(tenantGuid)}/chat/endpoints${query}`);
+): Promise<EnumerateResponse<ChatEndpoint>> => {
+  const query = endpointType ? `?max-keys=1000&endpointType=${endpointType}` : '?max-keys=1000';
+  return request<EnumerateResponse<ChatEndpoint>>(
+    'GET',
+    `${tenantBase(tenantGuid)}/chat/endpoints${query}`
+  );
 };
 
 /** Create a chat endpoint (admin only). */
@@ -317,9 +321,14 @@ export const testChatEndpoint = (
     `${tenantBase(tenantGuid)}/chat/endpoints/${encodeURIComponent(endpointGuid)}/test`
   );
 
-/** List health snapshots for every chat endpoint (admin only). */
-export const listChatEndpointHealth = (tenantGuid: string): Promise<ChatEndpointHealth[]> =>
-  request<ChatEndpointHealth[]>('GET', `${tenantBase(tenantGuid)}/chat/endpoints/health`);
+/** List health snapshots for every chat endpoint (admin only). Returns the enumeration envelope. */
+export const listChatEndpointHealth = (
+  tenantGuid: string
+): Promise<EnumerateResponse<ChatEndpointHealth>> =>
+  request<EnumerateResponse<ChatEndpointHealth>>(
+    'GET',
+    `${tenantBase(tenantGuid)}/chat/endpoints/health?max-keys=1000`
+  );
 
 /** Read health for one chat endpoint (admin only). */
 export const readChatEndpointHealth = (
@@ -345,17 +354,26 @@ export type ChatModelSummary = {
   IsDefault: boolean;
 };
 
-/** List selectable chat models (any tenant member); active endpoints only, no secrets. */
-export const listChatModels = (tenantGuid: string): Promise<ChatModelSummary[]> =>
-  request<ChatModelSummary[]>('GET', `${tenantBase(tenantGuid)}/chat/models`);
+/** List selectable chat models (any tenant member); active endpoints only, no secrets. Returns the enumeration envelope. */
+export const listChatModels = (tenantGuid: string): Promise<EnumerateResponse<ChatModelSummary>> =>
+  request<EnumerateResponse<ChatModelSummary>>(
+    'GET',
+    `${tenantBase(tenantGuid)}/chat/models?max-keys=1000`
+  );
 
 // endregion
 
 // region Threads
 
-/** List chat threads; `all` returns every user's thread (admin only). */
-export const listChatThreads = (tenantGuid: string, all?: boolean): Promise<ChatThread[]> =>
-  request<ChatThread[]>('GET', `${tenantBase(tenantGuid)}/chat/threads${all ? '?all' : ''}`);
+/** List chat threads; `all` returns every user's thread (admin only). Returns the enumeration envelope. */
+export const listChatThreads = (
+  tenantGuid: string,
+  all?: boolean
+): Promise<EnumerateResponse<ChatThread>> =>
+  request<EnumerateResponse<ChatThread>>(
+    'GET',
+    `${tenantBase(tenantGuid)}/chat/threads?max-keys=1000${all ? '&all' : ''}`
+  );
 
 /** Create a chat thread, optionally bound to a graph. */
 export const createChatThread = (
@@ -371,11 +389,14 @@ export const readChatThread = (tenantGuid: string, threadGuid: string): Promise<
     `${tenantBase(tenantGuid)}/chat/threads/${encodeURIComponent(threadGuid)}`
   );
 
-/** Read all turns of a thread, ascending by sequence. */
-export const listChatThreadTurns = (tenantGuid: string, threadGuid: string): Promise<ChatTurn[]> =>
-  request<ChatTurn[]>(
+/** Read all turns of a thread, ascending by sequence. Returns the enumeration envelope. */
+export const listChatThreadTurns = (
+  tenantGuid: string,
+  threadGuid: string
+): Promise<EnumerateResponse<ChatTurn>> =>
+  request<EnumerateResponse<ChatTurn>>(
     'GET',
-    `${tenantBase(tenantGuid)}/chat/threads/${encodeURIComponent(threadGuid)}/turns`
+    `${tenantBase(tenantGuid)}/chat/threads/${encodeURIComponent(threadGuid)}/turns?max-keys=1000`
   );
 
 /** Rename a chat thread (owner or admin); only Title is honored. */
@@ -413,9 +434,12 @@ export const submitChatFeedback = (
     body
   );
 
-/** List all feedback for the tenant (admin only). */
-export const listChatFeedback = (tenantGuid: string): Promise<ChatFeedback[]> =>
-  request<ChatFeedback[]>('GET', `${tenantBase(tenantGuid)}/chat/feedback`);
+/** List all feedback for the tenant (admin only). Returns the enumeration envelope. */
+export const listChatFeedback = (tenantGuid: string): Promise<EnumerateResponse<ChatFeedback>> =>
+  request<EnumerateResponse<ChatFeedback>>(
+    'GET',
+    `${tenantBase(tenantGuid)}/chat/feedback?max-keys=1000`
+  );
 
 /** Read one feedback record (admin only). */
 export const readChatFeedback = (tenantGuid: string, feedbackGuid: string): Promise<ChatFeedback> =>

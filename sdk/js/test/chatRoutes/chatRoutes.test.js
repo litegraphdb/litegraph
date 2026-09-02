@@ -63,16 +63,18 @@ describe('chatRoute Tests', () => {
 
     test('should read all chat endpoints', async () => {
       const response = await api.readChatEndpoints(mockTenantId);
-      response.forEach((endpoint) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      expect(response.TotalRecords).toBe(1);
+      response.Objects.forEach((endpoint) => {
         expect(endpoint instanceof ChatEndpoint).toBe(true);
       });
     });
 
     test('should read chat endpoints filtered by endpoint type', async () => {
       const completions = await api.readChatEndpoints(mockTenantId, 'Completion');
-      expect(completions.length).toBe(1);
+      expect(completions.Objects.length).toBe(1);
       const embeddings = await api.readChatEndpoints(mockTenantId, 'Embedding');
-      expect(embeddings.length).toBe(0);
+      expect(embeddings.Objects.length).toBe(0);
     });
 
     test('should read a specific chat endpoint by GUID', async () => {
@@ -187,7 +189,8 @@ describe('chatRoute Tests', () => {
 
     test('should read health for all chat endpoints', async () => {
       const response = await api.readAllChatEndpointHealth(mockTenantId);
-      response.forEach((health) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((health) => {
         expect(health instanceof ChatEndpointHealth).toBe(true);
       });
     });
@@ -196,15 +199,16 @@ describe('chatRoute Tests', () => {
   describe('Chat Model Catalog Routes', () => {
     test('should read the model catalog', async () => {
       const response = await api.readChatModels(mockTenantId);
-      response.forEach((summary) => {
+      response.Objects.forEach((summary) => {
         expect(summary instanceof ChatModelSummary).toBe(true);
       });
-      expect(response.length).toBe(1);
-      expect(response[0].GUID).toBe(mockChatEndpointGuid);
-      expect(response[0].Model).toBe('gpt-4o-mini');
-      expect(response[0].Provider).toBe('OpenAI');
-      expect(response[0].EndpointType).toBe('Completion');
-      expect(response[0].IsDefault).toBe(true);
+      expect(response.TotalRecords).toBe(1);
+      expect(response.Objects.length).toBe(1);
+      expect(response.Objects[0].GUID).toBe(mockChatEndpointGuid);
+      expect(response.Objects[0].Model).toBe('gpt-4o-mini');
+      expect(response.Objects[0].Provider).toBe('OpenAI');
+      expect(response.Objects[0].EndpointType).toBe('Completion');
+      expect(response.Objects[0].IsDefault).toBe(true);
     });
 
     it('throws error when reading the model catalog without a tenant GUID', async () => {
@@ -231,14 +235,16 @@ describe('chatRoute Tests', () => {
 
     test('should read chat threads', async () => {
       const response = await api.readChatThreads(mockTenantId);
-      response.forEach((thread) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((thread) => {
         expect(thread instanceof ChatThread).toBe(true);
       });
     });
 
     test('should read all users chat threads', async () => {
       const response = await api.readChatThreads(mockTenantId, true);
-      expect(response.length).toBe(1);
+      expect(response.Objects.length).toBe(1);
+      expect(response.TotalRecords).toBe(1);
     });
 
     test('should read a specific chat thread by GUID', async () => {
@@ -249,11 +255,12 @@ describe('chatRoute Tests', () => {
 
     test('should read turns of a chat thread', async () => {
       const response = await api.readChatThreadTurns(mockTenantId, mockThreadGuid);
-      response.forEach((turn) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((turn) => {
         expect(turn instanceof ChatTurn).toBe(true);
       });
-      expect(response[0].GUID).toBe(mockTurnGuid);
-      expect(response[0].ThreadGUID).toBe(mockThreadGuid);
+      expect(response.Objects[0].GUID).toBe(mockTurnGuid);
+      expect(response.Objects[0].ThreadGUID).toBe(mockThreadGuid);
     });
 
     test('should update a chat thread title', async () => {
@@ -398,7 +405,8 @@ describe('chatRoute Tests', () => {
 
     test('should read all chat feedback', async () => {
       const response = await api.readAllChatFeedback(mockTenantId);
-      response.forEach((feedback) => {
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.forEach((feedback) => {
         expect(feedback instanceof ChatFeedback).toBe(true);
       });
     });

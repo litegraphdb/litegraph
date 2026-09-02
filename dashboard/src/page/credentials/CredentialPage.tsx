@@ -24,7 +24,8 @@ const CredentialPage = () => {
   const [isAddEditCredentialVisible, setIsAddEditCredentialVisible] = useState<boolean>(false);
   const [isDeleteModelVisible, setIsDeleteModelVisible] = useState<boolean>(false);
   const [jsonViewRecord, setJsonViewRecord] = useState<any>(null);
-  const { data: usersList = [], isLoading: isUsersLoading } = useGetAllUsersQuery();
+  const { data: usersEnvelope, isLoading: isUsersLoading } = useGetAllUsersQuery();
+  const usersList = usersEnvelope?.Objects ?? [];
   const { skip, page, pageSize, handlePageChange } = usePagination();
 
   const {

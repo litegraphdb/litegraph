@@ -24,13 +24,17 @@
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
         /// <param name="order">Enumeration order.</param>
-        /// <param name="skip">The number of records to skip.</param>
+        /// <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Graphs.</returns>
-        Task<List<Graph>> ReadMany(
+        /// <returns>Enumeration result containing graphs.</returns>
+        Task<EnumerationResult<Graph>> ReadMany(
             Guid tenantGuid,
             EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
             int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
             CancellationToken token = default);
 
         /// <summary>
@@ -52,8 +56,8 @@
         /// <param name="includeData">Boolean indicating whether the object's data property should be included.</param>
         /// <param name="includeSubordinates">Boolean indicating whether the object's subordinate properties (labels, tags, vectors) should be included.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>List.</returns>
-        Task<List<Graph>> ReadByGuids(Guid tenantGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default);
+        /// <returns>Enumeration result containing graphs.</returns>
+        Task<EnumerationResult<Graph>> ReadByGuids(Guid tenantGuid, List<Guid> guids, bool includeData = false, bool includeSubordinates = false, CancellationToken token = default);
 
         /// <summary>
         /// Update a graph.
@@ -301,9 +305,19 @@
         /// Read all graphs in tenant.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="order">Enumeration order.</param>
+        /// <param name="skip">The number of records to skip.  Minimum is 0.  Default is 0.</param>
+        /// <param name="maxKeys">Maximum number of records to retrieve.  Minimum is 1, maximum is 1000.  Default is 1000.</param>
+        /// <param name="continuationToken">Continuation token from a prior enumeration result, used to continue the enumeration.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Graphs.</returns>
-        Task<List<Graph>> ReadAllInTenant(Guid tenantGuid, CancellationToken token = default);
+        /// <returns>Enumeration result containing graphs.</returns>
+        Task<EnumerationResult<Graph>> ReadAllInTenant(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default);
 
         /// <summary>
         /// Delete all graphs in tenant.

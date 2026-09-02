@@ -67,14 +67,16 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "tenant/all",
-                "Lists all tenants",
+                "Lists all tenants. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
                         order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" }
+                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
+                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
                     },
                     required = new string[] { }
                 },
@@ -84,7 +86,7 @@ namespace LiteGraph.McpServer.Registrations
                         ? LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value)
                         : (EnumerationOrderEnum.CreatedDescending, 0);
                     
-                    return ReadTenants(sdk, order, skip);
+                    return ReadTenants(sdk, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
                 });
 
             server.RegisterTool(
@@ -213,13 +215,14 @@ namespace LiteGraph.McpServer.Registrations
 
             server.RegisterTool(
                 "tenant/getmany",
-                "Reads multiple tenants by their GUIDs",
+                "Reads multiple tenants by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
                     type = "object",
                     properties = new
                     {
-                        tenantGuids = new { type = "array", items = new { type = "string" }, description = "Array of tenant GUIDs" }
+                        tenantGuids = new { type = "array", items = new { type = "string" }, description = "Array of tenant GUIDs" },
+                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
                     },
                     required = new[] { "tenantGuids" }
                 },
@@ -229,7 +232,7 @@ namespace LiteGraph.McpServer.Registrations
                         throw new ArgumentException("Tenant GUIDs array is required");
                     
                     List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                    return ReadTenantsByGuids(sdk, guids);
+                    return ReadTenantsByGuids(sdk, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
                 });
         }
 
@@ -269,7 +272,7 @@ namespace LiteGraph.McpServer.Registrations
                     ? LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value)
                     : (EnumerationOrderEnum.CreatedDescending, 0);
                 
-                return ReadTenants(sdk, order, skip);
+                return ReadTenants(sdk, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("tenant/update", (args) =>
@@ -330,7 +333,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadTenantsByGuids(sdk, guids);
+                return ReadTenantsByGuids(sdk, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
         }
 
@@ -370,7 +373,7 @@ namespace LiteGraph.McpServer.Registrations
                     ? LiteGraphMcpServerHelpers.GetEnumerationParams(args.Value)
                     : (EnumerationOrderEnum.CreatedDescending, 0);
                 
-                return ReadTenants(sdk, order, skip);
+                return ReadTenants(sdk, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
             server.RegisterMethod("tenant/update", (args) =>
@@ -431,7 +434,7 @@ namespace LiteGraph.McpServer.Registrations
                     throw new ArgumentException("Tenant GUIDs array is required");
                 
                 List<Guid> guids = Serializer.DeserializeJson<List<Guid>>(guidsProp.GetRawText());
-                return ReadTenantsByGuids(sdk, guids);
+                return ReadTenantsByGuids(sdk, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
         }
 
@@ -455,15 +458,18 @@ namespace LiteGraph.McpServer.Registrations
                 "/v1.0/tenants/" + LiteGraphMcpRestProxy.Escape(tenantGuid));
         }
 
-        private static string ReadTenants(LiteGraphSdk sdk, EnumerationOrderEnum order, int skip)
+        private static string ReadTenants(LiteGraphSdk sdk, EnumerationOrderEnum order, int skip, int maxResults, Guid? continuationToken)
         {
-            return LiteGraphMcpRestProxy.SendJson(
-                sdk,
-                HttpMethod.Get,
-                "/v1.0/tenants?order="
+            string url = "/v1.0/tenants?order="
                 + LiteGraphMcpRestProxy.Escape(order.ToString())
                 + "&skip="
-                + skip);
+                + skip
+                + "&max-keys="
+                + maxResults;
+
+            if (continuationToken != null) url += "&token=" + LiteGraphMcpRestProxy.Escape(continuationToken.Value);
+
+            return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Get, url);
         }
 
         private static string EnumerateTenants(LiteGraphSdk sdk, EnumerationRequest query)
@@ -494,19 +500,18 @@ namespace LiteGraph.McpServer.Registrations
             return LiteGraphMcpRestProxy.SendJson(sdk, HttpMethod.Get, "/v1.0/tenants/stats");
         }
 
-        private static string ReadTenantsByGuids(LiteGraphSdk sdk, List<Guid> guids)
+        private static string ReadTenantsByGuids(LiteGraphSdk sdk, List<Guid> guids, int maxResults)
         {
             if (guids == null) throw new ArgumentNullException(nameof(guids));
+            if (guids.Count == 0) throw new ArgumentException("At least one tenant GUID is required.");
 
-            List<TenantMetadata> tenants = new List<TenantMetadata>();
-            foreach (Guid guid in guids)
-            {
-                string body = ReadTenant(sdk, guid);
-                TenantMetadata tenant = Serializer.DeserializeJson<TenantMetadata>(body);
-                if (tenant != null) tenants.Add(tenant);
-            }
-
-            return Serializer.SerializeJson(tenants, true);
+            return LiteGraphMcpRestProxy.SendJson(
+                sdk,
+                HttpMethod.Get,
+                "/v1.0/tenants?guids="
+                + String.Join(",", guids)
+                + "&max-keys="
+                + maxResults);
         }
 
         private static string UpdateTenant(LiteGraphSdk sdk, TenantMetadata tenant)

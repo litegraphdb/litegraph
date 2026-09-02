@@ -49,11 +49,21 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<List<ChatEndpoint>> ReadEndpoints(Guid tenantGuid, ChatEndpointTypeEnum? endpointType = null, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatEndpoint>> ReadEndpoints(
+            Guid tenantGuid,
+            ChatEndpointTypeEnum? endpointType = null,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints";
-            if (endpointType != null) url += "?endpointType=" + endpointType.Value.ToString();
-            return await _Sdk.GetMany<ChatEndpoint>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (endpointType != null) url += "&endpointType=" + endpointType.Value.ToString();
+            return await _Sdk.GetEnumeration<ChatEndpoint>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -100,17 +110,33 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<List<ChatEndpointHealth>> ReadAllEndpointHealth(Guid tenantGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatEndpointHealth>> ReadAllEndpointHealth(
+            Guid tenantGuid,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints/health";
-            return await _Sdk.GetMany<ChatEndpointHealth>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints/health?max-keys=" + maxKeys + "&skip=" + skip;
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<ChatEndpointHealth>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<List<ChatModelSummary>> ReadModels(Guid tenantGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatModelSummary>> ReadModels(
+            Guid tenantGuid,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/models";
-            return await _Sdk.GetMany<ChatModelSummary>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/models?max-keys=" + maxKeys + "&skip=" + skip;
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<ChatModelSummary>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -122,11 +148,21 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<List<ChatThread>> ReadThreads(Guid tenantGuid, bool allUsers = false, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatThread>> ReadThreads(
+            Guid tenantGuid,
+            bool allUsers = false,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/threads";
-            if (allUsers) url += "?all";
-            return await _Sdk.GetMany<ChatThread>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/threads?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            if (allUsers) url += "&all";
+            return await _Sdk.GetEnumeration<ChatThread>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -152,10 +188,20 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<List<ChatTurn>> ReadThreadTurns(Guid tenantGuid, Guid threadGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatTurn>> ReadThreadTurns(
+            Guid tenantGuid,
+            Guid threadGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/threads/" + threadGuid + "/turns";
-            return await _Sdk.GetMany<ChatTurn>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/threads/" + threadGuid + "/turns?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<ChatTurn>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -198,10 +244,19 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<List<ChatFeedback>> ReadFeedback(Guid tenantGuid, CancellationToken token = default)
+        public async Task<EnumerationResult<ChatFeedback>> ReadFeedback(
+            Guid tenantGuid,
+            EnumerationOrderEnum order = EnumerationOrderEnum.CreatedDescending,
+            int skip = 0,
+            int maxKeys = 1000,
+            Guid? continuationToken = null,
+            CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/feedback";
-            return await _Sdk.GetMany<ChatFeedback>(url, token).ConfigureAwait(false);
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (maxKeys < 1 || maxKeys > 1000) throw new ArgumentOutOfRangeException(nameof(maxKeys));
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/feedback?max-keys=" + maxKeys + "&skip=" + skip + "&order=" + order.ToString();
+            if (continuationToken != null) url += "&token=" + continuationToken.Value;
+            return await _Sdk.GetEnumeration<ChatFeedback>(url, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

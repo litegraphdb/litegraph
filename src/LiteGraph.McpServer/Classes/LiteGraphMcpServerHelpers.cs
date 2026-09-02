@@ -82,6 +82,28 @@ namespace LiteGraph.McpServer.Classes
             int skip = GetIntOrDefault(element, "skip", defaultSkip);
             return (order, skip);
         }
+
+        /// <summary>
+        /// Gets the maxResults parameter from an optional JSON element.
+        /// Returns 1000 when not present or outside the 1-1000 range.
+        /// </summary>
+        public static int GetMaxResults(JsonElement? element)
+        {
+            if (element == null) return 1000;
+            int value = GetIntOrDefault(element.Value, "maxResults", 1000);
+            if (value < 1 || value > 1000) value = 1000;
+            return value;
+        }
+
+        /// <summary>
+        /// Gets the continuationToken parameter (GUID) from an optional JSON element.
+        /// Returns null when not present or invalid.
+        /// </summary>
+        public static Guid? GetContinuationToken(JsonElement? element)
+        {
+            if (element == null) return null;
+            return GetGuidOptional(element.Value, "continuationToken");
+        }
     }
 }
 

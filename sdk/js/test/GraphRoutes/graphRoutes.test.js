@@ -55,7 +55,9 @@ describe('GraphRoute Tests', () => {
 
     test('should read all graphs', async () => {
       const response = await api.readGraphs();
-      response.map((graph) => {
+      expect(response.TotalRecords).toBe(2);
+      expect(Array.isArray(response.Objects)).toBe(true);
+      response.Objects.map((graph) => {
         expect(JSON.stringify(graph)).toBe(JSON.stringify(new Graph(graphData[graph.GUID])));
       });
     });

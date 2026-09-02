@@ -79,8 +79,16 @@ describe('LiteGraph Service', () => {
 
   describe('useGetTenants', () => {
     it('should fetch tenants successfully', async () => {
+      // The server returns the EnumerationResult envelope; the hook unwraps Objects.
       const mockTenants = [{ id: '1', name: 'Tenant 1' }];
-      (sdk.Tenant.readAll as jest.Mock).mockResolvedValue(mockTenants);
+      (sdk.Tenant.readAll as jest.Mock).mockResolvedValue({
+        Success: true,
+        MaxResults: 1000,
+        EndOfResults: true,
+        TotalRecords: mockTenants.length,
+        RecordsRemaining: 0,
+        Objects: mockTenants,
+      });
 
       const { result } = renderHook(() => useGetTenants());
 

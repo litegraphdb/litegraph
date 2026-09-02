@@ -169,7 +169,7 @@ namespace LiteGraph.Server.API.REST
 
             ctx.Response.StatusCode = 200;
             ctx.Response.ContentType = Constants.JsonContentType;
-            await ctx.Response.Send(_Serializer.SerializeJson(_ChatHealth.GetTenantHealth(req.TenantGUID.Value), true));
+            await ctx.Response.Send(_Serializer.SerializeJson(EnumerationResultBuilder.FromList(_ChatHealth.GetTenantHealth(req.TenantGUID.Value), req.Skip, req.MaxKeys), true));
         }
 
         private async Task ChatEndpointHealthReadRoute(HttpContextBase ctx)

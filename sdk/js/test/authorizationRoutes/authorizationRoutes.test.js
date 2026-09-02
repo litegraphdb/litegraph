@@ -1,10 +1,10 @@
 import {
   AuthorizationEffectivePermissionsResult,
   AuthorizationRole,
-  AuthorizationRoleSearchResult,
   CredentialScopeAssignment,
   UserRoleAssignment,
 } from '../../src/models/AuthorizationModels';
+import EnumerationResult from '../../src/models/EnumerationResult';
 import { api } from '../setupTest';
 
 describe('AuthorizationRoute Tests', () => {
@@ -13,7 +13,13 @@ describe('AuthorizationRoute Tests', () => {
   });
 
   test('lists authorization roles with built-ins included by default', async () => {
-    jest.spyOn(api, 'get').mockImplementation(async (url, model) => new model({
+    jest.spyOn(api, 'getMany').mockImplementation(async (url, model) => new EnumerationResult({
+      Success: true,
+      MaxResults: 1000,
+      ContinuationToken: null,
+      EndOfResults: true,
+      TotalRecords: 1,
+      RecordsRemaining: 0,
       Objects: [
         {
           GUID: 'role-1',
@@ -24,20 +30,17 @@ describe('AuthorizationRoute Tests', () => {
           ResourceTypes: ['Graph'],
         },
       ],
-      Page: 0,
-      PageSize: 1000,
-      TotalCount: 1,
-      TotalPages: 1,
-    }));
+    }, model));
 
     const result = await api.listAuthorizationRoles();
 
-    expect(result instanceof AuthorizationRoleSearchResult).toBe(true);
+    expect(result instanceof EnumerationResult).toBe(true);
+    expect(result.TotalRecords).toBe(1);
     expect(result.Objects[0] instanceof AuthorizationRole).toBe(true);
     expect(result.Objects[0].Name).toBe('Viewer');
-    expect(api.get).toHaveBeenCalledWith(
+    expect(api.getMany).toHaveBeenCalledWith(
       `${api.endpoint}v1.0/tenants/${api.tenantGuid}/roles?page=0&pageSize=1000&includeBuiltIns=true`,
-      AuthorizationRoleSearchResult,
+      AuthorizationRole,
       undefined
     );
   });

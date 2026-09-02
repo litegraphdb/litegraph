@@ -20,14 +20,16 @@ interface FeedbackDetailModalProps {
 /** Full-context feedback drill-down: rating, comment, and the rated exchange. */
 const FeedbackDetailModal = ({ tenantGuid, feedback, onClose }: FeedbackDetailModalProps) => {
   const t = useTranslations('ai.feedback');
-  const { data: turns = [], isLoading } = useListChatThreadTurnsQuery({
+  const { data: turnsEnvelope, isLoading } = useListChatThreadTurnsQuery({
     tenantGuid,
     threadGuid: feedback.ThreadGUID,
   });
 
   const turn = useMemo(
-    () => turns.find((candidate) => candidate.GUID === feedback.TurnGUID) || null,
-    [turns, feedback.TurnGUID]
+    () =>
+      (turnsEnvelope?.Objects ?? []).find((candidate) => candidate.GUID === feedback.TurnGUID) ||
+      null,
+    [turnsEnvelope, feedback.TurnGUID]
   );
 
   return (
