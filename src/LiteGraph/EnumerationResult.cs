@@ -49,13 +49,17 @@
         public bool EndOfResults { get; set; } = true;
 
         /// <summary>
-        /// Total number of records.
+        /// Total number of records.  Never less than the number of objects in
+        /// this page: the count and the page are read separately, so records
+        /// inserted between the two under concurrency could otherwise make the
+        /// reported total incoherent with the returned objects.
         /// </summary>
         public long TotalRecords
         {
             get
             {
-                return _TotalRecords;
+                long pageCount = (_Objects != null ? _Objects.Count : 0);
+                return (_TotalRecords < pageCount ? pageCount : _TotalRecords);
             }
             set
             {
