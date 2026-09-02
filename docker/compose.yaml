@@ -236,6 +236,44 @@ services:
       - alloy-data:/var/lib/alloy/data
 
   #
+  # Syslog shim
+  # SyslogLogging stamps RFC3164 frames with a zero-padded day ("Sep 02");
+  # Alloy's strict RFC3164 parser requires space padding ("Sep  2") and drops
+  # every frame otherwise. This relay rewrites the day field and forwards to
+  # Alloy so LiteGraph logs actually land in Loki. Remove once SyslogLogging
+  # emits compliant timestamps.
+  #
+
+  syslog-shim:
+    container_name: 'litegraph-syslog-shim'
+    image: 'python:3.12-alpine'
+    restart: 'unless-stopped'
+    depends_on:
+      alloy:
+        condition: service_started
+    command:
+      - 'python'
+      - '-u'
+      - '-c'
+      - |
+        import re, socket, threading
+        def relay(listen_port, target_port):
+            rx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            rx.bind(('0.0.0.0', listen_port))
+            tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            pat = re.compile(rb'^(<\d+>)([A-Z][a-z]{2}) 0(\d) ')
+            print('relaying udp', listen_port, '-> alloy:' + str(target_port), flush=True)
+            while True:
+                data, _ = rx.recvfrom(65535)
+                data = pat.sub(rb'\g<1>\g<2>  \g<3> ', data, count=1)
+                try:
+                    tx.sendto(data, ('alloy', target_port))
+                except OSError:
+                    pass
+        threading.Thread(target=relay, args=(2514, 2514), daemon=True).start()
+        relay(1514, 1514)
+
+  #
   # Grafana OSS
   # Preconfigured with Prometheus, Loki, and the LiteGraph dashboard.
   #

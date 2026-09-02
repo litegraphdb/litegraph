@@ -5,7 +5,7 @@
     "Enable": true,
     "Servers": [
       {
-        "Hostname": "alloy",
+        "Hostname": "syslog-shim",
         "Port": 1514
       }
     ],

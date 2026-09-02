@@ -559,7 +559,10 @@ namespace LiteGraph.Server
 
             #region LiteGraph-Client
 
-            _LiteGraph = new LiteGraphClient(_Repo, _Settings.Logging);
+            // The client gets its own LoggingSettings copy: it is mutated below for
+            // query-debug behavior, and sharing the instance would flip the server's
+            // reported Logging.Enable (and other fields) as a side effect.
+            _LiteGraph = new LiteGraphClient(_Repo, _Serializer.CopyObject<LiteGraph.LoggingSettings>(_Settings.Logging));
             _LiteGraph.Caching = _Settings.Caching;
             _LiteGraph.Logging.Enable = _Settings.Debug.DatabaseQueries;
             _LiteGraph.Logging.Logger = LiteGraphLogger;

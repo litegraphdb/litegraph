@@ -10449,13 +10449,20 @@
         <member name="T:LiteGraph.GraphRepositories.Postgresql.PostgresqlSqlTranslator">
             <summary>
             Translates LiteGraph's SQLite-shaped provider SQL into PostgreSQL dialect SQL.
+            All single-quoted string literals are masked before any rewriting is applied and restored
+            afterward, so user-supplied values (tag values, label values, names, JSON data) are never
+            altered by the translation even when they contain SQL keywords, table names, or column
+            names such as the word 'data'.  Thread safety: this class is stateless and safe for
+            concurrent use.
             </summary>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlSqlTranslator.Translate(System.String,System.String)">
             <summary>
             Translate provider SQL into PostgreSQL dialect SQL for the supplied schema.
+            String literal contents are preserved byte-for-byte; only SQL syntax outside of
+            single-quoted literals (plus quoted identifiers in known syntactic positions) is rewritten.
             </summary>
-            <param name="sql">SQL text.</param>
+            <param name="sql">SQL text.  Null or whitespace input is returned unchanged.</param>
             <param name="schema">PostgreSQL schema.</param>
             <returns>Translated SQL.</returns>
         </member>

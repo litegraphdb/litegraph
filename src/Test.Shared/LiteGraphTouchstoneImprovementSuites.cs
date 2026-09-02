@@ -51,6 +51,18 @@
                         executeAsync: TestPostgresqlSqlTranslation),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Storage.Sqlite.ReservedWordRoundTrip",
+                        displayName: "SQLite stores tag, label, name, and data values containing SQL keywords byte-identical",
+                        executeAsync: TestSqliteReservedWordRoundTrip),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Storage.Postgresql.ReservedWordRoundTrip",
+                        displayName: "PostgreSQL stores tag, label, name, and data values containing SQL keywords byte-identical",
+                        executeAsync: ct => TestPostgresqlReservedWordRoundTrip(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL reserved word round trip", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Storage.Postgresql.TransactionClonePool",
                         displayName: "PostgreSQL transaction clones share the repository connection pool",
                         executeAsync: TestPostgresqlTransactionClonePool),
@@ -534,7 +546,145 @@
                 "litegraph");
             AssertTrue(blobSql.Contains("decode('0A0B', 'hex')", StringComparison.Ordinal), "PostgreSQL translates SQLite blob literals");
 
+            string tagInsertSql = PostgresqlSqlTranslator.Translate(
+                "INSERT INTO 'tags' (guid, tagkey, tagvalue) VALUES ('g1', 'tier', 'data') RETURNING *;",
+                "litegraph");
+            AssertTrue(tagInsertSql.Contains("'data'", StringComparison.Ordinal), "PostgreSQL preserves the literal tag value 'data'");
+            AssertFalse(tagInsertSql.Contains("\"data\"", StringComparison.Ordinal), "PostgreSQL does not rewrite the literal 'data' into a column identifier");
+            AssertTrue(tagInsertSql.Contains("INTO \"litegraph\".\"tags\"", StringComparison.Ordinal), "PostgreSQL still schema-qualifies the tags table around preserved literals");
+
+            string literalSql = PostgresqlSqlTranslator.Translate(
+                "UPDATE 'nodes' SET name = 'select BLOB REAL from nodes createdutc BEGIN TRANSACTION json_extract(nodes.data, ''$.x'')' WHERE guid = 'g';",
+                "litegraph");
+            AssertTrue(literalSql.Contains("'select BLOB REAL from nodes createdutc BEGIN TRANSACTION json_extract(nodes.data, ''$.x'')'", StringComparison.Ordinal), "PostgreSQL preserves literals containing SQL keywords, table names, and function names byte-identical");
+            AssertTrue(literalSql.Contains("UPDATE \"litegraph\".\"nodes\"", StringComparison.Ordinal), "PostgreSQL still schema-qualifies UPDATE targets around keyword-laden literals");
+
+            string indexSql = PostgresqlSqlTranslator.Translate(
+                "CREATE INDEX IF NOT EXISTS 'idx_tenants_createdutc' ON 'tenants' ('createdutc' ASC);",
+                "litegraph");
+            AssertTrue(indexSql.Contains("CREATE INDEX IF NOT EXISTS \"idx_tenants_createdutc\" ON \"litegraph\".\"tenants\" (\"createdutc\" ASC)", StringComparison.Ordinal), "PostgreSQL still rewrites quoted column identifiers inside CREATE INDEX statements");
+
+            string filterSql = PostgresqlSqlTranslator.Translate(
+                "SELECT * FROM 'nodes' WHERE (json_extract(nodes.data, '$.tier') = 'data');",
+                "litegraph");
+            AssertTrue(filterSql.Contains("(nodes.data::jsonb #>> '{tier}') = 'data'", StringComparison.Ordinal), "PostgreSQL translates JSON filters while preserving the compared literal 'data'");
+
             return Task.CompletedTask;
+        }
+
+        private static async Task TestSqliteReservedWordRoundTrip(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string filename = "test-reserved-word-roundtrip-" + Guid.NewGuid().ToString("N") + ".db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Type = DatabaseTypeEnum.Sqlite,
+                    Filename = filename
+                }))
+                {
+                    repo.InitializeRepository();
+                    await RunReservedWordRoundTrip(repo, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestPostgresqlReservedWordRoundTrip(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string? connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariable);
+            if (String.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("PostgreSQL reserved word round trip requires " + connectionStringEnvironmentVariable + ".");
+
+            using (GraphRepositoryBase repo = GraphRepositoryFactory.Create(new DatabaseSettings
+            {
+                Type = DatabaseTypeEnum.Postgresql,
+                ConnectionString = connectionString,
+                Schema = "litegraph"
+            }))
+            {
+                repo.InitializeRepository();
+                await RunReservedWordRoundTrip(repo, "PostgreSQL", cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task RunReservedWordRoundTrip(GraphRepositoryBase repo, string providerName, CancellationToken cancellationToken)
+        {
+            LiteGraph.Serialization.Serializer serializer = new LiteGraph.Serialization.Serializer();
+            string suffix = Guid.NewGuid().ToString("N");
+            List<string> reservedWords = new List<string> { "data", "Data", "json_extract", "select", "tags", "nodes" };
+
+            using (LiteGraphClient client = new LiteGraphClient(repo, null, null, null, false))
+            {
+                TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = "Reserved Word Tenant " + suffix }, cancellationToken).ConfigureAwait(false);
+                Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = "Reserved Word Graph " + suffix }, cancellationToken).ConfigureAwait(false);
+
+                foreach (string word in reservedWords)
+                {
+                    Dictionary<string, object> data = new Dictionary<string, object>
+                    {
+                        ["tier"] = word,
+                        [word] = word,
+                        ["note"] = "data Data json_extract select tags nodes"
+                    };
+
+                    Node created = await client.Node.Create(new Node
+                    {
+                        TenantGUID = tenant.GUID,
+                        GraphGUID = graph.GUID,
+                        Name = word,
+                        Labels = new List<string> { word },
+                        Tags = new NameValueCollection { { "keyword", word } },
+                        Data = data
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    Node read = await client.Node.ReadByGuid(tenant.GUID, graph.GUID, created.GUID, includeData: true, includeSubordinates: true, token: cancellationToken).ConfigureAwait(false);
+                    AssertNotNull(read, providerName + " reads back node named '" + word + "'");
+                    AssertEqual(word, read.Name, providerName + " round-trips node name '" + word + "'");
+                    AssertNotNull(read.Labels, providerName + " returns labels for node '" + word + "'");
+                    AssertTrue(read.Labels!.Contains(word), providerName + " round-trips label value '" + word + "'");
+                    AssertNotNull(read.Tags, providerName + " returns tags for node '" + word + "'");
+                    AssertEqual(word, read.Tags!["keyword"], providerName + " round-trips tag value '" + word + "'");
+                    AssertEqual(
+                        serializer.SerializeJson(data, false),
+                        serializer.SerializeJson(read.Data, false),
+                        providerName + " round-trips data JSON containing '" + word + "' byte-identical");
+                }
+
+                TagMetadata tierTag = await client.Tag.Create(new TagMetadata
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Key = "tier",
+                    Value = "data"
+                }, cancellationToken).ConfigureAwait(false);
+                TagMetadata tierRead = await client.Tag.ReadByGuid(tenant.GUID, tierTag.GUID, cancellationToken).ConfigureAwait(false);
+                AssertNotNull(tierRead, providerName + " reads back tag with value 'data'");
+                AssertEqual("data", tierRead.Value, providerName + " round-trips standalone tag value 'data'");
+
+                List<Node> filtered = new List<Node>();
+                await foreach (Node node in client.Node.ReadMany(
+                    tenant.GUID,
+                    graph.GUID,
+                    nodeFilter: new Expr("tier", OperatorEnum.Equals, "data"),
+                    token: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
+                {
+                    filtered.Add(node);
+                }
+                AssertEqual(1, filtered.Count(n => n.Name == "data"), providerName + " data filter matches the node whose tier is 'data'");
+                AssertFalse(filtered.Any(n => n.Name == "select"), providerName + " data filter excludes nodes whose tier is not 'data'");
+
+                await client.Tenant.DeleteByGuid(tenant.GUID, force: true, token: cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private static Task TestPostgresqlTransactionClonePool(CancellationToken cancellationToken)
