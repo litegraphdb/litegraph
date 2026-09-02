@@ -31,94 +31,99 @@ exports[`LoginPage should render the LoginPage: initial login step 1`] = `
         class="ant-flex css-dev-only-do-not-override-mncuj7 ant-flex-align-center"
         style="gap: 10px;"
       >
-        <svg
-          color="black"
-          fill="none"
-          height="20"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          style="cursor: pointer; transform: rotate(90deg);"
-          viewBox="0 0 24 24"
-          width="20"
-          xmlns="http://www.w3.org/2000/svg"
+        <button
+          aria-checked="false"
+          aria-label="Toggle dark mode"
+          role="switch"
+          style="background: none; padding: 0px; cursor: pointer; display: inline-flex; align-items: center; color: inherit;"
+          type="button"
         >
-          <mask
-            id="circle-mask-1"
+          <svg
+            height="20"
+            style="transition: all 0.45s ease; transform: rotate(90deg);"
+            viewBox="0 0 24 24"
+            width="20"
           >
-            <rect
-              fill="white"
-              height="100%"
-              width="100%"
-              x="0"
-              y="0"
-            />
+            <mask
+              id="theme-mode-switch-moon-mask"
+            >
+              <rect
+                fill="white"
+                height="100%"
+                width="100%"
+                x="0"
+                y="0"
+              />
+              <circle
+                fill="black"
+                r="9"
+                style="transition: all 0.45s ease;"
+              />
+            </mask>
             <circle
-              fill="black"
-              r="9"
+              cx="12"
+              cy="12"
+              fill="currentColor"
+              mask="url(#theme-mode-switch-moon-mask)"
+              style="transition: all 0.45s ease;"
             />
-          </mask>
-          <circle
-            cx="12"
-            cy="12"
-            fill="black"
-            mask="url(#circle-mask-1)"
-          />
-          <g
-            stroke="currentColor"
-            style="opacity: 1;"
-          >
-            <line
-              x1="12"
-              x2="12"
-              y1="1"
-              y2="3"
-            />
-            <line
-              x1="12"
-              x2="12"
-              y1="21"
-              y2="23"
-            />
-            <line
-              x1="4.22"
-              x2="5.64"
-              y1="4.22"
-              y2="5.64"
-            />
-            <line
-              x1="18.36"
-              x2="19.78"
-              y1="18.36"
-              y2="19.78"
-            />
-            <line
-              x1="1"
-              x2="3"
-              y1="12"
-              y2="12"
-            />
-            <line
-              x1="21"
-              x2="23"
-              y1="12"
-              y2="12"
-            />
-            <line
-              x1="4.22"
-              x2="5.64"
-              y1="19.78"
-              y2="18.36"
-            />
-            <line
-              x1="18.36"
-              x2="19.78"
-              y1="5.64"
-              y2="4.22"
-            />
-          </g>
-        </svg>
+            <g
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-width="2"
+              style="transition: all 0.45s ease; opacity: 1;"
+            >
+              <line
+                x1="12"
+                x2="12"
+                y1="1"
+                y2="3"
+              />
+              <line
+                x1="12"
+                x2="12"
+                y1="21"
+                y2="23"
+              />
+              <line
+                x1="4.22"
+                x2="5.64"
+                y1="4.22"
+                y2="5.64"
+              />
+              <line
+                x1="18.36"
+                x2="19.78"
+                y1="18.36"
+                y2="19.78"
+              />
+              <line
+                x1="1"
+                x2="3"
+                y1="12"
+                y2="12"
+              />
+              <line
+                x1="21"
+                x2="23"
+                y1="12"
+                y2="12"
+              />
+              <line
+                x1="4.22"
+                x2="5.64"
+                y1="19.78"
+                y2="18.36"
+              />
+              <line
+                x1="18.36"
+                x2="19.78"
+                y1="5.64"
+                y2="4.22"
+              />
+            </g>
+          </svg>
+        </button>
       </div>
     </div>
     <div

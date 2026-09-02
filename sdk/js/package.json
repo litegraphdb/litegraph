@@ -85,7 +85,7 @@
   },
   "overrides": {
     "form-data": "^4.0.6",
-    "qs": "6.15.2",
+    "qs": "6.16.0",
     "lodash": "^4.18.0",
     "js-yaml": "^4.3.0",
     "brace-expansion": "^2.1.4",
