@@ -64,69 +64,23 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 
 </details>
 
-## New In v8.1.0
+## New In v8.x
 
-v8.1 lets you talk to your graphs. A chat surface built into the server connects any tenant to an LLM — and the LLM to the graph.
+v8 unified accounts and observability (v8.0, breaking) and added LLM chat over graph data (v8.1).
 
-- Bring your own model. Tenants register completion and embedding endpoints for OpenAI (and any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.1. API keys are stored server-side and always come back redacted; health checks are deduplicated per probe target, so five models on one host cost one probe.
-- The model queries the graph, not the other way around. A curated tool catalog — the same names as the MCP tools — is dispatched in-process under the caller's own tenant and RBAC. Mutations are off unless the tenant opts in; `vector/search` takes plain text and the server embeds it.
-- Grounded answers. Threads bound to a graph get automatic vector retrieval through the tenant's embedding endpoint, with the retrieved nodes visible in the stream and counted in the turn record.
-- Streaming with full telemetry. Responses stream over SSE with delta, thinking, retrieval, tool, usage, and error events. Every turn persists time to first token, tokens per second, per-stage timings, tool transcripts, retries, and a trace ID — even failed turns.
-- Operable from day one. Endpoint health checks with debounced state transitions, `litegraph_chat_*` Prometheus metrics, chat trace spans, provisioned Grafana dashboards split by domain (API requests, graphs and queries, vector search, storage, logs, chat and inference), per-tenant chat settings, and a server-side `Chat` policy block in `litegraph.json`.
-- A full chat client in the dashboard: streaming markdown (GFM tables and code blocks), a model selector, a streaming toggle, slash commands (`/help`, `/context`, `/clear`), per-turn statistics (TTFT, tokens, tokens/sec), conversation rename, thumbs feedback, and an admin view of all-user history with per-turn drill-down.
-- Warm models before the first message. Any tenant member can trigger `POST /chat/endpoints/{guid}/preload`; the dashboard does it automatically when the chat page opens (default model) and when a model is selected. Ollama endpoints get a native load with a 30-minute keep-alive; cloud providers are a safe no-op.
-- Delegable administration. A `Chat` authorization resource and built-in `ChatAdmin` role let endpoint, settings, feedback, and history administration be granted through roles or credential scopes without full tenant admin.
-- The chat surface reaches the dashboard, the MCP server, and the C#, Python, and JavaScript SDKs — including a non-privileged model catalog (`GET /chat/models`) and thread rename.
-- OpenAI- and Ollama-compatible graph chat. Point any OpenAI or Ollama chat client at `/v1.0/tenants/{t}/graphs/{g}/chat/completions`, `/chat/ollama`, or `/chat/models` and chat with a specific graph using those wire formats — model selection by endpoint name, model, or GUID, streaming included, with each exchange persisted for telemetry.
-- Zero get-all APIs. Every list-returning REST route and MCP list tool now responds with a paginated `EnumerationResult` envelope (`Objects`, `TotalRecords`, `RecordsRemaining`, `ContinuationToken`) — never a bare array. GET routes take `max-keys` (1-1000), `skip`, `order`, and `token` where supported; MCP list tools take `maxResults` and `continuationToken`; a permanent guard test sweeps the OpenAPI spec so no future route can regress. Only the protocol-compatible chat routes keep their foreign wire shapes.
-- In-place storage upgrade: the chat tables are created on first boot and nothing stored changes. Clients that consumed list responses as bare arrays must adopt the enumeration envelope.
+- LLM chat built into the server. Tenants register completion and embedding endpoints for OpenAI (and compatibles), Ollama, Gemini, Anthropic, and VoyageAI; keys are stored server-side and returned redacted.
+- The model queries the graph through a curated tool catalog (same names as the MCP tools), dispatched in-process under the caller's tenant and RBAC. Mutations are opt-in.
+- Grounded, streaming answers. Graph-bound threads get automatic vector retrieval; responses stream over SSE, and every turn persists TTFT, tokens/sec, per-stage timings, tool transcripts, and a trace ID.
+- OpenAI- and Ollama-compatible graph chat routes, so existing chat clients can talk to a graph using those wire formats.
+- A full dashboard chat client: streaming markdown, model selector, slash commands, per-turn statistics, feedback, model preload, and an admin history view. Chat also reaches the MCP server and the C#, Python, and JavaScript SDKs.
+- Delegable chat administration via a `Chat` authorization resource and built-in `ChatAdmin` role.
+- Zero get-all APIs. Every list-returning REST route and MCP list tool responds with a paginated `EnumerationResult` envelope — never a bare array — with a guard test over the OpenAPI spec to prevent regression.
+- One account model. `IsSystemAdmin` and `IsTenantAdmin` flags replace the separate administrator login; everyone else is governed by role and credential-scope RBAC. The static administrator token remains as a break-glass credential.
+- One login, one dashboard, driven by a single capability map; system administrators edit `litegraph.json` from a settings page with live apply or restart.
+- Everything is measured. Every REST route, MCP tool, and chat turn reports to Prometheus (with per-domain Grafana dashboards), and logs flow into Grafana through Loki and Alloy.
+- Upgrading: v8.0 starts fresh (migrate from v7 via JSONL export/import); v8.1 upgrades in place, but clients that consumed list responses as bare arrays must adopt the enumeration envelope.
 
-See [Chat](docs/CHAT.md) for the architecture and [REST API](docs/REST_API.md) for the routes.
-
-## New In v8.0.0
-
-v8.0 is a breaking release. It removes the split between administrators and users, and with it the second login and the second dashboard.
-
-- One account model. A user is a system administrator or a tenant administrator through `IsSystemAdmin` and `IsTenantAdmin` flags on their record, not a separate kind of login. A system administrator is a server-wide superuser; a tenant administrator runs their own tenant; everyone else is governed by the existing role and credential-scope RBAC and can read their own tenant and edit only their own account. The static administrator token stays as a break-glass credential.
-- One login, one dashboard. Sign in with the server URL, your email, a tenant if your email belongs to more than one, and your password. The dashboard is a single hierarchy — HOME, DATA, METADATA, MANAGE, SECURE, ADMINISTER — and one capability map decides what each person sees and can change, so the navigation and the buttons never disagree.
-- A settings editor. System administrators edit `litegraph.json` from a form. Changes that are safe apply live; the rest are written to disk and take effect on a restart you can trigger from the same page, which exits the process so the container brings it back with the new configuration.
-- Everything is measured. Every REST route and every MCP tool reports to Prometheus under one metric scheme, split by a `component` label, and logs flow into Grafana through Loki and Grafana Alloy — so a spike and the log line that explains it sit side by side.
-- Clean-break upgrade. v8 starts fresh; move data from a v7 deployment with the v7.1 JSONL export and import.
-
-## New In v7.1.0
-
-- Subgraph selection. Pick one or more start nodes and walk outward with limits on depth, direction, node and edge counts, labels, tags, expression filters over `Data`, and edge cost. Start nodes always survive the node filters, so a selection never comes back empty by accident.
-- Streaming JSONL interchange. Graphs and subgraphs export as newline-delimited JSON over a chunked `application/x-ndjson` response, and import reads the body line by line. Neither side buffers the whole graph in memory.
-- Per-graph backup. A whole-graph JSONL export is provider-agnostic: a file written from SQLite imports into PostgreSQL and back, and a `preserve`-strategy import into an empty database restores the original GUIDs. It complements the binary `Admin.Backup` rather than replacing it.
-- Import GUID strategies. `preserve`, `regenerate` (default), `skip`, and `overwrite` control how incoming GUIDs reconcile with the store; imports batch nodes, buffer edges, and roll back on failure.
-- Reach for it from REST, the MCP tools `graph/exportjsonl`, `graph/exportsubgraphjsonl`, and `graph/importjsonl`, and the C#, Python, and JavaScript SDKs.
-- Dashboard internationalization. UI strings are externalized for localization.
-
-A JSONL file is just typed records, one per line, under an optional `#` comment header:
-
-```
-# litegraph-jsonl v1
-# kind: graph-backup
-{"Type":"Graph","Object":{"GUID":"00000000-0000-0000-0000-000000000000","Name":"Default graph"}}
-{"Type":"Node","Object":{"GUID":"11111111-1111-1111-1111-111111111111","Name":"Ada"}}
-{"Type":"Edge","Object":{"GUID":"22222222-2222-2222-2222-222222222222","From":"11111111-1111-1111-1111-111111111111","To":"33333333-3333-3333-3333-333333333333"}}
-```
-
-See [REST API](docs/REST_API.md) and [MCP API](docs/MCP_API.md) for the full contract.
-
-## New In v7.0.0
-
-- Graph transactions now use transaction-local repository/session state for converted providers.
-- PostgreSQL transaction sessions use separate pooled connections, so parallel writes can scale according to PostgreSQL locking, isolation, and pool limits.
-- SQLite transaction sessions are isolated for correctness, but write throughput remains bounded by SQLite file locking.
-- Transaction requests support `IsolationLevel`, including PostgreSQL `ReadCommitted`, `RepeatableRead`, and `Serializable` where supported.
-- Transaction responses include lifecycle and diagnostic fields such as `TransactionId`, `State`, `ValidationFailure`, `Provider`, `IsolationLevel`, `IsolatedRepository`, `SerializedByGate`, queue wait, commit and rollback timing, retryability, conflict classification, and provider error code.
-- REST, MCP, C#, Python, and JavaScript transaction surfaces preserve diagnostic transaction result bodies for validation and rollback failures.
-- Request history, Prometheus metrics, OpenTelemetry activities, and the Grafana dashboard include transaction diagnostics.
-- File-backed HNSW vector index artifacts use the v7 format with `FormatVersion = 2` and `HnswLiteVersion = "2.0.1"`.
-- Docker Compose now defaults to PostgreSQL-backed LiteGraph with `v7.0.0` LiteGraph, MCP, and UI images plus a one-shot PostgreSQL initialization container.
-
-See [Graph transactions](docs/TRANSACTIONS.md), [Storage configuration](docs/STORAGE.md), and the [Upgrade guide](docs/UPGRADE.md) for provider caveats, migration guidance, rollback semantics, and operational details.
+See [Chat](docs/CHAT.md) for the chat architecture and [REST API](docs/REST_API.md) for the routes.
 
 ## Repository Layout
 
@@ -425,18 +379,6 @@ npm run dev
 ```
 
 The dashboard includes graph management, node/edge/label/tag/vector screens, authorization management, request history, and an API Explorer with query and transaction examples.
-
-## Client SDKs
-
-Official REST SDKs:
-
-| Language | Package | Directory |
-| --- | --- | --- |
-| C# | [![NuGet](https://img.shields.io/nuget/v/LiteGraph.Sdk.svg)](https://www.nuget.org/packages/LiteGraph.Sdk/) | [`sdk/csharp/`](sdk/csharp/) |
-| Python | [![PyPI](https://img.shields.io/pypi/v/litegraph-sdk.svg)](https://pypi.org/project/litegraph-sdk/) | [`sdk/python/`](sdk/python/) |
-| JavaScript | [![npm](https://img.shields.io/npm/v/litegraphdb.svg)](https://www.npmjs.com/package/litegraphdb) | [`sdk/js/`](sdk/js/) |
-
-See [`sdk/README.md`](sdk/README.md) and each SDK directory for installation and usage details.
 
 ## Build And Test
 
