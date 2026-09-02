@@ -991,7 +991,9 @@
       "copyUrl": "Copy URL",
       "body": "Request body",
       "recentRequests": "Recent Requests",
-      "clear": "Clear"
+      "clear": "Clear",
+      "allCategories": "All categories ({count} operations)",
+      "selectOperationCount": "Select an operation ({count} available)"
     },
     "params": {
       "path": "Path parameters",

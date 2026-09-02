@@ -961,7 +961,9 @@
       "copyUrl": "复制 URL",
       "body": "请求体",
       "recentRequests": "近期请求",
-      "clear": "清除"
+      "clear": "清除",
+      "allCategories": "所有类别（{count} 个操作）",
+      "selectOperationCount": "选择操作（{count} 个可用）"
     },
     "params": {
       "path": "路径参数",

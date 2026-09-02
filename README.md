@@ -25,6 +25,36 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 - Official C#, Python, and JavaScript SDKs
 - Docker Compose deployment for PostgreSQL, LiteGraph, MCP, dashboard, Prometheus, and Grafana OSS
 
+## Screenshots
+
+Chat with your graph — natural-language questions answered through graph tool calls, streamed as markdown, with per-turn statistics, a model selector, and a streaming toggle:
+
+![Chat with your graph](assets/ss7.png)
+
+The home page: tenant KPIs, quick actions, and an interactive graph workspace with node inspection:
+
+![Graph workspace](assets/ss1.png)
+
+Node and vector editing — labels, tags, vectors, and JSON data in one editor:
+
+![Node editing](assets/ss2.png)
+
+Request telemetry — traffic over time with success/failure trends, duration percentiles, filters, and links into Prometheus and OpenTelemetry:
+
+![Request telemetry](assets/ss3.png)
+
+API Explorer — every REST operation, invocable with parameters and response previews:
+
+![API Explorer](assets/ss4.png)
+
+Authorization — built-in and custom roles (including the delegable Chat Admin), scopes, permissions, and resources:
+
+![Authorization](assets/ss5.png)
+
+3D graph inspection:
+
+![3D graph view](assets/ss6.png)
+
 ## New In v8.1.0
 
 v8.1 lets you talk to your graphs. A chat surface built into the server connects any tenant to an LLM — and the LLM to the graph.

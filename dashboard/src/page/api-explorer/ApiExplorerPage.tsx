@@ -232,6 +232,12 @@ const ApiExplorerPage: React.FC = () => {
     return groups;
   }, [operations]);
 
+  const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
+  const visibleOperations = useMemo(
+    () => (selectedTag ? (grouped[selectedTag] ?? []) : operations),
+    [selectedTag, grouped, operations]
+  );
+
   return (
     <PageContainer id="api-explorer" pageTitle={t('title')}>
       <div className={styles.grid}>
@@ -261,23 +267,51 @@ const ApiExplorerPage: React.FC = () => {
             </Space>
           </div>
           <div className={styles.cardBody}>
-            <Select
-              showSearch
-              placeholder={t('request.selectOperation')}
-              value={selectedId}
-              onChange={(v) => setSelectedId(v)}
-              style={{ width: '100%' }}
-              options={Object.entries(grouped).map(([tag, ops]) => ({
-                label: tag,
-                options: ops.map((o) => ({
-                  value: o.id,
-                  label: `${o.method} ${o.path}`,
-                })),
-              }))}
-              filterOption={(input, option) =>
-                (option?.label as string).toLowerCase().includes(input.toLowerCase())
-              }
-            />
+            <div className={styles.selectorRow}>
+              <Select
+                allowClear
+                showSearch
+                placeholder={t('request.allCategories', { count: operations.length })}
+                value={selectedTag}
+                onChange={(v) => {
+                  setSelectedTag(v);
+                  setSelectedId(undefined);
+                }}
+                options={Object.entries(grouped)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([tag, ops]) => ({
+                    value: tag,
+                    label: `${tag} (${ops.length})`,
+                  }))}
+                filterOption={(input, option) =>
+                  (option?.label as string).toLowerCase().includes(input.toLowerCase())
+                }
+                data-testid="api-explorer-category"
+              />
+              <Select
+                showSearch
+                placeholder={t('request.selectOperationCount', {
+                  count: visibleOperations.length,
+                })}
+                value={selectedId}
+                onChange={(v) => setSelectedId(v)}
+                style={{ width: '100%' }}
+                listHeight={420}
+                options={Object.entries(grouped)
+                  .filter(([tag]) => !selectedTag || tag === selectedTag)
+                  .map(([tag, ops]) => ({
+                    label: `${tag} (${ops.length})`,
+                    options: ops.map((o) => ({
+                      value: o.id,
+                      label: `${o.method} ${o.path}`,
+                    })),
+                  }))}
+                filterOption={(input, option) =>
+                  (option?.label as string).toLowerCase().includes(input.toLowerCase())
+                }
+                data-testid="api-explorer-operation"
+              />
+            </div>
 
             {selectedOperation && (
               <>

@@ -961,7 +961,9 @@
       "copyUrl": "URL kopieren",
       "body": "Anfragetext",
       "recentRequests": "Letzte Anfragen",
-      "clear": "Leeren"
+      "clear": "Leeren",
+      "allCategories": "Alle Kategorien ({count} Operationen)",
+      "selectOperationCount": "Operation auswählen ({count} verfügbar)"
     },
     "params": {
       "path": "Pfadparameter",

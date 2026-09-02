@@ -961,7 +961,9 @@
       "copyUrl": "URLをコピー",
       "body": "リクエストボディ",
       "recentRequests": "最近のリクエスト",
-      "clear": "クリア"
+      "clear": "クリア",
+      "allCategories": "すべてのカテゴリ（{count} 件の操作）",
+      "selectOperationCount": "操作を選択（{count} 件）"
     },
     "params": {
       "path": "パスパラメータ",

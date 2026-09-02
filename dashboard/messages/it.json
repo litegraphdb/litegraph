@@ -961,7 +961,9 @@
       "copyUrl": "Copia URL",
       "body": "Corpo della richiesta",
       "recentRequests": "Richieste recenti",
-      "clear": "Cancella"
+      "clear": "Cancella",
+      "allCategories": "Tutte le categorie ({count} operazioni)",
+      "selectOperationCount": "Seleziona un'operazione ({count} disponibili)"
     },
     "params": {
       "path": "Parametri del percorso",

@@ -961,7 +961,9 @@
       "copyUrl": "複製 URL",
       "body": "請求本文",
       "recentRequests": "最近嘅請求",
-      "clear": "清除"
+      "clear": "清除",
+      "allCategories": "所有類別（{count} 個操作）",
+      "selectOperationCount": "揀選操作（{count} 個可用）"
     },
     "params": {
       "path": "路徑參數",

@@ -961,7 +961,9 @@
       "copyUrl": "کپی URL",
       "body": "بدنه درخواست",
       "recentRequests": "درخواست‌های اخیر",
-      "clear": "پاک کردن"
+      "clear": "پاک کردن",
+      "allCategories": "همه دسته‌ها ({count} عملیات)",
+      "selectOperationCount": "یک عملیات انتخاب کنید ({count} مورد)"
     },
     "params": {
       "path": "پارامترهای مسیر",

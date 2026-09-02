@@ -961,7 +961,9 @@
       "copyUrl": "Copiar URL",
       "body": "Corpo da requisição",
       "recentRequests": "Requisições recentes",
-      "clear": "Limpar"
+      "clear": "Limpar",
+      "allCategories": "Todas as categorias ({count} operações)",
+      "selectOperationCount": "Selecione uma operação ({count} disponíveis)"
     },
     "params": {
       "path": "Parâmetros de caminho",

@@ -961,7 +961,9 @@
       "copyUrl": "Copier l'URL",
       "body": "Corps de la requête",
       "recentRequests": "Requêtes récentes",
-      "clear": "Effacer"
+      "clear": "Effacer",
+      "allCategories": "Toutes les catégories ({count} opérations)",
+      "selectOperationCount": "Sélectionnez une opération ({count} disponibles)"
     },
     "params": {
       "path": "Paramètres de chemin",
