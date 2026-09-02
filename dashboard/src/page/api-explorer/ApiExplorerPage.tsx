@@ -2,14 +2,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert, Button, Input, Select, Space, Tag, Typography, Tooltip, message } from 'antd';
-import { SendOutlined, ReloadOutlined, ClearOutlined } from '@ant-design/icons';
+import { SendOutlined, ReloadOutlined } from '@ant-design/icons';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import CopyButton from '@/components/base/copy-button/CopyButton';
 import { sdk } from '@/lib/sdk/litegraph.service';
 import { flattenOpenApi, buildRequestUrl } from './openApi';
 import { generateSnippet, CodeLanguage } from './codeSnippets';
 import { getQueryErrorSummary, getTransactionFailureSummary } from './responseSummaries';
-import { ApiOperation, ApiResponseState, RecentRequest } from './types';
+import { ApiOperation, ApiResponseState } from './types';
 import styles from './ApiExplorerPage.module.scss';
 
 const { Text } = Typography;
@@ -23,9 +23,6 @@ const RESPONSE_TABS: Array<'preview' | 'body' | 'headers' | 'status' | 'code'> =
 ];
 
 const CODE_LANGS: CodeLanguage[] = ['curl', 'javascript', 'csharp'];
-
-const HISTORY_KEY = 'litegraph_api_explorer_history';
-const MAX_HISTORY = 12;
 
 const methodClass = (method: string): string => {
   switch (method.toUpperCase()) {
@@ -46,25 +43,6 @@ const methodClass = (method: string): string => {
   }
 };
 
-const loadHistory = (): RecentRequest[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-};
-
-const saveHistory = (items: RecentRequest[]) => {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
-  } catch {
-    // ignore
-  }
-};
-
 const ApiExplorerPage: React.FC = () => {
   const t = useTranslations('apiExplorer');
   const tCommon = useTranslations('common');
@@ -78,7 +56,6 @@ const ApiExplorerPage: React.FC = () => {
   const [response, setResponse] = useState<ApiResponseState | null>(null);
   const [activeTab, setActiveTab] = useState<(typeof RESPONSE_TABS)[number]>('preview');
   const [codeLang, setCodeLang] = useState<CodeLanguage>('curl');
-  const [history, setHistory] = useState<RecentRequest[]>(() => loadHistory());
 
   useEffect(() => {
     const endpoint = sdk.config.endpoint || '';
@@ -176,17 +153,6 @@ const ApiExplorerPage: React.FC = () => {
         url,
       });
 
-      const historyEntry: RecentRequest = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        method: selectedOperation.method,
-        path: selectedOperation.path,
-        url,
-        timestamp: new Date().toISOString(),
-        status: resp.status,
-      };
-      const next = [historyEntry, ...history].slice(0, MAX_HISTORY);
-      setHistory(next);
-      saveHistory(next);
     } catch (e) {
       message.error(t('toast.requestFailed', { error: e instanceof Error ? e.message : String(e) }));
     } finally {
@@ -408,60 +374,6 @@ const ApiExplorerPage: React.FC = () => {
               </>
             )}
 
-            {history.length > 0 && (
-              <>
-                <Space>
-                  <Text
-                    strong
-                    style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}
-                  >
-                    {t('request.recentRequests')}
-                  </Text>
-                  <Button
-                    size="small"
-                    type="text"
-                    icon={<ClearOutlined />}
-                    onClick={() => {
-                      setHistory([]);
-                      saveHistory([]);
-                    }}
-                  >
-                    {t('request.clear')}
-                  </Button>
-                </Space>
-                <div className={styles.recentList}>
-                  {history.map((h) => (
-                    <div
-                      key={h.id}
-                      className={styles.recentItem}
-                      onClick={() => {
-                        const op = operations.find(
-                          (o) => o.method === h.method && o.path === h.path
-                        );
-                        if (op) setSelectedId(op.id);
-                      }}
-                    >
-                      <span className={`${styles.methodBadge} ${methodClass(h.method)}`}>
-                        {h.method}
-                      </span>
-                      <Text
-                        style={{
-                          flex: 1,
-                          fontSize: 12,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {h.path}
-                      </Text>
-                      {h.status !== undefined && (
-                        <Tag color={h.status < 400 ? 'green' : 'red'}>{h.status}</Tag>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
           </div>
         </div>
 
