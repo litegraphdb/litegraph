@@ -27,6 +27,9 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 
 ## Screenshots
 
+<details>
+<summary>Click to expand</summary>
+
 Chat with your graph — natural-language questions answered through graph tool calls, streamed as markdown, with per-turn statistics, a model selector, and a streaming toggle:
 
 ![Chat with your graph](assets/ss7.png)
@@ -58,6 +61,8 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 3D graph inspection:
 
 ![3D graph view](assets/ss6.png)
+
+</details>
 
 ## New In v8.1.0
 
