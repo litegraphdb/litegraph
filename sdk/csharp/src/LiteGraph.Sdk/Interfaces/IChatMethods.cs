@@ -82,6 +82,17 @@ namespace LiteGraph.Sdk.Interfaces
         Task<ChatEndpointTestResult> TestEndpoint(Guid tenantGuid, Guid endpointGuid, CancellationToken token = default);
 
         /// <summary>
+        /// Ask the server to warm the endpoint's model on its upstream inference server (model preload).
+        /// The warm-up runs server-side in the background; this call returns immediately.
+        /// Only Ollama endpoints are preloadable; cloud providers report Supported false.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="endpointGuid">Chat endpoint GUID.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Preload result.</returns>
+        Task<ChatEndpointPreloadResult> PreloadEndpoint(Guid tenantGuid, Guid endpointGuid, CancellationToken token = default);
+
+        /// <summary>
         /// Read health status for one chat endpoint.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>

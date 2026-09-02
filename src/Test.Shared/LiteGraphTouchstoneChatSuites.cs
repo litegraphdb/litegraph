@@ -57,6 +57,7 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.Metrics", "Chat metrics appear on the metrics endpoint", TestChatRestMetrics),
                     ChatCase("Chat.Rest", "Chat.Rest.ToolCatalogParity", "Every chat-advertised tool exists in the MCP catalog", TestChatToolCatalogParity),
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointReadUpdateTest", "Endpoint read, exists, update, and connectivity test over HTTP", TestChatRestEndpointReadUpdateTest),
+                    ChatCase("Chat.Rest", "Chat.Rest.EndpointPreload", "Model preload warms Ollama endpoints, no-ops for cloud providers, and enforces validation", TestChatRestEndpointPreload),
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointHealthRoutes", "Endpoint health routes report monitored state and reject unknown endpoints", TestChatRestEndpointHealthRoutes),
                     ChatCase("Chat.Rest", "Chat.Rest.FeedbackReadAndNegatives", "Single feedback read, unknown-GUID deletes, and cross-user turn denial", TestChatRestFeedbackReadAndNegatives),
                     ChatCase("Chat.Rest", "Chat.Rest.McpChatTools", "MCP chat tools round-trip endpoint and settings operations", TestChatRestMcpChatTools),
@@ -1251,6 +1252,102 @@ namespace Test.Shared
                     AssertEqual(200, tested.Status, "Endpoint connectivity test succeeds (body " + tested.Body + ")");
                     AssertTrue(tested.Body.Contains("\"Reachable\":true") || tested.Body.Contains("\"Reachable\": true"), "The fake endpoint is reachable");
                     AssertTrue(tested.Body.Contains("fake-model"), "The model list contains the fake model");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestEndpointPreload(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints";
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatpreload@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+
+                    #region Ollama-Preload
+
+                    HttpOutcome ollamaCreated = await AuthRestAsync(HttpMethod.Put, baseUrl, _AdminBearerToken,
+                        "{\"Name\":\"fake-ollama\",\"EndpointType\":\"Completion\",\"Provider\":\"Ollama\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"fake-model\",\"HealthCheckEnabled\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(ollamaCreated.Status), "Ollama endpoint created (status " + ollamaCreated.Status + " body " + ollamaCreated.Body + ")");
+                    string ollamaGuid = ExtractGuid(ollamaCreated.Body);
+
+                    HttpOutcome preload = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + ollamaGuid + "/preload", userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, preload.Status, "Non-admin preload succeeds (body " + preload.Body + ")");
+                    AssertTrue(preload.Body.Contains("\"Supported\":true") || preload.Body.Contains("\"Supported\": true"), "Ollama preload is supported (body " + preload.Body + ")");
+                    AssertTrue(preload.Body.Contains("\"Started\":true") || preload.Body.Contains("\"Started\": true"), "Ollama preload starts a warm-up (body " + preload.Body + ")");
+
+                    bool warmed = false;
+                    string? generateBody = null;
+                    for (int i = 0; i < 40 && !warmed; i++)
+                    {
+                        if (fake.CapturedGenerateBodies.TryDequeue(out generateBody)) warmed = true;
+                        else await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+                    }
+                    AssertTrue(warmed, "The fake upstream received the /api/generate warm-up call");
+                    AssertTrue(generateBody != null && generateBody.Contains("fake-model"), "The warm-up names the endpoint model (body " + generateBody + ")");
+                    AssertTrue(generateBody != null && generateBody.Contains("keep_alive"), "The warm-up carries keep_alive (body " + generateBody + ")");
+
+                    HttpOutcome second = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + ollamaGuid + "/preload", userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, second.Status, "Second preload succeeds (body " + second.Body + ")");
+                    bool secondStarted = second.Body.Contains("\"Started\":true") || second.Body.Contains("\"Started\": true");
+                    bool secondInProgress = second.Body.Contains("\"AlreadyInProgress\":true") || second.Body.Contains("\"AlreadyInProgress\": true");
+                    AssertTrue(secondStarted || secondInProgress, "Second preload either starts or reports already-in-progress (body " + second.Body + ")");
+
+                    if (secondStarted)
+                    {
+                        // Wait for the second warm-up to land so it cannot bleed into later assertions.
+                        bool drained = false;
+                        for (int i = 0; i < 40 && !drained; i++)
+                        {
+                            if (fake.CapturedGenerateBodies.TryDequeue(out _)) drained = true;
+                            else await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+                        }
+                        AssertTrue(drained, "The second warm-up reached the fake upstream");
+                    }
+
+                    #endregion
+
+                    #region Cloud-Provider-Noop
+
+                    string openAiGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+                    while (fake.CapturedGenerateBodies.TryDequeue(out _)) { }
+
+                    HttpOutcome unsupported = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + openAiGuid + "/preload", userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, unsupported.Status, "OpenAI preload responds 200 (body " + unsupported.Body + ")");
+                    AssertTrue(unsupported.Body.Contains("\"Supported\":false") || unsupported.Body.Contains("\"Supported\": false"), "OpenAI preload is unsupported (body " + unsupported.Body + ")");
+
+                    await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(0, fake.CapturedGenerateBodies.Count, "No /api/generate call is made for an unsupported provider");
+
+                    #endregion
+
+                    #region Negatives
+
+                    HttpOutcome unknown = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + Guid.NewGuid() + "/preload", userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(404, unknown.Status, "Preloading an unknown endpoint returns 404 (status " + unknown.Status + ")");
+
+                    HttpOutcome embeddingCreated = await AuthRestAsync(HttpMethod.Put, baseUrl, _AdminBearerToken,
+                        "{\"Name\":\"fake-ollama-embed\",\"EndpointType\":\"Embedding\",\"Provider\":\"Ollama\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"fake-embed\",\"HealthCheckEnabled\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(embeddingCreated.Status), "Embedding endpoint created (status " + embeddingCreated.Status + " body " + embeddingCreated.Body + ")");
+                    string embeddingGuid = ExtractGuid(embeddingCreated.Body);
+
+                    HttpOutcome embeddingPreload = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + embeddingGuid + "/preload", userBearer, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(400, embeddingPreload.Status, "Preloading an embedding endpoint returns 400 (body " + embeddingPreload.Body + ")");
+
+                    HttpOutcome unauthenticated = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + ollamaGuid + "/preload", null, null, cancellationToken).ConfigureAwait(false);
+                    AssertTrue(unauthenticated.Status == 401 || unauthenticated.Status == 403, "Unauthenticated preload is rejected (status " + unauthenticated.Status + ")");
+
+                    #endregion
                 }
                 finally
                 {

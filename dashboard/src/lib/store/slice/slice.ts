@@ -75,6 +75,7 @@ import {
 import {
   ChatEndpoint,
   ChatEndpointHealth,
+  ChatEndpointPreloadResult,
   ChatEndpointTestResult,
   ChatEndpointType,
   ChatFeedback,
@@ -95,6 +96,7 @@ import {
   listChatModels,
   listChatThreadTurns,
   listChatThreads,
+  preloadChatEndpoint,
   readChatThread,
   submitChatFeedback,
   testChatEndpoint,
@@ -934,6 +936,14 @@ const graphSlice = enhancedSdk.injectEndpoints({
         callback: () => testChatEndpoint(tenantGuid, endpointGuid),
       }),
     }),
+    preloadChatEndpoint: build.mutation<
+      ChatEndpointPreloadResult,
+      { tenantGuid: string; endpointGuid: string }
+    >({
+      query: ({ tenantGuid, endpointGuid }) => ({
+        callback: () => preloadChatEndpoint(tenantGuid, endpointGuid),
+      }),
+    }),
     listChatEndpointHealth: build.query<EnumerateResponse<ChatEndpointHealth>, { tenantGuid: string }>({
       query: ({ tenantGuid }) => ({
         callback: () => listChatEndpointHealth(tenantGuid),
@@ -1136,6 +1146,7 @@ export const {
   useUpdateChatEndpointMutation,
   useDeleteChatEndpointMutation,
   useTestChatEndpointMutation,
+  usePreloadChatEndpointMutation,
   useListChatEndpointHealthQuery,
   useListChatModelsQuery,
   useListChatThreadsQuery,

@@ -69,6 +69,15 @@ export const chatEndpointTestResultData = {
   RuntimeMs: 123.4,
 };
 
+export const chatEndpointPreloadResultData = {
+  EndpointGUID: mockChatEndpointGuid,
+  Model: 'gemma3:4b',
+  Provider: 'Ollama',
+  Supported: true,
+  Started: true,
+  AlreadyInProgress: false,
+};
+
 export const chatThreadData = {
   GUID: mockThreadGuid,
   TenantGUID: '00000000-0000-0000-0000-000000000000',

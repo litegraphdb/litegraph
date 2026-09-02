@@ -533,6 +533,47 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ChatEndpointPreloadResult">
+            <summary>
+            Chat endpoint model preload result.  Preloading warms the configured model on the upstream
+            inference endpoint so the first completion does not pay the model load cost.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointPreloadResult.EndpointGUID">
+            <summary>
+            Chat endpoint GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointPreloadResult.Model">
+            <summary>
+            Model configured on the endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointPreloadResult.Provider">
+            <summary>
+            Provider type of the endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointPreloadResult.Supported">
+            <summary>
+            Whether the provider supports model preloading.  False for cloud providers, whose models are always resident.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointPreloadResult.Started">
+            <summary>
+            Whether a background warm-up was started by this request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ChatEndpointPreloadResult.AlreadyInProgress">
+            <summary>
+            Whether a warm-up for this endpoint was already in flight.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ChatEndpointPreloadResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.ChatEndpointTestResult">
             <summary>
             Chat endpoint connectivity test result.
@@ -2184,6 +2225,9 @@
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.TestEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.PreloadEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="M:LiteGraph.Sdk.Implementations.ChatMethods.ReadEndpointHealth(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
@@ -3023,6 +3067,17 @@
             <param name="endpointGuid">Chat endpoint GUID.</param>
             <param name="token">Cancellation token.</param>
             <returns>Connectivity test result.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.PreloadEndpoint(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Ask the server to warm the endpoint's model on its upstream inference server (model preload).
+            The warm-up runs server-side in the background; this call returns immediately.
+            Only Ollama endpoints are preloadable; cloud providers report Supported false.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="endpointGuid">Chat endpoint GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Preload result.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IChatMethods.ReadEndpointHealth(System.Guid,System.Guid,System.Threading.CancellationToken)">
             <summary>

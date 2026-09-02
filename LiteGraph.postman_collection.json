@@ -15616,6 +15616,32 @@
 									"response": []
 								},
 								{
+									"name": "Preload endpoint",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"description": "Warms the endpoint's model on its inference server so the first completion does not pay the model load cost. Returns { EndpointGUID, Model, Provider, Supported, Started, AlreadyInProgress } immediately; the warm-up runs server-side in the background. Only Ollama endpoints are preloadable (native /api/generate load with keep_alive); cloud providers report Supported=false. The endpoint must be active and of type Completion. Open to any tenant member, not just administrators.",
+										"url": {
+											"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/chat/endpoints/{{chatEndpointGuid}}/preload",
+											"protocol": "{{protocol}}",
+											"host": [
+												"{{hostname}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"v1.0",
+												"tenants",
+												"{{tenant}}",
+												"chat",
+												"endpoints",
+												"{{chatEndpointGuid}}",
+												"preload"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "Read health (all endpoints)",
 									"request": {
 										"method": "GET",

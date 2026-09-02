@@ -17,6 +17,7 @@ import ChatFeedback from '../../src/models/ChatFeedback';
 import ChatSettings from '../../src/models/ChatSettings';
 import ChatEndpointHealth from '../../src/models/ChatEndpointHealth';
 import ChatEndpointTestResult from '../../src/models/ChatEndpointTestResult';
+import ChatEndpointPreloadResult from '../../src/models/ChatEndpointPreloadResult';
 import ChatCompletionResult from '../../src/models/ChatCompletionResult';
 import ChatModelSummary from '../../src/models/ChatModelSummary';
 import ApiErrorResponse from '../../src/models/ApiErrorResponse';
@@ -178,6 +179,16 @@ describe('chatRoute Tests', () => {
       expect(response.Reachable).toBe(true);
       expect(response.ModelExists).toBe(true);
       expect(Array.isArray(response.Models)).toBe(true);
+    });
+
+    test('should preload a chat endpoint model', async () => {
+      const response = await api.preloadChatEndpoint(mockTenantId, mockChatEndpointGuid);
+      expect(response instanceof ChatEndpointPreloadResult).toBe(true);
+      expect(response.EndpointGUID).toBe(mockChatEndpointGuid);
+      expect(response.Provider).toBe('Ollama');
+      expect(response.Supported).toBe(true);
+      expect(response.Started).toBe(true);
+      expect(response.AlreadyInProgress).toBe(false);
     });
 
     test('should read health for a specific chat endpoint', async () => {

@@ -5,6 +5,8 @@ namespace LiteGraph.Server.Services.Chat
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Net.Http;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
@@ -43,6 +45,7 @@ namespace LiteGraph.Server.Services.Chat
         private readonly ChatEndpointHealthService _Health;
         private readonly Serializer _Serializer = new Serializer();
         private readonly ConcurrentDictionary<Guid, ClientCacheEntry> _Clients = new ConcurrentDictionary<Guid, ClientCacheEntry>();
+        private readonly ConcurrentDictionary<Guid, bool> _PreloadsInFlight = new ConcurrentDictionary<Guid, bool>();
         private readonly SemaphoreSlim _GlobalLimiter;
         private readonly Timer _RetentionTimer;
         private readonly CancellationTokenSource _TokenSource = new CancellationTokenSource();
@@ -152,6 +155,50 @@ namespace LiteGraph.Server.Services.Chat
         }
 
         /// <summary>
+        /// Start a background warm-up of the endpoint's model on its upstream inference server so
+        /// the first completion does not pay the model load cost.  Returns immediately: the warm-up
+        /// itself runs as a fire-and-forget background task guarded per endpoint, so at most one
+        /// warm-up per endpoint is in flight at a time.  Only Ollama endpoints are preloadable;
+        /// cloud providers report Supported=false without any upstream contact.
+        /// Thread safety: safe for concurrent use.
+        /// </summary>
+        /// <param name="endpoint">Chat endpoint.  Must not be null.</param>
+        /// <param name="token">Cancellation token.  The background warm-up is bound to the service
+        /// lifetime rather than this token, so completing the HTTP request does not cancel it.</param>
+        /// <returns>Preload result describing whether a warm-up was started.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when endpoint is null.</exception>
+        internal ChatEndpointPreloadResult PreloadEndpoint(ChatEndpoint endpoint, CancellationToken token = default)
+        {
+            if (endpoint == null) throw new ArgumentNullException(nameof(endpoint));
+
+            ChatEndpointPreloadResult result = new ChatEndpointPreloadResult
+            {
+                EndpointGUID = endpoint.GUID,
+                Model = endpoint.Model,
+                Provider = endpoint.Provider
+            };
+
+            if (endpoint.Provider != ChatProviderTypeEnum.Ollama)
+            {
+                // Cloud providers keep their models resident; there is nothing to warm.
+                return result;
+            }
+
+            result.Supported = true;
+
+            if (!_PreloadsInFlight.TryAdd(endpoint.GUID, true))
+            {
+                result.AlreadyInProgress = true;
+                return result;
+            }
+
+            result.Started = true;
+            _Logging.Info(_Header + "starting model preload for endpoint " + endpoint.GUID + " (model " + endpoint.Model + ")");
+            _ = Task.Run(() => PreloadOllamaModel(endpoint), CancellationToken.None);
+            return result;
+        }
+
+        /// <summary>
         /// Process a chat completion request end to end, writing the HTTP response (SSE or JSON) itself.
         /// </summary>
         /// <param name="ctx">HTTP context.</param>
@@ -234,6 +281,61 @@ namespace LiteGraph.Server.Services.Chat
             }
 
             _Disposed = true;
+        }
+
+        private async Task PreloadOllamaModel(ChatEndpoint endpoint)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+
+            try
+            {
+                // Ollama loads the model into memory and returns when given a generate request with
+                // no prompt; keep_alive keeps it resident afterwards.  Model loads can take minutes,
+                // so honor the endpoint timeout with a generous floor.
+                int timeoutMs = Math.Max(endpoint.TimeoutMs, 120000);
+                string url = endpoint.Endpoint.TrimEnd('/') + "/api/generate";
+                string body = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object>
+                {
+                    ["model"] = endpoint.Model,
+                    ["keep_alive"] = "30m"
+                });
+
+                using (HttpClient client = new HttpClient())
+                using (CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(_TokenSource.Token))
+                {
+                    client.Timeout = Timeout.InfiniteTimeSpan;
+                    cts.CancelAfter(timeoutMs);
+
+                    using (StringContent content = new StringContent(body, Encoding.UTF8, "application/json"))
+                    using (HttpResponseMessage response = await client.PostAsync(url, content, cts.Token).ConfigureAwait(false))
+                    {
+                        sw.Stop();
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            _Logging.Info(_Header + "model preload for endpoint " + endpoint.GUID + " (model " + endpoint.Model + ") completed in " + sw.Elapsed.TotalMilliseconds.ToString("F0") + "ms");
+                        }
+                        else
+                        {
+                            _Logging.Warn(_Header + "model preload for endpoint " + endpoint.GUID + " (model " + endpoint.Model + ") returned status " + (int)response.StatusCode + " after " + sw.Elapsed.TotalMilliseconds.ToString("F0") + "ms");
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                sw.Stop();
+                _Logging.Warn(_Header + "model preload for endpoint " + endpoint.GUID + " (model " + endpoint.Model + ") timed out or was canceled after " + sw.Elapsed.TotalMilliseconds.ToString("F0") + "ms");
+            }
+            catch (Exception e)
+            {
+                sw.Stop();
+                _Logging.Warn(_Header + "model preload for endpoint " + endpoint.GUID + " (model " + endpoint.Model + ") failed after " + sw.Elapsed.TotalMilliseconds.ToString("F0") + "ms: " + e.Message);
+            }
+            finally
+            {
+                _PreloadsInFlight.TryRemove(endpoint.GUID, out _);
+            }
         }
 
         private async Task ProcessCompletionInternal(HttpContextBase ctx, RequestContext req, ChatCompletionRequest request, CancellationToken token)

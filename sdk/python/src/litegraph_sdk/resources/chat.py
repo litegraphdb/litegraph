@@ -12,6 +12,7 @@ from ..models.chat import (
     ChatCompletionResultModel,
     ChatEndpointHealthModel,
     ChatEndpointModel,
+    ChatEndpointPreloadResultModel,
     ChatEndpointTestResultModel,
     ChatFeedbackModel,
     ChatModelSummaryModel,
@@ -125,6 +126,18 @@ class Chat:
             "POST", f"{cls._base_url()}/endpoints/{endpoint_guid}/test"
         )
         return ChatEndpointTestResultModel.model_validate(instance)
+
+    @classmethod
+    def preload_endpoint(cls, endpoint_guid: str) -> ChatEndpointPreloadResultModel:
+        """Ask the server to warm the endpoint's model on its inference server
+        (model preload). The warm-up runs server-side in the background and this
+        call returns immediately. Only Ollama endpoints are preloadable; cloud
+        providers report supported False."""
+        client = get_client()
+        instance = client.request(
+            "POST", f"{cls._base_url()}/endpoints/{endpoint_guid}/preload"
+        )
+        return ChatEndpointPreloadResultModel.model_validate(instance)
 
     @classmethod
     def read_endpoint_health(cls, endpoint_guid: str) -> ChatEndpointHealthModel:

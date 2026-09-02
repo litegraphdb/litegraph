@@ -523,6 +523,7 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.ChatCompletion:
                 case RequestTypeEnum.ChatGraphCompletionOpenAI:
                 case RequestTypeEnum.ChatGraphCompletionOllama:
+                case RequestTypeEnum.ChatEndpointPreload:
                 case RequestTypeEnum.ChatThreadCreate:
                 case RequestTypeEnum.ChatThreadUpdate:
                 case RequestTypeEnum.ChatThreadDelete:
@@ -634,6 +635,7 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.ChatEndpointUpdate:
                 case RequestTypeEnum.ChatEndpointDelete:
                 case RequestTypeEnum.ChatEndpointTest:
+                case RequestTypeEnum.ChatEndpointPreload:
                 case RequestTypeEnum.ChatEndpointHealthReadAll:
                 case RequestTypeEnum.ChatEndpointHealthRead:
                 case RequestTypeEnum.ChatThreadCreate:

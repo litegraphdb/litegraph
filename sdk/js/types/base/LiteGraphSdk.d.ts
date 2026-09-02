@@ -1497,6 +1497,16 @@ export default class LiteGraphSdk extends SdkBase {
      */
     testChatEndpoint(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointTestResult>;
     /**
+     * Ask the server to warm the endpoint's model on its inference server (model preload).
+     * The warm-up runs server-side in the background; this call returns immediately.
+     * Only Ollama endpoints are preloadable; cloud providers report Supported false.
+     * @param {string} tenantGuid - Tenant GUID.
+     * @param {string} endpointGuid - Chat endpoint GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @returns {Promise<ChatEndpointPreloadResult>} - Preload result ({ EndpointGUID, Model, Provider, Supported, Started, AlreadyInProgress }).
+     */
+    preloadChatEndpoint(tenantGuid: string, endpointGuid: string, cancellationToken?: AbortController): Promise<ChatEndpointPreloadResult>;
+    /**
      * Read health status for a specific chat endpoint.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} endpointGuid - Chat endpoint GUID.
@@ -1700,6 +1710,7 @@ import LabelMetadata from '../models/LabelMetadata';
 import Token from '../models/Token';
 import ChatEndpoint from '../models/ChatEndpoint';
 import ChatEndpointTestResult from '../models/ChatEndpointTestResult';
+import ChatEndpointPreloadResult from '../models/ChatEndpointPreloadResult';
 import ChatEndpointHealth from '../models/ChatEndpointHealth';
 import ChatThread from '../models/ChatThread';
 import ChatCompletionResult from '../models/ChatCompletionResult';

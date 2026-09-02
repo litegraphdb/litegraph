@@ -47,6 +47,12 @@ namespace Test.Shared
         /// </summary>
         public ConcurrentQueue<string> CapturedCompletionBodies { get; } = new ConcurrentQueue<string>();
 
+        /// <summary>
+        /// Captured request bodies for the Ollama-style /api/generate route, oldest first.
+        /// Used to assert model preload (warm-up) requests.
+        /// </summary>
+        public ConcurrentQueue<string> CapturedGenerateBodies { get; } = new ConcurrentQueue<string>();
+
         #endregion
 
         #region Private-Members
@@ -190,6 +196,13 @@ namespace Test.Shared
                 using (StreamReader reader = new StreamReader(ctx.Request.InputStream, Encoding.UTF8))
                 {
                     body = await reader.ReadToEndAsync().ConfigureAwait(false);
+                }
+
+                if (path.EndsWith("/api/generate", StringComparison.OrdinalIgnoreCase))
+                {
+                    CapturedGenerateBodies.Enqueue(body);
+                    await SendJson(ctx, 200, "{\"model\":\"fake-model\",\"done\":true}").ConfigureAwait(false);
+                    return;
                 }
 
                 if (path.EndsWith("/v1/embeddings", StringComparison.OrdinalIgnoreCase))

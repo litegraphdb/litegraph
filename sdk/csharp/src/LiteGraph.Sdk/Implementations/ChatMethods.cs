@@ -103,6 +103,13 @@ namespace LiteGraph.Sdk.Implementations
         }
 
         /// <inheritdoc />
+        public async Task<ChatEndpointPreloadResult> PreloadEndpoint(Guid tenantGuid, Guid endpointGuid, CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints/" + endpointGuid + "/preload";
+            return await _Sdk.Post<object, ChatEndpointPreloadResult>(url, new { }, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task<ChatEndpointHealth> ReadEndpointHealth(Guid tenantGuid, Guid endpointGuid, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints/" + endpointGuid + "/health";

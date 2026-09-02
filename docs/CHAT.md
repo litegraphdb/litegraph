@@ -36,6 +36,8 @@ Chat speaks to model providers through [PolyPrompt](https://www.nuget.org/packag
 
 The `OpenAI` default is the escape hatch: any server that implements the OpenAI wire format works without LiteGraph knowing its name. Provider choice is per endpoint, so a tenant can pair, say, an Ollama completion endpoint with a VoyageAI embedding endpoint — the completion and retrieval paths are independent.
 
+**Model preloading.** Local models can take a minute to load into memory, which would otherwise be paid on the first completion. `POST /v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/preload` (any tenant member) asks the server to warm a completion endpoint's model in the background and returns immediately; for `Ollama` this issues a native load request (`/api/generate` with a 30-minute `keep_alive`), while cloud providers report `Supported=false` because their models are always resident. At most one warm-up per endpoint is in flight at a time — concurrent requests get `AlreadyInProgress=true`. The dashboard preloads the tenant's default model when the chat page opens and whatever model the user selects in the model picker, so the first message feels instant.
+
 ## Orchestration
 
 A completion request runs through a fixed pipeline. Understanding it explains most of the observable behavior — what appears in the SSE stream, what lands in the turn record, and where each millisecond is accounted for.

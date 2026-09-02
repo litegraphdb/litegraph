@@ -26,6 +26,7 @@ import {
   useListChatModelsQuery,
   useListChatThreadTurnsQuery,
   useListChatThreadsQuery,
+  usePreloadChatEndpointMutation,
 } from '@/lib/store/slice/slice';
 import {
   chatStreamReducer,
@@ -164,6 +165,36 @@ const ChatPage = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [deleteThread, { isLoading: isDeletingThread }] = useDeleteChatThreadMutation();
+  const [preloadChatEndpoint] = usePreloadChatEndpointMutation();
+
+  // Warm the selected model on its inference server so the first completion feels
+  // instant. Errors are ignored (preloading is best-effort) and the last-preloaded
+  // GUID is tracked so re-selecting the same model does not spam the server.
+  const lastPreloadedGuidRef = useRef<string | null>(null);
+  const preloadModel = useCallback(
+    (endpointGuid?: string) => {
+      if (!tenantGuid || !endpointGuid) return;
+      if (lastPreloadedGuidRef.current === endpointGuid) return;
+      lastPreloadedGuidRef.current = endpointGuid;
+      preloadChatEndpoint({ tenantGuid, endpointGuid });
+    },
+    [tenantGuid, preloadChatEndpoint]
+  );
+
+  const defaultCompletionModel = useMemo(
+    () => completionModels.find((model) => model.IsDefault) ?? completionModels[0],
+    [completionModels]
+  );
+
+  // Preload the effective default completion model once the catalog arrives; the
+  // ref guard keeps refetches from re-firing it.
+  const initialPreloadFiredRef = useRef(false);
+  useEffect(() => {
+    if (initialPreloadFiredRef.current) return;
+    if (!defaultCompletionModel) return;
+    initialPreloadFiredRef.current = true;
+    preloadModel(defaultCompletionModel.GUID);
+  }, [defaultCompletionModel, preloadModel]);
 
   // Reconcile locally-completed exchanges against server turns after refetch.
   useEffect(() => {
@@ -555,7 +586,13 @@ const ChatPage = () => {
                     placeholder={t('toolbar.modelDefault')}
                     value={completionEndpointGuid}
                     allowClear
-                    onChange={(value) => setCompletionEndpointGuid((value as string) || undefined)}
+                    onChange={(value) => {
+                      const guid = (value as string) || undefined;
+                      setCompletionEndpointGuid(guid);
+                      // Warm the newly selected model; clearing back to the
+                      // default warms the effective default instead.
+                      preloadModel(guid ?? defaultCompletionModel?.GUID);
+                    }}
                     options={completionModels.map((model) => ({
                       label: model.IsDefault
                         ? t('toolbar.defaultModelLabel', { name: model.Name, model: model.Model })

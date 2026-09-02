@@ -20,6 +20,7 @@ import ChatFeedback from './models/ChatFeedback';
 import ChatSettings from './models/ChatSettings';
 import ChatEndpointHealth from './models/ChatEndpointHealth';
 import ChatEndpointTestResult from './models/ChatEndpointTestResult';
+import ChatEndpointPreloadResult from './models/ChatEndpointPreloadResult';
 import ChatCompletionResult from './models/ChatCompletionResult';
 import ChatModelSummary from './models/ChatModelSummary';
 import EnumerationResult from './models/EnumerationResult';
@@ -52,6 +53,7 @@ export {
   ChatSettings,
   ChatEndpointHealth,
   ChatEndpointTestResult,
+  ChatEndpointPreloadResult,
   ChatCompletionResult,
   ChatModelSummary,
   EnumerationResult,

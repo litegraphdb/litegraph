@@ -1205,6 +1205,7 @@ See [CHAT.md](CHAT.md) for the architecture: providers, the tool loop, retrieval
 | Delete                  | DELETE | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
 | Exists                  | HEAD   | /v1.0/tenants/[guid]/chat/endpoints/[guid]                      |
 | Test connectivity       | POST   | /v1.0/tenants/[guid]/chat/endpoints/[guid]/test                 |
+| Preload model           | POST   | /v1.0/tenants/[guid]/chat/endpoints/[guid]/preload              |
 
 `endpointType` is `Completion` or `Embedding`. Both `Read many` variants and `Read health (all)` return the [enumeration envelope](#enumeration-and-pagination) — of `ChatEndpoint` and `ChatEndpointHealth` records respectively — and accept the shared pagination query parameters; `Read health (one)` returns a single health object. Create and update take a `ChatEndpoint` body:
 
@@ -1250,6 +1251,21 @@ Validation on create and update returns `400` with a `Description` explaining th
 ```
 
 `Models` and `ModelExists` are omitted for providers without a model-listing API (VoyageAI). The health routes return `ChatEndpointHealth` records with `Monitored`, `Healthy` (null until background monitoring reaches a verdict), `LastCheckedUtc`, `LastError`, consecutive success/failure counts, `UptimePercentage`, and a rolling 24-hour `CheckHistory`.
+
+`POST .../preload` asks the server to warm the endpoint's model on its inference server so the first completion does not pay the model load cost. Unlike the other endpoint routes it is open to **any tenant member**, not just administrators — the dashboard fires it when a user opens the chat page or switches models. The endpoint must exist (`404` otherwise), be active, and be a `Completion` endpoint (`400` otherwise). The warm-up itself runs as a server-side background task — for `Ollama` a native load request (`/api/generate` with `keep_alive`) is issued — and the route returns immediately:
+
+```
+{
+    "EndpointGUID": "00000000-0000-0000-0000-000000000000",
+    "Model": "gemma3:4b",
+    "Provider": "Ollama",
+    "Supported": true,
+    "Started": true,
+    "AlreadyInProgress": false
+}
+```
+
+`Supported` is false for cloud providers (`OpenAI`, `Gemini`, `Anthropic`, `VoyageAI`), whose models are always resident — nothing is contacted and no warm-up starts. `Started` is true when this request kicked off a warm-up; `AlreadyInProgress` is true when a warm-up for the endpoint was already running (the server keeps at most one in flight per endpoint).
 
 ### Chat Completions
 

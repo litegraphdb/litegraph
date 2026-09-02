@@ -24,6 +24,7 @@ jest.mock('@/lib/sdk/chatSse', () => ({
 
 const mockRefetchThreads = jest.fn();
 const mockRefetchTurns = jest.fn();
+const mockPreloadChatEndpoint = jest.fn(() => ({ unwrap: () => Promise.resolve({}) }));
 
 // List hooks now return the EnumerationResult envelope rather than bare arrays.
 const mockEnvelope = (objects: unknown[]) => ({
@@ -70,6 +71,7 @@ jest.mock('@/lib/store/slice/slice', () => ({
   useUpdateChatThreadMutation: () => [jest.fn(), { isLoading: false }],
   useCreateChatThreadMutation: () => [jest.fn(), { isLoading: false }],
   useSubmitChatFeedbackMutation: () => [jest.fn(), { isLoading: false }],
+  usePreloadChatEndpointMutation: () => [mockPreloadChatEndpoint, { isLoading: false }],
 }));
 
 const streamChatCompletionMock = streamChatCompletion as jest.Mock;
@@ -98,6 +100,16 @@ describe('ChatPage', () => {
       'AI can make mistakes. Please verify all answers.'
     );
     expect(screen.getByTestId('chat-streaming-toggle')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('preloads the default completion model exactly once on mount', () => {
+    renderChatPage();
+
+    expect(mockPreloadChatEndpoint).toHaveBeenCalledTimes(1);
+    expect(mockPreloadChatEndpoint).toHaveBeenCalledWith({
+      tenantGuid: 'tenant-1',
+      endpointGuid: 'model-1',
+    });
   });
 
   it('lists only Completion endpoints in the model selector', () => {

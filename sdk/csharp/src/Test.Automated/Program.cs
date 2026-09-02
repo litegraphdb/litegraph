@@ -5,6 +5,9 @@ namespace Test.Automated
 	using System.Collections.Specialized;
 	using System.Diagnostics;
 	using System.Linq;
+	using System.Net.Http;
+	using System.Net.Http.Headers;
+	using System.Text;
 	using System.Threading.Tasks;
 	using LiteGraph.Sdk;
 
@@ -16,6 +19,7 @@ namespace Test.Automated
 		private const string TokenEnvVar = "LITEGRAPH_BEARER_TOKEN";
 		private const string VerboseEnvVar = "LITEGRAPH_TEST_VERBOSE";
 		private const string BackupsSupportedEnvVar = "LITEGRAPH_TEST_BACKUPS_SUPPORTED";
+		private const string PostgresBackupRejectionFragment = "PostgreSQL repository backup must be performed";
 
 		private static LiteGraphSdk? _Sdk = null;
 		private static Guid _TenantGuid = Guid.Empty;
@@ -68,6 +72,7 @@ namespace Test.Automated
 		private static string _VectorNodeSecondaryContent = string.Empty;
 		private static string _VectorEdgePrimaryContent = string.Empty;
 		private static string? _BackupFilename = null;
+		private static string? _BackupCreateRejection = null;
 		private static bool _SubgraphPrepared = false;
 		private static readonly List<Guid> _SubgraphNodeGuids = new List<Guid>();
 		private static readonly List<SubgraphEdgeInfo> _SubgraphEdgeInfos = new List<SubgraphEdgeInfo>();
@@ -529,7 +534,7 @@ namespace Test.Automated
 				_Sdk = sdk;
 
 				await RunAllTests().ConfigureAwait(false);
-				bool allPassed = _TestResults.All(r => r.Passed);
+				bool allPassed = _TestResults.All(r => r.Passed || r.Skipped);
 				PrintSummary();
 
 				if (allPassed)
@@ -726,6 +731,7 @@ namespace Test.Automated
 			await RunTest("Chat.EndpointRead", TestChatEndpointRead).ConfigureAwait(false);
 			await RunTest("Chat.EndpointUpdate", TestChatEndpointUpdate).ConfigureAwait(false);
 			await RunTest("Chat.EndpointHealth", TestChatEndpointHealth).ConfigureAwait(false);
+			await RunTest("Chat.EndpointPreload", TestChatEndpointPreload).ConfigureAwait(false);
 			await RunTest("Chat.ModelCatalog", TestChatModelCatalog).ConfigureAwait(false);
 			await RunTest("Chat.SettingsRoundTrip", TestChatSettingsRoundTrip).ConfigureAwait(false);
 			await RunTest("Chat.ThreadLifecycle", TestChatThreadLifecycle).ConfigureAwait(false);
@@ -746,12 +752,18 @@ namespace Test.Automated
 		{
 			Stopwatch stopwatch = Stopwatch.StartNew();
 			bool passed = false;
+			bool skipped = false;
 			string? error = null;
 
 			try
 			{
 				await testFunc().ConfigureAwait(false);
 				passed = true;
+			}
+			catch (TestSkippedException skip)
+			{
+				skipped = true;
+				error = skip.Message;
 			}
 			catch (Exception ex)
 			{
@@ -764,15 +776,16 @@ namespace Test.Automated
 			{
 				Name = name,
 				Passed = passed,
+				Skipped = skipped,
 				RuntimeMs = stopwatch.ElapsedMilliseconds,
 				ErrorMessage = error
 			});
 
-			string status = passed ? "PASS" : "FAIL";
+			string status = passed ? "PASS" : (skipped ? "SKIP" : "FAIL");
 			Console.WriteLine($"[{status}] {name,-35} {stopwatch.ElapsedMilliseconds,6}ms");
 			if (!passed && !string.IsNullOrEmpty(error))
 			{
-				Console.WriteLine($"       Error: {error}");
+				Console.WriteLine($"       {(skipped ? "Reason" : "Error")}: {error}");
 			}
 		}
 
@@ -3121,23 +3134,34 @@ namespace Test.Automated
 
 			foreach (TestResult result in _TestResults)
 			{
-				string status = result.Passed ? "PASS" : "FAIL";
+				string status = result.Passed ? "PASS" : (result.Skipped ? "SKIP" : "FAIL");
 				Console.WriteLine($"[{status}] {result.Name,-35} {result.RuntimeMs,6}ms");
 			}
 
 			int passed = _TestResults.Count(r => r.Passed);
-			int failed = _TestResults.Count - passed;
+			int skipped = _TestResults.Count(r => r.Skipped);
+			int failed = _TestResults.Count - passed - skipped;
 
 			Console.WriteLine("----------------------------------------------");
 			Console.WriteLine($"Total : {_TestResults.Count}");
 			Console.WriteLine($"Pass  : {passed}");
+			Console.WriteLine($"Skip  : {skipped}");
 			Console.WriteLine($"Fail  : {failed}");
 			Console.WriteLine("==============================================");
+
+			if (skipped > 0)
+			{
+				Console.WriteLine("Skipped Tests:");
+				foreach (TestResult result in _TestResults.Where(r => r.Skipped))
+				{
+					Console.WriteLine($"  - {result.Name}: {result.ErrorMessage}");
+				}
+			}
 
 			if (failed > 0)
 			{
 				Console.WriteLine("Failed Tests:");
-				foreach (TestResult result in _TestResults.Where(r => !r.Passed))
+				foreach (TestResult result in _TestResults.Where(r => !r.Passed && !r.Skipped))
 				{
 					Console.WriteLine($"  - {result.Name}: {result.ErrorMessage}");
 				}
@@ -3190,6 +3214,11 @@ namespace Test.Automated
 		{
 			LiteGraphSdk sdk = RequireSdk();
 
+			if (!string.IsNullOrEmpty(_BackupCreateRejection))
+			{
+				throw new TestSkippedException(_BackupCreateRejection);
+			}
+
 			if (!forceNew && !string.IsNullOrEmpty(_BackupFilename))
 			{
 				bool exists = await sdk.Admin.BackupExists(_BackupFilename).ConfigureAwait(false);
@@ -3200,9 +3229,42 @@ namespace Test.Automated
 			}
 
 			string filename = $"sdk-backup-{Guid.NewGuid():N}.bak";
-			await sdk.Admin.Backup(filename).ConfigureAwait(false);
+			await CreateBackupOrSkipAsync(filename).ConfigureAwait(false);
 			_BackupFilename = filename;
 			return filename;
+		}
+
+		private static async Task CreateBackupOrSkipAsync(string filename)
+		{
+			// The SDK's Post helper swallows non-success responses, so the create is issued
+			// directly to inspect the status code and body: a PostgreSQL-backed server rejects
+			// backup creation with 400 and pg_dump guidance, which is a SKIP for the backup
+			// cases rather than a failure. Any other rejection remains a hard failure.
+			using (HttpClient client = new HttpClient())
+			using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _Endpoint.TrimEnd('/') + "/v1.0/backups"))
+			{
+				request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _BearerToken);
+				request.Content = new StringContent("{\"Filename\":\"" + filename + "\"}", Encoding.UTF8, "application/json");
+
+				using (HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false))
+				{
+					if (response.IsSuccessStatusCode)
+					{
+						return;
+					}
+
+					string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+					if ((int)response.StatusCode == 400
+						&& body.Contains(PostgresBackupRejectionFragment, StringComparison.OrdinalIgnoreCase))
+					{
+						_BackupCreateRejection = "backup creation is not supported by this server (PostgreSQL-backed; use PostgreSQL-native tools such as pg_dump)";
+						throw new TestSkippedException(_BackupCreateRejection);
+					}
+
+					throw new InvalidOperationException($"Backup creation failed with status {(int)response.StatusCode}: {body}");
+				}
+			}
 		}
 
 		private static async Task<Guid> EnsureSubgraphScenarioAsync()
@@ -3991,6 +4053,38 @@ namespace Test.Automated
 			AssertNotNull(health, "Chat endpoint health list");
 		}
 
+		private static async Task TestChatEndpointPreload()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+
+			// Servers older than the preload feature do not expose the route; probe it first
+			// and skip rather than fail when it is absent, mirroring the backup handling.
+			using (HttpClient client = new HttpClient())
+			using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _Endpoint.TrimEnd('/') + "/v1.0/tenants/" + _TenantGuid + "/chat/endpoints/" + _ChatEndpointGuid + "/preload"))
+			{
+				request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _BearerToken);
+
+				using (HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false))
+				{
+					if (!response.IsSuccessStatusCode)
+					{
+						throw new TestSkippedException($"the chat endpoint preload route is not available on this server (status {(int)response.StatusCode})");
+					}
+				}
+			}
+
+			// The suite's endpoint uses the OpenAI provider, so preloading is reported as
+			// unsupported without any upstream contact — deterministic against any server.
+			ChatEndpointPreloadResult? preload = await sdk.Chat.PreloadEndpoint(_TenantGuid, _ChatEndpointGuid).ConfigureAwait(false);
+
+			AssertNotNull(preload, "Chat endpoint preload result");
+			AssertEqual(_ChatEndpointGuid.ToString(), preload!.EndpointGUID.ToString(), "Preload result endpoint GUID");
+			AssertEqual("sdk-fake-model", preload.Model ?? string.Empty, "Preload result model");
+			AssertTrue(!preload.Supported, "OpenAI-provider preload is unsupported");
+			AssertTrue(!preload.Started, "No warm-up starts for an unsupported provider");
+			AssertTrue(!preload.AlreadyInProgress, "No warm-up is in flight for an unsupported provider");
+		}
+
 		private static async Task TestChatModelCatalog()
 		{
 			LiteGraphSdk sdk = RequireSdk();
@@ -4144,8 +4238,16 @@ namespace Test.Automated
 	{
 		public string Name { get; set; } = string.Empty;
 		public bool Passed { get; set; }
+		public bool Skipped { get; set; }
 		public long RuntimeMs { get; set; }
 		public string? ErrorMessage { get; set; }
+	}
+
+	internal sealed class TestSkippedException : Exception
+	{
+		public TestSkippedException(string message) : base(message)
+		{
+		}
 	}
 
 	internal sealed class SubgraphEdgeInfo

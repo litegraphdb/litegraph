@@ -20,6 +20,7 @@ jest.mock('@/hooks/authHooks', () => ({
 jest.mock('@/lib/store/slice/slice', () => ({
   useGetAllGraphsQuery: jest.fn(),
   useGetAllTenantsQuery: jest.fn(),
+  useGetServerSettingsQuery: jest.fn(() => ({ data: undefined })),
 }));
 
 const server = getServer([...commonHandlers, ...handlers]);

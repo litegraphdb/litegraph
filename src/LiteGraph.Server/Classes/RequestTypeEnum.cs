@@ -1042,6 +1042,11 @@
         [EnumMember(Value = "ChatEndpointTest")]
         ChatEndpointTest,
         /// <summary>
+        /// ChatEndpointPreload
+        /// </summary>
+        [EnumMember(Value = "ChatEndpointPreload")]
+        ChatEndpointPreload,
+        /// <summary>
         /// ChatEndpointHealthReadAll
         /// </summary>
         [EnumMember(Value = "ChatEndpointHealthReadAll")]

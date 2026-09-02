@@ -485,6 +485,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/completions", out _UrlParameters)) return RequestTypeEnum.ChatGraphCompletionOpenAI;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/chat/ollama", out _UrlParameters)) return RequestTypeEnum.ChatGraphCompletionOllama;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/test", out _UrlParameters)) return RequestTypeEnum.ChatEndpointTest;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/preload", out _UrlParameters)) return RequestTypeEnum.ChatEndpointPreload;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/chat/turns/{chatTurnGuid}/feedback", out _UrlParameters)) return RequestTypeEnum.ChatFeedbackCreate;
 
                     if (matcher.Match("/v2.0/tenants", out _UrlParameters)) return RequestTypeEnum.TenantEnumerate;

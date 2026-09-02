@@ -28,6 +28,7 @@ namespace LiteGraph.Server.API.REST
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", ChatEndpointUpdateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Update chat endpoint", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}", ChatEndpointDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Delete chat endpoint", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/test", ChatEndpointTestRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Test chat endpoint connectivity", "Chat"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/endpoints/{chatEndpointGuid}/preload", ChatEndpointPreloadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Preload chat endpoint model", "Chat"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/chat/completions", ChatCompletionRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Chat completion (SSE or JSON)", "Chat"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/chat/models", ChatModelsReadAllRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List selectable chat models", "Chat"));
@@ -145,6 +146,52 @@ namespace LiteGraph.Server.API.REST
             }
 
             ChatEndpointTestResult result = await _ChatService.TestEndpoint(endpoint).ConfigureAwait(false);
+            ctx.Response.StatusCode = 200;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(result, true));
+        }
+
+        private async Task ChatEndpointPreloadRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            // Any tenant member may preload a model; this is a chat-use action, not chat management.
+            if (!IsChatMember(req))
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (_ChatService == null)
+            {
+                ctx.Response.StatusCode = 500;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, "Chat service is not available.")));
+                return;
+            }
+
+            ChatEndpoint endpoint = await _LiteGraph.ChatEndpoint.ReadByGuid(req.TenantGUID.Value, req.ChatEndpointGUID.Value).ConfigureAwait(false);
+            if (endpoint == null)
+            {
+                ctx.Response.StatusCode = 404;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound)));
+                return;
+            }
+
+            if (!endpoint.Active)
+            {
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "The specified chat endpoint is not active and cannot be preloaded.")));
+                return;
+            }
+
+            if (endpoint.EndpointType != ChatEndpointTypeEnum.Completion)
+            {
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "Only completion endpoints can be preloaded.")));
+                return;
+            }
+
+            ChatEndpointPreloadResult result = _ChatService.PreloadEndpoint(endpoint);
             ctx.Response.StatusCode = 200;
             ctx.Response.ContentType = Constants.JsonContentType;
             await ctx.Response.Send(_Serializer.SerializeJson(result, true));
@@ -489,6 +536,15 @@ namespace LiteGraph.Server.API.REST
             return req.Authentication.IsSystemAdmin
                 || (req.Authentication.IsTenantAdmin
                     && req.TenantGUID.HasValue
+                    && req.Authentication.TenantGUID.HasValue
+                    && req.TenantGUID.Value.Equals(req.Authentication.TenantGUID.Value));
+        }
+
+        private bool IsChatMember(RequestContext req)
+        {
+            // Any authenticated principal of the target tenant, or a system administrator.
+            return req.Authentication.IsSystemAdmin
+                || (req.TenantGUID.HasValue
                     && req.Authentication.TenantGUID.HasValue
                     && req.TenantGUID.Value.Equals(req.Authentication.TenantGUID.Value));
         }

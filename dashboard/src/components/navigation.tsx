@@ -9,6 +9,7 @@ import LitegraphTitle from './base/typograpghy/Title';
 import styles from './layout/nav.module.scss';
 import LitegraphTooltip from './base/tooltip/Tooltip';
 import { useFlushDBtoDisk } from '@/lib/sdk/litegraph.service';
+import { useGetServerSettingsQuery } from '@/lib/store/slice/slice';
 import ConfirmationModal from './confirmation-modal/ConfirmationModal';
 import { useState } from 'react';
 import { useAppContext } from '@/hooks/appHooks';
@@ -32,6 +33,14 @@ const Navigation = ({
   const { theme } = useAppContext();
   const t = useTranslations('sidebar');
   const { flushDBtoDisk, isLoading, error } = useFlushDBtoDisk();
+  // Flush-to-disk only applies to the SQLite backend; PostgreSQL persists on
+  // its own, so the control is hidden there. Settings are admin-readable and
+  // the button is admin-only already.
+  const { data: serverSettings } = useGetServerSettingsQuery(undefined, { skip: !isAdmin });
+  const isPostgresql =
+    (serverSettings as { LiteGraph?: { Database?: { Type?: string } } } | undefined)?.LiteGraph
+      ?.Database?.Type === 'Postgresql';
+  const showFlush = Boolean(isAdmin) && !isPostgresql;
   const onFlushDBtoDisk = async () => {
     const result = await flushDBtoDisk();
     if (result) {
@@ -71,7 +80,7 @@ const Navigation = ({
           />
         </LitegraphTooltip>
       </LitegraphFlex>
-      {isAdmin && (
+      {showFlush && (
         <LitegraphFlex className="mt mb-sm" gap={10} justify="center" align="center">
           <LitegraphTooltip title={t('flushTitle')}>
             <Button size="small" type="default" icon={<DatabaseOutlined />} onClick={() => setOpen(true)}>

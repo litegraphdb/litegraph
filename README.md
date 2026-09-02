@@ -43,6 +43,10 @@ Request telemetry — traffic over time with success/failure trends, duration pe
 
 ![Request telemetry](assets/ss3.png)
 
+Provisioned Grafana dashboards — seven per-domain boards ship with the Compose stack; here, API Requests with rates, latency percentiles, errors, and authentication outcomes:
+
+![Grafana API Requests dashboard](assets/ss8.png)
+
 API Explorer — every REST operation, invocable with parameters and response previews:
 
 ![API Explorer](assets/ss4.png)

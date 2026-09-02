@@ -11,6 +11,7 @@ from litegraph_sdk.models.chat import (
     ChatCompletionResultModel,
     ChatEndpointHealthModel,
     ChatEndpointModel,
+    ChatEndpointPreloadResultModel,
     ChatEndpointTestResultModel,
     ChatFeedbackModel,
     ChatModelSummaryModel,
@@ -304,6 +305,27 @@ class TestChatEndpoints:
         assert "gpt-4o" in result.models
         mock_client.request.assert_called_once_with(
             "POST", f"{CHAT_BASE}/endpoints/{ENDPOINT_GUID}/test"
+        )
+
+    def test_preload_endpoint(self, mock_client):
+        """preload_endpoint POSTs to /preload and parses the result."""
+        mock_client.request.return_value = {
+            "EndpointGUID": ENDPOINT_GUID,
+            "Model": "gemma3:4b",
+            "Provider": "Ollama",
+            "Supported": True,
+            "Started": True,
+            "AlreadyInProgress": False,
+        }
+        result = Chat.preload_endpoint(ENDPOINT_GUID)
+        assert isinstance(result, ChatEndpointPreloadResultModel)
+        assert result.endpoint_guid == ENDPOINT_GUID
+        assert result.model == "gemma3:4b"
+        assert result.supported is True
+        assert result.started is True
+        assert result.already_in_progress is False
+        mock_client.request.assert_called_once_with(
+            "POST", f"{CHAT_BASE}/endpoints/{ENDPOINT_GUID}/preload"
         )
 
     def test_read_endpoint_health(self, mock_client):

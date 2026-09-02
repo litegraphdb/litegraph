@@ -9,6 +9,7 @@ import {
   chatEndpointHealthData,
   chatEndpointHealthMockApiResponse,
   chatEndpointTestResultData,
+  chatEndpointPreloadResultData,
   chatThreadData,
   chatThreadsMockApiResponse,
   chatTurnsMockApiResponse,
@@ -88,6 +89,11 @@ export const handlers = [
   // Test a chat endpoint
   http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/endpoints/${mockChatEndpointGuid}/test`, () => {
     return HttpResponse.json(chatEndpointTestResultData);
+  }),
+
+  // Preload (warm) a chat endpoint's model
+  http.post(`${mockEndpoint}v1.0/tenants/${mockTenantId}/chat/endpoints/${mockChatEndpointGuid}/preload`, () => {
+    return HttpResponse.json(chatEndpointPreloadResultData);
   }),
 
   // Read the model catalog (enumeration envelope)

@@ -46,6 +46,16 @@ export type ChatEndpointTestResult = {
   RuntimeMs: number;
 };
 
+/** Result of a model preload (warm-up) request against a chat endpoint. */
+export type ChatEndpointPreloadResult = {
+  EndpointGUID: string;
+  Model: string;
+  Provider: ChatProviderType;
+  Supported: boolean;
+  Started: boolean;
+  AlreadyInProgress: boolean;
+};
+
 /** One background health-check sample. */
 export type ChatEndpointHealthSample = {
   TimestampUtc: string;
@@ -319,6 +329,16 @@ export const testChatEndpoint = (
   request<ChatEndpointTestResult>(
     'POST',
     `${tenantBase(tenantGuid)}/chat/endpoints/${encodeURIComponent(endpointGuid)}/test`
+  );
+
+/** Ask the server to warm the endpoint's model on its inference server (any tenant member). */
+export const preloadChatEndpoint = (
+  tenantGuid: string,
+  endpointGuid: string
+): Promise<ChatEndpointPreloadResult> =>
+  request<ChatEndpointPreloadResult>(
+    'POST',
+    `${tenantBase(tenantGuid)}/chat/endpoints/${encodeURIComponent(endpointGuid)}/preload`
   );
 
 /** List health snapshots for every chat endpoint (admin only). Returns the enumeration envelope. */

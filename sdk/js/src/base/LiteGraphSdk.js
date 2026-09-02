@@ -31,6 +31,7 @@ import ChatTurn from '../models/ChatTurn';
 import ChatFeedback from '../models/ChatFeedback';
 import ChatSettings from '../models/ChatSettings';
 import ChatEndpointHealth from '../models/ChatEndpointHealth';
+import ChatEndpointPreloadResult from '../models/ChatEndpointPreloadResult';
 import ChatEndpointTestResult from '../models/ChatEndpointTestResult';
 import ChatCompletionResult from '../models/ChatCompletionResult';
 import ChatModelSummary from '../models/ChatModelSummary';
@@ -2875,6 +2876,26 @@ export default class LiteGraphSdk extends SdkBase {
     }
     const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}/test`;
     return await this.post(url, null, ChatEndpointTestResult, cancellationToken);
+  }
+
+  /**
+   * Ask the server to warm the endpoint's model on its inference server (model preload).
+   * The warm-up runs server-side in the background; this call returns immediately.
+   * Only Ollama endpoints are preloadable; cloud providers report Supported false.
+   * @param {string} tenantGuid - Tenant GUID.
+   * @param {string} endpointGuid - Chat endpoint GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @returns {Promise<ChatEndpointPreloadResult>} - Preload result ({ EndpointGUID, Model, Provider, Supported, Started, AlreadyInProgress }).
+   */
+  async preloadChatEndpoint(tenantGuid, endpointGuid, cancellationToken) {
+    if (!tenantGuid) {
+      GenericExceptionHandlers.ArgumentNullException('tenantGuid');
+    }
+    if (!endpointGuid) {
+      GenericExceptionHandlers.ArgumentNullException('endpointGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${tenantGuid}/chat/endpoints/${endpointGuid}/preload`;
+    return await this.post(url, null, ChatEndpointPreloadResult, cancellationToken);
   }
 
   /**

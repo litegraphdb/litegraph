@@ -288,6 +288,26 @@ class ChatEndpointTestResultModel(BaseModel):
     )
 
 
+class ChatEndpointPreloadResultModel(BaseModel):
+    """
+    Result of a model preload (warm-up) request against a chat endpoint. Only
+    Ollama endpoints are preloadable; cloud providers report supported False.
+    """
+
+    endpoint_guid: Optional[str] = Field(default=None, alias="EndpointGUID")
+    model: Optional[str] = Field(default=None, alias="Model")
+    provider: ChatProviderType_Enum = Field(
+        default=ChatProviderType_Enum.OpenAI, alias="Provider"
+    )
+    supported: bool = Field(default=False, alias="Supported")
+    started: bool = Field(default=False, alias="Started")
+    already_in_progress: bool = Field(default=False, alias="AlreadyInProgress")
+
+    model_config = ConfigDict(
+        populate_by_name=True, from_attributes=True, protected_namespaces=()
+    )
+
+
 class ChatCompletionRequestModel(BaseModel):
     """
     Chat completion request. When thread_guid is None a new thread is created
