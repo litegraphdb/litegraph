@@ -24,7 +24,7 @@ The list surfaces over these entities — endpoint listing, endpoint health (all
 
 ## Providers
 
-Chat speaks to model providers through [PolyPrompt](https://www.nuget.org/packages/PolyPrompt) `2.4.0`, which gives every provider the same streaming tool-chat and embedding interface. Five provider types are supported:
+Chat speaks to model providers through [PolyPrompt](https://www.nuget.org/packages/PolyPrompt) `2.4.1`, which gives every provider the same streaming tool-chat and embedding interface. Five provider types are supported:
 
 | Provider | Completions | Embeddings | Notes |
 |---|---|---|---|

@@ -14,7 +14,7 @@ v8.1 adds LLM chat over graph data and eliminates every get-all API in favor of 
   - Added the permanent `Chat.Rest.ZeroGetAllGuard` test, which sweeps the live OpenAPI spec and fails by name on any list-shaped route that neither returns the envelope nor appears on the justified exception list.
 
 - Chat endpoints
-  - Added tenant-managed completion and embedding endpoints across five provider types: OpenAI (covering any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.0.
+  - Added tenant-managed completion and embedding endpoints across five provider types: OpenAI (covering any OpenAI-compatible server), Ollama, Gemini, Anthropic (completion-only), and VoyageAI (embedding-only), all through PolyPrompt 2.4.1.
   - Validated provider/type pairings at create and update (Anthropic embedding and VoyageAI completion endpoints are rejected) and redacted stored API keys to their last four characters in every response; sending the redacted placeholder back on update preserves the stored key.
   - Added on-demand connectivity testing with model listing and configured-model verification where the provider supports it.
 
@@ -55,6 +55,7 @@ v8.1 adds LLM chat over graph data and eliminates every get-all API in favor of 
   - Reworked Chat History: threads lead with UPDATED and CREATED, user shown as a linked email and graph as a linked name; turns lead with CREATED and gained a TTFT column; the turn detail modal is wider with markdown rendering and fixed-size stage-duration bars.
 
 - Chat API additions
+  - Added model preloading: `POST /chat/endpoints/{guid}/preload` (any tenant member) warms the model on the inference endpoint as a deduplicated fire-and-forget background task — Ollama receives a native load with a 30-minute keep-alive; cloud providers report `Supported=false` without contact. The dashboard preloads the tenant default when the chat page opens and the chosen model on selector change.
   - Added graph-scoped protocol-compatible chat: `POST /graphs/{guid}/chat/completions` accepts OpenAI chat-completions request/response bodies (including streamed `chat.completion.chunk` frames and an optional usage chunk), `POST /graphs/{guid}/chat/ollama` speaks Ollama's `/api/chat` format (newline-delimited JSON streaming by default), and `GET /graphs/{guid}/chat/models` returns an OpenAI model list of the tenant's active completion endpoints — so any OpenAI- or Ollama-capable client can chat with a specific graph without learning LiteGraph's API. The body's `model` field selects a chat endpoint by name, model, or GUID; errors use the protocol's own envelope; exchanges persist as turns in an implicit per-user thread.
   - Added `PUT /chat/threads/{guid}` to rename a thread (owner or administrator; `Title` only), mirrored in all three SDKs and the dashboard.
   - Added `GET /chat/models`, a non-privileged catalog of active endpoints projected to GUID, name, model, provider, type, and default flag — never URLs, keys, or health configuration — so chat users can pick a model while full endpoint listing stays administrative.
@@ -71,11 +72,15 @@ v8.1 adds LLM chat over graph data and eliminates every get-all API in favor of 
 
 - Fixes
   - Stopped the SQL sanitizers (SQLite and PostgreSQL) from stripping `--`, `/*`, and `*/` out of stored values; quote doubling already secures quoted literals, and the stripping permanently corrupted stored markdown (table separators, horizontal rules) and code content.
+  - Fixed the PostgreSQL SQL translator rewriting identifiers and keywords inside quoted string literals (a tag value of exactly `data` became a column reference and failed inserts; hex-like and keyword-bearing values could be silently corrupted). The translator now masks literals before applying rewrites and restores them byte-for-byte, with reserved-word round-trip regression tests on both providers.
+  - Fixed the LiteGraph client mutating the server's shared `LoggingSettings` instance, which flipped the reported `Logging.Enable` to false; the client now receives its own copy.
   - Fixed the Settings page failing for session logins: its fetch helper sent the session token as a bearer credential instead of relying on the SDK's `x-token` header.
   - Constrained every dashboard modal to open fully inside the viewport with internal body scrolling.
   - Rendered stored SSE chat responses in Request Detail as a reconstructed output plus a per-event breakdown.
 
 - Dashboard usability
+  - Reworked the API Explorer: single-column layout with the request card above the response, a category selector with per-tag operation counts, and an operation dropdown covering every route in the served OpenAPI spec.
+  - Hid the flush-to-disk control on PostgreSQL-backed deployments (the operation is SQLite-specific).
   - Added an auto-refresh selector (10/30/60/300 seconds, default off) to every table, with the interval and page size persisted per table.
   - Added deep links: `?user=` on Users and `?graph=` on Graphs open that record's details directly.
   - Added an observability links row (Grafana, Prometheus, API Requests) beneath the Home graph, informative hover tooltips across column headers, forms, and controls, and assorted layout compaction.
@@ -86,6 +91,7 @@ v8.1 adds LLM chat over graph data and eliminates every get-all API in favor of 
 
 - Observability
   - Split the Grafana provisioning into seven focused dashboards under the LiteGraph folder — Overview (landing), API Requests, Graphs and Queries, Vector Search, Storage, Logs, and Chat and Inference.
+  - Added a syslog-shim relay to the Compose stack: SyslogLogging stamps RFC3164 frames with a zero-padded day that Grafana Alloy's strict parser silently rejects, so no logs ever reached Loki; the shim space-pads the day in transit. Removable once SyslogLogging emits compliant timestamps.
   - Extended instrumentation after a full audit: backup operation counts and durations, JSONL import record and warning counters, HNSW rebuild counters and durations, retention sweep telemetry for request history and chat history, a request-history capture-drop counter, and correct route classification for token issuance; new trace spans for backups and vector index rebuilds.
 
 - Tooling
