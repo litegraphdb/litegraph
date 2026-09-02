@@ -7,7 +7,7 @@ SET "NUGET_API_KEY=%~1"
 SET "ROOT=%~dp0"
 SET "OUTPUT=%ROOT%artifacts\nuget"
 SET "NUGET_SOURCE=https://api.nuget.org/v3/index.json"
-SET "PACKAGE_VERSION=7.0.0"
+SET "PACKAGE_VERSION=8.1.0"
 
 ECHO.
 ECHO Packing LiteGraph %PACKAGE_VERSION% packages...
@@ -22,6 +22,9 @@ IF ERRORLEVEL 1 GOTO :Error
 dotnet pack "%ROOT%sdk\csharp\src\LiteGraph.Sdk\LiteGraph.Sdk.csproj" -c Release -o "%OUTPUT%" /p:PackageVersion=%PACKAGE_VERSION% /p:GeneratePackageOnBuild=false
 IF ERRORLEVEL 1 GOTO :Error
 
+dotnet pack "%ROOT%src\LiteGraphConsole\LiteGraphConsole.csproj" -c Release -o "%OUTPUT%" /p:PackageVersion=%PACKAGE_VERSION% /p:GeneratePackageOnBuild=false
+IF ERRORLEVEL 1 GOTO :Error
+
 IF NOT EXIST "%OUTPUT%\LiteGraph.%PACKAGE_VERSION%.nupkg" (
   ECHO Missing package: "%OUTPUT%\LiteGraph.%PACKAGE_VERSION%.nupkg"
   GOTO :Error
@@ -29,6 +32,11 @@ IF NOT EXIST "%OUTPUT%\LiteGraph.%PACKAGE_VERSION%.nupkg" (
 
 IF NOT EXIST "%OUTPUT%\LiteGraph.Sdk.%PACKAGE_VERSION%.nupkg" (
   ECHO Missing package: "%OUTPUT%\LiteGraph.Sdk.%PACKAGE_VERSION%.nupkg"
+  GOTO :Error
+)
+
+IF NOT EXIST "%OUTPUT%\LiteGraphConsole.%PACKAGE_VERSION%.nupkg" (
+  ECHO Missing package: "%OUTPUT%\LiteGraphConsole.%PACKAGE_VERSION%.nupkg"
   GOTO :Error
 )
 
@@ -51,8 +59,16 @@ IF EXIST "%OUTPUT%\LiteGraph.Sdk.%PACKAGE_VERSION%.snupkg" (
   IF ERRORLEVEL 1 GOTO :Error
 )
 
+dotnet nuget push "%OUTPUT%\LiteGraphConsole.%PACKAGE_VERSION%.nupkg" --api-key "%NUGET_API_KEY%" --source "%NUGET_SOURCE%" --skip-duplicate
+IF ERRORLEVEL 1 GOTO :Error
+
+IF EXIST "%OUTPUT%\LiteGraphConsole.%PACKAGE_VERSION%.snupkg" (
+  dotnet nuget push "%OUTPUT%\LiteGraphConsole.%PACKAGE_VERSION%.snupkg" --api-key "%NUGET_API_KEY%" --source "%NUGET_SOURCE%" --skip-duplicate
+  IF ERRORLEVEL 1 GOTO :Error
+)
+
 ECHO.
-ECHO Published LiteGraph and LiteGraph.Sdk %PACKAGE_VERSION%.
+ECHO Published LiteGraph, LiteGraph.Sdk, and LiteGraphConsole %PACKAGE_VERSION%.
 GOTO :Done
 
 :Usage
