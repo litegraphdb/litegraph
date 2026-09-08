@@ -15349,6 +15349,48 @@
 			"name": "v8.1",
 			"item": [
 				{
+					"name": "Tenants",
+					"item": [
+						{
+							"name": "Onboard",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Onboards a tenant in a single operation: creates the tenant and, optionally, its initial users, credentials, and graphs. Set IsTenantAdmin on a user to grant tenant-administrator rights within the onboarded tenant. When a credential omits a user GUID it is linked to the first created user. Requires SystemAdmin. Validated up front and fails fast: if any element is invalid or would conflict with an existing tenant GUID or bearer token, nothing is created.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Tenant\": {\n    \"Name\": \"Acme\",\n    \"Active\": true\n  },\n  \"Users\": [\n    {\n      \"FirstName\": \"Acme\",\n      \"LastName\": \"Admin\",\n      \"Email\": \"admin@acme.local\",\n      \"Password\": \"password\",\n      \"Active\": true,\n      \"IsTenantAdmin\": true\n    }\n  ],\n  \"Credentials\": [\n    {\n      \"Name\": \"Acme default credential\",\n      \"BearerToken\": \"acme-bearer\",\n      \"Active\": true\n    }\n  ],\n  \"Graphs\": [\n    {\n      \"Name\": \"Acme Graph\"\n    }\n  ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/onboarding",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"onboarding"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Chat",
 					"item": [
 						{

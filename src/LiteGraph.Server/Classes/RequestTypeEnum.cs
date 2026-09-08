@@ -92,6 +92,11 @@
         [EnumMember(Value = "TenantCreate")]
         TenantCreate,
         /// <summary>
+        /// TenantOnboard
+        /// </summary>
+        [EnumMember(Value = "TenantOnboard")]
+        TenantOnboard,
+        /// <summary>
         /// TenantDelete
         /// </summary>
         [EnumMember(Value = "TenantDelete")]

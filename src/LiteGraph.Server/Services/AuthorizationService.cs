@@ -818,6 +818,7 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.BackupDelete:
                 case RequestTypeEnum.FlushDatabase:
                 case RequestTypeEnum.TenantCreate:
+                case RequestTypeEnum.TenantOnboard:
                 case RequestTypeEnum.TenantDelete:
                 case RequestTypeEnum.TenantUpdate:
                 case RequestTypeEnum.UserCreate:

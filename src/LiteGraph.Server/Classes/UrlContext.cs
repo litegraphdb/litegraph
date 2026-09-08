@@ -421,6 +421,7 @@
                     #region PUT
 
                     if (matcher.Match("/v1.0/settings", out _UrlParameters)) return RequestTypeEnum.SettingsUpdate;
+                    if (matcher.Match("/v1.0/tenants/onboarding", out _UrlParameters)) return RequestTypeEnum.TenantOnboard;
                     if (matcher.Match("/v1.0/tenants", out _UrlParameters)) return RequestTypeEnum.TenantCreate;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}", out _UrlParameters)) return RequestTypeEnum.TenantUpdate;
 

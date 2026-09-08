@@ -278,6 +278,91 @@
             return new ResponseContext(req, obj);
         }
 
+        internal async Task<ResponseContext> TenantOnboard(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (req.OnboardRequest == null) throw new ArgumentNullException(nameof(req.OnboardRequest));
+            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            TenantOnboardRequest onboard = req.OnboardRequest;
+            if (onboard.Tenant == null) throw new ArgumentException("A tenant definition is required to onboard a tenant.");
+
+            List<UserMaster> users = onboard.Users ?? new List<UserMaster>();
+            List<Credential> credentials = onboard.Credentials ?? new List<Credential>();
+            List<Graph> graphs = onboard.Graphs ?? new List<Graph>();
+
+            // Validate up front (fail fast) so that a rejected onboarding request does not leave a partially-created tenant behind.
+            foreach (UserMaster user in users)
+            {
+                if (user == null) throw new ArgumentException("A null user was supplied in the onboarding request.");
+                if (String.IsNullOrEmpty(user.Email)) throw new ArgumentException("Each onboarding user requires an email address.");
+                if (String.IsNullOrEmpty(user.Password)) throw new ArgumentException("Each onboarding user requires a password.");
+            }
+
+            foreach (Credential credential in credentials)
+            {
+                if (credential == null) throw new ArgumentException("A null credential was supplied in the onboarding request.");
+            }
+
+            foreach (Graph graph in graphs)
+            {
+                if (graph == null) throw new ArgumentException("A null graph was supplied in the onboarding request.");
+            }
+
+            // A credential must reference a user within the tenant.  Because the tenant is new, the only candidates are
+            // the users created by this same request, so at least one user is required when credentials are supplied.
+            if (credentials.Count > 0 && users.Count < 1)
+                throw new ArgumentException("Onboarding a credential requires at least one user in the request.");
+
+            if (await _LiteGraph.Tenant.ExistsByGuid(onboard.Tenant.GUID, token).ConfigureAwait(false))
+                return ResponseContext.FromError(req, ApiErrorEnum.Conflict, null, "A tenant with GUID " + onboard.Tenant.GUID + " already exists.");
+
+            foreach (Credential credential in credentials)
+            {
+                if (!String.IsNullOrEmpty(credential.BearerToken))
+                {
+                    Credential existing = await _LiteGraph.Credential.ReadByBearerToken(credential.BearerToken, token).ConfigureAwait(false);
+                    if (existing != null)
+                        return ResponseContext.FromError(req, ApiErrorEnum.Conflict, null, "A credential with the supplied bearer token already exists.");
+                }
+            }
+
+            TenantOnboardResponse response = new TenantOnboardResponse();
+            response.Tenant = await _LiteGraph.Tenant.Create(onboard.Tenant, token).ConfigureAwait(false);
+
+            HashSet<Guid> createdUserGuids = new HashSet<Guid>();
+            Guid? firstUserGuid = null;
+            foreach (UserMaster user in users)
+            {
+                user.TenantGUID = response.Tenant.GUID;
+                UserMaster createdUser = await _LiteGraph.User.Create(user, token).ConfigureAwait(false);
+                createdUserGuids.Add(createdUser.GUID);
+                if (firstUserGuid == null) firstUserGuid = createdUser.GUID;
+                response.Users.Add(UserMaster.Redact(_Serializer, createdUser));
+            }
+
+            foreach (Credential credential in credentials)
+            {
+                credential.TenantGUID = response.Tenant.GUID;
+
+                // Link the credential to a user in the new tenant.  When the supplied user GUID does not match a user
+                // created by this request (including the model default of a random GUID), fall back to the first user.
+                if (!createdUserGuids.Contains(credential.UserGUID)) credential.UserGUID = firstUserGuid.Value;
+
+                Credential createdCredential = await _LiteGraph.Credential.Create(credential, token).ConfigureAwait(false);
+                response.Credentials.Add(createdCredential);
+            }
+
+            foreach (Graph graph in graphs)
+            {
+                graph.TenantGUID = response.Tenant.GUID;
+                Graph createdGraph = await _LiteGraph.Graph.Create(graph, token).ConfigureAwait(false);
+                response.Graphs.Add(createdGraph);
+            }
+
+            return new ResponseContext(req, response);
+        }
+
         internal async Task<ResponseContext> TenantReadMany(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));

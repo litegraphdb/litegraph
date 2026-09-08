@@ -867,6 +867,8 @@ Backup APIs require administrator bearer token authentication. `GET /v1.0/backup
 
 Tenant create and delete require system-administrator authentication. Tenant read/exists and update are additionally available to a tenant-administrator of that tenant (`IsTenantAdmin`), and any authenticated user may read the tenants associated with their email via `GET /v1.0/token/tenants`.
 
+Onboarding (`PUT /v1.0/tenants/onboarding`) creates a tenant and, in the same request, its initial users, credentials, and graphs. It requires system-administrator authentication. The request body carries a required `Tenant` object and optional `Users`, `Credentials`, and `Graphs` arrays; set `IsTenantAdmin` on a user to make it a tenant administrator. When a credential omits a user GUID it is linked to the first created user. Onboarding is validated up front and fails fast: if any element is invalid, or would conflict with an existing tenant GUID (409) or bearer token (409), nothing is created. The response echoes the created `Tenant`, `Users` (passwords redacted), `Credentials`, and `Graphs`.
+
 When specifying multiple GUIDs to retrieve, i.e. `?guids=...`, use a comma-separated list of values, i.e. `?guids=00000000-0000-0000-0000-000000000000,11111111-1111-1111-1111-111111111111`.
 
 Throughout this document, every `Read many`, `Read all in ...`, `Read ... [labels|tags|vectors]`, and `?guids=` filtered read returns the [enumeration envelope](#enumeration-and-pagination) and accepts the shared `max-keys`, `skip`, `order`, and (where supported) `token` query parameters. This applies to the backup, tenant, user, credential, role/assignment/scope, label, tag, vector, graph, node, edge, traversal, request history, and chat list routes alike.
@@ -874,6 +876,7 @@ Throughout this document, every `Read many`, `Read all in ...`, `Read ... [label
 | API                | Method | URL                        |
 |--------------------|--------|----------------------------|
 | Create             | PUT    | /v1.0/tenants              |
+| Onboard            | PUT    | /v1.0/tenants/onboarding   |
 | Update             | PUT    | /v1.0/tenants/[guid]       |
 | Read many          | GET    | /v1.0/tenants              |
 | Read many          | GET    | /v1.0/tenants?guids=...    |

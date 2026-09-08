@@ -371,7 +371,8 @@ namespace Test.Shared
                     CreateVectorIndexImplementationSuite(),
                     CreateVectorIndexSearchSuite(),
                     CreateChatStorageSuite(),
-                    CreateChatRestSuite()
+                    CreateChatRestSuite(),
+                    CreateOnboardingSuite()
                 };
 
                 if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable)))

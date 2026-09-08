@@ -235,6 +235,7 @@
 
             #region Tenants
 
+            _Webserver.Routes.PostAuthentication.Static.Add(HttpMethod.PUT, "/v1.0/tenants/onboarding", TenantOnboardRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Onboard tenant", "Tenants"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants", TenantCreateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Create tenant", "Tenants"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants", TenantReadManyRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List tenants", "Tenants"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v2.0/tenants", TenantEnumerateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Enumerate tenants", "Tenants"));
@@ -1237,6 +1238,25 @@
 
             req.Tenant = _Serializer.DeserializeJson<TenantMetadata>(ctx.Request.DataAsString);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantCreate);
+        }
+
+        private async Task TenantOnboardRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            req.OnboardRequest = _Serializer.DeserializeJson<TenantOnboardRequest>(ctx.Request.DataAsString);
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.TenantOnboard);
         }
 
         private async Task TenantReadManyRoute(HttpContextBase ctx)

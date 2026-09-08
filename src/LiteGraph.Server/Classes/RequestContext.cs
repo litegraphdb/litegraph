@@ -215,6 +215,11 @@
         public TenantMetadata Tenant { get; set; } = null;
 
         /// <summary>
+        /// Tenant onboarding request payload.
+        /// </summary>
+        public TenantOnboardRequest OnboardRequest { get; set; } = null;
+
+        /// <summary>
         /// Graph GUID.
         /// </summary>
         public Guid? GraphGUID { get; set; } = null;
