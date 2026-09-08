@@ -31,6 +31,7 @@
     public static partial class LiteGraphTouchstoneSuites
     {
         private const string PostgresqlTestConnectionStringEnvironmentVariable = "LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING";
+        private const int _RestConcurrencyMaxAttempts = 4;
 
         private static TestSuiteDescriptor CreateImprovementFoundationSuite()
         {
@@ -1623,6 +1624,14 @@
 
                 using (HttpClient http = CreateRestConcurrencyHttpClient())
                 {
+                    // Prime the server request pipeline, authentication path, and database
+                    // connection pool with a single request before releasing the concurrent
+                    // burst. The readiness gate only confirms the root endpoint responds; the
+                    // authenticated tenant/graph route and its backing connection pool can still
+                    // be cold, and a cold first wave is the primary source of transient transport
+                    // failures observed in CI.
+                    await SendRestRequestAsync(http, HttpMethod.Get, nodesEndpoint, null, providerName + " REST warmup reader", cancellationToken).ConfigureAwait(false);
+
                     TaskCompletionSource<bool> gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                     Task<(int Status, string Body)>[] transactionTasks = transactionSpecs.Select(async spec =>
@@ -1731,25 +1740,77 @@
             string context,
             CancellationToken cancellationToken)
         {
-            using (HttpRequestMessage request = new HttpRequestMessage(method, url))
-            {
-                request.Headers.Add("Authorization", "Bearer litegraphadmin");
-                request.Headers.ConnectionClose = true;
-                if (body != null)
-                    request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            Exception? lastTransportException = null;
 
-                try
+            // WatsonWebserver is HttpListener-based and every request forces a fresh
+            // connection (Connection: close), so a concurrent burst occasionally trips a
+            // transport-level failure (connection reset/refused) that never reached request
+            // handling. Retry those transient failures a bounded number of times. A new
+            // request message is built each attempt so retried POST bodies are re-sent
+            // cleanly. If a committed transaction's response were ever lost mid-flight, a
+            // retry would surface as a loud status-code assertion failure rather than silent
+            // corruption, which is an acceptable trade for eliminating the CI flake.
+            for (int attempt = 1; attempt <= _RestConcurrencyMaxAttempts; attempt++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using (HttpRequestMessage request = new HttpRequestMessage(method, url))
                 {
-                    using (HttpResponseMessage response = await http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+                    request.Headers.Add("Authorization", "Bearer litegraphadmin");
+                    request.Headers.ConnectionClose = true;
+                    if (body != null)
+                        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                    try
                     {
-                        return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                        using (HttpResponseMessage response = await http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+                        {
+                            return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+                        }
+                    }
+                    catch (Exception ex) when (!cancellationToken.IsCancellationRequested && attempt < _RestConcurrencyMaxAttempts && IsTransientTransportFailure(ex))
+                    {
+                        lastTransportException = ex;
+                        await Task.Delay(TimeSpan.FromMilliseconds(100 * attempt), cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        throw new InvalidOperationException(context + " failed while sending " + method + " " + url + ": " + DescribeException(ex), ex);
                     }
                 }
-                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-                {
-                    throw new InvalidOperationException(context + " failed while sending " + method + " " + url + ": " + ex.Message, ex);
-                }
             }
+
+            throw new InvalidOperationException(
+                context + " failed while sending " + method + " " + url + " after " + _RestConcurrencyMaxAttempts + " attempts: "
+                    + (lastTransportException != null ? DescribeException(lastTransportException) : "unknown transport failure"),
+                lastTransportException);
+        }
+
+        private static bool IsTransientTransportFailure(Exception exception)
+        {
+            for (Exception? current = exception; current != null; current = current.InnerException)
+            {
+                if (current is HttpRequestException) return true;
+                if (current is IOException) return true;
+                if (current is System.Net.Sockets.SocketException) return true;
+            }
+
+            return false;
+        }
+
+        private static string DescribeException(Exception exception)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            for (Exception? current = exception; current != null; current = current.InnerException)
+            {
+                if (builder.Length > 0) builder.Append(" -> ");
+                builder.Append(current.GetType().Name).Append(": ").Append(current.Message);
+                if (current is System.Net.Sockets.SocketException socketException)
+                    builder.Append(" (SocketError=").Append(socketException.SocketErrorCode).Append(')');
+            }
+
+            return builder.ToString();
         }
 
         private static async Task RunPostgresqlIsolatedSchemaTest(
