@@ -164,6 +164,14 @@ namespace LiteGraph.Client.Implementations
                     return ClosenessCentrality.DefaultProperty;
                 case GraphAlgorithmTypeEnum.EigenvectorCentrality:
                     return EigenvectorCentrality.DefaultProperty;
+                case GraphAlgorithmTypeEnum.BetweennessCentrality:
+                    return BetweennessCentrality.DefaultProperty;
+                case GraphAlgorithmTypeEnum.Louvain:
+                    return Louvain.DefaultProperty;
+                case GraphAlgorithmTypeEnum.ClusteringCoefficient:
+                    return ClusteringCoefficient.DefaultProperty;
+                case GraphAlgorithmTypeEnum.KCore:
+                    return KCore.DefaultProperty;
                 default:
                     return "algorithm";
             }

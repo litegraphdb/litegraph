@@ -32,6 +32,22 @@ namespace LiteGraph.Sdk
         /// <summary>
         /// Eigenvector centrality.
         /// </summary>
-        EigenvectorCentrality
+        EigenvectorCentrality,
+        /// <summary>
+        /// Betweenness centrality.
+        /// </summary>
+        BetweennessCentrality,
+        /// <summary>
+        /// Louvain modularity community detection.
+        /// </summary>
+        Louvain,
+        /// <summary>
+        /// Local clustering coefficient.
+        /// </summary>
+        ClusteringCoefficient,
+        /// <summary>
+        /// k-core decomposition.
+        /// </summary>
+        KCore
     }
 }

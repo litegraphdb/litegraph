@@ -36,6 +36,22 @@ namespace LiteGraph.Algorithms
         /// <summary>
         /// Eigenvector centrality (power iteration on the undirected adjacency).
         /// </summary>
-        EigenvectorCentrality
+        EigenvectorCentrality,
+        /// <summary>
+        /// Betweenness centrality (Brandes, undirected, normalized).
+        /// </summary>
+        BetweennessCentrality,
+        /// <summary>
+        /// Louvain modularity community detection.
+        /// </summary>
+        Louvain,
+        /// <summary>
+        /// Local clustering coefficient (undirected simple graph).
+        /// </summary>
+        ClusteringCoefficient,
+        /// <summary>
+        /// k-core decomposition (core number per node).
+        /// </summary>
+        KCore
     }
 }

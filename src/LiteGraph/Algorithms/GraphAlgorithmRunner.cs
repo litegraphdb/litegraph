@@ -99,6 +99,14 @@ namespace LiteGraph.Algorithms
                     return BuildScored(adjacency, ClosenessCentrality.Compute(adjacency, token));
                 case GraphAlgorithmTypeEnum.EigenvectorCentrality:
                     return BuildEigenvector(adjacency, request, result, token);
+                case GraphAlgorithmTypeEnum.BetweennessCentrality:
+                    return BuildScored(adjacency, BetweennessCentrality.Compute(adjacency, token));
+                case GraphAlgorithmTypeEnum.ClusteringCoefficient:
+                    return BuildScored(adjacency, ClusteringCoefficient.Compute(adjacency, token));
+                case GraphAlgorithmTypeEnum.KCore:
+                    return BuildScored(adjacency, ToDouble(KCore.Compute(adjacency, token)));
+                case GraphAlgorithmTypeEnum.Louvain:
+                    return BuildLouvain(adjacency, request, result, token);
                 default:
                     throw new NotSupportedException("Algorithm '" + request.AlgorithmType + "' is not supported.");
             }
@@ -189,6 +197,45 @@ namespace LiteGraph.Algorithms
             result.Iterations = iterations;
             result.Converged = converged;
             return BuildScored(adjacency, scores);
+        }
+
+        private static double[] ToDouble(int[] values)
+        {
+            double[] result = new double[values.Length];
+            for (int i = 0; i < values.Length; i++) result[i] = values[i];
+            return result;
+        }
+
+        private static List<GraphAlgorithmNodeResult> BuildLouvain(
+            GraphAdjacency adjacency,
+            GraphAlgorithmRequest request,
+            GraphAlgorithmResult result,
+            CancellationToken token)
+        {
+            long[] labels = Louvain.Compute(
+                adjacency,
+                request.MaxIterations,
+                out int communityCount,
+                out int levels,
+                out bool converged,
+                token);
+
+            result.CommunityCount = communityCount;
+            result.Iterations = levels;
+            result.Converged = converged;
+
+            List<GraphAlgorithmNodeResult> nodes = new List<GraphAlgorithmNodeResult>(adjacency.NodeCount);
+            for (int i = 0; i < adjacency.NodeCount; i++)
+            {
+                GraphAlgorithmNodeResult item = new GraphAlgorithmNodeResult();
+                item.NodeGUID = adjacency.NodeGuids[i];
+                item.Name = adjacency.NodeNames[i];
+                item.Community = labels[i];
+                nodes.Add(item);
+            }
+
+            nodes.Sort((a, b) => a.Community.Value.CompareTo(b.Community.Value));
+            return nodes;
         }
 
         private static List<GraphAlgorithmNodeResult> BuildComponents(

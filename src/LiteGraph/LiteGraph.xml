@@ -4,6 +4,27 @@
         <name>LiteGraph</name>
     </assembly>
     <members>
+        <member name="T:LiteGraph.Algorithms.BetweennessCentrality">
+            <summary>
+            Betweenness centrality using Brandes' algorithm on the undirected, unweighted view (in- and out-neighbors combined).
+            Scores are normalized by the number of ordered node pairs (n-1)(n-2) so they fall in [0, 1].
+            Complexity is O(V * (V + E)); intended for graphs within the configured in-memory ceiling.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.BetweennessCentrality.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing betweenness scores back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.BetweennessCentrality.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Threading.CancellationToken)">
+            <summary>
+            Compute betweenness centrality.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Betweenness score per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
         <member name="T:LiteGraph.Algorithms.ClosenessCentrality">
             <summary>
             Closeness centrality via multi-source breadth-first search.  Edges are treated as undirected (in- and out-neighbors combined).
@@ -23,6 +44,26 @@
             <param name="adjacency">Graph adjacency.</param>
             <param name="token">Cancellation token.</param>
             <returns>Closeness score per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.ClusteringCoefficient">
+            <summary>
+            Local clustering coefficient over the undirected simple-graph view (self-loops and parallel edges removed, in- and out-neighbors combined).
+            The score is the fraction of a node's neighbor pairs that are themselves connected: 2T / (k(k-1)), in [0, 1].
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.ClusteringCoefficient.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing clustering coefficient back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.ClusteringCoefficient.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Threading.CancellationToken)">
+            <summary>
+            Compute the local clustering coefficient for every node.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Clustering coefficient per node, indexed by dense node index.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
         </member>
         <member name="T:LiteGraph.Algorithms.DegreeCentrality">
@@ -421,6 +462,26 @@
             Eigenvector centrality (power iteration on the undirected adjacency).
             </summary>
         </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.BetweennessCentrality">
+            <summary>
+            Betweenness centrality (Brandes, undirected, normalized).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.Louvain">
+            <summary>
+            Louvain modularity community detection.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.ClusteringCoefficient">
+            <summary>
+            Local clustering coefficient (undirected simple graph).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.KCore">
+            <summary>
+            k-core decomposition (core number per node).
+            </summary>
+        </member>
         <member name="T:LiteGraph.Algorithms.GraphExportAttributeLevelEnum">
             <summary>
             Level of node/edge attribute detail included in a graph projection export.
@@ -481,6 +542,27 @@
             <returns>Task.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when client or stream is null.</exception>
         </member>
+        <member name="T:LiteGraph.Algorithms.KCore">
+            <summary>
+            k-core decomposition: the core number of each node over the undirected simple-graph view (self-loops and parallel edges removed).
+            A node's core number is the largest k such that it belongs to a maximal subgraph in which every node has degree at least k.
+            Computed with the Batagelj-Zaversnik linear-time algorithm.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.KCore.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing core numbers back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.KCore.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Threading.CancellationToken)">
+            <summary>
+            Compute the core number of every node.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Core number per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
         <member name="T:LiteGraph.Algorithms.LabelPropagation">
             <summary>
             Label propagation community detection.  Edges are treated as undirected (in- and out-neighbors combined).
@@ -501,6 +583,31 @@
             <param name="communityCount">Number of distinct communities discovered.</param>
             <param name="iterations">Number of iterations performed.</param>
             <param name="converged">Whether propagation stabilized within the iteration limit.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Zero-based community identifier per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.Louvain">
+            <summary>
+            Louvain modularity-maximizing community detection over the undirected view (in- and out-neighbors combined; each directed edge contributes weight 1 in both directions, parallel edges summed).
+            Runs the standard two-phase algorithm (local moving then aggregation) across levels until modularity no longer improves.
+            Node processing order is deterministic (ascending index), so runs are reproducible for a given adjacency.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.Louvain.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing the community identifier back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.Louvain.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Int32,System.Int32@,System.Int32@,System.Boolean@,System.Threading.CancellationToken)">
+            <summary>
+            Compute communities via Louvain modularity optimization.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="maxIterations">Maximum number of levels.</param>
+            <param name="communityCount">Number of distinct communities discovered.</param>
+            <param name="levels">Number of aggregation levels performed.</param>
+            <param name="converged">Whether the algorithm reached a modularity fixed point within the level limit.</param>
             <param name="token">Cancellation token.</param>
             <returns>Zero-based community identifier per node, indexed by dense node index.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>

@@ -1517,4 +1517,4 @@ LiteGraph v9.0.0 adds native graph algorithms and a portable projection export/i
 - `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import` — write externally computed per-node values back onto nodes. Body is a `GraphAlgorithmImportRequest` (a `Values` map of node GUID to property/value pairs). Requires `write`.
 - `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/projection?format={NodeLinkJson|EdgeList|Graphml}&attributes={None|Meta|Full}` — stream the graph as a portable projection for external computation (for example rustworkx or NetworkX). Requires `read`.
 
-Supported `AlgorithmType` values: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, `LabelPropagation`.
+Supported `AlgorithmType` values: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `BetweennessCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, `LabelPropagation`, `Louvain`, `ClusteringCoefficient`, `KCore`.

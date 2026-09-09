@@ -18,11 +18,15 @@ Because the whole graph is loaded into memory, a configurable ceiling (`MaxNodes
 | PageRank | `PageRank` | `Score` = rank (sums to 1) | `pagerank` |
 | Closeness centrality | `ClosenessCentrality` | `Score` = Wasserman-Faust closeness | `closeness` |
 | Eigenvector centrality | `EigenvectorCentrality` | `Score` = eigenvector centrality (unit L2 norm) | `eigenvector` |
+| Betweenness centrality | `BetweennessCentrality` | `Score` = Brandes betweenness (normalized) | `betweenness` |
 | Weakly connected components | `WeaklyConnectedComponents` | `Community` = component id | `component` |
 | Strongly connected components | `StronglyConnectedComponents` | `Community` = component id | `scc` |
 | Label propagation | `LabelPropagation` | `Community` = community id | `community` |
+| Louvain | `Louvain` | `Community` = community id | `louvain` |
+| Clustering coefficient | `ClusteringCoefficient` | `Score` = local clustering coefficient | `clustering` |
+| k-core | `KCore` | `Score` = core number | `kcore` |
 
-Centrality and PageRank results are returned sorted by score descending; community/component results are grouped by identifier. Closeness and eigenvector centrality treat edges as undirected; PageRank, degree, and strongly connected components are directed; weakly connected components treat edges as undirected.
+Centrality and PageRank results are returned sorted by score descending; community/component results are grouped by identifier. PageRank, degree, and strongly connected components are directed; closeness, eigenvector, and betweenness centrality, clustering coefficient, k-core, Louvain, label propagation, and weakly connected components operate on the undirected view.
 
 ## Request parameters
 

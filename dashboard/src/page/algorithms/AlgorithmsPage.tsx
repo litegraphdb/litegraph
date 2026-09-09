@@ -25,9 +25,13 @@ const ALGORITHM_TYPES: GraphAlgorithmType[] = [
   'PageRank',
   'ClosenessCentrality',
   'EigenvectorCentrality',
+  'BetweennessCentrality',
   'WeaklyConnectedComponents',
   'StronglyConnectedComponents',
   'LabelPropagation',
+  'Louvain',
+  'ClusteringCoefficient',
+  'KCore',
 ];
 
 const EXPORT_FORMATS: GraphExportFormat[] = ['NodeLinkJson', 'EdgeList', 'Graphml'];
@@ -36,7 +40,8 @@ const ATTRIBUTE_LEVELS: GraphExportAttributeLevel[] = ['None', 'Meta', 'Full'];
 const isCommunityAlgorithm = (type: GraphAlgorithmType): boolean =>
   type === 'WeaklyConnectedComponents' ||
   type === 'StronglyConnectedComponents' ||
-  type === 'LabelPropagation';
+  type === 'LabelPropagation' ||
+  type === 'Louvain';
 
 const AlgorithmsPage = () => {
   const t = useTranslations('algorithms');

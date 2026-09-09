@@ -1845,6 +1845,26 @@
             Eigenvector centrality.
             </summary>
         </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.BetweennessCentrality">
+            <summary>
+            Betweenness centrality.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.Louvain">
+            <summary>
+            Louvain modularity community detection.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.ClusteringCoefficient">
+            <summary>
+            Local clustering coefficient.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.KCore">
+            <summary>
+            k-core decomposition.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.GraphExportAttributeLevelEnum">
             <summary>
             Level of node/edge attribute detail included in a graph projection export.

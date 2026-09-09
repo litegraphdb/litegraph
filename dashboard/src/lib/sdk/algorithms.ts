@@ -5,9 +5,13 @@ export type GraphAlgorithmType =
   | 'PageRank'
   | 'ClosenessCentrality'
   | 'EigenvectorCentrality'
+  | 'BetweennessCentrality'
   | 'WeaklyConnectedComponents'
   | 'StronglyConnectedComponents'
-  | 'LabelPropagation';
+  | 'LabelPropagation'
+  | 'Louvain'
+  | 'ClusteringCoefficient'
+  | 'KCore';
 
 export type GraphExportFormat = 'NodeLinkJson' | 'EdgeList' | 'Graphml';
 export type GraphExportAttributeLevel = 'None' | 'Meta' | 'Full';
