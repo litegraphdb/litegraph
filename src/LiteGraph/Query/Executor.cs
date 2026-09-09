@@ -95,6 +95,9 @@ namespace LiteGraph.Client.Implementations
                 case GraphQueryKindEnum.VectorSearch:
                     result = await _Methods.ExecuteVectorSearch(tenantGuid, graphGuid, request, plan.Ast, token).ConfigureAwait(false);
                     break;
+                case GraphQueryKindEnum.Algorithm:
+                    result = await _Methods.ExecuteAlgorithm(tenantGuid, graphGuid, request, plan.Ast, token).ConfigureAwait(false);
+                    break;
                 default:
                     throw new NotSupportedException("Unsupported query kind '" + plan.Kind + "'.");
             }

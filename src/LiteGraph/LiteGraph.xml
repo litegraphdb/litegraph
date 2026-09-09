@@ -15233,6 +15233,11 @@
             Search vectors.
             </summary>
         </member>
+        <member name="F:LiteGraph.Query.GraphQueryKindEnum.Algorithm">
+            <summary>
+            Run a graph algorithm.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Query.GraphQueryParseException">
             <summary>
             Native graph query parse exception with source location.

@@ -126,4 +126,15 @@ Node identity is preserved by GUID across the round trip, so imported values lan
 
 - The in-memory ceiling is a guardrail, not a scaling strategy; for very large graphs use projection export + external compute.
 - Edge `cost` is not treated as an algorithm weight in v9.0.0; edges are unweighted (weight 1.0).
-- `CALL litegraph.algo.*` DSL integration is planned; the typed API, REST, and MCP surfaces expose all algorithms today.
+
+## DSL surface
+
+Algorithms are also callable from the native query language:
+
+```
+CALL litegraph.algo.pagerank() RETURN guid, score
+CALL litegraph.algo.louvain() RETURN guid, community
+CALL litegraph.algo.betweenness() RETURN guid, score LIMIT 10
+```
+
+The procedure name's suffix selects the algorithm (`pagerank`, `degree`, `closeness`, `eigenvector`, `betweenness`, `wcc`/`weaklyconnectedcomponents`, `scc`/`stronglyconnectedcomponents`, `labelpropagation`, `louvain`, `clustering`, `kcore`). Supported `RETURN`/`YIELD` variables are `guid` (alias `node`/`n`/`nodeGuid`), `name`, `score`, `community` (alias `component`), `edgesIn`, `edgesOut`, and `result` (the full per-node object). `LIMIT` bounds the rows returned. The call runs against the query's graph with default parameters; for tuned parameters or write-back, use the typed API or REST route. Aggregates over algorithm output are not supported.

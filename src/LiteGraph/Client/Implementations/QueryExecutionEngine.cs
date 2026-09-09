@@ -10,6 +10,7 @@ namespace LiteGraph.Client.Implementations
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Algorithms;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Query;
@@ -936,6 +937,100 @@ namespace LiteGraph.Client.Implementations
                 r.Vectors.Add(vector);
                 return r;
             }, tenantGuid, graphGuid, token).ConfigureAwait(false);
+        }
+
+        internal async Task<GraphQueryResult> ExecuteAlgorithm(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)
+        {
+            if (HasAggregateReturn(ast))
+                throw new NotSupportedException("Aggregate RETURN expressions are not supported for algorithm queries in this release.");
+
+            GraphAlgorithmTypeEnum algorithmType = ResolveAlgorithmType(ast.ProcedureName);
+            int limit = ResolveLimit(request, ast);
+
+            GraphAlgorithmRequest algorithmRequest = new GraphAlgorithmRequest
+            {
+                AlgorithmType = algorithmType,
+                MaxResults = limit > 0 ? limit : (int?)null
+            };
+
+            GraphAlgorithmResult algorithmResult = await _Client.Algorithm.Run(tenantGuid, graphGuid, algorithmRequest, token).ConfigureAwait(false);
+
+            GraphQueryResult result = new GraphQueryResult();
+            List<string> returnVariables = (ast.ReturnVariables != null && ast.ReturnVariables.Count > 0)
+                ? ast.ReturnVariables
+                : new List<string> { "guid", "score", "community" };
+
+            foreach (GraphAlgorithmNodeResult node in algorithmResult.Nodes)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                foreach (string variable in returnVariables)
+                {
+                    if (variable.Equals("guid", StringComparison.OrdinalIgnoreCase) || variable.Equals("nodeGuid", StringComparison.OrdinalIgnoreCase) || variable.Equals("node", StringComparison.OrdinalIgnoreCase) || variable.Equals("n", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node.NodeGUID;
+                    else if (variable.Equals("name", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node.Name;
+                    else if (variable.Equals("score", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node.Score;
+                    else if (variable.Equals("community", StringComparison.OrdinalIgnoreCase) || variable.Equals("component", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node.Community;
+                    else if (variable.Equals("edgesIn", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node.EdgesIn;
+                    else if (variable.Equals("edgesOut", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node.EdgesOut;
+                    else if (variable.Equals("result", StringComparison.OrdinalIgnoreCase))
+                        row[variable] = node;
+                    else
+                        throw new ArgumentException("Unsupported algorithm RETURN variable '" + variable + "'.");
+                }
+
+                result.Rows.Add(row);
+                if (limit > 0 && result.RowCount >= limit) break;
+            }
+
+            return result;
+        }
+
+        private static GraphAlgorithmTypeEnum ResolveAlgorithmType(string procedure)
+        {
+            string suffix = procedure;
+            int lastDot = procedure != null ? procedure.LastIndexOf('.') : -1;
+            if (lastDot >= 0 && lastDot < procedure.Length - 1) suffix = procedure.Substring(lastDot + 1);
+            suffix = suffix != null ? suffix.ToLowerInvariant() : String.Empty;
+
+            switch (suffix)
+            {
+                case "degree":
+                case "degreecentrality":
+                    return GraphAlgorithmTypeEnum.DegreeCentrality;
+                case "pagerank":
+                    return GraphAlgorithmTypeEnum.PageRank;
+                case "closeness":
+                case "closenesscentrality":
+                    return GraphAlgorithmTypeEnum.ClosenessCentrality;
+                case "eigenvector":
+                case "eigenvectorcentrality":
+                    return GraphAlgorithmTypeEnum.EigenvectorCentrality;
+                case "betweenness":
+                case "betweennesscentrality":
+                    return GraphAlgorithmTypeEnum.BetweennessCentrality;
+                case "wcc":
+                case "weaklyconnectedcomponents":
+                    return GraphAlgorithmTypeEnum.WeaklyConnectedComponents;
+                case "scc":
+                case "stronglyconnectedcomponents":
+                    return GraphAlgorithmTypeEnum.StronglyConnectedComponents;
+                case "labelpropagation":
+                    return GraphAlgorithmTypeEnum.LabelPropagation;
+                case "louvain":
+                    return GraphAlgorithmTypeEnum.Louvain;
+                case "clustering":
+                case "clusteringcoefficient":
+                    return GraphAlgorithmTypeEnum.ClusteringCoefficient;
+                case "kcore":
+                    return GraphAlgorithmTypeEnum.KCore;
+                default:
+                    throw new ArgumentException("Unsupported algorithm procedure '" + procedure + "'.");
+            }
         }
 
         internal async Task<GraphQueryResult> ExecuteVectorSearch(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)

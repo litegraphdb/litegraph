@@ -598,6 +598,29 @@ Return variables supported by vector search:
 - `innerProduct`
 - `result`
 
+## Graph Algorithms
+
+Run a graph algorithm over the query's graph and return per-node rows:
+
+```cypher
+CALL litegraph.algo.pagerank() RETURN guid, score
+CALL litegraph.algo.louvain() RETURN guid, community
+CALL litegraph.algo.betweenness() RETURN guid, score LIMIT 10
+```
+
+The procedure suffix selects the algorithm: `pagerank`, `degree`, `closeness`, `eigenvector`, `betweenness`, `wcc` (or `weaklyconnectedcomponents`), `scc` (or `stronglyconnectedcomponents`), `labelpropagation`, `louvain`, `clustering`, and `kcore`.
+
+Return variables supported by algorithm calls:
+
+- `guid` (aliases `node`, `n`, `nodeGuid`) — the node GUID
+- `name`
+- `score`
+- `community` (alias `component`)
+- `edgesIn`, `edgesOut`
+- `result` — the full per-node result object
+
+The call runs with default parameters against the current graph. For tuned parameters (damping, iterations) or write-back into node data, use the REST route or the typed `client.Algorithm` API. Aggregates over algorithm output are not supported. See [ALGORITHMS.md](ALGORITHMS.md).
+
 ## Error Handling
 
 Parser errors include line and column information. Execution errors describe unsupported query clauses, unsupported fields, missing parameters, invalid GUID values, nonnumeric comparison operands, and unsupported return variables.

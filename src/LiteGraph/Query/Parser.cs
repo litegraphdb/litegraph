@@ -256,16 +256,31 @@ namespace LiteGraph.Query
             GraphQueryToken procedureStart = Current;
             string procedure = ParseQualifiedName();
             Expect(GraphQueryTokenTypeEnum.LeftParen, "'(' expected");
-            string argument = ParseValueExpression();
+            string argument = null;
+            if (Current.Type != GraphQueryTokenTypeEnum.RightParen)
+                argument = ParseValueExpression();
             Expect(GraphQueryTokenTypeEnum.RightParen, "')' expected");
 
-            GraphQueryAst ast = new GraphQueryAst
+            GraphQueryAst ast;
+            if (IsAlgorithmProcedure(procedure))
             {
-                Kind = GraphQueryKindEnum.VectorSearch,
-                ProcedureName = procedure,
-                ProcedureArgumentExpression = argument,
-                VectorDomain = ProcedureToVectorDomain(procedure, procedureStart)
-            };
+                ast = new GraphQueryAst
+                {
+                    Kind = GraphQueryKindEnum.Algorithm,
+                    ProcedureName = procedure,
+                    ProcedureArgumentExpression = argument
+                };
+            }
+            else
+            {
+                ast = new GraphQueryAst
+                {
+                    Kind = GraphQueryKindEnum.VectorSearch,
+                    ProcedureName = procedure,
+                    ProcedureArgumentExpression = argument,
+                    VectorDomain = ProcedureToVectorDomain(procedure, procedureStart)
+                };
+            }
 
             if (IsKeyword("YIELD"))
             {
@@ -887,6 +902,12 @@ namespace LiteGraph.Query
             return text.Equals("LABEL", StringComparison.OrdinalIgnoreCase)
                 || text.Equals("TAG", StringComparison.OrdinalIgnoreCase)
                 || text.Equals("VECTOR", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsAlgorithmProcedure(string procedure)
+        {
+            return procedure != null
+                && procedure.StartsWith("litegraph.algo.", StringComparison.OrdinalIgnoreCase);
         }
 
         private static VectorSearchDomainEnum ProcedureToVectorDomain(string procedure, GraphQueryToken procedureStart)

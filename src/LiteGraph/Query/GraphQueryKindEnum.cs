@@ -98,6 +98,11 @@ namespace LiteGraph.Query
         /// <summary>
         /// Search vectors.
         /// </summary>
-        VectorSearch
+        VectorSearch,
+
+        /// <summary>
+        /// Run a graph algorithm.
+        /// </summary>
+        Algorithm
     }
 }

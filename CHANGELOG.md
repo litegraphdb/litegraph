@@ -4,12 +4,13 @@
 
 v9.0.0
 
-v9.0 adds native **graph algorithms** — degree, closeness, and eigenvector centrality; PageRank; weakly and strongly connected components; and label-propagation community detection — computed over the whole graph and optionally written back onto nodes so results are queryable through the DSL. It also adds a first-class **graph export/projection** feature (node-link JSON, edge list, GraphML) with a results **import** path, so graphs can be round-tripped to external engines such as `rustworkx`/NetworkX for algorithms beyond native scope or for graphs past the in-memory ceiling. The feature spans the full product surface: core library (`client.Algorithm`), REST server, MCP tools, dashboard, and all three SDKs (C#, JavaScript, Python). Additive release — no storage migration required.
+v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and betweenness centrality; PageRank; weakly and strongly connected components; label-propagation and Louvain community detection; local clustering coefficient; and k-core decomposition — computed over the whole graph and optionally written back onto nodes so results are queryable through the DSL. It also adds a first-class **graph export/projection** feature (node-link JSON, edge list, GraphML) with a results **import** path, so graphs can be round-tripped to external engines such as `rustworkx`/NetworkX for algorithms beyond native scope or for graphs past the in-memory ceiling. The feature spans the full product surface: core library (`client.Algorithm`), REST server, MCP tools, the native query language, the dashboard, and all three SDKs (C#, JavaScript, Python). Additive release — no storage migration required.
 
 - Graph algorithms
-  - Seven algorithms: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, and `LabelPropagation`.
+  - Eleven algorithms: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `BetweennessCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, `LabelPropagation`, `Louvain`, `ClusteringCoefficient`, and `KCore`.
   - Native compute over a whole-graph in-memory adjacency (compressed sparse row) built from streaming enumeration (`Node.ReadAllInGraph` / `Edge.ReadAllInGraph`), with a configurable node/edge ceiling that rejects oversized graphs rather than risking OOM.
   - New `client.Algorithm` surface, REST route `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms`, `algorithm/run` MCP tool, a dashboard algorithms page, and SDK bindings in all three languages.
+  - Native query-language surface: `CALL litegraph.algo.<name>() RETURN guid, score` (and `community`, `name`, `edgesIn`, `edgesOut`, `result`), with `LIMIT` support.
   - Optional write-back materializes per-node results (scores, community/component labels) into node `Data`, making them DSL-queryable (e.g. `WHERE n.data.pagerank > 0.1`).
   - New `Algorithm` authorization resource type: compute requires read scope; write-back requires write scope. `Viewer` can run read-only algorithms; `Editor` and `GraphAdmin` can also write results back.
 
@@ -18,7 +19,7 @@ v9.0 adds native **graph algorithms** — degree, closeness, and eigenvector cen
   - Import externally computed results (node GUID → property/value map) back onto nodes via `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import`.
   - Available over REST, MCP (`algorithm/export`, `algorithm/import`), the dashboard, and all SDKs. See [docs/ALGORITHMS.md](docs/ALGORITHMS.md).
 
-- Not yet included: betweenness/Louvain, graph embeddings (FastRP/node2vec), and the `CALL litegraph.algo.*` DSL surface are planned follow-ons; the typed API, REST, and MCP expose all shipped algorithms today.
+- Not yet included: graph embeddings (FastRP/node2vec) are a planned follow-on.
 
 ## Previous Versions
 
