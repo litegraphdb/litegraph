@@ -2,6 +2,16 @@
 
 ## Current Version
 
+v9.0.0
+
+- Added a Graph Algorithms page (Data section): run degree/closeness/eigenvector centrality, PageRank, weakly/strongly connected components, and label propagation over the selected graph
+- Added a per-node results table with run summary, and an optional write-back toggle (with property name) to persist results into node data
+- Added graph projection export (node-link JSON, edge list, GraphML; None/Meta/Full attribute levels) as a download, for external computation in rustworkx/NetworkX
+- Added import of externally computed per-node results back onto nodes
+- Algorithm API calls are implemented directly in the dashboard (no dependency on a published SDK package)
+
+## Previous Versions
+
 v7.0.0
 
 - Added v7 transaction diagnostics rendering in API Explorer and request history

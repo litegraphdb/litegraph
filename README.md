@@ -16,6 +16,7 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 - SQLite provider for embedded, local, and test use
 - PostgreSQL provider for production deployments and parallel transaction write scaling
 - Native LiteGraph graph query language for reads, traversals, vector search, and graph mutations
+- Graph algorithms (centrality, PageRank, connected components, community detection) with write-back and a rustworkx/NetworkX export-compute-import path
 - Graph-scoped transactions for nodes, edges, labels, tags, and vectors
 - HNSW vector indexing through `HnswLite` `2.0.1`
 - REST server with bearer-token authentication, request history, RBAC, and OpenAPI/Postman assets

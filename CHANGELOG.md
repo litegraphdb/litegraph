@@ -4,18 +4,21 @@
 
 v9.0.0
 
-v9.0 adds native **graph algorithms** — centrality (degree, closeness, betweenness, eigenvector), PageRank, connected components, community detection (label propagation, Louvain), and graph embeddings (FastRP, node2vec) — computed over the whole graph and optionally written back onto nodes so results are queryable through the DSL. It also adds a first-class **graph export/projection** feature (node-link JSON, edge list, GraphML) with a results **import** path, so graphs can be round-tripped to external engines such as `rustworkx`/NetworkX for algorithms beyond native scope or for graphs past the in-memory ceiling. The feature spans the full product surface: core library (`client.Algorithm`), REST server, MCP tools, dashboard, and all three SDKs (C#, JavaScript, Python). Additive release — no storage migration required.
+v9.0 adds native **graph algorithms** — degree, closeness, and eigenvector centrality; PageRank; weakly and strongly connected components; and label-propagation community detection — computed over the whole graph and optionally written back onto nodes so results are queryable through the DSL. It also adds a first-class **graph export/projection** feature (node-link JSON, edge list, GraphML) with a results **import** path, so graphs can be round-tripped to external engines such as `rustworkx`/NetworkX for algorithms beyond native scope or for graphs past the in-memory ceiling. The feature spans the full product surface: core library (`client.Algorithm`), REST server, MCP tools, dashboard, and all three SDKs (C#, JavaScript, Python). Additive release — no storage migration required.
 
 - Graph algorithms
-  - Native compute over a whole-graph in-memory adjacency built from streaming enumeration (`Node.ReadAllInGraph` / `Edge.ReadAllInGraph`), with a configurable node/edge ceiling that rejects oversized graphs rather than risking OOM.
-  - New `client.Algorithm` surface, REST routes under `/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms`, `algorithm/*` MCP tools, a dashboard algorithms page, and SDK bindings in all three languages.
-  - Optional write-back materializes per-node results (scores, community labels) into node `Data`, making them DSL-queryable (e.g. `WHERE n.data.pagerank > 0.1`). `CALL litegraph.algo.*` exposes algorithms in the native query language.
-  - New `Algorithm` authorization resource type: compute requires read scope; write-back requires write scope.
+  - Seven algorithms: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, and `LabelPropagation`.
+  - Native compute over a whole-graph in-memory adjacency (compressed sparse row) built from streaming enumeration (`Node.ReadAllInGraph` / `Edge.ReadAllInGraph`), with a configurable node/edge ceiling that rejects oversized graphs rather than risking OOM.
+  - New `client.Algorithm` surface, REST route `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms`, `algorithm/run` MCP tool, a dashboard algorithms page, and SDK bindings in all three languages.
+  - Optional write-back materializes per-node results (scores, community/component labels) into node `Data`, making them DSL-queryable (e.g. `WHERE n.data.pagerank > 0.1`).
+  - New `Algorithm` authorization resource type: compute requires read scope; write-back requires write scope. `Viewer` can run read-only algorithms; `Editor` and `GraphAdmin` can also write results back.
 
 - Graph export / external-compute interop
-  - Export a graph or subgraph as node-link JSON (loads directly into NetworkX/`rustworkx`), edge list (CSV/JSONL), or GraphML — streaming, so graphs too large for native compute can still be projected out.
-  - Import externally computed results (node GUID → value map) back onto nodes via the batch write path.
-  - Available over REST (`/export`, `/algorithms/import`), MCP (`algorithm/export`, `algorithm/import`), the dashboard, and all SDKs.
+  - Export a graph as node-link JSON (loads directly into `networkx.node_link_graph`), edge list (CSV), or GraphML via `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/projection` — streaming, with `None`/`Meta`/`Full` attribute levels, so graphs too large for native compute can still be projected out.
+  - Import externally computed results (node GUID → property/value map) back onto nodes via `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import`.
+  - Available over REST, MCP (`algorithm/export`, `algorithm/import`), the dashboard, and all SDKs. See [docs/ALGORITHMS.md](docs/ALGORITHMS.md).
+
+- Not yet included: betweenness/Louvain, graph embeddings (FastRP/node2vec), and the `CALL litegraph.algo.*` DSL surface are planned follow-ons; the typed API, REST, and MCP expose all shipped algorithms today.
 
 ## Previous Versions
 
