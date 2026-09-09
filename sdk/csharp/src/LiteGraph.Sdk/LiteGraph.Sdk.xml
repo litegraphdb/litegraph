@@ -1545,6 +1545,66 @@
             Route request.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.GenerateEmbeddingsRequest">
+            <summary>
+            Request to generate node embeddings for a graph using the tenant's active embedding endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsRequest.MaxNodes">
+            <summary>
+            Optional maximum number of nodes to embed.  Null embeds all nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsRequest.SkipNodesWithVectors">
+            <summary>
+            Boolean indicating whether nodes that already have a vector should be skipped.  Default true.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GenerateEmbeddingsRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GenerateEmbeddingsResult">
+            <summary>
+            Result of a node embedding generation run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsResult.Success">
+            <summary>
+            Boolean indicating whether the run succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsResult.NodesEmbedded">
+            <summary>
+            Number of nodes embedded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsResult.NodesSkipped">
+            <summary>
+            Number of nodes skipped (empty content or already vectorized).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsResult.Model">
+            <summary>
+            Embedding model used.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsResult.Dimensionality">
+            <summary>
+            Embedding dimensionality produced.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GenerateEmbeddingsResult.EndpointGUID">
+            <summary>
+            GUID of the embedding endpoint used.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GenerateEmbeddingsResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Graph">
             <summary>
             Graph.
@@ -2514,6 +2574,9 @@
         <member name="M:LiteGraph.Sdk.Implementations.AlgorithmMethods.ImportResults(System.Guid,System.Guid,LiteGraph.Sdk.GraphAlgorithmImportRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AlgorithmMethods.GenerateEmbeddings(System.Guid,System.Guid,LiteGraph.Sdk.GenerateEmbeddingsRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.BatchMethods">
             <summary>
             Batch methods.
@@ -3354,6 +3417,16 @@
             <param name="request">Import request.</param>
             <param name="token">Cancellation token.</param>
             <returns>Import result.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAlgorithmMethods.GenerateEmbeddings(System.Guid,System.Guid,LiteGraph.Sdk.GenerateEmbeddingsRequest,System.Threading.CancellationToken)">
+            <summary>
+            Generate node embeddings for a graph using the tenant's active embedding endpoint, storing each as a node vector.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Embedding generation request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Embedding generation result.</returns>
         </member>
         <member name="T:LiteGraph.Sdk.Interfaces.IBatchMethods">
             <summary>

@@ -512,6 +512,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/query", out _UrlParameters)) return RequestTypeEnum.GraphQuery;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/transaction", out _UrlParameters)) return RequestTypeEnum.GraphTransaction;
 
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/embeddings", out _UrlParameters)) return RequestTypeEnum.GraphAlgorithmEmbeddings;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import", out _UrlParameters)) return RequestTypeEnum.GraphAlgorithmImport;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms", out _UrlParameters)) return RequestTypeEnum.GraphAlgorithm;
 

@@ -502,6 +502,7 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.GraphImportJsonl:
                 case RequestTypeEnum.GraphImportJsonlNew:
                 case RequestTypeEnum.GraphAlgorithmImport:
+                case RequestTypeEnum.GraphAlgorithmEmbeddings:
                 case RequestTypeEnum.GraphVectorIndexDisable:
                 case RequestTypeEnum.GraphVectorIndexEnable:
                 case RequestTypeEnum.GraphVectorIndexRebuild:
@@ -680,6 +681,7 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.GraphAlgorithm:
                 case RequestTypeEnum.GraphProjectionExport:
                 case RequestTypeEnum.GraphAlgorithmImport:
+                case RequestTypeEnum.GraphAlgorithmEmbeddings:
                     return AuthorizationResourceTypeEnum.Algorithm;
                 case RequestTypeEnum.GraphCreate:
                 case RequestTypeEnum.GraphDelete:

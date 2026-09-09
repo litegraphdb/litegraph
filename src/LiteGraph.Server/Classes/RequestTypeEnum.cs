@@ -752,6 +752,11 @@
         [EnumMember(Value = "GraphAlgorithmImport")]
         GraphAlgorithmImport,
         /// <summary>
+        /// GraphAlgorithmEmbeddings
+        /// </summary>
+        [EnumMember(Value = "GraphAlgorithmEmbeddings")]
+        GraphAlgorithmEmbeddings,
+        /// <summary>
         /// GraphExportJsonl
         /// </summary>
         [EnumMember(Value = "GraphExportJsonl")]

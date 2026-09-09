@@ -64,6 +64,20 @@ export type GraphAlgorithmImportResult = {
   NodesUpdated: number;
 };
 
+export type GenerateEmbeddingsRequest = {
+  MaxNodes?: number | null;
+  SkipNodesWithVectors?: boolean;
+};
+
+export type GenerateEmbeddingsResult = {
+  Success: boolean;
+  NodesEmbedded: number;
+  NodesSkipped: number;
+  Model: string | null;
+  Dimensionality: number;
+  EndpointGUID: string;
+};
+
 const getBaseUrl = (): string => {
   const endpoint = sdk.config.endpoint || '/';
   return endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
@@ -158,4 +172,25 @@ export const importAlgorithmResults = async (
   });
   if (!response.ok) throw new Error(await extractErrorMessage(response));
   return (await response.json()) as GraphAlgorithmImportResult;
+};
+
+/**
+ * Generate node embeddings for a graph using the tenant's active embedding endpoint.
+ * @throws {Error} When the server responds with a non-2xx status (including when no embedding endpoint is configured).
+ */
+export const generateEmbeddings = async (
+  tenantGuid: string,
+  graphGuid: string,
+  request: GenerateEmbeddingsRequest = {}
+): Promise<GenerateEmbeddingsResult> => {
+  const url = `${getBaseUrl()}/v1.0/tenants/${encodeURIComponent(
+    tenantGuid
+  )}/graphs/${encodeURIComponent(graphGuid)}/algorithms/embeddings`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: buildHeaders('application/json', 'application/json'),
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw new Error(await extractErrorMessage(response));
+  return (await response.json()) as GenerateEmbeddingsResult;
 };

@@ -12,6 +12,8 @@ v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and be
   - New `client.Algorithm` surface, REST route `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms`, `algorithm/run` MCP tool, a dashboard algorithms page, and SDK bindings in all three languages.
   - Native query-language surface: `CALL litegraph.algo.<name>() RETURN guid, score` (and `community`, `name`, `edgesIn`, `edgesOut`, `result`), with `LIMIT` support.
   - Optional write-back materializes per-node results (scores, community/component labels) into node `Data`, making them DSL-queryable (e.g. `WHERE n.data.pagerank > 0.1`).
+  - Optional opt-in result cache (`UseCache`) with node/edge-count auto-invalidation and explicit `InvalidateCache`.
+  - Node embedding generation (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint: each node's content is embedded and stored as a node vector (HNSW-indexable), exposed in all SDKs and the dashboard.
   - New `Algorithm` authorization resource type: compute requires read scope; write-back requires write scope. `Viewer` can run read-only algorithms; `Editor` and `GraphAdmin` can also write results back.
 
 - Graph export / external-compute interop
@@ -19,7 +21,7 @@ v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and be
   - Import externally computed results (node GUID → property/value map) back onto nodes via `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import`.
   - Available over REST, MCP (`algorithm/export`, `algorithm/import`), the dashboard, and all SDKs. See [docs/ALGORITHMS.md](docs/ALGORITHMS.md).
 
-- Not yet included: graph embeddings (FastRP/node2vec) are a planned follow-on.
+- Not yet included: structural graph embeddings (FastRP/node2vec) are a planned follow-on; the v9.0 embedding feature generates content embeddings via a configured embedding endpoint.
 
 ## Previous Versions
 

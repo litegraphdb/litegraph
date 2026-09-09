@@ -44,5 +44,15 @@ namespace LiteGraph.Sdk.Interfaces
         /// <param name="token">Cancellation token.</param>
         /// <returns>Import result.</returns>
         Task<GraphAlgorithmImportResult> ImportResults(Guid tenantGuid, Guid graphGuid, GraphAlgorithmImportRequest request, CancellationToken token = default);
+
+        /// <summary>
+        /// Generate node embeddings for a graph using the tenant's active embedding endpoint, storing each as a node vector.
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="request">Embedding generation request.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Embedding generation result.</returns>
+        Task<GenerateEmbeddingsResult> GenerateEmbeddings(Guid tenantGuid, Guid graphGuid, GenerateEmbeddingsRequest request, CancellationToken token = default);
     }
 }

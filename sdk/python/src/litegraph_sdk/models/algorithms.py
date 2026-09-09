@@ -57,6 +57,30 @@ class GraphAlgorithmResultModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class GenerateEmbeddingsRequestModel(BaseModel):
+    """
+    Request to generate node embeddings using the tenant's active embedding endpoint.
+    """
+
+    max_nodes: Optional[int] = Field(default=None, alias="MaxNodes")
+    skip_nodes_with_vectors: bool = Field(default=True, alias="SkipNodesWithVectors")
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class GenerateEmbeddingsResultModel(BaseModel):
+    """
+    Result of a node embedding generation run.
+    """
+
+    success: bool = Field(default=True, alias="Success")
+    nodes_embedded: int = Field(default=0, alias="NodesEmbedded")
+    nodes_skipped: int = Field(default=0, alias="NodesSkipped")
+    model: Optional[str] = Field(default=None, alias="Model")
+    dimensionality: int = Field(default=0, alias="Dimensionality")
+    endpoint_guid: Optional[str] = Field(default=None, alias="EndpointGUID")
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class GraphAlgorithmImportRequestModel(BaseModel):
     """
     Request to import externally computed per-node values back onto graph nodes.

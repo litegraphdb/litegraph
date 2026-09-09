@@ -906,6 +906,93 @@ namespace LiteGraph.Server.Services.Chat
             }
         }
 
+        /// <summary>
+        /// Generate embeddings for the nodes of a graph using the tenant's active embedding endpoint, storing each as a node vector (HNSW-indexable).
+        /// </summary>
+        /// <param name="tenantGuid">Tenant GUID.</param>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <param name="request">Embedding generation request.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Embedding generation result.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when no active embedding endpoint is configured for the tenant.</exception>
+        public async Task<GenerateEmbeddingsResult> GenerateNodeEmbeddings(Guid tenantGuid, Guid graphGuid, GenerateEmbeddingsRequest request, CancellationToken token)
+        {
+            if (request == null) request = new GenerateEmbeddingsRequest();
+
+            ChatEndpoint endpoint = await FirstActiveEndpoint(tenantGuid, ChatEndpointTypeEnum.Embedding, token).ConfigureAwait(false);
+            if (endpoint == null)
+                throw new InvalidOperationException("No active embedding endpoint is configured for this tenant.");
+
+            GenerateEmbeddingsResult result = new GenerateEmbeddingsResult();
+            result.Model = endpoint.Model;
+            result.EndpointGUID = endpoint.GUID;
+
+            await foreach (Node node in _LiteGraph.Node.ReadAllInGraph(tenantGuid, graphGuid, EnumerationOrderEnum.CreatedAscending, 0, true, true, token).ConfigureAwait(false))
+            {
+                token.ThrowIfCancellationRequested();
+                if (node == null) continue;
+
+                if (request.SkipNodesWithVectors && node.Vectors != null && node.Vectors.Count > 0)
+                {
+                    result.NodesSkipped++;
+                    continue;
+                }
+
+                string text = BuildNodeText(node);
+                if (String.IsNullOrWhiteSpace(text))
+                {
+                    result.NodesSkipped++;
+                    continue;
+                }
+
+                List<float> embeddings = await EmbedText(endpoint, text, token).ConfigureAwait(false);
+
+                VectorMetadata vector = new VectorMetadata
+                {
+                    TenantGUID = tenantGuid,
+                    GraphGUID = graphGuid,
+                    NodeGUID = node.GUID,
+                    Model = endpoint.Model,
+                    Dimensionality = embeddings.Count,
+                    Content = text.Length > 256 ? text.Substring(0, 256) : text,
+                    Vectors = embeddings
+                };
+
+                await _LiteGraph.Vector.Create(vector, token).ConfigureAwait(false);
+                result.NodesEmbedded++;
+                if (result.Dimensionality == 0) result.Dimensionality = embeddings.Count;
+
+                if (request.MaxNodes.HasValue && result.NodesEmbedded >= request.MaxNodes.Value) break;
+            }
+
+            return result;
+        }
+
+        private static string BuildNodeText(Node node)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (!String.IsNullOrEmpty(node.Name)) sb.Append(node.Name);
+
+            if (node.Data != null)
+            {
+                try
+                {
+                    string dataJson = System.Text.Json.JsonSerializer.Serialize(node.Data);
+                    if (!String.IsNullOrEmpty(dataJson) && !dataJson.Equals("null", StringComparison.Ordinal))
+                    {
+                        if (sb.Length > 0) sb.Append(' ');
+                        sb.Append(dataJson);
+                    }
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    // Skip unserializable node data; embed the name only.
+                }
+            }
+
+            return sb.ToString().Trim();
+        }
+
         private async Task<ChatEndpoint> FirstActiveEndpoint(Guid tenantGuid, ChatEndpointTypeEnum endpointType, CancellationToken token)
         {
             await foreach (ChatEndpoint candidate in _LiteGraph.ChatEndpoint.ReadAllInTenant(tenantGuid, endpointType, EnumerationOrderEnum.CreatedAscending, 0, token).ConfigureAwait(false))

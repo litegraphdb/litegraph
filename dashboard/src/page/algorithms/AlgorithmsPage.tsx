@@ -10,6 +10,7 @@ import LitegraphText from '@/components/base/typograpghy/Text';
 import { useSelectedGraph, useSelectedTenant } from '@/hooks/entityHooks';
 import {
   exportGraphProjection,
+  generateEmbeddings,
   importAlgorithmResults,
   runAlgorithm,
   type GraphAlgorithmNodeResult,
@@ -82,6 +83,8 @@ const AlgorithmsPage = () => {
 
   const [importText, setImportText] = useState<string>('');
   const [importing, setImporting] = useState<boolean>(false);
+
+  const [embedding, setEmbedding] = useState<boolean>(false);
 
   const ready = Boolean(tenantGuid && graphGuid);
 
@@ -168,6 +171,22 @@ const AlgorithmsPage = () => {
   if (result) {
     for (const node of result.Nodes) if (node.Score > maxScore) maxScore = node.Score;
   }
+
+  const handleGenerateEmbeddings = async () => {
+    if (!ready) {
+      toast.error(t('selectGraphFirst'));
+      return;
+    }
+    setEmbedding(true);
+    try {
+      const response = await generateEmbeddings(tenantGuid, graphGuid, {});
+      toast.success(`${t('embeddingsSuccess')} (${response.NodesEmbedded})`);
+    } catch (error) {
+      toast.error(`${t('error')}: ${describeError(error)}`);
+    } finally {
+      setEmbedding(false);
+    }
+  };
 
   const columns: ColumnsType<GraphAlgorithmNodeResult> = [
     { title: t('node'), dataIndex: 'Name', key: 'name', render: (name: string | null, row) => name || row.NodeGUID },
@@ -327,6 +346,15 @@ const AlgorithmsPage = () => {
             />
             <LitegraphButton loading={exporting} disabled={!ready} onClick={handleExport}>
               {t('export')}
+            </LitegraphButton>
+          </Space>
+        </Card>
+
+        <Card title={t('embeddingsSection')}>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <LitegraphText>{t('embeddingsHint')}</LitegraphText>
+            <LitegraphButton loading={embedding} disabled={!ready} onClick={handleGenerateEmbeddings}>
+              {t('generateEmbeddings')}
             </LitegraphButton>
           </Space>
         </Card>

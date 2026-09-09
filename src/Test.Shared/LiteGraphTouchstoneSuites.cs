@@ -628,9 +628,9 @@ namespace Test.Shared
 
             // v8.0 added the SystemAdmin-only settings routes (GET/PUT /v1.0/settings, POST /v1.0/settings/restart)
             // to the authenticated bucket, alongside the v7.1 JSONL import/export routes.
-            // v9.0 added three graph-algorithm routes: POST .../algorithms, POST .../algorithms/import,
-            // and GET .../export/projection.
-            AssertEqual(211, postAuthenticationRoutes.Count, "Authenticated route count");
+            // v9.0 added four graph-algorithm routes: POST .../algorithms, POST .../algorithms/import,
+            // GET .../export/projection, and POST .../algorithms/embeddings.
+            AssertEqual(212, postAuthenticationRoutes.Count, "Authenticated route count");
             AssertFalse(preAuthenticationRoutes.Overlaps(postAuthenticationRoutes), "Route auth buckets should not overlap");
 
             foreach (string route in criticalAuthenticatedRoutes)

@@ -412,6 +412,7 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms", GraphAlgorithmRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Run a graph algorithm", "Algorithms"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import", GraphAlgorithmImportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Import externally computed algorithm results", "Algorithms"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/projection", GraphProjectionExportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Export graph projection for external compute", "Algorithms"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/embeddings", GraphAlgorithmEmbeddingsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Generate node embeddings via the tenant embedding endpoint", "Algorithms"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", GraphEnableVectorIndexRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Enable vector indexing", "VectorIndex"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", GraphGetVectorIndexConfigRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Get vector index configuration", "VectorIndex"));
@@ -2138,6 +2139,61 @@
                 catch (OperationCanceledException oce)
                 {
                     await SendRequestTimeout(ctx, "algorithm results import", oce).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task GraphAlgorithmEmbeddingsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (_ChatService == null)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, "The chat/embedding feature is not enabled on this server."))).ConfigureAwait(false);
+                return;
+            }
+
+            GenerateEmbeddingsRequest embeddingsRequest;
+            try
+            {
+                embeddingsRequest = !String.IsNullOrEmpty(ctx.Request.DataAsString)
+                    ? _Serializer.DeserializeJson<GenerateEmbeddingsRequest>(ctx.Request.DataAsString)
+                    : new GenerateEmbeddingsRequest();
+            }
+            catch (Exception de)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, de.Message))).ConfigureAwait(false);
+                return;
+            }
+
+            using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
+            {
+                try
+                {
+                    GenerateEmbeddingsResult result = await _ChatService.GenerateNodeEmbeddings(req.TenantGUID.Value, req.GraphGUID.Value, embeddingsRequest, timeoutCts.Token).ConfigureAwait(false);
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(result)).ConfigureAwait(false);
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    ctx.Response.StatusCode = 400;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ioe.Message))).ConfigureAwait(false);
+                }
+                catch (ArgumentException ae)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, ae.Message))).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await SendRequestTimeout(ctx, "graph embedding generation", oce).ConfigureAwait(false);
                 }
             }
         }

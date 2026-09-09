@@ -122,6 +122,17 @@ Node identity is preserved by GUID across the round trip, so imported values lan
 - **JavaScript**: `sdk.runAlgorithm(graphGuid, request)`, `sdk.exportGraphProjection(graphGuid, { format, attributes })`, `sdk.importAlgorithmResults(graphGuid, request)`.
 - **Python**: `Algorithm.run(request, graph_guid)`, `Algorithm.export_projection(graph_guid, export_format, attributes)`, `Algorithm.import_results(request, graph_guid)`.
 
+## Node embeddings
+
+When a tenant has an active **embedding endpoint** configured (the same PolyPrompt endpoints used by chat/RAG), you can generate a vector for every node from its content (name + JSON data) and store it as a node vector — which the HNSW index then makes searchable, so "find similar nodes" becomes an existing vector search.
+
+```
+POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/embeddings
+{ "MaxNodes": null, "SkipNodesWithVectors": true }
+```
+
+Requires **write** scope (it creates node vectors) and the chat/embedding feature enabled. If no active embedding endpoint is configured for the tenant, the request returns `400` with a clear message. SDK entry points: C# `sdk.Algorithm.GenerateEmbeddings(...)`, Python `Algorithm.generate_embeddings(...)`, dashboard "Generate embeddings" on the algorithms page. Embedding generation calls the external endpoint per node; run it deliberately on large graphs.
+
 ## Result caching
 
 Set `UseCache: true` on a request to serve a cached result when the graph is unchanged and to cache a freshly computed result. Cache entries are keyed by graph, algorithm, and parameters, and are invalidated automatically when the graph's node or edge count changes. Structural rewrites that preserve both counts are not detected automatically — call `client.Algorithm.InvalidateCache(graphGuid)` after such changes. Caching is skipped for write-back runs. A served result has `FromCache: true`.

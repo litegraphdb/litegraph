@@ -65,6 +65,14 @@ namespace LiteGraph.Sdk.Implementations
             return await _Sdk.Post<GraphAlgorithmImportRequest, GraphAlgorithmImportResult>(url, request, token).ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
+        public async Task<GenerateEmbeddingsResult> GenerateEmbeddings(Guid tenantGuid, Guid graphGuid, GenerateEmbeddingsRequest request, CancellationToken token = default)
+        {
+            if (request == null) request = new GenerateEmbeddingsRequest();
+            string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/algorithms/embeddings";
+            return await _Sdk.Post<GenerateEmbeddingsRequest, GenerateEmbeddingsResult>(url, request, token).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region Private-Methods

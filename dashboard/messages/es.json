@@ -1969,6 +1969,10 @@
     "exportSuccess": "Projection exported.",
     "importSuccess": "Results imported.",
     "importInvalid": "Import content must be a JSON object of node GUID to property/value pairs.",
-    "error": "Operation failed."
+    "error": "Operation failed.",
+    "embeddingsSection": "Generate embeddings",
+    "embeddingsHint": "Embeds each node (name + data) via the tenant’s active embedding endpoint and stores the result as a node vector. Requires a configured embedding endpoint.",
+    "generateEmbeddings": "Generate",
+    "embeddingsSuccess": "Embeddings generated"
   }
 }

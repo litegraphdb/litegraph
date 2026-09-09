@@ -30,6 +30,8 @@ from .models.chat import (
     ChatTurnModel,
 )
 from .models.algorithms import (
+    GenerateEmbeddingsRequestModel,
+    GenerateEmbeddingsResultModel,
     GraphAlgorithmImportRequestModel,
     GraphAlgorithmNodeResultModel,
     GraphAlgorithmRequestModel,
