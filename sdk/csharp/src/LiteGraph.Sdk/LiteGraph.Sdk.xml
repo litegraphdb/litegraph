@@ -1600,6 +1600,291 @@
             Instantiate the object.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.GraphAlgorithmImportRequest">
+            <summary>
+            Request to import externally computed per-node values back onto graph nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmImportRequest.Values">
+            <summary>
+            Per-node values keyed by node GUID.  Each entry maps a property name to a numeric value written into the node's data.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphAlgorithmImportRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphAlgorithmImportResult">
+            <summary>
+            Result of importing externally computed algorithm results.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmImportResult.Success">
+            <summary>
+            Boolean indicating whether the import succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmImportResult.NodesUpdated">
+            <summary>
+            Number of nodes updated.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphAlgorithmImportResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphAlgorithmNodeResult">
+            <summary>
+            Per-node result produced by a graph algorithm.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmNodeResult.NodeGUID">
+            <summary>
+            Node GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmNodeResult.Name">
+            <summary>
+            Node name, when available.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmNodeResult.Score">
+            <summary>
+            Score produced by the algorithm (for example PageRank score or degree count).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmNodeResult.EdgesIn">
+            <summary>
+            Number of inbound edges (degree centrality only).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmNodeResult.EdgesOut">
+            <summary>
+            Number of outbound edges (degree centrality only).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmNodeResult.Community">
+            <summary>
+            Community or component identifier (community detection and connected-component algorithms only).
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphAlgorithmNodeResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphAlgorithmRequest">
+            <summary>
+            Request to run a graph algorithm over a single graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.AlgorithmType">
+            <summary>
+            Algorithm to run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.DampingFactor">
+            <summary>
+            PageRank damping factor (0.0 - 1.0).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.MaxIterations">
+            <summary>
+            Maximum iterations for iterative algorithms.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.Tolerance">
+            <summary>
+            Convergence tolerance for iterative algorithms.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.TreatAsUndirected">
+            <summary>
+            Boolean indicating whether edges should be treated as undirected where applicable.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.MaxResults">
+            <summary>
+            Optional maximum number of per-node results to return.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.WriteBack">
+            <summary>
+            Boolean indicating whether per-node results should be written back into node data.  Requires write permission.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.WriteBackProperty">
+            <summary>
+            Property name under which results are written when WriteBack is true.  Null uses the algorithm default.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphAlgorithmRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphAlgorithmResult">
+            <summary>
+            Result of a graph algorithm run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.Success">
+            <summary>
+            Boolean indicating whether the run succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.GraphGUID">
+            <summary>
+            Graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.AlgorithmType">
+            <summary>
+            Algorithm that produced this result.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.NodeCount">
+            <summary>
+            Number of nodes processed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.EdgeCount">
+            <summary>
+            Number of edges processed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.Iterations">
+            <summary>
+            Number of iterations performed by iterative algorithms.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.Converged">
+            <summary>
+            Boolean indicating whether an iterative algorithm converged within the iteration limit.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.CommunityCount">
+            <summary>
+            Number of distinct communities or components discovered.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.ComputeMs">
+            <summary>
+            Elapsed compute time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.LoadMs">
+            <summary>
+            Elapsed graph load time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.WrittenBack">
+            <summary>
+            Boolean indicating whether results were written back onto nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.WriteBackProperty">
+            <summary>
+            Property name under which results were written back, when applicable.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.Nodes">
+            <summary>
+            Per-node results.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.GraphAlgorithmResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphAlgorithmTypeEnum">
+            <summary>
+            Graph algorithm type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.DegreeCentrality">
+            <summary>
+            Degree centrality (in, out, and total edge counts per node).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.PageRank">
+            <summary>
+            PageRank.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.WeaklyConnectedComponents">
+            <summary>
+            Weakly connected components.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.StronglyConnectedComponents">
+            <summary>
+            Strongly connected components.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.LabelPropagation">
+            <summary>
+            Label propagation community detection.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.ClosenessCentrality">
+            <summary>
+            Closeness centrality.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphAlgorithmTypeEnum.EigenvectorCentrality">
+            <summary>
+            Eigenvector centrality.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphExportAttributeLevelEnum">
+            <summary>
+            Level of node/edge attribute detail included in a graph projection export.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphExportAttributeLevelEnum.None">
+            <summary>
+            Identifiers and structure only.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphExportAttributeLevelEnum.Meta">
+            <summary>
+            Structure plus name, labels, and tags; excludes the JSON data payload.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphExportAttributeLevelEnum.Full">
+            <summary>
+            All attributes including the JSON data payload.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.GraphExportFormatEnum">
+            <summary>
+            Graph projection export format for external computation (for example rustworkx or NetworkX).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphExportFormatEnum.NodeLinkJson">
+            <summary>
+            Node-link JSON compatible with networkx.node_link_graph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphExportFormatEnum.EdgeList">
+            <summary>
+            Edge list (CSV).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.GraphExportFormatEnum.Graphml">
+            <summary>
+            GraphML XML.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.GraphImportErrorPolicyEnum">
             <summary>
             Policy governing how the importer reacts to a malformed or unrecognized JSONL line.
@@ -2177,6 +2462,26 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartServer(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:LiteGraph.Sdk.Implementations.AlgorithmMethods">
+            <summary>
+            Graph algorithm SDK methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AlgorithmMethods.#ctor(LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Graph algorithm SDK methods.
+            </summary>
+            <param name="sdk">LiteGraph SDK.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AlgorithmMethods.Run(System.Guid,System.Guid,LiteGraph.Sdk.GraphAlgorithmRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AlgorithmMethods.ExportGraph(System.Guid,System.Guid,LiteGraph.Sdk.GraphExportFormatEnum,LiteGraph.Sdk.GraphExportAttributeLevelEnum,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AlgorithmMethods.ImportResults(System.Guid,System.Guid,LiteGraph.Sdk.GraphAlgorithmImportRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Sdk.Implementations.BatchMethods">
@@ -2983,6 +3288,42 @@
             Requires system administrator privileges.  The call returns best-effort; the connection may drop as the server exits.
             </summary>
             <param name="token">Cancellation token.</param>
+        </member>
+        <member name="T:LiteGraph.Sdk.Interfaces.IAlgorithmMethods">
+            <summary>
+            Interface for graph algorithm SDK methods.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAlgorithmMethods.Run(System.Guid,System.Guid,LiteGraph.Sdk.GraphAlgorithmRequest,System.Threading.CancellationToken)">
+            <summary>
+            Run a graph algorithm over a single graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Algorithm request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Algorithm result.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAlgorithmMethods.ExportGraph(System.Guid,System.Guid,LiteGraph.Sdk.GraphExportFormatEnum,LiteGraph.Sdk.GraphExportAttributeLevelEnum,System.Threading.CancellationToken)">
+            <summary>
+            Export a graph as a portable projection for external computation (for example rustworkx or NetworkX).
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="format">Export format.</param>
+            <param name="attributeLevel">Attribute detail level.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Exported projection bytes.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAlgorithmMethods.ImportResults(System.Guid,System.Guid,LiteGraph.Sdk.GraphAlgorithmImportRequest,System.Threading.CancellationToken)">
+            <summary>
+            Import externally computed per-node values back onto graph nodes.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Import request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Import result.</returns>
         </member>
         <member name="T:LiteGraph.Sdk.Interfaces.IBatchMethods">
             <summary>
@@ -5114,6 +5455,11 @@
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.Vector">
             <summary>
             Vector methods.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdk.Algorithm">
+            <summary>
+            Graph algorithm methods.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.UserAuthentication">

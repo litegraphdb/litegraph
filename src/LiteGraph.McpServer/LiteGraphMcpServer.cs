@@ -513,6 +513,7 @@
             Registrations.TagRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.VectorRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.QueryRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.AlgorithmRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.TransactionRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.UserAuthenticationRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.ChatRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
@@ -531,6 +532,7 @@
             Registrations.TagRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.VectorRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.QueryRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.AlgorithmRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.TransactionRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.UserAuthenticationRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.ChatRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
@@ -549,6 +551,7 @@
             Registrations.TagRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.VectorRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.QueryRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.AlgorithmRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.TransactionRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.UserAuthenticationRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.ChatRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);

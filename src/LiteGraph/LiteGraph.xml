@@ -4,6 +4,27 @@
         <name>LiteGraph</name>
     </assembly>
     <members>
+        <member name="T:LiteGraph.Algorithms.ClosenessCentrality">
+            <summary>
+            Closeness centrality via multi-source breadth-first search.  Edges are treated as undirected (in- and out-neighbors combined).
+            Uses the Wasserman-Faust normalization so scores are comparable across disconnected components: (reachable-1)^2 / ((N-1) * sumOfDistances).
+            Complexity is O(V * (V + E)); intended for graphs within the configured in-memory ceiling.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.ClosenessCentrality.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing closeness scores back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.ClosenessCentrality.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Threading.CancellationToken)">
+            <summary>
+            Compute closeness centrality.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Closeness score per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
         <member name="T:LiteGraph.Algorithms.DegreeCentrality">
             <summary>
             Degree centrality: in-degree, out-degree, and total degree per node.
@@ -23,6 +44,30 @@
             <param name="outDegrees">Out-degree per node, indexed by dense node index.</param>
             <param name="token">Cancellation token.</param>
             <returns>Total degree per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.EigenvectorCentrality">
+            <summary>
+            Eigenvector centrality via power iteration on the undirected adjacency (in- and out-neighbors combined), which guarantees a symmetric, non-negative operator with a well-defined dominant eigenvector.
+            Scores are normalized to unit L2 norm.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.EigenvectorCentrality.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing eigenvector scores back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.EigenvectorCentrality.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Int32,System.Double,System.Int32@,System.Boolean@,System.Threading.CancellationToken)">
+            <summary>
+            Compute eigenvector centrality.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="maxIterations">Maximum iterations.</param>
+            <param name="tolerance">Convergence tolerance (L1 delta across all nodes).</param>
+            <param name="iterations">Number of iterations performed.</param>
+            <param name="converged">Whether the computation converged within the iteration limit.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Eigenvector score per node, indexed by dense node index.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
         </member>
         <member name="T:LiteGraph.Algorithms.GraphAdjacency">
@@ -364,6 +409,16 @@
         <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.LabelPropagation">
             <summary>
             Label propagation community detection.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.ClosenessCentrality">
+            <summary>
+            Closeness centrality (Wasserman-Faust normalized).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.EigenvectorCentrality">
+            <summary>
+            Eigenvector centrality (power iteration on the undirected adjacency).
             </summary>
         </member>
         <member name="T:LiteGraph.Algorithms.GraphExportAttributeLevelEnum">

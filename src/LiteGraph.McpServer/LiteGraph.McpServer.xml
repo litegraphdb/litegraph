@@ -562,6 +562,33 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.AlgorithmRegistrations">
+            <summary>
+            Registration methods for graph algorithm operations (run, export projection, import results).
+            These tools proxy the LiteGraph REST endpoints under the caller's RBAC.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.AlgorithmRegistrations.RegisterHttpTools(Voltaic.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers graph algorithm tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.AlgorithmRegistrations.RegisterTcpMethods(Voltaic.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers graph algorithm methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.AlgorithmRegistrations.RegisterWebSocketMethods(Voltaic.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers graph algorithm methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
         <member name="T:LiteGraph.McpServer.Registrations.AuthorizationRegistrations">
             <summary>
             Registration methods for authorization role and scope operations.

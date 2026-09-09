@@ -80,6 +80,11 @@
         public IVectorMethods Vector { get; }
 
         /// <summary>
+        /// Graph algorithm methods.
+        /// </summary>
+        public IAlgorithmMethods Algorithm { get; }
+
+        /// <summary>
         /// User authentication methods.
         /// </summary>
         public IUserAuthentication UserAuthentication { get; }
@@ -129,6 +134,7 @@
             Transaction = new TransactionMethods(this);
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
+            Algorithm = new AlgorithmMethods(this);
         }
 
         /// <summary>
@@ -167,6 +173,7 @@
             Transaction = new TransactionMethods(this);
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
+            Algorithm = new AlgorithmMethods(this);
             UserAuthentication = new UserAuthentication(this);
         }
 

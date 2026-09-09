@@ -95,6 +95,10 @@ namespace LiteGraph.Algorithms
                     return BuildComponents(adjacency, result, true, token);
                 case GraphAlgorithmTypeEnum.LabelPropagation:
                     return BuildLabelPropagation(adjacency, request, result, token);
+                case GraphAlgorithmTypeEnum.ClosenessCentrality:
+                    return BuildScored(adjacency, ClosenessCentrality.Compute(adjacency, token));
+                case GraphAlgorithmTypeEnum.EigenvectorCentrality:
+                    return BuildEigenvector(adjacency, request, result, token);
                 default:
                     throw new NotSupportedException("Algorithm '" + request.AlgorithmType + "' is not supported.");
             }
@@ -150,6 +154,41 @@ namespace LiteGraph.Algorithms
 
             nodes.Sort((a, b) => b.Score.CompareTo(a.Score));
             return nodes;
+        }
+
+        private static List<GraphAlgorithmNodeResult> BuildScored(GraphAdjacency adjacency, double[] scores)
+        {
+            List<GraphAlgorithmNodeResult> nodes = new List<GraphAlgorithmNodeResult>(adjacency.NodeCount);
+            for (int i = 0; i < adjacency.NodeCount; i++)
+            {
+                GraphAlgorithmNodeResult item = new GraphAlgorithmNodeResult();
+                item.NodeGUID = adjacency.NodeGuids[i];
+                item.Name = adjacency.NodeNames[i];
+                item.Score = scores[i];
+                nodes.Add(item);
+            }
+
+            nodes.Sort((a, b) => b.Score.CompareTo(a.Score));
+            return nodes;
+        }
+
+        private static List<GraphAlgorithmNodeResult> BuildEigenvector(
+            GraphAdjacency adjacency,
+            GraphAlgorithmRequest request,
+            GraphAlgorithmResult result,
+            CancellationToken token)
+        {
+            double[] scores = EigenvectorCentrality.Compute(
+                adjacency,
+                request.MaxIterations,
+                request.Tolerance,
+                out int iterations,
+                out bool converged,
+                token);
+
+            result.Iterations = iterations;
+            result.Converged = converged;
+            return BuildScored(adjacency, scores);
         }
 
         private static List<GraphAlgorithmNodeResult> BuildComponents(

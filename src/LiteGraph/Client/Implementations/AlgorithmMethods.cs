@@ -160,6 +160,10 @@ namespace LiteGraph.Client.Implementations
                     return StronglyConnectedComponents.DefaultProperty;
                 case GraphAlgorithmTypeEnum.LabelPropagation:
                     return LabelPropagation.DefaultProperty;
+                case GraphAlgorithmTypeEnum.ClosenessCentrality:
+                    return ClosenessCentrality.DefaultProperty;
+                case GraphAlgorithmTypeEnum.EigenvectorCentrality:
+                    return EigenvectorCentrality.DefaultProperty;
                 default:
                     return "algorithm";
             }

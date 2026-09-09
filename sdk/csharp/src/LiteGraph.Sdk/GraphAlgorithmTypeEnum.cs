@@ -1,12 +1,8 @@
-namespace LiteGraph.Algorithms
+namespace LiteGraph.Sdk
 {
-    using System;
-    using System.Text.Json.Serialization;
-
     /// <summary>
     /// Graph algorithm type.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum GraphAlgorithmTypeEnum
     {
         /// <summary>
@@ -18,11 +14,11 @@ namespace LiteGraph.Algorithms
         /// </summary>
         PageRank,
         /// <summary>
-        /// Weakly connected components (treats edges as undirected for connectivity).
+        /// Weakly connected components.
         /// </summary>
         WeaklyConnectedComponents,
         /// <summary>
-        /// Strongly connected components (directed; Tarjan's algorithm).
+        /// Strongly connected components.
         /// </summary>
         StronglyConnectedComponents,
         /// <summary>
@@ -30,11 +26,11 @@ namespace LiteGraph.Algorithms
         /// </summary>
         LabelPropagation,
         /// <summary>
-        /// Closeness centrality (Wasserman-Faust normalized).
+        /// Closeness centrality.
         /// </summary>
         ClosenessCentrality,
         /// <summary>
-        /// Eigenvector centrality (power iteration on the undirected adjacency).
+        /// Eigenvector centrality.
         /// </summary>
         EigenvectorCentrality
     }
