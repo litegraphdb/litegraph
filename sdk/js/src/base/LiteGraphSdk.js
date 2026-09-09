@@ -440,6 +440,65 @@ export default class LiteGraphSdk extends SdkBase {
 
   //end region
 
+  //region Algorithm Routes
+
+  /**
+   * Run a graph algorithm over a single graph.
+   * @param {string} graphGuid - Graph GUID.
+   * @param {Object} request - GraphAlgorithmRequest object (AlgorithmType plus optional parameters and WriteBack).
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} - GraphAlgorithmResult object.
+   */
+  async runAlgorithm(graphGuid, request, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    if (!request) {
+      GenericExceptionHandlers.ArgumentNullException('AlgorithmRequest');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/algorithms`;
+    return await this.post(url, request, null, cancellationToken);
+  }
+
+  /**
+   * Export a graph as a portable projection for external computation (for example rustworkx or NetworkX).
+   * @param {string} graphGuid - Graph GUID.
+   * @param {Object} [options] - Export options.
+   * @param {string} [options.format='NodeLinkJson'] - NodeLinkJson, EdgeList, or Graphml.
+   * @param {string} [options.attributes='Meta'] - None, Meta, or Full.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<string>} - The exported projection as raw text.
+   */
+  async exportGraphProjection(graphGuid, options = {}, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    const format = options.format || 'NodeLinkJson';
+    const attributes = options.attributes || 'Meta';
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/export/projection?format=${encodeURIComponent(format)}&attributes=${encodeURIComponent(attributes)}`;
+    return await this.getText(url, cancellationToken);
+  }
+
+  /**
+   * Import externally computed per-node values back onto graph nodes.
+   * @param {string} graphGuid - Graph GUID.
+   * @param {Object} request - GraphAlgorithmImportRequest object with a Values map of node GUID to property/value pairs.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} - Import result ({ Success, NodesUpdated }).
+   */
+  async importAlgorithmResults(graphGuid, request, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    if (!request) {
+      GenericExceptionHandlers.ArgumentNullException('ImportRequest');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/algorithms/import`;
+    return await this.post(url, request, null, cancellationToken);
+  }
+
+  //end region
+
   //region Authorization Routes
 
   /**

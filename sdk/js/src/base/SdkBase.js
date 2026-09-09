@@ -585,6 +585,41 @@ export default class SdkBase {
   }
 
   /**
+   * Sends a GET request and resolves the raw response body as text (no JSON deserialization).
+   * Useful for exports whose body may be JSON, CSV, or XML.
+   * @param {string} url - The URL to retrieve.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @return {Promise<string>} Resolves with the raw response text.
+   */
+  getText(url, cancellationToken) {
+    return new Promise((resolve, reject) => {
+      if (!url) return reject(new Error('URL cannot be null or empty.'));
+
+      const request = superagent.get(url).set(this.defaultHeaders).timeout({ response: this._timeoutMs });
+      if (cancellationToken) {
+        cancellationToken.abort = () => {
+          request.abort();
+          this.log(SeverityEnum.Debug, `Request aborted to ${url}.`);
+        };
+      }
+      request
+        .then((res) => {
+          this.log(SeverityEnum.Debug, `Success reported from ${url}: ${res.status}`);
+          resolve(res.text);
+        })
+        .catch((err) => {
+          this.log(SeverityEnum.Warn, `Failed to retrieve text from ${url}: ${err.message}`);
+          const errorResponse = err?.response?.body || null;
+          if (errorResponse && errorResponse?.Error) {
+            reject(new ApiErrorResponse(errorResponse?.Error, errorResponse?.Context, errorResponse?.Message));
+          } else {
+            reject(err.message ? err.message : err);
+          }
+        });
+    });
+  }
+
+  /**
    * Submits a POST request whose response is a paginated enumeration envelope.
    * The response body is an EnumerationResult envelope whose Objects entries are instantiated with the supplied model.
    * @param {string} url - The URL to post data to.

@@ -29,6 +29,12 @@ from .models.chat import (
     ChatThreadModel,
     ChatTurnModel,
 )
+from .models.algorithms import (
+    GraphAlgorithmImportRequestModel,
+    GraphAlgorithmNodeResultModel,
+    GraphAlgorithmRequestModel,
+    GraphAlgorithmResultModel,
+)
 from .models.edge import EdgeModel
 from .models.enumeration_result import (
     EnumerationResultModel,
@@ -55,6 +61,7 @@ from .models.transaction import (
 from .models.vector_search_request import VectorSearchRequestModel
 from .models.vector_search_result import VectorSearchResultModel
 from .resources.admin import Admin
+from .resources.algorithms import Algorithm
 from .resources.authorization import Authorization
 from .resources.chat import Chat
 from .resources.credentials import Credential
