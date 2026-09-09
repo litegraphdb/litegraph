@@ -1508,3 +1508,13 @@ One settings record exists per tenant. Read is open to any authenticated tenant 
 ```
 
 Update is an administrator upsert of the full object. The default endpoint GUIDs are validated for existence and type — the completion default must reference an existing `Completion` endpoint and the embedding default an existing `Embedding` endpoint, otherwise the update is rejected with `400`.
+
+## Graph Algorithms
+
+LiteGraph v9.0.0 adds native graph algorithms and a portable projection export/import path. See [ALGORITHMS.md](ALGORITHMS.md) for the full reference.
+
+- `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms` — run an algorithm. Body is a `GraphAlgorithmRequest` (`AlgorithmType` plus optional parameters and `WriteBack`). Returns a `GraphAlgorithmResult`. Requires `read`; a request with `WriteBack: true` additionally requires `write`.
+- `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import` — write externally computed per-node values back onto nodes. Body is a `GraphAlgorithmImportRequest` (a `Values` map of node GUID to property/value pairs). Requires `write`.
+- `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/projection?format={NodeLinkJson|EdgeList|Graphml}&attributes={None|Meta|Full}` — stream the graph as a portable projection for external computation (for example rustworkx or NetworkX). Requires `read`.
+
+Supported `AlgorithmType` values: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, `LabelPropagation`.

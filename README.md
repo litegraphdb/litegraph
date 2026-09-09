@@ -99,6 +99,7 @@ See [Chat](docs/CHAT.md) for the chat architecture and [REST API](docs/REST_API.
 
 - [Storage configuration](docs/STORAGE.md)
 - [Native graph query language](docs/DSL.md)
+- [Graph algorithms and external-compute projection](docs/ALGORITHMS.md)
 - [Graph transactions](docs/TRANSACTIONS.md)
 - [RBAC and scoped credentials](docs/RBAC.md)
 - [Chat](docs/CHAT.md)

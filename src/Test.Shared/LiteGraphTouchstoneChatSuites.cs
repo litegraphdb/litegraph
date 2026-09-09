@@ -1729,6 +1729,7 @@ namespace Test.Shared
                     [g + "/chat/models"] = "OpenAI wire-format model list by design (protocol compatibility).",
                     [g + "/export/gexf"] = "GEXF XML export stream.",
                     [g + "/export/jsonl"] = "JSONL export stream.",
+                    [g + "/export/projection"] = "Graph projection export stream (node-link JSON / edge list / GraphML) for external compute.",
                     [g + "/vectorindex/config"] = "Vector index configuration object.",
                     [g + "/vectorindex/stats"] = "Vector index statistics object.",
                     ["/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config"] = "Vector index configuration object.",

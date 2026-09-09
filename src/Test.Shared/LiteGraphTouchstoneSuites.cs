@@ -112,6 +112,11 @@ namespace Test.Shared
             ("Edge.Update", "Edge.Update", TestEdgeUpdate),
             ("Edge.ReadAllInTenant", "Edge.ReadAllInTenant", TestEdgeReadAllInTenant),
             ("Edge.ReadAllInGraph", "Edge.ReadAllInGraph", TestEdgeReadAllInGraph),
+            ("Algorithm.DegreeCentrality", "Algorithm.DegreeCentrality", TestAlgorithmDegreeCentrality),
+            ("Algorithm.PageRank", "Algorithm.PageRank", TestAlgorithmPageRank),
+            ("Algorithm.Components", "Algorithm.Components", TestAlgorithmComponents),
+            ("Algorithm.ExportProjection", "Algorithm.ExportProjection", TestAlgorithmExportProjection),
+            ("Algorithm.ImportResults", "Algorithm.ImportResults", TestAlgorithmImportResults),
             ("Edge.ReadMany", "Edge.ReadMany", TestEdgeReadMany),
             ("Edge.ReadFirst", "Edge.ReadFirst", TestEdgeReadFirst),
             ("Edge.ReadByGuids", "Edge.ReadByGuids", TestEdgeReadByGuids),
@@ -623,7 +628,9 @@ namespace Test.Shared
 
             // v8.0 added the SystemAdmin-only settings routes (GET/PUT /v1.0/settings, POST /v1.0/settings/restart)
             // to the authenticated bucket, alongside the v7.1 JSONL import/export routes.
-            AssertEqual(207, postAuthenticationRoutes.Count, "Authenticated route count");
+            // v9.0 added three graph-algorithm routes: POST .../algorithms, POST .../algorithms/import,
+            // and GET .../export/projection.
+            AssertEqual(211, postAuthenticationRoutes.Count, "Authenticated route count");
             AssertFalse(preAuthenticationRoutes.Overlaps(postAuthenticationRoutes), "Route auth buckets should not overlap");
 
             foreach (string route in criticalAuthenticatedRoutes)

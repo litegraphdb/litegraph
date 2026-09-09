@@ -119,6 +119,7 @@ It defines these resource types:
 - `Vector`
 - `Query`
 - `Transaction`
+- `Algorithm`
 
 Built-in role definitions are available through `AuthorizationPolicyDefinitions.BuiltInRoles`:
 
@@ -230,6 +231,8 @@ Write scope is required for create, update, delete, backup delete, flush, graph 
 Read scope is required for non-mutating routes such as read, exists, enumerate, search, statistics, vector search, and request history reads.
 
 Admin scope is required for tenant/user/credential administrative operations, role management, assignment management, effective permission inspection, backup, and flush operations. Built-in `TenantAdmin` grants this at tenant scope.
+
+Graph algorithm operations map to the `Algorithm` resource type: running an algorithm (`POST .../algorithms`) and exporting a projection (`GET .../export/projection`) require `read`; writing algorithm results back to nodes (a run with `WriteBack: true`) and importing externally computed results (`POST .../algorithms/import`) require `write`. `Viewer` can run read-only algorithms; `Editor` and `GraphAdmin` can additionally write results back. See [ALGORITHMS.md](ALGORITHMS.md).
 
 ## Query Scope Mapping
 

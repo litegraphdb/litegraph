@@ -477,3 +477,11 @@ Read or upsert the tenant's chat settings: default completion and embedding endp
   }
 }
 ```
+
+## Graph Algorithm Tools
+
+LiteGraph v9.0.0 exposes graph algorithm tools over HTTP, TCP, and WebSocket. They proxy the REST endpoints under the caller's RBAC. See [ALGORITHMS.md](ALGORITHMS.md).
+
+- `algorithm/run` — run an algorithm over a graph. Arguments: `tenantGuid`, `graphGuid`, and either a `request` object (`GraphAlgorithmRequest`) or `algorithmType` plus optional `writeBack`/`maxResults`.
+- `algorithm/export` — export a graph projection. Arguments: `tenantGuid`, `graphGuid`, `format` (`NodeLinkJson` default, `EdgeList`, `Graphml`), `attributes` (`None`, `Meta` default, `Full`).
+- `algorithm/import` — write externally computed per-node values back onto nodes. Arguments: `tenantGuid`, `graphGuid`, `request` (a `GraphAlgorithmImportRequest` with a `Values` map).

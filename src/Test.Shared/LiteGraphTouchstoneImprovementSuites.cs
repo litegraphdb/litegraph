@@ -3787,7 +3787,7 @@
 
             AssertEqual(4, Enum.GetValues(typeof(AuthorizationPermissionEnum)).Length, "Permission enum count");
             AssertEqual(2, Enum.GetValues(typeof(AuthorizationResourceScopeEnum)).Length, "Resource scope enum count");
-            AssertEqual(10, Enum.GetValues(typeof(AuthorizationResourceTypeEnum)).Length, "Resource type enum count");
+            AssertEqual(11, Enum.GetValues(typeof(AuthorizationResourceTypeEnum)).Length, "Resource type enum count");
 
             return Task.CompletedTask;
         }
