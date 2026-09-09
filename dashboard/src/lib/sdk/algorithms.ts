@@ -25,6 +25,7 @@ export type GraphAlgorithmRequest = {
   MaxResults?: number | null;
   WriteBack?: boolean;
   WriteBackProperty?: string | null;
+  UseCache?: boolean;
 };
 
 export type GraphAlgorithmNodeResult = {
@@ -48,6 +49,7 @@ export type GraphAlgorithmResult = {
   CommunityCount?: number | null;
   ComputeMs: number;
   LoadMs: number;
+  FromCache: boolean;
   WrittenBack: boolean;
   WriteBackProperty?: string | null;
   Nodes: GraphAlgorithmNodeResult[];

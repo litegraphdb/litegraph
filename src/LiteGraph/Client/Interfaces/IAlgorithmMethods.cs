@@ -58,5 +58,12 @@ namespace LiteGraph.Client.Interfaces
         /// <returns>Number of nodes updated.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the request is null.</exception>
         Task<int> ImportResults(Guid tenantGuid, Guid graphGuid, GraphAlgorithmImportRequest request, CancellationToken token = default);
+
+        /// <summary>
+        /// Invalidate all cached algorithm results for a graph.  Call after structural changes that preserve node and edge counts, which the cache does not detect automatically.
+        /// </summary>
+        /// <param name="graphGuid">Graph GUID.</param>
+        /// <returns>Number of cache entries removed.</returns>
+        int InvalidateCache(Guid graphGuid);
     }
 }

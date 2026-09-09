@@ -38,6 +38,7 @@ namespace LiteGraph.Client.Implementations
         private readonly LiteGraphClient _Client;
         private GraphRepositoryBase _Repo = null;
         private GraphAlgorithmConfiguration _Configuration = new GraphAlgorithmConfiguration();
+        private readonly AlgorithmResultManager _Cache = new AlgorithmResultManager();
 
         #endregion
 
@@ -67,6 +68,25 @@ namespace LiteGraph.Client.Implementations
             await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
+            bool cacheable = request.UseCache && !request.WriteBack;
+            string cacheKey = null;
+            int nodeCount = 0;
+            int edgeCount = 0;
+
+            if (cacheable)
+            {
+                nodeCount = await _Repo.Node.GetRecordCount(tenantGuid, graphGuid, token: token).ConfigureAwait(false);
+                edgeCount = await _Repo.Edge.GetRecordCount(tenantGuid, graphGuid, token: token).ConfigureAwait(false);
+                cacheKey = AlgorithmResultManager.BuildKey(graphGuid, request);
+
+                GraphAlgorithmResult cached = _Cache.TryGet(cacheKey, nodeCount, edgeCount);
+                if (cached != null)
+                {
+                    cached.FromCache = true;
+                    return cached;
+                }
+            }
+
             GraphAlgorithmResult result = await GraphAlgorithmRunner.RunAsync(
                 _Client,
                 tenantGuid,
@@ -75,6 +95,8 @@ namespace LiteGraph.Client.Implementations
                 _Configuration.MaxNodes,
                 _Configuration.MaxEdges,
                 token).ConfigureAwait(false);
+
+            if (cacheable) _Cache.Set(cacheKey, result, nodeCount, edgeCount);
 
             if (request.WriteBack)
             {
@@ -140,6 +162,12 @@ namespace LiteGraph.Client.Implementations
             }
 
             return updated;
+        }
+
+        /// <inheritdoc />
+        public int InvalidateCache(Guid graphGuid)
+        {
+            return _Cache.Invalidate(graphGuid);
         }
 
         #endregion

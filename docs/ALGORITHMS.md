@@ -122,6 +122,10 @@ Node identity is preserved by GUID across the round trip, so imported values lan
 - **JavaScript**: `sdk.runAlgorithm(graphGuid, request)`, `sdk.exportGraphProjection(graphGuid, { format, attributes })`, `sdk.importAlgorithmResults(graphGuid, request)`.
 - **Python**: `Algorithm.run(request, graph_guid)`, `Algorithm.export_projection(graph_guid, export_format, attributes)`, `Algorithm.import_results(request, graph_guid)`.
 
+## Result caching
+
+Set `UseCache: true` on a request to serve a cached result when the graph is unchanged and to cache a freshly computed result. Cache entries are keyed by graph, algorithm, and parameters, and are invalidated automatically when the graph's node or edge count changes. Structural rewrites that preserve both counts are not detected automatically — call `client.Algorithm.InvalidateCache(graphGuid)` after such changes. Caching is skipped for write-back runs. A served result has `FromCache: true`.
+
 ## Notes and limits
 
 - The in-memory ceiling is a guardrail, not a scaling strategy; for very large graphs use projection export + external compute.

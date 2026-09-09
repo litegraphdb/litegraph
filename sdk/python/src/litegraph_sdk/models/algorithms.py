@@ -30,6 +30,7 @@ class GraphAlgorithmRequestModel(BaseModel):
     max_results: Optional[int] = Field(default=None, alias="MaxResults")
     write_back: bool = Field(default=False, alias="WriteBack")
     write_back_property: Optional[str] = Field(default=None, alias="WriteBackProperty")
+    use_cache: bool = Field(default=False, alias="UseCache")
     model_config = ConfigDict(populate_by_name=True)
 
 
@@ -49,6 +50,7 @@ class GraphAlgorithmResultModel(BaseModel):
     community_count: Optional[int] = Field(default=None, alias="CommunityCount")
     compute_ms: float = Field(default=0.0, alias="ComputeMs")
     load_ms: float = Field(default=0.0, alias="LoadMs")
+    from_cache: bool = Field(default=False, alias="FromCache")
     written_back: bool = Field(default=False, alias="WrittenBack")
     write_back_property: Optional[str] = Field(default=None, alias="WriteBackProperty")
     nodes: List[GraphAlgorithmNodeResultModel] = Field(default_factory=list, alias="Nodes")

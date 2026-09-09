@@ -93,6 +93,11 @@ namespace LiteGraph.Algorithms
         /// </summary>
         public string WriteBackProperty { get; set; } = null;
 
+        /// <summary>
+        /// Boolean indicating whether a cached result may be returned when the graph is unchanged, and whether a fresh result should be cached.  Ignored when <see cref="WriteBack"/> is true.  Cache entries are invalidated automatically when the graph's node or edge count changes, and can be cleared explicitly.
+        /// </summary>
+        public bool UseCache { get; set; } = false;
+
         #endregion
 
         #region Private-Members

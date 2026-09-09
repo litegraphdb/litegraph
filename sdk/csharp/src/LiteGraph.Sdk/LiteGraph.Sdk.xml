@@ -1720,6 +1720,11 @@
             Property name under which results are written when WriteBack is true.  Null uses the algorithm default.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmRequest.UseCache">
+            <summary>
+            Boolean indicating whether a cached result may be returned when the graph is unchanged.  Ignored when WriteBack is true.
+            </summary>
+        </member>
         <member name="M:LiteGraph.Sdk.GraphAlgorithmRequest.#ctor">
             <summary>
             Instantiate.
@@ -1783,6 +1788,11 @@
         <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.LoadMs">
             <summary>
             Elapsed graph load time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.FromCache">
+            <summary>
+            Boolean indicating whether this result was served from the algorithm result cache.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.GraphAlgorithmResult.WrittenBack">

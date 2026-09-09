@@ -4,6 +4,58 @@
         <name>LiteGraph</name>
     </assembly>
     <members>
+        <member name="T:LiteGraph.Algorithms.AlgorithmResultManager">
+            <summary>
+            In-memory cache of graph algorithm results, keyed by graph and algorithm request signature.
+            A cached result is returned only when the graph's node and edge counts match the counts captured at compute time, which auto-invalidates the entry on any node or edge addition or removal.
+            Structural rewrites that preserve both counts are not detected automatically; call <see cref="M:LiteGraph.Algorithms.AlgorithmResultManager.Invalidate(System.Guid)"/> after such changes.
+            This type is thread-safe.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.AlgorithmResultManager.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.AlgorithmResultManager.BuildKey(System.Guid,LiteGraph.Algorithms.GraphAlgorithmRequest)">
+            <summary>
+            Build a cache key for a graph and algorithm request.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Algorithm request.</param>
+            <returns>Cache key.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Algorithms.AlgorithmResultManager.TryGet(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get a cached result when present and valid for the supplied graph node/edge counts.
+            </summary>
+            <param name="key">Cache key.</param>
+            <param name="nodeCount">Current node count.</param>
+            <param name="edgeCount">Current edge count.</param>
+            <returns>The cached result, or null when absent or stale.</returns>
+        </member>
+        <member name="M:LiteGraph.Algorithms.AlgorithmResultManager.Set(System.String,LiteGraph.Algorithms.GraphAlgorithmResult,System.Int32,System.Int32)">
+            <summary>
+            Store a result in the cache.
+            </summary>
+            <param name="key">Cache key.</param>
+            <param name="result">Result to cache.</param>
+            <param name="nodeCount">Node count captured at compute time.</param>
+            <param name="edgeCount">Edge count captured at compute time.</param>
+        </member>
+        <member name="M:LiteGraph.Algorithms.AlgorithmResultManager.Invalidate(System.Guid)">
+            <summary>
+            Invalidate all cached results for a graph.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Number of entries removed.</returns>
+        </member>
+        <member name="M:LiteGraph.Algorithms.AlgorithmResultManager.Clear">
+            <summary>
+            Remove all cached results.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Algorithms.BetweennessCentrality">
             <summary>
             Betweenness centrality using Brandes' algorithm on the undirected, unweighted view (in- and out-neighbors combined).
@@ -316,6 +368,11 @@
             Property name under which results are written into node data when <see cref="P:LiteGraph.Algorithms.GraphAlgorithmRequest.WriteBack"/> is true.  Null uses the algorithm's default property name.
             </summary>
         </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.UseCache">
+            <summary>
+            Boolean indicating whether a cached result may be returned when the graph is unchanged, and whether a fresh result should be cached.  Ignored when <see cref="P:LiteGraph.Algorithms.GraphAlgorithmRequest.WriteBack"/> is true.  Cache entries are invalidated automatically when the graph's node or edge count changes, and can be cleared explicitly.
+            </summary>
+        </member>
         <member name="M:LiteGraph.Algorithms.GraphAlgorithmRequest.#ctor">
             <summary>
             Instantiate.
@@ -379,6 +436,11 @@
         <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.LoadMs">
             <summary>
             Elapsed graph load time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.FromCache">
+            <summary>
+            Boolean indicating whether this result was served from the algorithm result cache.
             </summary>
         </member>
         <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.WrittenBack">
@@ -2228,6 +2290,9 @@
         <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.ImportResults(System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmImportRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.InvalidateCache(System.Guid)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Client.Implementations.BatchMethods">
             <summary>
             Batch methods.
@@ -3261,6 +3326,13 @@
             <param name="token">Cancellation token.</param>
             <returns>Number of nodes updated.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAlgorithmMethods.InvalidateCache(System.Guid)">
+            <summary>
+            Invalidate all cached algorithm results for a graph.  Call after structural changes that preserve node and edge counts, which the cache does not detect automatically.
+            </summary>
+            <param name="graphGuid">Graph GUID.</param>
+            <returns>Number of cache entries removed.</returns>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IBatchMethods">
             <summary>

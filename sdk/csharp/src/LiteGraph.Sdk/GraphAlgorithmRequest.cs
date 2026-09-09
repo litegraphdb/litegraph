@@ -46,6 +46,11 @@ namespace LiteGraph.Sdk
         public string WriteBackProperty { get; set; } = null;
 
         /// <summary>
+        /// Boolean indicating whether a cached result may be returned when the graph is unchanged.  Ignored when WriteBack is true.
+        /// </summary>
+        public bool UseCache { get; set; } = false;
+
+        /// <summary>
         /// Instantiate.
         /// </summary>
         public GraphAlgorithmRequest()

@@ -64,6 +64,11 @@ namespace LiteGraph.Sdk
         public double LoadMs { get; set; } = 0d;
 
         /// <summary>
+        /// Boolean indicating whether this result was served from the algorithm result cache.
+        /// </summary>
+        public bool FromCache { get; set; } = false;
+
+        /// <summary>
         /// Boolean indicating whether results were written back onto nodes.
         /// </summary>
         public bool WrittenBack { get; set; } = false;
