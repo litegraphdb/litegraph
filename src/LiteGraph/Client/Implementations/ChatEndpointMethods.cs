@@ -151,17 +151,24 @@ namespace LiteGraph.Client.Implementations
                 || (parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeHttps))
                 throw new ArgumentException("Chat endpoint URL must be an absolute http or https URL.");
 
-            // PolyPrompt appends provider paths itself (/v1/... for OpenAI-compatible, /api/... for
-            // Ollama, and so on), so the endpoint must be a bare base URL.  OpenAI-compatible servers
-            // may end in /v1 because PolyPrompt detects and preserves that suffix.
+            // PolyPrompt appends provider API paths itself (/v1/... for OpenAI-compatible, /api/... for
+            // Ollama, and so on).  A path prefix on the base URL is permitted to support reverse proxies
+            // and model-pinned gateways (for example a LiteGraph Ollama-compatible proxy at
+            // /v1.0/api/{model}/); the provider client concatenates its API suffix onto whatever base is
+            // supplied.  Only reject a base that already ends in a known API path, which would cause the
+            // client to double-append (for example .../api/embeddings/api/embeddings).
             if (!String.IsNullOrEmpty(parsed.Query) || !String.IsNullOrEmpty(parsed.Fragment))
                 throw new ArgumentException("Chat endpoint URL must be a base URL without a query string or fragment.");
 
             string trimmedPath = parsed.AbsolutePath.TrimEnd('/');
-            bool pathAllowed = (trimmedPath.Length == 0)
-                || (endpoint.Provider == ChatProviderTypeEnum.OpenAI && String.Equals(trimmedPath, "/v1", StringComparison.OrdinalIgnoreCase));
-            if (!pathAllowed)
-                throw new ArgumentException("Chat endpoint URL must be the provider base URL without a path; the provider client appends API paths itself (/v1 is permitted for OpenAI-compatible servers).");
+            string lowerPath = trimmedPath.ToLowerInvariant();
+            bool endsWithApiPath = lowerPath.EndsWith("/embeddings", StringComparison.Ordinal)
+                || lowerPath.EndsWith("/api/embed", StringComparison.Ordinal)
+                || lowerPath.EndsWith("/chat/completions", StringComparison.Ordinal)
+                || lowerPath.EndsWith("/api/chat", StringComparison.Ordinal)
+                || lowerPath.EndsWith("/api/generate", StringComparison.Ordinal);
+            if (endsWithApiPath)
+                throw new ArgumentException("Chat endpoint URL must be a base URL; the provider client appends the API path (for example /api/embeddings) itself. Remove the trailing API path from the endpoint URL.");
 
             if (endpoint.Provider == ChatProviderTypeEnum.Anthropic && endpoint.EndpointType == ChatEndpointTypeEnum.Embedding)
                 throw new ArgumentException("Anthropic has no embeddings API and cannot be used for an embedding endpoint.");

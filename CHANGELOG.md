@@ -13,7 +13,8 @@ v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and be
   - Native query-language surface: `CALL litegraph.algo.<name>() RETURN guid, score` (and `community`, `name`, `edgesIn`, `edgesOut`, `result`), with `LIMIT` support.
   - Optional write-back materializes per-node results (scores, community/component labels) into node `Data`, making them DSL-queryable (e.g. `WHERE n.data.pagerank > 0.1`).
   - Optional opt-in result cache (`UseCache`) with node/edge-count auto-invalidation and explicit `InvalidateCache`.
-  - Node embedding generation (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint: each node's content is embedded and stored as a node vector (HNSW-indexable), exposed in all SDKs and the dashboard.
+  - Node embedding generation (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint: each node's content is embedded and stored as a node vector (HNSW-indexable), exposed in all SDKs and the dashboard. Verified end to end against a live Ollama-compatible endpoint (384-dim all-MiniLM).
+  - Chat endpoint base URLs may now include a path prefix (for reverse proxies and model-pinned gateways such as a LiteGraph Ollama-compatible proxy at `/v1.0/api/{model}/`); only base URLs already ending in a known API path (e.g. `/api/embeddings`) are rejected, preventing double-append.
   - New `Algorithm` authorization resource type: compute requires read scope; write-back requires write scope. `Viewer` can run read-only algorithms; `Editor` and `GraphAdmin` can also write results back.
 
 - Graph export / external-compute interop
