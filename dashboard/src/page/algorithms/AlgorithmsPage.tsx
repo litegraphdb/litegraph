@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, Col, Input, InputNumber, Row, Select, Space, Switch, Table } from 'antd';
+import { Card, Col, Input, InputNumber, Row, Select, Space, Switch, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import toast from 'react-hot-toast';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
@@ -42,6 +42,23 @@ const isCommunityAlgorithm = (type: GraphAlgorithmType): boolean =>
   type === 'StronglyConnectedComponents' ||
   type === 'LabelPropagation' ||
   type === 'Louvain';
+
+// A fixed, colorblind-friendly palette for community tags; cycles for large community counts.
+const COMMUNITY_COLORS = [
+  '#4E79A7',
+  '#F28E2B',
+  '#59A14F',
+  '#E15759',
+  '#B07AA1',
+  '#76B7B2',
+  '#EDC948',
+  '#FF9DA7',
+  '#9C755F',
+  '#BAB0AC',
+];
+
+const communityColor = (community: number): string =>
+  COMMUNITY_COLORS[((community % COMMUNITY_COLORS.length) + COMMUNITY_COLORS.length) % COMMUNITY_COLORS.length];
 
 const AlgorithmsPage = () => {
   const t = useTranslations('algorithms');
@@ -146,12 +163,43 @@ const AlgorithmsPage = () => {
     }
   };
 
+  const community = Boolean(result && isCommunityAlgorithm(result.AlgorithmType));
+  let maxScore = 0;
+  if (result) {
+    for (const node of result.Nodes) if (node.Score > maxScore) maxScore = node.Score;
+  }
+
   const columns: ColumnsType<GraphAlgorithmNodeResult> = [
     { title: t('node'), dataIndex: 'Name', key: 'name', render: (name: string | null, row) => name || row.NodeGUID },
-    { title: t('score'), dataIndex: 'Score', key: 'score', render: (score: number) => score.toFixed(6) },
   ];
-  if (result && isCommunityAlgorithm(result.AlgorithmType)) {
-    columns.push({ title: t('community'), dataIndex: 'Community', key: 'community' });
+  if (community) {
+    columns.push({
+      title: t('community'),
+      dataIndex: 'Community',
+      key: 'community',
+      render: (value: number | null) =>
+        value == null ? null : <Tag color={communityColor(value)}>{value}</Tag>,
+    });
+  } else {
+    columns.push({
+      title: t('score'),
+      dataIndex: 'Score',
+      key: 'score',
+      render: (score: number) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: maxScore > 0 ? `${Math.max(2, (score / maxScore) * 100)}px` : '0px',
+              maxWidth: 100,
+              height: 8,
+              backgroundColor: '#4E79A7',
+              borderRadius: 2,
+            }}
+          />
+          <span>{score.toFixed(6)}</span>
+        </div>
+      ),
+    });
   }
   if (result && result.AlgorithmType === 'DegreeCentrality') {
     columns.push({ title: t('edgesIn'), dataIndex: 'EdgesIn', key: 'edgesIn' });

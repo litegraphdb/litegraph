@@ -16403,6 +16403,130 @@
 			]
 		},
 		{
+			"name": "v9.0",
+			"item": [
+				{
+					"name": "Graph Algorithms",
+					"item": [
+						{
+							"name": "Run algorithm",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Runs a graph algorithm (DegreeCentrality, PageRank, ClosenessCentrality, EigenvectorCentrality, BetweennessCentrality, WeaklyConnectedComponents, StronglyConnectedComponents, LabelPropagation, Louvain, ClusteringCoefficient, KCore). Set WriteBack=true (requires write scope) to persist per-node results into node data.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"AlgorithmType\": \"PageRank\",\n  \"WriteBack\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/algorithms",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"algorithms"
+									]
+								}
+							}
+						},
+						{
+							"name": "Export projection",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Exports the graph as a portable projection (NodeLinkJson, EdgeList, or Graphml) for external computation in rustworkx/NetworkX.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/export/projection?format=NodeLinkJson&attributes=Meta",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"export",
+										"projection"
+									],
+									"query": [
+										{
+											"key": "format",
+											"value": "NodeLinkJson"
+										},
+										{
+											"key": "attributes",
+											"value": "Meta"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Import results",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"description": "Imports externally computed per-node values back onto nodes (requires write scope).",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"Values\": {\n    \"11111111-1111-1111-1111-111111111111\": {\n      \"betweenness\": 0.42\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/algorithms/import",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"tenants",
+										"{{tenant}}",
+										"graphs",
+										"{{graph}}",
+										"algorithms",
+										"import"
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Root",
 			"request": {
 				"method": "GET",
