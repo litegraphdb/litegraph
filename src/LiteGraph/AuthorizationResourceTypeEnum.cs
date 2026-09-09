@@ -58,6 +58,11 @@ namespace LiteGraph
         /// Chat resources, including endpoints, threads, turns, feedback, and settings.
         /// </summary>
         [EnumMember(Value = "Chat")]
-        Chat
+        Chat,
+        /// <summary>
+        /// Graph algorithm execution and graph projection export/import.
+        /// </summary>
+        [EnumMember(Value = "Algorithm")]
+        Algorithm
     }
 }

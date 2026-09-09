@@ -1,6 +1,8 @@
 namespace LiteGraph.Client.Implementations
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Text.Json;
     using System.Text.Json.Nodes;
     using System.Threading;
@@ -87,6 +89,57 @@ namespace LiteGraph.Client.Implementations
             }
 
             return result;
+        }
+
+        /// <inheritdoc />
+        public async Task ExportGraph(
+            Guid tenantGuid,
+            Guid graphGuid,
+            GraphExportFormatEnum format,
+            GraphExportAttributeLevelEnum attributeLevel,
+            Stream stream,
+            CancellationToken token = default)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            token.ThrowIfCancellationRequested();
+
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+
+            await GraphProjectionExporter.ExportAsync(_Client, tenantGuid, graphGuid, format, attributeLevel, stream, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<int> ImportResults(Guid tenantGuid, Guid graphGuid, GraphAlgorithmImportRequest request, CancellationToken token = default)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            token.ThrowIfCancellationRequested();
+
+            await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
+            await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
+
+            int updated = 0;
+
+            foreach (KeyValuePair<Guid, Dictionary<string, double>> entry in request.Values)
+            {
+                token.ThrowIfCancellationRequested();
+                if (entry.Value == null || entry.Value.Count == 0) continue;
+
+                Node node = await _Client.Node.ReadByGuid(tenantGuid, graphGuid, entry.Key, true, false, token).ConfigureAwait(false);
+                if (node == null) continue;
+
+                JsonObject dataObject = ToJsonObject(node.Data);
+                foreach (KeyValuePair<string, double> property in entry.Value)
+                {
+                    dataObject[property.Key] = JsonValue.Create(property.Value);
+                }
+
+                node.Data = dataObject;
+                await _Client.Node.Update(node, token).ConfigureAwait(false);
+                updated++;
+            }
+
+            return updated;
         }
 
         #endregion

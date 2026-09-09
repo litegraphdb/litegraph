@@ -129,6 +129,22 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmImportRequest">
+            <summary>
+            Request to import externally computed per-node values back onto graph nodes.
+            Values are written into each node's JSON data under their property names.  Requires write permission at the REST/MCP boundary.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmImportRequest.Values">
+            <summary>
+            Per-node values keyed by node GUID.  Each entry maps a property name to a numeric value written into the node's data.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAlgorithmImportRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Algorithms.GraphAlgorithmNodeResult">
             <summary>
             Per-node result produced by a graph algorithm.
@@ -349,6 +365,66 @@
             <summary>
             Label propagation community detection.
             </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphExportAttributeLevelEnum">
+            <summary>
+            Level of node/edge attribute detail included in a graph projection export.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphExportAttributeLevelEnum.None">
+            <summary>
+            Identifiers and structure only (node GUID, edge endpoints, weight).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphExportAttributeLevelEnum.Meta">
+            <summary>
+            Structure plus name, labels, and tags; excludes the JSON data payload.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphExportAttributeLevelEnum.Full">
+            <summary>
+            All attributes including the JSON data payload.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphExportFormatEnum">
+            <summary>
+            Graph projection export format for external computation (for example rustworkx or NetworkX).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphExportFormatEnum.NodeLinkJson">
+            <summary>
+            Node-link JSON compatible with networkx.node_link_graph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphExportFormatEnum.EdgeList">
+            <summary>
+            Edge list (CSV) with a header row: source,target,weight.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphExportFormatEnum.Graphml">
+            <summary>
+            GraphML XML.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphProjectionExporter">
+            <summary>
+            Streams a graph out as a portable projection (node-link JSON, edge list, or GraphML) for computation in external engines such as rustworkx or NetworkX.
+            Streaming keeps memory bounded so graphs larger than the in-memory algorithm ceiling can still be exported.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphProjectionExporter.ExportAsync(LiteGraph.LiteGraphClient,System.Guid,System.Guid,LiteGraph.Algorithms.GraphExportFormatEnum,LiteGraph.Algorithms.GraphExportAttributeLevelEnum,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Export a graph to a stream in the requested format.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="format">Export format.</param>
+            <param name="attributeLevel">Attribute detail level.</param>
+            <param name="stream">Destination stream (left open).</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when client or stream is null.</exception>
         </member>
         <member name="T:LiteGraph.Algorithms.LabelPropagation">
             <summary>
@@ -1021,6 +1097,11 @@
         <member name="F:LiteGraph.AuthorizationResourceTypeEnum.Chat">
             <summary>
             Chat resources, including endpoints, threads, turns, feedback, and settings.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.AuthorizationResourceTypeEnum.Algorithm">
+            <summary>
+            Graph algorithm execution and graph projection export/import.
             </summary>
         </member>
         <member name="T:LiteGraph.AuthorizationRole">
@@ -1977,6 +2058,12 @@
             <param name="repo">Graph repository.</param>
         </member>
         <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.Run(System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.ExportGraph(System.Guid,System.Guid,LiteGraph.Algorithms.GraphExportFormatEnum,LiteGraph.Algorithms.GraphExportAttributeLevelEnum,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.ImportResults(System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmImportRequest,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Client.Implementations.BatchMethods">
@@ -2988,6 +3075,30 @@
             <returns>Algorithm result.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
             <exception cref="T:System.InvalidOperationException">Thrown when the graph exceeds the configured node or edge ceiling.</exception>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAlgorithmMethods.ExportGraph(System.Guid,System.Guid,LiteGraph.Algorithms.GraphExportFormatEnum,LiteGraph.Algorithms.GraphExportAttributeLevelEnum,System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+            Export a graph to a stream as a portable projection for external computation (for example rustworkx or NetworkX).
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="format">Export format.</param>
+            <param name="attributeLevel">Attribute detail level.</param>
+            <param name="stream">Destination stream (left open).</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the stream is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAlgorithmMethods.ImportResults(System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmImportRequest,System.Threading.CancellationToken)">
+            <summary>
+            Import externally computed per-node values back onto graph nodes, writing them into node data.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Import request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of nodes updated.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IBatchMethods">
             <summary>

@@ -355,6 +355,7 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/stats", out _UrlParameters)) return RequestTypeEnum.GraphStatistics;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/gexf", out _UrlParameters)) return RequestTypeEnum.GraphExport;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl", out _UrlParameters)) return RequestTypeEnum.GraphExportJsonl;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/projection", out _UrlParameters)) return RequestTypeEnum.GraphProjectionExport;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexConfig;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/stats", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexStats;
@@ -510,6 +511,9 @@
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/existence", out _UrlParameters)) return RequestTypeEnum.GraphExistence;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/query", out _UrlParameters)) return RequestTypeEnum.GraphQuery;
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/transaction", out _UrlParameters)) return RequestTypeEnum.GraphTransaction;
+
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import", out _UrlParameters)) return RequestTypeEnum.GraphAlgorithmImport;
+                    if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms", out _UrlParameters)) return RequestTypeEnum.GraphAlgorithm;
 
                     if (matcher.Match("/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexRebuild;
                     if (matcher.Match("/v2.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild", out _UrlParameters)) return RequestTypeEnum.GraphVectorIndexRebuild;

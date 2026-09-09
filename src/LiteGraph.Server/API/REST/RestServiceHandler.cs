@@ -11,6 +11,7 @@
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Algorithms;
     using LiteGraph.Indexing.Vector;
     using LiteGraph.Serialization;
     using LiteGraph.Server.API.Agnostic;
@@ -408,6 +409,9 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl", GraphSubgraphJsonlExportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Export subgraph as JSONL", "Graphs"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/import/jsonl", GraphJsonlImportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Import JSONL into a graph", "Graphs"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/import/jsonl", GraphJsonlImportNewRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Import JSONL as a new graph", "Graphs"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms", GraphAlgorithmRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Run a graph algorithm", "Algorithms"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import", GraphAlgorithmImportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Import externally computed algorithm results", "Algorithms"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/projection", GraphProjectionExportRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Export graph projection for external compute", "Algorithms"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable", GraphEnableVectorIndexRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Enable vector indexing", "VectorIndex"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/config", GraphGetVectorIndexConfigRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Get vector index configuration", "VectorIndex"));
@@ -2012,6 +2016,187 @@
 
             req.ExistenceRequest = _Serializer.DeserializeJson<ExistenceRequest>(ctx.Request.DataAsString);
             await WrappedRequestHandler(ctx, req, _ServiceHandler.GraphExistence);
+        }
+
+        private async Task GraphAlgorithmRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            GraphAlgorithmRequest algoReq;
+            try
+            {
+                algoReq = _Serializer.DeserializeJson<GraphAlgorithmRequest>(ctx.Request.DataAsString);
+            }
+            catch (Exception de)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, de.Message))).ConfigureAwait(false);
+                return;
+            }
+
+            using (Activity activity = StartInternalActivity("litegraph.graph.algorithm", req))
+            using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
+            {
+                activity?.SetTag("litegraph.algorithm.type", algoReq.AlgorithmType.ToString());
+
+                if (algoReq.WriteBack)
+                {
+                    AuthorizationDecision writeAuthorization = await _Authentication.AuthorizeRequestScope(
+                        req, "write", AuthorizationResourceTypeEnum.Algorithm, timeoutCts.Token).ConfigureAwait(false);
+
+                    if (writeAuthorization.Result != AuthorizationResultEnum.Permitted)
+                    {
+                        ctx.Response.StatusCode = 401;
+                        await SendAuthorizationFailed(
+                            ctx, req, writeAuthorization.Reason.ToString(), writeAuthorization.RequiredScope,
+                            "The authenticated principal is not authorized to write algorithm results back to nodes.").ConfigureAwait(false);
+                        return;
+                    }
+                }
+
+                try
+                {
+                    GraphAlgorithmResult result = await _LiteGraph.Algorithm.Run(req.TenantGUID.Value, req.GraphGUID.Value, algoReq, timeoutCts.Token).ConfigureAwait(false);
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(result)).ConfigureAwait(false);
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    ctx.Response.StatusCode = 400;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ioe.Message))).ConfigureAwait(false);
+                }
+                catch (ArgumentException ae)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, ae.Message))).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await SendRequestTimeout(ctx, "graph algorithm", oce).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task GraphAlgorithmImportRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+
+            if (String.IsNullOrEmpty(ctx.Request.DataAsString))
+            {
+                await NoRequestBody(ctx);
+                return;
+            }
+
+            GraphAlgorithmImportRequest importReq;
+            try
+            {
+                importReq = _Serializer.DeserializeJson<GraphAlgorithmImportRequest>(ctx.Request.DataAsString);
+            }
+            catch (Exception de)
+            {
+                ctx.Response.StatusCode = 400;
+                ctx.Response.ContentType = Constants.JsonContentType;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.DeserializationError, null, de.Message))).ConfigureAwait(false);
+                return;
+            }
+
+            using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
+            {
+                try
+                {
+                    int updated = await _LiteGraph.Algorithm.ImportResults(req.TenantGUID.Value, req.GraphGUID.Value, importReq, timeoutCts.Token).ConfigureAwait(false);
+                    Dictionary<string, object> body = new Dictionary<string, object>();
+                    body["Success"] = true;
+                    body["NodesUpdated"] = updated;
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(body)).ConfigureAwait(false);
+                }
+                catch (ArgumentException ae)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, ae.Message))).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException oce)
+                {
+                    await SendRequestTimeout(ctx, "algorithm results import", oce).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task GraphProjectionExportRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            using CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource();
+
+            GraphExportFormatEnum format = GraphExportFormatEnum.NodeLinkJson;
+            GraphExportAttributeLevelEnum level = GraphExportAttributeLevelEnum.Meta;
+            string formatValue = req.Query["format"];
+            string attributesValue = req.Query["attributes"];
+            if (!String.IsNullOrEmpty(formatValue) && !Enum.TryParse<GraphExportFormatEnum>(formatValue, true, out format))
+                format = GraphExportFormatEnum.NodeLinkJson;
+            if (!String.IsNullOrEmpty(attributesValue) && !Enum.TryParse<GraphExportAttributeLevelEnum>(attributesValue, true, out level))
+                level = GraphExportAttributeLevelEnum.Meta;
+
+            try
+            {
+                Graph graph = await _LiteGraph.Graph.ReadByGuid(req.TenantGUID.Value, req.GraphGUID.Value, false, false, timeoutCts.Token).ConfigureAwait(false);
+                if (graph == null)
+                {
+                    ctx.Response.StatusCode = 404;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound))).ConfigureAwait(false);
+                    return;
+                }
+
+                ctx.Response.ContentType = ProjectionContentType(format);
+                ctx.Response.ChunkedTransfer = true;
+
+                using (ChunkedResponseStream stream = new ChunkedResponseStream(ctx.Response, timeoutCts.Token))
+                {
+                    await _LiteGraph.Algorithm.ExportGraph(req.TenantGUID.Value, req.GraphGUID.Value, format, level, stream, timeoutCts.Token).ConfigureAwait(false);
+                }
+
+                await ctx.Response.SendChunk(Array.Empty<byte>(), true, timeoutCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException oce)
+            {
+                await SendRequestTimeout(ctx, "projection export", oce).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "projection export error:" + Environment.NewLine + e.ToString());
+                if (!ctx.Response.ResponseSent)
+                {
+                    ctx.Response.StatusCode = 500;
+                    ctx.Response.ContentType = Constants.JsonContentType;
+                    await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.InternalError, null, e.Message))).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static string ProjectionContentType(GraphExportFormatEnum format)
+        {
+            switch (format)
+            {
+                case GraphExportFormatEnum.EdgeList:
+                    return "text/csv";
+                case GraphExportFormatEnum.Graphml:
+                    return Constants.XmlContentType;
+                default:
+                    return Constants.JsonContentType;
+            }
         }
 
         private async Task GraphQueryRoute(HttpContextBase ctx)

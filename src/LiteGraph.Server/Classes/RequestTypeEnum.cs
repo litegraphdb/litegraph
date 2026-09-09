@@ -737,6 +737,21 @@
         [EnumMember(Value = "GraphSubgraphStatistics")]
         GraphSubgraphStatistics,
         /// <summary>
+        /// GraphAlgorithm
+        /// </summary>
+        [EnumMember(Value = "GraphAlgorithm")]
+        GraphAlgorithm,
+        /// <summary>
+        /// GraphProjectionExport
+        /// </summary>
+        [EnumMember(Value = "GraphProjectionExport")]
+        GraphProjectionExport,
+        /// <summary>
+        /// GraphAlgorithmImport
+        /// </summary>
+        [EnumMember(Value = "GraphAlgorithmImport")]
+        GraphAlgorithmImport,
+        /// <summary>
         /// GraphExportJsonl
         /// </summary>
         [EnumMember(Value = "GraphExportJsonl")]

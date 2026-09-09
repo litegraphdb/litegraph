@@ -100,7 +100,8 @@ namespace LiteGraph
             AuthorizationResourceTypeEnum.Vector,
             AuthorizationResourceTypeEnum.Query,
             AuthorizationResourceTypeEnum.Transaction,
-            AuthorizationResourceTypeEnum.Chat
+            AuthorizationResourceTypeEnum.Chat,
+            AuthorizationResourceTypeEnum.Algorithm
         };
 
         private static readonly List<AuthorizationResourceTypeEnum> _GraphResourceTypes = new List<AuthorizationResourceTypeEnum>
@@ -112,7 +113,8 @@ namespace LiteGraph
             AuthorizationResourceTypeEnum.Tag,
             AuthorizationResourceTypeEnum.Vector,
             AuthorizationResourceTypeEnum.Query,
-            AuthorizationResourceTypeEnum.Transaction
+            AuthorizationResourceTypeEnum.Transaction,
+            AuthorizationResourceTypeEnum.Algorithm
         };
 
         private static readonly List<AuthorizationResourceTypeEnum> _ReadOnlyGraphResourceTypes = new List<AuthorizationResourceTypeEnum>
@@ -123,7 +125,8 @@ namespace LiteGraph
             AuthorizationResourceTypeEnum.Label,
             AuthorizationResourceTypeEnum.Tag,
             AuthorizationResourceTypeEnum.Vector,
-            AuthorizationResourceTypeEnum.Query
+            AuthorizationResourceTypeEnum.Query,
+            AuthorizationResourceTypeEnum.Algorithm
         };
 
         private static readonly List<RoleDefinition> _BuiltInRoles = new List<RoleDefinition>
