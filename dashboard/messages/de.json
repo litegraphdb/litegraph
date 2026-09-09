@@ -1405,7 +1405,9 @@
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Chat-Feedback prüfen",
       "aiSettings": "Chat-Einstellungen",
-      "aiSettingsTitle": "Chat-Konfiguration des Mandanten"
+      "aiSettingsTitle": "Chat-Konfiguration des Mandanten",
+      "algorithms": "Algorithms",
+      "algorithmsTitle": "Run graph algorithms and export projections"
     }
   },
   "secure": {
@@ -1929,5 +1931,44 @@
         "systemPromptHint": "Wird jeder Unterhaltung vorangestellt, um den Assistenten zu steuern. Die festen Tool- und Zitieranweisungen des Servers gelten immer zusätzlich."
       }
     }
+  },
+  "algorithms": {
+    "title": "Graph Algorithms",
+    "subtitle": "Run centrality, PageRank, community detection, and connected components over the selected graph, or export a projection for external computation.",
+    "selectGraphFirst": "Select a graph to run algorithms.",
+    "algorithm": "Algorithm",
+    "parameters": "Parameters",
+    "dampingFactor": "Damping factor",
+    "maxIterations": "Max iterations",
+    "tolerance": "Tolerance",
+    "maxResults": "Max results",
+    "writeBack": "Write results back to node data",
+    "writeBackProperty": "Write-back property (optional)",
+    "run": "Run algorithm",
+    "running": "Running…",
+    "results": "Results",
+    "node": "Node",
+    "score": "Score",
+    "community": "Community",
+    "edgesIn": "Edges in",
+    "edgesOut": "Edges out",
+    "nodeCount": "Nodes",
+    "edgeCount": "Edges",
+    "iterations": "Iterations",
+    "converged": "Converged",
+    "communityCount": "Communities",
+    "computeMs": "Compute (ms)",
+    "exportSection": "Export projection for external compute",
+    "exportFormat": "Format",
+    "attributes": "Attributes",
+    "export": "Export",
+    "importSection": "Import results",
+    "importPlaceholder": "Paste a JSON object mapping node GUID to property/value pairs.",
+    "import": "Import",
+    "runSuccess": "Algorithm completed.",
+    "exportSuccess": "Projection exported.",
+    "importSuccess": "Results imported.",
+    "importInvalid": "Import content must be a JSON object of node GUID to property/value pairs.",
+    "error": "Operation failed."
   }
 }

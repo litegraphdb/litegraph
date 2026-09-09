@@ -23,6 +23,7 @@ export const paths = {
   tags: `/dashboard/${dynamicSlugs.tenantId}/tags`,
   vectors: `/dashboard/${dynamicSlugs.tenantId}/vectors`,
   labels: `/dashboard/${dynamicSlugs.tenantId}/labels`,
+  algorithms: `/dashboard/${dynamicSlugs.tenantId}/algorithms`,
   requestHistory: `/dashboard/${dynamicSlugs.tenantId}/request-history`,
   apiExplorer: `/dashboard/${dynamicSlugs.tenantId}/api-explorer`,
   aiChat: `/dashboard/${dynamicSlugs.tenantId}/ai/chat`,
