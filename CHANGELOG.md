@@ -2,6 +2,23 @@
 
 ## Current Version
 
+v9.0.0
+
+v9.0 adds native **graph algorithms** — centrality (degree, closeness, betweenness, eigenvector), PageRank, connected components, community detection (label propagation, Louvain), and graph embeddings (FastRP, node2vec) — computed over the whole graph and optionally written back onto nodes so results are queryable through the DSL. It also adds a first-class **graph export/projection** feature (node-link JSON, edge list, GraphML) with a results **import** path, so graphs can be round-tripped to external engines such as `rustworkx`/NetworkX for algorithms beyond native scope or for graphs past the in-memory ceiling. The feature spans the full product surface: core library (`client.Algorithm`), REST server, MCP tools, dashboard, and all three SDKs (C#, JavaScript, Python). Additive release — no storage migration required.
+
+- Graph algorithms
+  - Native compute over a whole-graph in-memory adjacency built from streaming enumeration (`Node.ReadAllInGraph` / `Edge.ReadAllInGraph`), with a configurable node/edge ceiling that rejects oversized graphs rather than risking OOM.
+  - New `client.Algorithm` surface, REST routes under `/v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms`, `algorithm/*` MCP tools, a dashboard algorithms page, and SDK bindings in all three languages.
+  - Optional write-back materializes per-node results (scores, community labels) into node `Data`, making them DSL-queryable (e.g. `WHERE n.data.pagerank > 0.1`). `CALL litegraph.algo.*` exposes algorithms in the native query language.
+  - New `Algorithm` authorization resource type: compute requires read scope; write-back requires write scope.
+
+- Graph export / external-compute interop
+  - Export a graph or subgraph as node-link JSON (loads directly into NetworkX/`rustworkx`), edge list (CSV/JSONL), or GraphML — streaming, so graphs too large for native compute can still be projected out.
+  - Import externally computed results (node GUID → value map) back onto nodes via the batch write path.
+  - Available over REST (`/export`, `/algorithms/import`), MCP (`algorithm/export`, `algorithm/import`), the dashboard, and all SDKs.
+
+## Previous Versions
+
 v8.1.0
 
 v8.1 adds LLM chat over graph data and eliminates every get-all API in favor of paginated enumeration. Storage upgrades in place — the chat tables are created on first boot and nothing stored is altered — but the enumeration conversion is a **breaking change** for clients that consumed list responses as bare JSON arrays.

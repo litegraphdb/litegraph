@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-		<Version>8.1.0</Version>
+		<Version>9.0.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v8.1.0 additive release: LLM chat with tenant-scoped embedding and inference endpoints (OpenAI, Ollama, Gemini, Anthropic, VoyageAI via PolyPrompt), MCP-catalog tool calling under caller RBAC, vector RAG, endpoint health checks, chat threads/turns/feedback with per-turn telemetry, and chat observability.</PackageReleaseNotes>
+		<PackageReleaseNotes>v9.0.0 additive release: native graph algorithms (degree/closeness/betweenness/eigenvector centrality, PageRank, connected components, label-propagation and Louvain community detection, FastRP/node2vec embeddings) over a whole-graph in-memory adjacency, with optional write-back that makes results DSL-queryable; a new client.Algorithm surface, REST/MCP/dashboard/SDK coverage, and an Algorithm authorization resource type; plus first-class graph export/projection (node-link JSON, edge list, GraphML) and results import for round-tripping to external engines such as rustworkx/NetworkX.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>

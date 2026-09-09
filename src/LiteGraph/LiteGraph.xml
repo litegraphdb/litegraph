@@ -4,6 +4,440 @@
         <name>LiteGraph</name>
     </assembly>
     <members>
+        <member name="T:LiteGraph.Algorithms.DegreeCentrality">
+            <summary>
+            Degree centrality: in-degree, out-degree, and total degree per node.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.DegreeCentrality.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing total degree back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.DegreeCentrality.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Int32[]@,System.Int32[]@,System.Threading.CancellationToken)">
+            <summary>
+            Compute degree centrality.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="inDegrees">In-degree per node, indexed by dense node index.</param>
+            <param name="outDegrees">Out-degree per node, indexed by dense node index.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Total degree per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAdjacency">
+            <summary>
+            Compact in-memory adjacency (compressed sparse row) representation of a single graph, built once from streaming enumeration and consumed by graph algorithms.
+            This structure holds both the forward (out-edge) and reverse (in-edge) adjacency so directed and undirected algorithms can share one load.
+            Edge weights are uniform (1.0) in this representation; edge cost is not treated as weight.
+            This type is not thread-safe; build one instance per algorithm run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.NodeCount">
+            <summary>
+            Number of nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.EdgeCount">
+            <summary>
+            Number of directed edges.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.NodeGuids">
+            <summary>
+            Node GUID by dense index (length <see cref="P:LiteGraph.Algorithms.GraphAdjacency.NodeCount"/>).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.NodeNames">
+            <summary>
+            Node name by dense index (length <see cref="P:LiteGraph.Algorithms.GraphAdjacency.NodeCount"/>).  Entries may be null.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.OutOffsets">
+            <summary>
+            Out-edge row offsets (length <see cref="P:LiteGraph.Algorithms.GraphAdjacency.NodeCount"/> + 1).  Out-neighbors of node i occupy <see cref="P:LiteGraph.Algorithms.GraphAdjacency.OutTargets"/>[OutOffsets[i] .. OutOffsets[i+1]).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.OutTargets">
+            <summary>
+            Out-edge targets (length <see cref="P:LiteGraph.Algorithms.GraphAdjacency.EdgeCount"/>).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.InOffsets">
+            <summary>
+            In-edge row offsets (length <see cref="P:LiteGraph.Algorithms.GraphAdjacency.NodeCount"/> + 1).  In-neighbors of node i occupy <see cref="P:LiteGraph.Algorithms.GraphAdjacency.InSources"/>[InOffsets[i] .. InOffsets[i+1]).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAdjacency.InSources">
+            <summary>
+            In-edge sources (length <see cref="P:LiteGraph.Algorithms.GraphAdjacency.EdgeCount"/>).
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAdjacency.BuildAsync(LiteGraph.LiteGraphClient,System.Guid,System.Guid,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Build an adjacency structure for a graph by streaming its nodes and edges.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="maxNodes">Maximum node count permitted; 0 means unlimited.  Exceeding this throws.</param>
+            <param name="maxEdges">Maximum edge count permitted; 0 means unlimited.  Exceeding this throws.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Graph adjacency.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the client is null.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when the graph exceeds the configured node or edge ceiling.</exception>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAdjacency.TryGetIndex(System.Guid,System.Int32@)">
+            <summary>
+            Get the dense index for a node GUID.
+            </summary>
+            <param name="nodeGuid">Node GUID.</param>
+            <param name="index">Dense index when found.</param>
+            <returns>True when the node exists in this adjacency.</returns>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAdjacency.OutDegree(System.Int32)">
+            <summary>
+            Out-degree of a node by index.
+            </summary>
+            <param name="index">Node index.</param>
+            <returns>Out-degree.</returns>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAdjacency.InDegree(System.Int32)">
+            <summary>
+            In-degree of a node by index.
+            </summary>
+            <param name="index">Node index.</param>
+            <returns>In-degree.</returns>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmConfiguration">
+            <summary>
+            Configuration and guardrails for graph algorithm execution.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmConfiguration.MaxNodes">
+            <summary>
+            Maximum number of nodes an algorithm will load into memory.  Graphs exceeding this are rejected rather than risking exhaustion of memory.  Minimum 0 (0 means unlimited), default 1000000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmConfiguration.MaxEdges">
+            <summary>
+            Maximum number of edges an algorithm will load into memory.  Graphs exceeding this are rejected rather than risking exhaustion of memory.  Minimum 0 (0 means unlimited), default 10000000.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAlgorithmConfiguration.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmNodeResult">
+            <summary>
+            Per-node result produced by a graph algorithm.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmNodeResult.NodeGUID">
+            <summary>
+            Node GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmNodeResult.Name">
+            <summary>
+            Node name, when available.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmNodeResult.Score">
+            <summary>
+            Score produced by the algorithm.  Used by centrality and ranking algorithms (for example PageRank score or degree count).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmNodeResult.EdgesIn">
+            <summary>
+            Number of inbound edges.  Populated by degree centrality; null otherwise.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmNodeResult.EdgesOut">
+            <summary>
+            Number of outbound edges.  Populated by degree centrality; null otherwise.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmNodeResult.Community">
+            <summary>
+            Community or component identifier.  Populated by community detection and connected-component algorithms; null otherwise.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAlgorithmNodeResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmRequest">
+            <summary>
+            Request to run a graph algorithm over a single graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.AlgorithmType">
+            <summary>
+            Algorithm to run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.DampingFactor">
+            <summary>
+            PageRank damping factor.  Minimum 0.0, maximum 1.0, default 0.85.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.MaxIterations">
+            <summary>
+            Maximum number of iterations for iterative algorithms (PageRank, label propagation).  Minimum 1, default 100.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.Tolerance">
+            <summary>
+            Convergence tolerance for iterative algorithms.  Minimum 0.0, default 0.000001.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.TreatAsUndirected">
+            <summary>
+            Boolean indicating whether the algorithm should treat edges as undirected.  Applies to algorithms where directionality is meaningful (for example label propagation).  Weakly connected components always treat edges as undirected; strongly connected components always treat edges as directed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.MaxResults">
+            <summary>
+            Optional maximum number of per-node results to return.  Null returns all nodes.  Minimum 1 when set.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.WriteBack">
+            <summary>
+            Boolean indicating whether per-node results should be written back into node data.  Requires write permission at the REST/MCP boundary.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmRequest.WriteBackProperty">
+            <summary>
+            Property name under which results are written into node data when <see cref="P:LiteGraph.Algorithms.GraphAlgorithmRequest.WriteBack"/> is true.  Null uses the algorithm's default property name.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAlgorithmRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmResult">
+            <summary>
+            Result of a graph algorithm run.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.Success">
+            <summary>
+            Boolean indicating whether the run succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.TenantGUID">
+            <summary>
+            Tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.GraphGUID">
+            <summary>
+            Graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.AlgorithmType">
+            <summary>
+            Algorithm that produced this result.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.NodeCount">
+            <summary>
+            Number of nodes processed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.EdgeCount">
+            <summary>
+            Number of edges processed.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.Iterations">
+            <summary>
+            Number of iterations performed by iterative algorithms (for example PageRank, label propagation).  Zero for non-iterative algorithms.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.Converged">
+            <summary>
+            Boolean indicating whether an iterative algorithm converged within the iteration limit.  True for non-iterative algorithms.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.CommunityCount">
+            <summary>
+            Number of distinct communities or components discovered.  Null for algorithms that do not partition the graph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.ComputeMs">
+            <summary>
+            Elapsed compute time in milliseconds (excludes graph load time).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.LoadMs">
+            <summary>
+            Elapsed graph load time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.WrittenBack">
+            <summary>
+            Boolean indicating whether results were written back onto nodes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.WriteBackProperty">
+            <summary>
+            Property name under which results were written back, when applicable.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Algorithms.GraphAlgorithmResult.Nodes">
+            <summary>
+            Per-node results, ordered as produced by the algorithm (typically descending by score, or by community).
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAlgorithmResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmRunner">
+            <summary>
+            Loads a graph into an in-memory adjacency, dispatches to the requested algorithm, and assembles a result mapped back to node GUIDs.
+            Compute is storage-agnostic; this runner performs no write-back (write-back is handled by the client method).
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.GraphAlgorithmRunner.RunAsync(LiteGraph.LiteGraphClient,System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmRequest,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Run an algorithm over a graph and return a result.  Does not write results back.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Algorithm request.</param>
+            <param name="maxNodes">Maximum node ceiling; 0 means unlimited.</param>
+            <param name="maxEdges">Maximum edge ceiling; 0 means unlimited.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Algorithm result.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when client or request is null.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when the graph exceeds the configured ceiling.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.GraphAlgorithmTypeEnum">
+            <summary>
+            Graph algorithm type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.DegreeCentrality">
+            <summary>
+            Degree centrality (in, out, and total edge counts per node).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.PageRank">
+            <summary>
+            PageRank.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.WeaklyConnectedComponents">
+            <summary>
+            Weakly connected components (treats edges as undirected for connectivity).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.StronglyConnectedComponents">
+            <summary>
+            Strongly connected components (directed; Tarjan's algorithm).
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.GraphAlgorithmTypeEnum.LabelPropagation">
+            <summary>
+            Label propagation community detection.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Algorithms.LabelPropagation">
+            <summary>
+            Label propagation community detection.  Edges are treated as undirected (in- and out-neighbors combined).
+            Updates are applied asynchronously in ascending node-index order and ties are broken toward the smallest label, so runs are deterministic for a given adjacency.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.LabelPropagation.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing the community identifier back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.LabelPropagation.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Int32,System.Int32@,System.Int32@,System.Boolean@,System.Threading.CancellationToken)">
+            <summary>
+            Compute communities via label propagation.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="maxIterations">Maximum iterations.</param>
+            <param name="communityCount">Number of distinct communities discovered.</param>
+            <param name="iterations">Number of iterations performed.</param>
+            <param name="converged">Whether propagation stabilized within the iteration limit.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Zero-based community identifier per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.PageRank">
+            <summary>
+            PageRank over a directed graph adjacency.  Dangling nodes (no out-edges) distribute their rank uniformly across all nodes.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.PageRank.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing PageRank results back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.PageRank.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Double,System.Int32,System.Double,System.Int32@,System.Boolean@,System.Threading.CancellationToken)">
+            <summary>
+            Compute PageRank scores.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="dampingFactor">Damping factor (0.0 - 1.0).</param>
+            <param name="maxIterations">Maximum iterations.</param>
+            <param name="tolerance">Convergence tolerance (L1 delta across all nodes).</param>
+            <param name="iterations">Number of iterations performed.</param>
+            <param name="converged">Whether the computation converged within the iteration limit.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Score per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.StronglyConnectedComponents">
+            <summary>
+            Strongly connected components using an iterative form of Tarjan's algorithm (directed).  The iterative form avoids stack overflow on deep graphs.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.StronglyConnectedComponents.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing the component identifier back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.StronglyConnectedComponents.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Int32@,System.Threading.CancellationToken)">
+            <summary>
+            Compute strongly connected components.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="componentCount">Number of distinct components discovered.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Zero-based component identifier per node, indexed by dense node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
+        <member name="T:LiteGraph.Algorithms.WeaklyConnectedComponents">
+            <summary>
+            Weakly connected components using union-find.  Edges are treated as undirected for connectivity.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Algorithms.WeaklyConnectedComponents.DefaultProperty">
+            <summary>
+            Default node-data property name used when writing the component identifier back.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Algorithms.WeaklyConnectedComponents.Compute(LiteGraph.Algorithms.GraphAdjacency,System.Int32@,System.Threading.CancellationToken)">
+            <summary>
+            Compute weakly connected components.
+            </summary>
+            <param name="adjacency">Graph adjacency.</param>
+            <param name="componentCount">Number of distinct components discovered.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Zero-based component identifier per node, indexed by dense node index.  Identifiers are assigned in ascending order of first-seen node index.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when adjacency is null.</exception>
+        </member>
         <member name="T:LiteGraph.AuthenticationToken">
             <summary>
             Authentication token details.
@@ -1526,6 +1960,25 @@
         <member name="M:LiteGraph.Client.Implementations.AdminMethods.BackupExists(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="T:LiteGraph.Client.Implementations.AlgorithmMethods">
+            <summary>
+            Graph algorithm methods implementation for the client.
+            Provides client-side validation, guardrails, and optional write-back for algorithm operations.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Client.Implementations.AlgorithmMethods.Configuration">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.#ctor(LiteGraph.LiteGraphClient,LiteGraph.GraphRepositories.GraphRepositoryBase)">
+            <summary>
+            Instantiate AlgorithmMethods.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="repo">Graph repository.</param>
+        </member>
+        <member name="M:LiteGraph.Client.Implementations.AlgorithmMethods.Run(System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Client.Implementations.BatchMethods">
             <summary>
             Batch methods.
@@ -2512,6 +2965,29 @@
             </summary>
             <param name="backupFilename">Backup filename.</param>
             <param name="token">Cancellation token.</param>
+        </member>
+        <member name="T:LiteGraph.Client.Interfaces.IAlgorithmMethods">
+            <summary>
+            Interface for graph algorithm methods.
+            Client implementations are responsible for input validation and cross-cutting logic.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Client.Interfaces.IAlgorithmMethods.Configuration">
+            <summary>
+            Configuration and guardrails for algorithm execution.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Client.Interfaces.IAlgorithmMethods.Run(System.Guid,System.Guid,LiteGraph.Algorithms.GraphAlgorithmRequest,System.Threading.CancellationToken)">
+            <summary>
+            Run a graph algorithm over a single graph.
+            </summary>
+            <param name="tenantGuid">Tenant GUID.</param>
+            <param name="graphGuid">Graph GUID.</param>
+            <param name="request">Algorithm request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Algorithm result.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the request is null.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when the graph exceeds the configured node or edge ceiling.</exception>
         </member>
         <member name="T:LiteGraph.Client.Interfaces.IBatchMethods">
             <summary>
@@ -5393,7 +5869,10 @@
         </member>
         <member name="P:LiteGraph.EnumerationResult`1.TotalRecords">
             <summary>
-            Total number of records.
+            Total number of records.  Never less than the number of objects in
+            this page: the count and the page are read separately, so records
+            inserted between the two under concurrency could otherwise make the
+            reported total incoherent with the returned objects.
             </summary>
         </member>
         <member name="P:LiteGraph.EnumerationResult`1.RecordsRemaining">
@@ -13364,6 +13843,11 @@
         </member>
         <member name="P:LiteGraph.LiteGraphClient.Transaction">
             <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.LiteGraphClient.Algorithm">
+            <summary>
+            Graph algorithm methods (centrality, PageRank, connected components, community detection).
+            </summary>
         </member>
         <member name="P:LiteGraph.LiteGraphClient.ChatEndpoint">
             <summary>

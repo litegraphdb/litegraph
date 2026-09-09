@@ -135,6 +135,11 @@
         public ITransactionMethods Transaction { get; }
 
         /// <summary>
+        /// Graph algorithm methods (centrality, PageRank, connected components, community detection).
+        /// </summary>
+        public IAlgorithmMethods Algorithm { get; }
+
+        /// <summary>
         /// Chat endpoint methods.
         /// </summary>
         public IChatEndpointMethods ChatEndpoint { get; }
@@ -281,6 +286,7 @@
             VectorIndex = new VectorIndexMethods(this, _Repo);
             Query = new QueryMethods(this, _Repo);
             Transaction = new TransactionMethods(_Repo);
+            Algorithm = new AlgorithmMethods(this, _Repo);
             ChatEndpoint = new ChatEndpointMethods(this, _Repo);
             ChatThread = new ChatThreadMethods(this, _Repo);
             ChatTurn = new ChatTurnMethods(this, _Repo);

@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v8.1.0`.
+Current release: `v9.0.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -190,11 +190,11 @@ Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen
 
 ## Docker Images
 
-The Compose deployment uses these `v7.0.0` images:
+The Compose deployment uses these `v9.0.0` images:
 
-- `jchristn77/litegraph:v7.0.0`
-- `jchristn77/litegraph-mcp:v7.0.0`
-- `jchristn77/litegraph-ui:v7.0.0`
+- `jchristn77/litegraph:v9.0.0`
+- `jchristn77/litegraph-mcp:v9.0.0`
+- `jchristn77/litegraph-ui:v9.0.0`
 
 The LiteGraph service uses [`docker/litegraph.json`](docker/litegraph.json). The MCP service uses [`docker/litegraph-mcp.json`](docker/litegraph-mcp.json). Keep the PostgreSQL volume and the `docker/` directory persisted so database state, vector index artifacts, logs, and backups are retained.
 
