@@ -568,6 +568,8 @@ namespace LiteGraph.Server
             _LiteGraph.Logging.Logger = LiteGraphLogger;
             _LiteGraph.Logging.LogQueries = _Settings.Debug.DatabaseQueries;
             _LiteGraph.Logging.LogResults = _Settings.Debug.DatabaseQueries;
+            _LiteGraph.Algorithm.Configuration.MaxNodes = _Settings.LiteGraph.MaxAlgorithmNodes;
+            _LiteGraph.Algorithm.Configuration.MaxEdges = _Settings.LiteGraph.MaxAlgorithmEdges;
 
             _LiteGraph.InitializeRepository();
 

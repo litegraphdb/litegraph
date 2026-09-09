@@ -2061,27 +2061,34 @@
                     }
                 }
 
+                DateTime algorithmStart = DateTime.UtcNow;
+                string algorithmName = algoReq.AlgorithmType.ToString();
                 try
                 {
                     GraphAlgorithmResult result = await _LiteGraph.Algorithm.Run(req.TenantGUID.Value, req.GraphGUID.Value, algoReq, timeoutCts.Token).ConfigureAwait(false);
+                    _Observability.RecordAlgorithm(algorithmName, true, (DateTime.UtcNow - algorithmStart).TotalMilliseconds);
+                    activity?.SetTag("litegraph.algorithm.node_count", result.NodeCount);
                     ctx.Response.StatusCode = 200;
                     ctx.Response.ContentType = Constants.JsonContentType;
                     await ctx.Response.Send(_Serializer.SerializeJson(result)).ConfigureAwait(false);
                 }
                 catch (InvalidOperationException ioe)
                 {
+                    _Observability.RecordAlgorithm(algorithmName, false, (DateTime.UtcNow - algorithmStart).TotalMilliseconds);
                     ctx.Response.StatusCode = 400;
                     ctx.Response.ContentType = Constants.JsonContentType;
                     await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.BadRequest, null, ioe.Message))).ConfigureAwait(false);
                 }
                 catch (ArgumentException ae)
                 {
+                    _Observability.RecordAlgorithm(algorithmName, false, (DateTime.UtcNow - algorithmStart).TotalMilliseconds);
                     ctx.Response.StatusCode = 404;
                     ctx.Response.ContentType = Constants.JsonContentType;
                     await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(ApiErrorEnum.NotFound, null, ae.Message))).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException oce)
                 {
+                    _Observability.RecordAlgorithm(algorithmName, false, (DateTime.UtcNow - algorithmStart).TotalMilliseconds);
                     await SendRequestTimeout(ctx, "graph algorithm", oce).ConfigureAwait(false);
                 }
             }

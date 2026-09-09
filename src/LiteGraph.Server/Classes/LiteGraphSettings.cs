@@ -103,6 +103,38 @@
             }
         }
 
+        /// <summary>
+        /// Maximum number of nodes a graph algorithm will load into memory.  Graphs exceeding this are rejected rather than risking memory exhaustion.  Minimum 0 (0 means unlimited), default 1000000.
+        /// </summary>
+        public int MaxAlgorithmNodes
+        {
+            get
+            {
+                return _MaxAlgorithmNodes;
+            }
+            set
+            {
+                if (value < 0) throw new ArgumentOutOfRangeException(nameof(MaxAlgorithmNodes));
+                _MaxAlgorithmNodes = value;
+            }
+        }
+
+        /// <summary>
+        /// Maximum number of edges a graph algorithm will load into memory.  Graphs exceeding this are rejected rather than risking memory exhaustion.  Minimum 0 (0 means unlimited), default 10000000.
+        /// </summary>
+        public int MaxAlgorithmEdges
+        {
+            get
+            {
+                return _MaxAlgorithmEdges;
+            }
+            set
+            {
+                if (value < 0) throw new ArgumentOutOfRangeException(nameof(MaxAlgorithmEdges));
+                _MaxAlgorithmEdges = value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
@@ -111,6 +143,8 @@
         private DatabaseSettings _Database = new DatabaseSettings();
         private TransactionSettings _Transactions = new TransactionSettings();
         private int _MaxConcurrentOperations = 4;
+        private int _MaxAlgorithmNodes = 1000000;
+        private int _MaxAlgorithmEdges = 10000000;
 
         #endregion
 

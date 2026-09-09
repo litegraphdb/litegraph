@@ -81,6 +81,9 @@ namespace LiteGraph.Server.Services
         private readonly Counter<long> _GraphTransactionConflictCounter;
         private readonly Counter<long> _GraphTransactionRetryCounter;
         private readonly Counter<long> _AuthenticationCounter;
+        private readonly Counter<long> _AlgorithmCounter;
+        private readonly Histogram<double> _AlgorithmDurationMs;
+        private readonly ConcurrentDictionary<string, GraphAlgorithmMetric> _AlgorithmMetrics = new ConcurrentDictionary<string, GraphAlgorithmMetric>(StringComparer.Ordinal);
         private readonly Counter<long> _RepositoryOperationCounter;
         private readonly Histogram<double> _RepositoryOperationDurationMs;
         private readonly ObservableGauge<long> _GraphTransactionActiveGauge;
@@ -123,6 +126,8 @@ namespace LiteGraph.Server.Services
             _GraphTransactionConflictCounter = Meter.CreateCounter<long>("litegraph.graph.transaction.conflicts", "conflicts", "Total graph transaction concurrency conflicts.");
             _GraphTransactionRetryCounter = Meter.CreateCounter<long>("litegraph.graph.transaction.retries", "retries", "Total graph transaction retry attempts reported by LiteGraph.");
             _AuthenticationCounter = Meter.CreateCounter<long>("litegraph.authentication.requests", "requests", "Total authenticated requests by authentication and authorization result.");
+            _AlgorithmCounter = Meter.CreateCounter<long>("litegraph.graph.algorithms", "runs", "Total graph algorithm runs processed by LiteGraph.");
+            _AlgorithmDurationMs = Meter.CreateHistogram<double>("litegraph.graph.algorithm.duration", "ms", "Graph algorithm run duration in milliseconds.");
             _RepositoryOperationCounter = Meter.CreateCounter<long>("litegraph.repository.operations", "operations", "Total repository operations executed by LiteGraph.");
             _RepositoryOperationDurationMs = Meter.CreateHistogram<double>("litegraph.repository.operation.duration", "ms", "Repository operation duration in milliseconds.");
             _GraphTransactionActiveGauge = Meter.CreateObservableGauge<long>("litegraph.graph.transaction.active", ObserveActiveGraphTransactions, "transactions", "Currently active graph transactions.");
@@ -290,6 +295,34 @@ namespace LiteGraph.Server.Services
 
                 _GraphQueryCounter.Add(1, tags);
                 _GraphQueryDurationMs.Record(durationMs, tags);
+            }
+        }
+
+        /// <summary>
+        /// Record a graph algorithm run.
+        /// </summary>
+        /// <param name="algorithmType">Algorithm type name.</param>
+        /// <param name="success">Whether the run succeeded.</param>
+        /// <param name="durationMs">Duration in milliseconds.</param>
+        public void RecordAlgorithm(string algorithmType, bool success, double durationMs)
+        {
+            if (!_Settings.Enable) return;
+
+            string type = String.IsNullOrEmpty(algorithmType) ? "unknown" : algorithmType;
+            string key = type + "\n" + success.ToString();
+            GraphAlgorithmMetric metric = _AlgorithmMetrics.GetOrAdd(key, _ => new GraphAlgorithmMetric(type, success));
+            metric.Record(durationMs);
+
+            if (_Settings.EnableOpenTelemetry)
+            {
+                KeyValuePair<string, object>[] tags =
+                {
+                    new KeyValuePair<string, object>("litegraph.algorithm.type", type),
+                    new KeyValuePair<string, object>("litegraph.algorithm.success", success)
+                };
+
+                _AlgorithmCounter.Add(1, tags);
+                _AlgorithmDurationMs.Record(durationMs, tags);
             }
         }
 
@@ -692,6 +725,31 @@ namespace LiteGraph.Server.Services
                 sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
             }
 
+            sb.AppendLine("# HELP litegraph_graph_algorithms_total Total graph algorithm runs processed by LiteGraph.");
+            sb.AppendLine("# TYPE litegraph_graph_algorithms_total counter");
+            foreach (GraphAlgorithmMetric metric in _AlgorithmMetrics.Values)
+            {
+                sb.Append("litegraph_graph_algorithms_total");
+                AppendAlgorithmLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
+            }
+
+            sb.AppendLine("# HELP litegraph_graph_algorithm_duration_ms Total and count of graph algorithm run durations in milliseconds.");
+            sb.AppendLine("# TYPE litegraph_graph_algorithm_duration_ms summary");
+            foreach (GraphAlgorithmMetric metric in _AlgorithmMetrics.Values)
+            {
+                sb.Append("litegraph_graph_algorithm_duration_ms_sum");
+                AppendAlgorithmLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.DurationSumMs.ToString(CultureInfo.InvariantCulture));
+
+                sb.Append("litegraph_graph_algorithm_duration_ms_count");
+                AppendAlgorithmLabels(sb, metric);
+                sb.Append(' ');
+                sb.AppendLine(metric.Count.ToString(CultureInfo.InvariantCulture));
+            }
+
             sb.AppendLine("# HELP litegraph_vector_searches_total Total vector searches processed by LiteGraph.");
             sb.AppendLine("# TYPE litegraph_vector_searches_total counter");
             foreach (VectorSearchMetric metric in _VectorSearchMetrics.Values)
@@ -1062,6 +1120,15 @@ namespace LiteGraph.Server.Services
             sb.Append("\"}");
         }
 
+        private static void AppendAlgorithmLabels(StringBuilder sb, GraphAlgorithmMetric metric)
+        {
+            sb.Append("{algorithm=\"");
+            sb.Append(EscapeLabel(metric.AlgorithmType));
+            sb.Append("\",success=\"");
+            sb.Append(metric.Success ? "true" : "false");
+            sb.Append("\"}");
+        }
+
         private static void AppendLabels(StringBuilder sb, VectorSearchMetric metric)
         {
             sb.Append("{domain=\"");
@@ -1268,6 +1335,31 @@ namespace LiteGraph.Server.Services
             internal GraphQueryMetric(bool mutated, bool success)
             {
                 Mutated = mutated;
+                Success = success;
+            }
+
+            internal void Record(double durationMs)
+            {
+                lock (_Lock)
+                {
+                    Count++;
+                    DurationSumMs += durationMs;
+                }
+            }
+        }
+
+        private sealed class GraphAlgorithmMetric
+        {
+            private readonly object _Lock = new object();
+
+            internal string AlgorithmType { get; }
+            internal bool Success { get; }
+            internal long Count { get; private set; }
+            internal double DurationSumMs { get; private set; }
+
+            internal GraphAlgorithmMetric(string algorithmType, bool success)
+            {
+                AlgorithmType = algorithmType;
                 Success = success;
             }
 

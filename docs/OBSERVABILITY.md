@@ -1,5 +1,20 @@
 # LiteGraph Observability
 
+## v9.0 — Graph Algorithm Metrics And Traces
+
+Every graph algorithm run through the REST route is instrumented. Labels stay low-cardinality (`algorithm`, `success`); tenant and graph GUIDs never appear on metric labels.
+
+**Algorithm metric inventory.** All series carry the `component` label.
+
+| Metric | Type | Labels | Meaning |
+|---|---|---|---|
+| `litegraph_graph_algorithms_total` | counter | `algorithm`, `success` | Total algorithm runs |
+| `litegraph_graph_algorithm_duration_ms` | summary (`_sum`/`_count`) | `algorithm`, `success` | Run duration in milliseconds |
+
+The `algorithm` label is the `AlgorithmType` (for example `PageRank`, `Louvain`, `BetweennessCentrality`). Each run also opens the `litegraph.graph.algorithm` OpenTelemetry span, tagged with `litegraph.algorithm.type` and `litegraph.algorithm.node_count`. The `litegraph-graphs-queries` Grafana dashboard includes an algorithm run-rate panel.
+
+The in-memory algorithm ceiling is operator-tunable via `LiteGraph.MaxAlgorithmNodes` and `LiteGraph.MaxAlgorithmEdges` in server settings (0 means unlimited; defaults 1,000,000 / 10,000,000). Graphs exceeding the ceiling are rejected with a `400`.
+
 ## v8.1 — Operational Metrics: Backups, Imports, Index Rebuilds, Retention
 
 Administrative and maintenance operations are instrumented alongside the request-path metrics. Labels stay low-cardinality (`operation`, `result`, `component`, `index_type`, `success`); tenant and graph GUIDs never appear on metric labels.
