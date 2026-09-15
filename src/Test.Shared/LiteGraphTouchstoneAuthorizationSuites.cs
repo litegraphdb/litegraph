@@ -30,7 +30,8 @@ namespace Test.Shared
                     Authz("Authorization.RegularUserSelfService", "Regular user can self-service but cannot list or reach other users", TestRegularUserSelfService),
                     Authz("Authorization.UnauthenticatedDenied", "Unauthenticated requests are denied", TestUnauthenticatedDenied),
                     Authz("Authorization.SettingsRoundTrip", "System administrator can read, update, and read back settings", TestSettingsRoundTrip),
-                    Authz("Authorization.SettingsDeniedForNonAdmin", "Settings endpoints deny tenant admins and regular users", TestSettingsDeniedForNonAdmin)
+                    Authz("Authorization.SettingsDeniedForNonAdmin", "Settings endpoints deny tenant admins and regular users", TestSettingsDeniedForNonAdmin),
+                    Authz("Authorization.AlgorithmScope", "Read-scoped credential can run algorithms and export but not write back or import", TestAlgorithmScope)
                 });
         }
 
@@ -42,6 +43,49 @@ namespace Test.Shared
         #endregion
 
         #region Authorization-Cases
+
+        private static async Task TestAlgorithmScope(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+            string endpoint = RequireEndpoint();
+
+            HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs", _AdminBearerToken,
+                "{\"Name\":\"algo-authz-graph\"}", cancellationToken).ConfigureAwait(false);
+            AssertTrue(IsSuccess(graphCreated.Status), "Algorithm authz graph created (status " + graphCreated.Status + ")");
+            string graphGuid = ExtractGuid(graphCreated.Body);
+
+            string nodesUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/nodes";
+            await AuthRestAsync(HttpMethod.Put, nodesUrl, _AdminBearerToken, "{\"Name\":\"A\"}", cancellationToken).ConfigureAwait(false);
+            await AuthRestAsync(HttpMethod.Put, nodesUrl, _AdminBearerToken, "{\"Name\":\"B\"}", cancellationToken).ConfigureAwait(false);
+
+            string? readerUserGuid = null;
+            await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "algo-authz-reader@authz.test", isSystemAdmin: false, isTenantAdmin: false, cancellationToken, capturedGuid => readerUserGuid = capturedGuid).ConfigureAwait(false);
+            AssertTrue(!String.IsNullOrEmpty(readerUserGuid), "Reader user provisioned");
+
+            string readToken = "algo-authz-read-" + Guid.NewGuid().ToString("N");
+            HttpOutcome credentialCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/credentials", _AdminBearerToken,
+                "{\"UserGUID\":\"" + readerUserGuid + "\",\"Name\":\"Algorithm read-only\",\"BearerToken\":\"" + readToken + "\",\"Scopes\":[\"read\"],\"Active\":true}", cancellationToken).ConfigureAwait(false);
+            AssertTrue(IsSuccess(credentialCreated.Status), "Read-only credential created (status " + credentialCreated.Status + " body " + credentialCreated.Body + ")");
+
+            string algoUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/algorithms";
+            string exportUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/export/projection?format=NodeLinkJson&attributes=Meta";
+            string importUrl = algoUrl + "/import";
+
+            HttpOutcome compute = await AuthRestAsync(HttpMethod.Post, algoUrl, readToken, "{\"AlgorithmType\":\"PageRank\"}", cancellationToken).ConfigureAwait(false);
+            AssertEqual(200, compute.Status, "Read scope permits algorithm compute (body " + compute.Body + ")");
+
+            HttpOutcome export = await AuthRestAsync(HttpMethod.Get, exportUrl, readToken, null, cancellationToken).ConfigureAwait(false);
+            AssertEqual(200, export.Status, "Read scope permits projection export");
+
+            HttpOutcome writeBack = await AuthRestAsync(HttpMethod.Post, algoUrl, readToken, "{\"AlgorithmType\":\"PageRank\",\"WriteBack\":true}", cancellationToken).ConfigureAwait(false);
+            AssertTrue(writeBack.Status == 401 || writeBack.Status == 403, "Read scope denies write-back (status " + writeBack.Status + ")");
+
+            HttpOutcome import = await AuthRestAsync(HttpMethod.Post, importUrl, readToken, "{\"Values\":{}}", cancellationToken).ConfigureAwait(false);
+            AssertTrue(import.Status == 401 || import.Status == 403, "Read scope denies results import (status " + import.Status + ")");
+
+            HttpOutcome adminWriteBack = await AuthRestAsync(HttpMethod.Post, algoUrl, _AdminBearerToken, "{\"AlgorithmType\":\"PageRank\",\"WriteBack\":true}", cancellationToken).ConfigureAwait(false);
+            AssertEqual(200, adminWriteBack.Status, "Admin permits write-back (body " + adminWriteBack.Body + ")");
+        }
 
         private static async Task TestSystemAdminFullAccess(CancellationToken cancellationToken)
         {
