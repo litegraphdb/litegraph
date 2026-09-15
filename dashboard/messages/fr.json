@@ -55,6 +55,8 @@
     "switchToDark": "Passer en mode sombre",
     "github": "LiteGraph sur GitHub",
     "githubAria": "Dépôt GitHub de LiteGraph",
+    "discord": "LiteGraph sur Discord",
+    "discordAria": "Serveur Discord de LiteGraph",
     "signOut": "Se déconnecter du tableau de bord",
     "logoutAria": "Déconnexion",
     "language": "Langue",
@@ -1973,6 +1975,14 @@
     "embeddingsSection": "Generate embeddings",
     "embeddingsHint": "Embeds each node (name + data) via the tenant’s active embedding endpoint and stores the result as a node vector. Requires a configured embedding endpoint.",
     "generateEmbeddings": "Generate",
-    "embeddingsSuccess": "Embeddings generated"
+    "embeddingsSuccess": "Embeddings generated",
+    "embeddingsRunning": "Generating embeddings…",
+    "embeddingsDone": "Embeddings generated",
+    "embeddingsFailed": "Embedding generation failed",
+    "embeddingsNodesEmbedded": "Nodes embedded",
+    "embeddingsNodesSkipped": "Nodes skipped",
+    "embeddingsModel": "Model",
+    "embeddingsDimensionality": "Dimensionality",
+    "close": "Close"
   }
 }

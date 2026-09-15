@@ -178,7 +178,7 @@ const AddEditVector = ({
         >
           <JsonEditorWithAce
             key={uniqueKey}
-            value={form.getFieldValue('Vectors') || []}
+            value={form.getFieldValue('Vectors') || vector?.Vectors || []}
             onChange={(json: any) => {
               form.setFieldsValue({ Vectors: json });
             }}

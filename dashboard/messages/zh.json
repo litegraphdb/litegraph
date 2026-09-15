@@ -55,6 +55,8 @@
     "switchToDark": "切换到深色模式",
     "github": "GitHub 上的 LiteGraph",
     "githubAria": "LiteGraph GitHub 代码仓库",
+    "discord": "Discord 上的 LiteGraph",
+    "discordAria": "LiteGraph Discord 服务器",
     "signOut": "退出仪表板登录",
     "logoutAria": "退出登录",
     "language": "语言",
@@ -1973,6 +1975,14 @@
     "embeddingsSection": "Generate embeddings",
     "embeddingsHint": "Embeds each node (name + data) via the tenant’s active embedding endpoint and stores the result as a node vector. Requires a configured embedding endpoint.",
     "generateEmbeddings": "Generate",
-    "embeddingsSuccess": "Embeddings generated"
+    "embeddingsSuccess": "Embeddings generated",
+    "embeddingsRunning": "Generating embeddings…",
+    "embeddingsDone": "Embeddings generated",
+    "embeddingsFailed": "Embedding generation failed",
+    "embeddingsNodesEmbedded": "Nodes embedded",
+    "embeddingsNodesSkipped": "Nodes skipped",
+    "embeddingsModel": "Model",
+    "embeddingsDimensionality": "Dimensionality",
+    "close": "Close"
   }
 }

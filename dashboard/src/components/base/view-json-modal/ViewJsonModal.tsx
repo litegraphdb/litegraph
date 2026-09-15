@@ -31,6 +31,7 @@ const ViewJsonModal = ({ open, onClose, data, title = 'View JSON' }: ViewJsonMod
         data-testid="view-json-content"
         style={{
           background: '#f5f5f5',
+          color: '#1f1f1f',
           padding: 16,
           borderRadius: 8,
           maxHeight: 500,

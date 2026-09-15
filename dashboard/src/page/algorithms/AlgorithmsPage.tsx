@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, Col, Input, InputNumber, Row, Select, Space, Switch, Table, Tag } from 'antd';
+import { Card, Col, Input, InputNumber, Modal, Row, Select, Space, Spin, Switch, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import LitegraphButton from '@/components/base/button/Button';
@@ -13,6 +14,7 @@ import {
   generateEmbeddings,
   importAlgorithmResults,
   runAlgorithm,
+  type GenerateEmbeddingsResult,
   type GraphAlgorithmNodeResult,
   type GraphAlgorithmRequest,
   type GraphAlgorithmResult,
@@ -85,6 +87,9 @@ const AlgorithmsPage = () => {
   const [importing, setImporting] = useState<boolean>(false);
 
   const [embedding, setEmbedding] = useState<boolean>(false);
+  const [embeddingModalOpen, setEmbeddingModalOpen] = useState<boolean>(false);
+  const [embeddingResult, setEmbeddingResult] = useState<GenerateEmbeddingsResult | null>(null);
+  const [embeddingError, setEmbeddingError] = useState<string | null>(null);
 
   const ready = Boolean(tenantGuid && graphGuid);
 
@@ -177,12 +182,15 @@ const AlgorithmsPage = () => {
       toast.error(t('selectGraphFirst'));
       return;
     }
+    setEmbeddingResult(null);
+    setEmbeddingError(null);
     setEmbedding(true);
+    setEmbeddingModalOpen(true);
     try {
       const response = await generateEmbeddings(tenantGuid, graphGuid, {});
-      toast.success(`${t('embeddingsSuccess')} (${response.NodesEmbedded})`);
+      setEmbeddingResult(response);
     } catch (error) {
-      toast.error(`${t('error')}: ${describeError(error)}`);
+      setEmbeddingError(describeError(error));
     } finally {
       setEmbedding(false);
     }
@@ -377,6 +385,51 @@ const AlgorithmsPage = () => {
           </Space>
         </Card>
       </Space>
+
+      <Modal
+        title={t('embeddingsSection')}
+        open={embeddingModalOpen}
+        onCancel={() => setEmbeddingModalOpen(false)}
+        maskClosable={!embedding}
+        closable={!embedding}
+        footer={[
+          <LitegraphButton
+            key="close"
+            onClick={() => setEmbeddingModalOpen(false)}
+            disabled={embedding}
+          >
+            {t('close')}
+          </LitegraphButton>,
+        ]}
+      >
+        {embedding && (
+          <Space direction="vertical" align="center" style={{ width: '100%', padding: 16 }}>
+            <Spin />
+            <LitegraphText>{t('embeddingsRunning')}</LitegraphText>
+          </Space>
+        )}
+        {!embedding && embeddingResult && (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Space>
+              <CheckCircleFilled style={{ color: '#52c41a', fontSize: 20 }} />
+              <LitegraphText weight={600}>{t('embeddingsDone')}</LitegraphText>
+            </Space>
+            <LitegraphText>{`${t('embeddingsNodesEmbedded')}: ${embeddingResult.NodesEmbedded}`}</LitegraphText>
+            <LitegraphText>{`${t('embeddingsNodesSkipped')}: ${embeddingResult.NodesSkipped}`}</LitegraphText>
+            <LitegraphText>{`${t('embeddingsModel')}: ${embeddingResult.Model ?? ''}`}</LitegraphText>
+            <LitegraphText>{`${t('embeddingsDimensionality')}: ${embeddingResult.Dimensionality}`}</LitegraphText>
+          </Space>
+        )}
+        {!embedding && embeddingError && (
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Space>
+              <CloseCircleFilled style={{ color: '#ff4d4f', fontSize: 20 }} />
+              <LitegraphText weight={600}>{t('embeddingsFailed')}</LitegraphText>
+            </Space>
+            <LitegraphText>{embeddingError}</LitegraphText>
+          </Space>
+        )}
+      </Modal>
     </PageContainer>
   );
 };
