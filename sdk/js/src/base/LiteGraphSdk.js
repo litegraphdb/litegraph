@@ -457,7 +457,8 @@ export default class LiteGraphSdk extends SdkBase {
       GenericExceptionHandlers.ArgumentNullException('AlgorithmRequest');
     }
     const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/algorithms`;
-    return await this.post(url, request, null, cancellationToken);
+    const result = await this.post(url, request, null, cancellationToken);
+    return typeof result === 'string' ? JSON.parse(result) : result;
   }
 
   /**
@@ -494,7 +495,24 @@ export default class LiteGraphSdk extends SdkBase {
       GenericExceptionHandlers.ArgumentNullException('ImportRequest');
     }
     const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/algorithms/import`;
-    return await this.post(url, request, null, cancellationToken);
+    const result = await this.post(url, request, null, cancellationToken);
+    return typeof result === 'string' ? JSON.parse(result) : result;
+  }
+
+  /**
+   * Generate node embeddings for a graph using the tenant's active embedding endpoint.
+   * @param {string} graphGuid - Graph GUID.
+   * @param {Object} [request] - GenerateEmbeddingsRequest object (optional MaxNodes, SkipNodesWithVectors).
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} - Embedding generation result.
+   */
+  async generateEmbeddings(graphGuid, request = {}, cancellationToken) {
+    if (!graphGuid) {
+      GenericExceptionHandlers.ArgumentNullException('GraphGuid');
+    }
+    const url = `${this._endpoint}v1.0/tenants/${this.tenantGuid}/graphs/${graphGuid}/algorithms/embeddings`;
+    const result = await this.post(url, request, null, cancellationToken);
+    return typeof result === 'string' ? JSON.parse(result) : result;
   }
 
   //end region
