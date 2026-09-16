@@ -23,21 +23,22 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 **Fixed**
 - **#2 — No graph algorithms (was the top gap, score 23).** Closed. v9.0 adds eleven native algorithms — degree/closeness/eigenvector/betweenness centrality, PageRank, weakly/strongly connected components, label-propagation and Louvain community detection, clustering coefficient, and k-core — with optional write-back into node data (DSL-queryable), an opt-in result cache, an `Algorithm` authorization resource type, and full REST/MCP/DSL (`CALL litegraph.algo.*`)/dashboard/SDK coverage. Crucially, CKG.md's own recommended mitigation — *project the subgraph to `rustworkx` and write results back* — is now a **built-in feature**: streaming projection export (node-link JSON, edge list, GraphML) plus a results-import path, so algorithms beyond native scope (or graphs past the in-memory ceiling) round-trip through external engines without custom glue. This was "the single strongest argument against LiteGraph as a complete CKG solution"; it no longer applies.
 - **#5 — README/site version drift.** Closed. README, Docker image tags, and the changelog all read `v9.0.0`.
+- **#3 — Audit records denials only (score 23).** Closed. The `authorizationaudit` store now records **successful privileged actions** — any REST request that required `write` or `admin` scope and was authorized is written in PostRouting with `AuthorizationResult=Permitted` and the request's actual response status code, alongside the existing denial records. Read-scope requests are never audited, so the store answers "who changed what, when" without being flooded by routine reads. A new `AuthorizationAudit` settings block (`Enable`, `AuditSuccessfulActions`) lets operators disable auditing or revert to denials-only, and a dual-storage (SQLite + PostgreSQL) Touchstone case pins the positive (permitted write audited), negative (read not audited), and denial behaviors. This directly satisfies CKG.md §5 Option A's "extend audit to successful privileged actions" prerequisite.
 
 **Improved**
 - **#17 — Query language doesn't generate embeddings.** Largely addressed. The query language still takes *supplied* embeddings for search, but v9.0 adds server-side **node embedding generation** (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint, storing each as an HNSW-indexable node vector. The generate → store → search loop is now closable through the API without external code (verified end-to-end against a live Ollama endpoint). The residual — embedding generation is not literally inside the `CALL` syntax — is cosmetic.
 
 **Still open — and now the top of the list (unchanged by v9.0):**
-- Enterprise/governance: **#3 audit records denials only**, **#4 no encryption at rest**, **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**, **#7 keyword-match authz fallback**.
+- Enterprise/governance: **#4 no encryption at rest**, **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**, **#7 keyword-match authz fallback**.
 - Reasoning correctness/shape: **#6 scan-bounded `ORDER BY`/aggregates**, **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
 - Data lifecycle/ops: **#1 no published scale evidence**, **#10 no provenance/temporality**, **#9 HNSW rebuild-after-restore footgun**, **#16 HA delegated to Postgres**, **#19 offline migration**, **#18 Python/JS are REST-only**.
 
 **New nuances v9.0 introduced (not new gaps, but they change the weighting):**
 - Algorithms compute over a **whole-graph in-memory adjacency** with a configurable node/edge ceiling. That raises the stakes on **#1 (scale evidence)** — it should now quantify both storage scale *and* the algorithm compute ceiling — while the projection-export path is the honest escape hatch above the ceiling.
 - Algorithm **write-back overwrites node-data properties with no versioning**, so re-running an algorithm silently replaces prior values. That sharpens **#10 (provenance/temporality)** for a "graph that learns."
-- Embedding generation creates many more HNSW-indexed vectors, making **#9 (index rebuild after restore)** more consequential, and **#3 (audit)** more relevant since write-back and embedding generation are unaudited successful mutations.
+- Embedding generation creates many more HNSW-indexed vectors, making **#9 (index rebuild after restore)** more consequential. (This originally also sharpened **#3 (audit)** because write-back and embedding generation were unaudited successful mutations — now closed: those privileged REST actions produce `Permitted` audit records.)
 
-**Overall.** The decisive functional gap is gone: LiteGraph is now the only one of the three candidates that ships the hybrid-retrieval *and* the cognition (algorithms) layer, with a first-class external-compute escape hatch. What remains is almost entirely the **enterprise-review surface** CKG.md §3.9/§5 flagged — audit completeness, encryption at rest, identity federation, authz depth — plus **published scale evidence (#1)** and **provenance (#10)**. None of these are architecturally hard; all are still open. For an *agent-facing, retrieval-and-cognition-dominant* CKG, LiteGraph's case is materially stronger post-v9.0; for a deployment gated on node-level authorization, encryption at rest, SSO, or demonstrated scale, the open items above are still the deciders.
+**Overall.** The decisive functional gap is gone: LiteGraph is now the only one of the three candidates that ships the hybrid-retrieval *and* the cognition (algorithms) layer, with a first-class external-compute escape hatch. Audit completeness — the first of the enterprise-review items — is now closed (#3). What remains is the rest of the **enterprise-review surface** CKG.md §3.9/§5 flagged — encryption at rest, identity federation, authz depth — plus **published scale evidence (#1)** and **provenance (#10)**. None of these are architecturally hard; all are still open. For an *agent-facing, retrieval-and-cognition-dominant* CKG, LiteGraph's case is materially stronger post-v9.0; for a deployment gated on node-level authorization, encryption at rest, SSO, or demonstrated scale, the open items above are still the deciders.
 
 ---
 
@@ -49,7 +50,7 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 |---|---------|-------------------|:---:|:---:|:---:|:---:|---|
 | 1 | Unpublished scale evidence (§3.7) | Benchmark *harness* exists but no node/edge counts, latency, throughput, or hardware ever published | 9 | 8 | 8 | 25 | **Open** (now also covers algorithm compute ceiling) |
 | 2 | No graph algorithms (§3.2) | No centrality, community detection, PageRank, or embeddings — the "cognition" layer is absent | 10 | 9 | 4 | 23 | ✅ **Fixed (v9.0)** |
-| 3 | Audit records denials only (§3.9) | Successful privileged actions leave no audit trail — fails the "who changed what, when" governance question | 8 | 8 | 7 | 23 | **Open** |
+| 3 | Audit records denials only (§3.9) | Successful privileged actions leave no audit trail — fails the "who changed what, when" governance question | 8 | 8 | 7 | 23 | ✅ **Fixed (v9.0)** |
 | 4 | No encryption at rest (§3.9) | No at-rest encryption for a sensitivity-classified knowledge store | 8 | 7 | 7 | 22 | **Open** |
 | 5 | README/site version drift (intro) | README on `main` documents v7.0.0 while site documents v8.1 — misleads external evaluators | 8 | 5 | 9 | 22 | ✅ **Fixed (v9.0)** |
 | 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | **Open** (algorithms now give a whole-graph path for some global stats) |
@@ -95,13 +96,15 @@ The summary matrix rates **Graph algorithms** as **Absent** for LiteGraph.
 
 ---
 
-### 3. Audit records denials only (§3.9) — Score 23
+### 3. Audit records denials only (§3.9) — Score 23 — ✅ Fixed (v9.0)
 
 > Add: no encryption at rest, no enterprise identity federation, and audit that records only denials — meaning **successful privileged actions leave no audit record**. For a CKG where "who changed what the system believes, and when" is the core governance question, that is a significant gap.
 
 The security table lists Audit for LiteGraph as **"Denials only,"** and the summary matrix rates Audit trail as **Weak (denials only)**. The Option A prerequisites (§5) include:
 
 > extend audit to successful privileged actions
+
+**Resolution (v9.0).** The `authorizationaudit` store now records permitted `write`/`admin` REST actions in addition to denials. Each successful privileged request is written in PostRouting with `AuthorizationResult=Permitted` and its actual response status code; read-scope requests are never audited. A new `AuthorizationAudit` settings block (`Enable`, `AuditSuccessfulActions`; both default `true`) governs the behavior and is reported as restart-required by the settings API. A dual-storage (SQLite + PostgreSQL) Touchstone case — *"Permitted write/admin actions are audited; reads are not; denials remain audited"* — validates the positive, negative, and denial paths. See [docs/RBAC.md](docs/RBAC.md#audit) and [docs/SETTINGS.md](docs/SETTINGS.md). This satisfies the Option A prerequisite above.
 
 ---
 
@@ -259,10 +262,10 @@ For internal deployment with LiteGraph as system of record, `CKG.md` lists these
 
 > **Prerequisites before internal deployment:** publish scale results; add OIDC or an authenticating reverse proxy; enable PostgreSQL encryption at rest; extend audit to successful privileged actions; document the embedded-mode authorization caveat.
 
-| Prerequisite | Table item |
-|---|---|
-| Publish scale results | #1 |
-| Add OIDC / authenticating reverse proxy | #8 |
-| Enable PostgreSQL encryption at rest | #4 |
-| Extend audit to successful privileged actions | #3 |
-| Document the embedded-mode authorization caveat | #15 |
+| Prerequisite | Table item | Status |
+|---|---|---|
+| Publish scale results | #1 | Open |
+| Add OIDC / authenticating reverse proxy | #8 | Open |
+| Enable PostgreSQL encryption at rest | #4 | Open |
+| Extend audit to successful privileged actions | #3 | ✅ Fixed (v9.0) |
+| Document the embedded-mode authorization caveat | #15 | Open |
