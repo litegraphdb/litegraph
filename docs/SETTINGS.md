@@ -12,7 +12,7 @@ Only system administrators reach any of this. The endpoints are gated on the `Is
 | Update the settings | PUT | `/v1.0/settings` |
 | Restart the server | POST | `/v1.0/settings/restart` |
 
-`GET /v1.0/settings` returns the full settings object — the same shape as `litegraph.json`, with the sections `RequestTimeoutSeconds`, `Logging`, `Caching`, `Rest`, `LiteGraph`, `Encryption`, `Storage`, `Debug`, `RequestHistory`, `Observability`, and (as of v8.1) `Chat`. The runtime-only logging callback is never serialized.
+`GET /v1.0/settings` returns the full settings object — the same shape as `litegraph.json`, with the sections `RequestTimeoutSeconds`, `Logging`, `Caching`, `Rest`, `LiteGraph`, `Encryption`, `Storage`, `Debug`, `RequestHistory`, `Observability`, (as of v8.1) `Chat`, and (as of v9.0) `AuthorizationAudit`. The runtime-only logging callback is never serialized.
 
 `PUT /v1.0/settings` takes the full settings object as its body, validates it (the property setters enforce ranges and non-null sections, so a malformed payload is rejected before anything is written), writes it to `litegraph.json`, and returns a result describing what happened:
 
@@ -20,7 +20,7 @@ Only system administrators reach any of this. The endpoints are gated on the `Is
 {
   "Success": true,
   "AppliedLive": ["RequestTimeoutSeconds"],
-  "RestartRequired": ["Logging", "Rest", "LiteGraph", "Storage", "Observability", "Encryption", "Caching", "RequestHistory", "Chat"],
+  "RestartRequired": ["Logging", "Rest", "LiteGraph", "Storage", "Observability", "Encryption", "Caching", "RequestHistory", "AuthorizationAudit", "Chat"],
   "Message": "Settings saved. Restart the server to apply the settings marked as restart-required."
 }
 ```
@@ -30,6 +30,26 @@ Only system administrators reach any of this. The endpoints are gated on the `Is
 ## Live vs. restart
 
 The request pipeline reads `RequestTimeoutSeconds` on every request, so a change to it applies live. The other sections are held by services that are constructed once at startup — changing them in the file does not reach those services until they are rebuilt. Rather than pretend otherwise, the API tells you exactly which of your edits are live and which are pending, and the dashboard surfaces that per section.
+
+## The AuthorizationAudit block (v9.0)
+
+The `AuthorizationAudit` section controls what the server writes to the `authorizationaudit` store. Prior to v9.0 only denied authorization events were recorded; v9.0 adds auditing of *successful privileged actions* so the trail reflects who performed write/admin operations, not only who was turned away. See [RBAC.md](RBAC.md) for the record shape and query surface.
+
+```json
+{
+  "AuthorizationAudit": {
+    "Enable": true,
+    "AuditSuccessfulActions": true
+  }
+}
+```
+
+| Field | Default | Meaning |
+|---|---|---|
+| `Enable` | `true` | Master switch. When `false`, neither denied nor permitted events are recorded |
+| `AuditSuccessfulActions` | `true` | When `true`, permitted `write`/`admin` actions are recorded in addition to denials. When `false`, only denials are recorded (pre-v9.0 behavior). Read-scope requests are never audited regardless of this value |
+
+The block is read on the request pipeline, but the running server binds the settings object at startup, so edits made through `PUT /v1.0/settings` are persisted to `litegraph.json` and reported as restart-required; they take effect after the next restart.
 
 ## The Chat block (v8.1)
 

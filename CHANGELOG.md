@@ -24,6 +24,11 @@ v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and be
   - Import externally computed results (node GUID → property/value map) back onto nodes via `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/algorithms/import`.
   - Available over REST, MCP (`algorithm/export`, `algorithm/import`), the dashboard, and all SDKs. See [docs/ALGORITHMS.md](docs/ALGORITHMS.md).
 
+- Authorization audit of successful privileged actions
+  - The `authorizationaudit` store previously recorded only denials, leaving successful privileged actions with no audit trail. It now also records **permitted** requests that required `write` or `admin` scope, with an `AuthorizationResult` of `Permitted` and the request's actual response status code. Read-scope requests are never audited, so routine reads do not inflate the store.
+  - New `AuthorizationAudit` settings block (`Enable`, `AuditSuccessfulActions`; both default `true`) lets operators disable auditing entirely or revert to denials-only. See [docs/SETTINGS.md](docs/SETTINGS.md) and [docs/RBAC.md](docs/RBAC.md).
+  - Covered by a dual-storage (SQLite + PostgreSQL) Touchstone case validating that permitted writes are audited, reads are not, and denials remain audited.
+
 - Not yet included: structural graph embeddings (FastRP/node2vec) are a planned follow-on; the v9.0 embedding feature generates content embeddings via a configured embedding endpoint.
 
 ## Previous Versions

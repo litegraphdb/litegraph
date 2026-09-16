@@ -195,6 +195,7 @@
                 result.RestartRequired.Add("Encryption");
                 result.RestartRequired.Add("Caching");
                 result.RestartRequired.Add("RequestHistory");
+                result.RestartRequired.Add("AuthorizationAudit");
 
                 result.Success = true;
                 result.Message = "Settings saved. Restart the server to apply the settings marked as restart-required.";

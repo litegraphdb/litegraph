@@ -160,6 +160,22 @@ namespace LiteGraph.Server.Classes
         }
 
         /// <summary>
+        /// Authorization audit settings.
+        /// </summary>
+        public AuthorizationAuditSettings AuthorizationAudit
+        {
+            get
+            {
+                return _AuthorizationAudit;
+            }
+            set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(AuthorizationAudit));
+                _AuthorizationAudit = value;
+            }
+        }
+
+        /// <summary>
         /// Chat settings.
         /// </summary>
         public ChatServerSettings Chat
@@ -204,6 +220,7 @@ namespace LiteGraph.Server.Classes
         private DebugSettings _Debug = new DebugSettings();
         private RequestHistorySettings _RequestHistory = new RequestHistorySettings();
         private ObservabilitySettings _Observability = new ObservabilitySettings();
+        private AuthorizationAuditSettings _AuthorizationAudit = new AuthorizationAuditSettings();
         private ChatServerSettings _Chat = new ChatServerSettings();
         private int _RequestTimeoutSeconds = 60;
 

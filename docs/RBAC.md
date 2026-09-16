@@ -297,14 +297,26 @@ Authorization error responses include contextual fields when LiteGraph can deter
 
 The context is intended for clients and operators. It does not map to an external identity and does not grant additional information beyond the request boundary.
 
-Denied REST authorization responses are also written to the `authorizationaudit` repository surface when the server can build a request context. Audit records include:
+REST authorization events are written to the `authorizationaudit` repository surface when the server can build a request context. Both outcomes are recorded so that the audit trail reflects who did what, not only who was turned away:
+
+- **Denied** authorization responses (graph allow-list and missing-scope denials) are recorded as they occur, carrying the denial reason and status code.
+- **Permitted** privileged actions — any request that required `write` or `admin` scope and was authorized — are recorded after the response is sent, with an `AuthorizationResult` of `Permitted` and the actual response status code. This closes the gap where successful privileged actions previously left no audit trail. Read-scope (`read`) requests are never audited, so routine reads do not inflate the audit store.
+
+Audit records include:
 
 - request ID, correlation ID, and trace ID
 - tenant, graph, user, and credential GUIDs where available
 - request type, HTTP method, path, and source IP
-- authentication and authorization results
-- denial reason and required scope
+- authentication and authorization results (`Permitted` or `Denied`)
+- reason (for denials) and required scope
 - response status code and description
+
+Audit behavior is controlled by the `AuthorizationAudit` settings block:
+
+| Setting | Default | Effect |
+|---------|---------|--------|
+| `Enable` | `true` | Master switch. When `false`, neither denied nor permitted events are recorded. |
+| `AuditSuccessfulActions` | `true` | When `true`, permitted `write`/`admin` actions are recorded in addition to denials. When `false`, only denials are recorded (the pre-v9.0 behavior). Read-scope requests are never audited regardless of this value. |
 
 The audit store is available through `LiteGraphClient.AuthorizationAudit` for embedded and server-side use. It supports insert, read by GUID, filtered search, pagination, delete by GUID, bulk delete by search, and delete older than a UTC cutoff.
 

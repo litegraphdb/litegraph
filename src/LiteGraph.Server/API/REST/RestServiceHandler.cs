@@ -705,7 +705,9 @@
 
             CaptureRequestHistory(ctx);
             StopRequestActivity(ctx);
-            await Task.CompletedTask;
+
+            if (req != null)
+                await AuditAuthorizationPermitted(req, ctx.Response.StatusCode, CancellationToken.None).ConfigureAwait(false);
         }
 
         private string BuildSanitizedRequestDebugLog(HttpContextBase ctx)
@@ -1179,6 +1181,7 @@
         private async Task AuditAuthorizationDenied(RequestContext req, ApiErrorResponse response, int statusCode, CancellationToken token)
         {
             if (req == null || response == null || _LiteGraph?.AuthorizationAudit == null) return;
+            if (!_Settings.AuthorizationAudit.Enable) return;
 
             try
             {
@@ -1192,34 +1195,61 @@
                 if (String.IsNullOrEmpty(reason)) reason = req.Authorization?.Reason;
                 if (String.IsNullOrEmpty(requiredScope)) requiredScope = req.Authorization?.RequiredScope;
 
-                AuthorizationAuditEntry entry = new AuthorizationAuditEntry
-                {
-                    RequestId = req.RequestId,
-                    CorrelationId = req.CorrelationId,
-                    TraceId = req.TraceId,
-                    TenantGUID = req.TenantGUID ?? req.Authentication?.TenantGUID,
-                    GraphGUID = req.GraphGUID,
-                    UserGUID = req.Authentication?.UserGUID,
-                    CredentialGUID = req.Authentication?.CredentialGUID,
-                    RequestType = req.RequestType.ToString(),
-                    Method = req.Http?.Request?.Method.ToString(),
-                    Path = OperationalLogRedactor.RedactUrl(req.Http?.Request?.Url?.RawWithoutQuery),
-                    SourceIp = req.Http?.Request?.Source?.IpAddress,
-                    AuthenticationResult = req.Authentication?.Result.ToString(),
-                    AuthorizationResult = AuthorizationResultEnum.Denied.ToString(),
-                    Reason = reason,
-                    RequiredScope = requiredScope,
-                    IsAdmin = req.Authentication?.IsAdmin ?? false,
-                    StatusCode = statusCode,
-                    Description = response.Description
-                };
-
+                AuthorizationAuditEntry entry = BuildAuthorizationAuditEntry(req, AuthorizationResultEnum.Denied, reason, requiredScope, statusCode, response.Description);
                 await _LiteGraph.AuthorizationAudit.Insert(entry, token).ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 _Logging.Warn(_Header + "failed to write authorization audit entry:" + Environment.NewLine + e.ToString());
             }
+        }
+
+        private async Task AuditAuthorizationPermitted(RequestContext req, int statusCode, CancellationToken token)
+        {
+            if (req == null || _LiteGraph?.AuthorizationAudit == null) return;
+            if (!_Settings.AuthorizationAudit.Enable || !_Settings.AuthorizationAudit.AuditSuccessfulActions) return;
+            if (req.Authorization == null || req.Authorization.Result != AuthorizationResultEnum.Permitted) return;
+
+            // Only audit privileged (write/admin) actions; read-scope requests are never audited.
+            string requiredScope = !String.IsNullOrEmpty(req.Authorization.RequiredScope)
+                ? req.Authorization.RequiredScope
+                : AuthorizationService.RequiredScope(req.RequestType);
+            if (String.IsNullOrEmpty(requiredScope) || requiredScope.Equals("read", StringComparison.OrdinalIgnoreCase)) return;
+
+            try
+            {
+                AuthorizationAuditEntry entry = BuildAuthorizationAuditEntry(req, AuthorizationResultEnum.Permitted, null, requiredScope, statusCode, "Permitted " + requiredScope + " action.");
+                await _LiteGraph.AuthorizationAudit.Insert(entry, token).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "failed to write authorization audit entry:" + Environment.NewLine + e.ToString());
+            }
+        }
+
+        private AuthorizationAuditEntry BuildAuthorizationAuditEntry(RequestContext req, AuthorizationResultEnum result, string reason, string requiredScope, int statusCode, string description)
+        {
+            return new AuthorizationAuditEntry
+            {
+                RequestId = req.RequestId,
+                CorrelationId = req.CorrelationId,
+                TraceId = req.TraceId,
+                TenantGUID = req.TenantGUID ?? req.Authentication?.TenantGUID,
+                GraphGUID = req.GraphGUID,
+                UserGUID = req.Authentication?.UserGUID,
+                CredentialGUID = req.Authentication?.CredentialGUID,
+                RequestType = req.RequestType.ToString(),
+                Method = req.Http?.Request?.Method.ToString(),
+                Path = OperationalLogRedactor.RedactUrl(req.Http?.Request?.Url?.RawWithoutQuery),
+                SourceIp = req.Http?.Request?.Source?.IpAddress,
+                AuthenticationResult = req.Authentication?.Result.ToString(),
+                AuthorizationResult = result.ToString(),
+                Reason = reason,
+                RequiredScope = requiredScope,
+                IsAdmin = req.Authentication?.IsAdmin ?? false,
+                StatusCode = statusCode,
+                Description = description
+            };
         }
 
         #endregion

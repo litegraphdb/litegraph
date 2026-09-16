@@ -2,12 +2,15 @@ namespace Test.Shared
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph;
+    using LiteGraph.GraphRepositories;
     using Touchstone.Core;
 
     public static partial class LiteGraphTouchstoneSuites
@@ -31,7 +34,8 @@ namespace Test.Shared
                     Authz("Authorization.UnauthenticatedDenied", "Unauthenticated requests are denied", TestUnauthenticatedDenied),
                     Authz("Authorization.SettingsRoundTrip", "System administrator can read, update, and read back settings", TestSettingsRoundTrip),
                     Authz("Authorization.SettingsDeniedForNonAdmin", "Settings endpoints deny tenant admins and regular users", TestSettingsDeniedForNonAdmin),
-                    Authz("Authorization.AlgorithmScope", "Read-scoped credential can run algorithms and export but not write back or import", TestAlgorithmScope)
+                    Authz("Authorization.AlgorithmScope", "Read-scoped credential can run algorithms and export but not write back or import", TestAlgorithmScope),
+                    Authz("Authorization.SuccessfulPrivilegedActionAudited", "Permitted write/admin actions are audited; reads are not; denials remain audited", TestSuccessfulPrivilegedActionAudited)
                 });
         }
 
@@ -85,6 +89,99 @@ namespace Test.Shared
 
             HttpOutcome adminWriteBack = await AuthRestAsync(HttpMethod.Post, algoUrl, _AdminBearerToken, "{\"AlgorithmType\":\"PageRank\",\"WriteBack\":true}", cancellationToken).ConfigureAwait(false);
             AssertEqual(200, adminWriteBack.Status, "Admin permits write-back (body " + adminWriteBack.Body + ")");
+        }
+
+        private static async Task TestSuccessfulPrivilegedActionAudited(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+                if (_McpEnvironment == null) throw new InvalidOperationException("MCP environment was not initialized.");
+
+                // Positive case: a permitted write (graph create) must produce a 'Permitted' audit entry.
+                HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs", _AdminBearerToken,
+                    "{\"Name\":\"audit-success-graph\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(graphCreated.Status), "Audit positive-case graph created (status " + graphCreated.Status + ")");
+
+                // Negative case: a read (list graphs) must NOT be audited.
+                HttpOutcome listGraphs = await AuthRestAsync(HttpMethod.Get, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, listGraphs.Status, "Audit negative-case graph list succeeds");
+
+                // Denial case: a read-only credential attempting a write is denied and audited as 'Denied'.
+                string? readerUserGuid = null;
+                await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "audit-reader@authz.test", isSystemAdmin: false, isTenantAdmin: false, cancellationToken, capturedGuid => readerUserGuid = capturedGuid).ConfigureAwait(false);
+                AssertTrue(!String.IsNullOrEmpty(readerUserGuid), "Audit reader user provisioned");
+
+                string readToken = "audit-read-" + Guid.NewGuid().ToString("N");
+                HttpOutcome credentialCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/credentials", _AdminBearerToken,
+                    "{\"UserGUID\":\"" + readerUserGuid + "\",\"Name\":\"Audit read-only\",\"BearerToken\":\"" + readToken + "\",\"Scopes\":[\"read\"],\"Active\":true}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(credentialCreated.Status), "Audit read-only credential created (status " + credentialCreated.Status + ")");
+
+                HttpOutcome deniedWrite = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs", readToken,
+                    "{\"Name\":\"audit-denied-graph\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(deniedWrite.Status == 401 || deniedWrite.Status == 403, "Audit denial-case write is denied (status " + deniedWrite.Status + ")");
+
+                // Audit records are written after the response is sent (PostRouting), so poll the shared store.
+                List<AuthorizationAuditEntry> graphCreateEntries = await PollAuthorizationAuditAsync(
+                    "GraphCreate",
+                    entries => entries.Any(e => "Permitted".Equals(e.AuthorizationResult, StringComparison.OrdinalIgnoreCase))
+                        && entries.Any(e => "Denied".Equals(e.AuthorizationResult, StringComparison.OrdinalIgnoreCase)),
+                    cancellationToken).ConfigureAwait(false);
+
+                AuthorizationAuditEntry? permitted = graphCreateEntries.FirstOrDefault(e =>
+                    "Permitted".Equals(e.AuthorizationResult, StringComparison.OrdinalIgnoreCase));
+                AssertTrue(permitted != null, "Permitted write action produced an audit entry");
+                AssertEqual("write", permitted!.RequiredScope, "Permitted graph-create audit records write scope");
+                AssertEqual(200, permitted.StatusCode, "Permitted graph-create audit records success status");
+
+                AuthorizationAuditEntry? denied = graphCreateEntries.FirstOrDefault(e =>
+                    "Denied".Equals(e.AuthorizationResult, StringComparison.OrdinalIgnoreCase));
+                AssertTrue(denied != null, "Denied write action produced an audit entry");
+                AssertTrue(denied!.StatusCode == 401 || denied.StatusCode == 403, "Denied graph-create audit records a denial status (status " + denied.StatusCode + ")");
+
+                // Reads must never be audited: no entry, permitted or denied, may carry read scope.
+                using (LiteGraphClient verifyClient = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = _McpEnvironment.DatabasePath })))
+                {
+                    verifyClient.InitializeRepository();
+                    AuthorizationAuditSearchResult all = await verifyClient.AuthorizationAudit.Search(
+                        new AuthorizationAuditSearchRequest { PageSize = 1000 }, cancellationToken).ConfigureAwait(false);
+                    AssertTrue(all.Objects.Count > 0, "Audit store contains records after privileged actions");
+                    AssertTrue(all.Objects.All(e => !"read".Equals(e.RequiredScope, StringComparison.OrdinalIgnoreCase)),
+                        "No read-scope request was audited (" + all.Objects.Count(e => "read".Equals(e.RequiredScope, StringComparison.OrdinalIgnoreCase)) + " read entries found)");
+                }
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task<List<AuthorizationAuditEntry>> PollAuthorizationAuditAsync(
+            string requestType,
+            Func<List<AuthorizationAuditEntry>, bool> predicate,
+            CancellationToken cancellationToken)
+        {
+            if (_McpEnvironment == null) throw new InvalidOperationException("MCP environment was not initialized.");
+
+            List<AuthorizationAuditEntry> latest = new List<AuthorizationAuditEntry>();
+            for (int attempt = 0; attempt < 40; attempt++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                using (LiteGraphClient verifyClient = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings { Filename = _McpEnvironment.DatabasePath })))
+                {
+                    verifyClient.InitializeRepository();
+                    AuthorizationAuditSearchResult result = await verifyClient.AuthorizationAudit.Search(
+                        new AuthorizationAuditSearchRequest { RequestType = requestType, PageSize = 1000 }, cancellationToken).ConfigureAwait(false);
+                    latest = result.Objects;
+                }
+
+                if (predicate(latest)) return latest;
+                await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+            }
+
+            return latest;
         }
 
         private static async Task TestSystemAdminFullAccess(CancellationToken cancellationToken)
