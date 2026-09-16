@@ -956,6 +956,7 @@ namespace LiteGraph.Client.Implementations
             GraphAlgorithmResult algorithmResult = await _Client.Algorithm.Run(tenantGuid, graphGuid, algorithmRequest, token).ConfigureAwait(false);
 
             GraphQueryResult result = new GraphQueryResult();
+            result.AlgorithmType = algorithmType.ToString();
             List<string> returnVariables = (ast.ReturnVariables != null && ast.ReturnVariables.Count > 0)
                 ? ast.ReturnVariables
                 : new List<string> { "guid", "score", "community" };

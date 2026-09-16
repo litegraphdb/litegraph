@@ -41,6 +41,11 @@ namespace LiteGraph
         public GraphQueryPlanSummary Plan { get; set; } = null;
 
         /// <summary>
+        /// Algorithm type name when the query is a graph algorithm CALL (for example "PageRank"); null otherwise.
+        /// </summary>
+        public string AlgorithmType { get; set; } = null;
+
+        /// <summary>
         /// Result rows keyed by return variable.
         /// </summary>
         public List<Dictionary<string, object>> Rows { get; set; } = new List<Dictionary<string, object>>();

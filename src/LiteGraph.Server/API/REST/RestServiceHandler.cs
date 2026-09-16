@@ -2337,6 +2337,11 @@
                 double durationMs = (DateTime.UtcNow - start).TotalMilliseconds;
                 if (result.ExecutionProfile != null) result.ExecutionProfile.AuthorizationTimeMs = authorizationStopwatch.Elapsed.TotalMilliseconds;
                 _Observability.RecordGraphQuery(result.Mutated, true, durationMs);
+                if (!String.IsNullOrEmpty(result.AlgorithmType))
+                {
+                    _Observability.RecordAlgorithm(result.AlgorithmType, true, durationMs);
+                    activity?.SetTag("litegraph.algorithm.type", result.AlgorithmType);
+                }
                 activity?.SetTag("litegraph.query.success", true);
                 activity?.SetTag("litegraph.query.mutated", result.Mutated);
                 activity?.SetTag("litegraph.query.row_count", result.RowCount);
