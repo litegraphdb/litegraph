@@ -7065,6 +7065,11 @@
             Query plan summary.
             </summary>
         </member>
+        <member name="P:LiteGraph.GraphQueryResult.AlgorithmType">
+            <summary>
+            Algorithm type name when the query is a graph algorithm CALL (for example "PageRank"); null otherwise.
+            </summary>
+        </member>
         <member name="P:LiteGraph.GraphQueryResult.Rows">
             <summary>
             Result rows keyed by return variable.

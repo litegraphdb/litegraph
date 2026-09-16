@@ -65,6 +65,16 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 
 </details>
 
+## New In v9.0
+
+v9.0 adds native graph algorithms across the whole product surface. Additive release — no storage migration required.
+
+- Eleven algorithms: degree, closeness, eigenvector, and betweenness centrality; PageRank; weakly and strongly connected components; label-propagation and Louvain community detection; clustering coefficient; and k-core — computed over a whole-graph in-memory adjacency with a configurable node/edge ceiling.
+- Optional write-back materializes per-node results into node data (DSL-queryable), an opt-in result cache, and a new `Algorithm` authorization resource type (compute/export require read; write-back/import require write).
+- Callable from the client, the REST API, the `algorithm/*` MCP tools, the native query language (`CALL litegraph.algo.*`), the dashboard, and the C#, JavaScript, and Python SDKs.
+- Graph projection export (node-link JSON, edge list, GraphML) and results import for round-tripping to external engines such as rustworkx/NetworkX for algorithms beyond native scope.
+- Node embedding generation via the tenant's embedding endpoint (stored as HNSW-indexable node vectors), Prometheus/OpenTelemetry instrumentation with a provisioned Grafana algorithms dashboard, and dual-storage (SQLite + PostgreSQL) test coverage.
+
 ## New In v8.x
 
 v8 unified accounts and observability (v8.0, breaking) and added LLM chat over graph data (v8.1).
