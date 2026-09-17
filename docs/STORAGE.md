@@ -283,6 +283,29 @@ When migrating storage providers, restoring backups, or upgrading from earlier L
 
 The `Admin.Backup` path snapshots the whole database as a single binary artifact, which is the right tool for a full-instance restore but ties the copy to a provider and a point in time across every graph at once. When you need to move or archive one graph on its own, `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl` writes that graph as newline-delimited JSON that any process can read, diff, or store in version control. Because the format carries the graph, its nodes, and its edges as plain records rather than SQLite or PostgreSQL internals, a JSONL file exported from one provider imports cleanly into the other, and a restore into an empty database with the `preserve` GUID strategy reproduces the original GUIDs. Treat it as the portable complement to the binary backup: reach for `Admin.Backup` for instance-level disaster recovery, and for JSONL when the unit of work is a single graph. See the [REST API](REST_API.md) for the export and import contract.
 
+## Backup, Restore, and Disaster Recovery Runbook
+
+`Admin.Backup` (and `POST /v1.0/backups`) snapshots the database with SQLite `VACUUM INTO`, which copies **only the main database file** — tenants, users, credentials, graphs, nodes, edges, labels, tags, and the raw stored vectors. It does **not** copy file-backed HNSW vector index artifacts (`Graph.VectorIndexFile` and its `.layers` companion for `HnswSqlite`, or the persisted snapshot for `HnswRam`), which live outside the database under `indexes/`. The same is true of a provider migration that copies only the database.
+
+Because the index is a **derived artifact**, a restore or migration that brings back the database but not a matching, current index leaves indexed search in a degraded state that does not announce itself:
+
+- **Missing index after restore** — vector search falls back to a brute-force linear scan. Results are still correct, but the sub-100ms indexed search you provisioned for becomes a full scan over every vector, which can silently blow past latency budgets under load.
+- **Stale index** (an index file captured at an earlier point than the database) — search answers against the older vector set and can silently omit vectors added since the index was captured, with no error.
+
+Treat the vector index rebuild as a **required, timed step** of any restore or migration. Recommended sequence:
+
+1. Restore the database backup (or complete the provider migration) and start LiteGraph.
+2. For every graph whose `VectorIndexType` is not `None` (i.e., `HnswRam` or `HnswSqlite`), rebuild the index from the persisted vectors:
+   - REST: `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild` (also available at `/v2.0/...`)
+   - C# SDK: `client.Graph.RebuildVectorIndex(tenantGuid, graphGuid)` or `client.VectorIndex.RebuildVectorIndex(tenantGuid, graphGuid)`
+   - MCP: `graph/rebuildvectorindex`
+   Enumerate the graphs to rebuild by listing each tenant's graphs and selecting those with `VectorIndexType != None`.
+3. Only rely on indexed search results after the rebuild completes for every indexed graph.
+
+**Budget the rebuild in your RTO.** Rebuild cost scales with the number of stored vectors (and their dimensionality), so measure it against production-representative data rather than assuming it is instant. Time a rebuild of your largest indexed graph — wrap the `RebuildVectorIndex` call in a stopwatch, or measure the wall-clock of the REST call — and record that duration in the DR runbook so an operator can plan the recovery window. Until the rebuild finishes, indexed search is degraded as described above, so the rebuild time is part of the real recovery-time objective, not an afterthought.
+
+If you must avoid a rebuild, back up the `indexes/` directory together with the database and restore both atomically so the index stays consistent with the vectors — but rebuilding from the database is the safer default, since it cannot produce a stale index. See also [File-Backed Vector Index Artifacts](#file-backed-vector-index-artifacts) for the on-disk format and version-compatibility rules.
+
 ## Current Limits
 
 - SQLite and PostgreSQL are implemented providers.

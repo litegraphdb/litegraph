@@ -858,6 +858,8 @@ Introduced in v8.0. Settings APIs require system-administrator authentication. S
 
 Backup APIs require administrator bearer token authentication. `GET /v1.0/backups` returns the [enumeration envelope](#enumeration-and-pagination) of backup files and accepts the shared pagination query parameters.
 
+A backup snapshots the main database only (via SQLite `VACUUM INTO`) — it includes the raw stored vectors but **not** file-backed HNSW vector index artifacts, which are derived and live outside the database. After restoring a backup, rebuild each indexed graph's vector index (`POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild`) before relying on indexed search; until then indexed search falls back to a slower brute-force scan. See the [Backup, Restore, and Disaster Recovery Runbook](STORAGE.md#backup-restore-and-disaster-recovery-runbook).
+
 | API                | Method | URL                        |
 |--------------------|--------|----------------------------|
 | Create             | POST   | /v1.0/backups              |
