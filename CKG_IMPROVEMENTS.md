@@ -25,6 +25,7 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 **Fixed**
 - **#2 — No graph algorithms (was the top gap, score 23).** Closed. v9.0 adds eleven native algorithms — degree/closeness/eigenvector/betweenness centrality, PageRank, weakly/strongly connected components, label-propagation and Louvain community detection, clustering coefficient, and k-core — with optional write-back into node data (DSL-queryable), an opt-in result cache, an `Algorithm` authorization resource type, and full REST/MCP/DSL (`CALL litegraph.algo.*`)/dashboard/SDK coverage. Crucially, CKG.md's own recommended mitigation — *project the subgraph to `rustworkx` and write results back* — is now a **built-in feature**: streaming projection export (node-link JSON, edge list, GraphML) plus a results-import path, so algorithms beyond native scope (or graphs past the in-memory ceiling) round-trip through external engines without custom glue. This was "the single strongest argument against LiteGraph as a complete CKG solution"; it no longer applies.
 - **#5 — README/site version drift.** Closed. README, Docker image tags, and the changelog all read `v9.0.0`.
+- **#6 — Scan-bounded `ORDER BY`/aggregates (score 20).** Closed. Aggregates (`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`) and `ORDER BY` previously operated only over the first `MaxResults` rows in storage order, so `COUNT(*)` under-counted and `ORDER BY … LIMIT k` could miss the true global top-k — the exact "global reasoning" correctness trap CKG.md flagged. They now evaluate over the **whole matching set**: `COUNT(*)` returns the real count and `ORDER BY … LIMIT k` returns the genuine global top-k. A new `MaxScanRows` request bound (default 1,000,000, 0 = unlimited) caps the matching set a global op examines and **rejects with a 400 rather than silently truncating** into a wrong result; ordinary reads stay page-bounded by `MaxResults`/`LIMIT`. Validated by a dual-storage (SQLite + PostgreSQL) Touchstone case covering whole-set aggregates, global top-N/bottom-N ordering, page-bounded ordinary reads, and ceiling rejection (positive and negative).
 - **#7 — Keyword-match authz fallback (score 20).** Closed. Native-query scope (read vs. write) is now classified authoritatively from the parsed AST; the substring keyword fallback on `CREATE`/`MERGE`/`SET`/`DELETE`/`REMOVE` is gone. A query that fails to parse during scope classification is rejected with a `400` **before authorization** rather than guessed. Because the execution engine re-parses with the same parser, failing closed loses no valid query while removing keyword matching as a mutation-boundary decision. Validated by a classifier unit test (unparseable queries throw, not keyword-guess) and an API-level Touchstone case (read `200`, denied mutation `401`, unparseable `400`).
 - **#3 — Audit records denials only (score 23).** Closed. The `authorizationaudit` store now records **successful privileged actions** — any REST request that required `write` or `admin` scope and was authorized is written in PostRouting with `AuthorizationResult=Permitted` and the request's actual response status code, alongside the existing denial records. Read-scope requests are never audited, so the store answers "who changed what, when" without being flooded by routine reads. A new `AuthorizationAudit` settings block (`Enable`, `AuditSuccessfulActions`) lets operators disable auditing or revert to denials-only, and a dual-storage (SQLite + PostgreSQL) Touchstone case pins the positive (permitted write audited), negative (read not audited), and denial behaviors. This directly satisfies CKG.md §5 Option A's "extend audit to successful privileged actions" prerequisite.
 
@@ -35,7 +36,7 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 - Enterprise/governance: **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**.
 
 > **Note:** An earlier draft included "no encryption at rest." It has been removed as not a product gap: at-rest encryption is a deployment/infrastructure concern the operator already controls — an encrypted filesystem/volume (LUKS, dm-crypt, BitLocker, cloud-provider disk encryption) or PostgreSQL's own transparent data encryption covers the SQLite file and the Postgres data directory with no application involvement. Building a second, in-product encryption layer on top would duplicate a solved OS/storage capability. LiteGraph ships as a container/binary over storage the operator provisions, so this is theirs to enable, not the product's to reimplement.
-- Reasoning correctness/shape: **#6 scan-bounded `ORDER BY`/aggregates**, **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
+- Reasoning correctness/shape: **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
 - Data lifecycle/ops: **#1 no published scale evidence**, **#10 no provenance/temporality**, **#9 HNSW rebuild-after-restore footgun**, **#16 HA delegated to Postgres**, **#18 Python/JS are REST-only**.
 
 **New nuances v9.0 introduced (not new gaps, but they change the weighting):**
@@ -57,7 +58,7 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 | 2 | No graph algorithms (§3.2) | No centrality, community detection, PageRank, or embeddings — the "cognition" layer is absent | 10 | 9 | 4 | 23 | ✅ **Fixed (v9.0)** |
 | 3 | Audit records denials only (§3.9) | Successful privileged actions leave no audit trail — fails the "who changed what, when" governance question | 8 | 8 | 7 | 23 | ✅ **Fixed (v9.0)** |
 | 5 | README/site version drift (intro) | README on `main` documents v7.0.0 while site documents v8.1 — misleads external evaluators | 8 | 5 | 9 | 22 | ✅ **Fixed (v9.0)** |
-| 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | **Open** (algorithms now give a whole-graph path for some global stats) |
+| 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | ✅ **Fixed (v9.0)** |
 | 7 | Keyword-match authz fallback (§3.9) | Query authorization falls back to keyword matching (`CREATE`/`SET`/…) when parsing fails — weak mutation boundary | 7 | 6 | 7 | 20 | ✅ **Fixed (v9.0)** |
 | 8 | No SSO/OIDC/SAML (§3.9) | No enterprise identity federation (out of scope today) | 8 | 7 | 5 | 20 | **Open** |
 | 9 | HNSW rebuild-after-restore footgun (§3.11) | Vector index files are derived artifacts needing rebuild after restore/migration; not in a DR runbook | 7 | 5 | 8 | 20 | **Open** (more consequential — embedding generation adds vectors) |
@@ -125,7 +126,7 @@ From the introductory **Documentation note:**
 
 ---
 
-### 6. Scan-bounded `ORDER BY`/aggregates (§3.3) — Score 20
+### 6. Scan-bounded `ORDER BY`/aggregates (§3.3) — Score 20 — ✅ Fixed (v9.0)
 
 From the traversal/query table, LiteGraph rows:
 
@@ -133,6 +134,8 @@ From the traversal/query table, LiteGraph rows:
 > `ORDER BY` semantics — **Scans up to `MaxResults`, then sorts** — not a global ordering
 
 > **Scan-bounded `ORDER BY` and aggregates.** `RETURN COUNT(*)` over a large graph counts up to the limit, not the graph. For a CKG that reasons over global structure, this is a semantic trap — correct results require understanding the bound.
+
+**Resolution (v9.0).** Aggregates and `ORDER BY` are now global. `COUNT`/`SUM`/`AVG`/`MIN`/`MAX` are computed over the entire matching set (the aggregate match collectors no longer stop at the return page), so `COUNT(*)` returns the true count; `ORDER BY … LIMIT k` scans the whole matching set, sorts it, and returns the genuine global top-k rather than the top-k of the first page in storage order. A new `MaxScanRows` query-request bound (default 1,000,000, 0 = unlimited) caps the matching set a global operation will examine and — critically — **rejects an overflow with a 400 rather than silently truncating** it into a wrong answer, so the result is either correct or an explicit error, never quietly partial. The mixed-aggregate-with-graph-variable restriction is unchanged (a separate design limitation, not this correctness trap). Ordinary (non-global) reads are unaffected and remain bounded by `MaxResults`/`LIMIT`. See [docs/DSL.md](docs/DSL.md#ordering-and-limit). Validated by the dual-storage `Query.GlobalScanBounded.*` Touchstone case.
 
 ---
 
