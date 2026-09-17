@@ -64,6 +64,27 @@ namespace LiteGraph
         }
 
         /// <summary>
+        /// Maximum number of matching rows a global operation (aggregate or ORDER BY) will examine.
+        /// Aggregates (COUNT/SUM/AVG/MIN/MAX) and ORDER BY are evaluated over the whole matching set rather than
+        /// the returned page, so this bounds the work such a query performs.  When the matching set exceeds this
+        /// value the query is rejected rather than silently truncated (which would make the aggregate or top-N
+        /// result wrong).  Minimum 0 (0 means unlimited), default 1000000.  Ordinary (non-global) queries are
+        /// unaffected — they remain bounded by <see cref="MaxResults"/> and any LIMIT.
+        /// </summary>
+        public int MaxScanRows
+        {
+            get
+            {
+                return _MaxScanRows;
+            }
+            set
+            {
+                if (value < 0) throw new ArgumentOutOfRangeException(nameof(MaxScanRows));
+                _MaxScanRows = value;
+            }
+        }
+
+        /// <summary>
         /// Include parse, plan, execute, and total timing details in the response.
         /// </summary>
         public bool IncludeProfile { get; set; } = false;
@@ -75,6 +96,7 @@ namespace LiteGraph
         private string _Query = null;
         private int _MaxResults = 100;
         private int _TimeoutSeconds = 30;
+        private int _MaxScanRows = 1000000;
 
         #endregion
     }

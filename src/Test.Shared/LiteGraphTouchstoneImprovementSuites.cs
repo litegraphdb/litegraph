@@ -93,6 +93,18 @@
                         skipReason: ProviderSuiteSkipReason("PostgreSQL parity", PostgresqlTestConnectionStringEnvironmentVariable)),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Query.GlobalScanBounded.Sqlite",
+                        displayName: "SQLite aggregates and ORDER BY evaluate over the whole matching set, bounded by the scan ceiling",
+                        executeAsync: TestQueryGlobalScanBoundedSqlite),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Query.GlobalScanBounded.Postgresql",
+                        displayName: "PostgreSQL aggregates and ORDER BY evaluate over the whole matching set, bounded by the scan ceiling",
+                        executeAsync: ct => TestQueryGlobalScanBoundedPostgresql(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL global scan-bounded query", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Transactions.ProviderMatrix.PostgresqlConcurrency",
                         displayName: "PostgreSQL graph transaction concurrency matrix passes",
                         executeAsync: ct => TestPostgresqlTransactionConcurrencyMatrix(PostgresqlTestConnectionStringEnvironmentVariable, ct),
@@ -9561,6 +9573,137 @@
             }
 
             DeleteFileIfExists(filename);
+        }
+
+        private static async Task TestQueryGlobalScanBoundedSqlite(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-query-scan-bounded.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+                    await RunQueryGlobalScanBounded(client, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestQueryGlobalScanBoundedPostgresql(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_scan_bounded_",
+                (client, ct) => RunQueryGlobalScanBounded(client, "PostgreSQL", ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task RunQueryGlobalScanBounded(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " Scan Tenant" }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Scan Graph" }, cancellationToken).ConfigureAwait(false);
+
+            // More rows than the default MaxResults page (100), so a scan capped at the page would be visibly wrong.
+            const int total = 250;
+            long expectedSum = ((long)(total - 1) * total) / 2; // sum of 0..249 = 31125
+            List<Node> nodes = new List<Node>();
+            for (int i = 0; i < total; i++)
+            {
+                nodes.Add(new Node
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = "n" + i.ToString("D4"), // zero-padded so lexical name order matches numeric order
+                    Labels = new List<string> { "Item" },
+                    Data = new Dictionary<string, object> { { "seq", i } }
+                });
+            }
+
+            await client.Node.CreateMany(tenant.GUID, graph.GUID, nodes, cancellationToken).ConfigureAwait(false);
+
+            // Positive: COUNT(*) reflects the whole matching set, not the MaxResults page.
+            GraphQueryResult count = await client.Query.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN COUNT(*) AS total" },
+                cancellationToken).ConfigureAwait(false);
+            AssertEqual(total, Convert.ToInt32(count.Rows[0]["total"]), providerName + " COUNT(*) counts the whole matching set");
+
+            // Positive: SUM/AVG/MIN/MAX are computed over the whole set, not a truncated window.
+            GraphQueryResult stats = await client.Query.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN SUM(n.data.seq) AS s, AVG(n.data.seq) AS a, MIN(n.data.seq) AS mn, MAX(n.data.seq) AS mx" },
+                cancellationToken).ConfigureAwait(false);
+            AssertEqual((int)expectedSum, Convert.ToInt32(stats.Rows[0]["s"]), providerName + " SUM spans the whole set");
+            AssertEqual(0, Convert.ToInt32(stats.Rows[0]["mn"]), providerName + " MIN spans the whole set");
+            AssertEqual(total - 1, Convert.ToInt32(stats.Rows[0]["mx"]), providerName + " MAX spans the whole set");
+            AssertEqual(124, (int)Math.Floor(Convert.ToDouble(stats.Rows[0]["a"])), providerName + " AVG spans the whole set");
+
+            // Positive: ORDER BY returns the GLOBAL top-N, not the top-N of the first page scanned.
+            GraphQueryResult topDesc = await client.Query.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN n ORDER BY n.name DESC LIMIT 5" },
+                cancellationToken).ConfigureAwait(false);
+            AssertEqual("n0249,n0248,n0247,n0246,n0245", String.Join(",", topDesc.Nodes.Select(n => n.Name)), providerName + " ORDER BY DESC returns the global top-5");
+
+            GraphQueryResult topAsc = await client.Query.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN n ORDER BY n.name ASC LIMIT 5" },
+                cancellationToken).ConfigureAwait(false);
+            AssertEqual("n0000,n0001,n0002,n0003,n0004", String.Join(",", topAsc.Nodes.Select(n => n.Name)), providerName + " ORDER BY ASC returns the global bottom-5");
+
+            // Negative (ordinary queries unaffected): a plain read stays bounded by MaxResults, not the whole set.
+            GraphQueryResult page = await client.Query.Execute(
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN n", MaxResults = 100 },
+                cancellationToken).ConfigureAwait(false);
+            AssertEqual(100, page.RowCount, providerName + " ordinary read stays bounded by MaxResults");
+
+            // Negative (fail closed): a global operation exceeding the scan ceiling is rejected, not silently truncated.
+            await AssertQueryRejected(
+                client,
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN COUNT(*) AS total", MaxScanRows = 10 },
+                providerName + " aggregate beyond the scan ceiling is rejected",
+                cancellationToken).ConfigureAwait(false);
+
+            await AssertQueryRejected(
+                client,
+                tenant.GUID,
+                graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (n:Item) RETURN n ORDER BY n.name DESC LIMIT 5", MaxScanRows = 10 },
+                providerName + " ordered query beyond the scan ceiling is rejected",
+                cancellationToken).ConfigureAwait(false);
+
+            await client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task AssertQueryRejected(LiteGraphClient client, Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, string message, CancellationToken cancellationToken)
+        {
+            bool threw = false;
+            try
+            {
+                await client.Query.Execute(tenantGuid, graphGuid, request, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ArgumentException)
+            {
+                threw = true;
+            }
+
+            AssertTrue(threw, message);
         }
 
         private static async Task TestNativeQueryDataFilters(CancellationToken cancellationToken)

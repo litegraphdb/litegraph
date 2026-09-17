@@ -597,12 +597,15 @@ namespace LiteGraph.Client.Implementations
 
             if (HasAggregateReturn(ast))
             {
+                // Aggregates are global: aggregate over every matched path, bounded only by the scan ceiling.
+                int aggregateCeiling = ResolveScanCeiling(request);
                 List<Dictionary<string, object>> aggregateRows = new List<Dictionary<string, object>>();
                 foreach (PathState state in matchedStates)
                 {
                     token.ThrowIfCancellationRequested();
                     aggregateRows.Add(new Dictionary<string, object>(state.Values, StringComparer.OrdinalIgnoreCase));
-                    if (aggregateRows.Count >= limit) break;
+                    if (aggregateCeiling < int.MaxValue && aggregateRows.Count > aggregateCeiling)
+                        throw new ArgumentException(ScanCeilingExceededMessage("Aggregate query", aggregateCeiling));
                 }
 
                 return await BuildAggregateResult(tenantGuid, graphGuid, ast, aggregateRows, token).ConfigureAwait(false);
@@ -1106,7 +1109,9 @@ namespace LiteGraph.Client.Implementations
 
         private async Task<GraphQueryResult> ExecuteAggregateMatchNode(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)
         {
-            int limit = ResolveLimit(request, ast);
+            // Aggregates are global: COUNT/SUM/AVG/MIN/MAX must see the whole matching set, not a page of it.
+            // Scan every match, bounded only by the configured scan ceiling (rejecting rather than truncating).
+            int ceiling = ResolveScanCeiling(request);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             IAsyncEnumerable<Node> nodes = !String.IsNullOrEmpty(ast.NodeLabel)
                 ? _Repo.Node.ReadMany(tenantGuid, graphGuid, labels: LabelList(ast.NodeLabel), token: token)
@@ -1120,7 +1125,8 @@ namespace LiteGraph.Client.Implementations
                 {
                     { ast.NodeVariable, node }
                 });
-                if (rows.Count >= limit) break;
+                if (ceiling < int.MaxValue && rows.Count > ceiling)
+                    throw new ArgumentException(ScanCeilingExceededMessage("Aggregate query", ceiling));
             }
 
             return await BuildAggregateResult(tenantGuid, graphGuid, ast, rows, token).ConfigureAwait(false);
@@ -1128,7 +1134,8 @@ namespace LiteGraph.Client.Implementations
 
         private async Task<GraphQueryResult> ExecuteAggregateMatchEdge(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)
         {
-            int limit = ResolveLimit(request, ast);
+            // Aggregates are global: scan every matching edge, bounded only by the configured scan ceiling.
+            int ceiling = ResolveScanCeiling(request);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             IAsyncEnumerable<Edge> edges = !String.IsNullOrEmpty(ast.EdgeLabel)
                 ? _Repo.Edge.ReadMany(tenantGuid, graphGuid, labels: LabelList(ast.EdgeLabel), token: token)
@@ -1154,7 +1161,8 @@ namespace LiteGraph.Client.Implementations
                 }
 
                 rows.Add(row);
-                if (rows.Count >= limit) break;
+                if (ceiling < int.MaxValue && rows.Count > ceiling)
+                    throw new ArgumentException(ScanCeilingExceededMessage("Aggregate query", ceiling));
             }
 
             return await BuildAggregateResult(tenantGuid, graphGuid, ast, rows, token).ConfigureAwait(false);
@@ -2410,10 +2418,34 @@ namespace LiteGraph.Client.Implementations
 
         private static int ResolveLimit(GraphQueryRequest request, GraphQueryAst ast)
         {
-            if (HasOrder(ast)) return request.MaxResults;
+            // ORDER BY must consider the whole matching set to produce a correct global top-N, not just the
+            // first page in storage order. Collection therefore scans up to the configured scan ceiling; the
+            // sort and the real return limit are applied afterward in ApplyOrderAndLimit.
+            if (HasOrder(ast)) return ResolveOrderedScanLimit(request);
             int limit = request.MaxResults;
             if (ast.Limit != null) limit = Math.Min(limit, ast.Limit.Value);
             return limit;
+        }
+
+        private static int ResolveScanCeiling(GraphQueryRequest request)
+        {
+            // 0 means unlimited. The scan ceiling bounds the number of matching rows a global operation
+            // (aggregate or ORDER BY) will examine before it is rejected rather than silently truncated.
+            return request.MaxScanRows <= 0 ? int.MaxValue : request.MaxScanRows;
+        }
+
+        private static int ResolveOrderedScanLimit(GraphQueryRequest request)
+        {
+            // Collect one row beyond the ceiling so ApplyOrderAndLimit can distinguish "exactly at the ceiling"
+            // from "over the ceiling" and reject the latter instead of returning a truncated (wrong) top-N.
+            int ceiling = ResolveScanCeiling(request);
+            return ceiling >= int.MaxValue ? int.MaxValue : ceiling + 1;
+        }
+
+        private static string ScanCeilingExceededMessage(string operation, int ceiling)
+        {
+            return operation + " matched more than the configured scan ceiling of " + ceiling
+                + " rows. Narrow the WHERE filter, or raise MaxScanRows on the query request (0 disables the ceiling).";
         }
 
         internal static GraphQueryResult ApplyOrderAndLimit(GraphQueryResult result, GraphQueryAst ast, GraphQueryRequest request)
@@ -2422,6 +2454,12 @@ namespace LiteGraph.Client.Implementations
 
             if (HasOrder(ast))
             {
+                // The collector scanned the full matching set (bounded by the scan ceiling). If it overflowed
+                // the ceiling, reject rather than sort-and-truncate a partial set into a wrong global top-N.
+                int ceiling = ResolveScanCeiling(request);
+                if (ceiling < int.MaxValue && result.Rows.Count > ceiling)
+                    throw new ArgumentException(ScanCeilingExceededMessage("Ordered query", ceiling));
+
                 List<Dictionary<string, object>> ordered = result.Rows
                     .OrderBy(row => ResolveOrderValue(row, ast), OrderValueComparer.Instance)
                     .ToList();

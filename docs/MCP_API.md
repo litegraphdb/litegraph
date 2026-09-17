@@ -103,6 +103,8 @@ Graph lifecycle, search, statistics, export and import, subgraph extraction, and
 | `graph/enablevectorindexing`, `graph/rebuildvectorindex`, `graph/deletevectorindex`, `graph/getvectorindexconfig`, `graph/getvectorindexstatistics` | HNSW vector index management |
 | `graph/query`, `graph/transaction` | Native graph query and graph-scoped transaction |
 
+`graph/query` takes `tenantGuid`, `graphGuid`, and either a full `request` object/string or the convenience fields `query`, `parameters`, `maxResults`, `timeoutSeconds`, and `maxScanRows`. It forwards to the REST query endpoint, so the same authentication and credential-scope checks apply. `maxResults` bounds the returned page; `maxScanRows` (default `1000000`, `0` disables it) bounds *global* operations — aggregates and `ORDER BY` — which are evaluated over the whole matching set, and a global query that exceeds it is rejected rather than silently truncated. See [DSL.md](DSL.md#ordering-and-limit).
+
 ### node/*
 
 Node CRUD plus traversal and connectivity helpers.

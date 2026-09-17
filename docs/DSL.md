@@ -23,13 +23,16 @@ Every request uses this shape:
   },
   "MaxResults": 100,
   "TimeoutSeconds": 30,
+  "MaxScanRows": 1000000,
   "IncludeProfile": false
 }
 ```
 
 Inline literals are allowed for simple values, but parameters are preferred for user input, large arrays, objects, vectors, and values that should preserve JSON types.
 
-The MCP `graph/query` tool accepts `tenantGuid`, `graphGuid`, and either a full `request` object/string with the shape above or the convenience fields `query`, `parameters`, `maxResults`, and `timeoutSeconds`. MCP execution is forwarded to the REST query endpoint so the same authentication, graph scoping, and credential-scope checks apply.
+`MaxResults` bounds the number of rows a query returns (the result page). `MaxScanRows` (default `1000000`, `0` disables it) bounds *global* operations — aggregates (`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`) and `ORDER BY` — which must examine the whole matching set rather than a single page. When a global operation would examine more than `MaxScanRows` matching rows the query is rejected with a `400` rather than silently truncated (which would make the aggregate or top-N result wrong). Ordinary (non-global) reads are unaffected and remain bounded by `MaxResults` and any `LIMIT`.
+
+The MCP `graph/query` tool accepts `tenantGuid`, `graphGuid`, and either a full `request` object/string with the shape above or the convenience fields `query`, `parameters`, `maxResults`, `timeoutSeconds`, and `maxScanRows`. MCP execution is forwarded to the REST query endpoint so the same authentication, graph scoping, and credential-scope checks apply.
 
 ## Scope Rules
 
@@ -351,9 +354,13 @@ Aggregate field paths support the same object fields used by `ORDER BY` plus
 values. `COUNT(field)` counts non-null field values. `MIN` and `MAX` use the
 same ordering rules as `ORDER BY`.
 
-Aggregate queries scan up to `LIMIT` or `MaxResults` and return one scalar row.
-Use an explicit `LIMIT` or raise `MaxResults` when the aggregate needs to cover
-a larger candidate set.
+Aggregates are **global**: `COUNT`/`SUM`/`AVG`/`MIN`/`MAX` are computed over the
+entire matching set (not the returned page), and the query returns one scalar
+row. `MaxResults` and `LIMIT` do not truncate the aggregate. The matching set is
+bounded by `MaxScanRows` (default `1000000`, `0` disables it); a query whose
+matching set exceeds that ceiling is rejected with a `400` rather than returning
+a wrong (partial) aggregate. Narrow the `WHERE` filter or raise `MaxScanRows`
+for larger candidate sets.
 
 ## Result Metadata
 
@@ -414,7 +421,7 @@ Supported object sort fields:
 - vector: `guid`, `model`, `content`, `dimensionality`
 - vector search result: `score`, `distance`, `innerProduct`
 
-When `ORDER BY` is present, LiteGraph scans up to `MaxResults`, sorts those rows, and then applies `LIMIT`.
+`ORDER BY` is **global**: LiteGraph examines the whole matching set, sorts it, and then returns the top rows up to `LIMIT` (or `MaxResults` when no `LIMIT` is given). The returned rows are therefore the true global top-N by the sort key, not the top-N of the first page scanned. The matching set is bounded by `MaxScanRows` (default `1000000`, `0` disables it); an ordered query whose matching set exceeds that ceiling is rejected with a `400` rather than sorting a truncated (wrong) window. Narrow the `WHERE` filter or raise `MaxScanRows` for larger candidate sets.
 
 ## Create Nodes
 

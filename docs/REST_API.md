@@ -667,9 +667,12 @@ Native graph queries execute within one tenant and one graph. See [DSL.md](DSL.m
     },
     "MaxResults": 100,
     "TimeoutSeconds": 30,
+    "MaxScanRows": 1000000,
     "IncludeProfile": false
 }
 ```
+
+`MaxResults` bounds the returned result page. `MaxScanRows` (default `1000000`, `0` disables it) bounds *global* operations — aggregates (`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`) and `ORDER BY` — which are evaluated over the whole matching set rather than a single page. A global query whose matching set exceeds `MaxScanRows` returns `400 Bad Request` rather than a silently truncated (wrong) aggregate or top-N. Ordinary reads are unaffected and remain bounded by `MaxResults` and any `LIMIT`. See [DSL.md](DSL.md#ordering-and-limit).
 
 Read-only queries require read permission. Mutation queries require write permission.
 

@@ -14980,7 +14980,7 @@
 										"type": "text"
 									}
 								],
-								"description": "Executes a LiteGraph-native, Cypher/GQL-inspired graph query against the specified graph (see docs/DSL.md for the full language reference). The body contains the Query text, an optional Parameters dictionary for user input and large values, MaxResults (1-10000, default 100) applied when the query omits LIMIT, TimeoutSeconds (1-3600, default 30), and IncludeProfile to return parse, plan, and execution timing. Read-only queries require read scope while mutating queries require write scope; unauthorized queries return 401.",
+								"description": "Executes a LiteGraph-native, Cypher/GQL-inspired graph query against the specified graph (see docs/DSL.md for the full language reference). The body contains the Query text, an optional Parameters dictionary for user input and large values, MaxResults (1-10000, default 100) applied when the query omits LIMIT, TimeoutSeconds (1-3600, default 30), MaxScanRows (default 1000000, 0 disables), and IncludeProfile to return parse, plan, and execution timing. MaxResults bounds the returned page; MaxScanRows bounds global operations (aggregates COUNT/SUM/AVG/MIN/MAX and ORDER BY), which are evaluated over the whole matching set rather than a page — a global query whose matching set exceeds MaxScanRows returns 400 rather than a silently truncated (wrong) result. Read-only queries require read scope while mutating queries require write scope; unauthorized queries return 401.",
 								"url": {
 									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/tenants/{{tenant}}/graphs/{{graph}}/query",
 									"protocol": "{{protocol}}",
@@ -14999,7 +14999,7 @@
 								},
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"Query\": \"MATCH (n:Person) WHERE n.data.age >= $age RETURN n LIMIT 10\",\n  \"Parameters\": {\n    \"age\": 21\n  },\n  \"MaxResults\": 100,\n  \"TimeoutSeconds\": 30,\n  \"IncludeProfile\": false\n}",
+									"raw": "{\n  \"Query\": \"MATCH (n:Person) WHERE n.data.age >= $age RETURN n LIMIT 10\",\n  \"Parameters\": {\n    \"age\": 21\n  },\n  \"MaxResults\": 100,\n  \"TimeoutSeconds\": 30,\n  \"MaxScanRows\": 1000000,\n  \"IncludeProfile\": false\n}",
 									"options": {
 										"raw": {
 											"language": "json"

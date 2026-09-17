@@ -6983,6 +6983,16 @@
             Query timeout in seconds.
             </summary>
         </member>
+        <member name="P:LiteGraph.GraphQueryRequest.MaxScanRows">
+            <summary>
+            Maximum number of matching rows a global operation (aggregate or ORDER BY) will examine.
+            Aggregates (COUNT/SUM/AVG/MIN/MAX) and ORDER BY are evaluated over the whole matching set rather than
+            the returned page, so this bounds the work such a query performs.  When the matching set exceeds this
+            value the query is rejected rather than silently truncated (which would make the aggregate or top-N
+            result wrong).  Minimum 0 (0 means unlimited), default 1000000.  Ordinary (non-global) queries are
+            unaffected — they remain bounded by <see cref="P:LiteGraph.GraphQueryRequest.MaxResults"/> and any LIMIT.
+            </summary>
+        </member>
         <member name="P:LiteGraph.GraphQueryRequest.IncludeProfile">
             <summary>
             Include parse, plan, execute, and total timing details in the response.
