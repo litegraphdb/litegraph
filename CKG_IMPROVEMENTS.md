@@ -14,6 +14,8 @@ The scores are prioritization judgment calls and are **not** drawn from `CKG.md`
 
 > **Note:** An earlier draft included a "empty-scope fail-open" item (empty `Scopes`/`GraphGUIDs` meaning unrestricted, not restricted). It has been removed as not a gap: it is a deliberate, documented permissive default on the *graph* (soft) partition, sitting behind the *tenant* boundary, which fails closed (a non-admin request to another tenant is stopped before scope evaluation). Per-domain isolation is achieved with a tenant per domain; graph-level restriction remains available as opt-in for anyone who wants it. Flipping the default would break the legitimate tenant-as-boundary deployments, which is the signal that this is a design choice rather than a defect.
 
+> **Note:** An earlier draft included a "SQLite→Postgres migration offline only" item. It has been removed as not a gap: the v9.0 graph export/projection endpoint is a streaming, online read (no write-stop required), and its companion import path writes data into the destination. Graphs can therefore be moved between backends while the source stays live, so "migration requires stopping writes" no longer holds as a categorical limitation.
+
 ---
 
 ## v9.0.0 Re-assessment (2026-09-16)
@@ -31,7 +33,7 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 **Still open — and now the top of the list (unchanged by v9.0):**
 - Enterprise/governance: **#4 no encryption at rest**, **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**, **#7 keyword-match authz fallback**.
 - Reasoning correctness/shape: **#6 scan-bounded `ORDER BY`/aggregates**, **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
-- Data lifecycle/ops: **#1 no published scale evidence**, **#10 no provenance/temporality**, **#9 HNSW rebuild-after-restore footgun**, **#16 HA delegated to Postgres**, **#19 offline migration**, **#18 Python/JS are REST-only**.
+- Data lifecycle/ops: **#1 no published scale evidence**, **#10 no provenance/temporality**, **#9 HNSW rebuild-after-restore footgun**, **#16 HA delegated to Postgres**, **#18 Python/JS are REST-only**.
 
 **New nuances v9.0 introduced (not new gaps, but they change the weighting):**
 - Algorithms compute over a **whole-graph in-memory adjacency** with a configurable node/edge ceiling. That raises the stakes on **#1 (scale evidence)** — it should now quantify both storage scale *and* the algorithm compute ceiling — while the projection-export path is the honest escape hatch above the ceiling.
@@ -66,7 +68,6 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 | 16 | HA delegated to PostgreSQL (§3.11) | No native failover orchestration; relies on Postgres HA + process supervisor | 5 | 6 | 5 | 16 | **Open** |
 | 17 | Query language doesn't generate embeddings (§3.4) | Vector search takes *supplied* embeddings only; generation lives at chat/RAG/app layer | 5 | 4 | 6 | 15 | 🟡 **Improved (v9.0)** — server-side node-embedding generation added |
 | 18 | No embedded access for Python/JS (§3.8) | Python/JS SDKs are REST clients; embedded in-process path is .NET-only | 6 | 5 | 3 | 14 | **Open** (v9.0 added algorithm methods, still REST clients) |
-| 19 | SQLite→Postgres migration offline only (§3.11) | Migration requires stopping writes ("offline only") | 5 | 4 | 5 | 14 | **Open** |
 
 ---
 
@@ -247,12 +248,6 @@ From the latency table, LiteGraph row:
 > **This matters a great deal for the CKG decision.** If the CKG's consumers are Python — which the NetworkX proposal strongly implies — LiteGraph's embedded advantage does not accrue to them. Python callers pay an HTTP round-trip, in the same order of magnitude as Neo4j's Bolt hop. The embedded-vs-server distinction only pays off if the consuming code is .NET.
 
 The summary matrix rates Python-native access as **Weak (REST SDK only)**.
-
----
-
-### 19. SQLite→Postgres migration offline only (§3.11) — Score 14
-
-> SQLite→PostgreSQL migration is **offline only** ("stop writes").
 
 ---
 

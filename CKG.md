@@ -228,7 +228,7 @@ Add: no encryption at rest, no enterprise identity federation, and audit that re
 
 - **NetworkX** — None of the above. Single process, SPOF, snapshot-and-pray.
 - **Neo4j** — Enterprise clustering with Raft, causal consistency, online and incremental backup, point-in-time recovery. Community has none of this.
-- **LiteGraph** — Explicitly does not implement failover orchestration; delegates to PostgreSQL HA plus a process supervisor. Backup via whole-database snapshot or portable per-graph JSONL export. SQLite→PostgreSQL migration is **offline only** ("stop writes").
+- **LiteGraph** — Explicitly does not implement failover orchestration; delegates to PostgreSQL HA plus a process supervisor. Backup via whole-database snapshot or portable per-graph JSONL export. Data can be moved between backends online via the graph export/projection and import endpoints (streaming read, no write-stop required).
 
 Delegating HA to PostgreSQL is a defensible design — it rides infrastructure most platform teams already run well. But **note the recovery footgun**: HNSW vector index files are derived artifacts that may require rebuilding after restore or migration. That belongs in the DR runbook with a measured rebuild time, or a restore will surprise someone during an incident.
 
