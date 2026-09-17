@@ -35,7 +35,8 @@ namespace Test.Shared
                     Authz("Authorization.SettingsRoundTrip", "System administrator can read, update, and read back settings", TestSettingsRoundTrip),
                     Authz("Authorization.SettingsDeniedForNonAdmin", "Settings endpoints deny tenant admins and regular users", TestSettingsDeniedForNonAdmin),
                     Authz("Authorization.AlgorithmScope", "Read-scoped credential can run algorithms and export but not write back or import", TestAlgorithmScope),
-                    Authz("Authorization.SuccessfulPrivilegedActionAudited", "Permitted write/admin actions are audited; reads are not; denials remain audited", TestSuccessfulPrivilegedActionAudited)
+                    Authz("Authorization.SuccessfulPrivilegedActionAudited", "Permitted write/admin actions are audited; reads are not; denials remain audited", TestSuccessfulPrivilegedActionAudited),
+                    Authz("Authorization.QueryScopeFailsClosed", "Query scope is parsed authoritatively; unparseable queries fail closed (400), not keyword-guessed", TestQueryScopeFailsClosed)
                 });
         }
 
@@ -151,6 +152,58 @@ namespace Test.Shared
                     AssertTrue(all.Objects.All(e => !"read".Equals(e.RequiredScope, StringComparison.OrdinalIgnoreCase)),
                         "No read-scope request was audited (" + all.Objects.Count(e => "read".Equals(e.RequiredScope, StringComparison.OrdinalIgnoreCase)) + " read entries found)");
                 }
+            }
+            finally
+            {
+                await CleanupMcpServer().ConfigureAwait(false);
+            }
+        }
+
+        private static async Task TestQueryScopeFailsClosed(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                string endpoint = RequireEndpoint();
+
+                HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs", _AdminBearerToken,
+                    "{\"Name\":\"query-failsclosed-graph\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(graphCreated.Status), "Query fail-closed graph created (status " + graphCreated.Status + ")");
+                string graphGuid = ExtractGuid(graphCreated.Body);
+
+                await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/nodes", _AdminBearerToken,
+                    "{\"Name\":\"A\"}", cancellationToken).ConfigureAwait(false);
+
+                string? readerUserGuid = null;
+                await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "query-reader@authz.test", isSystemAdmin: false, isTenantAdmin: false, cancellationToken, capturedGuid => readerUserGuid = capturedGuid).ConfigureAwait(false);
+                AssertTrue(!String.IsNullOrEmpty(readerUserGuid), "Query reader user provisioned");
+
+                string readToken = "query-read-" + Guid.NewGuid().ToString("N");
+                HttpOutcome credentialCreated = await AuthRestAsync(HttpMethod.Put, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/credentials", _AdminBearerToken,
+                    "{\"UserGUID\":\"" + readerUserGuid + "\",\"Name\":\"Query read-only\",\"BearerToken\":\"" + readToken + "\",\"Scopes\":[\"read\"],\"Active\":true}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(IsSuccess(credentialCreated.Status), "Query read-only credential created (status " + credentialCreated.Status + ")");
+
+                string queryUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/query";
+
+                // Positive: read-only credential runs a valid read query.
+                HttpOutcome readQuery = await AuthRestAsync(HttpMethod.Post, queryUrl, readToken,
+                    "{\"Query\":\"MATCH (n) RETURN n\"}", cancellationToken).ConfigureAwait(false);
+                AssertEqual(200, readQuery.Status, "Read scope permits a valid read query (body " + readQuery.Body + ")");
+
+                // Negative (authorization still enforced): read-only credential is denied a valid mutation query.
+                HttpOutcome writeQuery = await AuthRestAsync(HttpMethod.Post, queryUrl, readToken,
+                    "{\"Query\":\"CREATE (n:Person { name: 'Ada' }) RETURN n\"}", cancellationToken).ConfigureAwait(false);
+                AssertTrue(writeQuery.Status == 401 || writeQuery.Status == 403, "Read scope denies a valid mutation query (status " + writeQuery.Status + ")");
+
+                // Negative (fail closed): an unparseable query — even one containing a mutation substring ('SET') —
+                // is rejected with a 400 decided before authorization, not keyword-classified and not executed into a 500.
+                string bogusBody = "{\"Query\":\"MATCH (n) WHERE n.asset = 'SET' RETURN\"}";
+                HttpOutcome bogusAsAdmin = await AuthRestAsync(HttpMethod.Post, queryUrl, _AdminBearerToken, bogusBody, cancellationToken).ConfigureAwait(false);
+                AssertEqual(400, bogusAsAdmin.Status, "Unparseable query fails closed as 400 for admin (status " + bogusAsAdmin.Status + " body " + bogusAsAdmin.Body + ")");
+
+                HttpOutcome bogusAsReader = await AuthRestAsync(HttpMethod.Post, queryUrl, readToken, bogusBody, cancellationToken).ConfigureAwait(false);
+                AssertEqual(400, bogusAsReader.Status, "Unparseable query fails closed as 400 for read-only credential (status " + bogusAsReader.Status + ")");
             }
             finally
             {

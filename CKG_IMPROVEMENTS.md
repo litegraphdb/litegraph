@@ -25,13 +25,14 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 **Fixed**
 - **#2 — No graph algorithms (was the top gap, score 23).** Closed. v9.0 adds eleven native algorithms — degree/closeness/eigenvector/betweenness centrality, PageRank, weakly/strongly connected components, label-propagation and Louvain community detection, clustering coefficient, and k-core — with optional write-back into node data (DSL-queryable), an opt-in result cache, an `Algorithm` authorization resource type, and full REST/MCP/DSL (`CALL litegraph.algo.*`)/dashboard/SDK coverage. Crucially, CKG.md's own recommended mitigation — *project the subgraph to `rustworkx` and write results back* — is now a **built-in feature**: streaming projection export (node-link JSON, edge list, GraphML) plus a results-import path, so algorithms beyond native scope (or graphs past the in-memory ceiling) round-trip through external engines without custom glue. This was "the single strongest argument against LiteGraph as a complete CKG solution"; it no longer applies.
 - **#5 — README/site version drift.** Closed. README, Docker image tags, and the changelog all read `v9.0.0`.
+- **#7 — Keyword-match authz fallback (score 20).** Closed. Native-query scope (read vs. write) is now classified authoritatively from the parsed AST; the substring keyword fallback on `CREATE`/`MERGE`/`SET`/`DELETE`/`REMOVE` is gone. A query that fails to parse during scope classification is rejected with a `400` **before authorization** rather than guessed. Because the execution engine re-parses with the same parser, failing closed loses no valid query while removing keyword matching as a mutation-boundary decision. Validated by a classifier unit test (unparseable queries throw, not keyword-guess) and an API-level Touchstone case (read `200`, denied mutation `401`, unparseable `400`).
 - **#3 — Audit records denials only (score 23).** Closed. The `authorizationaudit` store now records **successful privileged actions** — any REST request that required `write` or `admin` scope and was authorized is written in PostRouting with `AuthorizationResult=Permitted` and the request's actual response status code, alongside the existing denial records. Read-scope requests are never audited, so the store answers "who changed what, when" without being flooded by routine reads. A new `AuthorizationAudit` settings block (`Enable`, `AuditSuccessfulActions`) lets operators disable auditing or revert to denials-only, and a dual-storage (SQLite + PostgreSQL) Touchstone case pins the positive (permitted write audited), negative (read not audited), and denial behaviors. This directly satisfies CKG.md §5 Option A's "extend audit to successful privileged actions" prerequisite.
 
 **Improved**
 - **#17 — Query language doesn't generate embeddings.** Largely addressed. The query language still takes *supplied* embeddings for search, but v9.0 adds server-side **node embedding generation** (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint, storing each as an HNSW-indexable node vector. The generate → store → search loop is now closable through the API without external code (verified end-to-end against a live Ollama endpoint). The residual — embedding generation is not literally inside the `CALL` syntax — is cosmetic.
 
 **Still open — and now the top of the list (unchanged by v9.0):**
-- Enterprise/governance: **#4 no encryption at rest**, **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**, **#7 keyword-match authz fallback**.
+- Enterprise/governance: **#4 no encryption at rest**, **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**.
 - Reasoning correctness/shape: **#6 scan-bounded `ORDER BY`/aggregates**, **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
 - Data lifecycle/ops: **#1 no published scale evidence**, **#10 no provenance/temporality**, **#9 HNSW rebuild-after-restore footgun**, **#16 HA delegated to Postgres**, **#18 Python/JS are REST-only**.
 
@@ -56,7 +57,7 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 | 4 | No encryption at rest (§3.9) | No at-rest encryption for a sensitivity-classified knowledge store | 8 | 7 | 7 | 22 | **Open** |
 | 5 | README/site version drift (intro) | README on `main` documents v7.0.0 while site documents v8.1 — misleads external evaluators | 8 | 5 | 9 | 22 | ✅ **Fixed (v9.0)** |
 | 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | **Open** (algorithms now give a whole-graph path for some global stats) |
-| 7 | Keyword-match authz fallback (§3.9) | Query authorization falls back to keyword matching (`CREATE`/`SET`/…) when parsing fails — weak mutation boundary | 7 | 6 | 7 | 20 | **Open** |
+| 7 | Keyword-match authz fallback (§3.9) | Query authorization falls back to keyword matching (`CREATE`/`SET`/…) when parsing fails — weak mutation boundary | 7 | 6 | 7 | 20 | ✅ **Fixed (v9.0)** |
 | 8 | No SSO/OIDC/SAML (§3.9) | No enterprise identity federation (out of scope today) | 8 | 7 | 5 | 20 | **Open** |
 | 9 | HNSW rebuild-after-restore footgun (§3.11) | Vector index files are derived artifacts needing rebuild after restore/migration; not in a DR runbook | 7 | 5 | 8 | 20 | **Open** (more consequential — embedding generation adds vectors) |
 | 10 | No provenance/temporality (§3.12) | No versioned nodes/edges or point-in-time reconstruction — must be modeled by hand | 8 | 8 | 4 | 20 | **Open** (algorithm write-back overwrites without versioning) |
@@ -140,9 +141,11 @@ From the traversal/query table, LiteGraph rows:
 
 ---
 
-### 7. Keyword-match authz fallback (§3.9) — Score 20
+### 7. Keyword-match authz fallback (§3.9) — Score 20 — ✅ Fixed (v9.0)
 
 > **Query authorization falls back to keyword matching** (`CREATE`/`MERGE`/`SET`/`DELETE`/`REMOVE`) when parsing fails. A parse failure that reaches a fallback string match is a weak last line of defense for a mutation boundary.
+
+**Resolution (v9.0).** `GraphQueryRequiredScope` now classifies scope solely from the parsed AST kind; the keyword-matching fallback (token scan plus a raw `IndexOf` substring check) has been deleted. When the parser rejects a query during scope classification, the query route returns a `400 Bad Request` **before** authorization rather than guessing a scope. This is safe to fail closed because the execution engine re-parses the query with the same parser — any query the classifier rejects would also fail at execution, so no legitimate request is lost, and a mutation boundary no longer rests on substring matching. Verified by a classifier unit test (valid queries scope correctly; unparseable/whitespace/keyword-substring queries throw instead of being keyword-classified) and an API-level Touchstone case (`Authorization.QueryScopeFailsClosed`: valid read `200`, valid mutation denied for a read-only credential `401`, unparseable query `400` for both admin and read-only). See [docs/RBAC.md](docs/RBAC.md#query-scope-mapping).
 
 ---
 

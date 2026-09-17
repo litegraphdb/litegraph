@@ -244,7 +244,7 @@ Native graph query authorization is based on the parsed query kind:
 - `MATCH ... SET` mutation queries require `write`
 - `MATCH ... DELETE` mutation queries require `write`
 
-If a query cannot be parsed during scope classification, LiteGraph falls back to mutation-keyword detection and requires `write` when it finds `CREATE`, `MERGE`, `SET`, `DELETE`, or `REMOVE`.
+Scope is classified authoritatively from the parsed query kind. A query that cannot be parsed during scope classification is **rejected with a `400 Bad Request` before authorization** — LiteGraph does not guess a scope from keyword matching. Because the execution engine re-parses with the same parser, a query the classifier rejects could not have executed anyway, so failing closed loses no valid request while removing keyword matching as a mutation-boundary decision.
 
 ## Transaction Scope Mapping
 

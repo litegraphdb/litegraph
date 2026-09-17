@@ -3621,11 +3621,20 @@
             MethodInfo? method = handlerType.GetMethod("GraphQueryRequiredScope", BindingFlags.NonPublic | BindingFlags.Static);
             if (method == null) throw new InvalidOperationException("Unable to locate query scope classifier.");
 
+            // Positive: valid queries are classified authoritatively from the parsed AST.
             AssertEqual("read", InvokeGraphQueryRequiredScope(method, "MATCH (n) RETURN n"), "Read match query requires read scope");
             AssertEqual("read", InvokeGraphQueryRequiredScope(method, "CALL litegraph.vector.searchNodes($v) YIELD node, score RETURN node, score"), "Vector search query requires read scope");
             AssertEqual("write", InvokeGraphQueryRequiredScope(method, "CREATE (n:Person { name: 'Ada' }) RETURN n"), "Create query requires write scope");
             AssertEqual("write", InvokeGraphQueryRequiredScope(method, "MATCH (n:Person) WHERE n.guid = $id SET n.name = 'Ada' RETURN n"), "MATCH SET query requires write scope");
             AssertEqual("write", InvokeGraphQueryRequiredScope(method, "MATCH (n:Person) WHERE n.guid = $id DELETE n RETURN n"), "MATCH DELETE query requires write scope");
+
+            // Negative: unparseable queries must fail closed (throw), never fall back to keyword matching.
+            // Previously a parse failure fell through to a substring match on CREATE/MERGE/SET/DELETE/REMOVE,
+            // which both mis-scoped benign reads (a "SET" substring) and rested a mutation boundary on IndexOf.
+            AssertGraphQueryScopeThrows(method, "this is not a valid query", "Unparseable query fails closed (no keyword fallback)");
+            AssertGraphQueryScopeThrows(method, "MATCH (n) WHERE n.asset = 'SET' RETURN", "Truncated query with a SET substring fails closed rather than guessing write");
+            AssertGraphQueryScopeThrows(method, "CREATE CREATE bogus (((", "Malformed mutation fails closed rather than being keyword-classified as write");
+            AssertGraphQueryScopeThrows(method, "   ", "Whitespace-only query text fails closed");
 
             return Task.CompletedTask;
         }
@@ -3642,6 +3651,27 @@
 
             if (result is string scope) return scope;
             throw new InvalidOperationException("Query scope classifier did not return a scope.");
+        }
+
+        private static void AssertGraphQueryScopeThrows(MethodInfo method, string query, string message)
+        {
+            bool threw = false;
+            try
+            {
+                method.Invoke(null, new object[]
+                {
+                    new GraphQueryRequest
+                    {
+                        Query = query
+                    }
+                });
+            }
+            catch (TargetInvocationException)
+            {
+                threw = true;
+            }
+
+            AssertTrue(threw, message);
         }
 
         private static Task TestAuthorizationServiceCredentialPolicies(CancellationToken cancellationToken)

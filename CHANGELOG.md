@@ -29,6 +29,10 @@ v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and be
   - New `AuthorizationAudit` settings block (`Enable`, `AuditSuccessfulActions`; both default `true`) lets operators disable auditing entirely or revert to denials-only. See [docs/SETTINGS.md](docs/SETTINGS.md) and [docs/RBAC.md](docs/RBAC.md).
   - Covered by a dual-storage (SQLite + PostgreSQL) Touchstone case validating that permitted writes are audited, reads are not, and denials remain audited.
 
+- Native-query authorization hardening
+  - Query scope (read vs. write) is now classified **authoritatively from the parsed AST**. The previous keyword-matching fallback — which, on a parse failure, decided the mutation boundary with a substring search for `CREATE`/`MERGE`/`SET`/`DELETE`/`REMOVE` — has been removed. A query that cannot be parsed during scope classification is rejected with a `400 Bad Request` **before authorization** (fail closed) instead of being guessed; because the execution engine re-parses with the same parser, no valid query is lost.
+  - Covered by unit-level classifier assertions (valid queries scope correctly; unparseable queries throw rather than keyword-guess) and an API-level Touchstone case (valid read `200`, valid mutation denied for a read-only credential `401`, unparseable query `400` for both admin and read-only). See [docs/RBAC.md](docs/RBAC.md).
+
 - Not yet included: structural graph embeddings (FastRP/node2vec) are a planned follow-on; the v9.0 embedding feature generates content embeddings via a configured embedding endpoint.
 
 ## Previous Versions

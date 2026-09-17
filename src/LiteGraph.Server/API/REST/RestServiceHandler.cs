@@ -2304,7 +2304,24 @@
 
             GraphQueryRequest query = _Serializer.DeserializeJson<GraphQueryRequest>(ctx.Request.DataAsString);
             DateTime start = DateTime.UtcNow;
-            string requiredScope = GraphQueryRequiredScope(query);
+
+            // Determine the required scope authoritatively from the parsed query. A query that
+            // cannot be parsed cannot be safely classified or executed, so we fail closed with a
+            // 400 rather than guessing its scope with keyword heuristics (a weak mutation boundary).
+            string requiredScope;
+            try
+            {
+                requiredScope = GraphQueryRequiredScope(query);
+            }
+            catch (Exception parseException)
+            {
+                _Observability.RecordGraphQuery(false, false, (DateTime.UtcNow - start).TotalMilliseconds);
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.Send(_Serializer.SerializeJson(new ApiErrorResponse(
+                    ApiErrorEnum.BadRequest, null, "The graph query could not be parsed: " + parseException.Message)));
+                return;
+            }
+
             Stopwatch authorizationStopwatch = new Stopwatch();
             using (Activity activity = StartInternalActivity("litegraph.graph.query", req))
             using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
@@ -3743,17 +3760,16 @@
 
         private static string GraphQueryRequiredScope(GraphQueryRequest query)
         {
-            if (query == null || String.IsNullOrWhiteSpace(query.Query)) return "read";
+            // Authoritative scope classification from the parsed AST. There is deliberately no
+            // keyword-matching fallback: a query the parser rejects here is also rejected by the
+            // execution engine (it re-parses with the same parser), so guessing a scope from a
+            // substring match would only ever weaken the mutation boundary. Parse failures throw
+            // and the caller fails closed with a 400.
+            if (query == null || String.IsNullOrWhiteSpace(query.Query))
+                throw new ArgumentException("Query text is required.", nameof(query));
 
-            try
-            {
-                LiteGraph.Query.Ast.GraphQueryAst ast = LiteGraph.Query.Parser.Parse(query.Query);
-                return IsWriteQueryKind(ast.Kind) ? "write" : "read";
-            }
-            catch
-            {
-                return QueryContainsMutationKeyword(query.Query) ? "write" : "read";
-            }
+            LiteGraph.Query.Ast.GraphQueryAst ast = LiteGraph.Query.Parser.Parse(query.Query);
+            return IsWriteQueryKind(ast.Kind) ? "write" : "read";
         }
 
         private static bool IsWriteQueryKind(LiteGraph.Query.GraphQueryKindEnum kind)
@@ -3779,42 +3795,6 @@
                 default:
                     return false;
             }
-        }
-
-        private static bool QueryContainsMutationKeyword(string query)
-        {
-            if (String.IsNullOrWhiteSpace(query)) return false;
-
-            try
-            {
-                foreach (LiteGraph.Query.GraphQueryToken token in LiteGraph.Query.Lexer.Tokenize(query))
-                {
-                    if (token.Type == LiteGraph.Query.GraphQueryTokenTypeEnum.Identifier
-                        && IsMutationKeyword(token.Text))
-                    {
-                        return true;
-                    }
-                }
-            }
-            catch
-            {
-                return query.IndexOf("CREATE", StringComparison.OrdinalIgnoreCase) >= 0
-                    || query.IndexOf("MERGE", StringComparison.OrdinalIgnoreCase) >= 0
-                    || query.IndexOf("SET", StringComparison.OrdinalIgnoreCase) >= 0
-                    || query.IndexOf("DELETE", StringComparison.OrdinalIgnoreCase) >= 0
-                    || query.IndexOf("REMOVE", StringComparison.OrdinalIgnoreCase) >= 0;
-            }
-
-            return false;
-        }
-
-        private static bool IsMutationKeyword(string text)
-        {
-            return String.Equals(text, "CREATE", StringComparison.OrdinalIgnoreCase)
-                || String.Equals(text, "MERGE", StringComparison.OrdinalIgnoreCase)
-                || String.Equals(text, "SET", StringComparison.OrdinalIgnoreCase)
-                || String.Equals(text, "DELETE", StringComparison.OrdinalIgnoreCase)
-                || String.Equals(text, "REMOVE", StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion
