@@ -127,6 +127,16 @@ logs/
 backups/
 litegraph.json
 
+# Python coverage HTML report (SDK test runs)
+htmlcov/
+# Touchstone SQLite test databases created at the repo root during test runs
+test-automated-*.db
+test-automated-*.db-shm
+test-automated-*.db-wal
+test-improvements-*.db
+test-improvements-*.db-shm
+test-improvements-*.db-wal
+
 *_i.c
 *_p.c
 *_i.h

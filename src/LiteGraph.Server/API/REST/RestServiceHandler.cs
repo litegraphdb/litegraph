@@ -707,7 +707,10 @@
             StopRequestActivity(ctx);
 
             if (req != null)
-                await AuditAuthorizationPermitted(req, ctx.Response.StatusCode, CancellationToken.None).ConfigureAwait(false);
+            {
+                using (CancellationTokenSource timeoutCts = CreateRequestTimeoutTokenSource())
+                    await AuditAuthorizationPermitted(req, ctx.Response.StatusCode, timeoutCts.Token).ConfigureAwait(false);
+            }
         }
 
         private string BuildSanitizedRequestDebugLog(HttpContextBase ctx)
