@@ -160,6 +160,9 @@ describe('DashboardLayout', () => {
       'href',
       'https://github.com/litegraphdb/litegraph'
     );
+    const discordLink = screen.getByLabelText('LiteGraph Discord server');
+    expect(discordLink).toHaveAttribute('href', 'https://discord.gg/tRAN8HgvK5');
+    expect(discordLink).toHaveAttribute('target', '_blank');
     expect(screen.queryByText('Logout')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Logout'));
