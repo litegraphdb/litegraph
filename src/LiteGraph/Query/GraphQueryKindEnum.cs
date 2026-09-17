@@ -103,6 +103,11 @@ namespace LiteGraph.Query
         /// <summary>
         /// Run a graph algorithm.
         /// </summary>
-        Algorithm
+        Algorithm,
+
+        /// <summary>
+        /// Chained read query: a pipeline of one or more MATCH clauses, optionally separated by WITH clauses, terminated by RETURN.
+        /// </summary>
+        Chained
     }
 }

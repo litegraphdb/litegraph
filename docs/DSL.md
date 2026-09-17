@@ -423,6 +423,48 @@ Supported object sort fields:
 
 `ORDER BY` is **global**: LiteGraph examines the whole matching set, sorts it, and then returns the top rows up to `LIMIT` (or `MaxResults` when no `LIMIT` is given). The returned rows are therefore the true global top-N by the sort key, not the top-N of the first page scanned. The matching set is bounded by `MaxScanRows` (default `1000000`, `0` disables it); an ordered query whose matching set exceeds that ceiling is rejected with a `400` rather than sorting a truncated (wrong) window. Narrow the `WHERE` filter or raise `MaxScanRows` for larger candidate sets.
 
+## Query Chaining (Multiple MATCH and WITH)
+
+A read query may chain several `MATCH` clauses, optionally separated by `WITH` clauses, terminated by a single `RETURN`. A later clause can reference variables bound by an earlier clause; the clauses are joined on those shared variables. This lets one query express multi-step patterns and intermediate projection, filtering, ordering, and aggregation.
+
+```cypher
+MATCH (a:Person)-[:KNOWS]->(b:Person)
+MATCH (b)-[:WORKS_AT]->(c:Company)
+WHERE c.name = 'Acme'
+RETURN a, c
+```
+
+The second `MATCH` reuses `b` from the first, so the two patterns join on `b`. A `WHERE` after a clause may reference any variable bound so far (including variables from earlier clauses).
+
+Rules and scope:
+
+- Each chained `MATCH` clause matches a **node** or a **single directed edge**. Express multi-hop as separate single-edge `MATCH` clauses (as above). Variable-length (`*min..max`), `MATCH SHORTEST`, and `OPTIONAL MATCH` are not supported inside a chain in this release.
+- A `MATCH` clause that reuses an already-bound variable joins on it (inner join on the shared variable's identity); a clause that introduces only new variables cross-joins with the current rows.
+- A variable referenced in a `WHERE`, `WITH`, or the terminal `RETURN` must be bound by a preceding clause (or projected by a preceding `WITH`); referencing an unbound variable is a parse error.
+- Intermediate row sets are bounded by `MaxScanRows` (default `1000000`, `0` disables it) — a chained query whose join or grouping exceeds the ceiling is rejected with a `400` rather than truncated.
+
+### WITH
+
+`WITH` reshapes the intermediate result set before the next stage. It projects and re-scopes variables (only projected names are visible downstream), optionally filters (`WHERE` after `WITH`, HAVING semantics), and optionally orders, skips, and limits the stream:
+
+```cypher
+MATCH (a:Person)-[:KNOWS]->(b:Person)
+WITH a, b WHERE a.data.age > 30 ORDER BY b.name DESC LIMIT 10
+MATCH (b)-[:WORKS_AT]->(c:Company)
+RETURN a, c
+```
+
+`WITH` also aggregates. When any `WITH` item is an aggregate (`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`), the non-aggregate items form the grouping key and one row is produced per group:
+
+```cypher
+MATCH (a:Person)-[:KNOWS]->(b:Person)
+WITH a, COUNT(b) AS known
+WHERE known > 1
+RETURN a, known
+```
+
+Here rows are grouped by `a`, `COUNT(b)` counts the group, `WHERE known > 1` filters on the aggregate alias (HAVING), and the surviving `a`/`known` pairs flow to `RETURN`. A `WITH ... WHERE` predicate may filter on a grouping-key object field (`a.data.role = 'x'`) or on an aggregate alias directly (`known > 1`).
+
 ## Create Nodes
 
 Create a node:

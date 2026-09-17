@@ -36,6 +36,9 @@ const graphQueryTemplate = {
   },
   MaxResults: 100,
   TimeoutSeconds: 30,
+  // Bounds global operations (aggregates, ORDER BY) and chained-query joins; 0 disables. Queries may chain
+  // multiple MATCH clauses and WITH stages terminated by a single RETURN (see docs/DSL.md).
+  MaxScanRows: 1000000,
   IncludeProfile: true,
 };
 

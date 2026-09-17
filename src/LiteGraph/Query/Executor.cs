@@ -98,6 +98,9 @@ namespace LiteGraph.Client.Implementations
                 case GraphQueryKindEnum.Algorithm:
                     result = await _Methods.ExecuteAlgorithm(tenantGuid, graphGuid, request, plan.Ast, token).ConfigureAwait(false);
                     break;
+                case GraphQueryKindEnum.Chained:
+                    // ExecuteChained applies its own terminal projection, ORDER BY, and LIMIT.
+                    return await _Methods.ExecuteChained(tenantGuid, graphGuid, request, plan.Ast, token).ConfigureAwait(false);
                 default:
                     throw new NotSupportedException("Unsupported query kind '" + plan.Kind + "'.");
             }

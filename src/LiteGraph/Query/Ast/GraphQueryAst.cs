@@ -161,6 +161,13 @@ namespace LiteGraph.Query.Ast
         /// YIELD variables.
         /// </summary>
         public List<string> YieldVariables { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Clause pipeline for a chained query (Kind is Chained). Each clause is a MATCH or WITH stage; the terminal
+        /// RETURN, ORDER BY, and LIMIT are carried on this AST's <see cref="ReturnItems"/>, <see cref="OrderField"/>,
+        /// and <see cref="Limit"/> members. Empty for single-clause queries.
+        /// </summary>
+        public List<GraphQueryClause> Clauses { get; set; } = new List<GraphQueryClause>();
     }
 
     /// <summary>

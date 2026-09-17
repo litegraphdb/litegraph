@@ -105,6 +105,18 @@
                         skipReason: ProviderSuiteSkipReason("PostgreSQL global scan-bounded query", PostgresqlTestConnectionStringEnvironmentVariable)),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Query.Chaining.Sqlite",
+                        displayName: "SQLite chained queries join multiple MATCH clauses and pipe through WITH projection, filter, order, and aggregation",
+                        executeAsync: TestQueryChainingSqlite),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Query.Chaining.Postgresql",
+                        displayName: "PostgreSQL chained queries join multiple MATCH clauses and pipe through WITH projection, filter, order, and aggregation",
+                        executeAsync: ct => TestQueryChainingPostgresql(PostgresqlTestConnectionStringEnvironmentVariable, ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL chained query", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Transactions.ProviderMatrix.PostgresqlConcurrency",
                         displayName: "PostgreSQL graph transaction concurrency matrix passes",
                         executeAsync: ct => TestPostgresqlTransactionConcurrencyMatrix(PostgresqlTestConnectionStringEnvironmentVariable, ct),
@@ -9689,6 +9701,193 @@
                 cancellationToken).ConfigureAwait(false);
 
             await client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TestQueryChainingSqlite(CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-query-chaining.db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+                    await RunQueryChaining(client, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task TestQueryChainingPostgresql(string connectionStringEnvironmentVariable, CancellationToken cancellationToken)
+        {
+            await RunPostgresqlIsolatedSchemaTest(
+                connectionStringEnvironmentVariable,
+                "litegraph_chaining_",
+                (client, ct) => RunQueryChaining(client, "PostgreSQL", ct),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task RunQueryChaining(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " Chain Tenant" }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Chain Graph" }, cancellationToken).ConfigureAwait(false);
+
+            Node alice = await CreateChainPerson(client, tenant.GUID, graph.GUID, "Alice", 40, cancellationToken).ConfigureAwait(false);
+            Node bob = await CreateChainPerson(client, tenant.GUID, graph.GUID, "Bob", 35, cancellationToken).ConfigureAwait(false);
+            Node carol = await CreateChainPerson(client, tenant.GUID, graph.GUID, "Carol", 28, cancellationToken).ConfigureAwait(false);
+            Node acme = await CreateChainCompany(client, tenant.GUID, graph.GUID, "Acme", cancellationToken).ConfigureAwait(false);
+            Node globex = await CreateChainCompany(client, tenant.GUID, graph.GUID, "Globex", cancellationToken).ConfigureAwait(false);
+
+            await CreateChainEdge(client, tenant.GUID, graph.GUID, "KNOWS", alice, bob, cancellationToken).ConfigureAwait(false);
+            await CreateChainEdge(client, tenant.GUID, graph.GUID, "KNOWS", alice, carol, cancellationToken).ConfigureAwait(false);
+            await CreateChainEdge(client, tenant.GUID, graph.GUID, "KNOWS", bob, carol, cancellationToken).ConfigureAwait(false);
+            await CreateChainEdge(client, tenant.GUID, graph.GUID, "WORKS_AT", alice, acme, cancellationToken).ConfigureAwait(false);
+            await CreateChainEdge(client, tenant.GUID, graph.GUID, "WORKS_AT", bob, acme, cancellationToken).ConfigureAwait(false);
+            await CreateChainEdge(client, tenant.GUID, graph.GUID, "WORKS_AT", carol, globex, cancellationToken).ConfigureAwait(false);
+
+            // ---- Phase 1: multi-MATCH join ----
+
+            GraphQueryResult twoHop = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) MATCH (b:Person)-[:WORKS_AT]->(c:Company) RETURN a, c"
+            }, cancellationToken).ConfigureAwait(false);
+            AssertTrue(ChainPairs(twoHop, "a", "c").SetEquals(new HashSet<string> { "Alice|Acme", "Alice|Globex", "Bob|Globex" }),
+                providerName + " Phase 1 two-clause join returns correct (a,c) pairs");
+
+            GraphQueryResult crossWhere = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) MATCH (b)-[:WORKS_AT]->(c:Company) WHERE c.name = 'Globex' RETURN a"
+            }, cancellationToken).ConfigureAwait(false);
+            AssertTrue(ChainNames(crossWhere, "a").SetEquals(new HashSet<string> { "Alice", "Bob" }),
+                providerName + " Phase 1 cross-clause WHERE filters on a later-bound variable");
+
+            // Phase 1 negatives
+            await AssertQueryRejected(client, tenant.GUID, graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) MATCH (b)-[:WORKS_AT]->(c:Company) RETURN a, d" },
+                providerName + " Phase 1 RETURN of an unbound variable is rejected", cancellationToken).ConfigureAwait(false);
+            await AssertQueryRejected(client, tenant.GUID, graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (a:Person)-[:KNOWS*1..2]->(b:Person) MATCH (b)-[:WORKS_AT]->(c:Company) RETURN a, c" },
+                providerName + " Phase 1 variable-length pattern inside a chain is rejected", cancellationToken).ConfigureAwait(false);
+            await AssertQueryRejected(client, tenant.GUID, graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) MATCH (b)-[:WORKS_AT]->(c:Company) RETURN a, c", MaxScanRows = 1 },
+                providerName + " Phase 1 chained query beyond the scan ceiling is rejected", cancellationToken).ConfigureAwait(false);
+
+            // ---- Phase 2: WITH projection / filter / order ----
+
+            GraphQueryResult carryForward = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH b MATCH (b)-[:WORKS_AT]->(c:Company) RETURN b, c"
+            }, cancellationToken).ConfigureAwait(false);
+            AssertTrue(ChainPairs(carryForward, "b", "c").SetEquals(new HashSet<string> { "Bob|Acme", "Carol|Globex" }),
+                providerName + " Phase 2 WITH projects and carries a variable into the next MATCH");
+
+            GraphQueryResult having = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH a, b WHERE a.data.age > 36 RETURN a, b"
+            }, cancellationToken).ConfigureAwait(false);
+            AssertTrue(ChainPairs(having, "a", "b").SetEquals(new HashSet<string> { "Alice|Bob", "Alice|Carol" }),
+                providerName + " Phase 2 WITH ... WHERE filters projected rows");
+
+            GraphQueryResult orderLimit = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH a, b ORDER BY b.name DESC LIMIT 1 RETURN a, b"
+            }, cancellationToken).ConfigureAwait(false);
+            AssertEqual(1, orderLimit.Rows.Count, providerName + " Phase 2 WITH ORDER BY/LIMIT bounds the intermediate stream");
+            AssertEqual("Carol", ((Node)orderLimit.Rows[0]["b"]).Name, providerName + " Phase 2 WITH ORDER BY DESC keeps the global top row");
+
+            // Phase 2 negative: a WITH-dropped variable is unavailable downstream.
+            await AssertQueryRejected(client, tenant.GUID, graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH a RETURN a, b" },
+                providerName + " Phase 2 RETURN of a variable dropped by WITH is rejected", cancellationToken).ConfigureAwait(false);
+
+            // ---- Phase 3: WITH aggregation (grouping) ----
+
+            GraphQueryResult grouped = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH a, COUNT(b) AS known RETURN a, known"
+            }, cancellationToken).ConfigureAwait(false);
+            Dictionary<string, int> knownByPerson = new Dictionary<string, int>();
+            foreach (Dictionary<string, object> row in grouped.Rows)
+                knownByPerson[((Node)row["a"]).Name] = Convert.ToInt32(row["known"]);
+            AssertEqual(2, knownByPerson.Count, providerName + " Phase 3 WITH grouping yields one row per group");
+            AssertEqual(2, knownByPerson["Alice"], providerName + " Phase 3 grouped COUNT for Alice");
+            AssertEqual(1, knownByPerson["Bob"], providerName + " Phase 3 grouped COUNT for Bob");
+
+            GraphQueryResult groupedHaving = await client.Query.Execute(tenant.GUID, graph.GUID, new GraphQueryRequest
+            {
+                Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH a, COUNT(b) AS known WHERE known > 1 RETURN a"
+            }, cancellationToken).ConfigureAwait(false);
+            AssertTrue(ChainNames(groupedHaving, "a").SetEquals(new HashSet<string> { "Alice" }),
+                providerName + " Phase 3 HAVING filters on an aggregate alias");
+
+            // Phase 3 negative: an aggregated-away variable cannot be returned.
+            await AssertQueryRejected(client, tenant.GUID, graph.GUID,
+                new GraphQueryRequest { Query = "MATCH (a:Person)-[:KNOWS]->(b:Person) WITH a, COUNT(b) AS known RETURN a, b" },
+                providerName + " Phase 3 RETURN of a variable consumed by aggregation is rejected", cancellationToken).ConfigureAwait(false);
+
+            await client.Graph.DeleteByGuid(tenant.GUID, graph.GUID, true, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Node> CreateChainPerson(LiteGraphClient client, Guid tenantGuid, Guid graphGuid, string name, int age, CancellationToken cancellationToken)
+        {
+            return await client.Node.Create(new Node
+            {
+                TenantGUID = tenantGuid,
+                GraphGUID = graphGuid,
+                Name = name,
+                Labels = new List<string> { "Person" },
+                Data = new Dictionary<string, object> { { "age", age } }
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Node> CreateChainCompany(LiteGraphClient client, Guid tenantGuid, Guid graphGuid, string name, CancellationToken cancellationToken)
+        {
+            return await client.Node.Create(new Node
+            {
+                TenantGUID = tenantGuid,
+                GraphGUID = graphGuid,
+                Name = name,
+                Labels = new List<string> { "Company" },
+                Data = new Dictionary<string, object> { { "name", name } }
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task CreateChainEdge(LiteGraphClient client, Guid tenantGuid, Guid graphGuid, string label, Node from, Node to, CancellationToken cancellationToken)
+        {
+            await client.Edge.Create(new Edge
+            {
+                TenantGUID = tenantGuid,
+                GraphGUID = graphGuid,
+                Name = label,
+                From = from.GUID,
+                To = to.GUID,
+                Labels = new List<string> { label }
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static HashSet<string> ChainPairs(GraphQueryResult result, string leftVariable, string rightVariable)
+        {
+            HashSet<string> pairs = new HashSet<string>();
+            foreach (Dictionary<string, object> row in result.Rows)
+                pairs.Add(((Node)row[leftVariable]).Name + "|" + ((Node)row[rightVariable]).Name);
+
+            return pairs;
+        }
+
+        private static HashSet<string> ChainNames(GraphQueryResult result, string variable)
+        {
+            HashSet<string> names = new HashSet<string>();
+            foreach (Dictionary<string, object> row in result.Rows)
+                names.Add(((Node)row[variable]).Name);
+
+            return names;
         }
 
         private static async Task AssertQueryRejected(LiteGraphClient client, Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, string message, CancellationToken cancellationToken)

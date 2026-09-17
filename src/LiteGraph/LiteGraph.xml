@@ -15015,6 +15015,13 @@
             YIELD variables.
             </summary>
         </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryAst.Clauses">
+            <summary>
+            Clause pipeline for a chained query (Kind is Chained). Each clause is a MATCH or WITH stage; the terminal
+            RETURN, ORDER BY, and LIMIT are carried on this AST's <see cref="P:LiteGraph.Query.Ast.GraphQueryAst.ReturnItems"/>, <see cref="P:LiteGraph.Query.Ast.GraphQueryAst.OrderField"/>,
+            and <see cref="P:LiteGraph.Query.Ast.GraphQueryAst.Limit"/> members. Empty for single-clause queries.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Query.Ast.GraphQueryPredicate">
             <summary>
             WHERE predicate.
@@ -15220,6 +15227,96 @@
             Maximum hop count for variable-length traversal segments.
             </summary>
         </member>
+        <member name="T:LiteGraph.Query.Ast.GraphQueryClause">
+            <summary>
+            A single stage in a chained native graph query pipeline: either a MATCH clause (a graph pattern plus optional
+            WHERE) or a WITH clause that projects and reshapes the intermediate result set before the next stage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryClause.Type">
+            <summary>
+            The clause type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryClause.Match">
+            <summary>
+            The MATCH clause pattern and optional WHERE, expressed as a single-clause AST (Kind is MatchNode or MatchEdge).
+            Populated when <see cref="P:LiteGraph.Query.Ast.GraphQueryClause.Type"/> is <see cref="F:LiteGraph.Query.Ast.GraphQueryClauseTypeEnum.Match"/>.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryClause.With">
+            <summary>
+            The WITH projection specification. Populated when <see cref="P:LiteGraph.Query.Ast.GraphQueryClause.Type"/> is <see cref="F:LiteGraph.Query.Ast.GraphQueryClauseTypeEnum.With"/>.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Query.Ast.GraphQueryClause.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Query.Ast.GraphQueryClauseTypeEnum">
+            <summary>
+            Type of a clause in a chained native graph query pipeline.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Query.Ast.GraphQueryClauseTypeEnum.Match">
+            <summary>
+            A MATCH clause contributing a graph pattern and optional WHERE filter.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Query.Ast.GraphQueryClauseTypeEnum.With">
+            <summary>
+            A WITH clause that projects, filters, orders, and optionally aggregates the intermediate result set before the next stage.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Query.Ast.GraphQueryWith">
+            <summary>
+            WITH clause specification for a chained native graph query. Projects and renames variables, optionally aggregates
+            them, applies a post-projection WHERE filter (HAVING semantics), and optionally orders, skips, and limits the
+            intermediate result set before it flows into the next pipeline stage.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.Items">
+            <summary>
+            Projection items. Each item is either a graph variable (optionally aliased with AS) or an aggregate expression.
+            When any item is an aggregate, the non-aggregate items form the grouping key.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.WhereExpression">
+            <summary>
+            Optional post-projection WHERE filter (HAVING semantics), evaluated against the projected rows.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.OrderVariable">
+            <summary>
+            Optional ORDER BY variable when ordering by an object field (for example the variable in variable.field).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.OrderField">
+            <summary>
+            Optional ORDER BY field or projected scalar/alias to order by.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.OrderDescending">
+            <summary>
+            True when ORDER BY direction is DESC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.Skip">
+            <summary>
+            Optional number of rows to skip after ordering. Null when no SKIP is present.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Query.Ast.GraphQueryWith.Limit">
+            <summary>
+            Optional maximum number of rows to carry forward after ordering and skipping. Null when no LIMIT is present.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Query.Ast.GraphQueryWith.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Query.GraphQueryKindEnum">
             <summary>
             Supported native graph query kinds.
@@ -15323,6 +15420,11 @@
         <member name="F:LiteGraph.Query.GraphQueryKindEnum.Algorithm">
             <summary>
             Run a graph algorithm.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Query.GraphQueryKindEnum.Chained">
+            <summary>
+            Chained read query: a pipeline of one or more MATCH clauses, optionally separated by WITH clauses, terminated by RETURN.
             </summary>
         </member>
         <member name="T:LiteGraph.Query.GraphQueryParseException">

@@ -45,6 +45,9 @@ namespace LiteGraph.Query
             if (ast.IsOptional)
                 warnings.Add("OPTIONAL MATCH returns a null row when no rows match.");
 
+            if (ast.Kind == GraphQueryKindEnum.Chained)
+                warnings.Add("Chained query evaluates each MATCH clause and joins on shared variables; intermediate row sets are bounded by MaxScanRows.");
+
             return new GraphQueryPlan(
                 ast,
                 IsMutation(ast.Kind),
@@ -115,6 +118,7 @@ namespace LiteGraph.Query
         private static int EstimateCost(GraphQueryAst ast, GraphQueryPlanSeedKindEnum seedKind)
         {
             if (seedKind == GraphQueryPlanSeedKindEnum.VectorIndex) return 5;
+            if (ast.Kind == GraphQueryKindEnum.Chained) return 100 + (ast.Clauses != null ? ast.Clauses.Count * 20 : 0);
             if (ast.Kind == GraphQueryKindEnum.MatchPath && HasVariableLengthPath(ast)) return EstimatePathCost(ast);
             if (seedKind != GraphQueryPlanSeedKindEnum.None) return 10;
             if (IsMutation(ast.Kind)) return 20;

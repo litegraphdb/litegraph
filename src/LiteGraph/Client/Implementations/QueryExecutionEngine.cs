@@ -7,6 +7,7 @@ namespace LiteGraph.Client.Implementations
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
+    using System.Text;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
@@ -621,6 +622,357 @@ namespace LiteGraph.Client.Implementations
 
             return result;
         }
+
+        #region Chained-Query-Execution
+
+        internal async Task<GraphQueryResult> ExecuteChained(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)
+        {
+            int ceiling = ResolveScanCeiling(request);
+
+            // The pipeline carries a binding environment: a list of rows, each a variable -> Node/Edge (or scalar) map.
+            // Seed it with one empty binding so the first MATCH clause joins as a cross product against it.
+            List<Dictionary<string, object>> environment = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            };
+
+            foreach (GraphQueryClause clause in ast.Clauses)
+            {
+                token.ThrowIfCancellationRequested();
+                if (clause.Type == GraphQueryClauseTypeEnum.Match)
+                {
+                    List<Dictionary<string, object>> clauseRows = await EnumerateMatchClause(tenantGuid, graphGuid, clause.Match, ceiling, token).ConfigureAwait(false);
+                    environment = JoinBindings(environment, clauseRows, ceiling);
+
+                    if (clause.Match.WhereExpression != null)
+                    {
+                        List<Dictionary<string, object>> filtered = new List<Dictionary<string, object>>();
+                        foreach (Dictionary<string, object> binding in environment)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            if (await EvaluateBindingWhere(tenantGuid, graphGuid, request, clause.Match.WhereExpression, binding, token).ConfigureAwait(false))
+                                filtered.Add(binding);
+                        }
+
+                        environment = filtered;
+                    }
+                }
+                else
+                {
+                    environment = await ApplyWithClause(tenantGuid, graphGuid, request, clause.With, environment, ceiling, token).ConfigureAwait(false);
+                }
+            }
+
+            // Terminal RETURN.
+            if (HasAggregateReturn(ast))
+                return await BuildAggregateResult(tenantGuid, graphGuid, ast, environment, token).ConfigureAwait(false);
+
+            GraphQueryResult result = new GraphQueryResult();
+            foreach (Dictionary<string, object> binding in environment)
+            {
+                Dictionary<string, object> projected = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                foreach (string variable in ast.ReturnVariables)
+                {
+                    binding.TryGetValue(variable, out object value);
+                    projected[variable] = value;
+                }
+
+                result.Rows.Add(projected);
+            }
+
+            if (HasOrder(ast))
+            {
+                ApplyOrderAndLimit(result, ast, request);
+            }
+            else
+            {
+                int limit = ast.Limit.HasValue ? Math.Min(request.MaxResults, ast.Limit.Value) : request.MaxResults;
+                if (result.Rows.Count > limit) result.Rows = result.Rows.Take(limit).ToList();
+                RebuildTypedResultLists(result);
+            }
+
+            return result;
+        }
+
+        private async Task<List<Dictionary<string, object>>> EnumerateMatchClause(Guid tenantGuid, Guid graphGuid, GraphQueryAst match, int ceiling, CancellationToken token)
+        {
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            if (match.Kind == GraphQueryKindEnum.MatchNode)
+            {
+                IAsyncEnumerable<Node> nodes = !String.IsNullOrEmpty(match.NodeLabel)
+                    ? _Repo.Node.ReadMany(tenantGuid, graphGuid, labels: LabelList(match.NodeLabel), token: token)
+                    : _Repo.Node.ReadAllInGraph(tenantGuid, graphGuid, token: token);
+
+                await foreach (Node node in nodes.ConfigureAwait(false))
+                {
+                    token.ThrowIfCancellationRequested();
+                    Dictionary<string, object> row = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    if (!String.IsNullOrEmpty(match.NodeVariable)) row[match.NodeVariable] = node;
+                    rows.Add(row);
+                    GuardChainCeiling(rows.Count, ceiling, "Chained MATCH clause");
+                }
+
+                return rows;
+            }
+
+            GraphQueryPathSegment segment = match.PathSegments[0];
+            IAsyncEnumerable<Edge> edges = !String.IsNullOrEmpty(segment.EdgeLabel)
+                ? _Repo.Edge.ReadMany(tenantGuid, graphGuid, labels: LabelList(segment.EdgeLabel), token: token)
+                : _Repo.Edge.ReadAllInGraph(tenantGuid, graphGuid, token: token);
+
+            await foreach (Edge edge in edges.ConfigureAwait(false))
+            {
+                token.ThrowIfCancellationRequested();
+                if (!String.IsNullOrEmpty(segment.EdgeLabel) && !await EdgeMatchesLabel(edge, segment.EdgeLabel, token).ConfigureAwait(false)) continue;
+
+                Node from = null;
+                Node to = null;
+                if (!String.IsNullOrEmpty(segment.FromVariable) || !String.IsNullOrEmpty(segment.FromLabel))
+                {
+                    from = await _Repo.Node.ReadByGuid(tenantGuid, edge.From, token).ConfigureAwait(false);
+                    if (from == null || from.GraphGUID != graphGuid) continue;
+                    if (!String.IsNullOrEmpty(segment.FromLabel) && !await NodeMatchesLabel(from, segment.FromLabel, token).ConfigureAwait(false)) continue;
+                }
+
+                if (!String.IsNullOrEmpty(segment.ToVariable) || !String.IsNullOrEmpty(segment.ToLabel))
+                {
+                    to = await _Repo.Node.ReadByGuid(tenantGuid, edge.To, token).ConfigureAwait(false);
+                    if (to == null || to.GraphGUID != graphGuid) continue;
+                    if (!String.IsNullOrEmpty(segment.ToLabel) && !await NodeMatchesLabel(to, segment.ToLabel, token).ConfigureAwait(false)) continue;
+                }
+
+                Dictionary<string, object> row = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                if (!String.IsNullOrEmpty(segment.FromVariable)) row[segment.FromVariable] = from;
+                if (!String.IsNullOrEmpty(segment.EdgeVariable)) row[segment.EdgeVariable] = edge;
+                if (!String.IsNullOrEmpty(segment.ToVariable)) row[segment.ToVariable] = to;
+                rows.Add(row);
+                GuardChainCeiling(rows.Count, ceiling, "Chained MATCH clause");
+            }
+
+            return rows;
+        }
+
+        private List<Dictionary<string, object>> JoinBindings(List<Dictionary<string, object>> left, List<Dictionary<string, object>> right, int ceiling)
+        {
+            List<Dictionary<string, object>> output = new List<Dictionary<string, object>>();
+            if (left.Count == 0 || right.Count == 0) return output;
+
+            HashSet<string> leftKeys = CollectBindingKeys(left);
+            HashSet<string> rightKeys = CollectBindingKeys(right);
+            List<string> shared = leftKeys.Where(k => rightKeys.Contains(k)).ToList();
+
+            if (shared.Count == 0)
+            {
+                foreach (Dictionary<string, object> l in left)
+                {
+                    foreach (Dictionary<string, object> r in right)
+                    {
+                        output.Add(MergeBindings(l, r));
+                        GuardChainCeiling(output.Count, ceiling, "Chained join");
+                    }
+                }
+
+                return output;
+            }
+
+            Dictionary<string, List<Dictionary<string, object>>> index = new Dictionary<string, List<Dictionary<string, object>>>();
+            foreach (Dictionary<string, object> r in right)
+            {
+                string key = BindingJoinKey(r, shared);
+                if (key == null) continue;
+                if (!index.TryGetValue(key, out List<Dictionary<string, object>> bucket))
+                {
+                    bucket = new List<Dictionary<string, object>>();
+                    index[key] = bucket;
+                }
+
+                bucket.Add(r);
+            }
+
+            foreach (Dictionary<string, object> l in left)
+            {
+                string key = BindingJoinKey(l, shared);
+                if (key == null || !index.TryGetValue(key, out List<Dictionary<string, object>> matches)) continue;
+                foreach (Dictionary<string, object> r in matches)
+                {
+                    output.Add(MergeBindings(l, r));
+                    GuardChainCeiling(output.Count, ceiling, "Chained join");
+                }
+            }
+
+            return output;
+        }
+
+        private static HashSet<string> CollectBindingKeys(List<Dictionary<string, object>> rows)
+        {
+            HashSet<string> keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (Dictionary<string, object> row in rows)
+                foreach (string key in row.Keys)
+                    keys.Add(key);
+
+            return keys;
+        }
+
+        private static string BindingJoinKey(Dictionary<string, object> row, List<string> sharedVariables)
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (string variable in sharedVariables)
+            {
+                if (!row.TryGetValue(variable, out object value) || value == null) return null;
+                string identity = BindingIdentity(value);
+                if (identity == null) return null;
+                builder.Append(identity).Append('|');
+            }
+
+            return builder.ToString();
+        }
+
+        private static string BindingIdentity(object value)
+        {
+            if (value is Node node) return "n:" + node.GUID.ToString();
+            if (value is Edge edge) return "e:" + edge.GUID.ToString();
+            return null;
+        }
+
+        private static Dictionary<string, object> MergeBindings(Dictionary<string, object> left, Dictionary<string, object> right)
+        {
+            Dictionary<string, object> merged = new Dictionary<string, object>(left, StringComparer.OrdinalIgnoreCase);
+            foreach (KeyValuePair<string, object> entry in right)
+                merged[entry.Key] = entry.Value;
+
+            return merged;
+        }
+
+        private async Task<bool> EvaluateBindingWhere(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryPredicateExpression expression, Dictionary<string, object> binding, CancellationToken token)
+        {
+            return await EvaluateWhereExpressionAsync(expression, async predicate =>
+            {
+                if (!binding.TryGetValue(predicate.Variable, out object value)) return false;
+                object expected = ResolveValue(predicate.ValueExpression, request.Parameters);
+
+                if (String.IsNullOrEmpty(predicate.Field))
+                    return CompareValues(NormalizeJsonValue(value), predicate.Operator, expected);
+
+                if (value is Node node) return await NodePredicateMatches(tenantGuid, graphGuid, node, predicate, expected, token).ConfigureAwait(false);
+                if (value is Edge edge) return await EdgePredicateMatches(tenantGuid, graphGuid, edge, predicate, expected, token).ConfigureAwait(false);
+                return false;
+            }).ConfigureAwait(false);
+        }
+
+        private async Task<List<Dictionary<string, object>>> ApplyWithClause(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryWith with, List<Dictionary<string, object>> environment, int ceiling, CancellationToken token)
+        {
+            bool aggregating = with.Items.Any(item => item.Kind == GraphQueryReturnItemKindEnum.Aggregate);
+            List<Dictionary<string, object>> projected = new List<Dictionary<string, object>>();
+
+            if (!aggregating)
+            {
+                foreach (Dictionary<string, object> binding in environment)
+                {
+                    Dictionary<string, object> row = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    foreach (GraphQueryReturnItem item in with.Items)
+                    {
+                        binding.TryGetValue(item.Variable, out object value);
+                        row[item.Alias] = value;
+                    }
+
+                    projected.Add(row);
+                }
+            }
+            else
+            {
+                List<GraphQueryReturnItem> keyItems = with.Items.Where(item => item.Kind == GraphQueryReturnItemKindEnum.Variable).ToList();
+                List<GraphQueryReturnItem> aggregateItems = with.Items.Where(item => item.Kind == GraphQueryReturnItemKindEnum.Aggregate).ToList();
+
+                Dictionary<string, List<Dictionary<string, object>>> groups = new Dictionary<string, List<Dictionary<string, object>>>();
+                Dictionary<string, Dictionary<string, object>> representatives = new Dictionary<string, Dictionary<string, object>>();
+                List<string> order = new List<string>();
+
+                foreach (Dictionary<string, object> binding in environment)
+                {
+                    string key = GroupingKey(binding, keyItems);
+                    if (!groups.TryGetValue(key, out List<Dictionary<string, object>> bucket))
+                    {
+                        bucket = new List<Dictionary<string, object>>();
+                        groups[key] = bucket;
+                        representatives[key] = binding;
+                        order.Add(key);
+                    }
+
+                    bucket.Add(binding);
+                }
+
+                foreach (string key in order)
+                {
+                    token.ThrowIfCancellationRequested();
+                    Dictionary<string, object> row = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    Dictionary<string, object> representative = representatives[key];
+                    foreach (GraphQueryReturnItem keyItem in keyItems)
+                    {
+                        representative.TryGetValue(keyItem.Variable, out object value);
+                        row[keyItem.Alias] = value;
+                    }
+
+                    foreach (GraphQueryReturnItem aggregateItem in aggregateItems)
+                        row[aggregateItem.Alias] = await CalculateAggregate(tenantGuid, graphGuid, groups[key], aggregateItem, token).ConfigureAwait(false);
+
+                    projected.Add(row);
+                    GuardChainCeiling(projected.Count, ceiling, "Chained WITH grouping");
+                }
+            }
+
+            if (with.WhereExpression != null)
+            {
+                List<Dictionary<string, object>> filtered = new List<Dictionary<string, object>>();
+                foreach (Dictionary<string, object> row in projected)
+                {
+                    token.ThrowIfCancellationRequested();
+                    if (await EvaluateBindingWhere(tenantGuid, graphGuid, request, with.WhereExpression, row, token).ConfigureAwait(false))
+                        filtered.Add(row);
+                }
+
+                projected = filtered;
+            }
+
+            if (!String.IsNullOrEmpty(with.OrderField))
+            {
+                GraphQueryAst orderAst = new GraphQueryAst
+                {
+                    OrderField = with.OrderField,
+                    OrderVariable = with.OrderVariable,
+                    OrderDescending = with.OrderDescending
+                };
+
+                projected = projected.OrderBy(row => ResolveOrderValue(row, orderAst), OrderValueComparer.Instance).ToList();
+                if (with.OrderDescending) projected.Reverse();
+            }
+
+            if (with.Skip.HasValue && with.Skip.Value > 0) projected = projected.Skip(with.Skip.Value).ToList();
+            if (with.Limit.HasValue && projected.Count > with.Limit.Value) projected = projected.Take(with.Limit.Value).ToList();
+
+            return projected;
+        }
+
+        private static string GroupingKey(Dictionary<string, object> binding, List<GraphQueryReturnItem> keyItems)
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (GraphQueryReturnItem keyItem in keyItems)
+            {
+                binding.TryGetValue(keyItem.Variable, out object value);
+                string identity = BindingIdentity(value);
+                builder.Append(identity ?? ("v:" + (value?.ToString() ?? "null"))).Append('|');
+            }
+
+            return builder.ToString();
+        }
+
+        private static void GuardChainCeiling(int count, int ceiling, string operation)
+        {
+            if (ceiling < Int32.MaxValue && count > ceiling)
+                throw new ArgumentException(ScanCeilingExceededMessage(operation, ceiling));
+        }
+
+        #endregion
 
         internal async Task<GraphQueryResult> ExecuteCreateNode(Guid tenantGuid, Guid graphGuid, GraphQueryRequest request, GraphQueryAst ast, CancellationToken token)
         {

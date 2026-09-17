@@ -674,6 +674,8 @@ Native graph queries execute within one tenant and one graph. See [DSL.md](DSL.m
 
 `MaxResults` bounds the returned result page. `MaxScanRows` (default `1000000`, `0` disables it) bounds *global* operations — aggregates (`COUNT`/`SUM`/`AVG`/`MIN`/`MAX`) and `ORDER BY` — which are evaluated over the whole matching set rather than a single page. A global query whose matching set exceeds `MaxScanRows` returns `400 Bad Request` rather than a silently truncated (wrong) aggregate or top-N. Ordinary reads are unaffected and remain bounded by `MaxResults` and any `LIMIT`. See [DSL.md](DSL.md#ordering-and-limit).
 
+Read queries may **chain** multiple `MATCH` clauses, optionally separated by `WITH` clauses (projection, filter, order, and aggregation), terminated by a single `RETURN`; later clauses join on variables bound by earlier ones. Intermediate join and grouping row sets are bounded by `MaxScanRows` the same way. See [Query Chaining](DSL.md#query-chaining-multiple-match-and-with).
+
 Read-only queries require read permission. Mutation queries require write permission.
 
 ### Graph Query Response

@@ -51,13 +51,13 @@ namespace LiteGraph.Query
             {
                 Consume();
                 ExpectKeyword("MATCH");
-                return ParseMatch(optional: true);
+                return ParseMatchOrChain(optional: true);
             }
 
             if (IsKeyword("MATCH"))
             {
                 Consume();
-                return ParseMatch(optional: false);
+                return ParseMatchOrChain(optional: false);
             }
 
             if (IsKeyword("CREATE")) return ParseCreate();
@@ -65,7 +65,7 @@ namespace LiteGraph.Query
             throw Error(Current, "Expected MATCH, OPTIONAL MATCH, CREATE, or CALL");
         }
 
-        private GraphQueryAst ParseMatch(bool optional)
+        private GraphQueryAst ParseMatchOrChain(bool optional)
         {
             bool shortest = false;
             if (IsKeyword("SHORTEST"))
@@ -81,6 +81,25 @@ namespace LiteGraph.Query
                 return ParseNativeMatch();
             }
 
+            GraphQueryAst first = ParseMatchPatternBody(optional, shortest);
+
+            // A following MATCH, OPTIONAL MATCH, or WITH promotes this to a chained (multi-clause) read query.
+            if (IsKeyword("MATCH") || IsKeyword("OPTIONAL") || IsKeyword("WITH"))
+                return ParseChainedQuery(first);
+
+            // Single-clause query: preserve the original per-kind tail (mutation applies to node/edge only).
+            if (first.Kind != GraphQueryKindEnum.MatchPath)
+                ParseOptionalMatchMutation(first, first.Kind == GraphQueryKindEnum.MatchEdge);
+
+            ParseReturnOrderLimit(first);
+            return first;
+        }
+
+        // Parses a MATCH clause's graph pattern plus its optional WHERE into a single-clause AST (Kind MatchNode,
+        // MatchEdge, or MatchPath). It does not consume RETURN/ORDER/LIMIT or any mutation tail, so the caller can
+        // decide whether the clause stands alone or begins a chained pipeline.
+        private GraphQueryAst ParseMatchPatternBody(bool optional, bool shortest)
+        {
             NodePattern first = ParseNodePattern(false);
 
             if (ConsumeOptional(GraphQueryTokenTypeEnum.Dash))
@@ -132,7 +151,6 @@ namespace LiteGraph.Query
                     };
 
                     ParseOptionalWhere(pathAst);
-                    ParseReturnOrderLimit(pathAst);
                     return pathAst;
                 }
 
@@ -148,8 +166,6 @@ namespace LiteGraph.Query
                 };
 
                 ParseOptionalWhere(ast);
-                ParseOptionalMatchMutation(ast, true);
-                ParseReturnOrderLimit(ast);
                 return ast;
             }
 
@@ -163,9 +179,217 @@ namespace LiteGraph.Query
 
             if (shortest) throw Error(Previous, "MATCH SHORTEST is only supported for path queries.");
             ParseOptionalWhere(nodeAst);
-            ParseOptionalMatchMutation(nodeAst, false);
-            ParseReturnOrderLimit(nodeAst);
             return nodeAst;
+        }
+
+        private GraphQueryAst ParseChainedQuery(GraphQueryAst first)
+        {
+            GraphQueryAst chained = new GraphQueryAst { Kind = GraphQueryKindEnum.Chained };
+            RequireChainableMatch(first);
+            chained.Clauses.Add(new GraphQueryClause { Type = GraphQueryClauseTypeEnum.Match, Match = first });
+
+            while (true)
+            {
+                if (IsKeyword("OPTIONAL"))
+                    throw Error(Current, "OPTIONAL MATCH is not supported inside a chained query in this release.");
+
+                if (IsKeyword("MATCH"))
+                {
+                    Consume();
+                    if (IsKeyword("SHORTEST"))
+                        throw Error(Current, "MATCH SHORTEST is not supported inside a chained query in this release.");
+
+                    GraphQueryAst clause = ParseMatchPatternBody(optional: false, shortest: false);
+                    RequireChainableMatch(clause);
+                    chained.Clauses.Add(new GraphQueryClause { Type = GraphQueryClauseTypeEnum.Match, Match = clause });
+                    continue;
+                }
+
+                if (IsKeyword("WITH"))
+                {
+                    chained.Clauses.Add(new GraphQueryClause { Type = GraphQueryClauseTypeEnum.With, With = ParseWithClause() });
+                    continue;
+                }
+
+                break;
+            }
+
+            ParseReturnOrderLimit(chained);
+            ValidateChainedScope(chained);
+            return chained;
+        }
+
+        private void RequireChainableMatch(GraphQueryAst match)
+        {
+            if (match.IsOptional)
+                throw Error(Current, "OPTIONAL MATCH is not supported inside a chained query in this release.");
+
+            if (match.Kind == GraphQueryKindEnum.MatchNode) return;
+
+            if (match.Kind == GraphQueryKindEnum.MatchEdge
+                && match.PathSegments != null
+                && match.PathSegments.Count == 1
+                && !match.PathSegments[0].IsVariableLength)
+                return;
+
+            throw Error(Current, "Chained queries support MATCH clauses over a node or a single directed edge. "
+                + "Express multi-hop or variable-length patterns as separate single-edge MATCH clauses.");
+        }
+
+        private GraphQueryWith ParseWithClause()
+        {
+            ExpectKeyword("WITH");
+            GraphQueryWith with = new GraphQueryWith
+            {
+                Items = ParseReturnItemList()
+            };
+            if (with.Items.Count < 1) throw Error(Current, "WITH requires at least one item");
+
+            if (IsKeyword("WHERE"))
+            {
+                Consume();
+                with.WhereExpression = ParseWhereOrExpression();
+            }
+
+            if (IsKeyword("ORDER"))
+            {
+                Consume();
+                ExpectKeyword("BY");
+                string first = Expect(GraphQueryTokenTypeEnum.Identifier, "ORDER BY variable expected").Text;
+                if (ConsumeOptional(GraphQueryTokenTypeEnum.Dot))
+                {
+                    with.OrderVariable = first;
+                    List<string> fields = new List<string> { Expect(GraphQueryTokenTypeEnum.Identifier, "ORDER BY field expected").Text };
+                    while (ConsumeOptional(GraphQueryTokenTypeEnum.Dot))
+                        fields.Add(Expect(GraphQueryTokenTypeEnum.Identifier, "ORDER BY field segment expected").Text);
+                    with.OrderField = String.Join(".", fields);
+                }
+                else
+                {
+                    with.OrderField = first;
+                }
+
+                if (IsKeyword("ASC")) Consume();
+                else if (IsKeyword("DESC")) { Consume(); with.OrderDescending = true; }
+            }
+
+            if (IsKeyword("SKIP"))
+            {
+                Consume();
+                string value = Expect(GraphQueryTokenTypeEnum.Number, "SKIP value expected").Text;
+                if (!Int32.TryParse(value, out int skip) || skip < 0)
+                    throw Error(Previous, "SKIP must be a non-negative integer");
+                with.Skip = skip;
+            }
+
+            if (IsKeyword("LIMIT"))
+            {
+                Consume();
+                string value = Expect(GraphQueryTokenTypeEnum.Number, "LIMIT value expected").Text;
+                if (!Int32.TryParse(value, out int limit) || limit < 1)
+                    throw Error(Previous, "LIMIT must be a positive integer");
+                with.Limit = limit;
+            }
+
+            return with;
+        }
+
+        private void ValidateChainedScope(GraphQueryAst chained)
+        {
+            HashSet<string> scope = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (GraphQueryClause clause in chained.Clauses)
+            {
+                if (clause.Type == GraphQueryClauseTypeEnum.Match)
+                {
+                    List<string> patternVars = PatternVariables(clause.Match);
+                    HashSet<string> visible = new HashSet<string>(scope, StringComparer.OrdinalIgnoreCase);
+                    foreach (string v in patternVars) visible.Add(v);
+
+                    foreach (string referenced in ReferencedWhereVariables(clause.Match.WhereExpression))
+                    {
+                        if (!visible.Contains(referenced))
+                            throw Error(Current, "WHERE references unbound variable '" + referenced + "' in a chained query.");
+                    }
+
+                    foreach (string v in patternVars) scope.Add(v);
+                }
+                else
+                {
+                    GraphQueryWith with = clause.With;
+                    foreach (GraphQueryReturnItem item in with.Items)
+                    {
+                        foreach (string referenced in ItemReferencedVariables(item))
+                        {
+                            if (!scope.Contains(referenced))
+                                throw Error(Current, "WITH references unbound variable '" + referenced + "' in a chained query.");
+                        }
+                    }
+
+                    HashSet<string> projected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (GraphQueryReturnItem item in with.Items) projected.Add(item.Alias);
+
+                    foreach (string referenced in ReferencedWhereVariables(with.WhereExpression))
+                    {
+                        if (!projected.Contains(referenced))
+                            throw Error(Current, "WITH ... WHERE references '" + referenced + "', which is not projected by that WITH.");
+                    }
+
+                    scope = projected;
+                }
+            }
+
+            foreach (GraphQueryReturnItem item in chained.ReturnItems)
+            {
+                foreach (string referenced in ItemReferencedVariables(item))
+                {
+                    if (!scope.Contains(referenced))
+                        throw Error(Current, "RETURN references unbound variable '" + referenced + "' in a chained query.");
+                }
+            }
+        }
+
+        private static List<string> PatternVariables(GraphQueryAst match)
+        {
+            List<string> vars = new List<string>();
+            if (match.Kind == GraphQueryKindEnum.MatchNode)
+            {
+                if (!String.IsNullOrEmpty(match.NodeVariable)) vars.Add(match.NodeVariable);
+                return vars;
+            }
+
+            if (!String.IsNullOrEmpty(match.FromVariable)) vars.Add(match.FromVariable);
+            if (!String.IsNullOrEmpty(match.EdgeVariable)) vars.Add(match.EdgeVariable);
+            if (!String.IsNullOrEmpty(match.ToVariable)) vars.Add(match.ToVariable);
+            return vars;
+        }
+
+        private List<string> ReferencedWhereVariables(GraphQueryPredicateExpression expression)
+        {
+            List<string> result = new List<string>();
+            if (expression == null) return result;
+            List<GraphQueryPredicate> predicates = new List<GraphQueryPredicate>();
+            CollectPredicates(expression, predicates);
+            foreach (GraphQueryPredicate predicate in predicates)
+            {
+                if (!String.IsNullOrEmpty(predicate.Variable) && !result.Contains(predicate.Variable, StringComparer.OrdinalIgnoreCase))
+                    result.Add(predicate.Variable);
+            }
+
+            return result;
+        }
+
+        private static List<string> ItemReferencedVariables(GraphQueryReturnItem item)
+        {
+            List<string> result = new List<string>();
+            if (item.Kind == GraphQueryReturnItemKindEnum.Aggregate)
+            {
+                if (!item.AggregateWildcard && !String.IsNullOrEmpty(item.Variable)) result.Add(item.Variable);
+                return result;
+            }
+
+            if (!String.IsNullOrEmpty(item.Variable)) result.Add(item.Variable);
+            return result;
         }
 
         private GraphQueryAst ParseNativeMatch()
@@ -493,21 +717,30 @@ namespace LiteGraph.Query
         private GraphQueryPredicate ParseWherePredicate()
         {
             string variable = Expect(GraphQueryTokenTypeEnum.Identifier, "WHERE variable expected").Text;
-            Expect(GraphQueryTokenTypeEnum.Dot, "'.' expected");
-            List<string> fields = new List<string>
-            {
-                Expect(GraphQueryTokenTypeEnum.Identifier, "WHERE field expected").Text
-            };
 
-            while (ConsumeOptional(GraphQueryTokenTypeEnum.Dot))
+            // A dotted field path (variable.field[.segment...]) references an object member. A bare variable with no
+            // dot references a scalar column produced by a WITH projection (for example a WITH ... aggregate alias),
+            // used by HAVING-style filters in chained queries.
+            string field = null;
+            if (ConsumeOptional(GraphQueryTokenTypeEnum.Dot))
             {
-                fields.Add(Expect(GraphQueryTokenTypeEnum.Identifier, "WHERE field segment expected").Text);
+                List<string> fields = new List<string>
+                {
+                    Expect(GraphQueryTokenTypeEnum.Identifier, "WHERE field expected").Text
+                };
+
+                while (ConsumeOptional(GraphQueryTokenTypeEnum.Dot))
+                {
+                    fields.Add(Expect(GraphQueryTokenTypeEnum.Identifier, "WHERE field segment expected").Text);
+                }
+
+                field = String.Join(".", fields);
             }
 
             return new GraphQueryPredicate
             {
                 Variable = variable,
-                Field = String.Join(".", fields),
+                Field = field,
                 Operator = ParseWhereOperator(),
                 ValueExpression = ParseValueExpression()
             };
