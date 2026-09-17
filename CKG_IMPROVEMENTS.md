@@ -52,26 +52,26 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 
 ## Priority Table (ordered by Score, descending)
 
-Status column added in the v9.0.0 re-assessment above. Scores are the *original* pre-v9.0 prioritization (kept for continuity); the Status reflects what v9.0.0 delivered.
+Status column added in the v9.0.0 re-assessment above. Scores are the *original* pre-v9.0 prioritization (kept for continuity); the Status reflects what v9.0.0 delivered. The **Priority** column is the forward-looking recommendation for what to do next among the *open* items (fixed/improved items are **Done**): **P1** do next, **P2** near-term, **P3** later/roadmap, **Defer** deliberately low (design limit or reframe candidate).
 
-| # | Gap (§) | Brief description | Legit. | Value | Simpl. | Score | Status (post-v9.0) |
-|---|---------|-------------------|:---:|:---:|:---:|:---:|---|
-| 1 | Unpublished scale evidence (§3.7) | Benchmark *harness* exists but no node/edge counts, latency, throughput, or hardware ever published | 9 | 8 | 8 | 25 | **Open** (now also covers algorithm compute ceiling) |
-| 2 | No graph algorithms (§3.2) | No centrality, community detection, PageRank, or embeddings — the "cognition" layer is absent | 10 | 9 | 4 | 23 | ✅ **Fixed (v9.0)** |
-| 3 | Audit records denials only (§3.9) | Successful privileged actions leave no audit trail — fails the "who changed what, when" governance question | 8 | 8 | 7 | 23 | ✅ **Fixed (v9.0)** |
-| 5 | README/site version drift (intro) | README on `main` documents v7.0.0 while site documents v8.1 — misleads external evaluators | 8 | 5 | 9 | 22 | ✅ **Fixed (v9.0)** |
-| 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | ✅ **Fixed (v9.0)** |
-| 7 | Keyword-match authz fallback (§3.9) | Query authorization falls back to keyword matching (`CREATE`/`SET`/…) when parsing fails — weak mutation boundary | 7 | 6 | 7 | 20 | ✅ **Fixed (v9.0)** |
-| 8 | No SSO/OIDC/SAML (§3.9) | No enterprise identity federation (out of scope today) | 8 | 7 | 5 | 20 | **Open** |
-| 9 | HNSW rebuild-after-restore footgun (§3.11) | Vector index files are derived artifacts needing rebuild after restore/migration; not in a DR runbook | 7 | 5 | 8 | 20 | ✅ **Fixed (v9.0)** — DR runbook added |
-| 11 | 32-hop traversal cap (§3.3) | Bounded traversal only; no unbounded variable-length paths (rejected by parser) | 7 | 6 | 6 | 19 | **Open** |
-| 12 | No cross-graph/cross-tenant queries (§3.3) | Partitioned graphs can't be spanned by one query; federation must live in app code (one-way door) | 8 | 7 | 4 | 19 | **Open** (algorithms are also single-graph) |
-| 13 | Authz granularity graph-level only (§3.9) | RBAC only at tenant/graph level, enforced at REST/MCP boundary — no node/edge/property-level control | 8 | 7 | 4 | 19 | **Open** (new `Algorithm` resource type added, still graph-level) |
-| 14 | No multi-`MATCH` query chaining (§3.3) | Query chaining not yet supported | 7 | 6 | 5 | 18 | **Open** |
-| 15 | Embedded mode has no authz (§3.9) | Core `LiteGraphClient`/repo APIs are permission-agnostic — any embedded .NET caller has unrestricted access | 8 | 6 | 4 | 18 | **Open** (`client.Algorithm` is likewise permission-agnostic embedded) |
-| 16 | HA delegated to PostgreSQL (§3.11) | No native failover orchestration; relies on Postgres HA + process supervisor | 5 | 6 | 5 | 16 | **Open** |
-| 17 | Query language doesn't generate embeddings (§3.4) | Vector search takes *supplied* embeddings only; generation lives at chat/RAG/app layer | 5 | 4 | 6 | 15 | 🟡 **Improved (v9.0)** — server-side node-embedding generation added |
-| 18 | No embedded access for Python/JS (§3.8) | Python/JS SDKs are REST clients; embedded in-process path is .NET-only | 6 | 5 | 3 | 14 | **Open** (v9.0 added algorithm methods, still REST clients) |
+| # | Gap (§) | Brief description | Legit. | Value | Simpl. | Score | Status (post-v9.0) | Priority |
+|---|---------|-------------------|:---:|:---:|:---:|:---:|---|:---:|
+| 1 | Unpublished scale evidence (§3.7) | Benchmark *harness* exists but no node/edge counts, latency, throughput, or hardware ever published | 9 | 8 | 8 | 25 | **Open** (now also covers algorithm compute ceiling) | **P1** |
+| 2 | No graph algorithms (§3.2) | No centrality, community detection, PageRank, or embeddings — the "cognition" layer is absent | 10 | 9 | 4 | 23 | ✅ **Fixed (v9.0)** | Done |
+| 3 | Audit records denials only (§3.9) | Successful privileged actions leave no audit trail — fails the "who changed what, when" governance question | 8 | 8 | 7 | 23 | ✅ **Fixed (v9.0)** | Done |
+| 5 | README/site version drift (intro) | README on `main` documents v7.0.0 while site documents v8.1 — misleads external evaluators | 8 | 5 | 9 | 22 | ✅ **Fixed (v9.0)** | Done |
+| 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | ✅ **Fixed (v9.0)** | Done |
+| 7 | Keyword-match authz fallback (§3.9) | Query authorization falls back to keyword matching (`CREATE`/`SET`/…) when parsing fails — weak mutation boundary | 7 | 6 | 7 | 20 | ✅ **Fixed (v9.0)** | Done |
+| 8 | No SSO/OIDC/SAML (§3.9) | No enterprise identity federation (out of scope today) | 8 | 7 | 5 | 20 | **Open** | **P2** |
+| 9 | HNSW rebuild-after-restore footgun (§3.11) | Vector index files are derived artifacts needing rebuild after restore/migration; not in a DR runbook | 7 | 5 | 8 | 20 | ✅ **Fixed (v9.0)** — DR runbook added | Done |
+| 11 | 32-hop traversal cap (§3.3) | Bounded traversal only; no unbounded variable-length paths (rejected by parser) | 7 | 6 | 6 | 19 | **Open** | Defer |
+| 12 | No cross-graph/cross-tenant queries (§3.3) | Partitioned graphs can't be spanned by one query; federation must live in app code (one-way door) | 8 | 7 | 4 | 19 | **Open** (algorithms are also single-graph) | **P3** |
+| 13 | Authz granularity graph-level only (§3.9) | RBAC only at tenant/graph level, enforced at REST/MCP boundary — no node/edge/property-level control | 8 | 7 | 4 | 19 | **Open** (new `Algorithm` resource type added, still graph-level) | **P2** |
+| 14 | No multi-`MATCH` query chaining (§3.3) | Query chaining not yet supported | 7 | 6 | 5 | 18 | **Open** | **P3** |
+| 15 | Embedded mode has no authz (§3.9) | Core `LiteGraphClient`/repo APIs are permission-agnostic — any embedded .NET caller has unrestricted access | 8 | 6 | 4 | 18 | **Open** (`client.Algorithm` is likewise permission-agnostic embedded) | Defer (reframe candidate) |
+| 16 | HA delegated to PostgreSQL (§3.11) | No native failover orchestration; relies on Postgres HA + process supervisor | 5 | 6 | 5 | 16 | **Open** | **P3** |
+| 17 | Query language doesn't generate embeddings (§3.4) | Vector search takes *supplied* embeddings only; generation lives at chat/RAG/app layer | 5 | 4 | 6 | 15 | 🟡 **Improved (v9.0)** — server-side node-embedding generation added | Done |
+| 18 | No embedded access for Python/JS (§3.8) | Python/JS SDKs are REST clients; embedded in-process path is .NET-only | 6 | 5 | 3 | 14 | **Open** (v9.0 added algorithm methods, still REST clients) | Defer |
 
 ---
 
