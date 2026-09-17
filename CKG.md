@@ -280,7 +280,7 @@ The safe choice when the CKG's hot path is algorithmic computation over deep gra
 
 Architecturally, LiteGraph is the closest match to *the shape of the CKG problem* — it is the only one of the three designed around the premise that the consumer is an agent and the retrieval is hybrid. That is a real and non-obvious advantage.
 
-But it is also the least proven of the three, and the remaining gaps are in places an enterprise review probes hard: identity federation, authorization granularity, and published scale evidence. None of these is architecturally hard to close. (At-rest encryption, which such reviews also probe, is a deployment/infrastructure responsibility satisfied by an encrypted filesystem/volume or PostgreSQL TDE rather than product work; audit completeness has since been addressed — successful privileged actions are now audited.)
+But it is also the least proven of the three. The remaining item an enterprise review probes that is genuinely open is **published scale evidence**; identity federation (SSO/OIDC) is typically satisfied by an authenticating reverse proxy. Several other things such a review flags are deliberate scope decisions rather than gaps to close: authorization granularity is tenant/graph-level by design (finer isolation is modeled by partitioning), cross-graph federation is left to application code by design (the tenant/graph boundary is the point), and high availability is delegated to PostgreSQL HA by design rather than reimplemented. (At-rest encryption is a deployment/infrastructure responsibility satisfied by an encrypted filesystem/volume or PostgreSQL TDE; audit completeness has since been addressed — successful privileged actions are now audited.)
 
 ---
 

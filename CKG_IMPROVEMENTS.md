@@ -34,11 +34,16 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 - **#17 — Query language doesn't generate embeddings.** Largely addressed. The query language still takes *supplied* embeddings for search, but v9.0 adds server-side **node embedding generation** (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint, storing each as an HNSW-indexable node vector. The generate → store → search loop is now closable through the API without external code (verified end-to-end against a live Ollama endpoint). The residual — embedding generation is not literally inside the `CALL` syntax — is cosmetic.
 
 **Still open — and now the top of the list (unchanged by v9.0):**
-- Enterprise/governance: **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**.
+- Enterprise/governance: **#8 no SSO/OIDC**.
 
 > **Note:** An earlier draft included "no encryption at rest." It has been removed as not a product gap: at-rest encryption is a deployment/infrastructure concern the operator already controls — an encrypted filesystem/volume (LUKS, dm-crypt, BitLocker, cloud-provider disk encryption) or PostgreSQL's own transparent data encryption covers the SQLite file and the Postgres data directory with no application involvement. Building a second, in-product encryption layer on top would duplicate a solved OS/storage capability. LiteGraph ships as a container/binary over storage the operator provisions, so this is theirs to enable, not the product's to reimplement.
-- Reasoning correctness/shape: **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
-- Data lifecycle/ops: **#1 no published scale evidence**, **#16 HA delegated to Postgres**, **#18 Python/JS are REST-only**.
+- Reasoning correctness/shape: **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
+- Data lifecycle/ops: **#1 no published scale evidence**, **#18 Python/JS are REST-only**.
+
+**By design (intentional — not tracked as gaps):**
+- **#12 — No cross-graph/cross-tenant queries.** The tenant/graph partition is a deliberate isolation boundary (it fails closed: a query executes within exactly one tenant and one graph). Federation across partitions belongs in application code by design; the boundary is the point.
+- **#13 — Authz granularity is tenant/graph-level.** Tenant/graph is the intended RBAC granularity, enforced at the REST/MCP boundary. Node/edge/property-level authorization is deliberately out of scope; finer-grained policy is modeled by partitioning into graphs/tenants or enforced by the calling application.
+- **#16 — HA delegated to PostgreSQL.** LiteGraph deliberately does not reimplement failover orchestration; it rides PostgreSQL HA plus a process supervisor — infrastructure most platform teams already run well. Building native clustering would duplicate a solved capability.
 
 > **Note:** An earlier draft included "no provenance/temporality" (no versioned nodes/edges or point-in-time reconstruction). It has been removed as not a product gap: LiteGraph stores current graph state, and *when and how the graph changes* is the application owner's control surface — a graph database is not object storage with built-in versioning. Owners that need history model it deliberately at the app layer (an append-only event log, validity intervals on edges, or versioned records), which is the right place for it because only the app knows which changes are semantically meaningful. Building implicit, universal versioning into the store would impose storage growth and write-path cost on every deployment for a policy that belongs to the owner. Request history and per-turn chat records remain available for partial forensic coverage.
 
@@ -48,13 +53,13 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 - Algorithms compute over a **whole-graph in-memory adjacency** with a configurable node/edge ceiling. That raises the stakes on **#1 (scale evidence)** — it should now quantify both storage scale *and* the algorithm compute ceiling — while the projection-export path is the honest escape hatch above the ceiling.
 - Embedding generation creates many more HNSW-indexed vectors, which raised the stakes on index rebuild after restore — now addressed by the DR runbook (**#9**, closed). (This originally also sharpened **#3 (audit)** because algorithm write-back and embedding generation were unaudited successful mutations — now closed: those privileged REST actions produce `Permitted` audit records.)
 
-**Overall.** The decisive functional gap is gone: LiteGraph is now the only one of the three candidates that ships the hybrid-retrieval *and* the cognition (algorithms) layer, with a first-class external-compute escape hatch. Audit completeness — the first of the enterprise-review items — is now closed (#3). What remains is the rest of the **enterprise-review surface** CKG.md §3.9/§5 flagged — identity federation, authz depth — plus **published scale evidence (#1)**, still the single highest-scored open item. None of these are architecturally hard; all are still open. For an *agent-facing, retrieval-and-cognition-dominant* CKG, LiteGraph's case is materially stronger post-v9.0; for a deployment gated on node-level authorization, SSO, or demonstrated scale, the open items above are still the deciders. (Encryption at rest and native provenance/versioning, previously listed here, are treated as operator/deployment responsibilities rather than product gaps — see the notes above.)
+**Overall.** The decisive functional gap is gone: LiteGraph is now the only one of the three candidates that ships the hybrid-retrieval *and* the cognition (algorithms) layer, with a first-class external-compute escape hatch. Every genuine code defect the analysis surfaced is closed. What remains genuinely **open** is a short list: **published scale evidence (#1)** — still the single highest-scored item and the most conspicuous to any external evaluator — plus **identity federation (#8)** (typically satisfied by an authenticating reverse proxy) and a couple of lower-priority capability items (#14 query chaining, #18 non-.NET embedded). Several things an enterprise review probes are now recorded as **intentional design decisions** rather than gaps — tenant/graph authorization granularity (#13), single-partition query scope (#12), and HA delegated to PostgreSQL (#16) — alongside the items that are operator/deployment or application-owner responsibilities (encryption at rest, provenance/versioning, embedded-mode authorization). For an *agent-facing, retrieval-and-cognition-dominant* CKG, LiteGraph's case is materially stronger post-v9.0; the practical decider that remains is demonstrated scale (#1).
 
 ---
 
 ## Priority Table (ordered by Score, descending)
 
-Status column added in the v9.0.0 re-assessment above. Scores are the *original* pre-v9.0 prioritization (kept for continuity); the Status reflects what v9.0.0 delivered. The **Priority** column is the forward-looking recommendation for what to do next among the *open* items (fixed/improved items are **Done**): **P1** do next, **P2** near-term, **P3** later/roadmap, **Defer** deliberately low (e.g., a deliberate design limit).
+Status column added in the v9.0.0 re-assessment above. Scores are the *original* pre-v9.0 prioritization (kept for continuity); the Status reflects what v9.0.0 delivered. Status values: ✅ **Fixed**, 🟡 **Improved**, 🔵 **By design** (an intentional scope decision, not a gap to close), and **Open**. The **Priority** column is the forward-looking recommendation for what to do next among the *open* items (fixed/improved/by-design items carry **Done** or **—**): **P1** do next, **P2** near-term, **P3** later/roadmap, **Defer** deliberately low (e.g., a deliberate design limit).
 
 | # | Gap (§) | Brief description | Legit. | Value | Simpl. | Score | Status (post-v9.0) | Priority |
 |---|---------|-------------------|:---:|:---:|:---:|:---:|---|:---:|
@@ -67,10 +72,10 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 | 8 | No SSO/OIDC/SAML (§3.9) | No enterprise identity federation (out of scope today) | 8 | 7 | 5 | 20 | **Open** | **P2** |
 | 9 | HNSW rebuild-after-restore footgun (§3.11) | Vector index files are derived artifacts needing rebuild after restore/migration; not in a DR runbook | 7 | 5 | 8 | 20 | ✅ **Fixed (v9.0)** — DR runbook added | Done |
 | 11 | 32-hop traversal cap (§3.3) | Bounded traversal only; no unbounded variable-length paths (rejected by parser) | 7 | 6 | 6 | 19 | **Open** | Defer |
-| 12 | No cross-graph/cross-tenant queries (§3.3) | Partitioned graphs can't be spanned by one query; federation must live in app code (one-way door) | 8 | 7 | 4 | 19 | **Open** (algorithms are also single-graph) | **P3** |
-| 13 | Authz granularity graph-level only (§3.9) | RBAC only at tenant/graph level, enforced at REST/MCP boundary — no node/edge/property-level control | 8 | 7 | 4 | 19 | **Open** (new `Algorithm` resource type added, still graph-level) | **P2** |
+| 12 | No cross-graph/cross-tenant queries (§3.3) | Partitioned graphs can't be spanned by one query; federation must live in app code (one-way door) | 8 | 7 | 4 | 19 | 🔵 **By design** — graph/tenant isolation is a deliberate boundary | — |
+| 13 | Authz granularity graph-level only (§3.9) | RBAC only at tenant/graph level, enforced at REST/MCP boundary — no node/edge/property-level control | 8 | 7 | 4 | 19 | 🔵 **By design** — tenant/graph is the intended RBAC granularity | — |
 | 14 | No multi-`MATCH` query chaining (§3.3) | Query chaining not yet supported | 7 | 6 | 5 | 18 | **Open** | **P3** |
-| 16 | HA delegated to PostgreSQL (§3.11) | No native failover orchestration; relies on Postgres HA + process supervisor | 5 | 6 | 5 | 16 | **Open** | **P3** |
+| 16 | HA delegated to PostgreSQL (§3.11) | No native failover orchestration; relies on Postgres HA + process supervisor | 5 | 6 | 5 | 16 | 🔵 **By design** — HA is delegated to PostgreSQL deliberately | — |
 | 17 | Query language doesn't generate embeddings (§3.4) | Vector search takes *supplied* embeddings only; generation lives at chat/RAG/app layer | 5 | 4 | 6 | 15 | 🟡 **Improved (v9.0)** — server-side node-embedding generation added | Done |
 | 18 | No embedded access for Python/JS (§3.8) | Python/JS SDKs are REST clients; embedded in-process path is .NET-only | 6 | 5 | 3 | 14 | **Open** (v9.0 added algorithm methods, still REST clients) | Defer |
 
@@ -190,7 +195,7 @@ The summary matrix rates Deep / unbounded traversal as **Weak (32-hop cap, bound
 
 ---
 
-### 12. No cross-graph/cross-tenant queries (§3.3) — Score 19
+### 12. No cross-graph/cross-tenant queries (§3.3) — Score 19 — 🔵 By design
 
 From the traversal/query table, LiteGraph row:
 
@@ -202,11 +207,15 @@ Reinforced in §5:
 
 > **Decide the graph-partitioning strategy early** if LiteGraph is in play — no cross-graph queries means partitioning is a one-way door.
 
+**Stance (by design).** The single-tenant, single-graph query scope is a deliberate isolation boundary that fails closed, not a missing feature. Cross-partition federation belongs in application code; the guidance to *decide the partitioning strategy early* stands, but this is a design property to plan around, not a gap tracked for closure.
+
 ---
 
-### 13. Authz granularity graph-level only (§3.9) — Score 19
+### 13. Authz granularity graph-level only (§3.9) — Score 19 — 🔵 By design
 
 The security table lists Authorization granularity for LiteGraph as **"Tenant and graph level only"** and RBAC enforcement point as **"REST/MCP boundary only."** The summary matrix rates Authorization granularity as **Weak (graph-level; REST boundary only)**.
+
+**Stance (by design).** Tenant/graph is the intended RBAC granularity, enforced at the REST/MCP boundary. Node/edge/property-level authorization is deliberately out of scope; deployments that need finer isolation model it by partitioning into graphs/tenants, or enforce it in the calling application. This is a scope decision, not a gap tracked for closure.
 
 ---
 
@@ -226,11 +235,13 @@ CKG.md factually notes that embedded mode has no authorization model. This has b
 
 ---
 
-### 16. HA delegated to PostgreSQL (§3.11) — Score 16
+### 16. HA delegated to PostgreSQL (§3.11) — Score 16 — 🔵 By design
 
 > **LiteGraph** — Explicitly does not implement failover orchestration; delegates to PostgreSQL HA plus a process supervisor. Backup via whole-database snapshot or portable per-graph JSONL export.
 
 The summary matrix rates HA / clustering as **Weak (delegated to Postgres)**.
+
+**Stance (by design).** Delegating failover to PostgreSQL HA plus a process supervisor is a deliberate choice — it rides infrastructure most platform teams already operate well, rather than reimplementing clustering LiteGraph would have to maintain. This is an intentional scope decision, not a gap tracked for closure.
 
 ---
 
