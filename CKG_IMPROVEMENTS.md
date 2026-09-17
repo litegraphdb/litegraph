@@ -32,7 +32,9 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 - **#17 — Query language doesn't generate embeddings.** Largely addressed. The query language still takes *supplied* embeddings for search, but v9.0 adds server-side **node embedding generation** (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint, storing each as an HNSW-indexable node vector. The generate → store → search loop is now closable through the API without external code (verified end-to-end against a live Ollama endpoint). The residual — embedding generation is not literally inside the `CALL` syntax — is cosmetic.
 
 **Still open — and now the top of the list (unchanged by v9.0):**
-- Enterprise/governance: **#4 no encryption at rest**, **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**.
+- Enterprise/governance: **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**.
+
+> **Note:** An earlier draft included "no encryption at rest." It has been removed as not a product gap: at-rest encryption is a deployment/infrastructure concern the operator already controls — an encrypted filesystem/volume (LUKS, dm-crypt, BitLocker, cloud-provider disk encryption) or PostgreSQL's own transparent data encryption covers the SQLite file and the Postgres data directory with no application involvement. Building a second, in-product encryption layer on top would duplicate a solved OS/storage capability. LiteGraph ships as a container/binary over storage the operator provisions, so this is theirs to enable, not the product's to reimplement.
 - Reasoning correctness/shape: **#6 scan-bounded `ORDER BY`/aggregates**, **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
 - Data lifecycle/ops: **#1 no published scale evidence**, **#10 no provenance/temporality**, **#9 HNSW rebuild-after-restore footgun**, **#16 HA delegated to Postgres**, **#18 Python/JS are REST-only**.
 
@@ -41,7 +43,7 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 - Algorithm **write-back overwrites node-data properties with no versioning**, so re-running an algorithm silently replaces prior values. That sharpens **#10 (provenance/temporality)** for a "graph that learns."
 - Embedding generation creates many more HNSW-indexed vectors, making **#9 (index rebuild after restore)** more consequential. (This originally also sharpened **#3 (audit)** because write-back and embedding generation were unaudited successful mutations — now closed: those privileged REST actions produce `Permitted` audit records.)
 
-**Overall.** The decisive functional gap is gone: LiteGraph is now the only one of the three candidates that ships the hybrid-retrieval *and* the cognition (algorithms) layer, with a first-class external-compute escape hatch. Audit completeness — the first of the enterprise-review items — is now closed (#3). What remains is the rest of the **enterprise-review surface** CKG.md §3.9/§5 flagged — encryption at rest, identity federation, authz depth — plus **published scale evidence (#1)** and **provenance (#10)**. None of these are architecturally hard; all are still open. For an *agent-facing, retrieval-and-cognition-dominant* CKG, LiteGraph's case is materially stronger post-v9.0; for a deployment gated on node-level authorization, encryption at rest, SSO, or demonstrated scale, the open items above are still the deciders.
+**Overall.** The decisive functional gap is gone: LiteGraph is now the only one of the three candidates that ships the hybrid-retrieval *and* the cognition (algorithms) layer, with a first-class external-compute escape hatch. Audit completeness — the first of the enterprise-review items — is now closed (#3). What remains is the rest of the **enterprise-review surface** CKG.md §3.9/§5 flagged — identity federation, authz depth — plus **published scale evidence (#1)** and **provenance (#10)**. None of these are architecturally hard; all are still open. For an *agent-facing, retrieval-and-cognition-dominant* CKG, LiteGraph's case is materially stronger post-v9.0; for a deployment gated on node-level authorization, SSO, or demonstrated scale, the open items above are still the deciders. (Encryption at rest, previously listed here, is treated as an operator/deployment responsibility rather than a product gap — see the note above.)
 
 ---
 
@@ -54,7 +56,6 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 | 1 | Unpublished scale evidence (§3.7) | Benchmark *harness* exists but no node/edge counts, latency, throughput, or hardware ever published | 9 | 8 | 8 | 25 | **Open** (now also covers algorithm compute ceiling) |
 | 2 | No graph algorithms (§3.2) | No centrality, community detection, PageRank, or embeddings — the "cognition" layer is absent | 10 | 9 | 4 | 23 | ✅ **Fixed (v9.0)** |
 | 3 | Audit records denials only (§3.9) | Successful privileged actions leave no audit trail — fails the "who changed what, when" governance question | 8 | 8 | 7 | 23 | ✅ **Fixed (v9.0)** |
-| 4 | No encryption at rest (§3.9) | No at-rest encryption for a sensitivity-classified knowledge store | 8 | 7 | 7 | 22 | **Open** |
 | 5 | README/site version drift (intro) | README on `main` documents v7.0.0 while site documents v8.1 — misleads external evaluators | 8 | 5 | 9 | 22 | ✅ **Fixed (v9.0)** |
 | 6 | Scan-bounded `ORDER BY`/aggregates (§3.3) | `COUNT(*)`/`ORDER BY` operate up to `MaxResults`, not the whole graph — a correctness trap for global reasoning | 8 | 7 | 5 | 20 | **Open** (algorithms now give a whole-graph path for some global stats) |
 | 7 | Keyword-match authz fallback (§3.9) | Query authorization falls back to keyword matching (`CREATE`/`SET`/…) when parsing fails — weak mutation boundary | 7 | 6 | 7 | 20 | ✅ **Fixed (v9.0)** |
@@ -110,15 +111,9 @@ The security table lists Audit for LiteGraph as **"Denials only,"** and the summ
 
 ---
 
-### 4. No encryption at rest (§3.9) — Score 22
+### 4. No encryption at rest (§3.9) — Removed (not a product gap)
 
-The security table lists Encryption at rest for LiteGraph as **"None,"** and the summary matrix rates it **Absent**.
-
-> Add: no encryption at rest, no enterprise identity federation, and audit that records only denials …
-
-The Option A prerequisites (§5) include:
-
-> enable PostgreSQL encryption at rest
+CKG.md factually notes LiteGraph has no *application-level* at-rest encryption. This has been removed from the gap list rather than tracked as work: at-rest encryption is a deployment/infrastructure responsibility that the operator already owns. An encrypted filesystem or volume (LUKS, dm-crypt, BitLocker, cloud-provider disk encryption) or PostgreSQL transparent data encryption protects the SQLite file and the Postgres data directory transparently, with no application involvement. A second in-product encryption layer would duplicate a solved OS/storage capability. See the note at the top of this document.
 
 ---
 
@@ -264,6 +259,6 @@ For internal deployment with LiteGraph as system of record, `CKG.md` lists these
 |---|---|---|
 | Publish scale results | #1 | Open |
 | Add OIDC / authenticating reverse proxy | #8 | Open |
-| Enable PostgreSQL encryption at rest | #4 | Open |
+| Enable PostgreSQL encryption at rest | — | Operator responsibility (removed as a product gap — encrypt the filesystem/volume or use PostgreSQL TDE) |
 | Extend audit to successful privileged actions | #3 | ✅ Fixed (v9.0) |
 | Document the embedded-mode authorization caveat | #15 | Open |

@@ -280,7 +280,7 @@ The safe choice when the CKG's hot path is algorithmic computation over deep gra
 
 Architecturally, LiteGraph is the closest match to *the shape of the CKG problem* — it is the only one of the three designed around the premise that the consumer is an agent and the retrieval is hybrid. That is a real and non-obvious advantage.
 
-But it is also the least proven of the three, and the gaps are in exactly the places an enterprise review probes hardest: identity federation, encryption at rest, authorization granularity, audit completeness, and published scale evidence. None of these is architecturally hard to close. All of them are currently open.
+But it is also the least proven of the three, and the remaining gaps are in places an enterprise review probes hard: identity federation, authorization granularity, and published scale evidence. None of these is architecturally hard to close. (At-rest encryption, which such reviews also probe, is a deployment/infrastructure responsibility satisfied by an encrypted filesystem/volume or PostgreSQL TDE rather than product work; audit completeness has since been addressed — successful privileged actions are now audited.)
 
 ---
 
@@ -294,7 +294,7 @@ Best fit if the CKG is agent-facing and retrieval-dominant.
 
 - LiteGraph holds nodes, edges, labels, tags, JSON data, and vectors; serves MCP and chat; provides transactions, RBAC at the service boundary, and the observability stack.
 - Periodic projection into `rustworkx` for centrality, community detection, and salience passes; results written back as node properties.
-- **Prerequisites before internal deployment:** publish scale results; add OIDC or an authenticating reverse proxy; enable PostgreSQL encryption at rest; extend audit to successful privileged actions; document the embedded-mode authorization caveat.
+- **Prerequisites before internal deployment:** publish scale results; add OIDC or an authenticating reverse proxy; ensure at-rest encryption at the filesystem/volume or via PostgreSQL TDE (operator responsibility, not product work); document the embedded-mode authorization caveat. (Audit of successful privileged actions is now built in.)
 
 ### Option B — Neo4j Enterprise as system of record + GDS as compute layer
 
