@@ -34,13 +34,15 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 - **#17 — Query language doesn't generate embeddings.** Largely addressed. The query language still takes *supplied* embeddings for search, but v9.0 adds server-side **node embedding generation** (`POST .../algorithms/embeddings`) using the tenant's active embedding endpoint, storing each as an HNSW-indexable node vector. The generate → store → search loop is now closable through the API without external code (verified end-to-end against a live Ollama endpoint). The residual — embedding generation is not literally inside the `CALL` syntax — is cosmetic.
 
 **Still open — and now the top of the list (unchanged by v9.0):**
-- Enterprise/governance: **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**, **#15 embedded mode has no authz**.
+- Enterprise/governance: **#8 no SSO/OIDC**, **#13 authz granularity is graph-level only**.
 
 > **Note:** An earlier draft included "no encryption at rest." It has been removed as not a product gap: at-rest encryption is a deployment/infrastructure concern the operator already controls — an encrypted filesystem/volume (LUKS, dm-crypt, BitLocker, cloud-provider disk encryption) or PostgreSQL's own transparent data encryption covers the SQLite file and the Postgres data directory with no application involvement. Building a second, in-product encryption layer on top would duplicate a solved OS/storage capability. LiteGraph ships as a container/binary over storage the operator provisions, so this is theirs to enable, not the product's to reimplement.
 - Reasoning correctness/shape: **#12 no cross-graph queries**, **#11 32-hop cap**, **#14 no multi-`MATCH` chaining**.
 - Data lifecycle/ops: **#1 no published scale evidence**, **#16 HA delegated to Postgres**, **#18 Python/JS are REST-only**.
 
 > **Note:** An earlier draft included "no provenance/temporality" (no versioned nodes/edges or point-in-time reconstruction). It has been removed as not a product gap: LiteGraph stores current graph state, and *when and how the graph changes* is the application owner's control surface — a graph database is not object storage with built-in versioning. Owners that need history model it deliberately at the app layer (an append-only event log, validity intervals on edges, or versioned records), which is the right place for it because only the app knows which changes are semantically meaningful. Building implicit, universal versioning into the store would impose storage growth and write-path cost on every deployment for a policy that belongs to the owner. Request history and per-turn chat records remain available for partial forensic coverage.
+
+> **Note:** An earlier draft included "embedded mode has no authz." It has been removed as not a product gap: embedded mode runs the core `LiteGraphClient`/repository in-process inside a host application, and in-process code is trusted by definition — authentication and authorization are the responsibility of the application into which LiteGraph is embedded, exactly as they are for any in-process library (an ORM, a cache, an embedded database). The REST/MCP server is the surface that offers enforced RBAC; embedding is the deliberate trade that swaps that boundary for in-process latency. Adding an authorization layer to the embedded API would impose a policy model on every host for a decision that belongs to the host, and callers that want enforced RBAC already have it — run the server. The design property (embedded callers are trusted) remains documented as a caveat.
 
 **New nuances v9.0 introduced (not new gaps, but they change the weighting):**
 - Algorithms compute over a **whole-graph in-memory adjacency** with a configurable node/edge ceiling. That raises the stakes on **#1 (scale evidence)** — it should now quantify both storage scale *and* the algorithm compute ceiling — while the projection-export path is the honest escape hatch above the ceiling.
@@ -52,7 +54,7 @@ LiteGraph v9.0.0 shipped since this document was written. Re-scoring against wha
 
 ## Priority Table (ordered by Score, descending)
 
-Status column added in the v9.0.0 re-assessment above. Scores are the *original* pre-v9.0 prioritization (kept for continuity); the Status reflects what v9.0.0 delivered. The **Priority** column is the forward-looking recommendation for what to do next among the *open* items (fixed/improved items are **Done**): **P1** do next, **P2** near-term, **P3** later/roadmap, **Defer** deliberately low (design limit or reframe candidate).
+Status column added in the v9.0.0 re-assessment above. Scores are the *original* pre-v9.0 prioritization (kept for continuity); the Status reflects what v9.0.0 delivered. The **Priority** column is the forward-looking recommendation for what to do next among the *open* items (fixed/improved items are **Done**): **P1** do next, **P2** near-term, **P3** later/roadmap, **Defer** deliberately low (e.g., a deliberate design limit).
 
 | # | Gap (§) | Brief description | Legit. | Value | Simpl. | Score | Status (post-v9.0) | Priority |
 |---|---------|-------------------|:---:|:---:|:---:|:---:|---|:---:|
@@ -68,7 +70,6 @@ Status column added in the v9.0.0 re-assessment above. Scores are the *original*
 | 12 | No cross-graph/cross-tenant queries (§3.3) | Partitioned graphs can't be spanned by one query; federation must live in app code (one-way door) | 8 | 7 | 4 | 19 | **Open** (algorithms are also single-graph) | **P3** |
 | 13 | Authz granularity graph-level only (§3.9) | RBAC only at tenant/graph level, enforced at REST/MCP boundary — no node/edge/property-level control | 8 | 7 | 4 | 19 | **Open** (new `Algorithm` resource type added, still graph-level) | **P2** |
 | 14 | No multi-`MATCH` query chaining (§3.3) | Query chaining not yet supported | 7 | 6 | 5 | 18 | **Open** | **P3** |
-| 15 | Embedded mode has no authz (§3.9) | Core `LiteGraphClient`/repo APIs are permission-agnostic — any embedded .NET caller has unrestricted access | 8 | 6 | 4 | 18 | **Open** (`client.Algorithm` is likewise permission-agnostic embedded) | Defer (reframe candidate) |
 | 16 | HA delegated to PostgreSQL (§3.11) | No native failover orchestration; relies on Postgres HA + process supervisor | 5 | 6 | 5 | 16 | **Open** | **P3** |
 | 17 | Query language doesn't generate embeddings (§3.4) | Vector search takes *supplied* embeddings only; generation lives at chat/RAG/app layer | 5 | 4 | 6 | 15 | 🟡 **Improved (v9.0)** — server-side node-embedding generation added | Done |
 | 18 | No embedded access for Python/JS (§3.8) | Python/JS SDKs are REST clients; embedded in-process path is .NET-only | 6 | 5 | 3 | 14 | **Open** (v9.0 added algorithm methods, still REST clients) | Defer |
@@ -217,13 +218,11 @@ From the traversal/query table, LiteGraph row:
 
 ---
 
-### 15. Embedded mode has no authz (§3.9) — Score 18
+### 15. Embedded mode has no authz (§3.9) — Removed (host-application responsibility)
 
-> **The core `LiteGraphClient` and repository APIs are permission-agnostic.** RBAC lives at the REST/MCP boundary. **Any embedded .NET caller therefore has unrestricted access to all tenants and graphs.** This means the embedded deployment mode — LiteGraph's key latency advantage — has *no authorization model at all*. Embedded mode and enforced RBAC are mutually exclusive today. That is an architectural constraint, not a configuration issue, and it should be documented explicitly rather than discovered.
+> **The core `LiteGraphClient` and repository APIs are permission-agnostic.** RBAC lives at the REST/MCP boundary. **Any embedded .NET caller therefore has unrestricted access to all tenants and graphs.**
 
-The Option A prerequisites (§5) include:
-
-> document the embedded-mode authorization caveat
+CKG.md factually notes that embedded mode has no authorization model. This has been removed from the gap list rather than tracked as work: embedded mode runs the core client/repository **in-process** inside a host application, and in-process code is trusted by definition — authentication and authorization belong to the application into which LiteGraph is embedded, exactly as they do for any in-process library (an ORM, a cache, an embedded database engine). The REST/MCP server is the surface that offers enforced RBAC; embedding is the deliberate trade that swaps that boundary for in-process latency. A caller that wants enforced RBAC runs the server. Imposing an authorization model on the embedded API would force a policy on every host for a decision that belongs to the host. The design property remains documented as a caveat; it is not a defect to fix.
 
 ---
 
@@ -265,4 +264,4 @@ For internal deployment with LiteGraph as system of record, `CKG.md` lists these
 | Add OIDC / authenticating reverse proxy | #8 | Open |
 | Enable PostgreSQL encryption at rest | — | Operator responsibility (removed as a product gap — encrypt the filesystem/volume or use PostgreSQL TDE) |
 | Extend audit to successful privileged actions | #3 | ✅ Fixed (v9.0) |
-| Document the embedded-mode authorization caveat | #15 | Open |
+| Document the embedded-mode authorization caveat | — | Host-application responsibility (removed as a product gap — embedded in-process callers are trusted; run the server for enforced RBAC) |

@@ -205,7 +205,7 @@ Stated fairly: **on latency, for Python consumers, LiteGraph and Neo4j are rough
 
 Two LiteGraph findings an enterprise reviewer will raise, stated bluntly:
 
-1. **The core `LiteGraphClient` and repository APIs are permission-agnostic.** RBAC lives at the REST/MCP boundary. **Any embedded .NET caller therefore has unrestricted access to all tenants and graphs.** This means the embedded deployment mode — LiteGraph's key latency advantage — has *no authorization model at all*. Embedded mode and enforced RBAC are mutually exclusive today. That is an architectural constraint, not a configuration issue, and it should be documented explicitly rather than discovered.
+1. **The core `LiteGraphClient` and repository APIs are permission-agnostic.** RBAC lives at the REST/MCP boundary, so an embedded .NET caller has unrestricted access to all tenants and graphs. This is by design rather than a defect: embedded mode runs the core in-process inside a host application, and in-process code is trusted exactly as it is for any in-process library — authentication and authorization are the host application's responsibility. A caller that wants enforced RBAC runs the REST/MCP server; embedding is the deliberate trade of that boundary for in-process latency. It is documented as a caveat, not tracked as a gap to close.
 2. **Query authorization falls back to keyword matching** (`CREATE`/`MERGE`/`SET`/`DELETE`/`REMOVE`) when parsing fails. A parse failure that reaches a fallback string match is a weak last line of defense for a mutation boundary.
 
 Add: no encryption at rest, no enterprise identity federation, and audit that records only denials — meaning **successful privileged actions leave no audit record**. For a CKG where "who changed what the system believes, and when" is the core governance question, that is a significant gap.
@@ -294,7 +294,7 @@ Best fit if the CKG is agent-facing and retrieval-dominant.
 
 - LiteGraph holds nodes, edges, labels, tags, JSON data, and vectors; serves MCP and chat; provides transactions, RBAC at the service boundary, and the observability stack.
 - Periodic projection into `rustworkx` for centrality, community detection, and salience passes; results written back as node properties.
-- **Prerequisites before internal deployment:** publish scale results; add OIDC or an authenticating reverse proxy; ensure at-rest encryption at the filesystem/volume or via PostgreSQL TDE (operator responsibility, not product work); document the embedded-mode authorization caveat. (Audit of successful privileged actions is now built in.)
+- **Prerequisites before internal deployment:** publish scale results; add OIDC or an authenticating reverse proxy; ensure at-rest encryption at the filesystem/volume or via PostgreSQL TDE (operator responsibility, not product work). Embedded-mode authorization is the host application's responsibility (run the REST/MCP server for enforced RBAC), and audit of successful privileged actions is now built in.
 
 ### Option B — Neo4j Enterprise as system of record + GDS as compute layer
 
