@@ -41,6 +41,7 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
 
   const endpointType: ChatEndpointType = Form.useWatch('EndpointType', form) || 'Completion';
   const provider: ChatProviderType | undefined = Form.useWatch('Provider', form);
+  const healthCheckEnabled: boolean = Form.useWatch('HealthCheckEnabled', form) ?? true;
   const comboError = provider ? validateProviderTypeCombo(provider, endpointType) : null;
 
   useEffect(() => {
@@ -61,6 +62,10 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
         Active: true,
         HealthCheckEnabled: true,
         HealthCheckUseAuth: false,
+        HealthCheckIntervalMs: 30000,
+        HealthCheckTimeoutMs: 10000,
+        UnhealthyThreshold: 2,
+        HealthyThreshold: 2,
         MaxOutputTokens: 4096,
         TimeoutMs: 120000,
         MaxConcurrentRequests: 2,
@@ -75,6 +80,11 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpointType]);
+
+  const minValidator = (min: number, message: string) => ({
+    validator: (_: unknown, value: number | null | undefined) =>
+      value == null || value >= min ? Promise.resolve() : Promise.reject(new Error(message)),
+  });
 
   const handleSubmit = async () => {
     try {
@@ -194,7 +204,9 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
                 if (!urlError) return Promise.resolve();
                 return Promise.reject(
                   new Error(
-                    urlError === 'notBaseUrl' ? t('form.endpointNotBaseUrl') : t('form.endpointInvalid')
+                    urlError === 'notBaseUrl'
+                      ? t('form.endpointNotBaseUrl')
+                      : t('form.endpointInvalid')
                   )
                 );
               },
@@ -319,6 +331,76 @@ const AddEditEndpoint = ({ tenantGuid, endpoint, onClose }: AddEditEndpointProps
           tooltip={t('form.healthCheckUseAuthTooltip')}
         >
           <Switch />
+        </LitegraphFormItem>
+        <LitegraphFormItem
+          label={t('form.healthCheckIntervalMs')}
+          name="HealthCheckIntervalMs"
+          tooltip={t('form.healthCheckIntervalMsTooltip')}
+          rules={[
+            { required: true, message: t('form.healthCheckMsMin') },
+            minValidator(1000, t('form.healthCheckMsMin')),
+          ]}
+        >
+          <InputNumber
+            min={1000}
+            step={1000}
+            precision={0}
+            disabled={!healthCheckEnabled}
+            style={{ width: '100%' }}
+            data-testid="endpoint-health-interval"
+          />
+        </LitegraphFormItem>
+        <LitegraphFormItem
+          label={t('form.healthCheckTimeoutMs')}
+          name="HealthCheckTimeoutMs"
+          tooltip={t('form.healthCheckTimeoutMsTooltip')}
+          rules={[
+            { required: true, message: t('form.healthCheckMsMin') },
+            minValidator(1000, t('form.healthCheckMsMin')),
+          ]}
+        >
+          <InputNumber
+            min={1000}
+            step={1000}
+            precision={0}
+            disabled={!healthCheckEnabled}
+            style={{ width: '100%' }}
+            data-testid="endpoint-health-timeout"
+          />
+        </LitegraphFormItem>
+        <LitegraphFormItem
+          label={t('form.unhealthyThreshold')}
+          name="UnhealthyThreshold"
+          tooltip={t('form.unhealthyThresholdTooltip')}
+          rules={[
+            { required: true, message: t('form.healthThresholdMin') },
+            minValidator(1, t('form.healthThresholdMin')),
+          ]}
+        >
+          <InputNumber
+            min={1}
+            precision={0}
+            disabled={!healthCheckEnabled}
+            style={{ width: '100%' }}
+            data-testid="endpoint-unhealthy-threshold"
+          />
+        </LitegraphFormItem>
+        <LitegraphFormItem
+          label={t('form.healthyThreshold')}
+          name="HealthyThreshold"
+          tooltip={t('form.healthyThresholdTooltip')}
+          rules={[
+            { required: true, message: t('form.healthThresholdMin') },
+            minValidator(1, t('form.healthThresholdMin')),
+          ]}
+        >
+          <InputNumber
+            min={1}
+            precision={0}
+            disabled={!healthCheckEnabled}
+            style={{ width: '100%' }}
+            data-testid="endpoint-healthy-threshold"
+          />
         </LitegraphFormItem>
       </Form>
     </LitegraphModal>
