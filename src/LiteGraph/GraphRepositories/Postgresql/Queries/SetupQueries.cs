@@ -243,7 +243,7 @@
                 + "model VARCHAR(256), "
                 + "dimensionality INT, "
                 + "content TEXT, "
-                + "embeddings BLOB, "
+                + "embeddings vector, "
                 + "createdutc VARCHAR(64), "
                 + "lastupdateutc VARCHAR(64) "
                 + ");");

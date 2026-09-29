@@ -83,7 +83,7 @@
             }
             created.Vectors = createdVectors;
             _Client.Logging.Log(SeverityEnum.Info, "created edge " + created.GUID + " in graph " + created.GraphGUID);
-            _EdgeCache.AddReplace(created.GUID, created);
+            _EdgeCache?.AddReplace(created.GUID, created);
             return created;
         }
 
@@ -110,7 +110,7 @@
 
             foreach (Edge edge in created)
             {
-                _EdgeCache.AddReplace(edge.GUID, edge);
+                _EdgeCache?.AddReplace(edge.GUID, edge);
             }
 
             return created;
@@ -429,7 +429,7 @@
             }
             updated.Vectors = updatedVectors;
             _Client.Logging.Log(SeverityEnum.Debug, "updated edge " + updated.GUID + " in graph " + updated.GraphGUID);
-            _EdgeCache.AddReplace(updated.GUID, updated);
+            _EdgeCache?.AddReplace(updated.GUID, updated);
             return updated;
         }
 
@@ -440,7 +440,7 @@
             await _Client.ValidateEdgeExists(tenantGuid, edgeGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteByGuid(tenantGuid, graphGuid, edgeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Debug, "deleted edge " + edgeGuid + " in graph " + graphGuid);
-            _EdgeCache.TryRemove(edgeGuid, out _);
+            _EdgeCache?.TryRemove(edgeGuid, out _);
         }
 
         /// <inheritdoc />
@@ -450,7 +450,7 @@
             await _Client.ValidateTenantExists(tenantGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges in tenant " + tenantGuid);
-            _EdgeCache.Clear();
+            _EdgeCache?.Clear();
         }
 
         /// <inheritdoc />
@@ -460,7 +460,7 @@
             await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges in graph " + graphGuid);
-            _EdgeCache.Clear();
+            _EdgeCache?.Clear();
         }
 
         /// <inheritdoc />
@@ -475,7 +475,7 @@
 
             foreach (Guid edgeGuid in edgeGuids)
             {
-                _EdgeCache.TryRemove(edgeGuid, out _);
+                _EdgeCache?.TryRemove(edgeGuid, out _);
             }
         }
 
@@ -487,7 +487,7 @@
             await _Client.ValidateNodeExists(tenantGuid, nodeGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges for node " + nodeGuid);
-            _EdgeCache.Clear();
+            _EdgeCache?.Clear();
         }
 
         /// <inheritdoc />
@@ -499,7 +499,7 @@
             await _Client.ValidateGraphExists(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.Edge.DeleteNodeEdges(tenantGuid, graphGuid, nodeGuids, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted edges for " + nodeGuids.Count + " node(s)");
-            _EdgeCache.Clear();
+            _EdgeCache?.Clear();
         }
 
         /// <inheritdoc />

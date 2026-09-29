@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.GraphRepositories.Postgresql.Queries;
-    using LiteGraph.Indexing.Vector;
     using Npgsql;
 
     public partial class PostgresqlGraphRepository
@@ -29,8 +28,6 @@
                             ClearGraphTransaction();
                         }
 
-                        if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
-                        VectorIndexManager = null;
                         if (_OwnsDataSource) _DataSource?.Dispose();
                     }
                 }
@@ -69,8 +66,6 @@
                 _TransactionSemaphore.Release();
             }
 
-            if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
-            VectorIndexManager = null;
             if (_OwnsDataSource) await _DataSource.DisposeAsync().ConfigureAwait(false);
 
             base.Dispose(true);
@@ -85,9 +80,6 @@
             _TransactionConnection = null;
             _GraphTransactionTenantGUID = null;
             _GraphTransactionGraphGUID = null;
-            _GraphTransactionVectorIndexFailed = false;
-            _GraphTransactionVectorIndexDirtyReason = null;
-            _GraphTransactionVectorIndexMutations.Clear();
 
             try { transaction?.Dispose(); } catch { }
             try { conn?.Close(); } catch { }
@@ -108,9 +100,6 @@
                 _TransactionConnection = null;
                 _GraphTransactionTenantGUID = null;
                 _GraphTransactionGraphGUID = null;
-                _GraphTransactionVectorIndexFailed = false;
-                _GraphTransactionVectorIndexDirtyReason = null;
-                _GraphTransactionVectorIndexMutations.Clear();
             }
 
             if (transaction != null)
@@ -125,77 +114,9 @@
             }
         }
 
-        private void MarkVectorIndexDirtyAfterTransaction(Guid tenantGuid, Guid graphGuid, string reason)
-        {
-            try
-            {
-                ExecuteQuery(GraphQueries.SetVectorIndexDirty(
-                    tenantGuid,
-                    graphGuid,
-                    true,
-                    reason ?? "Graph transaction completed with uncertain vector index state"), true);
-            }
-            catch (Exception e)
-            {
-                Logging.Log(SeverityEnum.Warn, "failed to mark vector index dirty after graph transaction: " + e.Message);
-            }
-        }
-
-        private async Task<string> ApplyStagedVectorIndexMutationsAsync(List<GraphTransactionVectorIndexMutation> mutations)
-        {
-            foreach (GraphTransactionVectorIndexMutation staged in mutations)
-            {
-                try
-                {
-                    await VectorIndexManager.ExecuteWithIndexAsync(staged.Graph, staged.Mutation).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    string reason = (staged.DirtyReason ?? "Graph transaction vector index mutation failed after commit")
-                        + ": " + e.GetType().Name + ": " + e.Message;
-                    LiteGraphTelemetry.RecordVectorIndexMutationFailure(
-                        ProviderName,
-                        staged.Graph.VectorIndexType?.ToString(),
-                        e.GetType().Name);
-                    Logging.Log(SeverityEnum.Warn, reason);
-                    return reason;
-                }
-            }
-
-            return null;
-        }
-
-        private sealed class GraphTransactionVectorIndexMutation
-        {
-            public GraphTransactionVectorIndexMutation(
-                Graph graph,
-                string dirtyReason,
-                Func<IVectorIndex, Task> mutation)
-            {
-                Graph = graph;
-                DirtyReason = dirtyReason;
-                Mutation = mutation;
-            }
-
-            public Graph Graph { get; }
-            public string DirtyReason { get; }
-            public Func<IVectorIndex, Task> Mutation { get; }
-        }
-
-        private void EnsureRequestHistoryTransactionDiagnosticsColumn()
-        {
-            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory") + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT;", true);
-        }
-
         private Task EnsureRequestHistoryTransactionDiagnosticsColumnAsync(CancellationToken token)
         {
             return ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory") + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT;", true, token);
-        }
-
-        private void EnsureUserAdminFlagColumns()
-        {
-            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS issystemadmin INT NOT NULL DEFAULT 0;", true);
-            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS istenantadmin INT NOT NULL DEFAULT 0;", true);
         }
 
         private async Task EnsureUserAdminFlagColumnsAsync(CancellationToken token)
@@ -204,47 +125,9 @@
             await ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("users") + " ADD COLUMN IF NOT EXISTS istenantadmin INT NOT NULL DEFAULT 0;", true, token).ConfigureAwait(false);
         }
 
-        private void EnsureChatEndpointContextWindowColumn()
-        {
-            ExecuteQuery("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("chatendpoints") + " ADD COLUMN IF NOT EXISTS contextwindowtokens INT NOT NULL DEFAULT 0;", true);
-        }
-
         private Task EnsureChatEndpointContextWindowColumnAsync(CancellationToken token)
         {
             return ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("chatendpoints") + " ADD COLUMN IF NOT EXISTS contextwindowtokens INT NOT NULL DEFAULT 0;", true, token);
-        }
-
-        private void EnsureBuiltInAuthorizationRoles()
-        {
-            bool changed = false;
-
-            foreach (RoleDefinition definition in AuthorizationPolicyDefinitions.BuiltInRoles)
-            {
-                AuthorizationRole role = AuthorizationRole.FromDefinition(definition);
-                DataTable existing = ExecuteQuery(AuthorizationRoleQueries.SelectRoleByName(null, role.Name));
-
-                if (existing != null && existing.Rows.Count > 0)
-                {
-                    DataRow row = existing.Rows[0];
-                    string guid = Converters.GetDataRowStringValue(row, "guid");
-                    if (!String.IsNullOrEmpty(guid) && Guid.TryParse(guid, out Guid parsedGuid))
-                        role.GUID = parsedGuid;
-
-                    string created = Converters.GetDataRowStringValue(row, "createdutc");
-                    if (!String.IsNullOrEmpty(created) && DateTime.TryParse(created, out DateTime parsedCreated))
-                        role.CreatedUtc = DateTime.SpecifyKind(parsedCreated, DateTimeKind.Utc);
-
-                    ExecuteQuery(AuthorizationRoleQueries.UpdateRole(role), true);
-                    changed = true;
-                }
-                else
-                {
-                    ExecuteQuery(AuthorizationRoleQueries.InsertRole(role), true);
-                    changed = true;
-                }
-            }
-
-            if (changed) AuthorizationPolicyChangeTracker.SignalChanged();
         }
 
         private async Task EnsureBuiltInAuthorizationRolesAsync(CancellationToken token)

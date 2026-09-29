@@ -82,7 +82,7 @@
             }
             created.Vectors = createdVectors;
             _Client.Logging.Log(SeverityEnum.Info, "created node " + created.GUID + " in graph " + created.GraphGUID);
-            _NodeCache.AddReplace(created.GUID, created);
+            _NodeCache?.AddReplace(created.GUID, created);
             return created;
         }
 
@@ -108,7 +108,7 @@
 
             foreach (Node node in created)
             {
-                _NodeCache.AddReplace(node.GUID, node);
+                _NodeCache?.AddReplace(node.GUID, node);
             }
 
             return created;
@@ -373,7 +373,7 @@
             }
             updated.Vectors = updatedVectors;
             _Client.Logging.Log(SeverityEnum.Debug, "updated node " + updated.GUID + " in graph " + updated.GraphGUID);
-            _NodeCache.AddReplace(updated.GUID, updated);
+            _NodeCache?.AddReplace(updated.GUID, updated);
             return updated;
         }
 
@@ -384,7 +384,7 @@
             token.ThrowIfCancellationRequested();
             await _Repo.Node.DeleteByGuid(tenantGuid, graphGuid, nodeGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted node " + nodeGuid + " in graph " + graphGuid);
-            _NodeCache.TryRemove(nodeGuid, out _);
+            _NodeCache?.TryRemove(nodeGuid, out _);
         }
 
         /// <inheritdoc />
@@ -394,7 +394,7 @@
             token.ThrowIfCancellationRequested();
             await _Repo.Node.DeleteAllInTenant(tenantGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted nodes for tenant " + tenantGuid);
-            _NodeCache.Clear();
+            _NodeCache?.Clear();
         }
 
         /// <inheritdoc />
@@ -404,7 +404,7 @@
             token.ThrowIfCancellationRequested();
             await _Repo.Node.DeleteAllInGraph(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted nodes for graph " + graphGuid);
-            _NodeCache.Clear();
+            _NodeCache?.Clear();
         }
 
         /// <inheritdoc />
@@ -418,7 +418,7 @@
 
             foreach (Guid nodeGuid in nodeGuids)
             {
-                _NodeCache.TryRemove(nodeGuid, out _);
+                _NodeCache?.TryRemove(nodeGuid, out _);
             }
         }
 

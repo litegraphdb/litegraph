@@ -312,7 +312,21 @@ namespace LiteGraph.GraphRepositories.Sqlite
             {
                 string indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");
                 VectorIndexManager = new VectorIndexManager(indexDirectory);
+                VectorIndexManager.IndexLoader = LoadVectorIndexEntriesAsync;
             }
+        }
+
+        private async Task<List<VectorIndexEntry>> LoadVectorIndexEntriesAsync(Graph graph, CancellationToken token)
+        {
+            List<VectorMetadata> vectors = new List<VectorMetadata>();
+            await foreach (VectorMetadata vector in Vector.ReadAllInGraph(graph.TenantGUID, graph.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
+            {
+                vectors.Add(vector);
+            }
+
+            if (vectors.Count < 1) return new List<VectorIndexEntry>();
+            Logging.Log(SeverityEnum.Info, "rebuilding in-memory vector index for graph " + graph.GUID + " from " + vectors.Count + " stored vectors");
+            return await VectorMethodsIndexExtensions.BuildNodeIndexEntriesAsync(this, graph, vectors, token).ConfigureAwait(false);
         }
 
         #endregion

@@ -5615,6 +5615,280 @@
             Log filename.
             </summary>
         </member>
+        <member name="T:LiteGraph.Coordination.ILockHandle">
+            <summary>
+            A held lock.  Dispose to release.
+            Thread safety: members may be read from any thread; dispose exactly once.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockHandle.Key">
+            <summary>
+            Lock key.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockHandle.Mode">
+            <summary>
+            Lock mode.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockHandle.FencingToken">
+            <summary>
+            Monotonic fencing token issued with the grant.  Zero for in-process locks.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockHandle.AcquiredUtc">
+            <summary>
+            UTC timestamp at which the lock was acquired.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockHandle.IsHeld">
+            <summary>
+            True while the lock is held.  Becomes false after release or if a distributed lease is lost.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockHandle.LostToken">
+            <summary>
+            Cancellation token cancelled when the lock is lost or released.
+            Link it into work performed under the lock so lost leases stop the work.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Coordination.ILockProvider">
+            <summary>
+            Keyed lock provider.  Implementations may be in-process (single node) or distributed (cluster).
+            Thread safety: implementations must be safe for concurrent use.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockProvider.Name">
+            <summary>
+            Provider name, for example Local or Clutch.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockProvider.IsDistributed">
+            <summary>
+            True when the provider coordinates across processes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.ILockProvider.IsAvailable">
+            <summary>
+            True when the provider is currently able to grant locks.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.ILockProvider.AcquireAsync(System.String,LiteGraph.Coordination.LockModeEnum,LiteGraph.Coordination.LockAcquireOptions,System.Threading.CancellationToken)">
+            <summary>
+            Acquire a lock, waiting according to the supplied options.
+            </summary>
+            <param name="key">Lock key.  See LockKeys.</param>
+            <param name="mode">Lock mode.</param>
+            <param name="options">Acquisition options; null uses defaults.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Held lock.  Dispose to release.</returns>
+            <exception cref="T:System.ArgumentNullException">Key is null or empty.</exception>
+            <exception cref="T:LiteGraph.Coordination.LockNotAcquiredException">The lock was not granted within the allowed time.</exception>
+            <exception cref="T:LiteGraph.Coordination.LockProviderUnavailableException">The provider cannot currently grant locks.</exception>
+        </member>
+        <member name="M:LiteGraph.Coordination.ILockProvider.TryAcquireAsync(System.String,LiteGraph.Coordination.LockModeEnum,System.Threading.CancellationToken)">
+            <summary>
+            Try to acquire a lock without waiting.
+            </summary>
+            <param name="key">Lock key.  See LockKeys.</param>
+            <param name="mode">Lock mode.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Held lock, or null if the lock is currently held elsewhere.</returns>
+            <exception cref="T:System.ArgumentNullException">Key is null or empty.</exception>
+            <exception cref="T:LiteGraph.Coordination.LockProviderUnavailableException">The provider cannot currently grant locks.</exception>
+        </member>
+        <member name="T:LiteGraph.Coordination.LocalLockHandle">
+            <summary>
+            Handle for a lock held by LocalLockProvider.
+            Thread safety: members may be read from any thread; release is idempotent.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Coordination.LocalLockProvider">
+            <summary>
+            In-process lock provider backed by Padlock.  Used for single-node deployments and embedded library use.
+            Read locks are exclusive in this provider, which is correct if conservative.
+            Thread safety: safe for concurrent use.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LocalLockProvider.Name">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.Coordination.LocalLockProvider.IsDistributed">
+            <inheritdoc />
+        </member>
+        <member name="P:LiteGraph.Coordination.LocalLockProvider.IsAvailable">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Coordination.LocalLockProvider.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LocalLockProvider.AcquireAsync(System.String,LiteGraph.Coordination.LockModeEnum,LiteGraph.Coordination.LockAcquireOptions,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Coordination.LocalLockProvider.TryAcquireAsync(System.String,LiteGraph.Coordination.LockModeEnum,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Coordination.LocalLockProvider.Dispose">
+            <summary>
+            Dispose.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LocalLockProvider.Dispose(System.Boolean)">
+            <summary>
+            Dispose.
+            </summary>
+            <param name="disposing">Disposing.</param>
+        </member>
+        <member name="T:LiteGraph.Coordination.LockAcquireOptions">
+            <summary>
+            Options controlling lock acquisition.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockAcquireOptions.Wait">
+            <summary>
+            True to wait for the lock up to TimeoutMs; false to fail immediately if the lock is held.
+            Default is true.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockAcquireOptions.TimeoutMs">
+            <summary>
+            Maximum time to wait for the lock, in milliseconds, when Wait is true.
+            Default is 30000.  Minimum is 0 (fail immediately), maximum is 3600000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockAcquireOptions.LeaseMs">
+            <summary>
+            Lease duration in milliseconds for distributed locks.  The provider renews the lease while the handle is held.
+            Ignored by in-process providers.  Default is 30000.  Minimum is 1000, maximum is 3600000.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockAcquireOptions.#ctor">
+            <summary>
+            Instantiate with defaults (wait up to 30 seconds, 30 second lease).
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockAcquireOptions.FailFast">
+            <summary>
+            Options that fail immediately when the lock is held.
+            </summary>
+            <returns>Options.</returns>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockAcquireOptions.WaitUpTo(System.Int32)">
+            <summary>
+            Options that wait up to the supplied timeout.
+            </summary>
+            <param name="timeoutMs">Timeout in milliseconds.</param>
+            <returns>Options.</returns>
+        </member>
+        <member name="T:LiteGraph.Coordination.LockKeys">
+            <summary>
+            Catalogue of lock keys used by LiteGraph.  Distributed providers prefix these with the cluster name.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Coordination.LockKeys.Schema">
+            <summary>
+            Schema creation and migrations.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Coordination.LockKeys.Settings">
+            <summary>
+            Server settings file writes.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Coordination.LockKeys.Restart">
+            <summary>
+            Rolling restart coordination.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockKeys.Job(System.String)">
+            <summary>
+            Singleton background job.
+            </summary>
+            <param name="jobName">Job name.</param>
+            <returns>Key.</returns>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockKeys.VectorIndex(System.Int32)">
+            <summary>
+            Vector index build for a dimensionality.
+            </summary>
+            <param name="dimensions">Dimensions.</param>
+            <returns>Key.</returns>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockKeys.KeyClass(System.String)">
+            <summary>
+            Key class (first segment) used as a low-cardinality metric label.
+            </summary>
+            <param name="key">Key.</param>
+            <returns>Key class.</returns>
+        </member>
+        <member name="T:LiteGraph.Coordination.LockModeEnum">
+            <summary>
+            Lock mode.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Coordination.LockModeEnum.Read">
+            <summary>
+            Shared read lock.  Compatible with other read locks.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Coordination.LockModeEnum.Write">
+            <summary>
+            Write lock.  Excludes other writers.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Coordination.LockModeEnum.Exclusive">
+            <summary>
+            Fully exclusive lock.  Excludes every other holder.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Coordination.LockNotAcquiredException">
+            <summary>
+            Thrown when a lock is not granted within the allowed time.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockNotAcquiredException.Key">
+            <summary>
+            Lock key.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockNotAcquiredException.Mode">
+            <summary>
+            Requested mode.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockNotAcquiredException.Reason">
+            <summary>
+            Reason, for example Denied or Timeout.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockNotAcquiredException.#ctor(System.String,LiteGraph.Coordination.LockModeEnum,System.String)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="key">Lock key.</param>
+            <param name="mode">Requested mode.</param>
+            <param name="reason">Reason.</param>
+        </member>
+        <member name="T:LiteGraph.Coordination.LockProviderUnavailableException">
+            <summary>
+            Thrown when a lock provider cannot currently grant locks, for example because the distributed lock service is unreachable.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Coordination.LockProviderUnavailableException.Provider">
+            <summary>
+            Provider name.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Coordination.LockProviderUnavailableException.#ctor(System.String,System.String,System.Exception)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="provider">Provider name.</param>
+            <param name="message">Message.</param>
+            <param name="inner">Inner exception.</param>
+        </member>
         <member name="T:LiteGraph.Credential">
             <summary>
             Credentials.
@@ -7257,6 +7531,13 @@
         <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.Serializer">
             <summary>
             Serializer.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.LockProvider">
+            <summary>
+            Lock provider used to coordinate schema migrations and vector index builds.
+            Defaults to an in-process LocalLockProvider; a server running as part of a cluster supplies a distributed provider.
+            Setting null restores the in-process default.
             </summary>
         </member>
         <member name="P:LiteGraph.GraphRepositories.GraphRepositoryBase.Admin">
@@ -10659,6 +10940,11 @@
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.GraphMethods.EnableVectorIndexingAsync(System.Guid,System.Guid,LiteGraph.VectorIndexConfiguration,System.Threading.CancellationToken)">
             <inheritdoc />
+            <remarks>
+            On PostgreSQL the index is a pgvector HNSW index (cosine) shared by every graph with the same
+            dimensionality.  It is maintained by PostgreSQL on every write, so there is nothing to populate here.
+            VectorIndexFile does not apply and is cleared.
+            </remarks>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.GraphMethods.DisableVectorIndexingAsync(System.Guid,System.Guid,System.Boolean,System.Threading.CancellationToken)">
             <inheritdoc />
@@ -11182,80 +11468,12 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethods.SearchEdge(LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},System.Guid,System.Guid,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Nullable{System.Int32},System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Single},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions">
-            <summary>
-            Extension methods for VectorMethods to integrate with vector indexing.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.UpdateIndexForCreateAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,LiteGraph.VectorMetadata)">
-            <summary>
-            Update index when a vector is created.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="vector">Created vector.</param>
-            <returns>Task.</returns>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,System.Collections.Generic.List{LiteGraph.VectorMetadata})">
-            <summary>
-            Update index when multiple vectors are created.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="vectors">Created vectors.</param>
-            <returns>Task.</returns>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.UpdateIndexForUpdateAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,LiteGraph.VectorMetadata)">
-            <summary>
-            Update index when a vector is updated.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="vector">Updated vector.</param>
-            <returns>Task.</returns>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,System.Guid,System.Guid,System.Guid)">
-            <summary>
-            Update index when a node with vectors is deleted.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="tenantGuid">Tenant GUID.</param>
-            <param name="nodeGuid">Node GUID (used as key in the index).</param>
-            <param name="graphGuid">Graph GUID.</param>
-            <returns>Task.</returns>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,System.Guid,System.Collections.Generic.List{System.Guid},System.Guid)">
-            <summary>
-            Update index when multiple nodes with vectors are deleted.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="tenantGuid">Tenant GUID.</param>
-            <param name="nodeGuids">Node GUIDs (used as keys in the index).</param>
-            <param name="graphGuid">Graph GUID.</param>
-            <returns>Task.</returns>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.SearchWithIndexAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.Single},LiteGraph.Graph,System.Int32,System.Nullable{System.Int32})">
-            <summary>
-            Search using the vector index if available.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="searchType">Search type.</param>
-            <param name="queryVector">Query vector.</param>
-            <param name="graph">Graph to search in.</param>
-            <param name="topK">Number of results.</param>
-            <param name="ef">Search ef parameter.</param>
-            <returns>Indexed search results or null if no index.</returns>
-        </member>
-        <member name="M:LiteGraph.GraphRepositories.Postgresql.Implementations.VectorMethodsIndexExtensions.BuildNodeIndexEntriesAsync(LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository,LiteGraph.Graph,System.Collections.Generic.IEnumerable{LiteGraph.VectorMetadata},System.Threading.CancellationToken)">
-            <summary>
-            Build vector index entries for node vectors with node metadata resolved from the repository.
-            </summary>
-            <param name="repo">Repository.</param>
-            <param name="graph">Graph.</param>
-            <param name="vectors">Vectors.</param>
-            <param name="token">Cancellation token.</param>
-            <returns>Vector index entries.</returns>
-        </member>
         <member name="T:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository">
             <summary>
             PostgreSQL graph repository.
+            Vectors are stored in a pgvector column and searched in the database, so the repository holds no per-process
+            vector index state and any number of processes can share one database.
+            Requires the pgvector extension; InitializeRepository creates it when the connecting role is permitted to.
             </summary>
         </member>
         <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.Settings">
@@ -11281,6 +11499,18 @@
         <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.TimestampFormat">
             <summary>
             Timestamp format.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.EmbeddingMigrationBatchSize">
+            <summary>
+            Rows converted per batch when migrating legacy BYTEA embeddings to pgvector during InitializeRepository.
+            Default is 1000.  Minimum is 1, maximum is 100000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.SchemaLockTimeoutMs">
+            <summary>
+            Maximum time in milliseconds to wait for the schema lock during InitializeRepository.
+            Default is 600000 (10 minutes, enough for a large embedding migration running on another node).  Minimum is 1000, maximum is 3600000.
             </summary>
         </member>
         <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.Admin">
@@ -11362,11 +11592,6 @@
         <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.GraphTransactionGraphGUID">
             <inheritdoc />
         </member>
-        <member name="P:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.VectorIndexManager">
-            <summary>
-            Vector index manager.
-            </summary>
-        </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.#ctor(LiteGraph.DatabaseSettings)">
             <summary>
             Instantiate.
@@ -11375,9 +11600,13 @@
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.InitializeRepository">
             <inheritdoc />
+            <exception cref="T:System.InvalidOperationException">The pgvector extension is not installed or cannot be created by the connecting role.</exception>
+            <exception cref="T:LiteGraph.Coordination.LockNotAcquiredException">Another process held the schema lock for longer than SchemaLockTimeoutMs.</exception>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.InitializeRepositoryAsync(System.Threading.CancellationToken)">
             <inheritdoc />
+            <exception cref="T:System.InvalidOperationException">The pgvector extension is not installed or cannot be created by the connecting role.</exception>
+            <exception cref="T:LiteGraph.Coordination.LockNotAcquiredException">Another process held the schema lock for longer than SchemaLockTimeoutMs.</exception>
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.Flush">
             <inheritdoc />
@@ -11400,11 +11629,26 @@
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.RollbackGraphTransaction(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.ExecuteNativeQueryAsync(System.String,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Execute PostgreSQL-native SQL without SQLite-dialect translation.  Callers must schema-qualify every table.
+            </summary>
+        </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.DisposeAsyncCore">
             <inheritdoc />
+        </member>
+        <member name="F:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.MigrationPgvectorEmbeddings">
+            <summary>
+            Schema migration version that converts vectors.embeddings from BYTEA to pgvector.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphRepositories.Postgresql.PostgresqlGraphRepository.MigrationIntegrityConstraints">
+            <summary>
+            Schema migration version that enforces unique built-in role names and unique chat turn sequences.
+            </summary>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Postgresql.PostgresqlSqlTranslator">
             <summary>
@@ -11425,6 +11669,41 @@
             <param name="sql">SQL text.  Null or whitespace input is returned unchanged.</param>
             <param name="schema">PostgreSQL schema.</param>
             <returns>Translated SQL.</returns>
+        </member>
+        <member name="T:LiteGraph.GraphRepositories.Postgresql.Queries.PgvectorQueries">
+            <summary>
+            pgvector search and index SQL for the PostgreSQL repository.
+            Search SQL is written in the repository's SQLite-shaped dialect so the translator can apply schema
+            qualification and JSON filter translation; index DDL is native PostgreSQL.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphRepositories.Postgresql.Queries.PgvectorQueries.MaxVectorIndexDimensions">
+            <summary>
+            Largest dimensionality pgvector can index with the vector type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphRepositories.Postgresql.Queries.PgvectorQueries.MaxHalfvecIndexDimensions">
+            <summary>
+            Largest dimensionality pgvector can index with the halfvec type.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.GraphRepositories.Postgresql.Queries.PgvectorQueries.MaxEfSearch">
+            <summary>
+            Largest ef_search value pgvector accepts.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Queries.PgvectorQueries.CreateIndex(System.String,System.String,System.Int32,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            CREATE INDEX for the cosine HNSW index of one dimensionality.  The index name must not be schema-qualified;
+            PostgreSQL always creates an index in its table's schema.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.Postgresql.Queries.PgvectorQueries.Search(System.String,System.Guid,System.Nullable{System.Guid},System.Collections.Generic.List{System.Single},LiteGraph.VectorSearchTypeEnum,System.Collections.Generic.List{System.String},System.Collections.Specialized.NameValueCollection,ExpressionTree.Expr,System.Int32,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Build a search that returns one row per matching object (graph, node, or edge) with its best distance,
+            ordered best first.  Distances are pgvector operator results: cosine distance for cosine searches,
+            L2 distance for Euclidean searches, and negative inner product for dot product searches.
+            </summary>
         </member>
         <member name="T:LiteGraph.GraphRepositories.Sqlite.Implementations.AdminMethods">
             <summary>
@@ -13388,6 +13667,14 @@
         <member name="T:LiteGraph.Indexing.Vector.VectorIndexManager">
             <summary>
             Manages vector indexes for graphs.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Indexing.Vector.VectorIndexManager.IndexLoader">
+            <summary>
+            Optional callback that reads a graph's index entries from storage.
+            When set, an index that loads empty (for example an in-RAM index after a process restart) is rebuilt from
+            storage the first time it is used, so indexed search never silently returns nothing for a graph that has vectors.
+            Null disables the rebuild.
             </summary>
         </member>
         <member name="M:LiteGraph.Indexing.Vector.VectorIndexManager.#ctor(System.String)">

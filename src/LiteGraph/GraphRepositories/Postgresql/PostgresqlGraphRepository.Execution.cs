@@ -6,41 +6,10 @@ namespace LiteGraph.GraphRepositories.Postgresql
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using LiteGraph.Indexing.Vector;
     using Npgsql;
 
     public partial class PostgresqlGraphRepository
     {
-        internal void NoteVectorIndexFailure(Guid tenantGuid, Guid graphGuid, string reason)
-        {
-            lock (_QueryLock)
-            {
-                if (_Transaction == null) return;
-                if (_GraphTransactionTenantGUID != tenantGuid || _GraphTransactionGraphGUID != graphGuid) return;
-
-                _GraphTransactionVectorIndexFailed = true;
-                _GraphTransactionVectorIndexDirtyReason = reason;
-            }
-        }
-
-        internal bool TryStageVectorIndexMutation(
-            Graph graph,
-            string dirtyReason,
-            Func<IVectorIndex, Task> mutation)
-        {
-            if (graph == null) throw new ArgumentNullException(nameof(graph));
-            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
-
-            lock (_QueryLock)
-            {
-                if (_Transaction == null) return false;
-                if (_GraphTransactionTenantGUID != graph.TenantGUID || _GraphTransactionGraphGUID != graph.GUID) return false;
-
-                _GraphTransactionVectorIndexMutations.Add(new GraphTransactionVectorIndexMutation(graph, dirtyReason, mutation));
-                return true;
-            }
-        }
-
         internal DataTable ExecuteQuery(string query, bool isTransaction = false)
         {
             return ExecuteRepositoryOperation(
@@ -56,7 +25,19 @@ namespace LiteGraph.GraphRepositories.Postgresql
                 ClassifySqlOperation(query, isTransaction),
                 isTransaction,
                 1,
-                async () => await ExecuteQueryCoreAsync(query, isTransaction, token).ConfigureAwait(false)).ConfigureAwait(false);
+                async () => await ExecuteQueryCoreAsync(query, isTransaction, token, true).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute PostgreSQL-native SQL without SQLite-dialect translation.  Callers must schema-qualify every table.
+        /// </summary>
+        internal async Task<DataTable> ExecuteNativeQueryAsync(string query, bool isTransaction = false, CancellationToken token = default)
+        {
+            return await ExecuteRepositoryOperationAsync(
+                ClassifySqlOperation(query, isTransaction),
+                isTransaction,
+                1,
+                async () => await ExecuteQueryCoreAsync(query, isTransaction, token, false).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         internal DataTable ExecuteQueries(IEnumerable<string> queries, bool isTransaction = false)
@@ -113,7 +94,7 @@ namespace LiteGraph.GraphRepositories.Postgresql
             }
         }
 
-        private async Task<DataTable> ExecuteQueryCoreAsync(string query, bool isTransaction, CancellationToken token)
+        private async Task<DataTable> ExecuteQueryCoreAsync(string query, bool isTransaction, CancellationToken token, bool translate)
         {
             ThrowIfDisposed();
             if (String.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
@@ -126,7 +107,7 @@ namespace LiteGraph.GraphRepositories.Postgresql
                 try
                 {
                     NpgsqlTransaction active = GetActiveTransactionOrThrow();
-                    return await ExecuteOnConnectionAsync(active.Connection, active, query, token).ConfigureAwait(false);
+                    return await ExecuteOnConnectionAsync(active.Connection, active, query, token, translate).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -142,7 +123,7 @@ namespace LiteGraph.GraphRepositories.Postgresql
                     {
                         try
                         {
-                            DataTable result = await ExecuteOnConnectionAsync(conn, transaction, query, token).ConfigureAwait(false);
+                            DataTable result = await ExecuteOnConnectionAsync(conn, transaction, query, token, translate).ConfigureAwait(false);
                             await transaction.CommitAsync(token).ConfigureAwait(false);
                             return result;
                         }
@@ -154,7 +135,7 @@ namespace LiteGraph.GraphRepositories.Postgresql
                     }
                 }
 
-                return await ExecuteOnConnectionAsync(conn, null, query, token).ConfigureAwait(false);
+                return await ExecuteOnConnectionAsync(conn, null, query, token, translate).ConfigureAwait(false);
             }
         }
 
@@ -247,9 +228,9 @@ namespace LiteGraph.GraphRepositories.Postgresql
             }
         }
 
-        private async Task<DataTable> ExecuteOnConnectionAsync(NpgsqlConnection conn, NpgsqlTransaction transaction, string query, CancellationToken token)
+        private async Task<DataTable> ExecuteOnConnectionAsync(NpgsqlConnection conn, NpgsqlTransaction transaction, string query, CancellationToken token, bool translate)
         {
-            string translated = PostgresqlSqlTranslator.Translate(query, Schema);
+            string translated = translate ? PostgresqlSqlTranslator.Translate(query, Schema) : query;
             if (Logging.LogQueries) Logging.Log(SeverityEnum.Debug, "query: " + translated);
 
             try

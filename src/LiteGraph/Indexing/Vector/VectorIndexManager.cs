@@ -13,6 +13,18 @@ namespace LiteGraph.Indexing.Vector
     /// </summary>
     public class VectorIndexManager : IDisposable
     {
+        #region Public-Members
+
+        /// <summary>
+        /// Optional callback that reads a graph's index entries from storage.
+        /// When set, an index that loads empty (for example an in-RAM index after a process restart) is rebuilt from
+        /// storage the first time it is used, so indexed search never silently returns nothing for a graph that has vectors.
+        /// Null disables the rebuild.
+        /// </summary>
+        public Func<Graph, CancellationToken, Task<List<VectorIndexEntry>>> IndexLoader { get; set; } = null;
+
+        #endregion
+
         #region Private-Members
 
         private readonly ConcurrentDictionary<Guid, IVectorIndex> _Indexes;
@@ -484,6 +496,15 @@ namespace LiteGraph.Indexing.Vector
                 }
 
                 await index.InitializeAsync(graph, cancellationToken).ConfigureAwait(false);
+
+                Func<Graph, CancellationToken, Task<List<VectorIndexEntry>>> loader = IndexLoader;
+                if (loader != null && index.GetStatistics().VectorCount == 0)
+                {
+                    List<VectorIndexEntry> entries = await loader(graph, cancellationToken).ConfigureAwait(false);
+                    if (entries != null && entries.Count > 0)
+                        await index.AddBatchAsync(entries, cancellationToken).ConfigureAwait(false);
+                }
+
                 return index;
             }).ConfigureAwait(false);
         }
