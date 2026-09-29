@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>9.0.0</Version>
+		<Version>10.0.0</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
 		<PackageReleaseNotes>v9.0.0: graph algorithms, node embeddings, and graph export/import.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
