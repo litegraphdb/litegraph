@@ -1,0 +1,278 @@
+#
+# LiteGraph: single node on PostgreSQL with pgvector
+#
+# Start:     docker compose up -d
+# Stop:      docker compose down
+# Update:    update.bat
+# Validate:  smoke.bat (or pwsh ./smoke.ps1)
+# Reset:     factory/reset.bat (destroys data)
+#
+# REST API     http://127.0.0.1:8701     (admin bearer token: litegraphadmin)
+# Dashboard    http://127.0.0.1:3001
+# MCP          http://127.0.0.1:8702     (TCP 8703, WebSocket 8704, metrics 8705)
+# Grafana      http://127.0.0.1:3000     (admin / admin)
+# Prometheus   http://127.0.0.1:9090
+# PostgreSQL   127.0.0.1:15432           (litegraph / litegraph)
+#
+# Host ports are configurable through the LITEGRAPH_*_HOST_PORT variables listed in .env.example.
+#
+# Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.0.0).
+# Run any build with:  build-all.bat v10.0.0-rc1  then  LITEGRAPH_IMAGE_TAG=v10.0.0-rc1 docker compose up -d
+#
+# Upgrading from 9.x: the previous docker/compose.yaml stored PostgreSQL data in the volume
+# docker_postgresql-data.  To keep that data, back it up, then set
+# LITEGRAPH_POSTGRESQL_VOLUME=docker_postgresql-data (in .env or the shell) before starting.
+# The PostgreSQL image is now pgvector/pgvector:pg17, which is postgres:17 plus the pgvector
+# extension, so the existing data directory is compatible.  LiteGraph converts stored vectors
+# to pgvector on first start; there is no rollback to 9.x after the conversion.
+#
+
+name: litegraph
+
+services:
+
+  #
+  # PostgreSQL with pgvector
+  #
+
+  postgresql:
+    container_name: 'litegraph-postgresql'
+    image: 'pgvector/pgvector:pg17'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}:5432'
+    environment:
+      POSTGRES_DB: '${LITEGRAPH_POSTGRESQL_DATABASE:-litegraph}'
+      POSTGRES_USER: '${LITEGRAPH_POSTGRESQL_USERNAME:-litegraph}'
+      POSTGRES_PASSWORD: '${LITEGRAPH_POSTGRESQL_PASSWORD:-litegraph}'
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./postgresql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # TCP on purpose: during first-time initialization the image runs init scripts against a
+      # temporary server that listens only on the Unix socket, so a socket check would pass too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 60s
+
+  #
+  # One-shot initialization: schema, migrations (including the pgvector conversion of
+  # existing vectors), built-in roles, and default records.
+  #
+
+  litegraph-init:
+    container_name: 'litegraph-init'
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    command:
+      - '--config=/app/litegraph.json'
+      - '--init-only'
+    restart: 'no'
+    environment: &litegraph-db-env
+      LITEGRAPH_DB_TYPE: 'Postgresql'
+      LITEGRAPH_DB_HOST: 'postgresql'
+      LITEGRAPH_DB_PORT: '5432'
+      LITEGRAPH_DB_NAME: '${LITEGRAPH_POSTGRESQL_DATABASE:-litegraph}'
+      LITEGRAPH_DB_USERNAME: '${LITEGRAPH_POSTGRESQL_USERNAME:-litegraph}'
+      LITEGRAPH_DB_PASSWORD: '${LITEGRAPH_POSTGRESQL_PASSWORD:-litegraph}'
+      LITEGRAPH_DB_SCHEMA: '${LITEGRAPH_POSTGRESQL_SCHEMA:-litegraph}'
+      LITEGRAPH_DB_MAX_CONNECTIONS: '${LITEGRAPH_DB_MAX_CONNECTIONS:-32}'
+      LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS: '${LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS:-30}'
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/litegraph/:/app/logs/
+      - ./backups/litegraph/:/app/backups/
+
+  #
+  # LiteGraph server
+  #
+  # Chat/LLM connectivity: to reach an Ollama (or other OpenAI-compatible) server on the
+  # Docker host, point chat endpoints at http://host.docker.internal:11434.  Docker Desktop
+  # resolves host.docker.internal automatically; on Linux uncomment extra_hosts below.
+  #
+
+  litegraph:
+    container_name: 'litegraph'
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_REST_HOST_PORT:-8701}:8701'
+    depends_on:
+      litegraph-init:
+        condition: service_completed_successfully
+      syslog-shim:
+        condition: service_started
+    # extra_hosts: ['host.docker.internal:host-gateway']
+    environment: *litegraph-db-env
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/litegraph/:/app/logs/
+      - ./backups/litegraph/:/app/backups/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8701/v1.0/health/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 60s
+
+  #
+  # LiteGraph MCP server
+  #
+
+  litegraph-mcp:
+    container_name: 'litegraph-mcp'
+    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_MCP_HOST_PORT:-8702}:8702'
+      - '${LITEGRAPH_MCP_TCP_HOST_PORT:-8703}:8703'
+      - '${LITEGRAPH_MCP_WS_HOST_PORT:-8704}:8704'
+      - '${LITEGRAPH_MCP_METRICS_HOST_PORT:-8705}:8705'
+    depends_on:
+      litegraph:
+        condition: service_healthy
+    environment:
+      MCP_METRICS_HOSTNAME: '*'
+      MCP_METRICS_PORT: '8705'
+      MCP_SYSLOG_HOSTNAME: 'alloy'
+      MCP_SYSLOG_PORT: '2514'
+    volumes:
+      - ./litegraph-mcp.json:/app/litegraph.json
+      - ./logs/litegraph-mcp/:/app/logs/
+      - ./backups/litegraph-mcp/:/app/backups/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8702"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  #
+  # LiteGraph dashboard (host port 3001 so Grafana keeps 3000)
+  #
+
+  litegraph-ui:
+    container_name: 'litegraph-ui'
+    image: 'jchristn77/litegraph-ui:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_UI_HOST_PORT:-3001}:3000'
+    depends_on:
+      litegraph:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  #
+  # Observability: Prometheus, Loki, Alloy (syslog to Loki), Grafana
+  #
+
+  prometheus:
+    container_name: 'litegraph-prometheus'
+    image: 'prom/prometheus:v3.14.0'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_PROMETHEUS_HOST_PORT:-9090}:9090'
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/-/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+
+  loki:
+    container_name: 'litegraph-loki'
+    image: 'grafana/loki:3.3.0'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_LOKI_HOST_PORT:-3100}:3100'
+    command:
+      - '-config.file=/etc/loki/config.yaml'
+    volumes:
+      - ../shared/loki/config.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+
+  alloy:
+    container_name: 'litegraph-alloy'
+    image: 'grafana/alloy:v1.5.0'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_ALLOY_HOST_PORT:-12345}:12345'
+    depends_on:
+      loki:
+        condition: service_started
+    command:
+      - 'run'
+      - '--server.http.listen-addr=0.0.0.0:12345'
+      - '--storage.path=/var/lib/alloy/data'
+      - '/etc/alloy/config.alloy'
+    volumes:
+      - ../shared/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+
+  #
+  # SyslogLogging stamps RFC3164 frames with a zero-padded day ("Sep 02"); Alloy's strict
+  # parser requires space padding ("Sep  2").  This relay rewrites the day and forwards to
+  # Alloy.  Remove once SyslogLogging emits compliant timestamps.
+  #
+
+  syslog-shim:
+    container_name: 'litegraph-syslog-shim'
+    image: 'python:3.12-alpine'
+    restart: 'unless-stopped'
+    depends_on:
+      alloy:
+        condition: service_started
+    command:
+      - 'python'
+      - '/app/syslog-shim.py'
+    volumes:
+      - ../shared/syslog-shim/syslog-shim.py:/app/syslog-shim.py:ro
+
+  grafana:
+    container_name: 'litegraph-grafana'
+    image: 'grafana/grafana-oss:13.0.2'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_GRAFANA_HOST_PORT:-3000}:3000'
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    environment:
+      GF_SECURITY_ADMIN_USER: 'admin'
+      GF_SECURITY_ADMIN_PASSWORD: 'admin'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ../shared/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../shared/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../../assets/grafana:/var/lib/grafana/dashboards/litegraph:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+volumes:
+  postgresql-data:
+    name: '${LITEGRAPH_POSTGRESQL_VOLUME:-litegraph_postgresql-data}'
+  prometheus-data:
+  grafana-storage:
+  loki-data:
+  alloy-data:

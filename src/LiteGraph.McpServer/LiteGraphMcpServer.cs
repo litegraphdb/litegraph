@@ -165,8 +165,10 @@
             else
             {
                 _Settings = Serializer.DeserializeJson<LiteGraphMcpServerSettings>(File.ReadAllText(Constants.SettingsFile));
+
+                // Recorded in memory only: rewriting the settings file on every start churns bind-mounted,
+                // version-controlled configuration and fails outright when the file is mounted read-only.
                 _Settings.Node.LastStartUtc = DateTime.UtcNow;
-                File.WriteAllBytes(Constants.SettingsFile, Encoding.UTF8.GetBytes(Serializer.SerializeJson(_Settings, true)));
             }
 
             if (_ShowConfiguration)

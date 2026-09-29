@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Each LiteGraph node is scraped directly (never through the load balancer) so every node's
+# metrics are visible and labeled by instance.
+scrape_configs:
+  - job_name: litegraph
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - litegraph-1:8701
+          - litegraph-2:8701
+          - litegraph-3:8701
+        labels:
+          component: rest
+
+  - job_name: litegraph-mcp
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - litegraph-mcp:8705
+        labels:
+          component: mcp
