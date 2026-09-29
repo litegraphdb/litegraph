@@ -123,6 +123,8 @@ All list-shaped `GET` routes accept the same query parameters:
 
 Use either `skip` (offset paging) or `token` (marker paging, where a previous response returned a `ContinuationToken`); the v2.0 enumeration `POST` routes carry the same controls in the `Enumeration Query` body (`MaxResults`, `ContinuationToken`, `Ordering`). The authorization and request-history list routes additionally accept their legacy `page`/`pageSize` parameters, but `max-keys` and `skip` take precedence when supplied.
 
+Every ordering is deterministic: records that share a sort value (for example, objects created in the same microsecond, or duplicate names or costs) are ordered by their GUID in the same direction as the requested order. Paging through a stable data set with either `skip` or `token` therefore returns each record exactly once.
+
 A small set of routes intentionally does **not** return the envelope, because they are not record lists: single-object reads, statistics objects (`.../stats`, tenant/graph statistics), server and chat settings, effective-permissions composites, token issuance, export streams (GEXF, JSONL), vector index configuration/statistics, node subgraph reads (a `SearchResult`-shaped composite), the graph/node/edge `search` POST routes (which return `SearchResult`-shaped envelopes, also never bare arrays), and the graph-scoped OpenAI/Ollama-compatible chat routes, which keep their respective wire formats by design.
 
 ## Data Structures

@@ -1138,24 +1138,18 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.createdutc", "edges.guid");
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.guid");
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.guid");
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY name ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.name", "edges.guid");
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY name DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.name", "edges.guid");
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.createdutc", "edges.guid");
             }
         }
 
@@ -1163,25 +1157,18 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                    return "edges.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "edges.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "edges.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "edges.createdutc", "edges.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidAscending:
-                    return "edges.guid > '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(false, new string[] { "edges.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidDescending:
-                    return "edges.guid < '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(true, new string[] { "edges.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameAscending:
-                    return "edges.name > '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "edges.name", "edges.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameDescending:
-                    return "edges.name < '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(true, new string[] { "edges.name", "edges.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 default:
-                    return "edges.guid IS NOT NULL ";
+                    return KeysetOrdering.After(true, new string[] { "edges.createdutc", "edges.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
             }
         }
     }

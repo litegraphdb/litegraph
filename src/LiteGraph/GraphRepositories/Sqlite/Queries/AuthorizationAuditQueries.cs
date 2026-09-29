@@ -56,7 +56,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
 
             if (!countOnly)
             {
-                sb.Append("ORDER BY createdutc DESC ");
+                sb.Append("ORDER BY createdutc DESC, guid DESC ");
                 sb.Append("LIMIT ").Append(search.PageSize).Append(" OFFSET ").Append(search.Page * search.PageSize).Append(";");
             }
             else

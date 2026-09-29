@@ -127,13 +127,13 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             switch (order)
             {
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return KeysetOrdering.OrderBy(false, "createdutc", "guid");
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return KeysetOrdering.OrderBy(false, "guid");
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return KeysetOrdering.OrderBy(true, "guid");
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return KeysetOrdering.OrderBy(true, "createdutc", "guid");
             }
         }
 
@@ -142,13 +142,13 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             switch (order)
             {
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "createdutc", "guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidAscending:
-                    return "guid > '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(false, new string[] { "guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidDescending:
-                    return "guid < '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(true, new string[] { "guid" }, new string[] { "'" + marker.GUID + "'" });
                 default:
-                    return "createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(true, new string[] { "createdutc", "guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
             }
         }
 

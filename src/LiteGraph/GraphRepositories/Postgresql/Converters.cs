@@ -122,21 +122,21 @@
             switch (order)
             {
                 case EnumerationOrderEnum.CostAscending:
-                    return "cost ASC";
+                    return "cost ASC, guid ASC";
                 case EnumerationOrderEnum.CostDescending:
-                    return "cost DESC";
+                    return "cost DESC, guid DESC";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "createdutc ASC";
+                    return "createdutc ASC, guid ASC";
                 case EnumerationOrderEnum.CreatedDescending:
-                    return "createdutc DESC";
+                    return "createdutc DESC, guid DESC";
                 case EnumerationOrderEnum.GuidAscending:
                     return "guid ASC";
                 case EnumerationOrderEnum.GuidDescending:
                     return "guid DESC";
                 case EnumerationOrderEnum.NameAscending:
-                    return "name ASC";
+                    return "name ASC, guid ASC";
                 case EnumerationOrderEnum.NameDescending:
-                    return "name DESC";
+                    return "name DESC, guid DESC";
                 default:
                     throw new ArgumentException("Unsupported enumeration order '" + order.ToString() + "'.");
             }

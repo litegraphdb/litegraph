@@ -10125,6 +10125,37 @@
             <param name="token">Cancellation token.</param>
             <returns>Vector search results containing edges.</returns>
         </member>
+        <member name="T:LiteGraph.GraphRepositories.KeysetOrdering">
+            <summary>
+            Builds deterministic ORDER BY clauses and matching continuation (marker) predicates for enumeration queries.
+            Every ordering must end with a unique column (the row GUID) so that rows sharing a sort value, such as objects
+            created in the same microsecond, are returned in a stable order. Without a unique final key, databases may return
+            tied rows in a different order on each query, so LIMIT/OFFSET pages and marker-based continuation can skip or
+            repeat rows.
+            Thread safety: all methods are stateless and safe to call concurrently.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.KeysetOrdering.OrderBy(System.Boolean,System.String[])">
+            <summary>
+            Build an ORDER BY clause over the supplied columns, all in the same direction.
+            </summary>
+            <param name="descending">True to sort descending, false to sort ascending.</param>
+            <param name="columns">Sort columns, most significant first. The last column must be unique.</param>
+            <returns>ORDER BY clause with a trailing space.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when no columns are supplied.</exception>
+        </member>
+        <member name="M:LiteGraph.GraphRepositories.KeysetOrdering.After(System.Boolean,System.String[],System.String[])">
+            <summary>
+            Build a predicate selecting the rows that follow a marker row in the ordering produced by
+            <see cref="M:LiteGraph.GraphRepositories.KeysetOrdering.OrderBy(System.Boolean,System.String[])"/> with the same direction and columns. For columns (a, b) this yields
+            ((a &gt; va) OR (a = va AND b &gt; vb)) for ascending order, and the same with &lt; for descending order.
+            </summary>
+            <param name="descending">True if the ordering is descending, false if ascending.</param>
+            <param name="columns">Sort columns, most significant first, matching the ORDER BY clause.</param>
+            <param name="literals">SQL literals holding the marker row's value for each column, already quoted and sanitized.</param>
+            <returns>Parenthesized predicate.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when no columns are supplied or the column and literal counts differ.</exception>
+        </member>
         <member name="T:LiteGraph.GraphRepositories.Postgresql.Implementations.AdminMethods">
             <summary>
             Admin methods.

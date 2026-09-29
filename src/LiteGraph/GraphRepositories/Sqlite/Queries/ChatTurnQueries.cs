@@ -72,7 +72,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             return
                 "SELECT * FROM 'chatturns' "
                 + "WHERE tenantguid = '" + tenantGuid + "' AND threadguid = '" + threadGuid + "' "
-                + "ORDER BY sequence " + (ascending ? "ASC" : "DESC") + " "
+                + "ORDER BY sequence " + (ascending ? "ASC, guid ASC" : "DESC, guid DESC") + " "
                 + "LIMIT " + batchSize + " OFFSET " + skip + ";";
         }
 
@@ -177,13 +177,13 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             switch (order)
             {
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY sequence ASC, createdutc ASC ";
+                    return KeysetOrdering.OrderBy(false, "sequence", "createdutc", "guid");
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return KeysetOrdering.OrderBy(false, "guid");
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return KeysetOrdering.OrderBy(true, "guid");
                 default:
-                    return "ORDER BY sequence DESC, createdutc DESC ";
+                    return KeysetOrdering.OrderBy(true, "sequence", "createdutc", "guid");
             }
         }
 
@@ -192,13 +192,13 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
             switch (order)
             {
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "sequence > " + marker.Sequence + " ";
+                    return KeysetOrdering.After(false, new string[] { "sequence", "createdutc", "guid" }, new string[] { marker.Sequence.ToString(System.Globalization.CultureInfo.InvariantCulture), "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidAscending:
-                    return "guid > '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(false, new string[] { "guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidDescending:
-                    return "guid < '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(true, new string[] { "guid" }, new string[] { "'" + marker.GUID + "'" });
                 default:
-                    return "sequence < " + marker.Sequence + " ";
+                    return KeysetOrdering.After(true, new string[] { "sequence", "createdutc", "guid" }, new string[] { marker.Sequence.ToString(System.Globalization.CultureInfo.InvariantCulture), "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
             }
         }
 

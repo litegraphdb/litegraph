@@ -819,24 +819,18 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY createdutc ASC ";
+                    return KeysetOrdering.OrderBy(false, "graphs.createdutc", "graphs.guid");
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY guid ASC ";
+                    return KeysetOrdering.OrderBy(false, "graphs.guid");
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY guid DESC ";
+                    return KeysetOrdering.OrderBy(true, "graphs.guid");
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY name ASC ";
+                    return KeysetOrdering.OrderBy(false, "graphs.name", "graphs.guid");
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY name DESC ";
+                    return KeysetOrdering.OrderBy(true, "graphs.name", "graphs.guid");
                 default:
-                    return "ORDER BY createdutc DESC ";
+                    return KeysetOrdering.OrderBy(true, "graphs.createdutc", "graphs.guid");
             }
         }
 
@@ -844,25 +838,18 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                    return "graphs.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "graphs.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "graphs.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "graphs.createdutc", "graphs.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidAscending:
-                    return "graphs.guid > '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(false, new string[] { "graphs.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidDescending:
-                    return "graphs.guid < '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(true, new string[] { "graphs.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameAscending:
-                    return "graphs.name > '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "graphs.name", "graphs.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameDescending:
-                    return "graphs.name < '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(true, new string[] { "graphs.name", "graphs.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 default:
-                    return "graphs.guid IS NOT NULL ";
+                    return KeysetOrdering.After(true, new string[] { "graphs.createdutc", "graphs.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
             }
         }
     }

@@ -521,7 +521,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 }
             }
 
-            ret += "ORDER BY edges_total DESC ";
+            ret += "ORDER BY edges_total DESC, nodes.guid DESC ";
             ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
@@ -627,7 +627,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 }
             }
 
-            ret += "ORDER BY edges_total ASC ";
+            ret += "ORDER BY edges_total ASC, nodes.guid ASC ";
             ret += "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
@@ -1172,24 +1172,18 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY nodes.createdutc DESC ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY nodes.createdutc ASC ";
+                    return KeysetOrdering.OrderBy(false, "nodes.createdutc", "nodes.guid");
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY nodes.guid ASC ";
+                    return KeysetOrdering.OrderBy(false, "nodes.guid");
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY nodes.guid DESC ";
+                    return KeysetOrdering.OrderBy(true, "nodes.guid");
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY nodes.name ASC ";
+                    return KeysetOrdering.OrderBy(false, "nodes.name", "nodes.guid");
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY nodes.name DESC ";
+                    return KeysetOrdering.OrderBy(true, "nodes.name", "nodes.guid");
                 default:
-                    return "ORDER BY nodes.createdutc DESC ";
+                    return KeysetOrdering.OrderBy(true, "nodes.createdutc", "nodes.guid");
             }
         }
 
@@ -1197,25 +1191,18 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.CostAscending:
-                case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                    return "nodes.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "nodes.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "nodes.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "nodes.createdutc", "nodes.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidAscending:
-                    return "nodes.guid > '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(false, new string[] { "nodes.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidDescending:
-                    return "nodes.guid < '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(true, new string[] { "nodes.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameAscending:
-                    return "nodes.name > '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "nodes.name", "nodes.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameDescending:
-                    return "nodes.name < '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(true, new string[] { "nodes.name", "nodes.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 default:
-                    return "nodes.guid IS NOT NULL ";
+                    return KeysetOrdering.After(true, new string[] { "nodes.createdutc", "nodes.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
             }
         }
     }

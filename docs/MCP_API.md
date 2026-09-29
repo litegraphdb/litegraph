@@ -102,6 +102,8 @@ Paging arguments follow one convention across the catalog:
 
 Tools that do not declare `continuationToken` page with `skip`. The `enumerate` tools carry the same controls inside their `Enumeration Query` JSON-string argument (`MaxResults`, `ContinuationToken`, `Ordering`). The `authorization/*/all` list tools retain their legacy `page`/`pageSize` filter arguments but still return the envelope.
 
+Every ordering is deterministic: records that share a sort value (for example, objects created in the same microsecond, or duplicate names or costs) are ordered by their GUID in the same direction as the requested order, so paging with either `skip` or `continuationToken` returns each record exactly once.
+
 All nine `*/getmany` tools (`tenant`, `user`, `credential`, `graph`, `node`, `edge`, `label`, `tag`, `vector`) take an array of GUIDs, proxy it to the REST `?guids=` filter, accept `maxResults`, and return the envelope. Passing an empty GUID array is rejected with a JSON-RPC error — at least one GUID is required.
 
 The intentional exceptions mirror REST: single-object reads, statistics objects, settings, effective-permissions composites, export streams, vector index configuration/statistics, and the search tools (`graph/search`, `node/search`, `edge/search` return `SearchResult`-shaped objects; `vector/search` returns the envelope of scored matches).

@@ -105,6 +105,30 @@
                         skipReason: ProviderSuiteSkipReason("PostgreSQL global scan-bounded query", PostgresqlTestConnectionStringEnvironmentVariable)),
                     new TestCaseDescriptor(
                         suiteId: "Improvements.Foundation",
+                        caseId: "Enumeration.TiedOrderBatchedReads.Sqlite",
+                        displayName: "SQLite batched reads return every row exactly once when sort values tie",
+                        executeAsync: ct => RunSqliteTiedOrderTest("batched", RunTiedOrderBatchedReads, ct)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Enumeration.TiedOrderBatchedReads.Postgresql",
+                        displayName: "PostgreSQL batched reads return every row exactly once when sort values tie",
+                        executeAsync: ct => RunPostgresqlIsolatedSchemaTest(PostgresqlTestConnectionStringEnvironmentVariable, "litegraph_tied_batched_", (client, innerCt) => RunTiedOrderBatchedReads(client, "PostgreSQL", innerCt), ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL tied-order batched reads", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Enumeration.TiedOrderContinuation.Sqlite",
+                        displayName: "SQLite continuation-token enumeration returns every row exactly once when sort values tie",
+                        executeAsync: ct => RunSqliteTiedOrderTest("continuation", RunTiedOrderContinuation, ct)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
+                        caseId: "Enumeration.TiedOrderContinuation.Postgresql",
+                        displayName: "PostgreSQL continuation-token enumeration returns every row exactly once when sort values tie",
+                        executeAsync: ct => RunPostgresqlIsolatedSchemaTest(PostgresqlTestConnectionStringEnvironmentVariable, "litegraph_tied_continuation_", (client, innerCt) => RunTiedOrderContinuation(client, "PostgreSQL", innerCt), ct),
+                        skip: ShouldSkipProviderSuite(PostgresqlTestConnectionStringEnvironmentVariable),
+                        skipReason: ProviderSuiteSkipReason("PostgreSQL tied-order continuation", PostgresqlTestConnectionStringEnvironmentVariable)),
+                    new TestCaseDescriptor(
+                        suiteId: "Improvements.Foundation",
                         caseId: "Query.Chaining.Sqlite",
                         displayName: "SQLite chained queries join multiple MATCH clauses and pipe through WITH projection, filter, order, and aggregation",
                         executeAsync: TestQueryChainingSqlite),
@@ -9620,6 +9644,190 @@
                 "litegraph_scan_bounded_",
                 (client, ct) => RunQueryGlobalScanBounded(client, "PostgreSQL", ct),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task RunSqliteTiedOrderTest(string suffix, Func<LiteGraphClient, string, CancellationToken, Task> run, CancellationToken cancellationToken)
+        {
+            string filename = "test-improvements-tied-order-" + suffix + ".db";
+            DeleteFileIfExists(filename);
+
+            try
+            {
+                using (LiteGraphClient client = new LiteGraphClient(GraphRepositoryFactory.Create(new DatabaseSettings
+                {
+                    Filename = filename
+                })))
+                {
+                    client.InitializeRepository();
+                    await run(client, "SQLite", cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteFileIfExists(filename);
+            }
+        }
+
+        private static async Task<TiedOrderFixture> CreateTiedOrderFixture(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { Name = providerName + " Tied Order Tenant" }, cancellationToken).ConfigureAwait(false);
+            Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, Name = providerName + " Tied Order Graph" }, cancellationToken).ConfigureAwait(false);
+
+            // Rows cycle through 7 timestamps one microsecond apart and 3 names, so every ordering has large groups of
+            // tied rows. Group sizes (about 36 and 83) do not divide the 100-row repository batch, so tied groups
+            // straddle batch boundaries, which is where an unstable tie order skips or repeats rows. Insertion order
+            // is deliberately uncorrelated with sort order.
+            DateTime tiedTimestamp = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+            List<Node> nodes = new List<Node>();
+            for (int i = 0; i < 250; i++)
+            {
+                nodes.Add(new Node
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = "tied-" + (i % 3),
+                    Labels = new List<string> { "Tied" },
+                    CreatedUtc = tiedTimestamp.AddTicks((i % 7) * 10),
+                    LastUpdateUtc = tiedTimestamp
+                });
+            }
+
+            List<Node> createdNodes = await client.Node.CreateMany(tenant.GUID, graph.GUID, nodes, cancellationToken).ConfigureAwait(false);
+
+            List<Edge> edges = new List<Edge>();
+            for (int i = 0; i < 150; i++)
+            {
+                edges.Add(new Edge
+                {
+                    TenantGUID = tenant.GUID,
+                    GraphGUID = graph.GUID,
+                    Name = "tied-edge-" + (i % 3),
+                    From = createdNodes[i].GUID,
+                    To = createdNodes[i + 1].GUID,
+                    Cost = i % 4,
+                    CreatedUtc = tiedTimestamp.AddTicks((i % 7) * 10),
+                    LastUpdateUtc = tiedTimestamp
+                });
+            }
+
+            List<Edge> createdEdges = await client.Edge.CreateMany(tenant.GUID, graph.GUID, edges, cancellationToken).ConfigureAwait(false);
+
+            return new TiedOrderFixture
+            {
+                TenantGUID = tenant.GUID,
+                GraphGUID = graph.GUID,
+                NodeGUIDs = createdNodes.Select(n => n.GUID).ToHashSet(),
+                EdgeGUIDs = createdEdges.Select(e => e.GUID).ToHashSet()
+            };
+        }
+
+        private static EnumerationOrderEnum[] TiedNodeOrders()
+        {
+            return new EnumerationOrderEnum[]
+            {
+                EnumerationOrderEnum.CreatedDescending,
+                EnumerationOrderEnum.CreatedAscending,
+                EnumerationOrderEnum.NameAscending,
+                EnumerationOrderEnum.NameDescending
+            };
+        }
+
+        private static EnumerationOrderEnum[] TiedEdgeOrders()
+        {
+            return new EnumerationOrderEnum[]
+            {
+                EnumerationOrderEnum.CreatedDescending,
+                EnumerationOrderEnum.CreatedAscending,
+                EnumerationOrderEnum.CostAscending,
+                EnumerationOrderEnum.CostDescending,
+                EnumerationOrderEnum.NameAscending
+            };
+        }
+
+        private static void AssertEachExactlyOnce(HashSet<Guid> expected, List<Guid> observed, string description)
+        {
+            int duplicates = observed.Count - observed.Distinct().Count();
+            int missing = expected.Count(g => !observed.Contains(g));
+            AssertEqual(0, duplicates, description + " returned no duplicate rows");
+            AssertEqual(0, missing, description + " returned no missing rows");
+            AssertEqual(expected.Count, observed.Count, description + " returned every row exactly once");
+        }
+
+        private static async Task RunTiedOrderBatchedReads(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            TiedOrderFixture fixture = await CreateTiedOrderFixture(client, providerName, cancellationToken).ConfigureAwait(false);
+
+            foreach (EnumerationOrderEnum order in TiedNodeOrders())
+            {
+                List<Guid> allInGraph = new List<Guid>();
+                await foreach (Node node in client.Node.ReadAllInGraph(fixture.TenantGUID, fixture.GraphGUID, order, token: cancellationToken).ConfigureAwait(false))
+                    allInGraph.Add(node.GUID);
+                AssertEachExactlyOnce(fixture.NodeGUIDs, allInGraph, providerName + " Node.ReadAllInGraph " + order);
+
+                List<Guid> byLabel = new List<Guid>();
+                await foreach (Node node in client.Node.ReadMany(fixture.TenantGUID, fixture.GraphGUID, labels: new List<string> { "Tied" }, order: order, token: cancellationToken).ConfigureAwait(false))
+                    byLabel.Add(node.GUID);
+                AssertEachExactlyOnce(fixture.NodeGUIDs, byLabel, providerName + " Node.ReadMany by label " + order);
+            }
+
+            foreach (EnumerationOrderEnum order in TiedEdgeOrders())
+            {
+                List<Guid> edges = new List<Guid>();
+                await foreach (Edge edge in client.Edge.ReadAllInGraph(fixture.TenantGUID, fixture.GraphGUID, order, token: cancellationToken).ConfigureAwait(false))
+                    edges.Add(edge.GUID);
+                AssertEachExactlyOnce(fixture.EdgeGUIDs, edges, providerName + " Edge.ReadAllInGraph " + order);
+            }
+
+        }
+
+        private static async Task RunTiedOrderContinuation(LiteGraphClient client, string providerName, CancellationToken cancellationToken)
+        {
+            TiedOrderFixture fixture = await CreateTiedOrderFixture(client, providerName, cancellationToken).ConfigureAwait(false);
+
+            foreach (EnumerationOrderEnum order in TiedNodeOrders())
+            {
+                List<Guid> observed = new List<Guid>();
+                EnumerationRequest request = new EnumerationRequest
+                {
+                    TenantGUID = fixture.TenantGUID,
+                    GraphGUID = fixture.GraphGUID,
+                    Ordering = order,
+                    MaxResults = 7
+                };
+
+                for (int page = 0; page < 1000; page++)
+                {
+                    EnumerationResult<Node> result = await client.Node.Enumerate(request, cancellationToken).ConfigureAwait(false);
+                    observed.AddRange(result.Objects.Select(n => n.GUID));
+                    AssertEqual(fixture.NodeGUIDs.Count - observed.Count, (int)result.RecordsRemaining, providerName + " Node.Enumerate " + order + " records remaining after page " + page);
+                    if (result.EndOfResults || result.ContinuationToken == null) break;
+                    request.ContinuationToken = result.ContinuationToken;
+                }
+
+                AssertEachExactlyOnce(fixture.NodeGUIDs, observed, providerName + " Node.Enumerate " + order);
+            }
+
+            foreach (EnumerationOrderEnum order in TiedEdgeOrders())
+            {
+                List<Guid> observed = new List<Guid>();
+                EnumerationRequest request = new EnumerationRequest
+                {
+                    TenantGUID = fixture.TenantGUID,
+                    GraphGUID = fixture.GraphGUID,
+                    Ordering = order,
+                    MaxResults = 9
+                };
+
+                for (int page = 0; page < 1000; page++)
+                {
+                    EnumerationResult<Edge> result = await client.Edge.Enumerate(request, cancellationToken).ConfigureAwait(false);
+                    observed.AddRange(result.Objects.Select(e => e.GUID));
+                    if (result.EndOfResults || result.ContinuationToken == null) break;
+                    request.ContinuationToken = result.ContinuationToken;
+                }
+
+                AssertEachExactlyOnce(fixture.EdgeGUIDs, observed, providerName + " Edge.Enumerate " + order);
+            }
         }
 
         private static async Task RunQueryGlobalScanBounded(LiteGraphClient client, string providerName, CancellationToken cancellationToken)

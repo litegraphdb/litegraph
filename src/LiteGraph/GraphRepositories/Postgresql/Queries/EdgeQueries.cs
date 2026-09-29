@@ -1131,26 +1131,22 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
         {
             switch (order)
             {
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "ORDER BY edges.createdutc DESC ";
                 case EnumerationOrderEnum.CostAscending:
-                    return "ORDER BY edges.cost ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.cost", "edges.guid");
                 case EnumerationOrderEnum.CostDescending:
-                    return "ORDER BY edges.cost DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.cost", "edges.guid");
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "ORDER BY edges.createdutc ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.createdutc", "edges.guid");
                 case EnumerationOrderEnum.GuidAscending:
-                    return "ORDER BY edges.guid ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.guid");
                 case EnumerationOrderEnum.GuidDescending:
-                    return "ORDER BY edges.guid DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.guid");
                 case EnumerationOrderEnum.NameAscending:
-                    return "ORDER BY edges.name ASC ";
+                    return KeysetOrdering.OrderBy(false, "edges.name", "edges.guid");
                 case EnumerationOrderEnum.NameDescending:
-                    return "ORDER BY edges.name DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.name", "edges.guid");
                 default:
-                    return "ORDER BY edges.createdutc DESC ";
+                    return KeysetOrdering.OrderBy(true, "edges.createdutc", "edges.guid");
             }
         }
 
@@ -1159,24 +1155,21 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             switch (order)
             {
                 case EnumerationOrderEnum.CostAscending:
+                    return KeysetOrdering.After(false, new string[] { "edges.cost", "edges.guid" }, new string[] { marker.Cost.ToString(System.Globalization.CultureInfo.InvariantCulture), "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.CostDescending:
-                case EnumerationOrderEnum.LeastConnected:
-                case EnumerationOrderEnum.MostConnected:
-                    return "edges.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(true, new string[] { "edges.cost", "edges.guid" }, new string[] { marker.Cost.ToString(System.Globalization.CultureInfo.InvariantCulture), "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.CreatedAscending:
-                    return "edges.createdutc > '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
-                case EnumerationOrderEnum.CreatedDescending:
-                    return "edges.createdutc < '" + marker.CreatedUtc.ToString(TimestampFormat) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "edges.createdutc", "edges.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidAscending:
-                    return "edges.guid > '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(false, new string[] { "edges.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.GuidDescending:
-                    return "edges.guid < '" + marker.GUID + "' ";
+                    return KeysetOrdering.After(true, new string[] { "edges.guid" }, new string[] { "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameAscending:
-                    return "edges.name > '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(false, new string[] { "edges.name", "edges.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 case EnumerationOrderEnum.NameDescending:
-                    return "edges.name < '" + Sanitizer.Sanitize(marker.Name) + "' ";
+                    return KeysetOrdering.After(true, new string[] { "edges.name", "edges.guid" }, new string[] { "'" + Sanitizer.Sanitize(marker.Name) + "'", "'" + marker.GUID + "'" });
                 default:
-                    return "edges.guid IS NOT NULL ";
+                    return KeysetOrdering.After(true, new string[] { "edges.createdutc", "edges.guid" }, new string[] { "'" + marker.CreatedUtc.ToString(TimestampFormat) + "'", "'" + marker.GUID + "'" });
             }
         }
     }
