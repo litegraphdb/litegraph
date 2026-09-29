@@ -13,7 +13,7 @@ on:
 jobs:
   dotnet:
     name: .NET build and transaction gates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:17
@@ -30,10 +30,10 @@ jobs:
           --health-retries 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: |
             8.0.x
@@ -58,21 +58,30 @@ jobs:
 
       - name: PostgreSQL transaction concurrency gate
         env:
-          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=localhost;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=128;Timeout=15;Command Timeout=60
+          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=localhost;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+
+      - name: Upload test server logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: transaction-gate-logs
+          path: /tmp/LiteGraph.Touchstone/**/*.log
+          if-no-files-found: ignore
+          retention-days: 14
 
   javascript-sdk:
     name: JavaScript SDK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: sdk/js
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -89,16 +98,16 @@ jobs:
 
   python-sdk:
     name: Python SDK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: sdk/python
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -117,16 +126,16 @@ jobs:
 
   dashboard:
     name: Dashboard
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: dashboard
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
