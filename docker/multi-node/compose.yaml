@@ -90,7 +90,7 @@ services:
   #
 
   postgresql:
-    image: 'pgvector/pgvector:pg17'
+    image: 'pgvector/pgvector:0.8.6-pg17-trixie'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_POSTGRESQL_HOST_PORT:-15433}:5432'
@@ -180,6 +180,8 @@ services:
         condition: service_healthy
       clutch-lb:
         condition: service_healthy
+      syslog-shim:
+        condition: service_started
     command:
       - '--config=/app/litegraph.json'
       - '--init-only'

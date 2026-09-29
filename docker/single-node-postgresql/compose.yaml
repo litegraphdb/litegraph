@@ -22,7 +22,7 @@
 # Upgrading from 9.x: the previous docker/compose.yaml stored PostgreSQL data in the volume
 # docker_postgresql-data.  To keep that data, back it up, then set
 # LITEGRAPH_POSTGRESQL_VOLUME=docker_postgresql-data (in .env or the shell) before starting.
-# The PostgreSQL image is now pgvector/pgvector:pg17, which is postgres:17 plus the pgvector
+# The PostgreSQL image is now pgvector/pgvector:0.8.6-pg17-trixie, which is postgres:17 (same Debian trixie base) plus the pgvector
 # extension, so the existing data directory is compatible.  LiteGraph converts stored vectors
 # to pgvector on first start; there is no rollback to 9.x after the conversion.
 #
@@ -37,7 +37,7 @@ services:
 
   postgresql:
     container_name: 'litegraph-postgresql'
-    image: 'pgvector/pgvector:pg17'
+    image: 'pgvector/pgvector:0.8.6-pg17-trixie'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_POSTGRESQL_HOST_PORT:-15432}:5432'
@@ -68,6 +68,8 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
+      syslog-shim:
+        condition: service_started
     command:
       - '--config=/app/litegraph.json'
       - '--init-only'

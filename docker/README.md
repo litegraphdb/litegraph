@@ -71,7 +71,9 @@ Or put `LITEGRAPH_IMAGE_TAG=v10.0.0-rc1` in the deployment's `.env`. `update.bat
 
 The 9.x `docker/compose.yaml` is now `single-node-postgresql/compose.yaml`. The Compose project is named `litegraph` rather than taking its name from the `docker` directory, so it no longer shares volume names with other projects that keep their compose files in a directory called `docker`.
 
-To keep an existing 9.x database, back it up first, then set `LITEGRAPH_POSTGRESQL_VOLUME=docker_postgresql-data` in `single-node-postgresql/.env` before starting. PostgreSQL moves to the `pgvector/pgvector:pg17` image, which is `postgres:17` with the pgvector extension added, so the existing data directory works unchanged. On first start LiteGraph converts stored vectors to pgvector. **There is no way back to 9.x after that conversion**, which is why the backup comes first.
+To keep an existing 9.x database, back it up first, then set `LITEGRAPH_POSTGRESQL_VOLUME=docker_postgresql-data` in `single-node-postgresql/.env` before starting. PostgreSQL moves to the `pgvector/pgvector:0.8.6-pg17-trixie` image, which is `postgres:17` on the same Debian base with the pgvector extension added, so the existing data directory works unchanged. On first start LiteGraph converts stored vectors to pgvector. **There is no way back to 9.x after that conversion**, which is why the backup comes first.
+
+PostgreSQL may log `database "litegraph" has a collation version mismatch` after the switch if your 9.x volume was created by an older `postgres:17` image built on Debian bookworm; the pinned pgvector image uses Debian trixie, like current `postgres:17`. Text indexes can order differently between the two C libraries, so if you see that warning, rebuild them once: `docker compose exec postgresql psql -U litegraph -d litegraph -c "REINDEX DATABASE litegraph; ALTER DATABASE litegraph REFRESH COLLATION VERSION;"`.
 
 ## Factory reset and updates
 
