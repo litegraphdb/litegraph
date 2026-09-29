@@ -2,6 +2,41 @@
 
 ## Current Version
 
+v10.0.0
+
+v10.0 lets LiteGraph run as several identical nodes behind a load balancer, all sharing one PostgreSQL database. The nodes hold no state of their own, so any node can answer any request and a node can stop at any time without losing anything. **This is a breaking release for PostgreSQL deployments**: PostgreSQL now requires the pgvector extension, and existing vectors are converted to pgvector on first start with no way back to 9.x afterward. Back up before upgrading; see [UPGRADE.md](docs/UPGRADE.md). SQLite deployments upgrade in place.
+
+- **pgvector storage and search on PostgreSQL**
+  - `vectors.embeddings` is a pgvector `vector` column. Existing BYTEA embeddings are converted once, in resumable batches of 1,000, under a schema lock; rows that are not valid float32 arrays are skipped with a warning. Migrations are now tracked in a `schemamigrations` table.
+  - Vector search runs in SQL. Graphs with indexing enabled use a shared cosine HNSW index per dimensionality (`idx_vectors_hnsw_cosine_<dimensions>`, `halfvec` above 2,000 dimensions, exact search above 4,000), built with `CREATE INDEX CONCURRENTLY` and maintained by PostgreSQL on every write, with iterative index scans so label, tag, and expression filters do not cut results short. Filtered and unindexed searches no longer load every candidate vector into the server.
+  - Euclidean and dot-product searches on an indexed graph now return real Euclidean and dot-product values (9.x returned cosine-derived values under those names). Vector values are written as pgvector literals instead of hex-encoded bytes.
+  - `VectorIndexType` `HnswRam` and `HnswSqlite` mean "pgvector index" on PostgreSQL; `VectorIndexFile` reads back as `null` and is no longer required. Index statistics report the pgvector index name, size, and validity.
+  - The per-process `VectorIndexManager`, index files under `./indexes/postgresql/`, and the post-commit index staging are gone from the PostgreSQL provider.
+- **Cluster mode**
+  - `Cluster` settings block and `LITEGRAPH_CLUSTER_ENABLE`, `LITEGRAPH_CLUSTER_NAME`, `LITEGRAPH_NODE_ID`, `LITEGRAPH_CLUTCH_ENDPOINT`, `LITEGRAPH_CLUTCH_ACCESS_KEY`, `LITEGRAPH_TRUSTED_PROXIES`. A cluster node requires PostgreSQL and a Clutch access key, and refuses to start on the default encryption key or administrator token unless `Cluster.AllowInsecureDefaults` is set.
+  - Distributed locks through [Clutch](https://github.com/jchristn/clutch) (REST lock API, background lease renewal, lost-lease detection) for schema migration, pgvector index builds, and the hourly chat-retention and request-history purge jobs, which now run on one node per cycle. Reads, writes, and searches take no distributed lock.
+  - New `LiteGraph.Coordination` namespace: `ILockProvider`, `LocalLockProvider` (Padlock), lock keys, and `GraphRepositoryBase.LockProvider`.
+  - Object caches and authorization policy caches are off in cluster mode (`AuthorizationService.EnableCache`), so deletes and permission changes made through any node apply on every node immediately.
+  - Unique indexes on built-in role names and on chat turn sequences, with de-duplication of existing rows; chat turns retry on a sequence conflict. Chat endpoint health resyncs endpoints from the database so each node monitors endpoints changed through the others.
+- **Health and identity**
+  - `GET /v1.0/health/live` and `GET /v1.0/health/ready` (database, Clutch, draining), unauthenticated and excluded from request history.
+  - `x-litegraph-node` header on every response.
+- **Docker deployments**
+  - `docker/` now holds three deployments: `single-node-sqlite`, `single-node-postgresql` (`pgvector/pgvector:0.8.6-pg17-trixie`), and `multi-node` (three LiteGraph nodes behind Nginx, two Clutch nodes behind their own Nginx, separate LiteGraph and Clutch PostgreSQL roles created by init scripts, optional Switchboard and Clutch dashboard profiles). Each has a smoke test, `update.bat`, `.env.example`, and a factory reset; the cluster adds a failover test.
+  - The Compose project for the single-node PostgreSQL deployment is named `litegraph`; set `LITEGRAPH_POSTGRESQL_VOLUME=docker_postgresql-data` to keep a 9.x volume. All LiteGraph images follow `LITEGRAPH_IMAGE_TAG`, and every host port is configurable. Health checks use cURL against the readiness endpoint.
+  - CI builds images from each commit and runs every deployment's smoke test (and the cluster failover test) on pull requests, nightly, and on demand; the .NET job's PostgreSQL service uses pgvector.
+- **Fixes**
+  - Server security tokens now expire (`AuthenticationToken.IsExpired` compared the issue time with the expiry instead of the current time).
+  - SQLite: nodes created with inline vectors now reach the HnswLite index, and an in-memory index is rebuilt from the database on first use after a restart instead of returning no results.
+  - Turning caching off no longer throws; the server now passes `Caching` settings to the client at construction.
+  - The MCP server no longer rewrites its settings file on every start.
+  - New environment overrides: `LITEGRAPH_ADMIN_BEARER_TOKEN`, `LITEGRAPH_ENCRYPTION_KEY`, `LITEGRAPH_ENCRYPTION_IV`; a startup warning when the encryption key or IV is the all-zero default.
+  - Dependency updates for Dependabot alerts: Next.js 16.3.7, sharp 0.35.5, js-yaml 4.3.2, fflate (dashboard and JavaScript SDK).
+- **Tests**: a new `ScaleOut` Touchstone suite (token expiry, lock providers, cluster settings validation, caching disabled, SQLite index rebuild, pgvector search parity for every search type indexed, unindexed, and filtered, legacy BYTEA migration, and pgvector index lifecycle), plus route guard updates for the health endpoints.
+- **Docs**: new [CLUSTERING.md](docs/CLUSTERING.md) and [docker/README.md](docker/README.md); updated README, [UPGRADE.md](docs/UPGRADE.md), [SETTINGS.md](docs/SETTINGS.md), [STORAGE.md](docs/STORAGE.md), and [REST_API.md](docs/REST_API.md).
+
+## Previous Versions
+
 v9.0.0
 
 v9.0 adds native **graph algorithms** — degree, closeness, eigenvector, and betweenness centrality; PageRank; weakly and strongly connected components; label-propagation and Louvain community detection; local clustering coefficient; and k-core decomposition — computed over the whole graph and optionally written back onto nodes so results are queryable through the DSL. It also adds a first-class **graph export/projection** feature (node-link JSON, edge list, GraphML) with a results **import** path, so graphs can be round-tripped to external engines such as `rustworkx`/NetworkX for algorithms beyond native scope or for graphs past the in-memory ceiling. The feature spans the full product surface: core library (`client.Algorithm`), REST server, MCP tools, the native query language, the dashboard, and all three SDKs (C#, JavaScript, Python). Additive release — no storage migration required.

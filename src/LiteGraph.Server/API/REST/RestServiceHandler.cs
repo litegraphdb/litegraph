@@ -2947,8 +2947,8 @@
                     }
                 }
 
-                // Validate configuration
-                if (!config.IsValid(out string errorMessage))
+                // Validate configuration.  PostgreSQL keeps the index in the database, so no index file applies there.
+                if (!config.IsValid(out string errorMessage, _Settings.LiteGraph.Database.Type != DatabaseTypeEnum.Postgresql))
                 {
                     ctx.Response.StatusCode = 400;
                     ctx.Response.ContentType = Constants.JsonContentType;

@@ -173,6 +173,9 @@
         public override IAuthorizationRoleMethods AuthorizationRoles { get; }
 
         /// <inheritdoc />
+        public override bool UsesFileBackedVectorIndexes { get { return false; } }
+
+        /// <inheritdoc />
         public override bool GraphTransactionActive { get { return _Transaction != null; } }
 
         /// <inheritdoc />

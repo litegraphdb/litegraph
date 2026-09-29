@@ -1740,6 +1740,8 @@ namespace Test.Shared
                 {
                     ["/"] = "Server information object (pre-authentication).",
                     ["/favicon.ico"] = "Static favicon asset.",
+                    ["/v1.0/health/live"] = "Liveness status object (pre-authentication health probe).",
+                    ["/v1.0/health/ready"] = "Readiness status object (pre-authentication health probe).",
                     ["/metrics"] = "Prometheus text exposition format by design.",
                     ["/openapi.json"] = "OpenAPI specification document.",
                     ["/swagger"] = "Swagger UI HTML page.",

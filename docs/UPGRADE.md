@@ -1,5 +1,40 @@
 # LiteGraph Upgrade Guide
 
+## Upgrading From v9.x To v10.0 (Breaking On PostgreSQL)
+
+**Back up first. There is no rollback to 9.x on PostgreSQL.** On its first start, 10.0 converts the `vectors.embeddings` column from raw bytes to a pgvector `vector` column and records the conversion in a new `schemamigrations` table. A 9.x server cannot read the converted column, so the only way back is restoring the backup. On PostgreSQL, take a `pg_dump` (or a volume snapshot) before anything else. On SQLite, copy the database file.
+
+### PostgreSQL deployments
+
+PostgreSQL now needs the pgvector extension. LiteGraph creates it on first start when the database role is allowed to (the role owns the database, or is a superuser). Otherwise the server stops with a message naming the database, and an administrator runs `CREATE EXTENSION vector;` in that database once. Amazon RDS, Azure Database for PostgreSQL, and Google Cloud SQL all offer pgvector; self-managed servers need the pgvector package installed. The Docker deployments use `pgvector/pgvector:0.8.6-pg17-trixie`, which is `postgres:17` on the same Debian base with pgvector added.
+
+The conversion runs in batches of 1,000 rows, logs progress, and resumes where it stopped if the server is interrupted. Rows whose stored bytes are not a float32 array, or contain NaN or infinity, are skipped with a warning naming each vector; pgvector cannot store them, and they could never match a search. The migration also adds two unique indexes: one on built-in role names (duplicates left by concurrent first starts are merged; user-defined roles are never touched) and one on chat turn sequences within a thread (duplicate sequences are renumbered in order).
+
+Vector search changes behind the same API:
+
+- Graphs with a vector index use a pgvector HNSW index (cosine) shared by every graph with the same dimensionality, maintained by PostgreSQL on every write. `VectorIndexType` values `HnswRam` and `HnswSqlite` are still accepted and mean "pgvector index" on PostgreSQL. `VectorIndexFile` no longer applies and reads back as `null`, and index statistics report the pgvector index name, size, and validity. The first graph to enable an index for a given dimensionality sets that index's `M` and `EfConstruction`; `VectorIndexEf` still applies per search. Dimensionalities above 4,000 cannot be indexed by pgvector and are searched exactly.
+- Euclidean and dot-product searches on an indexed graph now return true Euclidean and dot-product values. In 9.x they returned cosine-derived values under those names. Cosine searches return the same results as before.
+- Filtered and unindexed searches run in SQL instead of loading every candidate vector into the server, which is much faster on large graphs.
+- The per-process HNSW index files under `./indexes/postgresql/` are no longer used and can be deleted.
+
+### Docker deployments
+
+`docker/compose.yaml` is now [`docker/single-node-postgresql/compose.yaml`](../docker/single-node-postgresql/compose.yaml); see [`docker/README.md`](../docker/README.md) for all three deployments. The Compose project is named `litegraph` instead of taking its name from the `docker` directory, so its volumes are no longer shared with other projects that keep compose files in a directory called `docker`. To keep a 9.x database, back it up and set `LITEGRAPH_POSTGRESQL_VOLUME=docker_postgresql-data` in `docker/single-node-postgresql/.env` before the first start. If PostgreSQL then logs `database "litegraph" has a collation version mismatch`, the volume was created by an older Debian-bookworm `postgres:17` image; rebuild text indexes once with `REINDEX DATABASE litegraph; ALTER DATABASE litegraph REFRESH COLLATION VERSION;`.
+
+### Behavior changes on every deployment
+
+- **Security tokens expire.** `x-token` security tokens are now rejected after their expiry time, as they were always meant to be; 9.x accepted them indefinitely. Clients holding long-lived tokens must request new ones.
+- **New environment overrides.** `LITEGRAPH_ADMIN_BEARER_TOKEN`, `LITEGRAPH_ENCRYPTION_KEY`, and `LITEGRAPH_ENCRYPTION_IV`. The server now warns at startup when the encryption key or IV is the all-zero default.
+- **Health endpoints.** `GET /v1.0/health/live` and `GET /v1.0/health/ready` are new; `HEAD /` and `GET /` still answer as before. Every response carries an `x-litegraph-node` header.
+- **SQLite restart fix.** An in-memory (`HnswRam`) index is rebuilt from the database on first use after a restart, instead of silently returning no results.
+- **MCP settings file.** The MCP server no longer rewrites its settings file on every start to record `LastStartUtc`.
+
+### Moving to a cluster
+
+A single-node PostgreSQL deployment becomes a cluster by pointing several nodes at the same database with `LITEGRAPH_CLUSTER_ENABLE=true`, a Clutch lock service, and one shared settings file. [Clustering](CLUSTERING.md) describes the requirements and the [`docker/multi-node`](../docker/multi-node/) deployment shows a complete setup. SQLite cannot be clustered; export the data with the JSONL export API and import it into a PostgreSQL deployment first.
+
+---
+
 ## Upgrading From v8.0 To v8.1 (In-Place)
 
 v8.1 adds the LLM chat feature and changes nothing that already exists, so this is a routine in-place upgrade: stop the server, deploy the new binaries (or bump the Docker image tags to `v8.1.0`), and start it again. On first boot the schema initializer creates the new chat tables — endpoints, threads, turns, feedback, and settings — alongside the existing schema on both SQLite and PostgreSQL. No existing table is altered and no data migration runs. A v8.0 database opened by v8.1 simply gains the empty chat tables. Rolling back is equally simple — restore the previous binaries; the extra tables sit unused. Take the usual pre-upgrade backup regardless.

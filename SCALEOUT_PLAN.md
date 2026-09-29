@@ -36,24 +36,50 @@ It is written to be executed and annotated, in the same convention as the archiv
 
 | § | Area | Status | Evidence |
 |---|------|--------|----------|
-| 0 | Branch, version approval, dependencies | Not started | |
-| 1 | pgvector for PostgreSQL | Not started | |
-| 2 | HnswLite for SQLite: restart fix | Not started | |
-| 3 | Stateless nodes: caches | Not started | |
-| 4 | Cluster settings and node registry | Not started | |
-| 5 | Locking: Clutch and Padlock | Not started | |
-| 6 | Background jobs and shared chat health | Not started | |
-| 7 | Startup and data-integrity races | Not started | |
-| 8 | REST server | Not started | |
-| 9 | Security fixes | Not started | |
-| 10 | Observability | Not started | |
-| 11 | MCP server | Not started | |
-| 12 | SDKs | Not started | |
-| 13 | Dashboard | Not started | |
-| 14 | Docker: single-node and multi-node, PostgreSQL init, image tags | Not started | |
-| 15 | Tests, including deployment testing | Not started | |
-| 16 | Postman and documentation | Not started | |
-| 17 | Release closeout | Not started | |
+| 0 | Branch, version approval, dependencies | **Done** | Branch `V10.0`; all versions 10.0.0; Pgvector 0.3.2 and Padlock 1.1.0 added; Dependabot alerts resolved. `Clutch.Sdk` is not on nuget.org (see deviations). |
+| 1 | pgvector for PostgreSQL | **Done** | pgvector column, SQL search for every search type, per-dimensionality cosine HNSW index, BYTEA migration; `ScaleOut.PgvectorSearchParity`, `PgvectorLegacyMigration`, `PgvectorIndexLifecycle` pass; real 9.0.0 to 10.0 upgrade verified (300 vectors). |
+| 2 | HnswLite for SQLite: restart fix | **Done** | Rebuild-on-load plus inline-vector indexing fix; `ScaleOut.SqliteIndexRebuild` passes; verified across a container restart. Debounced `HnswSqlite` persistence not done. |
+| 3 | Stateless nodes: caches | **Done** | Object and authorization caches off in cluster mode; caching-disabled crash fixed (`ScaleOut.CachingDisabled`); cross-node delete verified on three local nodes. Algorithm result cache not changed. |
+| 4 | Cluster settings and node registry | **Partial** | `ClusterSettings`/`ClutchSettings`, env overrides, startup validation done (`ScaleOut.ClusterSettings`). Node registry table not done. |
+| 5 | Locking: Clutch and Padlock | **Done** | `ILockProvider`, `LocalLockProvider` (Padlock, `ScaleOut.LocalLocks`), `ClutchLockProvider` over Clutch REST; schema and index-build locks; failover test passes with a Clutch node down. |
+| 6 | Background jobs and shared chat health | **Done (revised)** | Retention and purge jobs run on one node per cycle; chat health uses per-node probing with database resync (see deviations). |
+| 7 | Startup and data-integrity races | **Done** | Schema lock, unique indexes with de-duplication, turn retry; three nodes started together produced one schema and one role set. Compat-thread race left as harmless. |
+| 8 | REST server | **Partial** | Health endpoints and `x-litegraph-node` done. Cluster routes, rolling restart, settings reload, graceful drain, forwarded-header handling, SSE keepalive not done. |
+| 9 | Security fixes | **Done** | Token expiry fix (`ScaleOut.TokenExpiry`), env overrides, default-key warning. |
+| 10 | Observability | **Not started** | Per-node Prometheus scraping is configured in the cluster deployment; instance labels, cluster metrics, and the cluster dashboard are not done. |
+| 11 | MCP server | **Partial** | Pointed at the load balancer; settings file no longer rewritten. Cluster tools not done. |
+| 12 | SDKs | **Not started** | |
+| 13 | Dashboard | **Not started** | Works unchanged against the load balancer (verified healthy in every deployment); cluster page and settings section not done. |
+| 14 | Docker: single-node and multi-node, PostgreSQL init, image tags | **Done** | Three deployments; smoke 30/32/47 checks; failover passes; Switchboard profile verified; upgrade path verified; `build-all.sh` now calls new `.sh` build scripts. `DOCKERHUB_README.md` not done. |
+| 15 | Tests, including deployment testing | **Partial** | `ScaleOut` suite (8 cases) and route guards; full Touchstone 807 cases on SQLite and PostgreSQL; CI deploy job added. Cluster-process harness, simulated user testing, and performance runs not done. |
+| 16 | Postman and documentation | **Done** | CLUSTERING.md, docker/README.md, README, UPGRADE, SETTINGS, STORAGE, REST_API, CHANGELOG, CLAUDE.md, Postman `v10.0 > Health`. |
+| 17 | Release closeout | **Open** | Awaiting maintainer review; `V10.0` not merged. |
+
+### Definition of done (2026-09-29)
+
+All four definition-of-done checks pass, each verified by running it with images built from this branch (`v10.0.0-local`, not pushed):
+
+1. **Single node from the CLI**: `dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj --framework net10.0` from an empty directory; readiness 200; vector create, index, search, and delete round trip passes. (`--framework` is required because the server targets net8.0 and net10.0; the README says so.)
+2. **Single node, Docker, SQLite**: `docker/single-node-sqlite`, all services healthy, smoke 30/30, index survives a container restart.
+3. **Single node, Docker, PostgreSQL + pgvector**: `docker/single-node-postgresql`, all services healthy, smoke 32/32 including pgvector 0.8.6 and a built HNSW index.
+4. **Multi-node cluster, Docker, PostgreSQL + pgvector**: `docker/multi-node`, all services healthy in about a minute, smoke 47/47 (requests spread 10/10/10, writes visible and search results identical through every node, Clutch healthy, role separation both ways, Switchboard spread), failover passes (0.57% errors while a node restarts, none while a Clutch node is down, index build succeeds without it).
+
+### Deviations from this plan, and why
+
+- **Clutch access is over its REST lock API, not `Clutch.Sdk`.** The SDK is not published on nuget.org, and a project reference to a local checkout would break Docker builds. `ClutchLockProvider` uses the documented REST routes (acquire, release, session heartbeat) with one session per node. Swap to the SDK once it is published.
+- **Clutch image gets curl through a two-line derived image** (`docker/multi-node/clutch/Dockerfile`), because the published image has neither curl nor wget and the healthcheck rule requires curl. Raise with the Clutch maintainer.
+- **Chat endpoint health is not shared state.** Each node probes independently (every node's view is real) and resyncs its endpoint list from the database every `Cluster.EndpointResyncIntervalMs`. This avoided new tables in both providers for no correctness gain; the cost is N times the probe traffic.
+- **No `VectorIndexMetric` setting.** HnswLite has always been cosine-only, so PostgreSQL gets one cosine index per dimensionality; the other search types run exactly in SQL. This also fixed 9.x returning cosine-derived values for Euclidean and dot-product searches on indexed graphs.
+- **Vectors are written as pgvector text literals**, matching the repository's hand-written SQL style, rather than as Npgsql parameters.
+- **No `Pgvector` enum value.** `HnswRam` and `HnswSqlite` mean "pgvector index" on PostgreSQL, which avoided SDK and dashboard enum churn.
+- **Switchboard uses a catch-all route.** Switchboard 5.2 supports `{*path}`, so `sb.json` has one route per method and no route-sync test is needed. Power-of-two-choices balancing replaced least-connections, which sends every sequential request to the first idle origin.
+- **Docker project name `litegraph` plus `LITEGRAPH_POSTGRESQL_VOLUME`, not pinned legacy volume names.** On this development machine many unrelated projects also produce `docker_*` volumes, so silently reusing `docker_postgresql-data` could convert another product's database. Keeping a 9.x volume is an explicit opt-in, documented in UPGRADE.md.
+- **PostgreSQL image is `pgvector/pgvector:0.8.6-pg17-trixie`**, pinned, on the same Debian base as current `postgres:17`; the plain `pg17` tag is bookworm-based and produced a collation-version warning on an upgraded 9.x volume.
+- **Additional fixes found along the way**: SQLite nodes created with inline vectors never reached the HnswLite index (single create skipped it; bulk create dropped vectors without a node GUID); the server passed caching settings after constructing the client; a legacy 2-byte embedding crashed the conversion (now skipped with a warning).
+
+### Still open
+
+In priority order: node registry and cluster routes (§4, §8), graceful drain and rolling restart (§8), observability labels and the cluster dashboard (§10), SDK cluster methods, node header, and retry policy (§12), dashboard cluster page and settings section (§13), cluster-process test harness, simulated user testing, and performance runs (§15), `DOCKERHUB_README.md`, and the (confirm) item on moving `:latest` only for release tags (§14.8).
 
 ---
 
@@ -448,7 +474,7 @@ The official PostgreSQL image runs everything in `/docker-entrypoint-initdb.d` o
 - [ ] Every LiteGraph image in both compose files is `jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v<approved version>}` (likewise `litegraph-mcp` and `litegraph-ui`). Third-party images stay pinned literally.
 - [ ] Maintainer workflow, documented in `docker/README.md`: run `build-all.bat v10.0.0-rc1` (or any tag), put `LITEGRAPH_IMAGE_TAG=v10.0.0-rc1` in `.env` or the shell, then `docker compose up -d` and `smoke.ps1` in either deployment. `update.bat` follows the same variable.
 - [ ] `.env.example` in each deployment lists `LITEGRAPH_IMAGE_TAG`, host ports, and database passwords. `.env` is gitignored.
-- [ ] Fix `build-all.sh`, which today calls the `.bat` scripts and therefore fails on Linux and macOS: add `build-server.sh`, `build-dashboard.sh`, and `build-mcp.sh`, and call those.
+- [x] Fix `build-all.sh`, which today calls the `.bat` scripts and therefore fails on Linux and macOS: add `build-server.sh`, `build-dashboard.sh`, and `build-mcp.sh`, and call those. *(2026-09-29)*
 - [ ] **(confirm)** The build scripts add `:latest` only when the tag is a plain `vMAJOR.MINOR.PATCH`. Today every run moves `latest`, including test builds.
 - [ ] CI never pushes. It builds single-architecture images locally with `docker build`, tagged `ci-<commit sha>`, sets `LITEGRAPH_IMAGE_TAG` to that tag, and runs compose with `--pull never` so a missing local image fails loudly instead of silently pulling a published one.
 - [ ] Nightly, CI also runs `docker buildx build --platform linux/amd64,linux/arm64/v8` for all three Dockerfiles without pushing, so an arm64 break shows up before a release build.

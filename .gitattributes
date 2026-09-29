@@ -1,5 +1,6 @@
-# Shell scripts run inside Linux containers; CRLF line endings break them.
-*.sh text eol=lf
+# Shell scripts that run inside Linux containers or on Linux build hosts; CRLF line endings break them.
+docker/**/*.sh text eol=lf
+/build-*.sh text eol=lf
 
-# Batch files need CRLF; cmd.exe can mis-handle labels in LF-only files.
-*.bat text eol=crlf
+# Batch files in the Docker deployments need CRLF; cmd.exe can mis-handle labels in LF-only files.
+docker/**/*.bat text eol=crlf

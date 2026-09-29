@@ -823,7 +823,31 @@ Committed transactions return HTTP `200`. Request-shape validation failures retu
 |-----------------------|--------|-----|
 | Validate connectivity | HEAD   | /   |
 | Server information    | GET    | /   |
+| Liveness              | GET    | /v1.0/health/live  |
+| Readiness             | GET    | /v1.0/health/ready |
 | Prometheus metrics    | GET    | /metrics |
+
+The health routes (v10.0) require no authentication and are not recorded in request history. `GET /v1.0/health/live` returns 200 while the process runs. `GET /v1.0/health/ready` returns 200 when the node can serve requests and 503 otherwise, so load balancers and container health checks should use it:
+
+```
+{
+    "Status": "Healthy",
+    "NodeId": "litegraph-1",
+    "ClusterName": "litegraph",
+    "Version": "10.0.0",
+    "StartedUtc": "2026-09-29T19:25:48.612927Z",
+    "Checks": {
+        "Database": true,
+        "Clutch": true,
+        "Draining": false
+    },
+    "Utc": "2026-09-29T19:31:02.004113Z"
+}
+```
+
+`Checks.Database` is true when the database answered a query. `Checks.Clutch` is null on a single node and, on a cluster node, true when the Clutch lock service is reachable. `Checks.Draining` is true once the node has been asked to stop. `Status` is `Unavailable` and the status code 503 when any check fails. The liveness body has the same shape without `Checks`.
+
+Every response carries an `x-litegraph-node` header naming the node that answered (the configured `NodeId`, or the host name), alongside the existing `x-hostname` header.
 
 The metrics route is registered only when observability and Prometheus are enabled. It is intentionally unauthenticated in v6.0.0 and should be protected by network policy or a reverse proxy when exposed outside trusted networks.
 

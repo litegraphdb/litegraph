@@ -59,7 +59,7 @@
         public async Task EnableVectorIndex(Guid tenantGuid, Guid graphGuid, VectorIndexConfiguration configuration, CancellationToken token = default)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-            if (!configuration.IsValid(out string errorMessage))
+            if (!configuration.IsValid(out string errorMessage, false))
                 throw new ArgumentException($"Invalid vector index configuration: {errorMessage}");
             token.ThrowIfCancellationRequested();
 

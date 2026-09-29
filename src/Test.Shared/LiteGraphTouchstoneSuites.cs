@@ -392,7 +392,8 @@ namespace Test.Shared
                     CreateChatStorageSuite(),
                     CreateChatRestSuite(),
                     CreateMcpProtocolSuite(),
-                    CreateOnboardingSuite()
+                    CreateOnboardingSuite(),
+                    CreateScaleOutSuite()
                 };
 
                 if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable)))
@@ -609,7 +610,9 @@ namespace Test.Shared
                 "HEAD /",
                 "GET /",
                 "GET /favicon.ico",
-                "GET /v1.0/token/tenants"
+                "GET /v1.0/token/tenants",
+                "GET /v1.0/health/live",
+                "GET /v1.0/health/ready"
             };
 
             string[] criticalAuthenticatedRoutes =

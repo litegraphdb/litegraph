@@ -81,11 +81,73 @@ The `Chat` section of `litegraph.json` is the operator's side of the chat featur
 
 The block is read once at startup — the chat service, its concurrency semaphore, and its provider clients are built from it when the server boots — so every field is restart-required. Edits made through `PUT /v1.0/settings` land in the `RestartRequired` list and take effect after the next restart; none of the `Chat` fields hot-apply today. Tenant chat settings are the opposite: they are read per request and apply on the next completion without any restart.
 
+## The Cluster block (v10.0)
+
+The `Cluster` section turns a server into one node of a multi-node cluster: several identical nodes sharing one PostgreSQL database behind a load balancer. [CLUSTERING.md](CLUSTERING.md) explains how a cluster works; this section lists the fields.
+
+```json
+{
+  "Cluster": {
+    "Enable": false,
+    "ClusterName": "litegraph",
+    "NodeId": null,
+    "TrustForwardedHeaders": false,
+    "TrustedProxies": [],
+    "AllowInsecureDefaults": false,
+    "EndpointResyncIntervalMs": 30000,
+    "Clutch": {
+      "Endpoint": "http://127.0.0.1:8090",
+      "AccessKey": null,
+      "LeaseMs": 30000,
+      "RequestTimeoutMs": 10000,
+      "StartupConnectTimeoutMs": 120000
+    }
+  }
+}
+```
+
+| Field | Default | Range | Meaning |
+|---|---|---|---|
+| `Enable` | `false` | | Run as a cluster node. Requires `Database.Type = Postgresql` and a Clutch access key; the server refuses to start otherwise |
+| `ClusterName` | `litegraph` | 1 to 64 of `a-z`, `0-9`, `-` | Prefixes every Clutch lock key, so several clusters can share one Clutch deployment |
+| `NodeId` | host name | | Unique node identifier, returned in the `x-litegraph-node` header and the health endpoints. Set it per node with `LITEGRAPH_NODE_ID` rather than in the shared file |
+| `TrustForwardedHeaders` | `false` | | Trust `X-Forwarded-For` from the proxies in `TrustedProxies` when recording client addresses. Never used for access control |
+| `TrustedProxies` | empty | | Proxy addresses or CIDR ranges whose forwarded headers are trusted |
+| `AllowInsecureDefaults` | `false` | | Let a cluster node start with the all-zero encryption key or the default administrator token. Only for demonstrations; the `docker/multi-node` deployment sets it so it starts without setup |
+| `EndpointResyncIntervalMs` | `30000` | 5000 to 600000 | How often each node re-reads chat endpoints from the database, so endpoints changed through another node are monitored |
+| `Clutch.Endpoint` | `http://127.0.0.1:8090` | http or https URL | Clutch server, or the load balancer in front of its nodes |
+| `Clutch.AccessKey` | none | | Clutch application access key (secret) |
+| `Clutch.LeaseMs` | `30000` | 5000 to 300000 | Lock lease. Held locks are renewed every third of a lease; a node that stops renewing loses its locks when the lease runs out |
+| `Clutch.RequestTimeoutMs` | `10000` | 1000 to 120000 | Timeout for each request to Clutch, not counting time spent waiting for a lock |
+| `Clutch.StartupConnectTimeoutMs` | `120000` | 0 to 3600000 | How long a starting node keeps retrying Clutch before exiting |
+
+Every node in a cluster must run with the same settings file, the same database, and the same `Encryption.Key` and `Encryption.Iv`; a security token issued by one node is decrypted by whichever node receives the next request. In cluster mode the server also forces `Caching.Enable` off and stops caching authorization policy, because those caches only learn about changes made through their own process. All `Cluster` fields are read at startup and are restart-required.
+
+## Environment variables
+
+Environment variables override the settings file, which keeps secrets out of it and lets cluster nodes share one file while differing in identity.
+
+| Variable | Overrides |
+|---|---|
+| `LITEGRAPH_PORT` | `Rest.Port` |
+| `LITEGRAPH_REQUEST_TIMEOUT_SECONDS` | `RequestTimeoutSeconds` |
+| `LITEGRAPH_DB_TYPE`, `LITEGRAPH_DB_FILENAME` (or `LITEGRAPH_DB`), `LITEGRAPH_DB_HOST`, `LITEGRAPH_DB_PORT`, `LITEGRAPH_DB_NAME`, `LITEGRAPH_DB_USERNAME`, `LITEGRAPH_DB_PASSWORD`, `LITEGRAPH_DB_SCHEMA`, `LITEGRAPH_DB_CONNECTION_STRING`, `LITEGRAPH_DB_MAX_CONNECTIONS`, `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS` | `LiteGraph.Database` |
+| `LITEGRAPH_TRANSACTION_MAX_OPERATIONS`, `LITEGRAPH_TRANSACTION_MAX_TIMEOUT_SECONDS` | `LiteGraph.Transactions` |
+| `LITEGRAPH_ADMIN_BEARER_TOKEN` | `LiteGraph.AdminBearerToken` (v10.0) |
+| `LITEGRAPH_ENCRYPTION_KEY`, `LITEGRAPH_ENCRYPTION_IV` | `Encryption.Key`, `Encryption.Iv` (v10.0) |
+| `LITEGRAPH_CLUSTER_ENABLE`, `LITEGRAPH_CLUSTER_NAME`, `LITEGRAPH_NODE_ID` | `Cluster.Enable`, `Cluster.ClusterName`, `Cluster.NodeId` (v10.0) |
+| `LITEGRAPH_CLUTCH_ENDPOINT`, `LITEGRAPH_CLUTCH_ACCESS_KEY` | `Cluster.Clutch.Endpoint`, `Cluster.Clutch.AccessKey` (v10.0) |
+| `LITEGRAPH_TRUSTED_PROXIES` | `Cluster.TrustedProxies` (comma separated) and turns on `Cluster.TrustForwardedHeaders` (v10.0) |
+| `LITEGRAPH_CREATE_DEFAULT_RECORDS`, `LITEGRAPH_INIT_ONLY` | Create the default tenant, user, and credential; initialize the schema and exit |
+| `LITEGRAPH_OTLP_*`, `OTEL_*` | `Observability` OTLP export settings (see [OBSERVABILITY.md](OBSERVABILITY.md)) |
+
 ## Restarting
 
 `POST /v1.0/settings/restart` (body `{"confirm": true}`) flushes the database and then exits the process. That only produces a usable "restart" when something is watching the process and will bring it back — which is why the shipped Docker Compose gives the `litegraph`, `litegraph-mcp`, and `litegraph-ui` services `restart: unless-stopped`. Under that policy the container exits and Docker starts it again, this time reading the settings you just wrote. Run the server outside a supervisor and the same call simply stops it.
 
 The dashboard's **Restart Server** control asks for confirmation, calls this endpoint, then shows a reconnecting state and recovers once the server answers again.
+
+In a cluster, the settings file is shared by every node but each node reads it only at startup, and the restart endpoint restarts only the node that received the request (behind a load balancer, whichever node that was). After changing restart-required settings in a cluster, restart the nodes one at a time, for example `docker compose restart litegraph-1`, waiting for each to report ready before the next, so the cluster keeps serving throughout.
 
 ## Security notes
 

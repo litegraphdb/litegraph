@@ -332,7 +332,7 @@
             token.ThrowIfCancellationRequested();
 
             // Validate configuration
-            if (!configuration.IsValid(out string errorMessage))
+            if (!configuration.IsValid(out string errorMessage, _Repo.UsesFileBackedVectorIndexes))
                 throw new ArgumentException($"Invalid vector index configuration: {errorMessage}");
 
             await _Repo.Graph.EnableVectorIndexingAsync(tenantGuid, graphGuid, configuration, token).ConfigureAwait(false);

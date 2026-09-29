@@ -31,6 +31,17 @@ Default database settings:
 
 The legacy `LiteGraph.GraphRepositoryFilename` setting is still supported. Setting it updates the SQLite filename in `LiteGraph.Database.Filename`.
 
+## Storage And Vector Search Pairings (v10.0)
+
+Each provider comes with its own vector search, and the pairing decides how LiteGraph can be deployed:
+
+| Provider | Vector storage | Vector index | Deployment |
+|---|---|---|---|
+| SQLite | raw float32 bytes in `vectors.embeddings` | HnswLite, in the server process (`HnswRam` in memory, `HnswSqlite` persisted to a file) | one process |
+| PostgreSQL | pgvector `vector` column `vectors.embeddings` | pgvector HNSW index inside the database | one node or a cluster of many |
+
+SQLite keeps vectors next to the data and indexes them in memory, which suits embedded use and single servers; after a restart an in-memory index is rebuilt from the database the first time it is used. PostgreSQL keeps the index in the database itself, so it is always consistent with the stored vectors and every node of a cluster searches the same index. See [CLUSTERING.md](CLUSTERING.md).
+
 ## SQLite
 
 SQLite is the default backend:
@@ -112,7 +123,7 @@ The embedded C# SDK surface uses the same public storage model. `DatabaseSetting
 
 ## PostgreSQL Target Configuration
 
-PostgreSQL is the recommended production backend. The configuration shape is:
+PostgreSQL is the recommended production backend. Since v10.0 it requires the [pgvector](https://github.com/pgvector/pgvector) extension (0.8 or later recommended, for filtered index scans). Repository initialization runs `CREATE EXTENSION IF NOT EXISTS vector`, which succeeds when the LiteGraph role owns the database or is a superuser; otherwise the server stops with a message naming the database, and an administrator runs `CREATE EXTENSION vector;` in it once. Managed services (Amazon RDS, Azure Database for PostgreSQL, Google Cloud SQL) offer pgvector; the Docker deployments use `pgvector/pgvector:0.8.6-pg17-trixie`. The configuration shape is:
 
 ```json
 {
@@ -155,10 +166,12 @@ PostgreSQL supports:
 - JSON data filters through PostgreSQL `jsonb` extraction, including numeric and boolean comparisons
 - pooled concurrent writes through `NpgsqlDataSource`
 - synchronous and asynchronous repository initialization/disposal
+- vector storage in a pgvector column and vector search in SQL, using a cosine HNSW index per vector dimensionality (`idx_vectors_hnsw_cosine_<dimensions>`), created when a graph enables indexing and maintained by PostgreSQL on every write; dimensionalities above 2,000 use `halfvec`, and above 4,000 search is exact
+- tracked schema migrations in a `schemamigrations` table (v10.0: pgvector conversion of existing embeddings, unique built-in role names, unique chat turn sequences), run under the schema lock so nodes starting together migrate once
 
 ### Docker Compose PostgreSQL Defaults
 
-The checked-in Docker deployment in `docker/compose.yaml` is PostgreSQL-backed by default. It starts a `postgresql` service, runs a one-shot `litegraph-postgresql-init` service, and injects the matching LiteGraph settings into the init and server containers with `LITEGRAPH_DB_*` environment variables.
+The single-node PostgreSQL deployment in `docker/single-node-postgresql/compose.yaml` starts a `postgresql` service (`pgvector/pgvector:0.8.6-pg17-trixie`), runs a one-shot `litegraph-init` service, and injects the matching LiteGraph settings into the init and server containers with `LITEGRAPH_DB_*` environment variables. The multi-node deployment in `docker/multi-node/` uses separate `litegraph` and `clutch` roles and databases; see [`docker/README.md`](../docker/README.md).
 
 Default local Docker values:
 
@@ -170,12 +183,12 @@ Default local Docker values:
 | Username | `litegraph` |
 | Password | `litegraph` |
 | Schema | `litegraph` |
-| Data volume | `postgresql-data` |
+| Data volume | `litegraph_postgresql-data` (override with `LITEGRAPH_POSTGRESQL_VOLUME`) |
 
 Startup order:
 
-1. `postgresql` starts and creates the configured database from `POSTGRES_DB` when the volume is new.
-2. `litegraph-postgresql-init` waits for PostgreSQL health, runs `LiteGraph.Server --init-only`, creates the configured schema and tables through the repository setup path, seeds built-in authorization roles, creates `default@user.com` / `password` and bearer token `default`, and creates a starter graph with nodes and edges when the default graph is empty.
+1. `postgresql` starts and creates the configured database from `POSTGRES_DB` when the volume is new, then `postgresql/init/01-litegraph.sh` creates the pgvector extension.
+2. `litegraph-init` waits for PostgreSQL health, runs `LiteGraph.Server --init-only`, creates the configured schema and tables through the repository setup path, seeds built-in authorization roles, creates `default@user.com` / `password` and bearer token `default`, and creates a starter graph with nodes and edges when the default graph is empty.
 3. `litegraph` starts only after the init service exits successfully.
 4. MCP, dashboard, Prometheus, and Grafana wait on the long-running LiteGraph service.
 
@@ -191,7 +204,7 @@ Override sample Docker values with:
 | `LITEGRAPH_DB_MAX_CONNECTIONS` | LiteGraph PostgreSQL pool size |
 | `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS` | LiteGraph database command timeout |
 
-The mounted `docker/litegraph.json` and `docker/factory/litegraph.json` also use `Type = Postgresql`, `Hostname = postgresql`, and the sample credentials so factory reset preserves the PostgreSQL-backed deployment. For SQLite Docker experiments, change the JSON or override `LITEGRAPH_DB_TYPE=Sqlite` and set a SQLite filename.
+The mounted `docker/single-node-postgresql/litegraph.json` and its `factory/` copy use `Type = Postgresql`, `Hostname = postgresql`, and the sample credentials, so a factory reset preserves the PostgreSQL-backed deployment. For SQLite, use `docker/single-node-sqlite/` instead.
 
 ### PostgreSQL Production Hardening
 
@@ -273,7 +286,9 @@ Verification compares entity counts and sampled source GUIDs in the destination.
 4. start LiteGraph with `Database.Type = Postgresql`
 5. rebuild vector indexes if the deployment uses file-backed vector indexes and the index files were not copied with the database
 
-## File-Backed Vector Index Artifacts
+## File-Backed Vector Index Artifacts (SQLite)
+
+This section applies to SQLite. On PostgreSQL the vector index is a pgvector index inside the database, so there are no index files, and backups and restores of the database include it.
 
 LiteGraph v7.0 uses `HnswLite` `2.0.1` for HNSW vector indexes. `HnswSqlite` index artifacts written by v7.0 include `FormatVersion = 2`, `HnswLiteVersion = "2.0.1"`, vector metadata, layer assignments, and persisted neighbor connections. The neighbor connection data is required for reload-safe indexed search after process restart.
 
@@ -284,6 +299,8 @@ When migrating storage providers, restoring backups, or upgrading from earlier L
 The `Admin.Backup` path snapshots the whole database as a single binary artifact, which is the right tool for a full-instance restore but ties the copy to a provider and a point in time across every graph at once. When you need to move or archive one graph on its own, `GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/export/jsonl` writes that graph as newline-delimited JSON that any process can read, diff, or store in version control. Because the format carries the graph, its nodes, and its edges as plain records rather than SQLite or PostgreSQL internals, a JSONL file exported from one provider imports cleanly into the other, and a restore into an empty database with the `preserve` GUID strategy reproduces the original GUIDs. Treat it as the portable complement to the binary backup: reach for `Admin.Backup` for instance-level disaster recovery, and for JSONL when the unit of work is a single graph. See the [REST API](REST_API.md) for the export and import contract.
 
 ## Backup, Restore, and Disaster Recovery Runbook
+
+On PostgreSQL, back up and restore with PostgreSQL's own tools (`pg_dump` and `pg_restore`, or volume snapshots). The pgvector index is part of the database, so nothing needs rebuilding after a restore, and the LiteGraph backup API returns an error for PostgreSQL. The rest of this runbook applies to SQLite.
 
 `Admin.Backup` (and `POST /v1.0/backups`) snapshots the database with SQLite `VACUUM INTO`, which copies **only the main database file** — tenants, users, credentials, graphs, nodes, edges, labels, tags, and the raw stored vectors. It does **not** copy file-backed HNSW vector index artifacts (`Graph.VectorIndexFile` and its `.layers` companion for `HnswSqlite`, or the persisted snapshot for `HnswRam`), which live outside the database under `indexes/`. The same is true of a provider migration that copies only the database.
 
@@ -308,7 +325,7 @@ If you must avoid a rebuild, back up the `indexes/` directory together with the 
 
 ## Current Limits
 
-- SQLite and PostgreSQL are implemented providers.
+- SQLite and PostgreSQL are implemented providers. Only PostgreSQL supports more than one server process (see [CLUSTERING.md](CLUSTERING.md)).
 - Provider-specific query generation is normalized for SQLite and PostgreSQL.
 - Provider-neutral migration copies repository data but does not perform online dual-write cutover or external backup orchestration.
 - PostgreSQL provider coverage runs through the live provider suite when `LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING` is configured.

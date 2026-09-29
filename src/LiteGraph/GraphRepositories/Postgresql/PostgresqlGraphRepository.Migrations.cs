@@ -127,8 +127,15 @@ namespace LiteGraph.GraphRepositories.Postgresql
                     lastGuid = guid;
 
                     byte[] blob = row["embeddings"] as byte[];
+                    if (blob == null || blob.Length < 4 || blob.Length % 4 != 0)
+                    {
+                        skipped++;
+                        Logging.Log(SeverityEnum.Warn, "skipping vector " + guid + " during pgvector migration: stored embedding is empty or not a float32 array");
+                        continue;
+                    }
+
                     List<float> floats = Converters.BlobToVector(blob);
-                    if (blob == null || blob.Length % 4 != 0 || floats.Count < 1)
+                    if (floats.Count < 1)
                     {
                         skipped++;
                         Logging.Log(SeverityEnum.Warn, "skipping vector " + guid + " during pgvector migration: stored embedding is empty or not a float32 array");

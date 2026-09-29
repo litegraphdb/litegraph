@@ -183,10 +183,22 @@ namespace LiteGraph
         }
 
         /// <summary>
-        /// Validate the configuration.
+        /// Validate the configuration, requiring VectorIndexFile for HnswSqlite indexes.
         /// </summary>
         /// <returns>True if valid, false otherwise.</returns>
         public bool IsValid(out string errorMessage)
+        {
+            return IsValid(out errorMessage, true);
+        }
+
+        /// <summary>
+        /// Validate the configuration.
+        /// </summary>
+        /// <param name="errorMessage">Reason the configuration is invalid, or null.</param>
+        /// <param name="requireIndexFile">True when the repository stores HnswSqlite indexes in files (SQLite), so VectorIndexFile is required.
+        /// False for repositories whose index lives in the database (PostgreSQL), where the index type only selects indexing and no file applies.</param>
+        /// <returns>True if valid, false otherwise.</returns>
+        public bool IsValid(out string errorMessage, bool requireIndexFile)
         {
             errorMessage = null;
 
@@ -205,7 +217,7 @@ namespace LiteGraph
             }
 
             // Check SQLite-specific requirements
-            if (VectorIndexType == VectorIndexTypeEnum.HnswSqlite && string.IsNullOrWhiteSpace(VectorIndexFile))
+            if (requireIndexFile && VectorIndexType == VectorIndexTypeEnum.HnswSqlite && string.IsNullOrWhiteSpace(VectorIndexFile))
             {
                 errorMessage = "VectorIndexFile is required for SQLite-based vector indices.";
                 return false;

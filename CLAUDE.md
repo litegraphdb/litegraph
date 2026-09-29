@@ -12,14 +12,23 @@ dotnet build src/LiteGraph.sln
 dotnet build src/LiteGraph/LiteGraph.csproj
 dotnet build src/LiteGraph.Server/LiteGraph.Server.csproj
 
-# Run tests
-dotnet run --project src/Test/Test.csproj
-dotnet run --project src/Test.VectorSearch/Test.VectorSearch.csproj
-dotnet run --project src/Test.VectorIndexSearch/Test.VectorIndexSearch.csproj
+# Run the Touchstone suites (SQLite always; PostgreSQL cases when the variable is set;
+# the database needs the pgvector extension, e.g. docker image pgvector/pgvector:0.8.6-pg17-trixie)
+dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0
+LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING="Host=127.0.0.1;Port=5432;Username=...;Password=...;Database=..." \
+  dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0 -- --suite ScaleOut
 
-# Run the server
-dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj
+# Run the server (single node, SQLite, creates litegraph.json and litegraph.db in the current directory)
+dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj --framework net10.0
+
+# Docker deployments (see docker/README.md)
+cd docker/single-node-sqlite      && docker compose up -d && smoke.bat
+cd docker/single-node-postgresql  && docker compose up -d && smoke.bat
+cd docker/multi-node              && docker compose up -d && smoke.bat && failover.bat
 ```
+
+The Touchstone harness starts server and MCP child processes; if a run is interrupted they can linger and lock
+`bin/` outputs, so check for stray `LiteGraph.Server.dll` processes before rebuilding.
 
 ## High-Level Architecture
 
@@ -29,7 +38,7 @@ LiteGraph follows a strict layered architecture with clear separation of concern
 
 1. **Client Layer** (`LiteGraph.Client`): Handles input validation and cross-cutting logic
 2. **Repository Layer** (`GraphRepositories`): Contains primitives and data access
-3. **Storage Layer**: SQLite implementation with optional in-memory operation
+3. **Storage Layer**: SQLite (with optional in-memory operation) or PostgreSQL with pgvector
 
 ### Key Architectural Components
 
@@ -44,11 +53,26 @@ All operations require a `tenantGuid` parameter. The hierarchy is:
 Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
 ```
 
-#### Vector Indexing Architecture
-- **Vector Index Manager** (`Indexing/Vector/VectorIndexManager.cs`): Manages HNSW index lifecycle
-- **HNSW Implementation** (`HnswLiteVectorIndex.cs`): Wraps HnswLite library with custom storage
-- **Index Integration** (`VectorMethodsWithIndex.cs`): Extension methods for index operations
-- **Critical**: `VectorMethods.SearchNode()` must check for index availability before falling back to brute-force search
+#### Storage and Vector Search Pairings (v10.0)
+- **SQLite + HnswLite**: vectors stored as float32 bytes; the per-process HNSW index is managed by
+  `Indexing/Vector/VectorIndexManager.cs`, wrapped by `HnswLiteVectorIndex.cs`, and maintained through
+  `GraphRepositories/Sqlite/Implementations/VectorMethodsWithIndex.cs`. SQLite is single-process only.
+- **PostgreSQL + pgvector**: `vectors.embeddings` is a pgvector `vector` column; all vector search is SQL
+  (`GraphRepositories/Postgresql/Queries/PgvectorQueries.cs`) with a shared cosine HNSW index per dimensionality.
+  There is no `VectorIndexManager` on PostgreSQL. Search scores must match `Helpers/VectorHelper.cs` exactly
+  (the `ScaleOut.PgvectorSearchParity` case checks every search type).
+- Schema changes on PostgreSQL are numbered migrations in `PostgresqlGraphRepository.Migrations.cs`, recorded in the
+  `schemamigrations` table and run under the `schema` lock.
+
+#### Stateless Nodes and Cluster Mode (v10.0)
+- In cluster mode (`Cluster.Enable`, PostgreSQL only) several server nodes share one database behind a load balancer.
+  **Nodes must keep no state that another node could disagree with**: no caches that answer for data (client object
+  caches and `AuthorizationService` caches are off in cluster mode), no in-process indexes, no node-local settings.
+- Coordination that needs one actor at a time goes through `ILockProvider` (`LiteGraph.Coordination`): `LocalLockProvider`
+  (Padlock) on a single node, `ClutchLockProvider` (server, Clutch REST lock API) in a cluster. Lock keys live in
+  `LockKeys`. Ordinary reads, writes, and searches must never take a distributed lock.
+- Invariants are enforced with database unique constraints plus retry, not with locks.
+- See `docs/CLUSTERING.md`.
 
 ### Data Model Key Points
 
@@ -70,11 +94,11 @@ Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
 - **Flushing**: Must call `client.Flush()` to persist in-memory changes to disk
 - **Caching**: Uses `LRUCache` for tenant, graph, node, and edge validation
 
-#### Vector Index Integration Bug
-The `VectorMethods.SearchNode()` method was historically performing brute-force searches even when HNSW indexes were available. Always ensure:
-1. Check if graph has vector indexing enabled (`graph.VectorIndexType`)
-2. Use `VectorMethodsIndexExtensions.SearchWithIndexAsync()` when available
-3. Fall back to brute-force only when no index or complex filtering is needed
+#### Vector Index Search (SQLite)
+On SQLite, `VectorMethods.SearchNode()` uses the HnswLite index when the graph has indexing enabled and no label, tag,
+or expression filter is given, and falls back to brute force otherwise. An empty in-memory index is rebuilt from the
+database on first use (`VectorIndexManager.IndexLoader`), and nodes created with inline vectors must reach the index
+(`NodeMethods.StampInlineVectors`).
 
 #### Batch Operations
 All entity types support batch creation via `CreateMany()` methods for performance optimization.

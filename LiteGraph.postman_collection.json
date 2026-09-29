@@ -16527,6 +16527,62 @@
 			]
 		},
 		{
+			"name": "v10.0",
+			"description": "Routes added in LiteGraph 10.0. Health endpoints need no authentication, are not recorded in request history, and are what load balancers and container health checks should probe. Every response in 10.0 also carries an x-litegraph-node header naming the node that answered; point {{hostname}} and {{port}} at a single node or at a cluster's load balancer to see it change.",
+			"item": [
+				{
+					"name": "Health",
+					"description": "Liveness and readiness probes. See docs/REST_API.md (General APIs) and docs/CLUSTERING.md.",
+					"item": [
+						{
+							"name": "Liveness",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Returns 200 while the server process is running. Body: Status, NodeId, ClusterName (null on a single node), Version, StartedUtc, Utc.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/health/live",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"health",
+										"live"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Readiness",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Returns 200 when the node can serve requests and 503 otherwise. Checks.Database is true when the database answered; Checks.Clutch is null on a single node and, in a cluster, true when the Clutch lock service is reachable; Checks.Draining is true once the node has been asked to stop.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/health/ready",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"health",
+										"ready"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Root",
 			"request": {
 				"method": "GET",
