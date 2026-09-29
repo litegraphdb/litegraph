@@ -218,7 +218,7 @@ $ dotnet LiteGraph.Server.dll
              |___/         |_|
 
  LiteGraph Server
- (c)2025 Joel Christner
+ (c)2026 Joel Christner
 
 Using settings file './litegraph.json'
 Settings file './litegraph.json' does not exist, creating

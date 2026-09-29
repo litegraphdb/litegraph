@@ -4,12 +4,12 @@
 		<TargetFrameworks>net8.0</TargetFrameworks>
 		<Version>9.0.0</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v8.1.0 additive release: chat surface (endpoints, completions with SSE streaming, threads, feedback, chat settings, endpoint health).</PackageReleaseNotes>
+		<PackageReleaseNotes>v9.0.0: graph algorithms, node embeddings, and graph export/import.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>LiteGraph.Sdk</Title>
 		<Authors>Joel Christner</Authors>
-		<Copyright>(c)2025 Joel Christner</Copyright>
+		<Copyright>(c)2026 Joel Christner</Copyright>
 		<PackageProjectUrl>https://github.com/jchristn/litegraph</PackageProjectUrl>
 		<PackageIcon>favicon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

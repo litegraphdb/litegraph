@@ -32,7 +32,7 @@ namespace LiteGraph.McpServer.Classes
         /// <summary>
         /// Copyright.
         /// </summary>
-        public static string Copyright = " (c)2025 Joel Christner";
+        public static string Copyright = " (c)2026 Joel Christner";
 
         /// <summary>
         /// Settings file path.
