@@ -8,6 +8,7 @@ namespace LiteGraph.Server.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using LiteGraph;
+    using LiteGraph.Coordination;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Server.Classes;
     using SyslogLogging;
@@ -19,6 +20,12 @@ namespace LiteGraph.Server.Services
     public class RequestHistoryService : IDisposable
     {
         #region Public-Members
+
+        /// <summary>
+        /// Lock provider.  When distributed, each purge pass runs on only one cluster node.
+        /// Null purges locally on every pass.
+        /// </summary>
+        public ILockProvider LockProvider { get; set; } = null;
 
         /// <summary>
         /// Redacted value used in place of sensitive header contents.
@@ -52,7 +59,9 @@ namespace LiteGraph.Server.Services
 
         private readonly HashSet<string> _SkippedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "/favicon.ico"
+            "/favicon.ico",
+            "/v1.0/health/live",
+            "/v1.0/health/ready"
         };
 
         private readonly Channel<RequestHistoryDetail> _CaptureChannel;
@@ -327,9 +336,17 @@ namespace LiteGraph.Server.Services
 
             while (!token.IsCancellationRequested)
             {
+                ILockHandle jobLock = null;
                 try
                 {
-                    if (_Settings.RequestHistory.Enable)
+                    bool run = _Settings.RequestHistory.Enable;
+                    if (run && LockProvider != null && LockProvider.IsDistributed)
+                    {
+                        jobLock = await LockProvider.TryAcquireAsync(LockKeys.Job("request-history-purge"), LockModeEnum.Exclusive, token).ConfigureAwait(false);
+                        run = (jobLock != null);
+                    }
+
+                    if (run)
                     {
                         DateTime cutoff = DateTime.UtcNow.AddDays(-_Settings.RequestHistory.RetentionDays);
                         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -354,6 +371,10 @@ namespace LiteGraph.Server.Services
                 catch (Exception e)
                 {
                     _Logging.Warn(_Header + "purge pass failed: " + e.Message);
+                }
+                finally
+                {
+                    if (jobLock != null) await jobLock.DisposeAsync().ConfigureAwait(false);
                 }
 
                 try

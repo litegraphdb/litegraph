@@ -19,7 +19,8 @@ namespace LiteGraph.Server.Services
     /// Probes are deduplicated by target: endpoints sharing the same probe URL, method, expected
     /// status, and authentication material share a single probe loop, and every subscriber reports
     /// the shared verdict.  Five models on one Ollama host produce one probe, not five.
-    /// State is in-memory only and resets on restart.
+    /// State is in-memory only and resets on restart.  Each node of a cluster probes independently and reports its own
+    /// observations; a periodic resync from the database picks up endpoints created, changed, or deleted through other nodes.
     /// Thread safety: all public members are safe for concurrent use.
     /// </summary>
     public class ChatEndpointHealthService : IDisposable
@@ -37,6 +38,7 @@ namespace LiteGraph.Server.Services
         private readonly HttpClient _HttpClient;
         private readonly ConcurrentDictionary<string, TargetMonitor> _Targets = new ConcurrentDictionary<string, TargetMonitor>(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<Guid, string> _EndpointTargets = new ConcurrentDictionary<Guid, string>();
+        private readonly ConcurrentDictionary<Guid, DateTime> _EndpointVersions = new ConcurrentDictionary<Guid, DateTime>();
         private readonly CancellationTokenSource _TokenSource = new CancellationTokenSource();
         private readonly TimeSpan _HistoryWindow = TimeSpan.FromHours(24);
         private bool _Disposed = false;
@@ -75,15 +77,69 @@ namespace LiteGraph.Server.Services
         /// <param name="token">Cancellation token.</param>
         public async Task Start(CancellationToken token = default)
         {
+            await ResyncAsync(token).ConfigureAwait(false);
+            _Logging.Info(_Header + "started; monitoring " + _Targets.Count + " probe target(s) for " + _EndpointTargets.Count + " chat endpoint(s)");
+        }
+
+        /// <summary>
+        /// Start a background loop that re-reads chat endpoints from the database on an interval, so a cluster node monitors
+        /// endpoints created, changed, or deleted through other nodes.  Endpoints whose record has not changed keep their
+        /// probe history.
+        /// </summary>
+        /// <param name="intervalMs">Interval in milliseconds.  Minimum is 1000.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The interval is below 1000.</exception>
+        public void StartResyncLoop(int intervalMs)
+        {
+            if (intervalMs < 1000) throw new ArgumentOutOfRangeException(nameof(intervalMs));
+            CancellationToken token = _TokenSource.Token;
+
+            _ = Task.Run(async () =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(intervalMs, token).ConfigureAwait(false);
+                        await ResyncAsync(token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        _Logging.Warn(_Header + "endpoint resync failed: " + e.Message);
+                    }
+                }
+            }, token);
+        }
+
+        /// <summary>
+        /// Reconcile monitored endpoints with the database: subscribe new or changed endpoints and unsubscribe deleted ones.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        public async Task ResyncAsync(CancellationToken token = default)
+        {
+            Dictionary<Guid, ChatEndpoint> current = new Dictionary<Guid, ChatEndpoint>();
+
             await foreach (TenantMetadata tenant in _LiteGraph.Tenant.ReadMany(EnumerationOrderEnum.CreatedDescending, 0, token).ConfigureAwait(false))
             {
                 await foreach (ChatEndpoint endpoint in _LiteGraph.ChatEndpoint.ReadAllInTenant(tenant.GUID, null, EnumerationOrderEnum.CreatedDescending, 0, token).ConfigureAwait(false))
                 {
-                    OnEndpointCreatedOrUpdated(endpoint);
+                    current[endpoint.GUID] = endpoint;
                 }
             }
 
-            _Logging.Info(_Header + "started; monitoring " + _Targets.Count + " probe target(s) for " + _EndpointTargets.Count + " chat endpoint(s)");
+            foreach (ChatEndpoint endpoint in current.Values)
+            {
+                if (_EndpointVersions.TryGetValue(endpoint.GUID, out DateTime seen) && seen == endpoint.LastUpdateUtc) continue;
+                OnEndpointCreatedOrUpdated(endpoint);
+            }
+
+            foreach (Guid known in _EndpointVersions.Keys.ToList())
+            {
+                if (!current.ContainsKey(known)) OnEndpointDeleted(Guid.Empty, known);
+            }
         }
 
         /// <summary>
@@ -96,6 +152,7 @@ namespace LiteGraph.Server.Services
             if (endpoint == null) throw new ArgumentNullException(nameof(endpoint));
 
             Unsubscribe(endpoint.GUID, endpoint.Name, endpoint.EndpointType);
+            _EndpointVersions[endpoint.GUID] = endpoint.LastUpdateUtc;
 
             if (!endpoint.Active || !endpoint.HealthCheckEnabled) return;
 
@@ -121,6 +178,7 @@ namespace LiteGraph.Server.Services
         /// <param name="endpointType">Endpoint type.</param>
         public void OnEndpointDeleted(Guid tenantGuid, Guid endpointGuid, string endpointName = null, ChatEndpointTypeEnum endpointType = ChatEndpointTypeEnum.Completion)
         {
+            _EndpointVersions.TryRemove(endpointGuid, out _);
             Unsubscribe(endpointGuid, endpointName, endpointType);
         }
 

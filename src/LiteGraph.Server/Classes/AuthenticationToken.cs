@@ -29,7 +29,7 @@
         {
             get
             {
-                return TimestampUtc > ExpirationUtc;
+                return DateTime.UtcNow > ExpirationUtc;
             }
         }
 

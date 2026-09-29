@@ -45,6 +45,7 @@
         private ObservabilityService _Observability = null;
         private Services.Chat.ChatService _ChatService = null;
         private ChatEndpointHealthService _ChatHealth = null;
+        private Services.Cluster.ClusterContext _Cluster = null;
 
         private Webserver _Webserver = null;
         private bool _Disposed = false;
@@ -70,7 +71,8 @@
             RequestHistoryService requestHistory,
             ObservabilityService observability,
             Services.Chat.ChatService chatService = null,
-            ChatEndpointHealthService chatHealth = null)
+            ChatEndpointHealthService chatHealth = null,
+            Services.Cluster.ClusterContext cluster = null)
         {
             _Settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _Logging = logging ?? throw new ArgumentNullException(nameof(logging));
@@ -82,6 +84,7 @@
             _Observability = observability ?? throw new ArgumentNullException(nameof(observability));
             _ChatService = chatService;
             _ChatHealth = chatHealth;
+            _Cluster = cluster;
 
             _Webserver = new Webserver(_Settings.Rest, DefaultRoute);
             _Webserver.Routes.PreRouting = PreRoutingHandler;
@@ -206,6 +209,8 @@
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.HEAD, "/", LoopbackRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Health check", "System"));
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/", RootRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Server information", "System"));
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/favicon.ico", FaviconRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Favicon", "System"));
+            _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/v1.0/health/live", HealthLiveRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Liveness: 200 while the process runs", "System"));
+            _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/v1.0/health/ready", HealthReadyRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Readiness: 200 when the node can serve requests, otherwise 503", "System"));
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/v1.0/token/tenants", TokenTenantsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List tenants for email", "Tokens"));
             if (_Settings.Observability.Enable && _Settings.Observability.EnablePrometheus)
             {
@@ -554,6 +559,7 @@
 
             _Observability.IncrementHttpInFlight();
             ctx.Response.Headers.Add(Constants.HostnameHeader, _Hostname);
+            ctx.Response.Headers.Add(Constants.NodeHeader, _Cluster?.NodeId ?? _Hostname);
             ctx.Response.ContentType = Constants.JsonContentType;
 
             try
@@ -1108,6 +1114,58 @@
         {
             ctx.Response.StatusCode = 200;
             await ctx.Response.Send();
+        }
+
+        private async Task HealthLiveRoute(HttpContextBase ctx)
+        {
+            HealthResponse health = BuildHealthResponse();
+            ctx.Response.StatusCode = 200;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(health, true));
+        }
+
+        private async Task HealthReadyRoute(HttpContextBase ctx)
+        {
+            HealthResponse health = BuildHealthResponse();
+            health.Checks = new HealthChecks
+            {
+                Draining = _Cluster?.Draining ?? false,
+                Clutch = (_Cluster != null && _Cluster.Enabled) ? _Cluster.LockProvider.IsAvailable : (bool?)null
+            };
+
+            try
+            {
+                using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                {
+                    await _LiteGraph.Tenant.ExistsByGuid(Guid.Empty, cts.Token).ConfigureAwait(false);
+                }
+                health.Checks.Database = true;
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "readiness database check failed: " + e.Message);
+                health.Checks.Database = false;
+            }
+
+            bool ready = health.Checks.Database && !health.Checks.Draining && (health.Checks.Clutch ?? true);
+            health.Status = ready ? "Healthy" : "Unavailable";
+
+            ctx.Response.StatusCode = ready ? 200 : 503;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(health, true));
+        }
+
+        private HealthResponse BuildHealthResponse()
+        {
+            return new HealthResponse
+            {
+                Status = "Healthy",
+                NodeId = _Cluster?.NodeId ?? _Hostname,
+                ClusterName = (_Cluster != null && _Cluster.Enabled) ? _Cluster.ClusterName : null,
+                Version = typeof(RestServiceHandler).Assembly.GetName().Version?.ToString(3),
+                StartedUtc = _Cluster?.StartedUtc ?? DateTime.UtcNow,
+                Utc = DateTime.UtcNow
+            };
         }
 
         private async Task RootRoute(HttpContextBase ctx)

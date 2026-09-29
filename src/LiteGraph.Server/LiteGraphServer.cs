@@ -4,15 +4,18 @@ namespace LiteGraph.Server
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Coordination;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Serialization;
     using LiteGraph.Server.API.Agnostic;
     using LiteGraph.Server.API.REST;
     using LiteGraph.Server.Classes;
     using LiteGraph.Server.Services;
+    using LiteGraph.Server.Services.Cluster;
     using SyslogLogging;
 
     /// <summary>
@@ -45,6 +48,8 @@ namespace LiteGraph.Server
         private static RequestHistoryService _RequestHistoryService = null;
         private static ObservabilityService _ObservabilityService = null;
         private static RestServiceHandler _RestService = null;
+        private static ILockProvider _LockProvider = null;
+        private static ClusterContext _Cluster = null;
 
         private static CancellationTokenSource _TokenSource = new CancellationTokenSource();
         private static CancellationToken _Token;
@@ -149,6 +154,8 @@ namespace LiteGraph.Server
                 _ShutdownRequested = true;
             }
 
+            _Cluster?.BeginDrain();
+
             LogInfo(_Header + reason + ", initiating shutdown");
             _ShutdownSignal.TrySetResult(true);
         }
@@ -229,6 +236,12 @@ namespace LiteGraph.Server
                 await DisposeIfNeededAsync(_Repo).ConfigureAwait(false);
                 _Repo = null;
             }).ConfigureAwait(false);
+
+            TryCleanup("lock provider", () =>
+            {
+                _LockProvider?.Dispose();
+                _LockProvider = null;
+            });
 
             LogInfo(_Header + "stopped at " + DateTime.UtcNow);
 
@@ -497,6 +510,9 @@ namespace LiteGraph.Server
             ApplyTransactionEnvironmentVariables();
             ApplyInitializationEnvironmentVariables();
             ApplyObservabilityEnvironmentVariables();
+            ApplySecurityEnvironmentVariables();
+            ApplyClusterEnvironmentVariables();
+            ValidateClusterSettings();
 
             #endregion
 
@@ -545,8 +561,26 @@ namespace LiteGraph.Server
 
             #region Repositories
 
+            if (_Settings.Cluster.Enable)
+            {
+                ClutchLockProvider clutch = new ClutchLockProvider(_Settings.Cluster.Clutch, _Settings.Cluster.ClusterName, _Logging);
+                _LockProvider = clutch;
+                await clutch.ConnectAsync(_Token).ConfigureAwait(false);
+            }
+            else
+            {
+                _LockProvider = new LocalLockProvider();
+            }
+
+            _Cluster = new ClusterContext(_Settings.Cluster, _LockProvider);
+            _Logging.Info(
+                _Header + (_Cluster.Enabled
+                    ? "cluster mode: node " + _Cluster.NodeId + " in cluster " + _Cluster.ClusterName + ", locks via Clutch at " + _Settings.Cluster.Clutch.Endpoint
+                    : "single-node mode: node " + _Cluster.NodeId));
+
             _Logging.Info(_Header + "initializing graph repository: " + _Settings.LiteGraph.Database.ToSafeString());
             _Repo = GraphRepositoryFactory.Create(_Settings.LiteGraph.Database);
+            _Repo.LockProvider = _LockProvider;
             _Repo.InitializeRepository();
 
             #endregion
@@ -562,8 +596,16 @@ namespace LiteGraph.Server
             // The client gets its own LoggingSettings copy: it is mutated below for
             // query-debug behavior, and sharing the instance would flip the server's
             // reported Logging.Enable (and other fields) as a side effect.
-            _LiteGraph = new LiteGraphClient(_Repo, _Serializer.CopyObject<LiteGraph.LoggingSettings>(_Settings.Logging));
-            _LiteGraph.Caching = _Settings.Caching;
+            CachingSettings caching = _Serializer.CopyObject<CachingSettings>(_Settings.Caching);
+            if (_Settings.Cluster.Enable && caching.Enable)
+            {
+                // Client caches are invalidated only by changes made through this process; another node's delete would leave
+                // them answering "exists" for an object that is gone.  Cluster nodes read through to the database instead.
+                caching.Enable = false;
+                _Logging.Info(_Header + "object caching disabled in cluster mode");
+            }
+
+            _LiteGraph = new LiteGraphClient(_Repo, _Serializer.CopyObject<LiteGraph.LoggingSettings>(_Settings.Logging), caching);
             _LiteGraph.Logging.Enable = _Settings.Debug.DatabaseQueries;
             _LiteGraph.Logging.Logger = LiteGraphLogger;
             _LiteGraph.Logging.LogQueries = _Settings.Debug.DatabaseQueries;
@@ -589,6 +631,12 @@ namespace LiteGraph.Server
                 _Serializer,
                 _Repo);
 
+            if (_Settings.Cluster.Enable)
+            {
+                _AuthenticationService.Authorization.EnableCache = false;
+                _Logging.Info(_Header + "authorization policy caching disabled in cluster mode");
+            }
+
             _ServiceHandler = new ServiceHandler(
                 _Settings,
                 _Logging,
@@ -600,6 +648,7 @@ namespace LiteGraph.Server
                 _Settings,
                 _Logging,
                 _Repo);
+            _RequestHistoryService.LockProvider = _LockProvider;
 
             _ObservabilityService = new ObservabilityService(_Settings.Observability);
             _RequestHistoryService.Observability = _ObservabilityService;
@@ -624,6 +673,7 @@ namespace LiteGraph.Server
                 _AuthenticationService.Authorization,
                 _ObservabilityService,
                 _ChatHealthService);
+            _ChatService.LockProvider = _LockProvider;
 
             _ServiceHandler.ChatHealth = _ChatHealthService;
             _ServiceHandler.Chat = _ChatService;
@@ -640,13 +690,15 @@ namespace LiteGraph.Server
                 _RequestHistoryService,
                 _ObservabilityService,
                 _ChatService,
-                _ChatHealthService);
+                _ChatHealthService,
+                _Cluster);
 
             _ = Task.Run(async () =>
             {
                 try
                 {
                     await _ChatHealthService.Start(_TokenSource.Token).ConfigureAwait(false);
+                    if (_Settings.Cluster.Enable) _ChatHealthService.StartResyncLoop(_Settings.Cluster.EndpointResyncIntervalMs);
                 }
                 catch (Exception e)
                 {
@@ -682,6 +734,80 @@ namespace LiteGraph.Server
                 case SeverityEnum.Emergency:
                     _Logging.Emergency(msg);
                     break;
+            }
+        }
+
+        private static void ApplySecurityEnvironmentVariables()
+        {
+            string adminToken = Environment.GetEnvironmentVariable(Constants.AdminBearerTokenEnvironmentVariable);
+            if (!String.IsNullOrEmpty(adminToken)) _Settings.LiteGraph.AdminBearerToken = adminToken;
+
+            string key = Environment.GetEnvironmentVariable(Constants.EncryptionKeyEnvironmentVariable);
+            if (!String.IsNullOrEmpty(key)) _Settings.Encryption.Key = key;
+
+            string iv = Environment.GetEnvironmentVariable(Constants.EncryptionIvEnvironmentVariable);
+            if (!String.IsNullOrEmpty(iv)) _Settings.Encryption.Iv = iv;
+        }
+
+        private static void ApplyClusterEnvironmentVariables()
+        {
+            string enable = Environment.GetEnvironmentVariable(Constants.ClusterEnableEnvironmentVariable);
+            if (!String.IsNullOrEmpty(enable))
+            {
+                if (TryParseBoolean(enable, out bool enabled)) _Settings.Cluster.Enable = enabled;
+                else Console.WriteLine("Invalid value detected in environment variable " + Constants.ClusterEnableEnvironmentVariable);
+            }
+
+            string clusterName = Environment.GetEnvironmentVariable(Constants.ClusterNameEnvironmentVariable);
+            if (!String.IsNullOrEmpty(clusterName)) _Settings.Cluster.ClusterName = clusterName;
+
+            string nodeId = Environment.GetEnvironmentVariable(Constants.NodeIdEnvironmentVariable);
+            if (!String.IsNullOrEmpty(nodeId)) _Settings.Cluster.NodeId = nodeId;
+
+            string clutchEndpoint = Environment.GetEnvironmentVariable(Constants.ClutchEndpointEnvironmentVariable);
+            if (!String.IsNullOrEmpty(clutchEndpoint)) _Settings.Cluster.Clutch.Endpoint = clutchEndpoint;
+
+            string clutchKey = Environment.GetEnvironmentVariable(Constants.ClutchAccessKeyEnvironmentVariable);
+            if (!String.IsNullOrEmpty(clutchKey)) _Settings.Cluster.Clutch.AccessKey = clutchKey;
+
+            string trustedProxies = Environment.GetEnvironmentVariable(Constants.TrustedProxiesEnvironmentVariable);
+            if (!String.IsNullOrEmpty(trustedProxies))
+            {
+                _Settings.Cluster.TrustedProxies = trustedProxies
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList();
+                _Settings.Cluster.TrustForwardedHeaders = _Settings.Cluster.TrustedProxies.Count > 0;
+            }
+        }
+
+        private static void ValidateClusterSettings()
+        {
+            bool defaultKey = _Settings.Encryption.Key.Trim('0').Length == 0;
+            bool defaultIv = _Settings.Encryption.Iv.Trim('0').Length == 0;
+            if (defaultKey || defaultIv)
+                Console.WriteLine("WARNING: the encryption key or IV is the all-zero default; set " + Constants.EncryptionKeyEnvironmentVariable + " and " + Constants.EncryptionIvEnvironmentVariable + " for any non-demonstration deployment");
+
+            if (!_Settings.Cluster.Enable) return;
+
+            if (_Settings.LiteGraph.Database.Type != DatabaseTypeEnum.Postgresql)
+                throw new InvalidOperationException("Cluster mode requires Database.Type = Postgresql; SQLite cannot be shared between nodes. Set " + Constants.DatabaseTypeEnvironmentVariable + "=Postgresql or disable " + Constants.ClusterEnableEnvironmentVariable + ".");
+
+            if (_Settings.LiteGraph.Database.InMemory)
+                throw new InvalidOperationException("Cluster mode cannot use an in-memory database; each node would hold its own private copy.");
+
+            if (String.IsNullOrEmpty(_Settings.Cluster.Clutch.AccessKey))
+                throw new InvalidOperationException("Cluster mode requires a Clutch access key. Set Cluster.Clutch.AccessKey or " + Constants.ClutchAccessKeyEnvironmentVariable + ".");
+
+            bool insecure = defaultKey || defaultIv || _Settings.LiteGraph.AdminBearerToken == "litegraphadmin";
+            if (insecure)
+            {
+                if (!_Settings.Cluster.AllowInsecureDefaults)
+                    throw new InvalidOperationException(
+                        "Cluster mode refuses to start with the default encryption key, IV, or administrator token. Set "
+                        + Constants.EncryptionKeyEnvironmentVariable + ", " + Constants.EncryptionIvEnvironmentVariable + ", and "
+                        + Constants.AdminBearerTokenEnvironmentVariable + " (identical on every node), or set Cluster.AllowInsecureDefaults = true for a demonstration deployment.");
+
+                Console.WriteLine("WARNING: cluster mode is running with default credentials because Cluster.AllowInsecureDefaults is true; do not use this configuration in production");
             }
         }
 
