@@ -77,9 +77,15 @@ namespace LiteGraph.GraphRepositories.Postgresql
 
             if (_Transaction != null)
             {
-                lock (_QueryLock)
+                _TransactionSemaphore.Wait();
+                try
                 {
-                    return ExecuteOnConnection(_TransactionConnection, _Transaction, query);
+                    NpgsqlTransaction active = GetActiveTransactionOrThrow();
+                    return ExecuteOnConnection(active.Connection, active, query);
+                }
+                finally
+                {
+                    _TransactionSemaphore.Release();
                 }
             }
 
@@ -116,9 +122,15 @@ namespace LiteGraph.GraphRepositories.Postgresql
 
             if (_Transaction != null)
             {
-                lock (_QueryLock)
+                await _TransactionSemaphore.WaitAsync(token).ConfigureAwait(false);
+                try
                 {
-                    return ExecuteOnConnection(_TransactionConnection, _Transaction, query);
+                    NpgsqlTransaction active = GetActiveTransactionOrThrow();
+                    return await ExecuteOnConnectionAsync(active.Connection, active, query, token).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _TransactionSemaphore.Release();
                 }
             }
 
@@ -153,15 +165,21 @@ namespace LiteGraph.GraphRepositories.Postgresql
 
             if (_Transaction != null)
             {
-                lock (_QueryLock)
+                _TransactionSemaphore.Wait();
+                try
                 {
+                    NpgsqlTransaction active = GetActiveTransactionOrThrow();
                     DataTable result = new DataTable();
                     foreach (string query in queries.Where(q => !String.IsNullOrWhiteSpace(q)))
                     {
-                        DataTable current = ExecuteOnConnection(_TransactionConnection, _Transaction, query);
+                        DataTable current = ExecuteOnConnection(active.Connection, active, query);
                         if (current.Rows.Count > 0) result = current;
                     }
                     return result;
+                }
+                finally
+                {
+                    _TransactionSemaphore.Release();
                 }
             }
 
@@ -191,6 +209,15 @@ namespace LiteGraph.GraphRepositories.Postgresql
                 {
                     transaction?.Dispose();
                 }
+            }
+        }
+
+        private NpgsqlTransaction GetActiveTransactionOrThrow()
+        {
+            lock (_QueryLock)
+            {
+                if (_Transaction == null) throw new InvalidOperationException("The graph transaction ended before the query could run.");
+                return _Transaction;
             }
         }
 

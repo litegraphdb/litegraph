@@ -240,6 +240,8 @@ namespace LiteGraph.GraphRepositories.Sqlite
         private string _GraphTransactionVectorIndexDirtyReason = null;
         private readonly List<GraphTransactionVectorIndexMutation> _GraphTransactionVectorIndexMutations = new List<GraphTransactionVectorIndexMutation>();
         private bool _OwnsVectorIndexManager = true;
+        private int _BeginTransactionMaxAttempts = 3;
+        private int _BeginTransactionRetryDelayMs = 25;
 
         private int _SelectBatchSize = 100;
         private int _MaxStatementLength = 1000000000; // https://www.sqlite.org/limits.html
@@ -255,6 +257,11 @@ namespace LiteGraph.GraphRepositories.Sqlite
         /// <param name="filename">Sqlite database filename.</param>
         /// <param name="inMemory">Boolean indicating whether or not the database should be held in-memory and flushed periodically to disk by user instruction.</param>
         public SqliteGraphRepository(string filename = "litegraph.db", bool inMemory = false)
+            : this(filename, inMemory, false, null)
+        {
+        }
+
+        private SqliteGraphRepository(string filename, bool inMemory, bool isolatedTransactionRepository, VectorIndexManager sharedVectorIndexManager)
         {
             if (string.IsNullOrEmpty(filename)) throw new ArgumentNullException(nameof(filename));
 
@@ -265,10 +272,15 @@ namespace LiteGraph.GraphRepositories.Sqlite
             if (!_InMemory) _ConnectionString = "Data Source=" + filename + ";Pooling=true";
             else _ConnectionString = "Data Source=LiteGraphMemory;Mode=Memory;Cache=Shared";
 
-            _SqliteConnection = new SqliteConnection(_ConnectionString);
-            _SqliteConnection.Open();
+            // Isolated transaction repositories on disk run on their own transaction connection and only need
+            // the persistent connection as a fallback, so it is opened lazily via EnsurePersistentConnectionOpen.
+            if (_InMemory || !isolatedTransactionRepository)
+            {
+                _SqliteConnection = new SqliteConnection(_ConnectionString);
+                _SqliteConnection.Open();
 
-            ApplyPerformanceSettings(_SqliteConnection);
+                ApplyPerformanceSettings(_SqliteConnection);
+            }
 
             Admin = new AdminMethods(this);
             Batch = new BatchMethods(this);
@@ -291,9 +303,16 @@ namespace LiteGraph.GraphRepositories.Sqlite
             ChatFeedback = new ChatFeedbackMethods(this);
             ChatSettings = new ChatSettingsMethods(this);
 
-            // Initialize vector index manager
-            string indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");
-            VectorIndexManager = new VectorIndexManager(indexDirectory);
+            if (isolatedTransactionRepository)
+            {
+                VectorIndexManager = sharedVectorIndexManager;
+                _OwnsVectorIndexManager = false;
+            }
+            else
+            {
+                string indexDirectory = Path.Combine(Path.GetDirectoryName(_Filename) ?? ".", "indexes");
+                VectorIndexManager = new VectorIndexManager(indexDirectory);
+            }
         }
 
         #endregion
@@ -368,7 +387,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
         {
             ThrowIfDisposed();
 
-            SqliteGraphRepository clone = new SqliteGraphRepository(_Filename, _InMemory)
+            SqliteGraphRepository clone = new SqliteGraphRepository(_Filename, _InMemory, true, VectorIndexManager)
             {
                 Logging = Logging,
                 Serializer = Serializer,
@@ -376,10 +395,6 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 MaxStatementLength = MaxStatementLength,
                 TimestampFormat = TimestampFormat
             };
-
-            clone.VectorIndexManager?.Dispose();
-            clone.VectorIndexManager = VectorIndexManager;
-            clone._OwnsVectorIndexManager = false;
 
             return clone;
         }
@@ -391,44 +406,80 @@ namespace LiteGraph.GraphRepositories.Sqlite
         }
 
         /// <inheritdoc />
-        public override Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, TransactionIsolationLevelEnum isolationLevel, CancellationToken token = default)
+        public override async Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, TransactionIsolationLevelEnum isolationLevel, CancellationToken token = default)
         {
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
 
+            if (_InMemory)
+            {
+                lock (_QueryLock)
+                {
+                    if (_Transaction != null) throw new InvalidOperationException("A graph transaction is already active.");
+                    SetGraphTransaction(_SqliteConnection, BeginTransactionOnConnection(_SqliteConnection, isolationLevel), tenantGuid, graphGuid);
+                }
+
+                return;
+            }
+
             lock (_QueryLock)
             {
                 if (_Transaction != null) throw new InvalidOperationException("A graph transaction is already active.");
-
-                SqliteConnection conn = _InMemory ? _SqliteConnection : new SqliteConnection(_ConnectionString);
-                if (!_InMemory)
-                {
-                    try
-                    {
-                        conn.Open();
-                        ApplyPerformanceSettings(conn);
-                    }
-                    catch (Exception e) when (IsTransientOpenFailure(e))
-                    {
-                        LogPersistentConnectionFallback("begin graph transaction", e);
-                        try { conn.Dispose(); } catch { }
-                        EnsurePersistentConnectionOpen();
-                        conn = _SqliteConnection;
-                    }
-                }
-
-                _TransactionConnection = conn;
-                _Transaction = isolationLevel == TransactionIsolationLevelEnum.Default
-                    ? conn.BeginTransaction()
-                    : conn.BeginTransaction(MapIsolationLevel(isolationLevel));
-                _GraphTransactionTenantGUID = tenantGuid;
-                _GraphTransactionGraphGUID = graphGuid;
-                _GraphTransactionVectorIndexFailed = false;
-                _GraphTransactionVectorIndexDirtyReason = null;
-                _GraphTransactionVectorIndexMutations.Clear();
             }
 
-            return Task.CompletedTask;
+            // Opening a WAL connection and starting its transaction can fail transiently under heavy write
+            // contention (SQLITE_CANTOPEN, SQLITE_PROTOCOL). Nothing has executed yet, so retrying is safe.
+            for (int attempt = 1; ; attempt++)
+            {
+                SqliteConnection conn = new SqliteConnection(_ConnectionString);
+                SqliteTransaction transaction;
+                try
+                {
+                    conn.Open();
+                    ApplyPerformanceSettings(conn);
+                    transaction = BeginTransactionOnConnection(conn, isolationLevel);
+                }
+                catch (Exception e) when (IsTransientBeginFailure(e) && attempt < _BeginTransactionMaxAttempts)
+                {
+                    try { conn.Dispose(); } catch { }
+                    Logging.Log(SeverityEnum.Warn, "sqlite begin graph transaction attempt " + attempt + " failed transiently, retrying: " + e.Message);
+                    await Task.Delay(_BeginTransactionRetryDelayMs * attempt, token).ConfigureAwait(false);
+                    continue;
+                }
+                catch (Exception e) when (IsTransientBeginFailure(e))
+                {
+                    try { conn.Dispose(); } catch { }
+                    LogPersistentConnectionFallback("begin graph transaction", e);
+
+                    lock (_QueryLock)
+                    {
+                        if (_Transaction != null) throw new InvalidOperationException("A graph transaction is already active.");
+                        EnsurePersistentConnectionOpen();
+                        SetGraphTransaction(_SqliteConnection, BeginTransactionOnConnection(_SqliteConnection, isolationLevel), tenantGuid, graphGuid);
+                    }
+
+                    return;
+                }
+                catch
+                {
+                    try { conn.Dispose(); } catch { }
+                    throw;
+                }
+
+                lock (_QueryLock)
+                {
+                    if (_Transaction != null)
+                    {
+                        try { transaction.Dispose(); } catch { }
+                        try { conn.Dispose(); } catch { }
+                        throw new InvalidOperationException("A graph transaction is already active.");
+                    }
+
+                    SetGraphTransaction(conn, transaction, tenantGuid, graphGuid);
+                }
+
+                return;
+            }
         }
 
         /// <inheritdoc />
@@ -1227,6 +1278,24 @@ namespace LiteGraph.GraphRepositories.Sqlite
             }
         }
 
+        private SqliteTransaction BeginTransactionOnConnection(SqliteConnection conn, TransactionIsolationLevelEnum isolationLevel)
+        {
+            return isolationLevel == TransactionIsolationLevelEnum.Default
+                ? conn.BeginTransaction()
+                : conn.BeginTransaction(MapIsolationLevel(isolationLevel));
+        }
+
+        private void SetGraphTransaction(SqliteConnection conn, SqliteTransaction transaction, Guid tenantGuid, Guid graphGuid)
+        {
+            _TransactionConnection = conn;
+            _Transaction = transaction;
+            _GraphTransactionTenantGUID = tenantGuid;
+            _GraphTransactionGraphGUID = graphGuid;
+            _GraphTransactionVectorIndexFailed = false;
+            _GraphTransactionVectorIndexDirtyReason = null;
+            _GraphTransactionVectorIndexMutations.Clear();
+        }
+
         private IsolationLevel MapIsolationLevel(TransactionIsolationLevelEnum isolationLevel)
         {
             switch (isolationLevel)
@@ -1245,6 +1314,13 @@ namespace LiteGraph.GraphRepositories.Sqlite
         private bool IsTransientOpenFailure(Exception e)
         {
             return e is SqliteException sqliteException && sqliteException.SqliteErrorCode == 14;
+        }
+
+        private bool IsTransientBeginFailure(Exception e)
+        {
+            // 14 = SQLITE_CANTOPEN, 15 = SQLITE_PROTOCOL (transient WAL locking race).
+            return e is SqliteException sqliteException
+                && (sqliteException.SqliteErrorCode == 14 || sqliteException.SqliteErrorCode == 15);
         }
 
         private void LogPersistentConnectionFallback(string operation, Exception e)

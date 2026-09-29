@@ -18,17 +18,25 @@
 
             if (disposing)
             {
-                lock (_QueryLock)
+                _TransactionSemaphore.Wait();
+                try
                 {
-                    if (_Transaction != null)
+                    lock (_QueryLock)
                     {
-                        try { _Transaction.Rollback(); } catch { }
-                        ClearGraphTransaction();
-                    }
+                        if (_Transaction != null)
+                        {
+                            try { _Transaction.Rollback(); } catch { }
+                            ClearGraphTransaction();
+                        }
 
-                    if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
-                    VectorIndexManager = null;
-                    if (_OwnsDataSource) _DataSource?.Dispose();
+                        if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
+                        VectorIndexManager = null;
+                        if (_OwnsDataSource) _DataSource?.Dispose();
+                    }
+                }
+                finally
+                {
+                    _TransactionSemaphore.Release();
                 }
             }
 
@@ -40,33 +48,25 @@
         {
             if (Disposed) return;
 
-            NpgsqlTransaction transaction = null;
-            NpgsqlConnection conn = null;
-
-            lock (_QueryLock)
+            await _TransactionSemaphore.WaitAsync().ConfigureAwait(false);
+            try
             {
-                transaction = _Transaction;
-                conn = _TransactionConnection;
+                NpgsqlTransaction transaction = null;
+                lock (_QueryLock)
+                {
+                    transaction = _Transaction;
+                }
 
-                _Transaction = null;
-                _TransactionConnection = null;
-                _GraphTransactionTenantGUID = null;
-                _GraphTransactionGraphGUID = null;
-                _GraphTransactionVectorIndexFailed = false;
-                _GraphTransactionVectorIndexDirtyReason = null;
-                _GraphTransactionVectorIndexMutations.Clear();
+                if (transaction != null)
+                {
+                    try { await transaction.RollbackAsync().ConfigureAwait(false); } catch { }
+                }
+
+                await ClearGraphTransactionAsync().ConfigureAwait(false);
             }
-
-            if (transaction != null)
+            finally
             {
-                try { await transaction.RollbackAsync().ConfigureAwait(false); } catch { }
-                try { await transaction.DisposeAsync().ConfigureAwait(false); } catch { }
-            }
-
-            if (conn != null)
-            {
-                try { await conn.CloseAsync().ConfigureAwait(false); } catch { }
-                try { await conn.DisposeAsync().ConfigureAwait(false); } catch { }
+                _TransactionSemaphore.Release();
             }
 
             if (_OwnsVectorIndexManager) VectorIndexManager?.Dispose();
@@ -92,6 +92,37 @@
             try { transaction?.Dispose(); } catch { }
             try { conn?.Close(); } catch { }
             try { conn?.Dispose(); } catch { }
+        }
+
+        private async Task ClearGraphTransactionAsync()
+        {
+            NpgsqlTransaction transaction;
+            NpgsqlConnection conn;
+
+            lock (_QueryLock)
+            {
+                transaction = _Transaction;
+                conn = _TransactionConnection;
+
+                _Transaction = null;
+                _TransactionConnection = null;
+                _GraphTransactionTenantGUID = null;
+                _GraphTransactionGraphGUID = null;
+                _GraphTransactionVectorIndexFailed = false;
+                _GraphTransactionVectorIndexDirtyReason = null;
+                _GraphTransactionVectorIndexMutations.Clear();
+            }
+
+            if (transaction != null)
+            {
+                try { await transaction.DisposeAsync().ConfigureAwait(false); } catch { }
+            }
+
+            if (conn != null)
+            {
+                try { await conn.CloseAsync().ConfigureAwait(false); } catch { }
+                try { await conn.DisposeAsync().ConfigureAwait(false); } catch { }
+            }
         }
 
         private void MarkVectorIndexDirtyAfterTransaction(Guid tenantGuid, Guid graphGuid, string reason)

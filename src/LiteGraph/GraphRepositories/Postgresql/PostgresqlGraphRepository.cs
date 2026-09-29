@@ -156,6 +156,7 @@
         public VectorIndexManager VectorIndexManager { get; private set; }
 
         private readonly object _QueryLock = new object();
+        private readonly SemaphoreSlim _TransactionSemaphore = new SemaphoreSlim(1, 1);
         private readonly NpgsqlDataSource _DataSource;
         private readonly bool _OwnsDataSource;
         private NpgsqlConnection _TransactionConnection = null;
@@ -299,28 +300,45 @@
         }
 
         /// <inheritdoc />
-        public override Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, TransactionIsolationLevelEnum isolationLevel, CancellationToken token = default)
+        public override async Task BeginGraphTransaction(Guid tenantGuid, Guid graphGuid, TransactionIsolationLevelEnum isolationLevel, CancellationToken token = default)
         {
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
 
-            lock (_QueryLock)
+            await _TransactionSemaphore.WaitAsync(token).ConfigureAwait(false);
+            try
             {
                 if (_Transaction != null) throw new InvalidOperationException("A graph transaction is already active.");
 
-                NpgsqlConnection conn = _DataSource.OpenConnection();
-                _TransactionConnection = conn;
-                _Transaction = isolationLevel == TransactionIsolationLevelEnum.Default
-                    ? conn.BeginTransaction()
-                    : conn.BeginTransaction(MapIsolationLevel(isolationLevel));
-                _GraphTransactionTenantGUID = tenantGuid;
-                _GraphTransactionGraphGUID = graphGuid;
-                _GraphTransactionVectorIndexFailed = false;
-                _GraphTransactionVectorIndexDirtyReason = null;
-                _GraphTransactionVectorIndexMutations.Clear();
-            }
+                NpgsqlConnection conn = await _DataSource.OpenConnectionAsync(token).ConfigureAwait(false);
+                NpgsqlTransaction transaction;
+                try
+                {
+                    transaction = isolationLevel == TransactionIsolationLevelEnum.Default
+                        ? await conn.BeginTransactionAsync(token).ConfigureAwait(false)
+                        : await conn.BeginTransactionAsync(MapIsolationLevel(isolationLevel), token).ConfigureAwait(false);
+                }
+                catch
+                {
+                    await conn.DisposeAsync().ConfigureAwait(false);
+                    throw;
+                }
 
-            return Task.CompletedTask;
+                lock (_QueryLock)
+                {
+                    _TransactionConnection = conn;
+                    _Transaction = transaction;
+                    _GraphTransactionTenantGUID = tenantGuid;
+                    _GraphTransactionGraphGUID = graphGuid;
+                    _GraphTransactionVectorIndexFailed = false;
+                    _GraphTransactionVectorIndexDirtyReason = null;
+                    _GraphTransactionVectorIndexMutations.Clear();
+                }
+            }
+            finally
+            {
+                _TransactionSemaphore.Release();
+            }
         }
 
         private static IsolationLevel MapIsolationLevel(TransactionIsolationLevelEnum isolationLevel)
@@ -353,33 +371,43 @@
             Exception commitException = null;
             List<GraphTransactionVectorIndexMutation> stagedMutations = new List<GraphTransactionVectorIndexMutation>();
 
-            lock (_QueryLock)
+            await _TransactionSemaphore.WaitAsync(token).ConfigureAwait(false);
+            try
             {
-                if (_Transaction == null) throw new InvalidOperationException("No graph transaction is active.");
+                NpgsqlTransaction transaction;
+                lock (_QueryLock)
+                {
+                    if (_Transaction == null) throw new InvalidOperationException("No graph transaction is active.");
 
-                tenantGuid = _GraphTransactionTenantGUID;
-                graphGuid = _GraphTransactionGraphGUID;
-                markDirty = _GraphTransactionVectorIndexFailed;
-                dirtyReason = _GraphTransactionVectorIndexDirtyReason;
-                stagedMutations = _GraphTransactionVectorIndexMutations.ToList();
+                    transaction = _Transaction;
+                    tenantGuid = _GraphTransactionTenantGUID;
+                    graphGuid = _GraphTransactionGraphGUID;
+                    markDirty = _GraphTransactionVectorIndexFailed;
+                    dirtyReason = _GraphTransactionVectorIndexDirtyReason;
+                    stagedMutations = _GraphTransactionVectorIndexMutations.ToList();
+                }
 
                 try
                 {
-                    _Transaction.Commit();
+                    // Commit must run to completion once started so its outcome is never ambiguous to the caller.
+                    await transaction.CommitAsync(CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     commitException = e;
-                    if (_GraphTransactionVectorIndexFailed)
+                    if (markDirty)
                     {
-                        markDirty = true;
                         dirtyReason = "Graph transaction commit failed after vector index failure: " + e.Message;
                     }
                 }
                 finally
                 {
-                    ClearGraphTransaction();
+                    await ClearGraphTransactionAsync().ConfigureAwait(false);
                 }
+            }
+            finally
+            {
+                _TransactionSemaphore.Release();
             }
 
             if (commitException == null && stagedMutations.Count > 0)
@@ -400,7 +428,7 @@
         }
 
         /// <inheritdoc />
-        public override Task RollbackGraphTransaction(CancellationToken token = default)
+        public override async Task RollbackGraphTransaction(CancellationToken token = default)
         {
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
@@ -411,33 +439,43 @@
             string dirtyReason = null;
             Exception rollbackException = null;
 
-            lock (_QueryLock)
+            await _TransactionSemaphore.WaitAsync(token).ConfigureAwait(false);
+            try
             {
-                if (_Transaction == null) throw new InvalidOperationException("No graph transaction is active.");
+                NpgsqlTransaction transaction;
+                lock (_QueryLock)
+                {
+                    if (_Transaction == null) throw new InvalidOperationException("No graph transaction is active.");
 
-                tenantGuid = _GraphTransactionTenantGUID;
-                graphGuid = _GraphTransactionGraphGUID;
-                markDirty = _GraphTransactionVectorIndexFailed;
-                dirtyReason = _GraphTransactionVectorIndexDirtyReason
-                    ?? "Graph transaction rollback after vector index failure";
+                    transaction = _Transaction;
+                    tenantGuid = _GraphTransactionTenantGUID;
+                    graphGuid = _GraphTransactionGraphGUID;
+                    markDirty = _GraphTransactionVectorIndexFailed;
+                    dirtyReason = _GraphTransactionVectorIndexDirtyReason
+                        ?? "Graph transaction rollback after vector index failure";
+                }
 
                 try
                 {
-                    _Transaction.Rollback();
+                    // Rollback must run to completion once started so the connection is not returned to the pool mid-transaction.
+                    await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     rollbackException = e;
-                    if (_GraphTransactionVectorIndexFailed)
+                    if (markDirty)
                     {
-                        markDirty = true;
                         dirtyReason = "Graph transaction rollback failed after vector index failure: " + e.Message;
                     }
                 }
                 finally
                 {
-                    ClearGraphTransaction();
+                    await ClearGraphTransactionAsync().ConfigureAwait(false);
                 }
+            }
+            finally
+            {
+                _TransactionSemaphore.Release();
             }
 
             if (markDirty && tenantGuid.HasValue && graphGuid.HasValue)
@@ -445,8 +483,6 @@
 
             if (rollbackException != null)
                 ExceptionDispatchInfo.Capture(rollbackException).Throw();
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -1685,10 +1685,14 @@
                         (int Index, bool ShouldCommit, Guid NodeA, Guid NodeB, Guid Edge, Guid RollbackNode, string Body) spec = transactionSpecs[i];
                         TransactionResult result = _McpSerializer.DeserializeJson<TransactionResult>(transactionResponses[i].Body);
                         AssertNotNull(result, providerName + " REST transaction " + spec.Index + " result");
+                        string failureDetail = " (state: " + result.State
+                            + ", error: " + result.Error
+                            + ", provider code: " + result.ProviderErrorCode
+                            + ", failed operation: " + result.FailedOperationIndex + ")";
 
                         if (spec.ShouldCommit)
                         {
-                            AssertEqual(200, transactionResponses[i].Status, providerName + " REST committed transaction " + spec.Index + " HTTP status");
+                            AssertEqual(200, transactionResponses[i].Status, providerName + " REST committed transaction " + spec.Index + " HTTP status" + failureDetail);
                             AssertTrue(result.Success, providerName + " REST committed transaction " + spec.Index + " success: " + result.Error);
                             AssertEqual("Committed", result.State, providerName + " REST committed transaction " + spec.Index + " state");
                             AssertTrue(result.IsolatedRepository, providerName + " REST committed transaction " + spec.Index + " used isolated repository");
@@ -1697,7 +1701,7 @@
                         }
                         else
                         {
-                            AssertEqual(409, transactionResponses[i].Status, providerName + " REST rolled-back transaction " + spec.Index + " HTTP status");
+                            AssertEqual(409, transactionResponses[i].Status, providerName + " REST rolled-back transaction " + spec.Index + " HTTP status" + failureDetail);
                             AssertFalse(result.Success, providerName + " REST rolled-back transaction " + spec.Index + " failed as expected");
                             AssertTrue(result.RolledBack, providerName + " REST rolled-back transaction " + spec.Index + " reported rollback");
                             AssertEqual("RolledBack", result.State, providerName + " REST rolled-back transaction " + spec.Index + " state");

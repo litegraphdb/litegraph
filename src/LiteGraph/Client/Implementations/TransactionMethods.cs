@@ -642,8 +642,11 @@ namespace LiteGraph.Client.Implementations
                 return true;
             }
 
+            // SQLite: 5 = BUSY, 6 = LOCKED, 14 = CANTOPEN, 15 = PROTOCOL (transient WAL locking race).
             if (String.Equals(providerCode, "5", StringComparison.Ordinal)
-                || String.Equals(providerCode, "6", StringComparison.Ordinal))
+                || String.Equals(providerCode, "6", StringComparison.Ordinal)
+                || String.Equals(providerCode, "14", StringComparison.Ordinal)
+                || String.Equals(providerCode, "15", StringComparison.Ordinal))
             {
                 return exceptionTypeName != null
                     && exceptionTypeName.IndexOf("Sqlite", StringComparison.OrdinalIgnoreCase) >= 0;
