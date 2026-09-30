@@ -885,7 +885,8 @@
       "allMethods": "Alle Methoden",
       "transactionIdPlaceholder": "Transaktions-ID...",
       "pathPlaceholder": "Pfad enthält...",
-      "nodePlaceholder": "Nach Knoten filtern"
+      "nodePlaceholder": "Nach Knoten filtern",
+      "nodeNone": "Keine passenden Knoten"
     },
     "summary": {
       "visibleRequests": "Sichtbare Anfragen:",

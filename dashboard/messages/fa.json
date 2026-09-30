@@ -885,7 +885,8 @@
       "allMethods": "همه متدها",
       "transactionIdPlaceholder": "شناسه تراکنش...",
       "pathPlaceholder": "مسیر شامل...",
-      "nodePlaceholder": "پالایش بر اساس گره"
+      "nodePlaceholder": "پالایش بر اساس گره",
+      "nodeNone": "هیچ گره منطبقی وجود ندارد"
     },
     "summary": {
       "visibleRequests": "درخواست‌های قابل مشاهده:",

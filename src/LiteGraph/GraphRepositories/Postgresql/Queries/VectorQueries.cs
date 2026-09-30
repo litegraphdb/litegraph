@@ -239,6 +239,19 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
             return ret;
         }
 
+        internal static string SelectManyGraphs(Guid tenantGuid, List<Guid> graphGuids)
+        {
+            if (graphGuids == null || graphGuids.Count < 1)
+                return "SELECT * FROM 'vectors' WHERE 1 = 0;";
+
+            return
+                "SELECT * FROM 'vectors' WHERE guid IS NOT NULL " +
+                "AND tenantguid = '" + tenantGuid.ToString() + "' " +
+                "AND nodeguid IS NULL " +
+                "AND edgeguid IS NULL " +
+                "AND graphguid IN (" + string.Join(",", graphGuids.Select(g => "'" + Sanitizer.Sanitize(g.ToString()) + "'")) + ");";
+        }
+
         internal static string SelectManyNodes(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
         {
             if (nodeGuids == null || nodeGuids.Count < 1)

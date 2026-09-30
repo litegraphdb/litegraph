@@ -16,6 +16,33 @@ Current release: v10.0.0.
 - `sdk.HealthLive()` and `sdk.HealthReady()` return the health body; readiness returns it for both 200 and 503, so a node that is not ready reports why.
 - Automatic retries: connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter (`MaxRetries`, default 2; `RetryBaseDelayMs`, default 200, capped at 5000). GET, HEAD, PUT, and DELETE are retried; POST only when `RetryPost` is true. Streams are never retried once any of the body has been read.
 - `sdk.LastNodeId` names the node that answered the most recent request (the `x-litegraph-node` header).
+- Request history on `sdk.RequestHistory`: `Search` (one page), `Enumerate` (every page), `ReadByGuid`, `ReadDetail` (captured headers and bodies), `ReadSummary` (counts bucketed by interval), `DeleteByGuid`, and `DeleteMany`. Filters include `NodeId`, the node that handled each request.
+
+### Request history
+
+```csharp
+RequestHistorySearchRequest search = new RequestHistorySearchRequest
+{
+    NodeId = "litegraph-2",          // only requests handled by this node
+    Success = false,                 // only failures
+    FromUtc = DateTime.UtcNow.AddHours(-1),
+    MaxKeys = 100
+};
+
+EnumerationResult<RequestHistoryEntry> page = await sdk.RequestHistory.Search(search);
+foreach (RequestHistoryEntry entry in page.Objects)
+    Console.WriteLine(entry.CreatedUtc + " " + entry.Method + " " + entry.Path + " " + entry.StatusCode + " on " + entry.NodeId);
+
+await foreach (RequestHistoryEntry entry in sdk.RequestHistory.Enumerate(search))
+{
+    RequestHistoryDetail detail = await sdk.RequestHistory.ReadDetail(entry.GUID);
+}
+
+RequestHistorySummary summary = await sdk.RequestHistory.ReadSummary("hour", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+RequestHistoryDeleteResult deleted = await sdk.RequestHistory.DeleteMany(new RequestHistorySearchRequest { Path = "/v1.0/health" });
+```
+
+System administrators see every tenant and may set `TenantGUID`; tenant administrators see only their own tenant. `Enumerate` pins its window to the moment it starts (unless `ToUtc` is set), so requests recorded while it pages do not shift later pages.
 
 ### Behind a load balancer
 

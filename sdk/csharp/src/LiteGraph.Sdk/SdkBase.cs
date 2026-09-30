@@ -440,6 +440,24 @@
         }
 
         /// <summary>
+        /// Submit a DELETE request and deserialize the response body.
+        /// </summary>
+        /// <typeparam name="T">Response type.</typeparam>
+        /// <param name="url">URL.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Instance of T, or null if the request failed or returned no body.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        public async Task<T> DeleteWithResult<T>(string url, CancellationToken token = default) where T : class
+        {
+            if (String.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
+
+            using (SdkExchange exchange = await SendAsync(url, HttpMethod.Delete, null, null, null, true, token).ConfigureAwait(false))
+            {
+                return DeserializeOnSuccess<T>(url, exchange.Response);
+            }
+        }
+
+        /// <summary>
         /// Submit a POST request.
         /// </summary>
         /// <typeparam name="T1">Input object type.</typeparam>

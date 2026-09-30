@@ -4,6 +4,11 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import RequestHistoryPage from '@/page/request-history/RequestHistoryPage';
 import { setEndpoint } from '@/lib/sdk/litegraph.service';
 import { listRequestHistory } from '@/lib/sdk/requestHistory';
+import { getClusterNodes } from '@/lib/sdk/cluster';
+
+jest.mock('@/lib/sdk/cluster', () => ({
+  getClusterNodes: jest.fn(),
+}));
 
 jest.mock('react-hot-toast', () => ({
   success: jest.fn(),
@@ -70,10 +75,20 @@ jest.mock('@/lib/sdk/requestHistory', () => {
 describe('RequestHistoryPage observability', () => {
   const listRequestHistoryMock = listRequestHistory as jest.Mock;
 
+  const getClusterNodesMock = getClusterNodes as jest.Mock;
+
   beforeEach(() => {
     setEndpoint('http://localhost:8701/');
     listRequestHistoryMock.mockClear();
+    getClusterNodesMock.mockReset();
+    getClusterNodesMock.mockRejectedValue(new Error('HTTP 401 Unauthorized'));
   });
+
+  const openNodePicker = () => {
+    const picker = screen.getByTestId('request-history-node-filter');
+    const selector = picker.querySelector('.ant-select-selector') ?? picker;
+    fireEvent.mouseDown(selector);
+  };
 
   it('renders operational telemetry links and visible request statistics', async () => {
     render(<RequestHistoryPage mode="admin" />);
@@ -170,7 +185,41 @@ describe('RequestHistoryPage observability', () => {
     expect(screen.queryByText('Request Detail')).not.toBeInTheDocument();
   });
 
-  it('shows the handling node and filters by node', async () => {
+  it('offers the cluster nodes in the node picker and filters by the selected node', async () => {
+    getClusterNodesMock.mockResolvedValue({
+      ClusterEnabled: true,
+      Nodes: [{ NodeId: 'litegraph-1' }, { NodeId: 'litegraph-3' }],
+    });
+    render(<RequestHistoryPage mode="admin" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('request-history-node')).toHaveTextContent('litegraph-2');
+    });
+    await waitFor(() => expect(getClusterNodesMock).toHaveBeenCalled());
+
+    await act(async () => {
+      openNodePicker();
+      await Promise.resolve();
+    });
+
+    const option = await screen.findByTitle('litegraph-3');
+    expect(screen.getByTitle('litegraph-1')).toBeInTheDocument();
+    // The cluster list is authoritative, so the page's own node is not added.
+    expect(screen.queryByTitle('litegraph-2')).not.toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(option);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(listRequestHistoryMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ nodeId: 'litegraph-3', page: 0 })
+      );
+    });
+  });
+
+  it('falls back to the nodes in the loaded page when the cluster list cannot be read', async () => {
     render(<RequestHistoryPage mode="admin" />);
 
     await waitFor(() => {
@@ -178,15 +227,19 @@ describe('RequestHistoryPage observability', () => {
     });
 
     await act(async () => {
-      fireEvent.change(screen.getByTestId('request-history-node-filter'), {
-        target: { value: 'litegraph-3' },
-      });
+      openNodePicker();
+      await Promise.resolve();
+    });
+
+    const option = await screen.findByTitle('litegraph-2');
+    await act(async () => {
+      fireEvent.click(option);
       await Promise.resolve();
     });
 
     await waitFor(() => {
       expect(listRequestHistoryMock).toHaveBeenLastCalledWith(
-        expect.objectContaining({ nodeId: 'litegraph-3', page: 0 })
+        expect.objectContaining({ nodeId: 'litegraph-2', page: 0 })
       );
     });
   });

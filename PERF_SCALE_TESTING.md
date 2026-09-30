@@ -394,7 +394,16 @@ The harness above drives the library directly. To see how a cluster scales, the 
 
 Three nodes delivered 1.86 times the throughput of one with lower median latency for every operation, and the load balancer spread requests evenly (865 / 863 / 856). With a single connection a node answers reads in 8 ms, writes in 27 ms, and searches in 100 ms (p50), so the latencies above are queueing on a saturated node.
 
-**Finding.** A vector search's own pgvector query is fast; most of its 100 ms goes to loading results, which reads each matching node and then its vectors one at a time (two round trips per result, about 21 queries for a top-10 search). The same pattern exists in 9.x, so it is not a 10.0 regression, but batching those reads (`Node.ReadByGuids` plus one vector query for all matches) is the clearest single-node improvement available and would also raise cluster throughput.
+**Result loading, before and after.** With a single connection, a search spent most of its time loading results rather than searching: the pgvector query itself takes about 6 ms (2 ms to execute, 4 ms to plan), but the node and edge paths then read each result's node, its vectors, its labels, and its tags one at a time, 30 to 60 database round trips for a top-10 search. The same pattern existed in 9.x. v10.0 loads all results' nodes (or edges, or graphs), vectors, labels, and tags with one query each, on both SQLite and PostgreSQL. Measured again on the same deployment:
+
+| Measurement | Before | After |
+|---|---|---|
+| Search p50, one connection | 89 to 100 ms | 57 ms |
+| Search p50, 1 node, 32 connections | 2,351 to 2,562 ms | 1,346 ms |
+| Search p50, 3 nodes, 32 connections | 1,180 to 1,194 ms | 511 ms |
+| Throughput, 3 nodes, 32 connections | 71 to 86 req/s | 101.7 req/s |
+
+The runs are not a controlled comparison: each run's writes grew the graph (about 2,000 nodes by the last run), and other workloads shared the machine, which is why single-connection reads and writes moved by several milliseconds between runs.
 
 To repeat the measurement, bring up `docker/multi-node`, then run any HTTP load tool from a container on the `litegraph-cluster_default` network against `http://litegraph-1:8701` and `http://litegraph-lb:8701`.
 

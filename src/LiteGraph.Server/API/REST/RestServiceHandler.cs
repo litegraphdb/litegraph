@@ -3934,9 +3934,37 @@
             return req.Authentication.TenantGUID;
         }
 
+        private static NameValueCollection DecodedQuery(NameValueCollection query)
+        {
+            // Query values arrive percent-encoded (for example path=%2Fv1.0%2Ftenants or times with %3A); decode them so
+            // filters match stored values.  Decoding an unencoded value leaves it unchanged.
+            NameValueCollection ret = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
+            if (query == null) return ret;
+            foreach (string key in query.AllKeys)
+            {
+                if (key == null) continue;
+                string value = query[key];
+                if (value == null)
+                {
+                    ret[key] = null;
+                    continue;
+                }
+
+                try
+                {
+                    ret[key] = Uri.UnescapeDataString(value);
+                }
+                catch (UriFormatException)
+                {
+                    ret[key] = value;
+                }
+            }
+            return ret;
+        }
+
         private RequestHistorySearchRequest BuildRequestHistorySearch(RequestContext req)
         {
-            NameValueCollection q = req.Query;
+            NameValueCollection q = DecodedQuery(req.Query);
             RequestHistorySearchRequest search = new RequestHistorySearchRequest();
 
             search.TenantGUID = TenantScopeForRequestHistory(req, q);
@@ -3988,7 +4016,7 @@
         private async Task RequestHistorySummaryRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            NameValueCollection q = req.Query;
+            NameValueCollection q = DecodedQuery(req.Query);
 
             string interval = q?["interval"];
             if (string.IsNullOrEmpty(interval)) interval = "hour";

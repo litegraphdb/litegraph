@@ -203,6 +203,32 @@ for run in Admin.read_cluster_jobs()["Jobs"]:
     print(run["Job"], run["NodeId"], run["Success"])
 ```
 
+### Request History Operations (v10.0)
+
+System administrators see every tenant and may pass `tenant_guid`; tenant administrators see only their own tenant. Filters: `tenant_guid`, `request_id`, `correlation_id`, `trace_id`, `method`, `path` (substring), `source_ip`, `node_id` (the node that handled the request), `transaction_id`, `status_code`, `success`, `has_transaction_diagnostics`, `from_utc`, `to_utc` (datetime or ISO 8601 string). Unknown filter names raise `ValueError`.
+
+| Operation                | Method | Endpoint                                  | Description                                              |
+| ------------------------ | ------ | ----------------------------------------- | -------------------------------------------------------- |
+| List Request History     | GET    | `v1.0/requesthistory`                     | One page, newest first; `max_keys` and `skip` for paging |
+| Read Request History     | GET    | `v1.0/requesthistory/{request_guid}`      | One entry; `ResourceNotFoundError` if missing            |
+| Read Request Detail      | GET    | `v1.0/requesthistory/{request_guid}/detail` | Entry with captured headers and bodies                 |
+| Request History Summary  | GET    | `v1.0/requesthistory/summary`             | Counts bucketed by interval                              |
+| Delete Request History   | DELETE | `v1.0/requesthistory/{request_guid}`      | Delete one entry                                         |
+| Delete Many              | DELETE | `v1.0/requesthistory/bulk`                | Delete every entry matching the filters                  |
+
+```python
+from datetime import datetime, timedelta, timezone
+from litegraph_sdk import RequestHistory
+
+page = RequestHistory.list(node_id="litegraph-2", success=False, from_utc=datetime.now(timezone.utc) - timedelta(hours=1), max_keys=100)
+for entry in page.objects:
+    print(entry["CreatedUtc"], entry["Method"], entry["Path"], entry["StatusCode"], entry["NodeId"])
+
+detail = RequestHistory.read_detail(page.objects[0]["GUID"])
+summary = RequestHistory.summary(interval="hour")
+print(RequestHistory.delete_many(path="/v1.0/health")["Deleted"])
+```
+
 ### Credential Operations
 
 | Operation                | Method | Endpoint                           | Description                |

@@ -87,6 +87,11 @@
         public IAlgorithmMethods Algorithm { get; }
 
         /// <summary>
+        /// Request history methods.
+        /// </summary>
+        public IRequestHistoryMethods RequestHistory { get; }
+
+        /// <summary>
         /// User authentication methods.
         /// </summary>
         public IUserAuthentication UserAuthentication { get; }
@@ -137,6 +142,7 @@
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
             Algorithm = new AlgorithmMethods(this);
+            RequestHistory = new RequestHistoryMethods(this);
         }
 
         /// <summary>
@@ -176,6 +182,7 @@
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
             Algorithm = new AlgorithmMethods(this);
+            RequestHistory = new RequestHistoryMethods(this);
             UserAuthentication = new UserAuthentication(this);
         }
 

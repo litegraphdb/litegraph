@@ -10,6 +10,7 @@ v10.0.0
 - Added `last_node_id` on the client and `node_id` and `status_code` on SDK exceptions
 - Added the `Unavailable` error code and `ServiceUnavailableError`
 - Added `Admin.read_cluster_locks` and `Admin.read_cluster_jobs`; health bodies document `StorageProvider`, `VectorIndexProvider`, and the `Redis` check
+- Added the `RequestHistory` resource: `list` (filters including `node_id`, plus `max_keys` and `skip`), `read`, `read_detail`, `summary`, `delete`, and `delete_many`
 
 v7.0.0
 

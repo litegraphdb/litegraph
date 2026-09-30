@@ -568,6 +568,42 @@ export default class SdkBase {
   }
 
   /**
+   * Sends a DELETE request and resolves the parsed JSON response body.
+   * @param {string} url - The URL to delete.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+   * @return {Promise<Object|null>} Resolves with the response body, or null when the response has no body.
+   * @throws {Error} Rejects if the URL is invalid or if the request fails.
+   */
+  deleteForJson(url, cancellationToken) {
+    return new Promise((resolve, reject) => {
+      if (!url) return reject(new Error('URL cannot be null or empty.'));
+
+      const buildRequest = () => superagent.delete(url).set(this.defaultHeaders).timeout({ response: this._timeoutMs });
+      this._send(buildRequest, url, cancellationToken)
+        .then((res) => {
+          this.log(SeverityEnum.Debug, `Success reported from ${url}: ${res.status}`);
+          if (res.text && res.text.length > 0) resolve(JSON.parse(res.text));
+          else resolve(null);
+        })
+        .catch((err) => {
+          this.log(SeverityEnum.Warn, `Failed to delete at ${url}: ${err.message}`);
+          const errorResponse = err?.response?.body || null;
+          if (errorResponse && errorResponse?.Error) {
+            const apiErrorResponse = new ApiErrorResponse(
+              errorResponse?.Error,
+              errorResponse?.Context,
+              errorResponse?.Message,
+              err?.nodeId ?? null
+            );
+            reject(apiErrorResponse);
+          } else {
+            reject(err.message ? err.message : err);
+          }
+        });
+    });
+  }
+
+  /**
    * Submits data using a POST request to a given URL.
    * @param {string} url - The URL to post data to.
    * @param {Object|string} data - The data to send in the POST request.

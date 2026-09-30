@@ -10,6 +10,14 @@ from .exceptions import SdkException, get_exception_for_error_code
 from .models.api_error import ApiErrorResponseModel
 from .sdk_logging import log_error, log_info, log_warning
 
+_SENSITIVE_HEADERS = {"authorization", "x-token", "x-api-key", "cookie"}
+
+
+def _redact_headers(headers):
+    """Return a copy of the headers with credentials replaced, for logging."""
+    return {k: ("***" if str(k).lower() in _SENSITIVE_HEADERS else v) for k, v in (headers or {}).items()}
+
+
 T = TypeVar("T", bound="BaseClient")
 
 NODE_HEADER = "x-litegraph-node"
@@ -215,7 +223,7 @@ class BaseClient:
 
         log_info(
             Severity_Enum.Info.value,
-            f"Making {method} request to {url} with headers: {headers}",
+            f"Making {method} request to {url} with headers: {_redact_headers(headers)}",
         )
 
         attempt = 0

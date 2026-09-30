@@ -208,6 +208,14 @@ export default class SdkBase {
      */
     delete(url: string, cancellationToken?: AbortController): Promise<void>;
     /**
+     * Sends a DELETE request and resolves the parsed JSON response body.
+     * @param {string} url - The URL to delete.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @return {Promise<Object|null>} Resolves with the response body, or null when the response has no body.
+     * @throws {Error} Rejects if the URL is invalid or if the request fails.
+     */
+    deleteForJson(url: string, cancellationToken?: AbortController): Promise<any | null>;
+    /**
      * Submits data using a POST request to a given URL.
      * @param {string} url - The URL to post data to.
      * @param {Object|string} data - The data to send in the POST request.

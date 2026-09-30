@@ -1256,6 +1256,54 @@ export default class LiteGraphSdk extends SdkBase {
      */
     readClusterJobs(cancellationToken?: AbortController): Promise<any>;
     /**
+     * Search request history, returning one page (newest first). System administrators see every tenant and may filter
+     * by tenantGuid; tenant administrators are scoped to their own tenant.
+     * @param {Object} [filters] - Optional filters: tenantGuid, requestId, correlationId, traceId, method, path (substring),
+     *   sourceIp, nodeId (the node that handled the request), transactionId, statusCode, success, hasTransactionDiagnostics,
+     *   fromUtc, toUtc (Date or ISO 8601 string), maxKeys (1-1000, default 100), skip.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Enumeration result ({ Objects, TotalRecords, RecordsRemaining, EndOfResults, ... }).
+     */
+    listRequestHistory(filters?: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Read one request history entry. Rejects with a NotFound error when it does not exist.
+     * @param {string} requestGuid - Entry GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Entry ({ GUID, Method, Path, Url, SourceIp, NodeId, StatusCode, Success, ProcessingTimeMs, ... }).
+     */
+    readRequestHistory(requestGuid: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Read one request history entry with its captured headers and bodies. Rejects with a NotFound error when it does
+     * not exist.
+     * @param {string} requestGuid - Entry GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Detail (entry fields plus RequestHeaders, ResponseHeaders, RequestBody, ResponseBody).
+     */
+    readRequestHistoryDetail(requestGuid: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Read request counts over a time range, bucketed by interval.
+     * @param {Object} [options] - interval (minute, 15minute, hour, 6hour, day; default hour), startUtc, endUtc (Date or
+     *   ISO 8601 string; default the last 24 hours), tenantGuid.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Summary ({ StartUtc, EndUtc, Interval, TotalSuccess, TotalFailure, TotalRequests, Data }).
+     */
+    readRequestHistorySummary(options?: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Delete one request history entry.
+     * @param {string} requestGuid - Entry GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>}
+     */
+    deleteRequestHistory(requestGuid: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Delete every request history entry matching the filters (the same filters as listRequestHistory; paging is ignored).
+     * An empty filter deletes every entry the caller can see.
+     * @param {Object} filters - Filters, as for listRequestHistory.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Result ({ Deleted }).
+     */
+    deleteRequestHistoryMany(filters: any, cancellationToken?: AbortController): Promise<any>;
+    /**
      * Liveness check (GET /v1.0/health/live). Needs no authentication.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
      * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc, Utc }).

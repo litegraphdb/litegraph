@@ -43,6 +43,49 @@ const buildQueryString = (params = {}) => {
   return `?${entries.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`).join('&')}`;
 };
 
+// The server matches request history query values as sent, without percent-decoding, so only characters that would
+// break the query string are escaped; path separators and the colons in timestamps are sent as-is.
+const encodeRequestHistoryValue = (value) =>
+  Array.from(String(value))
+    .map((c) => {
+      const code = c.codePointAt(0);
+      const unsafe = code < 0x21 || code > 0x7e || '&#+%=?'.includes(c);
+      return unsafe ? encodeURIComponent(c) : c;
+    })
+    .join('');
+
+const REQUEST_HISTORY_FILTERS = {
+  tenantGuid: 'tenantGuid',
+  requestId: 'requestId',
+  correlationId: 'correlationId',
+  traceId: 'traceId',
+  method: 'method',
+  path: 'path',
+  sourceIp: 'sourceIp',
+  nodeId: 'nodeId',
+  transactionId: 'transactionId',
+  statusCode: 'statusCode',
+  success: 'success',
+  hasTransactionDiagnostics: 'hasTransactionDiagnostics',
+  fromUtc: 'fromUtc',
+  toUtc: 'toUtc',
+};
+
+const buildRequestHistoryQuery = (filters = {}, includePaging = true) => {
+  const parts = [];
+  if (includePaging) {
+    if (filters.maxKeys !== undefined && filters.maxKeys !== null) parts.push(`max-keys=${Number(filters.maxKeys)}`);
+    if (filters.skip !== undefined && filters.skip !== null) parts.push(`skip=${Number(filters.skip)}`);
+  }
+  Object.entries(REQUEST_HISTORY_FILTERS).forEach(([key, name]) => {
+    let value = filters[key];
+    if (value === undefined || value === null || value === '') return;
+    if (value instanceof Date) value = value.toISOString();
+    parts.push(`${name}=${encodeRequestHistoryValue(value)}`);
+  });
+  return parts.length > 0 ? `?${parts.join('&')}` : '';
+};
+
 const normalizeBulkCreateArgs = (optionsOrCancellationToken, cancellationToken) => {
   if (
     optionsOrCancellationToken &&
@@ -2292,6 +2335,100 @@ export default class LiteGraphSdk extends SdkBase {
   async readClusterJobs(cancellationToken) {
     const url = `${this._endpoint}v1.0/cluster/jobs`;
     return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Search request history, returning one page (newest first). System administrators see every tenant and may filter
+   * by tenantGuid; tenant administrators are scoped to their own tenant.
+   * @param {Object} [filters] - Optional filters: tenantGuid, requestId, correlationId, traceId, method, path (substring),
+   *   sourceIp, nodeId (the node that handled the request), transactionId, statusCode, success, hasTransactionDiagnostics,
+   *   fromUtc, toUtc (Date or ISO 8601 string), maxKeys (1-1000, default 100), skip.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Enumeration result ({ Objects, TotalRecords, RecordsRemaining, EndOfResults, ... }).
+   */
+  async listRequestHistory(filters, cancellationToken) {
+    const url = `${this._endpoint}v1.0/requesthistory${buildRequestHistoryQuery(filters || {}, true)}`;
+    return await this.getMany(url, null, cancellationToken);
+  }
+
+  /**
+   * Read one request history entry. Rejects with a NotFound error when it does not exist.
+   * @param {string} requestGuid - Entry GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Entry ({ GUID, Method, Path, Url, SourceIp, NodeId, StatusCode, Success, ProcessingTimeMs, ... }).
+   */
+  async readRequestHistory(requestGuid, cancellationToken) {
+    if (!requestGuid) {
+      GenericExceptionHandlers.ArgumentNullException('requestGuid');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/${requestGuid}`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Read one request history entry with its captured headers and bodies. Rejects with a NotFound error when it does
+   * not exist.
+   * @param {string} requestGuid - Entry GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Detail (entry fields plus RequestHeaders, ResponseHeaders, RequestBody, ResponseBody).
+   */
+  async readRequestHistoryDetail(requestGuid, cancellationToken) {
+    if (!requestGuid) {
+      GenericExceptionHandlers.ArgumentNullException('requestGuid');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/${requestGuid}/detail`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Read request counts over a time range, bucketed by interval.
+   * @param {Object} [options] - interval (minute, 15minute, hour, 6hour, day; default hour), startUtc, endUtc (Date or
+   *   ISO 8601 string; default the last 24 hours), tenantGuid.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Summary ({ StartUtc, EndUtc, Interval, TotalSuccess, TotalFailure, TotalRequests, Data }).
+   */
+  async readRequestHistorySummary(options, cancellationToken) {
+    const opts = options || {};
+    const parts = [];
+    const add = (name, value) => {
+      if (value === undefined || value === null || value === '') return;
+      parts.push(`${name}=${encodeRequestHistoryValue(value instanceof Date ? value.toISOString() : value)}`);
+    };
+    add('interval', opts.interval);
+    add('startUtc', opts.startUtc);
+    add('endUtc', opts.endUtc);
+    add('tenantGuid', opts.tenantGuid);
+    const url = `${this._endpoint}v1.0/requesthistory/summary${parts.length > 0 ? '?' + parts.join('&') : ''}`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Delete one request history entry.
+   * @param {string} requestGuid - Entry GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<void>}
+   */
+  async deleteRequestHistory(requestGuid, cancellationToken) {
+    if (!requestGuid) {
+      GenericExceptionHandlers.ArgumentNullException('requestGuid');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/${requestGuid}`;
+    return await this.delete(url, cancellationToken);
+  }
+
+  /**
+   * Delete every request history entry matching the filters (the same filters as listRequestHistory; paging is ignored).
+   * An empty filter deletes every entry the caller can see.
+   * @param {Object} filters - Filters, as for listRequestHistory.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Result ({ Deleted }).
+   */
+  async deleteRequestHistoryMany(filters, cancellationToken) {
+    if (!filters) {
+      GenericExceptionHandlers.ArgumentNullException('filters');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/bulk${buildRequestHistoryQuery(filters, false)}`;
+    return await this.deleteForJson(url, cancellationToken);
   }
 
   /**

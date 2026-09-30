@@ -731,6 +731,12 @@ namespace Test.Automated
 			await RunTest("Health.Ready", TestHealthReady).ConfigureAwait(false);
 			await RunTest("Admin.ReadClusterLocks", TestAdminReadClusterLocks).ConfigureAwait(false);
 			await RunTest("Admin.ReadClusterJobs", TestAdminReadClusterJobs).ConfigureAwait(false);
+			await RunTest("RequestHistory.Search", TestRequestHistorySearch).ConfigureAwait(false);
+			await RunTest("RequestHistory.NodeFilter", TestRequestHistoryNodeFilter).ConfigureAwait(false);
+			await RunTest("RequestHistory.ReadAndDetail", TestRequestHistoryReadAndDetail).ConfigureAwait(false);
+			await RunTest("RequestHistory.Summary", TestRequestHistorySummary).ConfigureAwait(false);
+			await RunTest("RequestHistory.Enumerate", TestRequestHistoryEnumerate).ConfigureAwait(false);
+			await RunTest("RequestHistory.Delete", TestRequestHistoryDelete).ConfigureAwait(false);
 
 			// Batch tests
 			await RunTest("Batch.Existence", TestBatchExistence).ConfigureAwait(false);
@@ -1914,6 +1920,110 @@ namespace Test.Automated
 			AssertNotNull(locks, "Cluster lock list");
 			AssertNotNull(locks!.Locks, "Lock list is never null");
 			if (!locks.ClusterEnabled) AssertEqual(0, locks.Locks.Count, "A single node lists no distributed locks");
+		}
+
+		private static async Task<List<RequestHistoryEntry>> RecentRequestHistoryAsync(LiteGraphSdk sdk)
+		{
+			// Recording is asynchronous; make a request, then wait briefly for it to be captured.
+			await sdk.Admin.ReadClusterNodes().ConfigureAwait(false);
+			for (int attempt = 0; attempt < 20; attempt++)
+			{
+				EnumerationResult<RequestHistoryEntry>? page = await sdk.RequestHistory.Search(new RequestHistorySearchRequest { MaxKeys = 50 }).ConfigureAwait(false);
+				if (page != null && page.Objects.Count > 0) return page.Objects;
+				await Task.Delay(250).ConfigureAwait(false);
+			}
+			return new List<RequestHistoryEntry>();
+		}
+
+		private static async Task TestRequestHistorySearch()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			List<RequestHistoryEntry> recent = await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
+			AssertTrue(recent.Count > 0, "Request history returns recorded requests (RequestHistory.Enable must be true on the server)");
+			AssertTrue(recent.All(e => e.GUID != Guid.Empty && !String.IsNullOrEmpty(e.Method)), "Entries carry a GUID and method");
+
+			EnumerationResult<RequestHistoryEntry>? gets = await sdk.RequestHistory.Search(new RequestHistorySearchRequest { Method = "GET", MaxKeys = 20 }).ConfigureAwait(false);
+			AssertNotNull(gets, "Method-filtered search");
+			AssertTrue(gets!.Objects.All(e => e.Method == "GET"), "The method filter returns only GET requests");
+		}
+
+		private static async Task TestRequestHistoryNodeFilter()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			List<RequestHistoryEntry> recent = await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
+			RequestHistoryEntry? withNode = recent.FirstOrDefault(e => !String.IsNullOrEmpty(e.NodeId));
+			AssertNotNull(withNode, "Recent entries record the node that handled them");
+
+			EnumerationResult<RequestHistoryEntry>? byNode = await sdk.RequestHistory.Search(new RequestHistorySearchRequest { NodeId = withNode!.NodeId, MaxKeys = 50 }).ConfigureAwait(false);
+			AssertNotNull(byNode, "Node-filtered search");
+			AssertTrue(byNode!.Objects.Count > 0, "The node filter finds that node's requests");
+			AssertTrue(byNode.Objects.All(e => e.NodeId == withNode.NodeId), "The node filter returns only that node's requests");
+
+			EnumerationResult<RequestHistoryEntry>? none = await sdk.RequestHistory.Search(new RequestHistorySearchRequest { NodeId = "no-such-node-" + Guid.NewGuid().ToString("N") }).ConfigureAwait(false);
+			AssertNotNull(none, "Search for an unknown node");
+			AssertEqual(0, none!.Objects.Count, "An unknown node matches nothing");
+		}
+
+		private static async Task TestRequestHistoryReadAndDetail()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			List<RequestHistoryEntry> recent = await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
+			AssertTrue(recent.Count > 0, "Request history has entries");
+			RequestHistoryEntry? entry = await sdk.RequestHistory.ReadByGuid(recent[0].GUID).ConfigureAwait(false);
+			AssertNotNull(entry, "Entry read by GUID");
+			AssertEqual(recent[0].GUID, entry!.GUID, "GUID round trips");
+			RequestHistoryDetail? detail = await sdk.RequestHistory.ReadDetail(recent[0].GUID).ConfigureAwait(false);
+			AssertNotNull(detail, "Detail read by GUID");
+			AssertNotNull(detail!.RequestHeaders, "Detail carries request headers");
+			RequestHistoryEntry? missing = await sdk.RequestHistory.ReadByGuid(Guid.NewGuid()).ConfigureAwait(false);
+			AssertNull(missing, "An unknown GUID reads as null");
+		}
+
+		private static async Task TestRequestHistorySummary()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
+			RequestHistorySummary? summary = await sdk.RequestHistory.ReadSummary("hour", DateTime.UtcNow.AddHours(-2), DateTime.UtcNow.AddMinutes(5)).ConfigureAwait(false);
+			AssertNotNull(summary, "Summary");
+			AssertEqual("hour", summary!.Interval, "Summary interval");
+			AssertTrue(summary.TotalRequests > 0, "Summary counts recent requests");
+			AssertEqual(summary.TotalRequests, summary.TotalSuccess + summary.TotalFailure, "Success and failure add up to the total");
+		}
+
+		private static async Task TestRequestHistoryEnumerate()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
+			RequestHistorySearchRequest request = new RequestHistorySearchRequest { MaxKeys = 2 };
+			int count = 0;
+			HashSet<Guid> seen = new HashSet<Guid>();
+			await foreach (RequestHistoryEntry entry in sdk.RequestHistory.Enumerate(request).ConfigureAwait(false))
+			{
+				seen.Add(entry.GUID);
+				if (++count >= 6) break;
+			}
+			AssertTrue(count >= 2, "Enumeration follows pages beyond the first");
+			AssertEqual(count, seen.Count, "Enumerated entries are distinct");
+			AssertEqual(0, request.Skip, "The caller's request is left unchanged");
+		}
+
+		private static async Task TestRequestHistoryDelete()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			List<RequestHistoryEntry> recent = await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
+			AssertTrue(recent.Count > 0, "Request history has entries");
+			Guid target = recent[recent.Count - 1].GUID;
+			await sdk.RequestHistory.DeleteByGuid(target).ConfigureAwait(false);
+			AssertNull(await sdk.RequestHistory.ReadByGuid(target).ConfigureAwait(false), "A deleted entry is gone");
+
+			string marker = "/v1.0/no-such-route-" + Guid.NewGuid().ToString("N");
+			await sdk.Get<object>(_Endpoint.TrimEnd('/') + marker).ConfigureAwait(false);
+			await Task.Delay(500).ConfigureAwait(false);
+			RequestHistoryDeleteResult? deleted = await sdk.RequestHistory.DeleteMany(new RequestHistorySearchRequest { Path = marker }).ConfigureAwait(false);
+			AssertNotNull(deleted, "Bulk delete result");
+			AssertTrue(deleted!.Deleted >= 1, "Bulk delete removes matching entries");
+			EnumerationResult<RequestHistoryEntry>? after = await sdk.RequestHistory.Search(new RequestHistorySearchRequest { Path = marker }).ConfigureAwait(false);
+			AssertEqual(0, after!.Objects.Count, "No matching entries remain");
 		}
 
 		private static async Task TestAdminReadClusterJobs()

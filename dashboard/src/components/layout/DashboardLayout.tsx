@@ -28,7 +28,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ThemeEnum } from '@/types/types';
 import LitegraphTooltip from '../base/tooltip/Tooltip';
 import ThemeModeSwitch from '../theme-mode-switch/ThemeModeSwitch';
-import { useLastNodeId } from '@/lib/sdk/nodeTracker';
+import { useLastNodeId, useSeenNodeCount } from '@/lib/sdk/nodeTracker';
+import { getClusterNodes } from '@/lib/sdk/cluster';
 
 const { Content } = Layout;
 
@@ -56,6 +57,9 @@ const DashboardLayout = ({
   // Node named by the x-litegraph-node header of the most recent response; in a cluster this is the node the load
   // balancer picked.
   const lastNodeId = useLastNodeId();
+  const seenNodeCount = useSeenNodeCount();
+  // Cluster mode from the node registry when this user may read it; otherwise inferred from seeing more than one node.
+  const [clusterEnabled, setClusterEnabled] = useState<boolean | null>(null);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
@@ -64,6 +68,23 @@ const DashboardLayout = ({
     value: entry.code,
     label: entry.nativeName,
   }));
+
+  useEffect(() => {
+    let cancelled = false;
+    getClusterNodes()
+      .then((status) => {
+        if (!cancelled) setClusterEnabled(Boolean(status?.ClusterEnabled));
+      })
+      .catch(() => {
+        if (!cancelled) setClusterEnabled(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [serverUrl]);
+
+  const showNodeBadge =
+    Boolean(lastNodeId) && (clusterEnabled === true || (clusterEnabled === null && seenNodeCount > 1));
 
   const handleLocaleChange = (value: string | number | string[]) => {
     const nextLocale = value as AppLocale;
@@ -250,6 +271,19 @@ const DashboardLayout = ({
                     }}
                   >
                     {serverHostDisplay}
+                  </Tag>
+                </LitegraphTooltip>
+              )}
+              {showNodeBadge && (
+                <LitegraphTooltip title={t('answeredBy', { node: lastNodeId ?? '' })}>
+                  <Tag
+                    className={styles.nodeBadge}
+                    color="processing"
+                    bordered={false}
+                    data-testid="header-node-badge"
+                    style={{ fontSize: 11, margin: 0 }}
+                  >
+                    {lastNodeId}
                   </Tag>
                 </LitegraphTooltip>
               )}

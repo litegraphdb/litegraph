@@ -885,7 +885,8 @@
       "allMethods": "所有方法",
       "transactionIdPlaceholder": "交易 ID…",
       "pathPlaceholder": "路徑包含…",
-      "nodePlaceholder": "按節點篩選"
+      "nodePlaceholder": "按節點篩選",
+      "nodeNone": "冇相符嘅節點"
     },
     "summary": {
       "visibleRequests": "可見請求：",

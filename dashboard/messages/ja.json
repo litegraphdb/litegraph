@@ -885,7 +885,8 @@
       "allMethods": "すべてのメソッド",
       "transactionIdPlaceholder": "トランザクション ID...",
       "pathPlaceholder": "パスに含まれる...",
-      "nodePlaceholder": "ノードで絞り込む"
+      "nodePlaceholder": "ノードで絞り込む",
+      "nodeNone": "一致するノードはありません"
     },
     "summary": {
       "visibleRequests": "表示中のリクエスト:",

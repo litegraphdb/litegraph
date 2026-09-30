@@ -12,6 +12,7 @@ v10.0.0
 - `SettingsUpdateResult` gains `EnvironmentOverrides` and `SettingsVersion`
 - Added `ReadClusterLocks` and `ReadClusterJobs` with the `ClusterLock`, `ClusterLockList`, `ClusterJobRun`, and `ClusterJobList` models
 - `HealthResponse` gains `StorageProvider` and `VectorIndexProvider`
+- Added request history on `sdk.RequestHistory`: `Search` (one page, with filters including `NodeId`), `Enumerate` (all pages), `ReadByGuid`, `ReadDetail`, `ReadSummary`, `DeleteByGuid`, and `DeleteMany`, with the `RequestHistoryEntry`, `RequestHistoryDetail`, `RequestHistorySearchRequest`, `RequestHistorySummary`, `RequestHistorySummaryBucket`, and `RequestHistoryDeleteResult` models, and `SdkBase.DeleteWithResult<T>`
 
 v7.0.0
 

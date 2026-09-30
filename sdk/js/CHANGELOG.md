@@ -10,6 +10,7 @@ v10.0.0
 - Added `lastNodeId`, from the `x-litegraph-node` response header, and `nodeId` on `ApiErrorResponse`
 - Added the `Unavailable` error code (503)
 - Added `readClusterLocks` and `readClusterJobs`; health bodies document `StorageProvider`, `VectorIndexProvider`, and the `Redis` check
+- Added request history: `listRequestHistory` (filters including `nodeId`, plus `maxKeys` and `skip`), `readRequestHistory`, `readRequestHistoryDetail`, `readRequestHistorySummary`, `deleteRequestHistory`, and `deleteRequestHistoryMany`, and `SdkBase.deleteForJson`
 
 v7.0.0
 

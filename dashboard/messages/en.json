@@ -915,7 +915,8 @@
       "allMethods": "All methods",
       "transactionIdPlaceholder": "Transaction ID...",
       "pathPlaceholder": "Path contains...",
-      "nodePlaceholder": "Filter by node"
+      "nodePlaceholder": "Filter by node",
+      "nodeNone": "No matching nodes"
     },
     "summary": {
       "visibleRequests": "Visible requests:",

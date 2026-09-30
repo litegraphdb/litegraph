@@ -577,19 +577,17 @@
             List<KeyValuePair<Guid, VectorSearchResult>> matches = await SearchCoreAsync(
                 "graph", searchType, vectors, tenantGuid, null, labels, tags, filter, topK, minScore, maxDistance, minInnerProduct, null, token).ConfigureAwait(false);
 
+            List<Guid> graphGuids = matches.Select(m => m.Key).ToList();
+            Dictionary<Guid, Graph> graphs = await ToDictionaryAsync(_Repo.Graph.ReadByGuids(tenantGuid, graphGuids, token), g => g.GUID, token).ConfigureAwait(false);
+            Dictionary<Guid, List<VectorMetadata>> graphVectors = await ReadVectorsByOwnerAsync(VectorQueries.SelectManyGraphs(tenantGuid, graphGuids), v => v.GraphGUID, token).ConfigureAwait(false);
+
             foreach (KeyValuePair<Guid, VectorSearchResult> kvp in matches)
             {
                 token.ThrowIfCancellationRequested();
-                Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, kvp.Key, token).ConfigureAwait(false);
-                if (graph == null) continue;
+                if (!graphs.TryGetValue(kvp.Key, out Graph graph)) continue;
 
                 kvp.Value.Graph = graph;
-                List<VectorMetadata> graphVectors = new List<VectorMetadata>();
-                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    graphVectors.Add(vector);
-                }
-                graph.Vectors = graphVectors;
+                graph.Vectors = graphVectors.TryGetValue(graph.GUID, out List<VectorMetadata> list) ? list : new List<VectorMetadata>();
                 yield return kvp.Value;
             }
         }
@@ -618,20 +616,18 @@
             List<KeyValuePair<Guid, VectorSearchResult>> matches = await SearchCoreAsync(
                 "node", searchType, vectors, tenantGuid, graphGuid, labels, tags, filter, topK, minScore, maxDistance, minInnerProduct, graph, token).ConfigureAwait(false);
 
+            List<Guid> nodeGuids = matches.Select(m => m.Key).ToList();
+            Dictionary<Guid, Node> nodes = await ToDictionaryAsync(_Repo.Node.ReadByGuids(tenantGuid, nodeGuids, token), n => n.GUID, token).ConfigureAwait(false);
+            Dictionary<Guid, List<VectorMetadata>> nodeVectors = await ReadVectorsByOwnerAsync(VectorQueries.SelectManyNodes(tenantGuid, graphGuid, nodeGuids), v => v.NodeGUID, token).ConfigureAwait(false);
+
             foreach (KeyValuePair<Guid, VectorSearchResult> kvp in matches)
             {
                 token.ThrowIfCancellationRequested();
-                Node node = await _Repo.Node.ReadByGuid(tenantGuid, kvp.Key, token).ConfigureAwait(false);
-                if (node == null) continue;
+                if (!nodes.TryGetValue(kvp.Key, out Node node)) continue;
 
                 kvp.Value.Node = node;
                 kvp.Value.Graph = graph;
-                List<VectorMetadata> nodeVectors = new List<VectorMetadata>();
-                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    nodeVectors.Add(vector);
-                }
-                node.Vectors = nodeVectors;
+                node.Vectors = nodeVectors.TryGetValue(node.GUID, out List<VectorMetadata> list) ? list : new List<VectorMetadata>();
                 yield return kvp.Value;
             }
         }
@@ -658,19 +654,17 @@
             List<KeyValuePair<Guid, VectorSearchResult>> matches = await SearchCoreAsync(
                 "edge", searchType, vectors, tenantGuid, graphGuid, labels, tags, filter, topK, minScore, maxDistance, minInnerProduct, null, token).ConfigureAwait(false);
 
+            List<Guid> edgeGuids = matches.Select(m => m.Key).ToList();
+            Dictionary<Guid, Edge> edges = await ToDictionaryAsync(_Repo.Edge.ReadByGuids(tenantGuid, edgeGuids, token), e => e.GUID, token).ConfigureAwait(false);
+            Dictionary<Guid, List<VectorMetadata>> edgeVectors = await ReadVectorsByOwnerAsync(VectorQueries.SelectManyEdges(tenantGuid, graphGuid, edgeGuids), v => v.EdgeGUID, token).ConfigureAwait(false);
+
             foreach (KeyValuePair<Guid, VectorSearchResult> kvp in matches)
             {
                 token.ThrowIfCancellationRequested();
-                Edge edge = await _Repo.Edge.ReadByGuid(tenantGuid, kvp.Key, token).ConfigureAwait(false);
-                if (edge == null) continue;
+                if (!edges.TryGetValue(kvp.Key, out Edge edge)) continue;
 
                 kvp.Value.Edge = edge;
-                List<VectorMetadata> edgeVectors = new List<VectorMetadata>();
-                await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                {
-                    edgeVectors.Add(vector);
-                }
-                edge.Vectors = edgeVectors;
+                edge.Vectors = edgeVectors.TryGetValue(edge.GUID, out List<VectorMetadata> list) ? list : new List<VectorMetadata>();
                 yield return kvp.Value;
             }
         }
@@ -678,6 +672,49 @@
         #endregion
 
         #region Private-Methods
+
+        private async Task<Dictionary<Guid, List<VectorMetadata>>> ReadVectorsByOwnerAsync(string query, Func<VectorMetadata, Guid?> owner, CancellationToken token)
+        {
+            // One query for every result's vectors, grouped by owner and ordered as ReadMany* orders them
+            // (createdutc descending, then guid descending), instead of one query per result.
+            Dictionary<Guid, List<VectorMetadata>> ret = new Dictionary<Guid, List<VectorMetadata>>();
+            DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
+            if (result == null) return ret;
+
+            foreach (DataRow row in result.Rows)
+            {
+                VectorMetadata vector = Converters.VectorFromDataRow(row);
+                Guid? id = owner(vector);
+                if (id == null) continue;
+                if (!ret.TryGetValue(id.Value, out List<VectorMetadata> list))
+                {
+                    list = new List<VectorMetadata>();
+                    ret[id.Value] = list;
+                }
+                list.Add(vector);
+            }
+
+            foreach (List<VectorMetadata> list in ret.Values)
+            {
+                list.Sort((a, b) =>
+                {
+                    int byTime = b.CreatedUtc.CompareTo(a.CreatedUtc);
+                    return byTime != 0 ? byTime : String.CompareOrdinal(b.GUID.ToString(), a.GUID.ToString());
+                });
+            }
+
+            return ret;
+        }
+
+        private static async Task<Dictionary<Guid, T>> ToDictionaryAsync<T>(IAsyncEnumerable<T> items, Func<T, Guid> key, CancellationToken token)
+        {
+            Dictionary<Guid, T> ret = new Dictionary<Guid, T>();
+            await foreach (T item in items.WithCancellation(token).ConfigureAwait(false))
+            {
+                if (item != null) ret[key(item)] = item;
+            }
+            return ret;
+        }
 
         private async Task<List<KeyValuePair<Guid, VectorSearchResult>>> SearchCoreAsync(
             string scope,

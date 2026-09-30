@@ -71,6 +71,8 @@ smoke.bat
 
 Or put `LITEGRAPH_IMAGE_TAG=v10.0.0-rc1` in the deployment's `.env`. `update.bat` pulls, recreates, and lists containers using the same variable.
 
+The build scripts push the tag you give them, and a release tag (a plain `vMAJOR.MINOR.PATCH` such as `v10.0.0`) also moves `:latest`. Any other tag, such as `v10.0.0-rc1` or a test tag, leaves `:latest` where it was, so testing a build never changes what users pulling `latest` get.
+
 ## Upgrading from LiteGraph 9.x
 
 The 9.x `docker/compose.yaml` is now `single-node-postgresql/compose.yaml`. The Compose project is named `litegraph` rather than taking its name from the `docker` directory, so it no longer shares volume names with other projects that keep their compose files in a directory called `docker`.

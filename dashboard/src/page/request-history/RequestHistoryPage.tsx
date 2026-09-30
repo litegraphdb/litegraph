@@ -19,6 +19,7 @@ import {
   RequestHistoryEntry,
   RequestHistorySearchResult,
 } from '@/lib/sdk/requestHistory';
+import { getClusterNodes } from '@/lib/sdk/cluster';
 
 const { Text } = Typography;
 
@@ -159,6 +160,10 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const [transactionId, setTransactionId] = useState<string>('');
   const [path, setPath] = useState<string>('');
   const [nodeId, setNodeId] = useState<string>('');
+  const [nodeSearch, setNodeSearch] = useState<string>('');
+  // Node identifiers from the cluster registry; null when it cannot be read (for example a non-administrator), in which
+  // case the picker offers the nodes seen in the loaded page.
+  const [clusterNodeIds, setClusterNodeIds] = useState<string[] | null>(null);
   const [result, setResult] = useState<RequestHistorySearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -207,6 +212,32 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
     ],
     [t]
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    getClusterNodes()
+      .then((status) => {
+        if (!cancelled) setClusterNodeIds((status?.Nodes ?? []).map((n) => n.NodeId));
+      })
+      .catch(() => {
+        if (!cancelled) setClusterNodeIds(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const nodeOptions = useMemo(() => {
+    const ids = new Set<string>();
+    if (clusterNodeIds) clusterNodeIds.forEach((id) => ids.add(id));
+    else (result?.Objects ?? []).forEach((entry) => entry.NodeId && ids.add(entry.NodeId));
+    if (nodeId) ids.add(nodeId);
+    const typed = nodeSearch.trim();
+    if (typed) ids.add(typed);
+    return Array.from(ids)
+      .sort((a, b) => a.localeCompare(b))
+      .map((id) => ({ value: id, label: id }));
+  }, [clusterNodeIds, result, nodeId, nodeSearch]);
 
   const fetchList = useCallback(() => {
     setLoading(true);
@@ -570,16 +601,21 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
             style={{ width: 280, maxWidth: '100%' }}
             allowClear
           />
-          <Input
+          <Select
+            showSearch
+            allowClear
             placeholder={t('filters.nodePlaceholder')}
             aria-label={t('filters.nodePlaceholder')}
-            value={nodeId}
-            onChange={(e) => {
-              setNodeId(e.target.value);
+            value={nodeId || undefined}
+            options={nodeOptions}
+            onSearch={(value) => setNodeSearch(value)}
+            onChange={(value?: string) => {
+              setNodeId(value ?? '');
+              setNodeSearch('');
               setPage(0);
             }}
-            style={{ width: 180, maxWidth: '100%' }}
-            allowClear
+            notFoundContent={t('filters.nodeNone')}
+            style={{ width: 200, maxWidth: '100%' }}
             data-testid="request-history-node-filter"
           />
         </div>

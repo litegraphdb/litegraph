@@ -251,6 +251,27 @@ Requires system-administrator authentication, except the health checks. On a sin
 | `healthLive` | Liveness. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/live` |
 | `healthReady` | Readiness. Resolves with the body for both 200 and 503. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/ready` |
 
+### Request History Operations (v10.0)
+
+System administrators see every tenant and may pass `tenantGuid`; tenant administrators see only their own tenant. Filters: `tenantGuid`, `requestId`, `correlationId`, `traceId`, `method`, `path` (substring), `sourceIp`, `nodeId` (the node that handled the request), `transactionId`, `statusCode`, `success`, `hasTransactionDiagnostics`, `fromUtc`, `toUtc` (Date or ISO 8601 string), plus `maxKeys` (1-1000, default 100) and `skip` for paging.
+
+| Method | Description | Parameters | Returns | Endpoint |
+|--------|-------------|------------|---------|----------|
+| `listRequestHistory` | Searches request history, newest first, one page at a time. | `filters` (optional) <br> `cancellationToken` (optional) | `Promise<Object>` enumeration result | `GET /v1.0/requesthistory` |
+| `readRequestHistory` | Reads one entry. Rejects with NotFound if it does not exist. | `requestGuid` <br> `cancellationToken` (optional) | `Promise<Object>` entry | `GET /v1.0/requesthistory/{requestGuid}` |
+| `readRequestHistoryDetail` | Reads one entry with its captured headers and bodies. | `requestGuid` <br> `cancellationToken` (optional) | `Promise<Object>` detail | `GET /v1.0/requesthistory/{requestGuid}/detail` |
+| `readRequestHistorySummary` | Counts requests over a range, bucketed by interval. | `{ interval, startUtc, endUtc, tenantGuid }` (optional) <br> `cancellationToken` (optional) | `Promise<Object>` summary | `GET /v1.0/requesthistory/summary` |
+| `deleteRequestHistory` | Deletes one entry. | `requestGuid` <br> `cancellationToken` (optional) | `Promise<void>` | `DELETE /v1.0/requesthistory/{requestGuid}` |
+| `deleteRequestHistoryMany` | Deletes every entry matching the filters (paging ignored). | `filters` <br> `cancellationToken` (optional) | `Promise<Object>` `{ Deleted }` | `DELETE /v1.0/requesthistory/bulk` |
+
+```javascript
+const page = await api.listRequestHistory({ nodeId: 'litegraph-2', success: false, fromUtc: new Date(Date.now() - 3600000) });
+page.Objects.forEach((e) => console.log(e.CreatedUtc, e.Method, e.Path, e.StatusCode, e.NodeId));
+
+const summary = await api.readRequestHistorySummary({ interval: 'hour' });
+const { Deleted } = await api.deleteRequestHistoryMany({ path: '/v1.0/health' });
+```
+
 ### Chat Operations (v8.1)
 
 LLM chat against your graphs: endpoint management (completion and embedding endpoints), endpoint health, a non-admin model catalog, threads (including rename), completions (streaming and non-streaming), feedback, and tenant chat settings. Endpoint CRUD, health, feedback administration, and settings updates require administrator privileges; the model catalog, completions, thread creation, and feedback submission require a user principal. `ApiKey` values are always returned redacted; sending a redacted value back on update preserves the stored key. Set `ContextWindowTokens` on an endpoint to let the server cap the conversation-history budget to the model's context window (0 means unspecified).

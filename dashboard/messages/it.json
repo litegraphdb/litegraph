@@ -885,7 +885,8 @@
       "allMethods": "Tutti i metodi",
       "transactionIdPlaceholder": "ID transazione...",
       "pathPlaceholder": "Il percorso contiene...",
-      "nodePlaceholder": "Filtra per nodo"
+      "nodePlaceholder": "Filtra per nodo",
+      "nodeNone": "Nessun nodo corrispondente"
     },
     "summary": {
       "visibleRequests": "Richieste visibili:",

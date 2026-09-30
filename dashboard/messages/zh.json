@@ -885,7 +885,8 @@
       "allMethods": "所有方法",
       "transactionIdPlaceholder": "事务 ID……",
       "pathPlaceholder": "路径包含……",
-      "nodePlaceholder": "按节点筛选"
+      "nodePlaceholder": "按节点筛选",
+      "nodeNone": "没有匹配的节点"
     },
     "summary": {
       "visibleRequests": "可见请求：",
