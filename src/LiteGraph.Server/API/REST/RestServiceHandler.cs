@@ -235,7 +235,9 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/flush", FlushRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Flush database to disk", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/settings", SettingsReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read server settings", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/settings", SettingsUpdateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Update server settings", "Admin"));
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server (a rolling restart of every node in cluster mode)", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes", ClusterNodesRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List cluster nodes with their state and health", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/restart", ClusterRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Request a rolling restart of every node (restarts this server on a single node)", "Admin"));
 
             #endregion
 
@@ -1079,6 +1081,30 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.SettingsRestart);
         }
 
+        private async Task ClusterNodesRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodesRead);
+        }
+
+        private async Task ClusterRestartRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterRestart);
+        }
+
         #endregion
 
         #region General
@@ -1118,7 +1144,7 @@
 
         private async Task HealthLiveRoute(HttpContextBase ctx)
         {
-            HealthResponse health = BuildHealthResponse();
+            HealthResponse health = _ServiceHandler.NodeHealth.Basic();
             ctx.Response.StatusCode = 200;
             ctx.Response.ContentType = Constants.JsonContentType;
             await ctx.Response.Send(_Serializer.SerializeJson(health, true));
@@ -1126,50 +1152,12 @@
 
         private async Task HealthReadyRoute(HttpContextBase ctx)
         {
-            HealthResponse health = BuildHealthResponse();
-            health.Checks = new HealthChecks
-            {
-                Draining = _Cluster?.Draining ?? false,
-                Clutch = (_Cluster != null && _Cluster.Enabled) ? _Cluster.LockProvider.IsAvailable : (bool?)null
-            };
-
-            try
-            {
-                using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
-                {
-                    await _LiteGraph.Tenant.ExistsByGuid(Guid.Empty, cts.Token).ConfigureAwait(false);
-                }
-                health.Checks.Database = true;
-            }
-            catch (Exception e)
-            {
-                _Logging.Warn(_Header + "readiness database check failed: " + e.Message);
-                health.Checks.Database = false;
-            }
-
-            // Clutch is not required for readiness: reads, writes, and searches take no distributed lock, and taking every
-            // node out of rotation because Clutch is unreachable would turn a coordination outage into a full outage.
-            bool ready = health.Checks.Database && !health.Checks.Draining;
-            if (!ready) health.Status = "Unavailable";
-            else if (health.Checks.Clutch == false) health.Status = "Degraded";
-            else health.Status = "Healthy";
-
-            ctx.Response.StatusCode = ready ? 200 : 503;
+            // Clutch and Redis are not required for readiness: reads, writes, and searches need neither, and taking every
+            // node out of rotation because one of them is unreachable would turn a coordination outage into a full outage.
+            HealthResponse health = await _ServiceHandler.NodeHealth.CheckAsync(ctx.Token).ConfigureAwait(false);
+            ctx.Response.StatusCode = health.Status == "Unavailable" ? 503 : 200;
             ctx.Response.ContentType = Constants.JsonContentType;
             await ctx.Response.Send(_Serializer.SerializeJson(health, true));
-        }
-
-        private HealthResponse BuildHealthResponse()
-        {
-            return new HealthResponse
-            {
-                Status = "Healthy",
-                NodeId = _Cluster?.NodeId ?? _Hostname,
-                ClusterName = (_Cluster != null && _Cluster.Enabled) ? _Cluster.ClusterName : null,
-                Version = typeof(RestServiceHandler).Assembly.GetName().Version?.ToString(3),
-                StartedUtc = _Cluster?.StartedUtc ?? DateTime.UtcNow,
-                Utc = DateTime.UtcNow
-            };
         }
 
         private async Task RootRoute(HttpContextBase ctx)

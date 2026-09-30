@@ -620,6 +620,8 @@ namespace Test.Shared
                 "GET /v1.0/token",
                 "GET /v1.0/token/details",
                 "GET /v1.0/backups",
+                "GET /v1.0/cluster/nodes",
+                "POST /v1.0/cluster/restart",
                 "PUT /v1.0/tenants",
                 "GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}",
                 "PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable",
@@ -648,7 +650,8 @@ namespace Test.Shared
             // to the authenticated bucket, alongside the v7.1 JSONL import/export routes.
             // v9.0 added four graph-algorithm routes: POST .../algorithms, POST .../algorithms/import,
             // GET .../export/projection, and POST .../algorithms/embeddings.
-            AssertEqual(212, postAuthenticationRoutes.Count, "Authenticated route count");
+            // v10.0 added GET /v1.0/cluster/nodes and POST /v1.0/cluster/restart.
+            AssertEqual(214, postAuthenticationRoutes.Count, "Authenticated route count");
             AssertFalse(preAuthenticationRoutes.Overlaps(postAuthenticationRoutes), "Route auth buckets should not overlap");
 
             foreach (string route in criticalAuthenticatedRoutes)

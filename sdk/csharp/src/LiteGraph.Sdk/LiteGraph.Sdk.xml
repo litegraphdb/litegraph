@@ -1144,6 +1144,236 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ClusterNode">
+            <summary>
+            A node's entry in the cluster node registry.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.NodeId">
+            <summary>
+            Node identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.Hostname">
+            <summary>
+            Host name of the machine or container running the node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.Version">
+            <summary>
+            Server software version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.StartedUtc">
+            <summary>
+            UTC timestamp at which the node's current process started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.LastHeartbeatUtc">
+            <summary>
+            UTC timestamp of the node's most recent heartbeat.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.HeartbeatAgeMs">
+            <summary>
+            Milliseconds since the most recent heartbeat when the status was produced.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.State">
+            <summary>
+            Node state.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.Checks">
+            <summary>
+            Health checks from the node's most recent heartbeat.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.SettingsVersion">
+            <summary>
+            Most recent settings version the node has seen.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.RestartPending">
+            <summary>
+            True when the node needs a restart to apply saved settings or has a requested restart still to take.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.RestartVersion">
+            <summary>
+            Most recent restart version the node has seen.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterNode.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterNodeChecks">
+            <summary>
+            Readiness checks reported for a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Database">
+            <summary>
+            True when the database answered a query.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Clutch">
+            <summary>
+            True when the node has a lock connection to Clutch.  Null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Redis">
+            <summary>
+            True when the node can reach Redis.  Null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Draining">
+            <summary>
+            True when the node is shutting down or restarting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterNodeChecks.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterNodeStateEnum">
+            <summary>
+            State of a cluster node as reported in the node registry.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Healthy">
+            <summary>
+            Serving requests with every check passing.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Degraded">
+            <summary>
+            Serving requests, but Clutch or Redis is unreachable, so coordinated work waits.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Unavailable">
+            <summary>
+            Running but not ready to serve requests, for example because the database does not answer.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Draining">
+            <summary>
+            Shutting down; load balancers should stop sending it requests.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Restarting">
+            <summary>
+            Exiting as part of a rolling restart and expected back shortly.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Stopped">
+            <summary>
+            Stopped cleanly and not expected back until started again.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Offline">
+            <summary>
+            No recent heartbeat.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterRestartResult">
+            <summary>
+            Result of a restart request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.Restarting">
+            <summary>
+            True when a restart was requested.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.Rolling">
+            <summary>
+            True for a rolling restart of every cluster node (one at a time); false when only the answering server restarts.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.RestartVersion">
+            <summary>
+            Restart version assigned to the request.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.Message">
+            <summary>
+            Description of what happens next.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.RequestedUtc">
+            <summary>
+            UTC timestamp of the request.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterRestartResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterStatus">
+            <summary>
+            Cluster status: the nodes in the registry and the settings and restart counters.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.ClusterEnabled">
+            <summary>
+            True when the server runs as a cluster node.  When false, Nodes lists only the answering node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.ClusterName">
+            <summary>
+            Cluster name, or null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.AnsweredBy">
+            <summary>
+            Node that answered the request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.RegistryAvailable">
+            <summary>
+            True when the node registry (Redis) answered.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.SettingsVersion">
+            <summary>
+            Settings version, incremented every time settings are saved through any node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.SettingsUpdatedUtc">
+            <summary>
+            UTC timestamp of the most recent settings save, if recorded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.RestartVersion">
+            <summary>
+            Restart version, incremented every time a cluster restart is requested.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.RestartRequestedUtc">
+            <summary>
+            UTC timestamp of the most recent restart request, if recorded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.Nodes">
+            <summary>
+            Nodes, ordered by node identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.Utc">
+            <summary>
+            UTC timestamp at which the status was produced.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterStatus.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Credential">
             <summary>
             Credentials.
@@ -2554,6 +2784,12 @@
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartServer(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterNodes(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartCluster(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.AlgorithmMethods">
             <summary>
             Graph algorithm SDK methods.
@@ -3362,7 +3598,8 @@
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadSettings(System.Threading.CancellationToken)">
             <summary>
-            Read the server settings as a JSON string.  Requires system administrator privileges.
+            Read the server settings file as a JSON string.  Every node sharing the file returns the same settings.
+            Requires system administrator privileges.
             </summary>
             <param name="token">Cancellation token.</param>
             <returns>Server settings as a JSON string.</returns>
@@ -3377,10 +3614,28 @@
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartServer(System.Threading.CancellationToken)">
             <summary>
-            Request a server restart.  The server exits its process so the container restart policy applies the new settings.
-            Requires system administrator privileges.  The call returns best-effort; the connection may drop as the server exits.
+            Request a restart so saved settings take effect.  In cluster mode every node restarts, one at a time, each after
+            the previous one reports healthy; on a single node the server exits so the container restart policy restarts it.
+            Requires system administrator privileges.  Returns null if the connection dropped as a single server exited.
             </summary>
             <param name="token">Cancellation token.</param>
+            <returns>Restart result, or null.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterNodes(System.Threading.CancellationToken)">
+            <summary>
+            List the cluster nodes with their state and health, plus the settings and restart counters.  On a single node the
+            answering server is the only node.  Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Cluster status.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartCluster(System.Threading.CancellationToken)">
+            <summary>
+            Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+            Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Restart result, or null if the connection dropped as a single server exited.</returns>
         </member>
         <member name="T:LiteGraph.Sdk.Interfaces.IAlgorithmMethods">
             <summary>
@@ -6285,6 +6540,17 @@
         <member name="P:LiteGraph.Sdk.SettingsUpdateResult.Message">
             <summary>
             Human-readable message describing the outcome.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SettingsUpdateResult.EnvironmentOverrides">
+            <summary>
+            Dotted paths of settings supplied by environment variables or derived at startup.  Their values in the settings
+            file were left unchanged by the save.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SettingsUpdateResult.SettingsVersion">
+            <summary>
+            Cluster settings version after the save, or null on a single node or when Redis could not be reached.
             </summary>
         </member>
         <member name="M:LiteGraph.Sdk.SettingsUpdateResult.#ctor">

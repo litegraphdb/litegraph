@@ -73,6 +73,11 @@ namespace LiteGraph.Server.Classes
         /// Request too large.
         /// </summary>
         [EnumMember(Value = "TooLarge")]
-        TooLarge
+        TooLarge,
+        /// <summary>
+        /// A service the request depends on is unavailable.
+        /// </summary>
+        [EnumMember(Value = "Unavailable")]
+        Unavailable
     }
 }

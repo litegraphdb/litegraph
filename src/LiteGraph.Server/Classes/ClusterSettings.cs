@@ -6,8 +6,9 @@ namespace LiteGraph.Server.Classes
 
     /// <summary>
     /// Cluster settings.  When Enable is true the server runs as one of several identical nodes sharing a PostgreSQL
-    /// database behind a load balancer, and coordinates schema migrations, background jobs, index builds, and settings
-    /// writes through Clutch.  All nodes must share the same settings file, database, and encryption key.
+    /// database behind a load balancer, coordinates schema migrations, background jobs, index builds, settings writes,
+    /// and rolling restarts through Clutch, and registers itself and signals settings changes and restart requests
+    /// through Redis.  All nodes must share the same settings file, database, and encryption key.
     /// </summary>
     public class ClusterSettings
     {
@@ -104,6 +105,55 @@ namespace LiteGraph.Server.Classes
             }
         }
 
+        /// <summary>
+        /// Redis settings for the node registry and for settings-change and restart signalling.
+        /// </summary>
+        public RedisSettings Redis
+        {
+            get
+            {
+                return _Redis;
+            }
+            set
+            {
+                _Redis = value ?? new RedisSettings();
+            }
+        }
+
+        /// <summary>
+        /// During a rolling restart, how long a node keeps serving after it reports itself draining and before it exits,
+        /// in milliseconds, so load balancers stop sending it new requests.  Default is 5000.  Minimum is 0, maximum is 120000.
+        /// </summary>
+        public int RestartDrainMs
+        {
+            get
+            {
+                return _RestartDrainMs;
+            }
+            set
+            {
+                if (value < 0 || value > 120000) throw new ArgumentOutOfRangeException(nameof(RestartDrainMs), "RestartDrainMs must be between 0 and 120000.");
+                _RestartDrainMs = value;
+            }
+        }
+
+        /// <summary>
+        /// During a rolling restart, how long a node waits for a peer that is restarting to report healthy again before
+        /// restarting itself anyway, in milliseconds.  Default is 180000.  Minimum is 10000, maximum is 3600000.
+        /// </summary>
+        public int RestartPeerTimeoutMs
+        {
+            get
+            {
+                return _RestartPeerTimeoutMs;
+            }
+            set
+            {
+                if (value < 10000 || value > 3600000) throw new ArgumentOutOfRangeException(nameof(RestartPeerTimeoutMs), "RestartPeerTimeoutMs must be between 10000 and 3600000.");
+                _RestartPeerTimeoutMs = value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
@@ -112,6 +162,9 @@ namespace LiteGraph.Server.Classes
         private List<string> _TrustedProxies = new List<string>();
         private int _EndpointResyncIntervalMs = 30000;
         private ClutchSettings _Clutch = new ClutchSettings();
+        private RedisSettings _Redis = new RedisSettings();
+        private int _RestartDrainMs = 5000;
+        private int _RestartPeerTimeoutMs = 180000;
 
         #endregion
 

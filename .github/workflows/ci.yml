@@ -35,6 +35,16 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+      redis:
+        # Cluster node registry and rolling restart tests (ScaleOut suite).
+        image: redis:7.4.9-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli -h 127.0.0.1 ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -67,6 +77,12 @@ jobs:
         env:
           LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+
+      - name: Scale-out suite (pgvector, locks, settings, Redis node registry, rolling restart)
+        env:
+          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
+          LITEGRAPH_TEST_REDIS_CONNECTION_STRING: 127.0.0.1:6379
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite ScaleOut
 
       - name: Upload test server logs
         if: failure()

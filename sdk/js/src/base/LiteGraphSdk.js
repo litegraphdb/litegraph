@@ -2147,7 +2147,8 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
-   * Read the server settings. Requires system administrator privileges.
+   * Read the server settings file. Every node sharing the file returns the same settings.
+   * Requires system administrator privileges.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
    * @returns {Promise<Object>} The server settings object.
    */
@@ -2160,7 +2161,7 @@ export default class LiteGraphSdk extends SdkBase {
    * Update the server settings. Requires system administrator privileges.
    * @param {Object} settings - The full settings object.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
-   * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message }).
+   * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message, EnvironmentOverrides, SettingsVersion }).
    */
   async updateSettings(settings, cancellationToken) {
     if (!settings) {
@@ -2171,17 +2172,47 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
-   * Request a server restart. The server exits so the container restart policy applies the new settings.
-   * Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+   * Request a restart so saved settings take effect. In cluster mode every node restarts, one at a time, each
+   * after the previous one reports healthy; on a single node the server exits so the container restart policy
+   * restarts it. Requires system administrator privileges.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
-   * @returns {Promise<void>}
+   * @returns {Promise<Object|undefined>} Restart result ({ Restarting, Rolling, RestartVersion, Message, RequestedUtc }),
+   *   or undefined if the connection dropped as a single server exited.
    */
   async restartServer(cancellationToken) {
     const url = `${this._endpoint}v1.0/settings/restart`;
     try {
       return await this.post(url, { confirm: true }, Object, cancellationToken);
     } catch (e) {
-      // The server may drop the connection as it exits; this is expected.
+      // A single server may drop the connection as it exits; this is expected.
+      return undefined;
+    }
+  }
+
+  /**
+   * List the cluster nodes with their state and health, plus the settings and restart counters. On a single node
+   * the answering server is the only node. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Cluster status ({ ClusterEnabled, ClusterName, AnsweredBy, RegistryAvailable,
+   *   SettingsVersion, SettingsUpdatedUtc, RestartVersion, RestartRequestedUtc, Nodes, Utc }).
+   */
+  async readClusterNodes(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/nodes`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+   * Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server exited.
+   */
+  async restartCluster(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/restart`;
+    try {
+      return await this.post(url, { confirm: true }, Object, cancellationToken);
+    } catch (e) {
+      // A single server may drop the connection as it exits; this is expected.
       return undefined;
     }
   }

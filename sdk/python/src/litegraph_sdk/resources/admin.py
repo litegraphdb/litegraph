@@ -58,7 +58,10 @@ class Admin:
 
     @classmethod
     def read_settings(cls):
-        """Read the server settings. Requires system administrator privileges."""
+        """Read the server settings file. Requires system administrator privileges.
+
+        Every node sharing the settings file returns the same settings.
+        """
         client = get_client()
         return client.request("GET", "v1.0/settings")
 
@@ -66,20 +69,49 @@ class Admin:
     def update_settings(cls, settings: dict):
         """Update the server settings. Requires system administrator privileges.
 
-        Returns the update result: {Success, AppliedLive, RestartRequired, Message}.
+        Returns the update result: {Success, AppliedLive, RestartRequired, Message, EnvironmentOverrides,
+        SettingsVersion}. Settings supplied by environment variables keep their file values.
         """
         client = get_client()
         return client.request("PUT", "v1.0/settings", json=settings)
 
     @classmethod
     def restart_server(cls):
-        """Request a server restart so the container restart policy applies the new settings.
+        """Request a restart so saved settings take effect.
 
-        Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+        In cluster mode every node restarts, one at a time, each after the previous one reports healthy; on a
+        single node the server exits so the container restart policy restarts it. Requires system administrator
+        privileges. Returns the restart result {Restarting, Rolling, RestartVersion, Message, RequestedUtc}, or
+        None if the connection dropped as a single server exited.
         """
         client = get_client()
         try:
             return client.request("POST", "v1.0/settings/restart", json={"confirm": True})
         except Exception:
-            # The server may drop the connection as it exits; this is expected.
+            # A single server may drop the connection as it exits; this is expected.
+            return None
+
+    @classmethod
+    def read_cluster_nodes(cls):
+        """List the cluster nodes with their state and health, plus the settings and restart counters.
+
+        On a single node the answering server is the only node. Requires system administrator privileges.
+        Returns {ClusterEnabled, ClusterName, AnsweredBy, RegistryAvailable, SettingsVersion, SettingsUpdatedUtc,
+        RestartVersion, RestartRequestedUtc, Nodes, Utc}.
+        """
+        client = get_client()
+        return client.request("GET", "v1.0/cluster/nodes")
+
+    @classmethod
+    def restart_cluster(cls):
+        """Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+
+        Requires system administrator privileges. Returns the restart result, or None if the connection dropped as
+        a single server exited.
+        """
+        client = get_client()
+        try:
+            return client.request("POST", "v1.0/cluster/restart", json={"confirm": True})
+        except Exception:
+            # A single server may drop the connection as it exits; this is expected.
             return None

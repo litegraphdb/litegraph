@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "保存",
       "discard": "放弃更改",
-      "restart": "重启服务器"
+      "restart": "重启服务器",
+      "restartCluster": "重启集群"
     },
     "restartModal": {
       "title": "重启服务器？",
-      "body": "服务器将退出，容器将使用已保存的设置重启。活动连接将被短暂中断。"
+      "body": "服务器将退出，容器将使用已保存的设置重启。活动连接将被短暂中断。",
+      "titleCluster": "重启所有节点？",
+      "bodyCluster": "所有节点将逐一重启，每个节点都会等上一个节点恢复健康后再重启。整个过程中集群会持续处理请求。"
     },
     "toast": {
       "saved": "设置已保存。",
       "saveFailed": "无法保存设置。",
       "restartFailed": "无法重启服务器。",
       "reconnected": "服务器已恢复在线。",
-      "reconnectTimeout": "服务器未能及时恢复。请检查其状态。"
+      "reconnectTimeout": "服务器未能及时恢复。请检查其状态。",
+      "rollingRestart": "已请求滚动重启。节点将逐一重启，可在节点列表中查看进度。"
+    },
+    "environmentOverrides": "有 {count} 项设置来自环境变量或在启动时设定，设置文件中的对应值未作更改。",
+    "cluster": {
+      "title": "节点",
+      "descriptionCluster": "集群 {name} 中的所有节点。设置会保存到所有节点。需要重启的设置将在集群重启后生效，集群重启会逐一重启各节点。",
+      "descriptionSingle": "此服务器以单节点方式运行。",
+      "registryUnavailable": "无法连接节点注册表 (Redis)，仅显示响应的节点。",
+      "secondsAgo": "{seconds} 秒前",
+      "yes": "是",
+      "no": "否",
+      "columns": {
+        "node": "节点",
+        "state": "状态",
+        "version": "版本",
+        "started": "启动时间",
+        "heartbeat": "最近心跳",
+        "settingsVersion": "设置版本",
+        "restartPending": "待重启"
+      }
     }
   },
   "ai": {

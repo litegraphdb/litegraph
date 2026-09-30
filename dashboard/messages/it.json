@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "Salva",
       "discard": "Annulla modifiche",
-      "restart": "Riavvia server"
+      "restart": "Riavvia server",
+      "restartCluster": "Riavvia cluster"
     },
     "restartModal": {
       "title": "Riavviare il server?",
-      "body": "Il server verrà chiuso e il container si riavvierà con le impostazioni salvate. Le connessioni attive verranno interrotte brevemente."
+      "body": "Il server verrà chiuso e il container si riavvierà con le impostazioni salvate. Le connessioni attive verranno interrotte brevemente.",
+      "titleCluster": "Riavviare tutti i nodi?",
+      "bodyCluster": "Tutti i nodi verranno riavviati uno alla volta, ciascuno dopo che il precedente risulta di nuovo integro. Il cluster continua a gestire le richieste per tutto il tempo."
     },
     "toast": {
       "saved": "Impostazioni salvate.",
       "saveFailed": "Impossibile salvare le impostazioni.",
       "restartFailed": "Impossibile riavviare il server.",
       "reconnected": "Il server è di nuovo online.",
-      "reconnectTimeout": "Il server non è tornato disponibile in tempo. Verifica il suo stato."
+      "reconnectTimeout": "Il server non è tornato disponibile in tempo. Verifica il suo stato.",
+      "rollingRestart": "Riavvio progressivo richiesto. I nodi si riavviano uno alla volta; segui l'avanzamento nell'elenco dei nodi."
+    },
+    "environmentOverrides": "{count} impostazioni provengono da variabili d'ambiente o sono impostate all'avvio; i loro valori nel file delle impostazioni non sono stati modificati.",
+    "cluster": {
+      "title": "Nodi",
+      "descriptionCluster": "Tutti i nodi del cluster {name}. Le impostazioni vengono salvate per tutti i nodi. Quelle che richiedono un riavvio si applicano dopo un riavvio del cluster, che riavvia i nodi uno alla volta.",
+      "descriptionSingle": "Questo server funziona come nodo singolo.",
+      "registryUnavailable": "Il registro dei nodi (Redis) non è raggiungibile; viene mostrato solo il nodo che ha risposto.",
+      "secondsAgo": "{seconds} s fa",
+      "yes": "Sì",
+      "no": "No",
+      "columns": {
+        "node": "Nodo",
+        "state": "Stato",
+        "version": "Versione",
+        "started": "Avviato",
+        "heartbeat": "Ultimo heartbeat",
+        "settingsVersion": "Versione impostazioni",
+        "restartPending": "Riavvio in sospeso"
+      }
     }
   },
   "ai": {

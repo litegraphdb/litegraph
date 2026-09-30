@@ -210,6 +210,11 @@ namespace LiteGraph.Server.Classes
         public static string ClutchAccessKeyEnvironmentVariable = "LITEGRAPH_CLUTCH_ACCESS_KEY";
 
         /// <summary>
+        /// Redis connection string for cluster node registration and change signalling.
+        /// </summary>
+        public static string RedisConnectionStringEnvironmentVariable = "LITEGRAPH_REDIS_CONNECTION_STRING";
+
+        /// <summary>
         /// Trusted proxy addresses or CIDR ranges, comma separated.
         /// </summary>
         public static string TrustedProxiesEnvironmentVariable = "LITEGRAPH_TRUSTED_PROXIES";

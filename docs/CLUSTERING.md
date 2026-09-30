@@ -25,15 +25,48 @@ Some work genuinely has to happen on one node at a time: migrating the schema at
 | `schema` | a node initializes or migrates the schema | nodes starting together migrate one at a time; the rest wait, then find the work done |
 | `vectorindex/cosine/<dimensions>` | a pgvector index is created, rebuilt, or dropped | two nodes never build the same index at once |
 | `job/chat-retention`, `job/request-history-purge` | an hourly retention pass runs | exactly one node runs each pass; the others skip it |
+| `settings` | a node writes the shared settings file | two saves never interleave; the second waits up to 10 seconds, then fails with 409 |
+| `restart` | a node takes its turn in a rolling restart | nodes restart one at a time |
 
 Keys are prefixed with `litegraph/<ClusterName>/`, so several clusters can share one Clutch deployment. Each node holds one WebSocket lock connection to Clutch through `Clutch.Sdk`, and every lock it takes rides on that connection. Leases (`Cluster.Clutch.LeaseMs`, 30 seconds by default) are renewed in the background over the connection. If the connection drops, Clutch releases every lock it held, and the node treats those locks as lost, stops the work they were protecting, and reconnects on its own. If a node dies holding a lock, Clutch releases it when the connection drops or the lease expires.
 
 Just as important is what takes no lock: reads, writes, searches, graph transactions, and chat. None of them depend on Clutch being reachable.
 
+## The node registry and change signals, through Redis
+
+Nodes do not need to know about each other to serve requests, but an administrator needs to see the cluster, and a settings change or a restart request has to reach every node. Redis carries both. Nothing in Redis has to survive a Redis restart, so it runs without persistence and needs no backup.
+
+Every `Cluster.Redis.PollIntervalMs` (2 seconds by default) each node:
+
+1. writes its entry to the hash `litegraph:<ClusterName>:nodes`: node identifier, host name, version, start time, heartbeat time, state, and the same checks as its readiness endpoint;
+2. reads `settings:version` and `settings:changed-utc`, which the node that saves settings increments and stamps;
+3. reads `restart:version` and `restart:requested-utc`, which the node that receives a restart request increments and stamps.
+
+When `settings:changed-utc` changes, every node re-reads the settings file, applies the settings that can change live, and marks itself as needing a restart if anything else changed. When `restart:requested-utc` is later than the node's own start time, the node takes its turn in a rolling restart. A node that has restarted since the request started after it, so it never restarts twice, and a Redis restart can only lose a signal, never repeat one.
+
+`GET /v1.0/cluster/nodes` returns the registry (see [REST_API.md](REST_API.md#cluster-v100)). A node whose heartbeat is older than `Cluster.Redis.NodeTimeoutMs` (15 seconds by default) is reported `Offline`; a node that shut down cleanly is reported `Stopped`.
+
+## Settings and rolling restarts
+
+All nodes share one settings file. `GET /v1.0/settings` returns that file, so every node returns the same answer. `PUT /v1.0/settings` writes it under the Clutch `settings` lock and signals the change through Redis:
+
+- `RequestTimeoutSeconds` applies on every node within a couple of seconds.
+- Everything else applies when each node restarts. The node list shows which nodes still need to.
+- Values supplied by environment variables (node identity, secrets, the database connection, and so on) are never written to the shared file: the save keeps the file's own value for each of them and lists them in the response's `EnvironmentOverrides`.
+
+`POST /v1.0/cluster/restart` (or `POST /v1.0/settings/restart`, which the dashboard's restart button uses) requests a rolling restart:
+
+1. Every node sees the request within `PollIntervalMs` and asks Clutch for the `restart` lock.
+2. The node that gets it waits until no other node is `Restarting` or `Draining`, reports itself `Restarting`, reports not ready for `Cluster.RestartDrainMs` (5 seconds by default) so load balancers stop sending it requests, then shuts down cleanly and releases the lock.
+3. The container restart policy starts it again. The next node, already holding the lock, waits until the restarted node reports healthy, then takes its turn.
+
+Only one node is ever out of service. If a restarting node does not come back within `Cluster.RestartPeerTimeoutMs` (3 minutes by default), the next node goes ahead anyway. A node outside a container, with nothing to restart it, stays stopped.
+
 ## What a cluster needs
 
 - **PostgreSQL with pgvector**, reachable from every node. SQLite cannot be shared between processes, so the server refuses to start in cluster mode on SQLite. Every node points at the same database and schema.
 - **Clutch**, reachable from every node. The Docker deployment runs two Clutch nodes behind a small Nginx so Clutch itself has no single point of failure. Clutch keeps its data in its own database on the same PostgreSQL server, owned by its own role.
+- **Redis**, reachable from every node (`Cluster.Redis.ConnectionString` or `LITEGRAPH_REDIS_CONNECTION_STRING`). One instance without persistence is enough: while it is down, nodes keep serving and only the node list, settings signals, and restart requests wait.
 - **One settings file for all nodes**, with node identity (`LITEGRAPH_NODE_ID`) supplied per node through the environment.
 - **The same encryption key and IV on every node.** Security tokens are encrypted by one node and decrypted by whichever node receives the next request.
 - **A load balancer.** No session affinity is needed. The Docker deployment uses Nginx with least-connections balancing, and Switchboard as an alternative.
@@ -45,7 +78,7 @@ Turn it on with `Cluster.Enable = true` (or `LITEGRAPH_CLUSTER_ENABLE=true`) plu
 Each node answers:
 
 - `GET /v1.0/health/live`: 200 while the process is running.
-- `GET /v1.0/health/ready`: 200 when the database answers and the node is not shutting down; 503 otherwise, with a body listing each check. A cluster node whose Clutch connection is down still answers 200, with `Status` `Degraded` and `Checks.Clutch` false, because it can still serve reads, writes, and searches; taking every node out of rotation would turn a Clutch outage into a full outage.
+- `GET /v1.0/health/ready`: 200 when the database answers and the node is not shutting down; 503 otherwise, with a body listing each check. A cluster node that cannot reach Clutch or Redis still answers 200, with `Status` `Degraded` and `Checks.Clutch` or `Checks.Redis` false, because it can still serve reads, writes, and searches; taking every node out of rotation would turn a coordination outage into a full outage.
 
 Point the load balancer's health checks at the readiness endpoint. Every response also carries `x-litegraph-node`, which is the fastest way to see which node answered a request.
 
@@ -54,6 +87,7 @@ The Nginx configuration in `docker/multi-node/nginx/litegraph.conf` shows the se
 - Response buffering off and a long read timeout, so streamed chat responses flow through.
 - A generous request body limit, for imports.
 - Retries on connection errors and gateway errors. Nginx does not retry POST requests unless told to, and it should not be told to.
+- Node names re-resolved through Docker's DNS (`resolver 127.0.0.11` and `resolve` on each upstream server). Nginx otherwise keeps the addresses it resolved at startup, and a node recreated by `docker compose up` comes back at a new address.
 
 Open-source Nginx detects failed nodes passively, when requests to them fail. Switchboard, the alternative load balancer, probes each node's readiness endpoint actively. Its configuration is `docker/multi-node/switchboard/sb.json`: one route per HTTP method matching every path, and power-of-two-choices balancing.
 
@@ -64,17 +98,25 @@ Open-source Nginx detects failed nodes passively, when requests to them fail. Sw
 | One LiteGraph node | The load balancer stops sending it traffic. Requests in flight on that node fail, and the client or load balancer retries idempotent ones. Nothing is lost, because the node held no data. | Restart the node. It is ready when its readiness check passes. |
 | One Clutch node | Lock connections on that node close, so any lock held through it is released and the work it protected stops (a vector index build fails and can be retried; a retention job runs next cycle). Nodes reconnect through the other Clutch node within seconds. Reads, writes, and searches are unaffected. | Restart it. |
 | All of Clutch | Reads, writes, searches, and chat continue. Starting a node, building a vector index, and the retention jobs wait or skip until Clutch returns. Readiness stays 200 but reports `Degraded` with `Checks.Clutch` false. | Restore Clutch. Nodes reconnect on their own. |
+| Redis | Reads, writes, searches, and chat continue. Readiness stays 200 but reports `Degraded` with `Checks.Redis` false. The node list shows only the answering node, settings changes reach other nodes when they restart, and restart requests are refused with 503. | Restore Redis. Nodes reconnect on their own and re-register within `PollIntervalMs`. |
 | PostgreSQL | Everything stops. Readiness reports the database unavailable. | Restore PostgreSQL. For high availability, run PostgreSQL itself highly available (a managed service, or a replication manager such as Patroni) and give LiteGraph its single connection string. |
 
-The `docker/multi-node/failover.ps1` script checks the first two rows under load: it keeps requests flowing while it stops and restarts a LiteGraph node and then each Clutch node in turn (so every node's lock connection is cut at least once), checks that an index build succeeds and that every node reconnects while a Clutch node is down, and fails if more than 2% of requests fail.
+The `docker/multi-node/failover.ps1` script checks this table under load. It keeps requests flowing while it:
+
+- stops and restarts a LiteGraph node;
+- stops each Clutch node in turn, so every node's lock connection is cut at least once, and checks that an index build succeeds and every node reconnects;
+- stops Redis and checks that every node stays ready, restart requests are refused, and every node reconnects;
+- requests a rolling restart and checks that every node restarts with never more than one out of service.
+
+It fails if more than 2% of requests fail in any phase.
 
 ## Operating a cluster
 
 **Adding capacity.** Start another node with the same settings file, database, and secrets and a new `LITEGRAPH_NODE_ID`, then add it to the load balancer. There is nothing to copy and no data to rebalance.
 
-**Changing settings.** Every node reads the shared settings file at startup. After changing a restart-required setting, restart the nodes one at a time, each only after the previous one reports ready, and the cluster keeps serving throughout. The settings page's restart button restarts only the node that happened to receive the request.
+**Changing settings.** Save through the dashboard's settings page or `PUT /v1.0/settings`, then request a rolling restart with the page's Restart Cluster button or `POST /v1.0/cluster/restart`. The page's node list, which refreshes every few seconds, shows each node restart in turn. Editing the settings file by hand works too, but the nodes only notice it when they restart.
 
-**Upgrading.** Stop and replace nodes one at a time the same way. A release that changes the schema migrates it under the Clutch `schema` lock when the first upgraded node starts. That release's notes say whether older nodes can keep running alongside it.
+**Upgrading.** A rolling restart restarts the same image. To move to a new image, replace nodes one at a time (`docker compose up -d --no-deps litegraph-1`, wait until it is healthy, then the next). A release that changes the schema migrates it under the Clutch `schema` lock when the first upgraded node starts. That release's notes say whether older nodes can keep running alongside it.
 
 **Backups.** Back up PostgreSQL with its own tools (`pg_dump`, or snapshots of the data volume). The LiteGraph backup API applies only to SQLite. There is no per-node state to back up.
 
@@ -86,4 +128,4 @@ The `docker/multi-node/failover.ps1` script checks the first two rows under load
 - **Very high dimensions.** pgvector can index up to 2,000 dimensions with `vector` and up to 4,000 with `halfvec`. LiteGraph picks the right one. Above 4,000 dimensions, searches are exact, done in SQL.
 - **Chat concurrency and endpoint health are per node.** `Chat.MaxConcurrentChats` limits each node, so a three-node cluster allows three times as many concurrent chats. Each node probes chat endpoint health on its own and re-reads the endpoint list every `Cluster.EndpointResyncIntervalMs`, so an endpoint added through one node is monitored by the others within that interval.
 - **One MCP server.** The MCP server keeps MCP sessions in memory, so the Docker deployment runs one instance, pointed at the load balancer. It holds no LiteGraph data, so this limits capacity, not correctness.
-- **Settings edits through the API reach one node.** The settings API writes the shared file, but only the receiving node applies live settings immediately; the other nodes pick changes up when they restart.
+- **The node registry is advisory.** It shows what each node last reported. Correctness never depends on it: a node missing from the list, or a lost signal, costs visibility or a repeated restart request, never data.

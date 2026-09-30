@@ -50,6 +50,10 @@ namespace LiteGraph.Server
         private static RestServiceHandler _RestService = null;
         private static ILockProvider _LockProvider = null;
         private static ClusterContext _Cluster = null;
+        private static NodeHealthService _NodeHealth = null;
+        private static SettingsFileService _SettingsFile = null;
+        private static ClusterRegistry _Registry = null;
+        private static RollingRestartCoordinator _RollingRestart = null;
 
         private static CancellationTokenSource _TokenSource = new CancellationTokenSource();
         private static CancellationToken _Token;
@@ -187,6 +191,12 @@ namespace LiteGraph.Server
             {
                 _RestService?.Dispose();
                 _RestService = null;
+            });
+
+            TryCleanup("cluster registry", () =>
+            {
+                _Registry?.Dispose();
+                _Registry = null;
             });
 
             TryCleanup("chat service", () =>
@@ -680,6 +690,25 @@ namespace LiteGraph.Server
             _ServiceHandler.Observability = _ObservabilityService;
             _ServiceHandler.Authorization = _AuthenticationService.Authorization;
 
+            _NodeHealth = new NodeHealthService(_LiteGraph, _Cluster, _Logging);
+            _SettingsFile = new SettingsFileService(Constants.SettingsFile, _Serializer, _Settings);
+            if (_SettingsFile.OverriddenPaths.Count > 0)
+                _Logging.Info(_Header + "settings not taken from the settings file (kept out of settings saves): " + String.Join(", ", _SettingsFile.OverriddenPaths));
+
+            _ServiceHandler.NodeHealth = _NodeHealth;
+            _ServiceHandler.SettingsFile = _SettingsFile;
+            _ServiceHandler.Cluster = _Cluster;
+
+            if (_Settings.Cluster.Enable)
+            {
+                _Registry = new ClusterRegistry(_Settings.Cluster, _Cluster, _NodeHealth, _Serializer, _Logging);
+                _NodeHealth.Registry = _Registry;
+                _ServiceHandler.Registry = _Registry;
+                _RollingRestart = new RollingRestartCoordinator(_Settings.Cluster, _Cluster, _Registry, _Logging, RequestShutdown);
+                _Registry.SettingsChanged += OnClusterSettingsChanged;
+                _Registry.RestartRequested += OnClusterRestartRequested;
+            }
+
             _RestService = new RestServiceHandler(
                 _Settings,
                 _Logging,
@@ -692,6 +721,9 @@ namespace LiteGraph.Server
                 _ChatService,
                 _ChatHealthService,
                 _Cluster);
+
+            // Register in the node registry last, so the first heartbeat other nodes see reports a node that is ready.
+            if (_Registry != null) await _Registry.StartAsync(_Token).ConfigureAwait(false);
 
             _ = Task.Run(async () =>
             {
@@ -707,6 +739,45 @@ namespace LiteGraph.Server
             });
 
             #endregion
+        }
+
+        private static void OnClusterSettingsChanged(object sender, long version)
+        {
+            try
+            {
+                Settings file = _SettingsFile.Read();
+                if (!_SettingsFile.IsOverridden("RequestTimeoutSeconds") && _Settings.RequestTimeoutSeconds != file.RequestTimeoutSeconds)
+                {
+                    _Settings.RequestTimeoutSeconds = file.RequestTimeoutSeconds;
+                    _Logging.Info(_Header + "applied RequestTimeoutSeconds " + file.RequestTimeoutSeconds + " from settings version " + version);
+                }
+
+                _Registry.SettingsRestartPending = _SettingsFile.RestartNeeded();
+                if (_Registry.SettingsRestartPending)
+                    _Logging.Info(_Header + "settings version " + version + " changes settings that apply after a restart");
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "unable to apply settings version " + version + ": " + e.Message);
+            }
+        }
+
+        private static void OnClusterRestartRequested(object sender, long version)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _RollingRestart.RunAsync(version, _Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (_Token.IsCancellationRequested)
+                {
+                }
+                catch (Exception e)
+                {
+                    LogError(_Header + "rolling restart failed: " + e.Message);
+                }
+            });
         }
 
         private static void LiteGraphLogger(SeverityEnum sev, string msg)
@@ -769,6 +840,9 @@ namespace LiteGraph.Server
 
             string clutchKey = Environment.GetEnvironmentVariable(Constants.ClutchAccessKeyEnvironmentVariable);
             if (!String.IsNullOrEmpty(clutchKey)) _Settings.Cluster.Clutch.AccessKey = clutchKey;
+
+            string redisConnection = Environment.GetEnvironmentVariable(Constants.RedisConnectionStringEnvironmentVariable);
+            if (!String.IsNullOrEmpty(redisConnection)) _Settings.Cluster.Redis.ConnectionString = redisConnection;
 
             string trustedProxies = Environment.GetEnvironmentVariable(Constants.TrustedProxiesEnvironmentVariable);
             if (!String.IsNullOrEmpty(trustedProxies))

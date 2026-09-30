@@ -839,13 +839,14 @@ The health routes (v10.0) require no authentication and are not recorded in requ
     "Checks": {
         "Database": true,
         "Clutch": true,
+        "Redis": true,
         "Draining": false
     },
     "Utc": "2026-09-29T19:31:02.004113Z"
 }
 ```
 
-`Checks.Database` is true when the database answered a query. `Checks.Clutch` is null on a single node and, on a cluster node, true when the node has an open lock connection to Clutch. `Checks.Draining` is true once the node has been asked to stop. `Status` is `Unavailable` and the status code 503 when the database check fails or the node is draining. When only Clutch is unreachable, `Status` is `Degraded` and the status code stays 200: the node still serves reads, writes, and searches, and only coordinated work (vector index builds, retention jobs, starting new nodes) waits for Clutch. The liveness body has the same shape without `Checks`.
+`Checks.Database` is true when the database answered a query. `Checks.Clutch` and `Checks.Redis` are null on a single node and, on a cluster node, true when the node has an open lock connection to Clutch and can reach Redis. `Checks.Draining` is true once the node has been asked to stop or is taking its turn in a rolling restart. `Status` is `Unavailable` and the status code 503 when the database check fails or the node is draining. When only Clutch or Redis is unreachable, `Status` is `Degraded` and the status code stays 200: the node still serves reads, writes, and searches, and only coordinated work (vector index builds, retention jobs, starting new nodes, the node registry, settings signals, and restarts) waits. The liveness body has the same shape without `Checks`.
 
 Every response carries an `x-litegraph-node` header naming the node that answered (the configured `NodeId`, or the host name), alongside the existing `x-hostname` header.
 
@@ -869,18 +870,78 @@ Introduced in v8.0. Settings APIs require system-administrator authentication. S
 | Update settings    | PUT    | /v1.0/settings            |
 | Restart server     | POST   | /v1.0/settings/restart    |
 
-`GET /v1.0/settings` returns the effective server settings (secrets redacted). `PUT /v1.0/settings` persists the supplied settings to `litegraph.json`, hot-reloads fields that can apply live, and returns a `SettingsUpdateResult`:
+`GET /v1.0/settings` returns the settings file (v10.0; earlier releases returned the running settings). Every node sharing the file returns the same answer, and values supplied by environment variables are not echoed back.
+
+`PUT /v1.0/settings` writes the supplied settings to `litegraph.json`, applies the fields that can change live, and returns a `SettingsUpdateResult`. Values that came from environment variables or were derived at startup keep their file values and are listed in `EnvironmentOverrides`, so node identity and secrets supplied through the environment never reach the shared file. In cluster mode the write takes the Clutch `settings` lock (409 if another save holds it for 10 seconds; 503 if Clutch is unreachable), every node applies live fields within a couple of seconds, and `SettingsVersion` reports the cluster's new settings version:
 
 ```
 {
     "Success": true,
     "AppliedLive": [ "RequestTimeoutSeconds" ],
-    "RestartRequired": [ "Rest.Port" ],
-    "Message": "Settings saved. 1 field applied live; 1 field requires a restart."
+    "RestartRequired": [ "Logging", "Rest", "LiteGraph", "Storage", "Observability", "Encryption", "Caching", "RequestHistory", "AuthorizationAudit", "Cluster" ],
+    "Message": "Settings saved for every node; each applies live settings within seconds. Request a cluster restart to apply the settings marked as restart-required; nodes restart one at a time.",
+    "EnvironmentOverrides": [ "Cluster.NodeId", "Cluster.Clutch.AccessKey", "Cluster.Redis.ConnectionString" ],
+    "SettingsVersion": 4
 }
 ```
 
-`POST /v1.0/settings/restart` flushes pending state and exits the process so the container/orchestrator restarts it with the new configuration. In the checked-in Docker deployment the LiteGraph services run with `restart: unless-stopped`, so this brings the server back automatically.
+`POST /v1.0/settings/restart` is the same as `POST /v1.0/cluster/restart` (below). On a single node it flushes pending state and exits the process so the container or orchestrator restarts it with the new configuration; the checked-in Docker deployments run LiteGraph with `restart: unless-stopped`, so the server comes back automatically. In cluster mode it requests a rolling restart of every node.
+
+## Cluster (v10.0)
+
+Cluster APIs require system-administrator authentication. They also answer on a single node, where the answering server is the only node.
+
+| API                      | Method | URL                  |
+|--------------------------|--------|----------------------|
+| List cluster nodes       | GET    | /v1.0/cluster/nodes  |
+| Request cluster restart  | POST   | /v1.0/cluster/restart |
+
+`GET /v1.0/cluster/nodes` returns the node registry kept in Redis, plus the settings and restart counters:
+
+```
+{
+    "ClusterEnabled": true,
+    "ClusterName": "litegraph",
+    "AnsweredBy": "litegraph-2",
+    "RegistryAvailable": true,
+    "SettingsVersion": 4,
+    "SettingsUpdatedUtc": "2026-09-30T04:06:03.113522Z",
+    "RestartVersion": 1,
+    "RestartRequestedUtc": "2026-09-30T04:12:40.801224Z",
+    "Nodes": [
+        {
+            "NodeId": "litegraph-1",
+            "Hostname": "835bde550233",
+            "Version": "10.0.0",
+            "StartedUtc": "2026-09-30T04:13:21.418907Z",
+            "LastHeartbeatUtc": "2026-09-30T04:20:11.990514Z",
+            "HeartbeatAgeMs": 842,
+            "State": "Healthy",
+            "Checks": { "Database": true, "Clutch": true, "Redis": true, "Draining": false },
+            "SettingsVersion": 4,
+            "RestartPending": false,
+            "RestartVersion": 1
+        }
+    ],
+    "Utc": "2026-09-30T04:20:12.832519Z"
+}
+```
+
+`State` is `Healthy`, `Degraded` (Clutch or Redis unreachable), `Unavailable` (database unreachable), `Draining` (shutting down), `Restarting` (taking its turn in a rolling restart), `Stopped` (shut down cleanly), or `Offline` (no heartbeat within `Cluster.Redis.NodeTimeoutMs`). `RestartPending` is true when the settings file has changed since the node started in a way that needs a restart, or when a requested restart has not reached the node yet. A node's `SettingsVersion` lags the cluster's while it has not yet noticed a change. When Redis is unreachable, `RegistryAvailable` is false and `Nodes` lists only the answering node.
+
+`POST /v1.0/cluster/restart` requests a rolling restart: every node restarts, one at a time, each after the previous one reports healthy (see [CLUSTERING.md](CLUSTERING.md#settings-and-rolling-restarts)). It returns immediately:
+
+```
+{
+    "Restarting": true,
+    "Rolling": true,
+    "RestartVersion": 2,
+    "Message": "Every node will restart, one at a time; each waits for the previous one to report healthy. Watch GET /v1.0/cluster/nodes for progress.",
+    "RequestedUtc": "2026-09-30T04:25:00.000000Z"
+}
+```
+
+It returns 503 (`Unavailable`) when Redis is unreachable. On a single node it restarts the server and returns `Rolling` false.
 
 ## Backup APIs
 

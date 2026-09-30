@@ -112,11 +112,46 @@ describe('LiteGraph SDK', () => {
     it('requests a server restart', async () => {
       server.use(
         http.post(`${mockEndpoint}v1.0/settings/restart`, () =>
-          HttpResponse.json({ restarting: true })
+          HttpResponse.json({ Restarting: true, Rolling: false })
         )
       );
       const result = await api.restartServer();
       expect(result).toBeDefined();
+      expect(result.Restarting).toBe(true);
+    });
+
+    it('reads the cluster nodes', async () => {
+      server.use(
+        http.get(`${mockEndpoint}v1.0/cluster/nodes`, () =>
+          HttpResponse.json({
+            ClusterEnabled: true,
+            ClusterName: 'litegraph',
+            AnsweredBy: 'litegraph-1',
+            RegistryAvailable: true,
+            SettingsVersion: 2,
+            RestartVersion: 1,
+            Nodes: [
+              { NodeId: 'litegraph-1', State: 'Healthy', RestartPending: false },
+              { NodeId: 'litegraph-2', State: 'Restarting', RestartPending: true },
+            ],
+          })
+        )
+      );
+      const status = await api.readClusterNodes();
+      expect(status.ClusterEnabled).toBe(true);
+      expect(status.Nodes).toHaveLength(2);
+      expect(status.Nodes[1].State).toBe('Restarting');
+    });
+
+    it('requests a rolling cluster restart', async () => {
+      server.use(
+        http.post(`${mockEndpoint}v1.0/cluster/restart`, () =>
+          HttpResponse.json({ Restarting: true, Rolling: true, RestartVersion: 3 })
+        )
+      );
+      const result = await api.restartCluster();
+      expect(result.Rolling).toBe(true);
+      expect(result.RestartVersion).toBe(3);
     });
   });
 });

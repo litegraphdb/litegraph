@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "儲存",
       "discard": "捨棄更改",
-      "restart": "重新啟動伺服器"
+      "restart": "重新啟動伺服器",
+      "restartCluster": "重新啟動叢集"
     },
     "restartModal": {
       "title": "重新啟動伺服器？",
-      "body": "伺服器會結束，容器會用已儲存嘅設定重新啟動。使用中嘅連接會短暫中斷。"
+      "body": "伺服器會結束，容器會用已儲存嘅設定重新啟動。使用中嘅連接會短暫中斷。",
+      "titleCluster": "重新啟動所有節點？",
+      "bodyCluster": "所有節點會逐一重新啟動，每個節點都會等上一個節點回復正常先至重新啟動。期間叢集會繼續處理請求。"
     },
     "toast": {
       "saved": "設定已儲存。",
       "saveFailed": "儲存唔到設定。",
       "restartFailed": "重新啟動唔到伺服器。",
       "reconnected": "伺服器已經重新上線。",
-      "reconnectTimeout": "伺服器冇喺時限內恢復。請檢查佢嘅狀態。"
+      "reconnectTimeout": "伺服器冇喺時限內恢復。請檢查佢嘅狀態。",
+      "rollingRestart": "已要求滾動重新啟動。節點會逐一重新啟動，可以喺節點列表睇進度。"
+    },
+    "environmentOverrides": "有 {count} 項設定嚟自環境變數或者喺啟動時設定，設定檔入面嘅值冇改動。",
+    "cluster": {
+      "title": "節點",
+      "descriptionCluster": "叢集 {name} 入面嘅所有節點。設定會儲存到所有節點。需要重新啟動嘅設定會喺叢集重新啟動之後生效，叢集重新啟動會逐一重新啟動各節點。",
+      "descriptionSingle": "呢部伺服器以單一節點運行。",
+      "registryUnavailable": "連唔到節點登記 (Redis)，只顯示回應咗嘅節點。",
+      "secondsAgo": "{seconds} 秒前",
+      "yes": "係",
+      "no": "唔係",
+      "columns": {
+        "node": "節點",
+        "state": "狀態",
+        "version": "版本",
+        "started": "啟動時間",
+        "heartbeat": "最近心跳",
+        "settingsVersion": "設定版本",
+        "restartPending": "等待重新啟動"
+      }
     }
   },
   "ai": {

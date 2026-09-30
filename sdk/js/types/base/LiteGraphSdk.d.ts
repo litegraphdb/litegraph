@@ -236,6 +236,43 @@ export default class LiteGraphSdk extends SdkBase {
      */
     executeQuery(graphGuid: string, request: any | string, parameters?: any, options?: any, cancellationToken?: AbortController): Promise<GraphQueryResult>;
     /**
+     * Run a graph algorithm over a single graph.
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} request - GraphAlgorithmRequest object (AlgorithmType plus optional parameters and WriteBack).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} - GraphAlgorithmResult object.
+     */
+    runAlgorithm(graphGuid: string, request: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Export a graph as a portable projection for external computation (for example rustworkx or NetworkX).
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} [options] - Export options.
+     * @param {string} [options.format='NodeLinkJson'] - NodeLinkJson, EdgeList, or Graphml.
+     * @param {string} [options.attributes='Meta'] - None, Meta, or Full.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<string>} - The exported projection as raw text.
+     */
+    exportGraphProjection(graphGuid: string, options?: {
+        format?: string;
+        attributes?: string;
+    }, cancellationToken?: AbortController): Promise<string>;
+    /**
+     * Import externally computed per-node values back onto graph nodes.
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} request - GraphAlgorithmImportRequest object with a Values map of node GUID to property/value pairs.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} - Import result ({ Success, NodesUpdated }).
+     */
+    importAlgorithmResults(graphGuid: string, request: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Generate node embeddings for a graph using the tenant's active embedding endpoint.
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} [request] - GenerateEmbeddingsRequest object (optional MaxNodes, SkipNodesWithVectors).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} - Embedding generation result.
+     */
+    generateEmbeddings(graphGuid: string, request?: any, cancellationToken?: AbortController): Promise<any>;
+    /**
      * List authorization roles for the configured tenant as a paginated enumeration result.
      * @param {Object} [options] - Role list options.
      * @param {number} [options.page=0] - Page index.
@@ -1140,7 +1177,8 @@ export default class LiteGraphSdk extends SdkBase {
      */
     flushDatabase(cancellationToken?: AbortController): Promise<void>;
     /**
-     * Read the server settings. Requires system administrator privileges.
+     * Read the server settings file. Every node sharing the file returns the same settings.
+     * Requires system administrator privileges.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
      * @returns {Promise<Object>} The server settings object.
      */
@@ -1149,16 +1187,33 @@ export default class LiteGraphSdk extends SdkBase {
      * Update the server settings. Requires system administrator privileges.
      * @param {Object} settings - The full settings object.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
-     * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message }).
+     * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message, EnvironmentOverrides, SettingsVersion }).
      */
     updateSettings(settings: any, cancellationToken?: AbortController): Promise<any>;
     /**
-     * Request a server restart. The server exits so the container restart policy applies the new settings.
-     * Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+     * Request a restart so saved settings take effect. In cluster mode every node restarts, one at a time, each
+     * after the previous one reports healthy; on a single node the server exits so the container restart policy
+     * restarts it. Requires system administrator privileges.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
-     * @returns {Promise<void>}
+     * @returns {Promise<Object|undefined>} Restart result ({ Restarting, Rolling, RestartVersion, Message, RequestedUtc }),
+     *   or undefined if the connection dropped as a single server exited.
      */
-    restartServer(cancellationToken?: AbortController): Promise<void>;
+    restartServer(cancellationToken?: AbortController): Promise<any | undefined>;
+    /**
+     * List the cluster nodes with their state and health, plus the settings and restart counters. On a single node
+     * the answering server is the only node. Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Cluster status ({ ClusterEnabled, ClusterName, AnsweredBy, RegistryAvailable,
+     *   SettingsVersion, SettingsUpdatedUtc, RestartVersion, RestartRequestedUtc, Nodes, Utc }).
+     */
+    readClusterNodes(cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+     * Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server exited.
+     */
+    restartCluster(cancellationToken?: AbortController): Promise<any | undefined>;
     /**
      * Enable vector indexing on a graph.
      * @param {string} tenantGuid - Tenant GUID.

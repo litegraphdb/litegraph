@@ -70,9 +70,10 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 v10.0 lets LiteGraph run as several identical nodes behind a load balancer. It is a major release: PostgreSQL deployments now require the pgvector extension, and stored vectors are converted to pgvector on first start, with no way back to 9.x afterward. Read the [upgrade guide](docs/UPGRADE.md) and back up before upgrading.
 
 - Nodes keep no state of their own. On PostgreSQL, vectors live in a pgvector column and vector search runs in the database against a shared HNSW index, so every node returns the same results. Filtered and unindexed searches also run in SQL now instead of loading every candidate vector into the server.
-- Cluster mode (`LITEGRAPH_CLUSTER_ENABLE=true`) turns off the object and authorization caches, so a delete or a revoked permission applies on every node immediately, and coordinates schema migrations, background jobs, and vector index builds through [Clutch](https://github.com/jchristn/clutch) distributed locks. Reads, writes, and searches take no distributed lock.
+- Cluster mode (`LITEGRAPH_CLUSTER_ENABLE=true`) turns off the object and authorization caches, so a delete or a revoked permission applies on every node immediately, and coordinates schema migrations, background jobs, vector index builds, settings writes, and rolling restarts through [Clutch](https://github.com/jchristn/clutch) distributed locks. Reads, writes, and searches take no distributed lock.
+- Cluster nodes register in Redis every two seconds. `GET /v1.0/cluster/nodes` and the dashboard's Settings page list every node with its state, a settings change reaches every node within seconds, and `POST /v1.0/cluster/restart` restarts the nodes one at a time while the cluster keeps serving.
 - `GET /v1.0/health/live` and `GET /v1.0/health/ready`, and an `x-litegraph-node` header on every response.
-- Three Docker deployments under [`docker/`](docker/): single node on SQLite, single node on PostgreSQL with pgvector, and a three-node cluster with Nginx (Switchboard optional), two Clutch nodes, smoke tests, and a failover test.
+- Three Docker deployments under [`docker/`](docker/): single node on SQLite, single node on PostgreSQL with pgvector, and a three-node cluster with Nginx (Switchboard optional), two Clutch nodes, Redis, smoke tests, and a failover test.
 - Fixes: server security tokens now expire; a SQLite HnswLite index is rebuilt from the database after a restart instead of returning no results; Euclidean and dot-product searches on an indexed PostgreSQL graph return real Euclidean and dot-product values; turning caching off no longer throws.
 
 See [Clustering](docs/CLUSTERING.md) for how a cluster works and how to run one.
@@ -161,7 +162,7 @@ Three deployments live under [`docker/`](docker/); pick one, `cd` into it, and s
 | --- | --- |
 | [`docker/single-node-sqlite/`](docker/single-node-sqlite/) | One LiteGraph node on SQLite with in-process HnswLite vector search |
 | [`docker/single-node-postgresql/`](docker/single-node-postgresql/) | One LiteGraph node on PostgreSQL 17 with pgvector |
-| [`docker/multi-node/`](docker/multi-node/) | Three LiteGraph nodes behind Nginx on one PostgreSQL database, with two Clutch lock nodes; Switchboard is an optional profile |
+| [`docker/multi-node/`](docker/multi-node/) | Three LiteGraph nodes behind Nginx on one PostgreSQL database, with two Clutch lock nodes and Redis for the node registry; Switchboard is an optional profile |
 
 ```bash
 cd docker/single-node-postgresql
@@ -174,7 +175,7 @@ Then validate it (Windows `smoke.bat`, elsewhere `pwsh ./smoke.ps1`):
 smoke.bat
 ```
 
-For the cluster, also run `failover.bat` in `docker/multi-node`: it keeps traffic flowing while it stops and restarts a LiteGraph node and a Clutch node.
+For the cluster, also run `failover.bat` in `docker/multi-node`: it keeps traffic flowing while it stops and restarts a LiteGraph node, each Clutch node, and Redis, then runs a rolling restart of every node.
 
 Default endpoints, identical in every deployment:
 

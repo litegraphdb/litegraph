@@ -17,6 +17,7 @@ export enum SliceTags {
   BACKUP = 'backup',
   AUTHORIZATION = 'authorization',
   SETTINGS = 'settings',
+  CLUSTER = 'cluster',
   RESET = 'reset',
   CHAT_ENDPOINT = 'chatEndpoint',
   CHAT_THREAD = 'chatThread',

@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "Enregistrer",
       "discard": "Abandonner les modifications",
-      "restart": "Redémarrer le serveur"
+      "restart": "Redémarrer le serveur",
+      "restartCluster": "Redémarrer le cluster"
     },
     "restartModal": {
       "title": "Redémarrer le serveur ?",
-      "body": "Le serveur va s'arrêter et le conteneur redémarrera avec les paramètres enregistrés. Les connexions actives seront brièvement interrompues."
+      "body": "Le serveur va s'arrêter et le conteneur redémarrera avec les paramètres enregistrés. Les connexions actives seront brièvement interrompues.",
+      "titleCluster": "Redémarrer tous les nœuds ?",
+      "bodyCluster": "Tous les nœuds redémarreront l'un après l'autre, chacun une fois que le précédent est de nouveau opérationnel. Le cluster continue de traiter les requêtes pendant toute l'opération."
     },
     "toast": {
       "saved": "Paramètres enregistrés.",
       "saveFailed": "Impossible d'enregistrer les paramètres.",
       "restartFailed": "Impossible de redémarrer le serveur.",
       "reconnected": "Le serveur est de nouveau en ligne.",
-      "reconnectTimeout": "Le serveur n'est pas revenu à temps. Veuillez vérifier son statut."
+      "reconnectTimeout": "Le serveur n'est pas revenu à temps. Veuillez vérifier son statut.",
+      "rollingRestart": "Redémarrage progressif demandé. Les nœuds redémarrent l'un après l'autre ; suivez la progression dans la liste des nœuds."
+    },
+    "environmentOverrides": "{count} paramètres proviennent de variables d'environnement ou sont définis au démarrage ; leurs valeurs dans le fichier de configuration sont restées inchangées.",
+    "cluster": {
+      "title": "Nœuds",
+      "descriptionCluster": "Tous les nœuds du cluster {name}. Les paramètres sont enregistrés pour tous les nœuds. Ceux qui nécessitent un redémarrage s'appliquent après un redémarrage du cluster, qui redémarre les nœuds l'un après l'autre.",
+      "descriptionSingle": "Ce serveur fonctionne comme un nœud unique.",
+      "registryUnavailable": "Le registre des nœuds (Redis) est injoignable ; seul le nœud qui a répondu est affiché.",
+      "secondsAgo": "il y a {seconds} s",
+      "yes": "Oui",
+      "no": "Non",
+      "columns": {
+        "node": "Nœud",
+        "state": "État",
+        "version": "Version",
+        "started": "Démarré",
+        "heartbeat": "Dernier signal",
+        "settingsVersion": "Version des paramètres",
+        "restartPending": "Redémarrage en attente"
+      }
     }
   },
   "ai": {

@@ -1,8 +1,9 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, Input, InputNumber, Switch, Tag } from 'antd';
-import { AreaChartOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Card, Input, InputNumber, Switch, Table, Tag } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { AreaChartOutlined, ClusterOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import PageContainer from '@/components/base/pageContainer/PageContainer';
 import PageLoading from '@/components/base/loading/PageLoading';
@@ -14,12 +15,13 @@ import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ConfirmationModal from '@/components/confirmation-modal/ConfirmationModal';
 import { globalToastId } from '@/constants/config';
 import {
+  useGetClusterNodesQuery,
   useGetServerSettingsQuery,
   useRestartServerMutation,
   useUpdateServerSettingsMutation,
 } from '@/lib/store/slice/slice';
 import { useValidateConnectivity } from '@/lib/sdk/litegraph.service';
-import { SettingsUpdateResult } from '@/lib/sdk/settings';
+import { ClusterNode, SettingsUpdateResult } from '@/lib/sdk/settings';
 import { SETTINGS_SCHEMA, SettingField, getPath, setPath } from './schema';
 
 const SettingsPage = () => {
@@ -34,6 +36,11 @@ const SettingsPage = () => {
   const [updateSettings, { isLoading: isSaving }] = useUpdateServerSettingsMutation();
   const [restart, { isLoading: isRestarting }] = useRestartServerMutation();
   const { validateConnectivity } = useValidateConnectivity();
+  // Node list refreshes every 5 seconds so a rolling restart can be followed node by node.
+  const { data: cluster, refetch: refetchCluster } = useGetClusterNodesQuery(undefined, {
+    pollingInterval: 5000,
+  });
+  const isCluster = Boolean(cluster?.ClusterEnabled);
 
   const [draft, setDraft] = useState<Record<string, any> | null>(null);
   const [lastResult, setLastResult] = useState<SettingsUpdateResult | null>(null);
@@ -73,6 +80,7 @@ const SettingsPage = () => {
     setLastResult(data);
     toast.success(t('toast.saved'), { id: globalToastId });
     refetch();
+    refetchCluster();
   };
 
   const handleReset = () => {
@@ -81,9 +89,16 @@ const SettingsPage = () => {
 
   const handleConfirmRestart = async () => {
     setIsRestartModalOpen(false);
-    const { error: restartError } = await restart();
+    const { data: restartResult, error: restartError } = await restart();
     if (restartError) {
       toast.error(t('toast.restartFailed'), { id: globalToastId });
+      return;
+    }
+    if (restartResult?.Rolling) {
+      // The node serving this page keeps serving until its own turn, and the load balancer routes around it,
+      // so there is nothing to reconnect to: follow progress in the node list instead.
+      toast.success(t('toast.rollingRestart'), { id: globalToastId });
+      refetchCluster();
       return;
     }
     setIsReconnecting(true);
@@ -106,6 +121,55 @@ const SettingsPage = () => {
     };
     setTimeout(poll, 3000);
   };
+
+  const stateColor = (state: ClusterNode['State']): string => {
+    switch (state) {
+      case 'Healthy':
+        return 'green';
+      case 'Degraded':
+      case 'Draining':
+      case 'Restarting':
+        return 'orange';
+      case 'Stopped':
+        return 'default';
+      default:
+        return 'red';
+    }
+  };
+
+  const nodeColumns: ColumnsType<ClusterNode> = [
+    { title: t('cluster.columns.node'), dataIndex: 'NodeId', key: 'NodeId' },
+    {
+      title: t('cluster.columns.state'),
+      dataIndex: 'State',
+      key: 'State',
+      render: (state: ClusterNode['State']) => <Tag color={stateColor(state)}>{state}</Tag>,
+    },
+    { title: t('cluster.columns.version'), dataIndex: 'Version', key: 'Version' },
+    {
+      title: t('cluster.columns.started'),
+      dataIndex: 'StartedUtc',
+      key: 'StartedUtc',
+      render: (value: string) => (value ? new Date(value).toLocaleString() : ''),
+    },
+    {
+      title: t('cluster.columns.heartbeat'),
+      dataIndex: 'HeartbeatAgeMs',
+      key: 'HeartbeatAgeMs',
+      render: (value?: number | null) =>
+        value === undefined || value === null
+          ? ''
+          : t('cluster.secondsAgo', { seconds: Math.round(value / 1000) }),
+    },
+    { title: t('cluster.columns.settingsVersion'), dataIndex: 'SettingsVersion', key: 'SettingsVersion' },
+    {
+      title: t('cluster.columns.restartPending'),
+      dataIndex: 'RestartPending',
+      key: 'RestartPending',
+      render: (value: boolean) =>
+        value ? <Tag color="orange">{t('cluster.yes')}</Tag> : <Tag>{t('cluster.no')}</Tag>,
+    },
+  ];
 
   const renderSectionStatus = (sectionId: string, serverSection: string, applies: string) => {
     if (lastResult) {
@@ -195,7 +259,7 @@ const SettingsPage = () => {
         loading={isRestarting}
         data-testid="settings-restart"
       >
-        {t('actions.restart')}
+        {isCluster ? t('actions.restartCluster') : t('actions.restart')}
       </LitegraphButton>
     </LitegraphFlex>
   );
@@ -229,7 +293,54 @@ const SettingsPage = () => {
       <LitegraphText fontSize={13} className="ant-color-text-secondary" style={{ display: 'block', marginBottom: 16 }}>
         {t('subtitle')}
       </LitegraphText>
+      {lastResult?.EnvironmentOverrides && lastResult.EnvironmentOverrides.length > 0 && (
+        <LitegraphTooltip title={lastResult.EnvironmentOverrides.join(', ')}>
+          <LitegraphText
+            fontSize={12}
+            style={{ display: 'block', marginBottom: 16, color: 'var(--ant-color-text-tertiary)' }}
+            data-testid="settings-environment-overrides"
+          >
+            {t('environmentOverrides', { count: lastResult.EnvironmentOverrides.length })}
+          </LitegraphText>
+        </LitegraphTooltip>
+      )}
       <LitegraphFlex vertical gap={16}>
+        {cluster && (
+          <Card
+            size="small"
+            title={
+              <LitegraphFlex align="center" gap={8}>
+                <ClusterOutlined />
+                <span>{t('cluster.title')}</span>
+              </LitegraphFlex>
+            }
+            data-testid="settings-cluster-card"
+          >
+            <LitegraphText fontSize={13} style={{ display: 'block', marginBottom: 12 }}>
+              {isCluster
+                ? t('cluster.descriptionCluster', { name: cluster.ClusterName ?? '' })
+                : t('cluster.descriptionSingle')}
+            </LitegraphText>
+            {isCluster && cluster.RegistryAvailable === false && (
+              <LitegraphText
+                fontSize={12}
+                style={{ display: 'block', marginBottom: 12, color: 'var(--ant-color-warning)' }}
+                data-testid="settings-cluster-registry-unavailable"
+              >
+                {t('cluster.registryUnavailable')}
+              </LitegraphText>
+            )}
+            <Table<ClusterNode>
+              size="small"
+              rowKey="NodeId"
+              columns={nodeColumns}
+              dataSource={cluster.Nodes}
+              pagination={false}
+              data-testid="settings-cluster-nodes"
+            />
+          </Card>
+        )}
+
         {SETTINGS_SCHEMA.map((section) => (
           <Card
             key={section.id}
@@ -293,8 +404,8 @@ const SettingsPage = () => {
 
       <ConfirmationModal
         open={isRestartModalOpen}
-        title={t('restartModal.title')}
-        content={t('restartModal.body')}
+        title={isCluster ? t('restartModal.titleCluster') : t('restartModal.title')}
+        content={isCluster ? t('restartModal.bodyCluster') : t('restartModal.body')}
         onCancel={() => setIsRestartModalOpen(false)}
         onConfirm={handleConfirmRestart}
         loading={isRestarting}

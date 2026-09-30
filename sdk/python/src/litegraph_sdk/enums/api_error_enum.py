@@ -17,6 +17,7 @@ class ApiError_Enum(str, Enum):
     not_empty = "NotEmpty"
     not_found = "NotFound"
     too_large = "TooLarge"
+    unavailable = "Unavailable"
 
 
 ERROR_DESCRIPTIONS = {
@@ -32,4 +33,5 @@ ERROR_DESCRIPTIONS = {
     ApiError_Enum.not_empty: "The requested resource is not empty.",
     ApiError_Enum.not_found: "The requested resource was not found.",
     ApiError_Enum.too_large: "The size of your request exceeds the maximum allowed by this server.",
+    ApiError_Enum.unavailable: "A service required by this request is currently unavailable.",
 }

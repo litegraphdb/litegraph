@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "Speichern",
       "discard": "Änderungen verwerfen",
-      "restart": "Server neu starten"
+      "restart": "Server neu starten",
+      "restartCluster": "Cluster neu starten"
     },
     "restartModal": {
       "title": "Server neu starten?",
-      "body": "Der Server wird beendet und der Container mit den gespeicherten Einstellungen neu gestartet. Aktive Verbindungen werden kurzzeitig unterbrochen."
+      "body": "Der Server wird beendet und der Container mit den gespeicherten Einstellungen neu gestartet. Aktive Verbindungen werden kurzzeitig unterbrochen.",
+      "titleCluster": "Alle Knoten neu starten?",
+      "bodyCluster": "Alle Knoten werden nacheinander neu gestartet, jeder erst, wenn der vorherige wieder als fehlerfrei gemeldet ist. Der Cluster bearbeitet währenddessen weiter Anfragen."
     },
     "toast": {
       "saved": "Einstellungen gespeichert.",
       "saveFailed": "Einstellungen konnten nicht gespeichert werden.",
       "restartFailed": "Server konnte nicht neu gestartet werden.",
       "reconnected": "Server ist wieder online.",
-      "reconnectTimeout": "Der Server ist nicht rechtzeitig zurückgekehrt. Bitte überprüfen Sie seinen Status."
+      "reconnectTimeout": "Der Server ist nicht rechtzeitig zurückgekehrt. Bitte überprüfen Sie seinen Status.",
+      "rollingRestart": "Rollierender Neustart angefordert. Die Knoten starten nacheinander neu; den Fortschritt zeigt die Knotenliste."
+    },
+    "environmentOverrides": "{count} Einstellungen stammen aus Umgebungsvariablen oder werden beim Start gesetzt; ihre Werte in der Einstellungsdatei wurden nicht geändert.",
+    "cluster": {
+      "title": "Knoten",
+      "descriptionCluster": "Alle Knoten im Cluster {name}. Einstellungen werden für alle Knoten gespeichert. Einstellungen, die einen Neustart erfordern, gelten nach einem Cluster-Neustart, bei dem die Knoten nacheinander neu starten.",
+      "descriptionSingle": "Dieser Server läuft als einzelner Knoten.",
+      "registryUnavailable": "Die Knotenregistrierung (Redis) ist nicht erreichbar; es wird nur der antwortende Knoten angezeigt.",
+      "secondsAgo": "vor {seconds} s",
+      "yes": "Ja",
+      "no": "Nein",
+      "columns": {
+        "node": "Knoten",
+        "state": "Status",
+        "version": "Version",
+        "started": "Gestartet",
+        "heartbeat": "Letzter Heartbeat",
+        "settingsVersion": "Einstellungsversion",
+        "restartPending": "Neustart ausstehend"
+      }
     }
   },
   "ai": {

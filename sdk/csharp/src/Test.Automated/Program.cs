@@ -722,6 +722,7 @@ namespace Test.Automated
 			}
 
 			await RunTest("Admin.FlushDatabase", TestAdminFlushDatabase).ConfigureAwait(false);
+			await RunTest("Admin.ReadClusterNodes", TestAdminReadClusterNodes).ConfigureAwait(false);
 
 			// Batch tests
 			await RunTest("Batch.Existence", TestBatchExistence).ConfigureAwait(false);
@@ -1830,6 +1831,17 @@ namespace Test.Automated
 		{
 			LiteGraphSdk sdk = RequireSdk();
 			await sdk.Admin.FlushDatabase().ConfigureAwait(false);
+		}
+
+		private static async Task TestAdminReadClusterNodes()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			ClusterStatus status = await sdk.Admin.ReadClusterNodes().ConfigureAwait(false);
+			AssertNotNull(status, "Cluster status");
+			AssertTrue(status!.Nodes.Count >= 1, "At least the answering node is listed");
+			AssertTrue(status.Nodes.Any(n => n.NodeId == status.AnsweredBy), "The answering node is in the list");
+			AssertTrue(status.Nodes.All(n => n.Checks != null && n.Checks.Database), "Every listed node reports its database check");
+			if (!status.ClusterEnabled) AssertEqual(1, status.Nodes.Count, "A single node lists only itself");
 		}
 
 		#endregion

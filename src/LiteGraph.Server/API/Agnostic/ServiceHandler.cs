@@ -8,6 +8,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
+    using LiteGraph.Coordination;
     using LiteGraph.Serialization;
     using LiteGraph.Server.Classes;
     using LiteGraph.Server.Services;
@@ -30,6 +31,7 @@
         private LiteGraphClient _LiteGraph = null;
         private Serializer _Serializer = null;
         private AuthenticationService _Authentication = null;
+        private int _SettingsLockTimeoutMs = 10000;
 
         #endregion
 
@@ -165,26 +167,38 @@
             if (req == null) throw new ArgumentNullException(nameof(req));
             if (!req.Authentication.IsSystemAdmin) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed));
 
-            return Task.FromResult(new ResponseContext(req, _Settings));
+            // Return the settings file, not this process's running settings: every node sharing the file then returns the
+            // same answer, and values supplied by environment variables are not echoed back into a later save.
+            return Task.FromResult(new ResponseContext(req, SettingsFile.Read()));
         }
 
-        internal Task<ResponseContext> SettingsUpdate(RequestContext req, CancellationToken token = default)
+        internal async Task<ResponseContext> SettingsUpdate(RequestContext req, CancellationToken token = default)
         {
             if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed));
-            if (req.Settings == null) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "A settings object is required."));
+            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+            if (req.Settings == null) return ResponseContext.FromError(req, ApiErrorEnum.BadRequest, null, "A settings object is required.");
 
+            bool clusterEnabled = Cluster != null && Cluster.Enabled;
             SettingsUpdateResult result = new SettingsUpdateResult();
 
             try
             {
-                // Persist the full settings object to disk. Property setters on Settings already validate ranges/nulls,
-                // so an invalid payload will have failed to deserialize before reaching here.
-                System.IO.File.WriteAllBytes(Constants.SettingsFile, System.Text.Encoding.UTF8.GetBytes(_Serializer.SerializeJson(req.Settings, true)));
+                Settings written;
+                using (ILockHandle settingsLock = await Cluster.LockProvider.AcquireAsync(LockKeys.Settings, LockModeEnum.Write, LockAcquireOptions.WaitUpTo(_SettingsLockTimeoutMs), token).ConfigureAwait(false))
+                {
+                    // Property setters on Settings already validate ranges and nulls, so an invalid payload failed to
+                    // deserialize before reaching here.  Values supplied by environment variables keep their file values.
+                    written = await SettingsFile.WriteAsync(req.Settings, token).ConfigureAwait(false);
+                }
+
+                result.EnvironmentOverrides.AddRange(SettingsFile.OverriddenPaths);
 
                 // Apply live the settings that the running request pipeline reads on every request.
-                _Settings.RequestTimeoutSeconds = req.Settings.RequestTimeoutSeconds;
-                result.AppliedLive.Add("RequestTimeoutSeconds");
+                if (!SettingsFile.IsOverridden("RequestTimeoutSeconds"))
+                {
+                    _Settings.RequestTimeoutSeconds = written.RequestTimeoutSeconds;
+                    result.AppliedLive.Add("RequestTimeoutSeconds");
+                }
 
                 // Everything else is captured by long-lived services at startup and requires a restart to take effect.
                 result.RestartRequired.Add("Logging");
@@ -196,36 +210,51 @@
                 result.RestartRequired.Add("Caching");
                 result.RestartRequired.Add("RequestHistory");
                 result.RestartRequired.Add("AuthorizationAudit");
+                result.RestartRequired.Add("Cluster");
+
+                if (Registry != null)
+                {
+                    Registry.SettingsRestartPending = SettingsFile.RestartNeeded();
+                    try
+                    {
+                        result.SettingsVersion = await Registry.SignalSettingsChangedAsync(token).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
+                    {
+                        _Logging.Warn(_Header + "settings saved but the change could not be signalled through Redis: " + e.Message);
+                    }
+                }
 
                 result.Success = true;
-                result.Message = "Settings saved. Restart the server to apply the settings marked as restart-required.";
+                if (!clusterEnabled)
+                    result.Message = "Settings saved. Restart the server to apply the settings marked as restart-required.";
+                else if (result.SettingsVersion.HasValue)
+                    result.Message = "Settings saved for every node; each applies live settings within seconds. Request a cluster restart to apply the settings marked as restart-required; nodes restart one at a time.";
+                else
+                    result.Message = "Settings saved for every node, but Redis is unreachable, so other nodes will not apply live settings until they restart. Request a cluster restart once Redis is back.";
+
                 _Logging.Info(_Header + "server settings updated by system administrator " + req.Authentication.UserGUID);
-                return Task.FromResult(new ResponseContext(req, result));
+                return new ResponseContext(req, result);
             }
-            catch (Exception e)
+            catch (LockNotAcquiredException)
+            {
+                return ResponseContext.FromError(req, ApiErrorEnum.Conflict, null, "Another settings save is in progress; try again.");
+            }
+            catch (LockProviderUnavailableException e)
+            {
+                return ResponseContext.FromError(req, ApiErrorEnum.Unavailable, null, "Settings cannot be saved while the lock service is unreachable: " + e.Message);
+            }
+            catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
             {
                 _Logging.Warn(_Header + "settings update failure:" + Environment.NewLine + e.ToString());
-                return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.InternalError, null, e.Message));
+                return ResponseContext.FromError(req, ApiErrorEnum.InternalError, null, e.Message);
             }
         }
 
         internal Task<ResponseContext> SettingsRestart(RequestContext req, CancellationToken token = default)
         {
-            if (req == null) throw new ArgumentNullException(nameof(req));
-            if (!req.Authentication.IsSystemAdmin) return Task.FromResult(ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed));
-
-            _Logging.Warn(_Header + "server restart requested by system administrator " + req.Authentication.UserGUID + "; process will exit so the container restart policy applies the new settings.");
-
-            // Flush and schedule a clean process exit shortly after the response is sent, so the container's
-            // restart policy (unless-stopped) brings the server back with the updated litegraph.json.
-            _ = Task.Run(async () =>
-            {
-                try { _LiteGraph.Flush(); } catch { }
-                await Task.Delay(500).ConfigureAwait(false);
-                Environment.Exit(0);
-            });
-
-            return Task.FromResult(new ResponseContext(req, new { restarting = true }));
+            // In cluster mode this requests a rolling restart of every node; on a single node it restarts this server.
+            return ClusterRestart(req, token);
         }
 
         #endregion

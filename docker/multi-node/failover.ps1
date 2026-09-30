@@ -8,7 +8,11 @@
     2. stops each Clutch node in turn, checks reads, writes, and index builds keep working
        through the other one, starts it again, and checks every LiteGraph node has its lock
        connection back.  Stopping both in turn guarantees every node's lock connection is cut
-       at least once, whichever Clutch node it was on.
+       at least once, whichever Clutch node it was on;
+    3. stops Redis, checks traffic continues with every node reporting Degraded, that a cluster
+       restart request is refused with 503, and that every node reconnects when Redis returns;
+    4. requests a cluster rolling restart and checks every node restarts, never more than one
+       at a time, while traffic continues.
   Fails if more than MaxErrorPercent of requests fail during either phase, or if a stopped
   service does not return to healthy.  Run after 'docker compose up -d' and smoke.ps1.
 #>
@@ -17,18 +21,19 @@ param(
     [string] $AdminBearerToken = "litegraphadmin",
     [string] $TenantGuid = "00000000-0000-0000-0000-000000000000",
     [double] $MaxErrorPercent = 2.0,
-    [int] $PhaseSeconds = 25
+    [int] $PhaseSeconds = 25,
+    [int] $RestartTimeoutSeconds = 240
 )
 
 $ErrorActionPreference = "Stop"
 Push-Location $PSScriptRoot
 
-function Start-Traffic([int] $seconds) {
-    Start-Job -ArgumentList $RestBase, $AdminBearerToken, $TenantGuid, $seconds -ScriptBlock {
-        param($base, $token, $tenant, $seconds)
+function Start-Traffic([int] $seconds, [string] $stopFile = "") {
+    Start-Job -ArgumentList $RestBase, $AdminBearerToken, $TenantGuid, $seconds, $stopFile -ScriptBlock {
+        param($base, $token, $tenant, $seconds, $stopFile)
         $ok = 0; $fail = 0; $nodes = @{}
         $deadline = (Get-Date).AddSeconds($seconds)
-        while ((Get-Date) -lt $deadline) {
+        while ((Get-Date) -lt $deadline -and -not ($stopFile -and (Test-Path $stopFile))) {
             try {
                 $r = Invoke-WebRequest -UseBasicParsing -Uri "$base/v1.0/tenants/$tenant/graphs" -Headers @{ Authorization = "Bearer $token" } -TimeoutSec 10
                 if ([int] $r.StatusCode -eq 200) {
@@ -66,6 +71,23 @@ function Wait-ClutchConnected([string[]] $services, [int] $seconds = 60) {
             try { $ready = $json | ConvertFrom-Json } catch { $ready = $null }
             if ($ready -and $ready.Checks.Clutch -eq $true) { break }
             if ((Get-Date) -gt $deadline) { throw "$svc did not reconnect to Clutch within $seconds seconds" }
+            Start-Sleep -Seconds 2
+        }
+    }
+}
+
+function Get-ClusterNodes {
+    Invoke-RestMethod -Uri "$RestBase/v1.0/cluster/nodes" -Headers @{ Authorization = "Bearer $AdminBearerToken" } -TimeoutSec 10
+}
+
+function Wait-NodesReady([string[]] $services, [string] $check, [bool] $expected, [int] $seconds = 60) {
+    $deadline = (Get-Date).AddSeconds($seconds)
+    foreach ($svc in $services) {
+        while ($true) {
+            $json = (& docker compose exec -T $svc curl -s http://127.0.0.1:8701/v1.0/health/ready | Out-String)
+            try { $ready = $json | ConvertFrom-Json } catch { $ready = $null }
+            if ($ready -and $ready.Checks.$check -eq $expected) { break }
+            if ((Get-Date) -gt $deadline) { throw "$svc did not report $check=$expected within $seconds seconds" }
             Start-Sleep -Seconds 2
         }
     }
@@ -133,7 +155,77 @@ try {
         Write-Host "PASS $clutch healthy again"
     }
 
-    foreach ($svc in @("litegraph-1", "litegraph-2", "litegraph-3")) { Wait-Healthy $svc 30 }
+    #
+    # Phase 3: lose Redis.  Nodes keep serving and report Degraded; only coordination waits.
+    #
+
+    $job = Start-Traffic $PhaseSeconds
+    Start-Sleep -Seconds 3
+    Write-Host "stopping redis"
+    & docker compose stop redis | Out-Null
+    Wait-NodesReady $nodes "Redis" $false 30
+    Write-Host "PASS Every LiteGraph node reports Redis unavailable and stays ready"
+
+    $status = Get-ClusterNodes
+    if ($status.RegistryAvailable -ne $false -or $status.Nodes.Count -ne 1) { throw "cluster/nodes without Redis should list only the answering node" }
+    Write-Host "PASS Node list falls back to the answering node  $($status.AnsweredBy)"
+
+    $refused = $null
+    try { Invoke-RestMethod -Method POST -Uri "$RestBase/v1.0/cluster/restart" -Headers $admin -ContentType "application/json" -Body '{}' | Out-Null }
+    catch { $refused = [int] $_.Exception.Response.StatusCode }
+    if ($refused -ne 503) { throw "cluster restart without Redis returned $refused instead of 503" }
+    Write-Host "PASS Cluster restart refused with 503 while Redis is down"
+
+    Write-Host "starting redis"
+    & docker compose start redis | Out-Null
+    $result = Receive-Job -Job $job -Wait -AutoRemoveJob
+    Assert-Phase "Traffic while redis stopped and restarted" $result
+    Wait-Healthy "redis"
+    Wait-NodesReady $nodes "Redis" $true 60
+    Write-Host "PASS Every LiteGraph node reconnects to Redis"
+
+    #
+    # Phase 4: rolling restart.  Every node restarts, one at a time, while traffic continues.
+    #
+
+    $before = @{}
+    foreach ($n in (Get-ClusterNodes).Nodes) { $before[$n.NodeId] = $n.StartedUtc }
+
+    $stopFile = Join-Path ([System.IO.Path]::GetTempPath()) ("litegraph-failover-" + [guid]::NewGuid().ToString("N"))
+    $job = Start-Traffic $RestartTimeoutSeconds $stopFile
+    Start-Sleep -Seconds 3
+    $restart = Invoke-RestMethod -Method POST -Uri "$RestBase/v1.0/cluster/restart" -Headers $admin -ContentType "application/json" -Body '{}'
+    if (-not $restart.Rolling) { throw "cluster restart was not a rolling restart" }
+    Write-Host "PASS Rolling restart requested  version $($restart.RestartVersion)"
+
+    $maxDown = 0
+    $order = @()
+    $deadline = (Get-Date).AddSeconds($RestartTimeoutSeconds - 10)
+    while ($true) {
+        try { $status = Get-ClusterNodes } catch { Start-Sleep -Seconds 1; continue }
+        $down = @($status.Nodes | Where-Object { $nodes -contains $_.NodeId -and $_.State -ne "Healthy" })
+        if ($down.Count -gt $maxDown) { $maxDown = $down.Count }
+        foreach ($n in $status.Nodes) {
+            if ($nodes -contains $n.NodeId -and $n.StartedUtc -ne $before[$n.NodeId] -and $order -notcontains $n.NodeId -and $n.State -eq "Healthy") { $order += $n.NodeId }
+        }
+        if ($order.Count -eq $nodes.Count) { break }
+        if ((Get-Date) -gt $deadline) { throw "rolling restart did not finish within $RestartTimeoutSeconds seconds; restarted: $($order -join ', ')" }
+        Start-Sleep -Seconds 1
+    }
+    Write-Host "PASS Every node restarted  order $($order -join ', ')"
+    if ($maxDown -gt 1) { throw "more than one node was out of service at once during the rolling restart ($maxDown)" }
+    Write-Host "PASS Never more than one node out of service  max $maxDown"
+
+    New-Item -ItemType File -Path $stopFile | Out-Null
+    $result = Receive-Job -Job $job -Wait -AutoRemoveJob
+    Remove-Item $stopFile -ErrorAction SilentlyContinue
+    Assert-Phase "Traffic during the rolling restart" $result
+
+    $status = Get-ClusterNodes
+    if (@($status.Nodes | Where-Object { $nodes -contains $_.NodeId -and $_.RestartPending }).Count -ne 0) { throw "a node still reports a pending restart" }
+    Write-Host "PASS No node reports a pending restart"
+
+    foreach ($svc in $nodes) { Wait-Healthy $svc 30 }
     Write-Host "PASS All LiteGraph nodes healthy"
 
     Write-Host ""

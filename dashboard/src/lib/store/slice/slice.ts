@@ -68,6 +68,9 @@ import {
 import {
   ServerSettings,
   SettingsUpdateResult,
+  ClusterRestartResult,
+  ClusterStatus,
+  getClusterNodes,
   getServerSettings,
   restartServer,
   updateServerSettings,
@@ -876,10 +879,17 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       invalidatesTags: [SliceTags.SETTINGS],
     }),
-    restartServer: build.mutation<{ Success?: boolean; Message?: string }, void>({
+    restartServer: build.mutation<ClusterRestartResult, void>({
       query: () => ({
         callback: () => restartServer(),
       }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    getClusterNodes: build.query<ClusterStatus, void>({
+      query: () => ({
+        callback: () => getClusterNodes(),
+      }),
+      providesTags: [SliceTags.CLUSTER],
     }),
     getCredentialEffectivePermissions: build.query<
       AuthorizationEffectivePermissionsResult,
@@ -1141,6 +1151,7 @@ export const {
   useGetServerSettingsQuery,
   useUpdateServerSettingsMutation,
   useRestartServerMutation,
+  useGetClusterNodesQuery,
   useListChatEndpointsQuery,
   useCreateChatEndpointMutation,
   useUpdateChatEndpointMutation,

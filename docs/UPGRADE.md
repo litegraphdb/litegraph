@@ -28,10 +28,11 @@ Vector search changes behind the same API:
 - **Health endpoints.** `GET /v1.0/health/live` and `GET /v1.0/health/ready` are new; `HEAD /` and `GET /` still answer as before. Every response carries an `x-litegraph-node` header.
 - **SQLite restart fix.** An in-memory (`HnswRam`) index is rebuilt from the database on first use after a restart, instead of silently returning no results.
 - **MCP settings file.** The MCP server no longer rewrites its settings file on every start to record `LastStartUtc`.
+- **Settings API.** `GET /v1.0/settings` returns the settings file rather than the running settings, so values supplied by environment variables no longer appear in it. `PUT /v1.0/settings` keeps the file's value for every setting supplied by an environment variable and lists those settings in `EnvironmentOverrides`. `POST /v1.0/settings/restart` returns `{"Restarting": true, "Rolling": false, ...}` instead of `{"restarting": true}`. A new `Unavailable` error code maps to 503.
 
 ### Moving to a cluster
 
-A single-node PostgreSQL deployment becomes a cluster by pointing several nodes at the same database with `LITEGRAPH_CLUSTER_ENABLE=true`, a Clutch lock service, and one shared settings file. [Clustering](CLUSTERING.md) describes the requirements and the [`docker/multi-node`](../docker/multi-node/) deployment shows a complete setup. SQLite cannot be clustered; export the data with the JSONL export API and import it into a PostgreSQL deployment first.
+A single-node PostgreSQL deployment becomes a cluster by pointing several nodes at the same database with `LITEGRAPH_CLUSTER_ENABLE=true`, a Clutch lock service, a Redis instance (`LITEGRAPH_REDIS_CONNECTION_STRING`), and one shared settings file. [Clustering](CLUSTERING.md) describes the requirements and the [`docker/multi-node`](../docker/multi-node/) deployment shows a complete setup. SQLite cannot be clustered; export the data with the JSONL export API and import it into a PostgreSQL deployment first.
 
 ---
 

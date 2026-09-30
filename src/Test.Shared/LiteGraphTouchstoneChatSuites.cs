@@ -1746,6 +1746,7 @@ namespace Test.Shared
                     ["/openapi.json"] = "OpenAPI specification document.",
                     ["/swagger"] = "Swagger UI HTML page.",
                     ["/v1.0/settings"] = "Server settings object (single-object read).",
+                    ["/v1.0/cluster/nodes"] = "Cluster status object: node list plus settings and restart counters.",
                     ["/v1.0/requesthistory/summary"] = "Aggregated summary object, not a record list.",
                     ["/v1.0/requesthistory/{requestGuid}/detail"] = "Single request-history detail object.",
                     ["/v1.0/tenants/stats"] = "Statistics dictionary object.",

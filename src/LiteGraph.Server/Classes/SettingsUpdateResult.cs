@@ -29,6 +29,17 @@ namespace LiteGraph.Server.Classes
         /// </summary>
         public string Message { get; set; } = null;
 
+        /// <summary>
+        /// Dotted paths of settings supplied by environment variables or derived at startup.  Their values in the file were
+        /// kept as they were, so secrets and node identity supplied through the environment are never written to the file.
+        /// </summary>
+        public List<string> EnvironmentOverrides { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Cluster settings version after this save, or null on a single node or when Redis could not be reached.
+        /// </summary>
+        public long? SettingsVersion { get; set; } = null;
+
         #endregion
 
         #region Private-Members

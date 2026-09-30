@@ -237,7 +237,7 @@ try {
             if ($n -is [array]) { $n = $n[0] }
             $seen[$n] = 1 + [int] $seen[$n]
         }
-        Assert-True ($seen.Keys.Count -ge 2) "Load balancer spreads requests" (($seen.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join " ")
+        Assert-True ($seen.Keys.Count -ge 3) "Load balancer spreads requests to every node" (($seen.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join " ")
 
         #
         # Every node, addressed directly inside the compose network, is ready, sees the same
@@ -248,7 +248,7 @@ try {
         $firstNames = @()
         foreach ($svc in @("litegraph-1", "litegraph-2", "litegraph-3")) {
             $readyJson = Invoke-Compose @("exec", "-T", $svc, "curl", "-s", "-f", "http://127.0.0.1:8701/v1.0/health/ready") | ConvertFrom-Json
-            Assert-True ($readyJson.Status -eq "Healthy" -and $readyJson.Checks.Clutch -eq $true) "$svc ready with Clutch" "node=$($readyJson.NodeId) cluster=$($readyJson.ClusterName)"
+            Assert-True ($readyJson.Status -eq "Healthy" -and $readyJson.Checks.Clutch -eq $true -and $readyJson.Checks.Redis -eq $true) "$svc ready with Clutch and Redis" "node=$($readyJson.NodeId) cluster=$($readyJson.ClusterName)"
 
             $graphJson = Invoke-Compose @("exec", "-T", $svc, "curl", "-s", "-f", "-H", "Authorization: Bearer $AdminBearerToken", "http://127.0.0.1:8701/v1.0/tenants/$TenantGuid/graphs/$($graph.GUID)") | ConvertFrom-Json
             Assert-True ($graphJson.GUID -eq $graph.GUID) "$svc reads the graph written via LB" $graphJson.Name
@@ -264,6 +264,26 @@ try {
         Assert-True (($firstNames | Select-Object -Unique).Count -eq 1) "Every node returns identical results" $firstNames[0]
 
         #
+        # Node registry and shared settings
+        #
+
+        $nodes = Invoke-RestMethod -Uri "$RestBase/v1.0/cluster/nodes" -Headers $admin -TimeoutSec $TimeoutSeconds
+        $listed = ($nodes.Nodes | ForEach-Object { "$($_.NodeId)=$($_.State)" }) -join " "
+        Assert-True ($nodes.ClusterEnabled -and $nodes.RegistryAvailable -eq $true) "Node registry available" "cluster=$($nodes.ClusterName) answered by $($nodes.AnsweredBy)"
+        foreach ($svc in @("litegraph-1", "litegraph-2", "litegraph-3")) {
+            $entry = $nodes.Nodes | Where-Object { $_.NodeId -eq $svc }
+            Assert-True ($entry -and $entry.State -eq "Healthy" -and $entry.HeartbeatAgeMs -lt 15000) "$svc registered and healthy" $listed
+        }
+
+        $settingsBodies = @()
+        foreach ($svc in @("litegraph-1", "litegraph-2", "litegraph-3")) {
+            $settingsBodies += (Invoke-Compose @("exec", "-T", $svc, "curl", "-s", "-f", "-H", "Authorization: Bearer $AdminBearerToken", "http://127.0.0.1:8701/v1.0/settings") | Out-String).Trim()
+        }
+        $settingsNodeIds = ($settingsBodies | ForEach-Object { ($_ | ConvertFrom-Json).Cluster.NodeId } | Where-Object { $_ }) -join ","
+        Assert-True (($settingsBodies | Select-Object -Unique).Count -eq 1) "Every node returns the same settings" "$($settingsBodies[0].Length) bytes"
+        Assert-True ([string]::IsNullOrEmpty($settingsNodeIds)) "Settings do not carry a node identifier" $(if ($settingsNodeIds) { $settingsNodeIds } else { "none" })
+
+        #
         # Switchboard, when its profile is running
         #
 
@@ -277,7 +297,7 @@ try {
                 if ($n -is [array]) { $n = $n[0] }
                 $sbSeen[$n] = 1 + [int] $sbSeen[$n]
             }
-            Assert-True ($sbSeen.Keys.Count -ge 2) "Switchboard spreads requests" (($sbSeen.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join " ")
+            Assert-True ($sbSeen.Keys.Count -ge 3) "Switchboard spreads requests to every node" (($sbSeen.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join " ")
         }
 
         #
@@ -286,6 +306,9 @@ try {
 
         $clutch = Invoke-Compose @("exec", "-T", "clutch-lb", "curl", "-s", "-f", "http://127.0.0.1:8090/v1.0/api/health") | ConvertFrom-Json
         Assert-True ($clutch.status -eq "healthy") "Clutch healthy through clutch-lb" "node=$($clutch.node)"
+
+        $pong = (Invoke-Compose @("exec", "-T", "redis", "redis-cli", "ping") | Out-String).Trim()
+        Assert-True ($pong -eq "PONG") "Redis answers" $pong
 
         $ext = Invoke-Compose @("exec", "-T", "postgresql", "psql", "-U", "postgres", "-d", "litegraph", "-tAc", "SELECT extversion FROM pg_extension WHERE extname = 'vector'")
         Assert-True (-not [string]::IsNullOrWhiteSpace($ext)) "pgvector extension in litegraph database" "version $ext"

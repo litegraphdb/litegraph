@@ -1026,6 +1026,16 @@
         /// </summary>
         [EnumMember(Value = "SettingsRestart")]
         SettingsRestart,
+        /// <summary>
+        /// ClusterNodesRead
+        /// </summary>
+        [EnumMember(Value = "ClusterNodesRead")]
+        ClusterNodesRead,
+        /// <summary>
+        /// ClusterRestart
+        /// </summary>
+        [EnumMember(Value = "ClusterRestart")]
+        ClusterRestart,
 
         #endregion
 

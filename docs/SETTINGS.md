@@ -10,9 +10,9 @@ Only system administrators reach any of this. The endpoints are gated on the `Is
 |---|---|---|
 | Read the current settings | GET | `/v1.0/settings` |
 | Update the settings | PUT | `/v1.0/settings` |
-| Restart the server | POST | `/v1.0/settings/restart` |
+| Restart the server (every node, one at a time, in cluster mode) | POST | `/v1.0/settings/restart` |
 
-`GET /v1.0/settings` returns the full settings object — the same shape as `litegraph.json`, with the sections `RequestTimeoutSeconds`, `Logging`, `Caching`, `Rest`, `LiteGraph`, `Encryption`, `Storage`, `Debug`, `RequestHistory`, `Observability`, (as of v8.1) `Chat`, and (as of v9.0) `AuthorizationAudit`. The runtime-only logging callback is never serialized.
+`GET /v1.0/settings` returns the full settings object, in the same shape as `litegraph.json`, with the sections `RequestTimeoutSeconds`, `Logging`, `Caching`, `Rest`, `LiteGraph`, `Encryption`, `Storage`, `Debug`, `RequestHistory`, `Observability`, (as of v8.1) `Chat`, and (as of v9.0) `AuthorizationAudit`. The runtime-only logging callback is never serialized. As of v10.0 it returns the settings file rather than the running settings, so every node sharing the file returns the same answer and values supplied by environment variables are not echoed back.
 
 `PUT /v1.0/settings` takes the full settings object as its body, validates it (the property setters enforce ranges and non-null sections, so a malformed payload is rejected before anything is written), writes it to `litegraph.json`, and returns a result describing what happened:
 
@@ -21,9 +21,13 @@ Only system administrators reach any of this. The endpoints are gated on the `Is
   "Success": true,
   "AppliedLive": ["RequestTimeoutSeconds"],
   "RestartRequired": ["Logging", "Rest", "LiteGraph", "Storage", "Observability", "Encryption", "Caching", "RequestHistory", "AuthorizationAudit", "Chat"],
-  "Message": "Settings saved. Restart the server to apply the settings marked as restart-required."
+  "Message": "Settings saved. Restart the server to apply the settings marked as restart-required.",
+  "EnvironmentOverrides": ["Encryption.Key", "LiteGraph.AdminBearerToken"],
+  "SettingsVersion": null
 }
 ```
+
+`EnvironmentOverrides` (v10.0) lists the settings whose running value did not come from the file: environment variable overrides and values derived at startup. A save keeps the file's own value for each of them, so secrets, node identity, and database connection details supplied through the environment are never written into the file, however the request body was built. `SettingsVersion` is the cluster's settings version after the save, or null on a single node.
 
 `AppliedLive` names the sections that changed the running server immediately. `RestartRequired` names the sections whose new values are on disk but will not take effect until the process restarts — ports, the database connection, storage paths, the logging sinks, and the observability meter are all captured by long-lived services at startup, so they belong here.
 
@@ -101,7 +105,15 @@ The `Cluster` section turns a server into one node of a multi-node cluster: seve
       "LeaseMs": 30000,
       "RequestTimeoutMs": 10000,
       "StartupConnectTimeoutMs": 120000
-    }
+    },
+    "Redis": {
+      "ConnectionString": "127.0.0.1:6379",
+      "PollIntervalMs": 2000,
+      "NodeTimeoutMs": 15000,
+      "NodeRetentionMs": 86400000
+    },
+    "RestartDrainMs": 5000,
+    "RestartPeerTimeoutMs": 180000
   }
 }
 ```
@@ -120,6 +132,12 @@ The `Cluster` section turns a server into one node of a multi-node cluster: seve
 | `Clutch.LeaseMs` | `30000` | 5000 to 300000 | Lock lease. Held locks are renewed over the node's lock connection at the interval Clutch advertises; a lock left unrenewed this long is treated as lost, and a node that dies loses its locks when its connection drops or the lease runs out |
 | `Clutch.RequestTimeoutMs` | `10000` | 1000 to 120000 | Timeout for opening the lock connection and for each lock request to Clutch, not counting time spent waiting for a lock |
 | `Clutch.StartupConnectTimeoutMs` | `120000` | 0 to 3600000 | How long a starting node keeps retrying Clutch before exiting |
+| `Redis.ConnectionString` | `127.0.0.1:6379` | | StackExchange.Redis connection string for the node registry and change signals (secret when it carries a password). A node starts even if Redis is down and connects when it comes back |
+| `Redis.PollIntervalMs` | `2000` | 500 to 60000 | How often each node writes its registry entry and checks for settings changes and restart requests |
+| `Redis.NodeTimeoutMs` | `15000` | 2000 to 600000 | A node with no heartbeat for this long is reported `Offline` |
+| `Redis.NodeRetentionMs` | `86400000` | 60000 to 2592000000 | Entries for nodes silent this long are removed from the registry |
+| `RestartDrainMs` | `5000` | 0 to 120000 | During a rolling restart, how long a node reports not ready before it exits, so load balancers stop sending it requests |
+| `RestartPeerTimeoutMs` | `180000` | 10000 to 3600000 | During a rolling restart, how long a node waits for a restarting peer to report healthy before restarting anyway |
 
 Every node in a cluster must run with the same settings file, the same database, and the same `Encryption.Key` and `Encryption.Iv`; a security token issued by one node is decrypted by whichever node receives the next request. In cluster mode the server also forces `Caching.Enable` off and stops caching authorization policy, because those caches only learn about changes made through their own process. All `Cluster` fields are read at startup and are restart-required.
 
@@ -137,6 +155,7 @@ Environment variables override the settings file, which keeps secrets out of it 
 | `LITEGRAPH_ENCRYPTION_KEY`, `LITEGRAPH_ENCRYPTION_IV` | `Encryption.Key`, `Encryption.Iv` (v10.0) |
 | `LITEGRAPH_CLUSTER_ENABLE`, `LITEGRAPH_CLUSTER_NAME`, `LITEGRAPH_NODE_ID` | `Cluster.Enable`, `Cluster.ClusterName`, `Cluster.NodeId` (v10.0) |
 | `LITEGRAPH_CLUTCH_ENDPOINT`, `LITEGRAPH_CLUTCH_ACCESS_KEY` | `Cluster.Clutch.Endpoint`, `Cluster.Clutch.AccessKey` (v10.0) |
+| `LITEGRAPH_REDIS_CONNECTION_STRING` | `Cluster.Redis.ConnectionString` (v10.0) |
 | `LITEGRAPH_TRUSTED_PROXIES` | `Cluster.TrustedProxies` (comma separated) and turns on `Cluster.TrustForwardedHeaders` (v10.0) |
 | `LITEGRAPH_CREATE_DEFAULT_RECORDS`, `LITEGRAPH_INIT_ONLY` | Create the default tenant, user, and credential; initialize the schema and exit |
 | `LITEGRAPH_OTLP_*`, `OTEL_*` | `Observability` OTLP export settings (see [OBSERVABILITY.md](OBSERVABILITY.md)) |
@@ -147,7 +166,7 @@ Environment variables override the settings file, which keeps secrets out of it 
 
 The dashboard's **Restart Server** control asks for confirmation, calls this endpoint, then shows a reconnecting state and recovers once the server answers again.
 
-In a cluster, the settings file is shared by every node but each node reads it only at startup, and the restart endpoint restarts only the node that received the request (behind a load balancer, whichever node that was). After changing restart-required settings in a cluster, restart the nodes one at a time, for example `docker compose restart litegraph-1`, waiting for each to report ready before the next, so the cluster keeps serving throughout.
+In a cluster (v10.0), a save through any node is signalled to every node through Redis: each applies `RequestTimeoutSeconds` within a couple of seconds and marks itself as needing a restart if anything else changed. The restart endpoint then requests a rolling restart: every node restarts, one at a time, each after the previous one reports healthy, so the cluster keeps serving throughout. The dashboard's button reads **Restart Cluster** in cluster mode, and its node list shows each node restart in turn. [CLUSTERING.md](CLUSTERING.md#settings-and-rolling-restarts) describes the sequence.
 
 ## Security notes
 

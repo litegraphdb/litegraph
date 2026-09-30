@@ -72,6 +72,11 @@ Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
   (Padlock) on a single node, `ClutchLockProvider` (server, `Clutch.Sdk` WebSocket lock connection) in a cluster. Lock keys live in
   `LockKeys`. Ordinary reads, writes, and searches must never take a distributed lock.
 - Invariants are enforced with database unique constraints plus retry, not with locks.
+- Nodes register in Redis (`Services/Cluster/ClusterRegistry.cs`) and poll it for settings changes and restart requests;
+  `RollingRestartCoordinator` restarts nodes one at a time under the Clutch `restart` lock. Redis and Clutch are never
+  required to serve a request: readiness reports `Degraded`, not unavailable, when either is down.
+- The settings API reads and writes the shared settings file through `Services/SettingsFileService.cs`, which keeps
+  values that came from environment variables (node identity, secrets) out of the file.
 - See `docs/CLUSTERING.md`.
 
 ### Data Model Key Points

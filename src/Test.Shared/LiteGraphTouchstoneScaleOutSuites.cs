@@ -45,6 +45,21 @@ namespace Test.Shared
                     new TestCaseDescriptor(suiteId, "ClusterSettings", "Cluster and Clutch settings accept valid values and reject invalid ones", ExecuteScaleOutClusterSettingsAsync),
                     new TestCaseDescriptor(suiteId, "CachingDisabled", "A client with caching disabled completes a full create, read, update, delete pass", ExecuteScaleOutCachingDisabledAsync),
                     new TestCaseDescriptor(suiteId, "SqliteIndexRebuild", "An in-memory HnswLite index is rebuilt from SQLite after a restart", ExecuteScaleOutSqliteIndexRebuildAsync),
+                    new TestCaseDescriptor(suiteId, "SettingsFile", "Settings are read from the file and saves keep environment-supplied values out of it", ExecuteScaleOutSettingsFileAsync),
+                    new TestCaseDescriptor(
+                        suiteId: suiteId,
+                        caseId: "ClusterRegistry",
+                        displayName: "Nodes register in Redis, report state, and notice settings changes and restart requests",
+                        executeAsync: ExecuteScaleOutClusterRegistryAsync,
+                        skip: ShouldSkipProviderSuite(RedisTestConnectionStringEnvironmentVariable),
+                        skipReason: "Redis registry tests require a Redis server. Set " + RedisTestConnectionStringEnvironmentVariable + " to run this case."),
+                    new TestCaseDescriptor(
+                        suiteId: suiteId,
+                        caseId: "RollingRestart",
+                        displayName: "A cluster restart restarts nodes one at a time, each waiting for the previous one to return",
+                        executeAsync: ExecuteScaleOutRollingRestartAsync,
+                        skip: ShouldSkipProviderSuite(RedisTestConnectionStringEnvironmentVariable),
+                        skipReason: "Rolling restart tests require a Redis server. Set " + RedisTestConnectionStringEnvironmentVariable + " to run this case."),
                     new TestCaseDescriptor(
                         suiteId: suiteId,
                         caseId: "PgvectorSearchParity",

@@ -69,4 +69,6 @@ export const ApiErrorEnum: Readonly<{
     NotFound: "NotFound";
     /** Request too large. */
     TooLarge: "TooLarge";
+    /** A service required by the request is unavailable. */
+    Unavailable: "Unavailable";
 }>;

@@ -174,6 +174,14 @@ export default class SdkBase {
      */
     post(url: string, data: any | string, model: Class, cancellationToken?: AbortController, acceptedStatusCodes?: number[]): Promise<any>;
     /**
+     * Sends a GET request and resolves the raw response body as text (no JSON deserialization).
+     * Useful for exports whose body may be JSON, CSV, or XML.
+     * @param {string} url - The URL to retrieve.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token for cancelling the request.
+     * @return {Promise<string>} Resolves with the raw response text.
+     */
+    getText(url: string, cancellationToken?: AbortController): Promise<string>;
+    /**
      * Submits a POST request whose response is a paginated enumeration envelope.
      * The response body is an EnumerationResult envelope whose Objects entries are instantiated with the supplied model.
      * @param {string} url - The URL to post data to.

@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "Salvar",
       "discard": "Descartar alterações",
-      "restart": "Reiniciar servidor"
+      "restart": "Reiniciar servidor",
+      "restartCluster": "Reiniciar cluster"
     },
     "restartModal": {
       "title": "Reiniciar o servidor?",
-      "body": "O servidor será encerrado e o contêiner será reiniciado com as configurações salvas. As conexões ativas serão interrompidas brevemente."
+      "body": "O servidor será encerrado e o contêiner será reiniciado com as configurações salvas. As conexões ativas serão interrompidas brevemente.",
+      "titleCluster": "Reiniciar todos os nós?",
+      "bodyCluster": "Todos os nós serão reiniciados um de cada vez, cada um depois que o anterior voltar a ficar íntegro. O cluster continua atendendo às solicitações durante todo o processo."
     },
     "toast": {
       "saved": "Configurações salvas.",
       "saveFailed": "Não foi possível salvar as configurações.",
       "restartFailed": "Não foi possível reiniciar o servidor.",
       "reconnected": "O servidor está online novamente.",
-      "reconnectTimeout": "O servidor não voltou a tempo. Verifique o status dele."
+      "reconnectTimeout": "O servidor não voltou a tempo. Verifique o status dele.",
+      "rollingRestart": "Reinício gradual solicitado. Os nós reiniciam um de cada vez; acompanhe o progresso na lista de nós."
+    },
+    "environmentOverrides": "{count} configurações vêm de variáveis de ambiente ou são definidas na inicialização; os valores delas no arquivo de configurações não foram alterados.",
+    "cluster": {
+      "title": "Nós",
+      "descriptionCluster": "Todos os nós do cluster {name}. As configurações são salvas para todos os nós. As que exigem reinício passam a valer após um reinício do cluster, que reinicia os nós um de cada vez.",
+      "descriptionSingle": "Este servidor funciona como um único nó.",
+      "registryUnavailable": "O registro de nós (Redis) está inacessível; apenas o nó que respondeu é exibido.",
+      "secondsAgo": "há {seconds} s",
+      "yes": "Sim",
+      "no": "Não",
+      "columns": {
+        "node": "Nó",
+        "state": "Estado",
+        "version": "Versão",
+        "started": "Iniciado",
+        "heartbeat": "Último heartbeat",
+        "settingsVersion": "Versão das configurações",
+        "restartPending": "Reinício pendente"
+      }
     }
   },
   "ai": {

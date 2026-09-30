@@ -1545,18 +1545,22 @@
     "actions": {
       "save": "Save",
       "discard": "Discard changes",
-      "restart": "Restart Server"
+      "restart": "Restart Server",
+      "restartCluster": "Restart Cluster"
     },
     "restartModal": {
       "title": "Restart server?",
-      "body": "The server will exit and the container will restart with the saved settings. Active connections will be interrupted briefly."
+      "body": "The server will exit and the container will restart with the saved settings. Active connections will be interrupted briefly.",
+      "titleCluster": "Restart every node?",
+      "bodyCluster": "Every node will restart, one at a time, each after the previous one reports healthy. The cluster keeps serving requests throughout."
     },
     "toast": {
       "saved": "Settings saved.",
       "saveFailed": "Unable to save settings.",
       "restartFailed": "Unable to restart the server.",
       "reconnected": "Server is back online.",
-      "reconnectTimeout": "The server did not come back in time. Please check its status."
+      "reconnectTimeout": "The server did not come back in time. Please check its status.",
+      "rollingRestart": "Rolling restart requested. Nodes restart one at a time; follow progress in the node list."
     },
     "grafana": {
       "title": "Monitoring & dashboards",
@@ -1567,6 +1571,25 @@
       "credentialsValue": "admin / admin",
       "credentialsHint": "Grafana prompts you to change the default password on first sign-in.",
       "urlHint": "This is the default location for the bundled docker compose stack. Update it if you host Grafana elsewhere."
+    },
+    "environmentOverrides": "{count} settings come from environment variables or are set at startup; their values in the settings file were left unchanged.",
+    "cluster": {
+      "title": "Nodes",
+      "descriptionCluster": "Every node in cluster {name}. Settings are saved for every node. Settings that need a restart apply after a cluster restart, which restarts the nodes one at a time.",
+      "descriptionSingle": "This server runs as a single node.",
+      "registryUnavailable": "The node registry (Redis) is unreachable, so only the node that answered is shown.",
+      "secondsAgo": "{seconds}s ago",
+      "yes": "Yes",
+      "no": "No",
+      "columns": {
+        "node": "Node",
+        "state": "State",
+        "version": "Version",
+        "started": "Started",
+        "heartbeat": "Last heartbeat",
+        "settingsVersion": "Settings version",
+        "restartPending": "Restart pending"
+      }
     }
   },
   "ai": {

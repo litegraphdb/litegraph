@@ -17,6 +17,12 @@ namespace LiteGraph.Server.Classes
         public bool? Clutch { get; set; } = null;
 
         /// <summary>
+        /// True when the node can reach Redis, which carries the node registry and settings-change and restart signals.
+        /// Null when the server is not running as a cluster node.  False does not make the node unready.
+        /// </summary>
+        public bool? Redis { get; set; } = null;
+
+        /// <summary>
         /// True when the node is shutting down or restarting and should not receive new requests.
         /// </summary>
         public bool Draining { get; set; } = false;

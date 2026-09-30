@@ -277,6 +277,7 @@
                     if (matcher.Match("/favicon.ico", out _UrlParameters)) return RequestTypeEnum.Favicon;
 
                     if (matcher.Match("/v1.0/settings", out _UrlParameters)) return RequestTypeEnum.SettingsRead;
+                    if (matcher.Match("/v1.0/cluster/nodes", out _UrlParameters)) return RequestTypeEnum.ClusterNodesRead;
                     if (matcher.Match("/v1.0/token/tenants", out _UrlParameters)) return RequestTypeEnum.TokenTenantsRead;
                     if (matcher.Match("/v1.0/token/details", out _UrlParameters)) return RequestTypeEnum.TokenDetailsRead;
                     if (matcher.Match("/v1.0/token", out _UrlParameters)) return RequestTypeEnum.TokenCreate;
@@ -480,6 +481,7 @@
                     if (matcher.Match("/v1.0/backup", out _UrlParameters)) return RequestTypeEnum.Backup;
 
                     if (matcher.Match("/v1.0/settings/restart", out _UrlParameters)) return RequestTypeEnum.SettingsRestart;
+                    if (matcher.Match("/v1.0/cluster/restart", out _UrlParameters)) return RequestTypeEnum.ClusterRestart;
 
                     if (matcher.Match("/v1.0/flush", out _UrlParameters)) return RequestTypeEnum.FlushDatabase;
 

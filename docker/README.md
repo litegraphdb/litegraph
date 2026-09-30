@@ -39,9 +39,13 @@ Every host port is configurable. Copy `.env.example` to `.env` in the deployment
 
 Coordination that genuinely needs one actor at a time goes through Clutch, a distributed lock service that runs as two nodes behind its own small Nginx on the internal network. LiteGraph takes a Clutch lock to migrate the schema at startup, to build a pgvector index, and to make sure the hourly retention jobs run on one node rather than three. Ordinary reads, writes, and searches take no distributed lock, so they keep working even if Clutch is down; only those coordinated operations pause.
 
+Redis, also on the internal network only, holds the node registry and the settings-change and restart signals. Each node writes its state to Redis every two seconds and checks whether settings were saved or a cluster restart was requested. That is what powers the dashboard's node list and the **Restart Cluster** button, which restarts the nodes one at a time while the cluster keeps serving. Redis runs without persistence: nothing in it needs to survive a Redis restart. If it is down, the nodes keep serving and only the node list and restarts wait. [docs/CLUSTERING.md](../docs/CLUSTERING.md) explains both services in full.
+
 PostgreSQL holds two databases with two roles, created by `postgresql/init/` on first start. The `litegraph` role owns the LiteGraph database and the `clutch` role owns Clutch's. Neither can connect to the other's database, and neither is a superuser; the `postgres` superuser exists only for initialization and operators.
 
-After `docker compose up -d`, run `smoke.bat` and then `failover.bat`. The failover script keeps traffic flowing through the load balancer while it stops and restarts a LiteGraph node and then a Clutch node, and fails if more than 2% of requests fail.
+After `docker compose up -d`, run `smoke.bat` and then `failover.bat`. The failover script keeps traffic flowing through the load balancer while it stops and restarts a LiteGraph node, each Clutch node in turn, and Redis, then runs a rolling restart of every node. It fails if more than 2% of requests fail in any phase or if more than one node is ever out of service during the rolling restart.
+
+Both Nginx load balancers re-resolve node names through Docker's DNS every few seconds (`resolver 127.0.0.11` and `resolve` in `nginx/*.conf`). Without that, a node recreated by `docker compose up` (for example after `update.bat` pulls a new image) comes back at a new address that Nginx never learns.
 
 To use Switchboard instead of Nginx, start it alongside: `docker compose --profile switchboard up -d`. It listens on port 8711 and routes to the same three nodes, checking each node's readiness endpoint.
 
@@ -51,7 +55,7 @@ The cluster ships with demonstration credentials and `Cluster.AllowInsecureDefau
 
 ## Health checks
 
-Every LiteGraph node answers `GET /v1.0/health/live` (the process is running) and `GET /v1.0/health/ready` (the database answers, Clutch is reachable in cluster mode, and the node is not shutting down). Readiness returns 503 when any check fails. Every response also carries an `x-litegraph-node` header naming the node that answered, which is the quickest way to see load balancing at work.
+Every LiteGraph node answers `GET /v1.0/health/live` (the process is running) and `GET /v1.0/health/ready` (the database answers and the node is not shutting down). Readiness returns 503 when either check fails. In cluster mode it also reports whether the node's Clutch lock connection is up and whether it can reach Redis; if either is not, readiness stays 200 with `Status` `Degraded`, because the node can still serve everything except coordinated work. `GET /v1.0/cluster/nodes` (administrator only) lists every node with its state. Every response also carries an `x-litegraph-node` header naming the node that answered, which is the quickest way to see load balancing at work.
 
 ## Running a build of your own
 

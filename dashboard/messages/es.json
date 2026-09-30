@@ -1496,18 +1496,41 @@
     "actions": {
       "save": "Guardar",
       "discard": "Descartar cambios",
-      "restart": "Reiniciar servidor"
+      "restart": "Reiniciar servidor",
+      "restartCluster": "Reiniciar clúster"
     },
     "restartModal": {
       "title": "¿Reiniciar el servidor?",
-      "body": "El servidor se cerrará y el contenedor se reiniciará con la configuración guardada. Las conexiones activas se interrumpirán brevemente."
+      "body": "El servidor se cerrará y el contenedor se reiniciará con la configuración guardada. Las conexiones activas se interrumpirán brevemente.",
+      "titleCluster": "¿Reiniciar todos los nodos?",
+      "bodyCluster": "Todos los nodos se reiniciarán de uno en uno, cada uno después de que el anterior informe que está en buen estado. El clúster sigue atendiendo solicitudes durante todo el proceso."
     },
     "toast": {
       "saved": "Configuración guardada.",
       "saveFailed": "No se pudo guardar la configuración.",
       "restartFailed": "No se pudo reiniciar el servidor.",
       "reconnected": "El servidor está de nuevo en línea.",
-      "reconnectTimeout": "El servidor no volvió a tiempo. Comprueba su estado."
+      "reconnectTimeout": "El servidor no volvió a tiempo. Comprueba su estado.",
+      "rollingRestart": "Reinicio escalonado solicitado. Los nodos se reinician de uno en uno; siga el progreso en la lista de nodos."
+    },
+    "environmentOverrides": "{count} ajustes provienen de variables de entorno o se establecen al iniciar; sus valores en el archivo de configuración no se modificaron.",
+    "cluster": {
+      "title": "Nodos",
+      "descriptionCluster": "Todos los nodos del clúster {name}. La configuración se guarda para todos los nodos. Los ajustes que requieren reinicio se aplican tras un reinicio del clúster, que reinicia los nodos de uno en uno.",
+      "descriptionSingle": "Este servidor funciona como un único nodo.",
+      "registryUnavailable": "El registro de nodos (Redis) no está disponible; solo se muestra el nodo que respondió.",
+      "secondsAgo": "hace {seconds} s",
+      "yes": "Sí",
+      "no": "No",
+      "columns": {
+        "node": "Nodo",
+        "state": "Estado",
+        "version": "Versión",
+        "started": "Iniciado",
+        "heartbeat": "Último latido",
+        "settingsVersion": "Versión de configuración",
+        "restartPending": "Reinicio pendiente"
+      }
     }
   },
   "ai": {

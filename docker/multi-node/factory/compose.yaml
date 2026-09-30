@@ -4,7 +4,9 @@
 # Three identical LiteGraph nodes share one PostgreSQL database behind an Nginx load
 # balancer.  The nodes keep no state of their own; Clutch (two nodes behind their own load
 # balancer) provides the distributed locks used for schema migrations, background jobs,
-# vector index builds, and settings writes.
+# vector index builds, settings writes, and rolling restarts, and Redis carries the node
+# registry and the settings-change and restart signals (nothing in it needs to survive a
+# Redis restart, so it runs without persistence).
 #
 # Start:     docker compose up -d
 # Stop:      docker compose down
@@ -50,6 +52,7 @@ x-litegraph-db-env: &litegraph-db-env
   LITEGRAPH_CLUSTER_NAME: 'litegraph'
   LITEGRAPH_CLUTCH_ENDPOINT: 'http://clutch-lb:8090'
   LITEGRAPH_CLUTCH_ACCESS_KEY: '${LITEGRAPH_CLUTCH_ACCESS_KEY:-clutch-default-access-key}'
+  LITEGRAPH_REDIS_CONNECTION_STRING: 'redis:6379'
   LITEGRAPH_ADMIN_BEARER_TOKEN: '${LITEGRAPH_ADMIN_BEARER_TOKEN:-litegraphadmin}'
   LITEGRAPH_ENCRYPTION_KEY: '${LITEGRAPH_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}'
   LITEGRAPH_ENCRYPTION_IV: '${LITEGRAPH_ENCRYPTION_IV:-00000000000000000000000000000000}'
@@ -62,6 +65,8 @@ x-litegraph-node: &litegraph-node
     litegraph-init:
       condition: service_completed_successfully
     clutch-lb:
+      condition: service_healthy
+    redis:
       condition: service_healthy
     syslog-shim:
       condition: service_started
@@ -162,6 +167,22 @@ services:
       - ./nginx/clutch.conf:/etc/nginx/nginx.conf:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8090/v1.0/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+
+  #
+  # Redis: node registry and settings-change and restart signals.  No persistence: every
+  # node rewrites its registry entry every two seconds, and a lost signal only means an
+  # administrator repeats the restart request.  Not published to the host.
+  #
+
+  redis:
+    image: 'redis:7.4.9-alpine'
+    restart: 'unless-stopped'
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
       interval: 5s
       timeout: 2s
       retries: 2

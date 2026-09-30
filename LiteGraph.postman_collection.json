@@ -16579,6 +16579,70 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Cluster",
+					"item": [
+						{
+							"name": "List cluster nodes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes"
+									]
+								},
+								"description": "System administrator only. Lists every node in the Redis node registry with its state, health checks, settings version, and pending restart, plus the cluster settings and restart counters. On a single node, the answering server is the only node."
+							},
+							"response": []
+						},
+						{
+							"name": "Request cluster restart",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/restart",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"restart"
+									]
+								},
+								"description": "System administrator only. In cluster mode, requests a rolling restart: every node restarts one at a time, each after the previous one reports healthy. Returns 503 when Redis is unreachable. On a single node, restarts the server.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"confirm\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		},
