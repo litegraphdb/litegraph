@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import LabelPage from '@/app/dashboard/[tenantId]/labels/page';
+import LabelPage from '@/app/dashboard/[tenantId]/graphs/labels/page';
 import { createMockInitialState } from '../../store/mockStore';
 import { mockLabelData, mockGraphGUID } from '../mockData';
 import { handlers } from './handler';

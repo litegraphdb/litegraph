@@ -8,6 +8,7 @@ namespace LiteGraph.Server.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using LiteGraph;
+    using LiteGraph.Coordination;
     using LiteGraph.GraphRepositories;
     using LiteGraph.Server.Classes;
     using SyslogLogging;
@@ -19,6 +20,17 @@ namespace LiteGraph.Server.Services
     public class RequestHistoryService : IDisposable
     {
         #region Public-Members
+
+        /// <summary>
+        /// Lock provider.  When distributed, each purge pass runs on only one cluster node.
+        /// Null purges locally on every pass.
+        /// </summary>
+        public ILockProvider LockProvider { get; set; } = null;
+
+        /// <summary>
+        /// Cluster node registry that records each purge run.  Null on a single node.
+        /// </summary>
+        public Cluster.ClusterRegistry Registry { get; set; } = null;
 
         /// <summary>
         /// Redacted value used in place of sensitive header contents.
@@ -52,7 +64,9 @@ namespace LiteGraph.Server.Services
 
         private readonly HashSet<string> _SkippedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "/favicon.ico"
+            "/favicon.ico",
+            "/v1.0/health/live",
+            "/v1.0/health/ready"
         };
 
         private readonly Channel<RequestHistoryDetail> _CaptureChannel;
@@ -319,6 +333,27 @@ namespace LiteGraph.Server.Services
             }
         }
 
+        private void RecordJobRun(DateTime startedUtc, double durationMs, bool success, string message)
+        {
+            Cluster.ClusterRegistry registry = Registry;
+            if (registry == null) return;
+            ClusterJobRun run = new ClusterJobRun
+            {
+                Job = "request-history-purge",
+                NodeId = registry.NodeId,
+                StartedUtc = startedUtc,
+                CompletedUtc = DateTime.UtcNow,
+                DurationMs = durationMs,
+                Success = success,
+                Message = message
+            };
+            _ = Task.Run(async () =>
+            {
+                try { await registry.RecordJobRunAsync(run).ConfigureAwait(false); }
+                catch (Exception e) { _Logging.Debug(_Header + "unable to record the purge run: " + e.Message); }
+            });
+        }
+
         private async Task PurgeLoopAsync(CancellationToken token)
         {
             TimeSpan initialDelay = TimeSpan.FromSeconds(30);
@@ -327,13 +362,22 @@ namespace LiteGraph.Server.Services
 
             while (!token.IsCancellationRequested)
             {
+                ILockHandle jobLock = null;
                 try
                 {
-                    if (_Settings.RequestHistory.Enable)
+                    bool run = _Settings.RequestHistory.Enable;
+                    if (run && LockProvider != null && LockProvider.IsDistributed)
+                    {
+                        jobLock = await LockProvider.TryAcquireAsync(LockKeys.Job("request-history-purge"), LockModeEnum.Exclusive, token).ConfigureAwait(false);
+                        run = (jobLock != null);
+                    }
+
+                    if (run)
                     {
                         DateTime cutoff = DateTime.UtcNow.AddDays(-_Settings.RequestHistory.RetentionDays);
                         System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
+                        DateTime startedUtc = DateTime.UtcNow;
                         try
                         {
                             int deleted = await _Repo.RequestHistory.DeleteOlderThan(cutoff, token).ConfigureAwait(false);
@@ -341,11 +385,13 @@ namespace LiteGraph.Server.Services
                             Observability?.RecordRetentionSweep("request_history", true, deleted, stopwatch.Elapsed.TotalMilliseconds);
                             if (deleted > 0)
                                 _Logging.Debug(_Header + "purged " + deleted + " request history records older than " + cutoff.ToString("O"));
+                            RecordJobRun(startedUtc, stopwatch.Elapsed.TotalMilliseconds, true, null);
                         }
-                        catch (Exception) when (!token.IsCancellationRequested)
+                        catch (Exception e) when (!token.IsCancellationRequested)
                         {
                             stopwatch.Stop();
                             Observability?.RecordRetentionSweep("request_history", false, 0, stopwatch.Elapsed.TotalMilliseconds);
+                            RecordJobRun(startedUtc, stopwatch.Elapsed.TotalMilliseconds, false, e.Message);
                             throw;
                         }
                     }
@@ -354,6 +400,10 @@ namespace LiteGraph.Server.Services
                 catch (Exception e)
                 {
                     _Logging.Warn(_Header + "purge pass failed: " + e.Message);
+                }
+                finally
+                {
+                    if (jobLock != null) await jobLock.DisposeAsync().ConfigureAwait(false);
                 }
 
                 try

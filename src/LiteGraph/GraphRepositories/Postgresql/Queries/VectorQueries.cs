@@ -29,7 +29,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 + "'" + Sanitizer.Sanitize(vector.Model) + "',"
                 + vector.Dimensionality + ","
                 + "'" + Sanitizer.Sanitize(vector.Content) + "',"
-                + Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors)) + ","
+                + Converters.VectorToSqlLiteral(vector.Vectors) + ","
                 + "'" + Sanitizer.Sanitize(vector.CreatedUtc.ToString(TimestampFormat)) + "',"
                 + "'" + Sanitizer.Sanitize(vector.LastUpdateUtc.ToString(TimestampFormat)) + "'"
                 + ") "
@@ -50,7 +50,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 string vectorsString = "NULL";
                 if (vector.Vectors != null && vector.Vectors.Count > 0)
                 {
-                    vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
+                    vectorsString = Converters.VectorToSqlLiteral(vector.Vectors);
                 }
 
                 values.Add(
@@ -237,6 +237,19 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 + "LIMIT " + batchSize + " OFFSET " + skip + ";";
 
             return ret;
+        }
+
+        internal static string SelectManyGraphs(Guid tenantGuid, List<Guid> graphGuids)
+        {
+            if (graphGuids == null || graphGuids.Count < 1)
+                return "SELECT * FROM 'vectors' WHERE 1 = 0;";
+
+            return
+                "SELECT * FROM 'vectors' WHERE guid IS NOT NULL " +
+                "AND tenantguid = '" + tenantGuid.ToString() + "' " +
+                "AND nodeguid IS NULL " +
+                "AND edgeguid IS NULL " +
+                "AND graphguid IN (" + string.Join(",", graphGuids.Select(g => "'" + Sanitizer.Sanitize(g.ToString()) + "'")) + ");";
         }
 
         internal static string SelectManyNodes(Guid tenantGuid, Guid graphGuid, List<Guid> nodeGuids)
@@ -601,7 +614,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                 + "model = '" + Sanitizer.Sanitize(vector.Model) + "',"
                 + "dimensionality = " + vector.Dimensionality + ","
                 + "content = '" + Sanitizer.Sanitize(vector.Content) + "',"
-                + "embeddings = " + Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors)) + " "
+                + "embeddings = " + Converters.VectorToSqlLiteral(vector.Vectors) + " "
                 + "WHERE guid = '" + vector.GUID + "' "
                 + "RETURNING *;";
         }

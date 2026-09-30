@@ -10,6 +10,8 @@ export interface MenuItemProps {
   /** i18n key resolved at render time; falls back to `title` when absent. */
   titleKey?: string;
   path?: string;
+  /** When true, the item is also selected on any path below `path` (hub entries with tabs). */
+  matchPrefix?: boolean;
   children?: MenuItemProps[];
   props?: any;
 }

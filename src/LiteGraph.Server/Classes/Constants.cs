@@ -184,6 +184,56 @@ namespace LiteGraph.Server.Classes
         /// </summary>
         public static string OTelOtlpTimeoutEnvironmentVariable = "OTEL_EXPORTER_OTLP_TIMEOUT";
 
+        /// <summary>
+        /// Enable cluster mode (true or false).
+        /// </summary>
+        public static string ClusterEnableEnvironmentVariable = "LITEGRAPH_CLUSTER_ENABLE";
+
+        /// <summary>
+        /// Cluster name.
+        /// </summary>
+        public static string ClusterNameEnvironmentVariable = "LITEGRAPH_CLUSTER_NAME";
+
+        /// <summary>
+        /// Node identifier, unique within the cluster.
+        /// </summary>
+        public static string NodeIdEnvironmentVariable = "LITEGRAPH_NODE_ID";
+
+        /// <summary>
+        /// Clutch endpoint URL.
+        /// </summary>
+        public static string ClutchEndpointEnvironmentVariable = "LITEGRAPH_CLUTCH_ENDPOINT";
+
+        /// <summary>
+        /// Clutch access key.
+        /// </summary>
+        public static string ClutchAccessKeyEnvironmentVariable = "LITEGRAPH_CLUTCH_ACCESS_KEY";
+
+        /// <summary>
+        /// Redis connection string for cluster node registration and change signalling.
+        /// </summary>
+        public static string RedisConnectionStringEnvironmentVariable = "LITEGRAPH_REDIS_CONNECTION_STRING";
+
+        /// <summary>
+        /// Trusted proxy addresses or CIDR ranges, comma separated.
+        /// </summary>
+        public static string TrustedProxiesEnvironmentVariable = "LITEGRAPH_TRUSTED_PROXIES";
+
+        /// <summary>
+        /// Administrator bearer token.
+        /// </summary>
+        public static string AdminBearerTokenEnvironmentVariable = "LITEGRAPH_ADMIN_BEARER_TOKEN";
+
+        /// <summary>
+        /// Encryption key used for security tokens.  Must be identical on every node of a cluster.
+        /// </summary>
+        public static string EncryptionKeyEnvironmentVariable = "LITEGRAPH_ENCRYPTION_KEY";
+
+        /// <summary>
+        /// Encryption initialization vector used for security tokens.  Must be identical on every node of a cluster.
+        /// </summary>
+        public static string EncryptionIvEnvironmentVariable = "LITEGRAPH_ENCRYPTION_IV";
+
         #endregion
 
         #region Content-Types
@@ -242,6 +292,11 @@ namespace LiteGraph.Server.Classes
         /// Hostname header key.
         /// </summary>
         public static string HostnameHeader = "x-hostname";
+
+        /// <summary>
+        /// Node identifier header key, present on every response so callers can tell which cluster node answered.
+        /// </summary>
+        public static string NodeHeader = "x-litegraph-node";
 
         /// <summary>
         /// Request ID header.

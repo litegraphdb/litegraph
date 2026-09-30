@@ -69,7 +69,8 @@
         Task FlushDatabase(CancellationToken token = default);
 
         /// <summary>
-        /// Read the server settings as a JSON string.  Requires system administrator privileges.
+        /// Read the server settings file as a JSON string.  Every node sharing the file returns the same settings.
+        /// Requires system administrator privileges.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Server settings as a JSON string.</returns>
@@ -84,10 +85,73 @@
         Task<SettingsUpdateResult> UpdateSettings(string settingsJson, CancellationToken token = default);
 
         /// <summary>
-        /// Request a server restart.  The server exits its process so the container restart policy applies the new settings.
-        /// Requires system administrator privileges.  The call returns best-effort; the connection may drop as the server exits.
+        /// Request a restart so saved settings take effect.  In cluster mode every node restarts, one at a time, each after
+        /// the previous one reports healthy; on a single node the server exits so the container restart policy restarts it.
+        /// Requires system administrator privileges.  Returns null if the connection dropped as a single server exited.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
-        Task RestartServer(CancellationToken token = default);
+        /// <returns>Restart result, or null.</returns>
+        Task<ClusterRestartResult> RestartServer(CancellationToken token = default);
+
+        /// <summary>
+        /// List the cluster nodes with their state and health, plus the settings and restart counters.  On a single node the
+        /// answering server is the only node.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Cluster status.</returns>
+        Task<ClusterStatus> ReadClusterNodes(CancellationToken token = default);
+
+        /// <summary>
+        /// Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+        /// Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Restart result, or null if the connection dropped as a single server exited.</returns>
+        Task<ClusterRestartResult> RestartCluster(CancellationToken token = default);
+
+        /// <summary>
+        /// Read one cluster node from the node registry.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="nodeId">Node identifier.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Node, or null if it is not in the registry.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        Task<ClusterNode> ReadClusterNode(string nodeId, CancellationToken token = default);
+
+        /// <summary>
+        /// List the distributed locks the cluster currently holds in Clutch.  On a single node the list is empty and
+        /// ClusterEnabled is false.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Lock list.</returns>
+        Task<ClusterLockList> ReadClusterLocks(CancellationToken token = default);
+
+        /// <summary>
+        /// List the most recent run of each cluster singleton job.  On a single node the list is empty and ClusterEnabled
+        /// is false.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Job list.</returns>
+        Task<ClusterJobList> ReadClusterJobs(CancellationToken token = default);
+
+        /// <summary>
+        /// Request a restart of one cluster node (on a single node, of the server itself).  The node waits for any other node
+        /// that is restarting, then restarts.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="nodeId">Node identifier.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Restart result, or null if the connection dropped as a single server exited.  When the server refuses the
+        /// request (for example an unknown, offline, or stopped node), Restarting is false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        Task<ClusterRestartResult> RestartClusterNode(string nodeId, CancellationToken token = default);
+
+        /// <summary>
+        /// Remove an Offline or Stopped node from the node registry.  A running node cannot be removed, because it registers
+        /// again on its next heartbeat.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="nodeId">Node identifier.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        Task DeleteClusterNode(string nodeId, CancellationToken token = default);
     }
 }

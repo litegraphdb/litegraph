@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import NodePage from '@/app/dashboard/[tenantId]/nodes/page';
+import NodePage from '@/app/dashboard/[tenantId]/graphs/nodes/page';
 import { createMockInitialState } from '../../store/mockStore';
 import { mockGraphGUID, mockNodeData } from '../mockData';
 import { setupServer } from 'msw/node';

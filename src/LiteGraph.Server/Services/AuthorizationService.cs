@@ -17,6 +17,14 @@ namespace LiteGraph.Server.Services
     {
         #region Public-Members
 
+        /// <summary>
+        /// Cache effective policies and role definitions in process memory.  Default is true.
+        /// Cluster nodes set this to false: the cache is invalidated only by changes made through this process, so a
+        /// permission revoked through another node would otherwise stay in force here.  When false every authorization
+        /// decision reads current policy from the database.
+        /// </summary>
+        public bool EnableCache { get; set; } = true;
+
         #endregion
 
         #region Private-Members
@@ -856,6 +864,13 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.SettingsRead:
                 case RequestTypeEnum.SettingsUpdate:
                 case RequestTypeEnum.SettingsRestart:
+                case RequestTypeEnum.ClusterNodesRead:
+                case RequestTypeEnum.ClusterRestart:
+                case RequestTypeEnum.ClusterNodeRead:
+                case RequestTypeEnum.ClusterNodeRestart:
+                case RequestTypeEnum.ClusterNodeDelete:
+                case RequestTypeEnum.ClusterLocksRead:
+                case RequestTypeEnum.ClusterJobsRead:
                 case RequestTypeEnum.ChatEndpointCreate:
                 case RequestTypeEnum.ChatEndpointReadAll:
                 case RequestTypeEnum.ChatEndpointRead:
@@ -902,6 +917,12 @@ namespace LiteGraph.Server.Services
         {
             if (String.IsNullOrEmpty(cacheKey)) throw new ArgumentNullException(nameof(cacheKey));
             if (loader == null) throw new ArgumentNullException(nameof(loader));
+
+            if (!EnableCache)
+            {
+                Interlocked.Increment(ref _PolicyCacheMisses);
+                return await loader(token).ConfigureAwait(false);
+            }
 
             while (true)
             {
@@ -1101,6 +1122,8 @@ namespace LiteGraph.Server.Services
         {
             if (String.IsNullOrEmpty(cacheKey)) throw new ArgumentNullException(nameof(cacheKey));
             if (loader == null) throw new ArgumentNullException(nameof(loader));
+
+            if (!EnableCache) return await loader(token).ConfigureAwait(false);
 
             while (true)
             {

@@ -60,7 +60,8 @@
     "signOut": "登出儀表板",
     "logoutAria": "登出",
     "language": "語言",
-    "selectLanguage": "選擇語言"
+    "selectLanguage": "選擇語言",
+    "answeredBy": "最近一次回應來自節點 {node}"
   },
   "login": {
     "serverUrl": "LiteGraph 伺服器 URL",
@@ -146,7 +147,10 @@
       "rebuildVectorIndex": "重建向量索引",
       "deleteVectorIndex": "刪除向量索引",
       "viewJson": "睇 JSON",
-      "menu": "操作"
+      "menu": "操作",
+      "viewNodes": "睇節點",
+      "viewEdges": "睇邊",
+      "viewVectors": "睇向量"
     },
     "form": {
       "name": "名稱",
@@ -273,7 +277,12 @@
         "status": "索引而家係咪已載入記憶體",
         "distanceMetric": "計算相似度所用嘅距離度量"
       }
-    }
+    },
+    "providerLabel": "向量索引提供者：{provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "索引喺 PostgreSQL 入面。向量維度相同嘅圖共用一個索引，參數由第一個啟用佢嘅圖決定。超過 4,000 維嘅向量唔用索引，而係精確搜尋。唔會用索引檔案。",
+    "hnswliteNote": "索引由呢個伺服器程序維護，並儲存喺下面嘅索引檔案。"
   },
   "importExport": {
     "exportJsonl": "匯出成 JSONL",
@@ -844,7 +853,9 @@
       "transactionDesc": "寫入請求嘅交易診斷：識別碼、結果、隔離等級同提供者。",
       "durationDesc": "由收到請求到完成回應嘅伺服器端處理時間。",
       "sizeDesc": "請求同回應內文嘅大細（位元組），以「請求 / 回應」顯示。",
-      "tenantDesc": "發出請求嘅租戶；管理請求會留空。"
+      "tenantDesc": "發出請求嘅租戶；管理請求會留空。",
+      "node": "節點",
+      "nodeDesc": "處理呢個請求嘅伺服器節點。"
     },
     "transaction": {
       "noId": "交易"
@@ -876,7 +887,9 @@
       "nonTransactions": "非交易",
       "allMethods": "所有方法",
       "transactionIdPlaceholder": "交易 ID…",
-      "pathPlaceholder": "路徑包含…"
+      "pathPlaceholder": "路徑包含…",
+      "nodePlaceholder": "按節點篩選",
+      "nodeNone": "冇相符嘅節點"
     },
     "summary": {
       "visibleRequests": "可見請求：",
@@ -1359,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "首頁",
-      "data": "資料",
-      "metadata": "元資料",
-      "manage": "管理",
-      "secure": "安全",
-      "administer": "管理",
-      "ai": "AI"
+      "workspace": "工作區",
+      "administration": "系統管理"
     },
-    "item": {
+    "hub": {
       "home": "首頁",
       "homeTitle": "儀表板概覽",
+      "graphs": "圖",
+      "graphsTitle": "圖、節點、邊、元資料、向量同演算法",
+      "chat": "傾偈",
+      "chatTitle": "同你嘅圖傾偈，管理傾偈端點",
+      "access": "存取",
+      "accessTitle": "租戶、用戶、憑證同授權",
+      "system": "系統",
+      "systemTitle": "伺服器設定、叢集同備份",
+      "developer": "開發者",
+      "developerTitle": "API 請求紀錄同 API 探索器"
+    },
+    "tabBarAria": "{hub} 分頁",
+    "item": {
       "graphs": "圖",
       "graphsTitle": "管理圖容器",
       "nodes": "節點",
@@ -1402,14 +1423,16 @@
       "aiChatTitle": "同你嘅圖譜傾偈",
       "aiEndpoints": "端點",
       "aiEndpointsTitle": "管理 LLM 端點",
-      "aiHistory": "傾偈紀錄",
+      "aiHistory": "紀錄",
       "aiHistoryTitle": "瀏覽傾偈對話同回合",
       "aiFeedback": "意見回饋",
       "aiFeedbackTitle": "查閱傾偈意見回饋",
-      "aiSettings": "傾偈設定",
+      "aiSettings": "設定",
       "aiSettingsTitle": "租戶傾偈設定",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "叢集",
+      "clusterTitle": "叢集節點同重新啟動"
     }
   },
   "secure": {
@@ -1435,7 +1458,8 @@
       "rest": "REST 伺服器",
       "database": "資料庫",
       "security": "安全",
-      "chat": "傾偈"
+      "chat": "傾偈",
+      "cluster": "叢集"
     },
     "fields": {
       "requestTimeoutSeconds": "請求逾時（秒）",
@@ -1483,7 +1507,25 @@
       "chatMaxToolIterationsCap": "工具迭代上限",
       "chatMaxConcurrentChats": "最多同時傾偈數",
       "chatSseKeepAliveSeconds": "SSE 保持連線（秒）",
-      "chatDefaultTimeoutMs": "預設逾時（毫秒）"
+      "chatDefaultTimeoutMs": "預設逾時（毫秒）",
+      "clusterEnable": "以叢集節點運行",
+      "clusterName": "叢集名稱",
+      "clusterNodeId": "節點識別碼",
+      "trustForwardedHeaders": "信任轉發嘅標頭",
+      "trustedProxies": "受信任嘅代理",
+      "allowInsecureDefaults": "容許唔安全嘅預設值",
+      "endpointResyncIntervalMs": "聊天端點重新同步間隔 (毫秒)",
+      "clutchEndpoint": "Clutch 端點",
+      "clutchAccessKey": "Clutch 存取金鑰",
+      "clutchLeaseMs": "Clutch 租約 (毫秒)",
+      "clutchRequestTimeoutMs": "Clutch 請求逾時 (毫秒)",
+      "clutchStartupConnectTimeoutMs": "啟動時連線 Clutch 嘅逾時 (毫秒)",
+      "redisConnectionString": "Redis 連線字串",
+      "redisPollIntervalMs": "Redis 輪詢間隔 (毫秒)",
+      "redisNodeTimeoutMs": "節點離線判定時間 (毫秒)",
+      "redisNodeRetentionMs": "忘記已停止節點嘅時間 (毫秒)",
+      "restartDrainMs": "滾動重新啟動排空時間 (毫秒)",
+      "restartPeerTimeoutMs": "滾動重新啟動等其他節點嘅時間 (毫秒)"
     },
     "status": {
       "appliedLive": "已即時套用",
@@ -1496,19 +1538,56 @@
     "actions": {
       "save": "儲存",
       "discard": "捨棄更改",
-      "restart": "重新啟動伺服器"
+      "restart": "重新啟動伺服器",
+      "restartCluster": "重新啟動叢集"
     },
     "restartModal": {
       "title": "重新啟動伺服器？",
-      "body": "伺服器會結束，容器會用已儲存嘅設定重新啟動。使用中嘅連接會短暫中斷。"
+      "body": "伺服器會結束，容器會用已儲存嘅設定重新啟動。使用中嘅連接會短暫中斷。",
+      "titleCluster": "重新啟動所有節點？",
+      "bodyCluster": "所有節點會逐一重新啟動，每個節點都會等上一個節點回復正常先至重新啟動。期間叢集會繼續處理請求。"
     },
     "toast": {
       "saved": "設定已儲存。",
       "saveFailed": "儲存唔到設定。",
       "restartFailed": "重新啟動唔到伺服器。",
       "reconnected": "伺服器已經重新上線。",
-      "reconnectTimeout": "伺服器冇喺時限內恢復。請檢查佢嘅狀態。"
-    }
+      "reconnectTimeout": "伺服器冇喺時限內恢復。請檢查佢嘅狀態。",
+      "rollingRestart": "已要求滾動重新啟動。節點會逐一重新啟動，可以喺節點列表睇進度。"
+    },
+    "environmentOverrides": "有 {count} 項設定嚟自環境變數或者喺啟動時設定，設定檔入面嘅值冇改動。",
+    "cluster": {
+      "title": "節點",
+      "descriptionCluster": "叢集 {name} 入面嘅所有節點。設定會儲存到所有節點。需要重新啟動嘅設定會喺叢集重新啟動之後生效，叢集重新啟動會逐一重新啟動各節點。",
+      "descriptionSingle": "呢部伺服器以單一節點運行。",
+      "registryUnavailable": "連唔到節點登記 (Redis)，只顯示回應咗嘅節點。",
+      "secondsAgo": "{seconds} 秒前",
+      "yes": "係",
+      "no": "唔係",
+      "columns": {
+        "node": "節點",
+        "state": "狀態",
+        "version": "版本",
+        "started": "啟動時間",
+        "heartbeat": "最近心跳",
+        "settingsVersion": "設定版本",
+        "restartPending": "等待重新啟動"
+      },
+      "openPage": "打開叢集頁面"
+    },
+    "hints": {
+      "range": "容許範圍 {min} 至 {max}",
+      "envOverride": "由環境變數設定",
+      "nodeIdEnv": "喺每個節點用環境變數 LITEGRAPH_NODE_ID 設定。",
+      "trustedProxies": "用逗號分隔嘅地址或 CIDR 範圍，例如 10.0.0.0/8。",
+      "clusterName": "細楷字母、數字同連字號。"
+    },
+    "clusterBanner": {
+      "title": "呢啲設定適用於所有節點",
+      "body": "所有節點共用呢個設定檔。需要重新啟動嘅設定會喺叢集重新啟動之後生效，叢集重新啟動會逐一重新啟動各節點。",
+      "link": "打開叢集頁面"
+    },
+    "cachingDisabledInCluster": "喺叢集模式下，唔理呢啲設定點樣，物件快取都會停用，等每個節點讀到最新資料。"
   },
   "ai": {
     "chat": {
@@ -1994,5 +2073,127 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "叢集",
+    "subtitle": "呢個部署入面所有節點、佢哋嘅狀態同重新啟動。狀態篩選只會作用喺由伺服器攞返嚟嘅節點列表。",
+    "loading": "載入緊叢集狀態...",
+    "refresh": "重新整理",
+    "autoRefresh": "每 {seconds} 秒更新",
+    "autoRefreshPaused": "自動更新已暫停",
+    "reconnecting": "連線中斷，重試緊",
+    "lastUpdated": "{time} 更新",
+    "singleNode": "單一節點",
+    "singleNodeDescription": "呢部伺服器唔係以叢集模式運行。佢係唯一嘅節點，重新啟動佢即係重新啟動伺服器。",
+    "registryUnavailable": "連唔到節點登記 (Redis)。只顯示回應咗嘅節點，Redis 恢復之前唔可以要求重新啟動。",
+    "loadError": "載入唔到叢集狀態。",
+    "cards": {
+      "nodes": "正常節點",
+      "cluster": "叢集",
+      "registry": "節點登記",
+      "registryUp": "可用",
+      "registryDown": "唔可用",
+      "registryNa": "冇用",
+      "settings": "設定版本",
+      "settingsLagging": "{count} 個落後，{pending} 個等緊重新啟動",
+      "lastRestart": "最近一次重新啟動要求",
+      "never": "從未"
+    },
+    "filter": {
+      "state": "狀態",
+      "all": "全部狀態",
+      "localNote": "顯示緊 {total} 個節點入面嘅 {shown} 個"
+    },
+    "columns": {
+      "node": "節點",
+      "host": "主機",
+      "version": "版本",
+      "state": "狀態",
+      "started": "啟動時間",
+      "heartbeat": "最近心跳",
+      "checks": "檢查",
+      "settingsVersion": "設定版本",
+      "restartPending": "等待重新啟動",
+      "actions": "操作"
+    },
+    "checks": {
+      "database": "資料庫",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} 秒前",
+    "yes": "係",
+    "no": "唔係",
+    "actions": {
+      "copyNodeId": "複製節點 ID",
+      "restartNode": "重新啟動節點",
+      "remove": "由登記移除",
+      "rollingRestart": "滾動重新啟動"
+    },
+    "restartNodeModal": {
+      "title": "重新啟動節點 {node}？",
+      "body": "個節點會停止接收請求、重新啟動，然後再加入。如果有其他節點重新啟動緊，佢會先等嗰個節點。",
+      "bodySingle": "伺服器會結束，再由佢嘅監管程式重新啟動。請求會短暫中斷。"
+    },
+    "removeModal": {
+      "title": "移除節點 {node}？",
+      "body": "由登記移除呢個節點。如果佢再啟動，會重新登記。"
+    },
+    "rollingModal": {
+      "title": "重新啟動所有節點？",
+      "body": "所有節點會逐一重新啟動，每個節點都會等上一個節點回復正常先至重新啟動。期間叢集會繼續處理請求。"
+    },
+    "progress": {
+      "title": "滾動重新啟動進度",
+      "complete": "所有節點都重新啟動咗。",
+      "pending": "等緊",
+      "restarting": "重新啟動緊",
+      "restarted": "已重新啟動",
+      "dismiss": "關閉",
+      "requested": "{time} 要求"
+    },
+    "toast": {
+      "restartRequested": "已要求重新啟動 {node}。",
+      "rollingRequested": "已要求滾動重新啟動。",
+      "removed": "已移除節點 {node}。",
+      "actionFailed": "請求失敗：{message}"
+    },
+    "empty": "冇已登記嘅節點。",
+    "jobs": {
+      "title": "背景工作",
+      "description": "每個週期只喺一個節點運行嘅各項工作嘅最近一次運行。",
+      "empty": "呢個叢集仲未運行過任何工作。",
+      "emptySingle": "喺單一節點上所有工作都喺本機運行，所以呢度唔會記錄運行。",
+      "unavailable": "連唔到節點登記 (Redis)，所以顯示唔到工作運行。",
+      "success": "成功",
+      "failed": "失敗",
+      "durationMs": "{ms} 毫秒",
+      "columns": {
+        "job": "工作",
+        "node": "節點",
+        "started": "開始",
+        "completed": "完成",
+        "duration": "耗時",
+        "result": "結果"
+      }
+    },
+    "locks": {
+      "title": "分散式鎖",
+      "description": "呢個叢集而家喺 Clutch 持有嘅鎖。大部分只係持有一陣。",
+      "empty": "而家冇持有任何鎖。",
+      "emptySingle": "單一節點只用程序內嘅鎖，所以冇嘢顯示。",
+      "unavailable": "連唔到 Clutch，所以列唔到持有嘅鎖。",
+      "unknownNode": "未知節點",
+      "columns": {
+        "key": "鍵",
+        "keyClass": "類別",
+        "mode": "模式",
+        "node": "節點",
+        "clutchNode": "Clutch 節點",
+        "fencingToken": "防護令牌",
+        "acquired": "取得時間",
+        "leaseExpires": "租約到期"
+      }
+    }
   }
 }

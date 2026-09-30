@@ -82,7 +82,7 @@
             }
             graph.Vectors = createdVectors;
             _Client.Logging.Log(SeverityEnum.Info, "created graph name " + graph.Name + " GUID " + graph.GUID);
-            _GraphCache.AddReplace(graph.GUID, graph);
+            _GraphCache?.AddReplace(graph.GUID, graph);
             return graph;
         }
 
@@ -253,7 +253,7 @@
             }
             updated.Vectors = updatedVectors;
             _Client.Logging.Log(SeverityEnum.Debug, "updated graph with name " + graph.Name + " GUID " + graph.GUID);
-            _GraphCache.AddReplace(updated.GUID, updated);
+            _GraphCache?.AddReplace(updated.GUID, updated);
             return updated;
         }
 
@@ -283,7 +283,7 @@
 
             await _Repo.Graph.DeleteByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted graph " + graphGuid + " (force " + force + ")");
-            _GraphCache.TryRemove(graphGuid, out _);
+            _GraphCache?.TryRemove(graphGuid, out _);
         }
 
         /// <inheritdoc />
@@ -296,7 +296,7 @@
                 await DeleteByGuid(tenantGuid, graph.GUID, false, token).ConfigureAwait(false);
             }
             _Client.Logging.Log(SeverityEnum.Info, "deleted graphs in tenant " + tenantGuid);
-            _GraphCache.Clear();
+            _GraphCache?.Clear();
         }
 
         /// <inheritdoc />
@@ -332,13 +332,13 @@
             token.ThrowIfCancellationRequested();
 
             // Validate configuration
-            if (!configuration.IsValid(out string errorMessage))
+            if (!configuration.IsValid(out string errorMessage, _Repo.UsesFileBackedVectorIndexes))
                 throw new ArgumentException($"Invalid vector index configuration: {errorMessage}");
 
             await _Repo.Graph.EnableVectorIndexingAsync(tenantGuid, graphGuid, configuration, token).ConfigureAwait(false);
 
             // Invalidate cache
-            if (_GraphCache != null) _GraphCache.Remove(graphGuid);
+            if (_GraphCache != null) _GraphCache?.Remove(graphGuid);
         }
 
         /// <inheritdoc />
@@ -352,7 +352,7 @@
             await _Repo.Graph.DisableVectorIndexingAsync(tenantGuid, graphGuid, deleteIndexFile, token).ConfigureAwait(false);
 
             // Invalidate cache
-            if (_GraphCache != null) _GraphCache.Remove(graphGuid);
+            if (_GraphCache != null) _GraphCache?.Remove(graphGuid);
         }
 
         /// <inheritdoc />

@@ -507,7 +507,7 @@ namespace LiteGraph.Server.Services.Chat
                         await SendOpenAiUsageChunk(ctx, state, usage).ConfigureAwait(false);
                     }
 
-                    await ctx.Response.SendEvent(new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
+                    await SendEventAsync(ctx, new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
                 }
                 else
                 {
@@ -578,7 +578,7 @@ namespace LiteGraph.Server.Services.Chat
 
             if (compat.Protocol == ChatCompatProtocolEnum.OpenAI)
             {
-                await ctx.Response.SendEvent(new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
+                await SendEventAsync(ctx, new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
             }
             else
             {
@@ -599,7 +599,7 @@ namespace LiteGraph.Server.Services.Chat
             if (state.Started) return;
             state.Started = true;
             ctx.Response.StatusCode = 200;
-            ctx.Response.ServerSentEvents = true;
+            BeginSse(ctx);
             await SendOpenAiChunk(ctx, state, new OpenAiChatDelta { Role = "assistant" }, null, null, false).ConfigureAwait(false);
         }
 
@@ -632,7 +632,7 @@ namespace LiteGraph.Server.Services.Chat
                 Usage = usage
             };
 
-            await ctx.Response.SendEvent(new ServerSentEvent { Data = _Serializer.SerializeJson(chunk, false) }, final).ConfigureAwait(false);
+            await SendEventAsync(ctx, new ServerSentEvent { Data = _Serializer.SerializeJson(chunk, false) }, final).ConfigureAwait(false);
         }
 
         private async Task SendOpenAiUsageChunk(HttpContextBase ctx, ChatCompatStreamState state, OpenAiChatUsage usage)
@@ -646,7 +646,7 @@ namespace LiteGraph.Server.Services.Chat
                 Usage = usage
             };
 
-            await ctx.Response.SendEvent(new ServerSentEvent { Data = _Serializer.SerializeJson(chunk, false) }, false).ConfigureAwait(false);
+            await SendEventAsync(ctx, new ServerSentEvent { Data = _Serializer.SerializeJson(chunk, false) }, false).ConfigureAwait(false);
         }
 
         private async Task SendOllamaLine(HttpContextBase ctx, OllamaChatResponse obj, CancellationToken token)

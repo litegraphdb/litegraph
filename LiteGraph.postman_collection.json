@@ -16527,6 +16527,255 @@
 			]
 		},
 		{
+			"name": "v10.0",
+			"description": "Routes added in LiteGraph 10.0. Health endpoints need no authentication, are not recorded in request history, and are what load balancers and container health checks should probe. Every response in 10.0 also carries an x-litegraph-node header naming the node that answered; point {{hostname}} and {{port}} at a single node or at a cluster's load balancer to see it change.",
+			"item": [
+				{
+					"name": "Health",
+					"description": "Liveness and readiness probes. See docs/REST_API.md (General APIs) and docs/CLUSTERING.md.",
+					"item": [
+						{
+							"name": "Liveness",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Returns 200 while the server process is running. Body: Status, NodeId, ClusterName (null on a single node), Version, StartedUtc, Utc.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/health/live",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"health",
+										"live"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Readiness",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "Returns 200 when the node can serve requests and 503 otherwise. Checks.Database is true when the database answered; Checks.Clutch is null on a single node and, in a cluster, true when the Clutch lock service is reachable; Checks.Draining is true once the node has been asked to stop.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/health/ready",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"health",
+										"ready"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cluster",
+					"item": [
+						{
+							"name": "List cluster nodes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes"
+									]
+								},
+								"description": "System administrator only. Lists every node in the Redis node registry with its state, health checks, settings version, and pending restart, plus the cluster settings and restart counters. On a single node, the answering server is the only node."
+							},
+							"response": []
+						},
+						{
+							"name": "Request cluster restart",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/restart",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"restart"
+									]
+								},
+								"description": "System administrator only. In cluster mode, requests a rolling restart: every node restarts one at a time, each after the previous one reports healthy. Returns 503 when Redis is unreachable. On a single node, restarts the server.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"confirm\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read cluster node",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes/{{nodeId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes",
+										"{{nodeId}}"
+									]
+								},
+								"description": "System administrator only. One node's registry entry; 404 when not registered."
+							},
+							"response": []
+						},
+						{
+							"name": "Restart cluster node",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes/{{nodeId}}/restart",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes",
+										"{{nodeId}}",
+										"restart"
+									]
+								},
+								"description": "System administrator only. Restarts one node under the Clutch restart lock. 409 for Offline or Stopped nodes.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"confirm\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove cluster node",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes/{{nodeId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes",
+										"{{nodeId}}"
+									]
+								},
+								"description": "System administrator only. Removes an Offline or Stopped node's registry entry; 409 for running nodes."
+							},
+							"response": []
+						},
+						{
+							"name": "List cluster locks",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "System administrator only. Locks this cluster holds in Clutch, attributed to nodes.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/locks",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"locks"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List cluster job runs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "System administrator only. Latest run of each cluster singleton job.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/jobs",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"jobs"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Root",
 			"request": {
 				"method": "GET",
@@ -16749,6 +16998,11 @@
 		{
 			"key": "chatFeedbackGuid",
 			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "nodeId",
+			"value": "litegraph-1",
 			"type": "string"
 		}
 	]

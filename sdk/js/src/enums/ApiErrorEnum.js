@@ -94,4 +94,7 @@ export const ApiErrorEnum = Object.freeze({
 
   /** Request too large. */
   TooLarge: 'TooLarge',
+
+  /** A service required by the request is unavailable. */
+  Unavailable: 'Unavailable',
 });

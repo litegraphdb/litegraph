@@ -49,6 +49,8 @@ namespace LiteGraph.Server.Classes
                         return "The request timed out before it could be completed.";
                     case ApiErrorEnum.TooLarge:
                         return "The size of your request exceeds the maximum allowed by this server.";
+                    case ApiErrorEnum.Unavailable:
+                        return "A service required by this request is currently unavailable.";
 
                     default:
                         return "An unknown error code '" + Error.ToString() + "' was encountered.";
@@ -91,6 +93,8 @@ namespace LiteGraph.Server.Classes
                         return 408;
                     case ApiErrorEnum.TooLarge:
                         return 413;
+                    case ApiErrorEnum.Unavailable:
+                        return 503;
 
                     default:
                         return 500;

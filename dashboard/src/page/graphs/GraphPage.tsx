@@ -1,14 +1,18 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams as useUrlSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams as useUrlSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ImportOutlined, PlusSquareOutlined, SearchOutlined } from '@ant-design/icons';
-import { tableColumns } from './constant';
+import { GraphViewTab, tableColumns } from './constant';
 import {
   useExportGraphJsonlMutation,
   useGetGraphGexfContentByIdMutation,
 } from '@/lib/store/slice/slice';
 import { useCurrentTenant } from '@/hooks/entityHooks';
+import { useAppDynamicNavigation } from '@/hooks/hooks';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { storeSelectedGraph } from '@/lib/store/litegraph/actions';
+import { paths } from '@/constants/constant';
 import { GraphData } from '@/types/types';
 import toast from 'react-hot-toast';
 import FallBack from '@/components/base/fallback/FallBack';
@@ -104,9 +108,18 @@ const GraphPage = () => {
     setIsAddEditGraphVisible(true);
   };
 
-  // Deep link: ?graph=<guid> opens that graph's record directly.
+  // Open a graph-scoped tab with this graph selected; the tab's graph selector reads it from the URL.
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { serializePath } = useAppDynamicNavigation();
+  const handleViewTab = (graph: GraphData, tab: GraphViewTab) => {
+    dispatch(storeSelectedGraph({ graph: graph.GUID }));
+    router.push(`${serializePath(paths[tab])}?graph=${encodeURIComponent(graph.GUID)}`);
+  };
+
+  // Deep link: ?open=<guid> opens that graph's record directly (?graph= only selects the graph scope).
   const urlParams = useUrlSearchParams();
-  const deepLinkGraphGuid = urlParams?.get('graph') || null;
+  const deepLinkGraphGuid = urlParams?.get('open') || null;
   const { data: deepLinkedGraph } = useGetGraphByIdQuery(
     { graphId: deepLinkGraphGuid as string },
     { skip: !deepLinkGraphGuid }
@@ -296,7 +309,8 @@ const GraphPage = () => {
             handleRebuildVectorIndex,
             handleDeleteVectorIndex,
             hasScoreOrDistance,
-            setJsonViewRecord
+            setJsonViewRecord,
+            handleViewTab
           )}
           dataSource={graphDataSource}
           loading={isGraphsLoading || isFetchGexfByGraphIdLoading}

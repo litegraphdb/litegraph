@@ -73,3 +73,24 @@ class TestAdminSettings:
         """A dropped connection during restart is expected and not raised."""
         mock_client.request.side_effect = ConnectionError("connection reset")
         assert Admin.restart_server() is None
+
+    def test_read_cluster_nodes(self, mock_client):
+        """read_cluster_nodes GETs the node registry."""
+        mock_client.request.return_value = {
+            "ClusterEnabled": True,
+            "ClusterName": "litegraph",
+            "Nodes": [{"NodeId": "litegraph-1", "State": "Healthy"}],
+        }
+        status = Admin.read_cluster_nodes()
+        assert status["ClusterEnabled"] is True
+        assert status["Nodes"][0]["NodeId"] == "litegraph-1"
+        mock_client.request.assert_called_once_with("GET", "v1.0/cluster/nodes")
+
+    def test_restart_cluster(self, mock_client):
+        """restart_cluster POSTs to the cluster restart endpoint and returns the result."""
+        mock_client.request.return_value = {"Restarting": True, "Rolling": True, "RestartVersion": 2}
+        result = Admin.restart_cluster()
+        assert result["Rolling"] is True
+        mock_client.request.assert_called_once_with(
+            "POST", "v1.0/cluster/restart", json={"confirm": True}
+        )

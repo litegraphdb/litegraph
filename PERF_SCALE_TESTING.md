@@ -381,6 +381,32 @@ Storage metrics:
 - SQLite WAL growth during mixed writes can expose checkpoint pressure.
 - Index byte growth should be reviewed with vector index rebuild and search results.
 
+## Cluster Scaling Through The Load Balancer (v10.0)
+
+The harness above drives the library directly. To see how a cluster scales, the same REST workload was run against one node directly and against all three nodes of `docker/multi-node` through `litegraph-lb`, from a client container on the Compose network.
+
+**Setup.** One graph with 1,000 nodes, each with one 64-dimension vector, and a pgvector index enabled. Mix: 70% node reads by GUID, 20% cosine vector searches (top 10), 10% node creates. 32 concurrent connections for 30 seconds. All containers (three LiteGraph nodes, PostgreSQL, two Clutch nodes, Redis, Nginx, and observability) shared one 24-CPU workstation, so the nodes competed with each other and with PostgreSQL for the same CPUs.
+
+| Target | Throughput | Read p50 / p95 / p99 | Search p50 / p95 / p99 | Write p50 / p95 / p99 | Errors |
+|---|---|---|---|---|---|
+| 1 node (`litegraph-1`) | 46.3 req/s | 134 / 562 / 743 ms | 2,562 / 3,428 / 3,980 ms | 477 / 1,112 / 1,377 ms | 0 |
+| 3 nodes (`litegraph-lb`) | 86.1 req/s | 94 / 280 / 783 ms | 1,180 / 2,103 / 2,449 ms | 265 / 902 / 1,121 ms | 0 |
+
+Three nodes delivered 1.86 times the throughput of one with lower median latency for every operation, and the load balancer spread requests evenly (865 / 863 / 856). With a single connection a node answers reads in 8 ms, writes in 27 ms, and searches in 100 ms (p50), so the latencies above are queueing on a saturated node.
+
+**Result loading, before and after.** With a single connection, a search spent most of its time loading results rather than searching: the pgvector query itself takes about 6 ms (2 ms to execute, 4 ms to plan), but the node and edge paths then read each result's node, its vectors, its labels, and its tags one at a time, 30 to 60 database round trips for a top-10 search. The same pattern existed in 9.x. v10.0 loads all results' nodes (or edges, or graphs), vectors, labels, and tags with one query each, on both SQLite and PostgreSQL. Measured again on the same deployment:
+
+| Measurement | Before | After |
+|---|---|---|
+| Search p50, one connection | 89 to 100 ms | 57 ms |
+| Search p50, 1 node, 32 connections | 2,351 to 2,562 ms | 1,346 ms |
+| Search p50, 3 nodes, 32 connections | 1,180 to 1,194 ms | 511 ms |
+| Throughput, 3 nodes, 32 connections | 71 to 86 req/s | 101.7 req/s |
+
+The runs are not a controlled comparison: each run's writes grew the graph (about 2,000 nodes by the last run), and other workloads shared the machine, which is why single-connection reads and writes moved by several milliseconds between runs.
+
+To repeat the measurement, bring up `docker/multi-node`, then run any HTTP load tool from a container on the `litegraph-cluster_default` network against `http://litegraph-1:8701` and `http://litegraph-lb:8701`.
+
 ## Troubleshooting
 
 Unsupported provider:

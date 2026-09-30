@@ -11,6 +11,18 @@
   gap: 16px;
 }
 
+// Node that answered the last request, shown in cluster mode.  Below the md breakpoint only the server tag's tooltip
+// names the node, to keep the header compact.
+.nodeBadge {
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .nodeBadge {
+    display: none !important;
+  }
+}
+
 .headerIconLink,
 .headerIconButton {
   width: 32px;

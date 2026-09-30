@@ -149,7 +149,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_requests_total[$__rate_interval])) by (provider, model)",
+          "expr": "sum(rate(litegraph_chat_requests_total{node=~\"$node\"}[$__rate_interval])) by (provider, model)",
           "legendFormat": "{{provider}} {{model}}",
           "range": true,
           "refId": "A"
@@ -246,7 +246,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_request_errors_total[$__rate_interval])) by (provider, model, status_class)",
+          "expr": "sum(rate(litegraph_chat_request_errors_total{node=~\"$node\"}[$__rate_interval])) by (provider, model, status_class)",
           "legendFormat": "{{provider}} {{model}} {{status_class}}",
           "range": true,
           "refId": "A"
@@ -312,7 +312,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(litegraph_chat_active)",
+          "expr": "sum(litegraph_chat_active{node=~\"$node\"})",
           "legendFormat": "active chats",
           "range": true,
           "refId": "A"
@@ -418,7 +418,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(litegraph_chat_ttft_ms_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(litegraph_chat_ttft_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50",
           "range": true,
           "refId": "A"
@@ -429,7 +429,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_ttft_ms_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_ttft_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95",
           "range": true,
           "refId": "B"
@@ -522,7 +522,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(litegraph_chat_request_duration_ms_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(litegraph_chat_request_duration_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50",
           "range": true,
           "refId": "A"
@@ -533,7 +533,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_request_duration_ms_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_request_duration_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95",
           "range": true,
           "refId": "B"
@@ -626,7 +626,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(litegraph_chat_tokens_per_second_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(litegraph_chat_tokens_per_second_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p50 tokens/sec",
           "range": true,
           "refId": "A"
@@ -732,7 +732,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_tokens_prompt_total[$__rate_interval])) by (provider, model)",
+          "expr": "sum(rate(litegraph_chat_tokens_prompt_total{node=~\"$node\"}[$__rate_interval])) by (provider, model)",
           "legendFormat": "prompt {{provider}} {{model}}",
           "range": true,
           "refId": "A"
@@ -743,7 +743,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_tokens_completion_total[$__rate_interval])) by (provider, model)",
+          "expr": "sum(rate(litegraph_chat_tokens_completion_total{node=~\"$node\"}[$__rate_interval])) by (provider, model)",
           "legendFormat": "completion {{provider}} {{model}}",
           "range": true,
           "refId": "B"
@@ -849,7 +849,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_tool_calls_total[$__rate_interval])) by (tool, success)",
+          "expr": "sum(rate(litegraph_chat_tool_calls_total{node=~\"$node\"}[$__rate_interval])) by (tool, success)",
           "legendFormat": "{{tool}} success={{success}}",
           "range": true,
           "refId": "A"
@@ -942,7 +942,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_tool_duration_ms_bucket[$__rate_interval])) by (le, tool))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_tool_duration_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le, tool))",
           "legendFormat": "{{tool}} p95",
           "range": true,
           "refId": "A"
@@ -1035,7 +1035,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_tool_iterations_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_tool_iterations_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95 iterations",
           "range": true,
           "refId": "A"
@@ -1141,7 +1141,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_rag_duration_ms_bucket[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_rag_duration_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le))",
           "legendFormat": "p95",
           "range": true,
           "refId": "A"
@@ -1234,7 +1234,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_embedding_requests_total[$__rate_interval])) by (provider, model)",
+          "expr": "sum(rate(litegraph_chat_embedding_requests_total{node=~\"$node\"}[$__rate_interval])) by (provider, model)",
           "legendFormat": "{{provider}} {{model}}",
           "range": true,
           "refId": "A"
@@ -1327,7 +1327,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_embedding_duration_ms_bucket[$__rate_interval])) by (le, provider, model))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_embedding_duration_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le, provider, model))",
           "legendFormat": "{{provider}} {{model}} p95",
           "range": true,
           "refId": "A"
@@ -1427,7 +1427,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_chat_endpoint_healthy",
+          "expr": "litegraph_chat_endpoint_healthy{node=~\"$node\"}",
           "legendFormat": "{{endpoint}}",
           "range": false,
           "refId": "A",
@@ -1540,7 +1540,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_healthcheck_duration_ms_bucket[$__rate_interval])) by (le, endpoint))",
+          "expr": "histogram_quantile(0.95, sum(rate(litegraph_chat_healthcheck_duration_ms_bucket{node=~\"$node\"}[$__rate_interval])) by (le, endpoint))",
           "legendFormat": "{{endpoint}} p95",
           "range": true,
           "refId": "A"
@@ -1633,7 +1633,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_healthcheck_transitions_total[$__rate_interval])) by (endpoint, to_state)",
+          "expr": "sum(rate(litegraph_chat_healthcheck_transitions_total{node=~\"$node\"}[$__rate_interval])) by (endpoint, to_state)",
           "legendFormat": "transition {{endpoint}} -> {{to_state}}",
           "range": true,
           "refId": "A"
@@ -1644,7 +1644,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_retries_total[$__rate_interval])) by (provider, model)",
+          "expr": "sum(rate(litegraph_chat_retries_total{node=~\"$node\"}[$__rate_interval])) by (provider, model)",
           "legendFormat": "retries {{provider}} {{model}}",
           "range": true,
           "refId": "B"
@@ -1781,7 +1781,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_chat_feedback_total[$__rate_interval])) by (rating)",
+          "expr": "sum(rate(litegraph_chat_feedback_total{node=~\"$node\"}[$__rate_interval])) by (rating)",
           "legendFormat": "{{rating}}",
           "range": true,
           "refId": "A"
@@ -1800,7 +1800,41 @@
     "chat"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "DS_PROMETHEUS"
+        },
+        "definition": "label_values(up{job=~\"litegraph.*\"}, node)",
+        "description": "LiteGraph node (the node label Prometheus attaches to each scrape target). All includes single-node deployments.",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Node",
+        "multi": true,
+        "name": "node",
+        "options": [],
+        "query": {
+          "query": "label_values(up{job=~\"litegraph.*\"}, node)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",

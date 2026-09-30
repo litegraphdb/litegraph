@@ -10,9 +10,14 @@ import {
 import { renderWithRedux } from '@/tests/store/utils';
 
 // Mock the API hooks
+let mockVectorIndexProvider: string | null = null;
+
 jest.mock('@/lib/store/slice/slice', () => ({
   useEnableVectorIndexMutation: jest.fn(),
   useReadVectorIndexConfigurationQuery: jest.fn(),
+  useGetServerHealthQuery: () => ({
+    data: mockVectorIndexProvider ? { Status: 'Healthy', VectorIndexProvider: mockVectorIndexProvider } : undefined,
+  }),
 }));
 
 // Mock the validation function
@@ -52,6 +57,7 @@ describe('EnableVectorIndexModal Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVectorIndexProvider = null;
 
     mockUseEnableVectorIndexMutation.mockReturnValue([
       mockEnableVectorIndex,
@@ -235,6 +241,24 @@ describe('EnableVectorIndexModal Component', () => {
 
       // Form should still be rendered
       expect(screen.getByText('Enable Vector Index')).toBeInTheDocument();
+    });
+  });
+
+  describe('Vector index provider', () => {
+    it('shows pgvector, explains shared indexes, and hides the index file field', () => {
+      mockVectorIndexProvider = 'pgvector';
+      renderWithRedux(<EnableVectorIndexModal {...defaultProps} />);
+      const notice = screen.getByTestId('vector-index-provider');
+      expect(notice).toHaveTextContent('pgvector (PostgreSQL)');
+      expect(notice).toHaveTextContent('4,000 dimensions');
+      expect(screen.queryByText('Vector Index File')).not.toBeInTheDocument();
+    });
+
+    it('keeps the index file field for HnswLite', () => {
+      mockVectorIndexProvider = 'HnswLite';
+      renderWithRedux(<EnableVectorIndexModal {...defaultProps} />);
+      expect(screen.getByTestId('vector-index-provider')).toHaveTextContent('HnswLite (SQLite)');
+      expect(screen.getByText('Vector Index File')).toBeInTheDocument();
     });
   });
 });

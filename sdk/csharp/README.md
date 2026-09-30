@@ -8,7 +8,63 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v8.1.0.
+Current release: v10.0.0.
+
+## New in v10.0.0
+
+- Cluster administration on `sdk.Admin`: `ReadClusterNodes`, `ReadClusterNode(nodeId)`, `RestartCluster` (rolling restart, one node at a time), `RestartClusterNode(nodeId)`, `DeleteClusterNode(nodeId)` (removes an Offline or Stopped node from the registry), `ReadClusterLocks` (distributed locks the cluster holds in Clutch, with the node holding each), and `ReadClusterJobs` (most recent run of each cluster singleton job). `RestartServer` now returns a `ClusterRestartResult`.
+- `sdk.HealthLive()` and `sdk.HealthReady()` return the health body; readiness returns it for both 200 and 503, so a node that is not ready reports why.
+- Automatic retries: connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter (`MaxRetries`, default 2; `RetryBaseDelayMs`, default 200, capped at 5000). GET, HEAD, PUT, and DELETE are retried; POST only when `RetryPost` is true. Streams are never retried once any of the body has been read.
+- `sdk.LastNodeId` names the node that answered the most recent request (the `x-litegraph-node` header).
+- Request history on `sdk.RequestHistory`: `Search` (one page), `Enumerate` (every page), `ReadByGuid`, `ReadDetail` (captured headers and bodies), `ReadSummary` (counts bucketed by interval), `DeleteByGuid`, and `DeleteMany`. Filters include `NodeId`, the node that handled each request.
+
+### Request history
+
+```csharp
+RequestHistorySearchRequest search = new RequestHistorySearchRequest
+{
+    NodeId = "litegraph-2",          // only requests handled by this node
+    Success = false,                 // only failures
+    FromUtc = DateTime.UtcNow.AddHours(-1),
+    MaxKeys = 100
+};
+
+EnumerationResult<RequestHistoryEntry> page = await sdk.RequestHistory.Search(search);
+foreach (RequestHistoryEntry entry in page.Objects)
+    Console.WriteLine(entry.CreatedUtc + " " + entry.Method + " " + entry.Path + " " + entry.StatusCode + " on " + entry.NodeId);
+
+await foreach (RequestHistoryEntry entry in sdk.RequestHistory.Enumerate(search))
+{
+    RequestHistoryDetail detail = await sdk.RequestHistory.ReadDetail(entry.GUID);
+}
+
+RequestHistorySummary summary = await sdk.RequestHistory.ReadSummary("hour", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+RequestHistoryDeleteResult deleted = await sdk.RequestHistory.DeleteMany(new RequestHistorySearchRequest { Path = "/v1.0/health" });
+```
+
+System administrators see every tenant and may set `TenantGUID`; tenant administrators see only their own tenant. `Enumerate` pins its window to the moment it starts (unless `ToUtc` is set), so requests recorded while it pages do not shift later pages.
+
+### Behind a load balancer
+
+A LiteGraph cluster runs several identical nodes behind a load balancer, so any request may be answered by any node. The SDK needs no special configuration for this, but two settings help:
+
+```csharp
+LiteGraphSdk sdk = new LiteGraphSdk("http://127.0.0.1:8701", "litegraphadmin");
+sdk.MaxRetries = 3;          // retries after the first attempt (0 to 10)
+sdk.RetryBaseDelayMs = 250;  // first retry delay; doubles per retry, capped at 5000 ms
+sdk.RetryPost = false;       // POST is not idempotent; enable only for operations safe to repeat
+
+ClusterStatus cluster = await sdk.Admin.ReadClusterNodes();
+foreach (ClusterNode node in cluster.Nodes)
+    Console.WriteLine(node.NodeId + " " + node.State + (node.RestartPending ? " (restart pending)" : ""));
+
+Console.WriteLine("Last request answered by " + sdk.LastNodeId);
+
+HealthResponse ready = await sdk.HealthReady();
+Console.WriteLine(ready.Status + " database=" + ready.Checks.Database + " clutch=" + ready.Checks.Clutch + " redis=" + ready.Checks.Redis);
+```
+
+A node that is restarting or briefly unreachable returns 502 or 503 through the load balancer; the retries absorb it. `LastNodeId` is useful when reporting a problem, because it names the node whose logs to read.
 
 ## New in v8.1.0
 

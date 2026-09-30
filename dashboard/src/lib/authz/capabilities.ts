@@ -37,16 +37,11 @@ export type CapabilityResource =
   | 'credentials'
   | 'authorization'
   | 'backups'
-  | 'settings';
+  | 'settings'
+  | 'cluster';
 
-export type NavSectionId =
-  | 'home'
-  | 'data'
-  | 'metadata'
-  | 'ai'
-  | 'manage'
-  | 'secure'
-  | 'administer';
+/** Sidebar groups. WORKSPACE holds Home, Graphs and Chat; ADMINISTRATION holds Access, System and Developer. */
+export type NavSectionId = 'workspace' | 'administration';
 
 /** The authenticated principal, derived from the session (see usePrincipal). */
 export interface Principal {
@@ -141,6 +136,7 @@ export const can = (
     // ADMINISTER — SystemAdmin only (already returned true above).
     case 'backups':
     case 'settings':
+    case 'cluster':
       return false;
 
     default:
@@ -158,31 +154,21 @@ export const canViewSection = (
 ): boolean => {
   if (!principal) return false;
   switch (section) {
-    case 'home':
+    case 'workspace':
+      // Home is always visible.
       return true;
-    case 'data':
-      return can(principal, 'view', 'graphs');
-    case 'metadata':
-      return can(principal, 'view', 'labels');
-    case 'ai':
-      return (
-        can(principal, 'view', 'aiChat') ||
-        can(principal, 'view', 'aiEndpoints') ||
-        can(principal, 'view', 'aiHistory') ||
-        can(principal, 'view', 'aiFeedback') ||
-        can(principal, 'view', 'aiSettings')
-      );
-    case 'manage':
-      return can(principal, 'view', 'requests') || can(principal, 'view', 'apiExplorer');
-    case 'secure':
+    case 'administration':
       return (
         can(principal, 'view', 'tenants') ||
         can(principal, 'view', 'users') ||
         can(principal, 'view', 'credentials') ||
-        can(principal, 'view', 'authorization')
+        can(principal, 'view', 'authorization') ||
+        can(principal, 'view', 'settings') ||
+        can(principal, 'view', 'cluster') ||
+        can(principal, 'view', 'backups') ||
+        can(principal, 'view', 'requests') ||
+        can(principal, 'view', 'apiExplorer')
       );
-    case 'administer':
-      return can(principal, 'view', 'backups') || can(principal, 'view', 'settings');
     default:
       return false;
   }

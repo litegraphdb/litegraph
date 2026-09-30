@@ -193,6 +193,18 @@ Operational and authentication utilities.
 | `batch/existence` | Batch existence check for nodes, edges, and edges-between |
 | `userauthentication/generatetoken`, `userauthentication/gettokendetails`, `userauthentication/gettenantsforemail` | Security token issuance and lookup |
 
+### cluster/* (v10.0)
+
+Read-only views of the node registry. Tools that change cluster state (restarting or removing nodes) are deliberately not exposed over MCP; use the REST API or the dashboard's Cluster page. All three require a system administrator token.
+
+| Tool | Arguments | Purpose |
+|------|-----------|---------|
+| `cluster/status` | none | Summary: whether the server runs as a cluster, cluster name, whether Redis is reachable, `NodesTotal`, `NodesByState`, `NodesRestartPending`, `NodesBehindSettings`, and the settings and restart versions |
+| `cluster/nodes` | `state` (optional, case-insensitive) | The `GET /v1.0/cluster/nodes` body, optionally filtered to one state |
+| `cluster/node` | `nodeId` | One node's registry entry, or `null` when the node is not registered |
+
+On a single node, the answering server is the only node. The MCP server itself runs as one instance even in a cluster: it keeps MCP sessions in memory and holds no LiteGraph data, so a second instance would add capacity but nothing else, and the Docker deployment points its one instance at the load balancer.
+
 ### chat/*
 
 The v8.1 LLM chat surface: upstream endpoint management, completions, threads, feedback, and per-tenant chat settings. See [Chat Tools](#chat-tools) below for arguments and examples.

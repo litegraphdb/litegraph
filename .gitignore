@@ -377,19 +377,11 @@ test-importexport-*.db
 # Local Docker deployment runtime artifacts
 docker/logs/
 docker/backups/
-docker/temp/
-docker/postgresql-data/
-docker/indexes/*
-!docker/indexes/.gitkeep
-docker/*.db-shm
-docker/*.db-wal
-docker/*.db-journal
-docker/factory/logs/
-docker/factory/backups/
-docker/factory/temp/
-docker/factory/postgresql-data/
-docker/factory/indexes/*
-!docker/factory/indexes/.gitkeep
-docker/factory/*.db-shm
-docker/factory/*.db-wal
-docker/factory/*.db-journal
+docker/*/logs/
+docker/*/backups/
+docker/*/data/
+docker/*/temp/
+docker/*/.env
+docker/**/*.db-shm
+docker/**/*.db-wal
+docker/**/*.db-journal

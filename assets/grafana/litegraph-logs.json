@@ -136,7 +136,7 @@
             "uid": "DS_LOKI"
           },
           "editorMode": "code",
-          "expr": "sum by (severity) (count_over_time({service=~\"litegraph.*\", component=~\"$component\"} [$__interval]))",
+          "expr": "sum by (severity) (count_over_time({service=~\"litegraph.*\", component=~\"$component\", hostname=~\"$node\"} [$__interval]))",
           "legendFormat": "{{severity}}",
           "queryType": "range",
           "refId": "A"
@@ -174,7 +174,7 @@
             "uid": "DS_LOKI"
           },
           "editorMode": "code",
-          "expr": "{service=~\"litegraph.*\", component=~\"$component\", severity=~\"$severity\"}",
+          "expr": "{service=~\"litegraph.*\", component=~\"$component\", hostname=~\"$node\", severity=~\"$severity\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -211,7 +211,7 @@
             "uid": "DS_LOKI"
           },
           "editorMode": "code",
-          "expr": "{service=~\"litegraph.*\", component=~\"$component\", severity=~\"error|critical\"}",
+          "expr": "{service=~\"litegraph.*\", component=~\"$component\", hostname=~\"$node\", severity=~\"error|critical\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -230,6 +230,41 @@
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "DS_LOKI"
+        },
+        "definition": "label_values(hostname)",
+        "description": "Host name of the node that logged the line; cluster nodes use their node id as host name.",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Node",
+        "multi": true,
+        "name": "node",
+        "options": [],
+        "query": {
+          "label": "hostname",
+          "refId": "LokiVariableQueryEditor-VariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
       {
         "current": {
           "selected": true,

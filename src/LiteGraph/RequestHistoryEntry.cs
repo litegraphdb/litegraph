@@ -60,6 +60,11 @@ namespace LiteGraph
         public string SourceIp { get; set; } = null;
 
         /// <summary>
+        /// Identifier of the server node that handled the request (v10.0).  Null for records written before v10.0.
+        /// </summary>
+        public string NodeId { get; set; } = null;
+
+        /// <summary>
         /// Tenant GUID associated with the request, if any.
         /// </summary>
         public Guid? TenantGUID { get; set; } = null;

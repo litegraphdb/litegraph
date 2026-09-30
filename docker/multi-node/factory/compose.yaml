@@ -1,0 +1,456 @@
+#
+# LiteGraph: multi-node cluster on PostgreSQL with pgvector
+#
+# Three identical LiteGraph nodes share one PostgreSQL database behind an Nginx load
+# balancer.  The nodes keep no state of their own; Clutch (two nodes behind their own load
+# balancer) provides the distributed locks used for schema migrations, background jobs,
+# vector index builds, settings writes, and rolling restarts, and Redis carries the node
+# registry and the settings-change and restart signals (nothing in it needs to survive a
+# Redis restart, so it runs without persistence).
+#
+# Start:     docker compose up -d
+# Stop:      docker compose down
+# Update:    update.bat
+# Validate:  smoke.bat (or pwsh ./smoke.ps1), then failover.bat
+# Reset:     factory/reset.bat (destroys data)
+#
+# REST API (load balancer)   http://127.0.0.1:8701    (admin bearer token: litegraphadmin)
+# Dashboard                  http://127.0.0.1:3001
+# MCP                        http://127.0.0.1:8702    (TCP 8703, WebSocket 8704, metrics 8705)
+# Grafana                    http://127.0.0.1:3000    (admin / admin)
+# Prometheus                 http://127.0.0.1:9090
+# PostgreSQL                 127.0.0.1:15433          (superuser postgres / postgres)
+# Switchboard (profile)      http://127.0.0.1:8711    docker compose --profile switchboard up -d
+# Clutch dashboard (profile) http://127.0.0.1:3002    docker compose --profile tools up -d
+#
+# DEMONSTRATION CREDENTIALS.  Before any real use, set in .env (see .env.example):
+#   LITEGRAPH_ADMIN_BEARER_TOKEN, LITEGRAPH_ENCRYPTION_KEY, LITEGRAPH_ENCRYPTION_IV,
+#   LITEGRAPH_DB_PASSWORD, CLUTCH_DB_PASSWORD, POSTGRES_ADMIN_PASSWORD,
+#   CLUTCH_AUTH_SIGNING_KEY, and a dedicated Clutch access key (LITEGRAPH_CLUTCH_ACCESS_KEY),
+# then set Cluster.AllowInsecureDefaults to false in litegraph.json.
+#
+# Adding a node: copy the litegraph-3 service as litegraph-4 (new LITEGRAPH_NODE_ID, hostname,
+# and log directory), add it to nginx/litegraph.conf, prometheus.yaml (with its node label),
+# and the litegraph-lb depends_on list, then docker compose up -d.
+#
+# Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.0.0).
+#
+
+name: litegraph-cluster
+
+x-litegraph-db-env: &litegraph-db-env
+  LITEGRAPH_DB_TYPE: 'Postgresql'
+  LITEGRAPH_DB_HOST: 'postgresql'
+  LITEGRAPH_DB_PORT: '5432'
+  LITEGRAPH_DB_NAME: 'litegraph'
+  LITEGRAPH_DB_USERNAME: 'litegraph'
+  LITEGRAPH_DB_PASSWORD: '${LITEGRAPH_DB_PASSWORD:-litegraph}'
+  LITEGRAPH_DB_SCHEMA: 'litegraph'
+  LITEGRAPH_DB_MAX_CONNECTIONS: '${LITEGRAPH_DB_MAX_CONNECTIONS:-32}'
+  LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS: '${LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS:-30}'
+  LITEGRAPH_CLUSTER_ENABLE: 'true'
+  LITEGRAPH_CLUSTER_NAME: 'litegraph'
+  LITEGRAPH_CLUTCH_ENDPOINT: 'http://clutch-lb:8090'
+  LITEGRAPH_CLUTCH_ACCESS_KEY: '${LITEGRAPH_CLUTCH_ACCESS_KEY:-clutch-default-access-key}'
+  LITEGRAPH_REDIS_CONNECTION_STRING: 'redis:6379'
+  LITEGRAPH_ADMIN_BEARER_TOKEN: '${LITEGRAPH_ADMIN_BEARER_TOKEN:-litegraphadmin}'
+  LITEGRAPH_ENCRYPTION_KEY: '${LITEGRAPH_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}'
+  LITEGRAPH_ENCRYPTION_IV: '${LITEGRAPH_ENCRYPTION_IV:-00000000000000000000000000000000}'
+  LITEGRAPH_TRUSTED_PROXIES: '172.16.0.0/12,10.0.0.0/8,192.168.0.0/16'
+
+x-litegraph-node: &litegraph-node
+  image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+  restart: 'unless-stopped'
+  depends_on:
+    litegraph-init:
+      condition: service_completed_successfully
+    clutch-lb:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    syslog-shim:
+      condition: service_started
+  # extra_hosts: ['host.docker.internal:host-gateway']
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://127.0.0.1:8701/v1.0/health/ready"]
+    interval: 5s
+    timeout: 2s
+    retries: 2
+    start_period: 60s
+
+x-clutch-env: &clutch-env
+  CLUTCH_DB_TYPE: 'Postgresql'
+  CLUTCH_DB_HOST: 'postgresql'
+  CLUTCH_DB_PORT: '5432'
+  CLUTCH_DB_DATABASE: 'clutch'
+  CLUTCH_DB_USERNAME: 'clutch'
+  CLUTCH_DB_PASSWORD: '${CLUTCH_DB_PASSWORD:-clutch}'
+  CLUTCH_AUTH_SIGNING_KEY: '${CLUTCH_AUTH_SIGNING_KEY:-change-me-in-production}'
+
+services:
+
+  #
+  # PostgreSQL with pgvector.  init/ creates separate litegraph and clutch roles and
+  # databases on first start; neither role can connect to the other's database.
+  #
+
+  postgresql:
+    image: 'pgvector/pgvector:0.8.6-pg17-trixie'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_POSTGRESQL_HOST_PORT:-15433}:5432'
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: '${POSTGRES_ADMIN_PASSWORD:-postgres}'
+      POSTGRES_DB: 'postgres'
+      LITEGRAPH_DB_PASSWORD: '${LITEGRAPH_DB_PASSWORD:-litegraph}'
+      LITEGRAPH_DB_SCHEMA: 'litegraph'
+      CLUTCH_DB_PASSWORD: '${CLUTCH_DB_PASSWORD:-clutch}'
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./postgresql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # TCP on purpose: during first-time initialization the image runs init scripts against a
+      # temporary server that listens only on the Unix socket, so a socket check would pass too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 60s
+
+  #
+  # Clutch distributed lock service: two nodes behind their own load balancer.
+  # clutch-2 waits for clutch-1 so the two never run Clutch's schema setup at the same time.
+  #
+
+  clutch-1:
+    image: 'jchristn77/clutch-server:v0.2.0'
+    restart: 'unless-stopped'
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment:
+      <<: *clutch-env
+      CLUTCH_NODE_ID: 'clutch-1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/v1.0/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  clutch-2:
+    image: 'jchristn77/clutch-server:v0.2.0'
+    restart: 'unless-stopped'
+    depends_on:
+      clutch-1:
+        condition: service_healthy
+    environment:
+      <<: *clutch-env
+      CLUTCH_NODE_ID: 'clutch-2'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/v1.0/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  clutch-lb:
+    image: 'nginx:1.27-alpine'
+    restart: 'unless-stopped'
+    depends_on:
+      clutch-1:
+        condition: service_healthy
+      clutch-2:
+        condition: service_healthy
+    volumes:
+      - ./nginx/clutch.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8090/v1.0/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+
+  #
+  # Redis: node registry and settings-change and restart signals.  No persistence: every
+  # node rewrites its registry entry every two seconds, and a lost signal only means an
+  # administrator repeats the restart request.  Not published to the host.
+  #
+
+  redis:
+    image: 'redis:7.4.9-alpine'
+    restart: 'unless-stopped'
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+
+  #
+  # One-shot initialization: schema, migrations, built-in roles, default records.
+  # Runs under the Clutch schema lock like every node start.
+  #
+
+  litegraph-init:
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      clutch-lb:
+        condition: service_healthy
+      syslog-shim:
+        condition: service_started
+    command:
+      - '--config=/app/litegraph.json'
+      - '--init-only'
+    restart: 'no'
+    environment:
+      <<: *litegraph-db-env
+      LITEGRAPH_NODE_ID: 'init'
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/litegraph-init/:/app/logs/
+
+  #
+  # LiteGraph nodes.  All three share one settings file and one database; each has its own
+  # node identifier and log directory.  None publishes a port: traffic enters through litegraph-lb.
+  #
+
+  litegraph-1:
+    <<: *litegraph-node
+    hostname: 'litegraph-1'
+    environment:
+      <<: *litegraph-db-env
+      LITEGRAPH_NODE_ID: 'litegraph-1'
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/litegraph-1/:/app/logs/
+      - ./backups/:/app/backups/
+
+  litegraph-2:
+    <<: *litegraph-node
+    hostname: 'litegraph-2'
+    environment:
+      <<: *litegraph-db-env
+      LITEGRAPH_NODE_ID: 'litegraph-2'
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/litegraph-2/:/app/logs/
+      - ./backups/:/app/backups/
+
+  litegraph-3:
+    <<: *litegraph-node
+    hostname: 'litegraph-3'
+    environment:
+      <<: *litegraph-db-env
+      LITEGRAPH_NODE_ID: 'litegraph-3'
+    volumes:
+      - ./litegraph.json:/app/litegraph.json
+      - ./logs/litegraph-3/:/app/logs/
+      - ./backups/:/app/backups/
+
+  #
+  # Load balancer for the LiteGraph REST API.
+  #
+
+  litegraph-lb:
+    image: 'nginx:1.27-alpine'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_REST_HOST_PORT:-8701}:8701'
+    depends_on:
+      litegraph-1:
+        condition: service_healthy
+      litegraph-2:
+        condition: service_healthy
+      litegraph-3:
+        condition: service_healthy
+    volumes:
+      - ./nginx/litegraph.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8701/v1.0/health/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+
+  #
+  # Optional alternative load balancer: Switchboard, on host port 8711.
+  #   docker compose --profile switchboard up -d
+  #
+
+  switchboard:
+    image: 'jchristn77/switchboard:v5.2.2'
+    profiles: ['switchboard']
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_SWITCHBOARD_HOST_PORT:-8711}:8000'
+    depends_on:
+      litegraph-1:
+        condition: service_healthy
+      litegraph-2:
+        condition: service_healthy
+      litegraph-3:
+        condition: service_healthy
+    volumes:
+      - ./switchboard/sb.json:/app/sb.json
+      - switchboard-data:/app/data/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-I", "http://127.0.0.1:8000/"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  #
+  # LiteGraph MCP server (one instance; it holds MCP sessions in memory) and dashboard,
+  # both pointed at the load balancer.
+  #
+
+  litegraph-mcp:
+    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_MCP_HOST_PORT:-8702}:8702'
+      - '${LITEGRAPH_MCP_TCP_HOST_PORT:-8703}:8703'
+      - '${LITEGRAPH_MCP_WS_HOST_PORT:-8704}:8704'
+      - '${LITEGRAPH_MCP_METRICS_HOST_PORT:-8705}:8705'
+    depends_on:
+      litegraph-lb:
+        condition: service_healthy
+    environment:
+      LITEGRAPH_ENDPOINT: 'http://litegraph-lb:8701'
+      LITEGRAPH_API_KEY: '${LITEGRAPH_ADMIN_BEARER_TOKEN:-litegraphadmin}'
+      MCP_METRICS_HOSTNAME: '*'
+      MCP_METRICS_PORT: '8705'
+      MCP_SYSLOG_HOSTNAME: 'alloy'
+      MCP_SYSLOG_PORT: '2514'
+    volumes:
+      - ./litegraph-mcp.json:/app/litegraph.json
+      - ./logs/litegraph-mcp/:/app/logs/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8702"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  litegraph-ui:
+    image: 'jchristn77/litegraph-ui:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_UI_HOST_PORT:-3001}:3000'
+    depends_on:
+      litegraph-lb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+  clutch-ui:
+    image: 'jchristn77/clutch-ui:v0.2.0'
+    profiles: ['tools']
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_CLUTCH_UI_HOST_PORT:-3002}:80'
+    depends_on:
+      clutch-lb:
+        condition: service_healthy
+
+  #
+  # Observability: Prometheus (scrapes each node), Loki, Alloy (syslog to Loki), Grafana
+  #
+
+  prometheus:
+    image: 'prom/prometheus:v3.14.0'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_PROMETHEUS_HOST_PORT:-9090}:9090'
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/-/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+
+  loki:
+    image: 'grafana/loki:3.3.0'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_LOKI_HOST_PORT:-3100}:3100'
+    command:
+      - '-config.file=/etc/loki/config.yaml'
+    volumes:
+      - ../shared/loki/config.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+
+  alloy:
+    image: 'grafana/alloy:v1.5.0'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_ALLOY_HOST_PORT:-12345}:12345'
+    depends_on:
+      loki:
+        condition: service_started
+    command:
+      - 'run'
+      - '--server.http.listen-addr=0.0.0.0:12345'
+      - '--storage.path=/var/lib/alloy/data'
+      - '/etc/alloy/config.alloy'
+    volumes:
+      - ../shared/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+
+  syslog-shim:
+    image: 'python:3.12-alpine'
+    restart: 'unless-stopped'
+    depends_on:
+      alloy:
+        condition: service_started
+    command:
+      - 'python'
+      - '/app/syslog-shim.py'
+    volumes:
+      - ../shared/syslog-shim/syslog-shim.py:/app/syslog-shim.py:ro
+
+  grafana:
+    image: 'grafana/grafana-oss:13.0.2'
+    restart: 'unless-stopped'
+    ports:
+      - '${LITEGRAPH_GRAFANA_HOST_PORT:-3000}:3000'
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    environment:
+      GF_SECURITY_ADMIN_USER: 'admin'
+      GF_SECURITY_ADMIN_PASSWORD: 'admin'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ../shared/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../shared/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../../assets/grafana:/var/lib/grafana/dashboards/litegraph:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 30s
+
+volumes:
+  postgresql-data:
+  switchboard-data:
+  prometheus-data:
+  grafana-storage:
+  loki-data:
+  alloy-data:

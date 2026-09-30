@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
+    using LiteGraph.Coordination;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Postgresql;
     using LiteGraph.GraphRepositories.Postgresql.Queries;
@@ -364,6 +365,11 @@
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// On PostgreSQL the index is a pgvector HNSW index (cosine) shared by every graph with the same
+        /// dimensionality.  It is maintained by PostgreSQL on every write, so there is nothing to populate here.
+        /// VectorIndexFile does not apply and is cleared.
+        /// </remarks>
         public async Task EnableVectorIndexingAsync(
             Guid tenantGuid,
             Guid graphGuid,
@@ -377,30 +383,26 @@
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
-            // Apply configuration to the graph object
             configuration.ApplyToGraph(graph);
+            graph.VectorIndexFile = null;
             graph.VectorIndexDirty = false;
             graph.VectorIndexDirtyUtc = null;
             graph.VectorIndexDirtyReason = null;
 
-            // Get all existing vectors in the graph before enabling indexing
-            List<VectorMetadata> existingVectors = new List<VectorMetadata>();
-            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
+            if (graph.VectorIndexType.HasValue
+                && graph.VectorIndexType != VectorIndexTypeEnum.None
+                && graph.VectorDimensionality.HasValue
+                && PgvectorQueries.IsIndexableDimensionality(graph.VectorDimensionality.Value))
             {
-                existingVectors.Add(vector);
+                await EnsurePgvectorIndexAsync(graph, false, token).ConfigureAwait(false);
+            }
+            else if (graph.VectorDimensionality.HasValue && !PgvectorQueries.IsIndexableDimensionality(graph.VectorDimensionality.Value))
+            {
+                _Repo.Logging.Log(SeverityEnum.Warn,
+                    "graph " + graphGuid + " requested a vector index for " + graph.VectorDimensionality.Value + " dimensions; "
+                    + "pgvector indexes support at most " + PgvectorQueries.MaxHalfvecIndexDimensions + ", so searches will run exact");
             }
 
-            // Enable indexing using the index manager
-            await _Repo.VectorIndexManager.EnableIndexingAsync(graph, configuration.VectorIndexType, configuration.VectorIndexFile).ConfigureAwait(false);
-
-            // If there are existing vectors, populate the index
-            if (existingVectors.Count > 0)
-            {
-                List<VectorIndexEntry> existingEntries = await VectorMethodsIndexExtensions.BuildNodeIndexEntriesAsync(_Repo, graph, existingVectors, token).ConfigureAwait(false);
-                await _Repo.VectorIndexManager.RebuildIndexAsync(graph, existingEntries, token).ConfigureAwait(false);
-            }
-
-            // Update the graph in the database with all configuration values
             await _Repo.ExecuteQueryAsync(GraphQueries.Update(graph), true, token).ConfigureAwait(false);
         }
 
@@ -416,18 +418,19 @@
             if (graph == null)
                 throw new KeyNotFoundException($"Graph {graphGuid} not found.");
 
-            // Disable indexing using the index manager
-            await _Repo.VectorIndexManager.DisableIndexingAsync(graphGuid, deleteIndexFile).ConfigureAwait(false);
+            int? dimensions = graph.VectorDimensionality;
 
-            // Apply disabled configuration to clear all vector index settings
             VectorIndexConfiguration disabledConfig = VectorIndexConfiguration.CreateDisabled();
             disabledConfig.ApplyToGraph(graph);
+            graph.VectorIndexFile = null;
             graph.VectorIndexDirty = false;
             graph.VectorIndexDirtyUtc = null;
             graph.VectorIndexDirtyReason = null;
 
-            // Update graph in database
             await _Repo.ExecuteQueryAsync(GraphQueries.Update(graph), true, token).ConfigureAwait(false);
+
+            if (dimensions.HasValue && PgvectorQueries.IsIndexableDimensionality(dimensions.Value))
+                await DropPgvectorIndexIfUnusedAsync(dimensions.Value, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -444,16 +447,9 @@
             if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 throw new InvalidOperationException("Graph does not have indexing enabled.");
 
-            // Get all vectors for the graph (including nodes and edges)
-            List<VectorMetadata> vectors = new List<VectorMetadata>();
-            await foreach (VectorMetadata vector in _Repo.Vector.ReadAllInGraph(tenantGuid, graphGuid, token: token).WithCancellation(token).ConfigureAwait(false))
-            {
-                vectors.Add(vector);
-            }
+            if (graph.VectorDimensionality.HasValue && PgvectorQueries.IsIndexableDimensionality(graph.VectorDimensionality.Value))
+                await EnsurePgvectorIndexAsync(graph, true, token).ConfigureAwait(false);
 
-            // Rebuild the index
-            List<VectorIndexEntry> entries = await VectorMethodsIndexExtensions.BuildNodeIndexEntriesAsync(_Repo, graph, vectors, token).ConfigureAwait(false);
-            await _Repo.VectorIndexManager.RebuildIndexAsync(graph, entries, token).ConfigureAwait(false);
             await ClearVectorIndexDirtyAsync(tenantGuid, graphGuid, token).ConfigureAwait(false);
         }
 
@@ -471,26 +467,40 @@
             if (!graph.VectorIndexType.HasValue || graph.VectorIndexType == VectorIndexTypeEnum.None)
                 return null;
 
-            VectorIndexStatistics stats = _Repo.VectorIndexManager.GetStatistics(graphGuid);
-            if (stats == null)
-            {
-                stats = new VectorIndexStatistics
-                {
-                    VectorCount = 0,
-                    Dimensions = graph.VectorDimensionality ?? 0,
-                    IndexType = graph.VectorIndexType ?? VectorIndexTypeEnum.None,
-                    M = graph.VectorIndexM ?? 16,
-                    EfConstruction = graph.VectorIndexEfConstruction ?? 200,
-                    DefaultEf = graph.VectorIndexEf ?? 50,
-                    IndexFile = graph.VectorIndexFile,
-                    IsLoaded = false,
-                    DistanceMetric = "Cosine"
-                };
-            }
+            int dimensions = graph.VectorDimensionality ?? 0;
+            DataTable countTable = await _Repo.ExecuteNativeQueryAsync(
+                PgvectorQueries.CountGraphNodeVectors(_Repo.QualifiedTable("vectors"), tenantGuid, graphGuid, dimensions > 0 ? dimensions : (int?)null),
+                false,
+                token).ConfigureAwait(false);
 
-            stats.IsDirty = graph.VectorIndexDirty;
-            stats.DirtySinceUtc = graph.VectorIndexDirtyUtc;
-            stats.DirtyReason = graph.VectorIndexDirtyReason;
+            VectorIndexStatistics stats = new VectorIndexStatistics
+            {
+                VectorCount = countTable != null && countTable.Rows.Count > 0 ? Convert.ToInt32(countTable.Rows[0]["vector_count"]) : 0,
+                Dimensions = dimensions,
+                IndexType = graph.VectorIndexType ?? VectorIndexTypeEnum.None,
+                M = graph.VectorIndexM ?? 16,
+                EfConstruction = graph.VectorIndexEfConstruction ?? 200,
+                DefaultEf = graph.VectorIndexEf ?? 50,
+                IndexFile = null,
+                IsLoaded = false,
+                DistanceMetric = "Cosine",
+                IsDirty = false,
+                DirtySinceUtc = null,
+                DirtyReason = null
+            };
+
+            if (dimensions > 0 && PgvectorQueries.IsIndexableDimensionality(dimensions))
+            {
+                string indexName = PgvectorQueries.IndexName(dimensions);
+                DataTable state = await _Repo.ExecuteNativeQueryAsync(PgvectorQueries.IndexState(_Repo.Schema, indexName), false, token).ConfigureAwait(false);
+                if (state != null && state.Rows.Count > 0)
+                {
+                    stats.IndexFile = indexName;
+                    stats.IsLoaded = Convert.ToBoolean(state.Rows[0]["valid"]);
+                    stats.IndexFileSizeBytes = Convert.ToInt64(state.Rows[0]["sizebytes"]);
+                    stats.EstimatedMemoryBytes = stats.IndexFileSizeBytes.Value;
+                }
+            }
 
             return stats;
         }
@@ -850,6 +860,77 @@
         #endregion
 
         #region Private-Methods
+
+        private async Task EnsurePgvectorIndexAsync(Graph graph, bool rebuild, CancellationToken token)
+        {
+            int dimensions = graph.VectorDimensionality.Value;
+            string indexName = PgvectorQueries.IndexName(dimensions);
+            string quotedIndex = PostgresqlGraphRepository.QuoteIdentifier(_Repo.Schema) + "." + PostgresqlGraphRepository.QuoteIdentifier(indexName);
+            bool concurrently = !_Repo.GraphTransactionActive;
+
+            await using (ILockHandle indexLock = await _Repo.LockProvider.AcquireAsync(
+                LockKeys.VectorIndex(dimensions),
+                LockModeEnum.Exclusive,
+                LockAcquireOptions.WaitUpTo(_Repo.SchemaLockTimeoutMs),
+                token).ConfigureAwait(false))
+            {
+                DataTable state = await _Repo.ExecuteNativeQueryAsync(PgvectorQueries.IndexState(_Repo.Schema, indexName), false, token).ConfigureAwait(false);
+                bool exists = state != null && state.Rows.Count > 0;
+                bool valid = exists && Convert.ToBoolean(state.Rows[0]["valid"]);
+
+                if (exists && !valid)
+                {
+                    // A previous concurrent build was interrupted and left an invalid index behind.
+                    await _Repo.ExecuteNativeQueryAsync("DROP INDEX " + (concurrently ? "CONCURRENTLY " : "") + "IF EXISTS " + quotedIndex + ";", false, token).ConfigureAwait(false);
+                    exists = false;
+                }
+
+                if (exists && rebuild)
+                {
+                    await _Repo.ExecuteNativeQueryAsync("REINDEX INDEX " + (concurrently ? "CONCURRENTLY " : "") + quotedIndex + ";", false, token).ConfigureAwait(false);
+                    _Repo.Logging.Log(SeverityEnum.Info, "rebuilt pgvector index " + indexName);
+                    return;
+                }
+
+                if (!exists)
+                {
+                    int m = Math.Max(2, Math.Min(100, graph.VectorIndexM ?? 16));
+                    int efConstruction = Math.Max(4, Math.Min(1000, graph.VectorIndexEfConstruction ?? 64));
+                    if (efConstruction < 2 * m) efConstruction = 2 * m;
+
+                    await _Repo.ExecuteNativeQueryAsync(
+                        PgvectorQueries.CreateIndex(_Repo.QualifiedTable("vectors"), PostgresqlGraphRepository.QuoteIdentifier(indexName), dimensions, m, efConstruction, concurrently),
+                        false,
+                        token).ConfigureAwait(false);
+                    _Repo.Logging.Log(SeverityEnum.Info, "created pgvector index " + indexName + " (m " + m + ", ef_construction " + efConstruction + ")");
+                }
+            }
+        }
+
+        private async Task DropPgvectorIndexIfUnusedAsync(int dimensions, CancellationToken token)
+        {
+            string indexName = PgvectorQueries.IndexName(dimensions);
+            string quotedIndex = PostgresqlGraphRepository.QuoteIdentifier(_Repo.Schema) + "." + PostgresqlGraphRepository.QuoteIdentifier(indexName);
+            bool concurrently = !_Repo.GraphTransactionActive;
+
+            await using (ILockHandle indexLock = await _Repo.LockProvider.AcquireAsync(
+                LockKeys.VectorIndex(dimensions),
+                LockModeEnum.Exclusive,
+                LockAcquireOptions.WaitUpTo(_Repo.SchemaLockTimeoutMs),
+                token).ConfigureAwait(false))
+            {
+                DataTable users = await _Repo.ExecuteNativeQueryAsync(
+                    PgvectorQueries.CountIndexedGraphsWithDimensions(_Repo.QualifiedTable("graphs"), dimensions, null),
+                    false,
+                    token).ConfigureAwait(false);
+
+                int count = users != null && users.Rows.Count > 0 ? Convert.ToInt32(users.Rows[0]["graph_count"]) : 0;
+                if (count > 0) return;
+
+                await _Repo.ExecuteNativeQueryAsync("DROP INDEX " + (concurrently ? "CONCURRENTLY " : "") + "IF EXISTS " + quotedIndex + ";", false, token).ConfigureAwait(false);
+                _Repo.Logging.Log(SeverityEnum.Info, "dropped pgvector index " + indexName + " (no graph with " + dimensions + " dimensions has indexing enabled)");
+            }
+        }
 
         #endregion
     }

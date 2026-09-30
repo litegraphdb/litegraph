@@ -45,6 +45,8 @@
         private ObservabilityService _Observability = null;
         private Services.Chat.ChatService _ChatService = null;
         private ChatEndpointHealthService _ChatHealth = null;
+        private Services.Cluster.ClusterContext _Cluster = null;
+        private Services.Cluster.ClientAddressResolver _ClientAddresses = null;
 
         private Webserver _Webserver = null;
         private bool _Disposed = false;
@@ -70,7 +72,8 @@
             RequestHistoryService requestHistory,
             ObservabilityService observability,
             Services.Chat.ChatService chatService = null,
-            ChatEndpointHealthService chatHealth = null)
+            ChatEndpointHealthService chatHealth = null,
+            Services.Cluster.ClusterContext cluster = null)
         {
             _Settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _Logging = logging ?? throw new ArgumentNullException(nameof(logging));
@@ -82,6 +85,8 @@
             _Observability = observability ?? throw new ArgumentNullException(nameof(observability));
             _ChatService = chatService;
             _ChatHealth = chatHealth;
+            _Cluster = cluster;
+            _ClientAddresses = new Services.Cluster.ClientAddressResolver(_Settings.Cluster.TrustForwardedHeaders, _Settings.Cluster.TrustedProxies);
 
             _Webserver = new Webserver(_Settings.Rest, DefaultRoute);
             _Webserver.Routes.PreRouting = PreRoutingHandler;
@@ -96,7 +101,7 @@
             _Webserver.UseOpenApi(openApi =>
             {
                 openApi.Info.Title = "LiteGraph API";
-                openApi.Info.Version = "v8.1.0";
+                openApi.Info.Version = "v10.0.0";
                 openApi.Info.Description = "LiteGraph is a lightweight graph database with vector search, multi-tenancy, and AI agent integration. This API provides full CRUD operations for graphs, nodes, edges, labels, tags, and vectors with built-in HNSW vector indexing.";
                 openApi.Info.Contact = new OpenApiContact
                 {
@@ -206,6 +211,8 @@
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.HEAD, "/", LoopbackRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Health check", "System"));
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/", RootRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Server information", "System"));
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/favicon.ico", FaviconRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Favicon", "System"));
+            _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/v1.0/health/live", HealthLiveRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Liveness: 200 while the process runs", "System"));
+            _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/v1.0/health/ready", HealthReadyRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Readiness: 200 when the node can serve requests, otherwise 503", "System"));
             _Webserver.Routes.PreAuthentication.Static.Add(HttpMethod.GET, "/v1.0/token/tenants", TokenTenantsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List tenants for email", "Tokens"));
             if (_Settings.Observability.Enable && _Settings.Observability.EnablePrometheus)
             {
@@ -230,7 +237,14 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/flush", FlushRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Flush database to disk", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/settings", SettingsReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read server settings", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/settings", SettingsUpdateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Update server settings", "Admin"));
-            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server (a rolling restart of every node in cluster mode)", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes", ClusterNodesRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List cluster nodes with their state and health", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/restart", ClusterRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Request a rolling restart of every node (restarts this server on a single node)", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes/{nodeId}", ClusterNodeReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read one cluster node", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/locks", ClusterLocksRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List distributed locks this cluster holds in Clutch", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/jobs", ClusterJobsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List the most recent run of each cluster singleton job", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/nodes/{nodeId}/restart", ClusterNodeRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart one cluster node", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/cluster/nodes/{nodeId}", ClusterNodeDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Remove an offline or stopped node from the node registry", "Admin"));
 
             #endregion
 
@@ -554,11 +568,13 @@
 
             _Observability.IncrementHttpInFlight();
             ctx.Response.Headers.Add(Constants.HostnameHeader, _Hostname);
+            ctx.Response.Headers.Add(Constants.NodeHeader, _Cluster?.NodeId ?? _Hostname);
             ctx.Response.ContentType = Constants.JsonContentType;
 
             try
             {
                 req = new RequestContext(ctx);
+                req.ClientIp = _ClientAddresses.Resolve(ctx.Request.Source?.IpAddress, ctx.Request.Headers?.Get("X-Forwarded-For"));
             }
             catch (FormatException fe)
             {
@@ -774,7 +790,8 @@
                     Method = ctx.Request.Method.ToString(),
                     Path = redactedPath,
                     Url = OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithQuery),
-                    SourceIp = ctx.Request.Source?.IpAddress,
+                    SourceIp = req?.Ip ?? ctx.Request.Source?.IpAddress,
+                    NodeId = _Cluster?.NodeId ?? _Hostname,
                     TenantGUID = tenantGuid,
                     UserGUID = userGuid,
                     StatusCode = statusCode,
@@ -1073,6 +1090,90 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.SettingsRestart);
         }
 
+        private async Task ClusterNodesRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodesRead);
+        }
+
+        private async Task ClusterRestartRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterRestart);
+        }
+
+        private async Task ClusterLocksRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterLocksRead);
+        }
+
+        private async Task ClusterJobsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterJobsRead);
+        }
+
+        private async Task ClusterNodeReadRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodeRead);
+        }
+
+        private async Task ClusterNodeRestartRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodeRestart);
+        }
+
+        private async Task ClusterNodeDeleteRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodeDelete);
+        }
+
         #endregion
 
         #region General
@@ -1108,6 +1209,24 @@
         {
             ctx.Response.StatusCode = 200;
             await ctx.Response.Send();
+        }
+
+        private async Task HealthLiveRoute(HttpContextBase ctx)
+        {
+            HealthResponse health = _ServiceHandler.NodeHealth.Basic();
+            ctx.Response.StatusCode = 200;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(health, true));
+        }
+
+        private async Task HealthReadyRoute(HttpContextBase ctx)
+        {
+            // Clutch and Redis are not required for readiness: reads, writes, and searches need neither, and taking every
+            // node out of rotation because one of them is unreachable would turn a coordination outage into a full outage.
+            HealthResponse health = await _ServiceHandler.NodeHealth.CheckAsync(ctx.Token).ConfigureAwait(false);
+            ctx.Response.StatusCode = health.Status == "Unavailable" ? 503 : 200;
+            ctx.Response.ContentType = Constants.JsonContentType;
+            await ctx.Response.Send(_Serializer.SerializeJson(health, true));
         }
 
         private async Task RootRoute(HttpContextBase ctx)
@@ -1244,7 +1363,7 @@
                 RequestType = req.RequestType.ToString(),
                 Method = req.Http?.Request?.Method.ToString(),
                 Path = OperationalLogRedactor.RedactUrl(req.Http?.Request?.Url?.RawWithoutQuery),
-                SourceIp = req.Http?.Request?.Source?.IpAddress,
+                SourceIp = req.Ip,
                 AuthenticationResult = req.Authentication?.Result.ToString(),
                 AuthorizationResult = result.ToString(),
                 Reason = reason,
@@ -2889,8 +3008,8 @@
                     }
                 }
 
-                // Validate configuration
-                if (!config.IsValid(out string errorMessage))
+                // Validate configuration.  PostgreSQL keeps the index in the database, so no index file applies there.
+                if (!config.IsValid(out string errorMessage, _Settings.LiteGraph.Database.Type != DatabaseTypeEnum.Postgresql))
                 {
                     ctx.Response.StatusCode = 400;
                     ctx.Response.ContentType = Constants.JsonContentType;
@@ -3687,7 +3806,7 @@
             activity.SetTag("url.full", OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithQuery));
             activity.SetTag("server.address", _Settings.Rest.Hostname);
             activity.SetTag("server.port", _Settings.Rest.Port);
-            activity.SetTag("client.address", ctx.Request.Source.IpAddress);
+            activity.SetTag("client.address", req.Ip ?? ctx.Request.Source.IpAddress);
             activity.SetTag("litegraph.request.id", req.RequestId);
             activity.SetTag("litegraph.correlation.id", req.CorrelationId);
             activity.SetTag("litegraph.request.type", req.RequestType.ToString());
@@ -3815,9 +3934,37 @@
             return req.Authentication.TenantGUID;
         }
 
+        private static NameValueCollection DecodedQuery(NameValueCollection query)
+        {
+            // Query values arrive percent-encoded (for example path=%2Fv1.0%2Ftenants or times with %3A); decode them so
+            // filters match stored values.  Decoding an unencoded value leaves it unchanged.
+            NameValueCollection ret = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
+            if (query == null) return ret;
+            foreach (string key in query.AllKeys)
+            {
+                if (key == null) continue;
+                string value = query[key];
+                if (value == null)
+                {
+                    ret[key] = null;
+                    continue;
+                }
+
+                try
+                {
+                    ret[key] = Uri.UnescapeDataString(value);
+                }
+                catch (UriFormatException)
+                {
+                    ret[key] = value;
+                }
+            }
+            return ret;
+        }
+
         private RequestHistorySearchRequest BuildRequestHistorySearch(RequestContext req)
         {
-            NameValueCollection q = req.Query;
+            NameValueCollection q = DecodedQuery(req.Query);
             RequestHistorySearchRequest search = new RequestHistorySearchRequest();
 
             search.TenantGUID = TenantScopeForRequestHistory(req, q);
@@ -3828,6 +3975,7 @@
             if (!string.IsNullOrEmpty(q?["method"])) search.Method = q["method"];
             if (!string.IsNullOrEmpty(q?["path"])) search.Path = q["path"];
             if (!string.IsNullOrEmpty(q?["sourceIp"])) search.SourceIp = q["sourceIp"];
+            if (!string.IsNullOrEmpty(q?["nodeId"])) search.NodeId = q["nodeId"];
             if (!string.IsNullOrEmpty(q?["transactionId"])) search.TransactionId = q["transactionId"];
             if (!string.IsNullOrEmpty(q?["statusCode"]) && int.TryParse(q["statusCode"], out int sc)) search.StatusCode = sc;
             if (!string.IsNullOrEmpty(q?["success"]) && bool.TryParse(q["success"], out bool success)) search.Success = success;
@@ -3868,7 +4016,7 @@
         private async Task RequestHistorySummaryRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
-            NameValueCollection q = req.Query;
+            NameValueCollection q = DecodedQuery(req.Query);
 
             string interval = q?["interval"];
             if (string.IsNullOrEmpty(interval)) interval = "hour";

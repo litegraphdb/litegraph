@@ -21,7 +21,7 @@
 
             StringBuilder sb = new StringBuilder();
             sb.Append("INSERT INTO 'requesthistory' (");
-            sb.Append("guid, requestid, correlationid, traceid, createdutc, completedutc, method, path, url, sourceip, ");
+            sb.Append("guid, requestid, correlationid, traceid, createdutc, completedutc, method, path, url, sourceip, nodeid, ");
             sb.Append("tenantguid, userguid, statuscode, success, processingtimems, ");
             sb.Append("requestbodylength, responsebodylength, requestbodytruncated, responsebodytruncated, ");
             sb.Append("requestcontenttype, responsecontenttype, requestheadersjson, requestbodyb64, ");
@@ -37,6 +37,7 @@
             sb.Append("'").Append(EscapeQuotes(detail.Path ?? "")).Append("', ");
             sb.Append("'").Append(EscapeQuotes(detail.Url ?? "")).Append("', ");
             sb.Append(StringOrNull(detail.SourceIp)).Append(", ");
+            sb.Append(StringOrNull(detail.NodeId)).Append(", ");
             sb.Append(detail.TenantGUID.HasValue ? ("'" + detail.TenantGUID.Value + "'") : "NULL").Append(", ");
             sb.Append(detail.UserGUID.HasValue ? ("'" + detail.UserGUID.Value + "'") : "NULL").Append(", ");
             sb.Append(detail.StatusCode).Append(", ");
@@ -68,7 +69,7 @@
             if (countOnly)
                 sb.Append("SELECT COUNT(*) AS record_count FROM 'requesthistory' WHERE 1=1 ");
             else
-                sb.Append("SELECT guid, requestid, correlationid, traceid, createdutc, completedutc, method, path, url, sourceip, tenantguid, userguid, statuscode, success, processingtimems, requestbodylength, responsebodylength, requestbodytruncated, responsebodytruncated, requestcontenttype, responsecontenttype, transactiondiagnosticsjson FROM 'requesthistory' WHERE 1=1 ");
+                sb.Append("SELECT guid, requestid, correlationid, traceid, createdutc, completedutc, method, path, url, sourceip, nodeid, tenantguid, userguid, statuscode, success, processingtimems, requestbodylength, responsebodylength, requestbodytruncated, responsebodytruncated, requestcontenttype, responsecontenttype, transactiondiagnosticsjson FROM 'requesthistory' WHERE 1=1 ");
 
             AppendFilters(sb, search);
 
@@ -159,6 +160,9 @@
 
             if (!string.IsNullOrEmpty(search.SourceIp))
                 sb.Append("AND sourceip = '").Append(Sanitizer.Sanitize(search.SourceIp)).Append("' ");
+
+            if (!string.IsNullOrEmpty(search.NodeId))
+                sb.Append("AND nodeid = '").Append(Sanitizer.Sanitize(search.NodeId)).Append("' ");
 
             if (search.HasTransactionDiagnostics.HasValue)
             {

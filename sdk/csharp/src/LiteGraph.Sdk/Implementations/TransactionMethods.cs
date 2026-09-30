@@ -44,35 +44,29 @@ namespace LiteGraph.Sdk.Implementations
             if (!Serializer.TrySerializeJson(request, true, out json))
                 throw new ArgumentException("Supplied object is not serializable to JSON.");
 
-            using (RestRequest req = new RestRequest(url, HttpMethod.Post))
+            using (SdkExchange exchange = await _Sdk.SendAsync(url, HttpMethod.Post, "application/json", json, null, true, token).ConfigureAwait(false))
             {
-                req.TimeoutMilliseconds = _Sdk.TimeoutMs;
-                req.ContentType = "application/json";
-                req.Authorization.BearerToken = _Sdk.BearerToken;
-
-                using (RestResponse resp = await req.SendAsync(json, token).ConfigureAwait(false))
+                RestResponse resp = exchange.Response;
+                if (resp != null)
                 {
-                    if (resp != null)
+                    if ((resp.StatusCode >= 200 && resp.StatusCode <= 299) || resp.StatusCode == 400 || resp.StatusCode == 409)
                     {
-                        if ((resp.StatusCode >= 200 && resp.StatusCode <= 299) || resp.StatusCode == 400 || resp.StatusCode == 409)
+                        _Sdk.Log(SeverityEnum.Debug, "transaction result reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
+
+                        if (!String.IsNullOrEmpty(resp.DataAsString))
                         {
-                            _Sdk.Log(SeverityEnum.Debug, "transaction result reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
-
-                            if (!String.IsNullOrEmpty(resp.DataAsString))
-                            {
-                                return Serializer.DeserializeJson<TransactionResult>(resp.DataAsString);
-                            }
-
-                            return null;
+                            return Serializer.DeserializeJson<TransactionResult>(resp.DataAsString);
                         }
 
-                        _Sdk.Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
                         return null;
                     }
 
-                    _Sdk.Log(SeverityEnum.Warn, "no response from " + url);
+                    _Sdk.Log(SeverityEnum.Warn, "non-success reported from " + url + ": " + resp.StatusCode + ", " + resp.ContentLength + " bytes");
                     return null;
                 }
+
+                _Sdk.Log(SeverityEnum.Warn, "no response from " + url);
+                return null;
             }
         }
     }

@@ -10,11 +10,13 @@ export default class ApiErrorResponse {
    * @param {ApiErrorEnum} error - The error code.
    * @param {Object} [context=null] - Additional contextual information.
    * @param {string} [description=null] - Description of the error.
+   * @param {string} [nodeId=null] - Cluster node that answered, from the x-litegraph-node header, when known.
    */
-  constructor(error = ApiErrorEnum.AuthenticationFailed, context = null, description = null) {
+  constructor(error = ApiErrorEnum.AuthenticationFailed, context = null, description = null, nodeId = null) {
     this.error = error;
     this.context = context;
     this.description = description;
+    this.nodeId = nodeId;
   }
 
   /**
@@ -48,6 +50,8 @@ export default class ApiErrorResponse {
         return 'The requested resource was not found.';
       case ApiErrorEnum.TooLarge:
         return 'The size of your request exceeds the maximum allowed by this server.';
+      case ApiErrorEnum.Unavailable:
+        return 'A service required by this request is currently unavailable.';
       // Add more cases based on ApiErrorEnum...
       default:
         return `An unknown error code '${this.error}' was encountered.`;
@@ -85,6 +89,8 @@ export default class ApiErrorResponse {
         return 404;
       case ApiErrorEnum.TooLarge:
         return 413;
+      case ApiErrorEnum.Unavailable:
+        return 503;
       // Add more cases based on ApiErrorEnum...
       default:
         return 500;

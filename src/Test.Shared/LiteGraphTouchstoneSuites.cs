@@ -214,6 +214,9 @@ namespace Test.Shared
             ("MCP.Admin.BackupExists", "MCP.Admin.BackupExists", TestMcpAdminBackupExists),
             ("MCP.Admin.BackupDelete", "MCP.Admin.BackupDelete", TestMcpAdminBackupDelete),
             ("MCP.Admin.Flush", "MCP.Admin.Flush", TestMcpAdminFlush),
+            ("MCP.Cluster.Status", "MCP.Cluster.Status", TestMcpClusterStatus),
+            ("MCP.Cluster.Nodes", "MCP.Cluster.Nodes", TestMcpClusterNodes),
+            ("MCP.Cluster.Node", "MCP.Cluster.Node", TestMcpClusterNode),
             ("MCP.User.Create", "MCP.User.Create", TestMcpUserCreate),
             ("MCP.User.Get", "MCP.User.Get", TestMcpUserGet),
             ("MCP.User.All", "MCP.User.All", TestMcpUserAll),
@@ -392,7 +395,8 @@ namespace Test.Shared
                     CreateChatStorageSuite(),
                     CreateChatRestSuite(),
                     CreateMcpProtocolSuite(),
-                    CreateOnboardingSuite()
+                    CreateOnboardingSuite(),
+                    CreateScaleOutSuite()
                 };
 
                 if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable)))
@@ -609,7 +613,9 @@ namespace Test.Shared
                 "HEAD /",
                 "GET /",
                 "GET /favicon.ico",
-                "GET /v1.0/token/tenants"
+                "GET /v1.0/token/tenants",
+                "GET /v1.0/health/live",
+                "GET /v1.0/health/ready"
             };
 
             string[] criticalAuthenticatedRoutes =
@@ -617,6 +623,8 @@ namespace Test.Shared
                 "GET /v1.0/token",
                 "GET /v1.0/token/details",
                 "GET /v1.0/backups",
+                "GET /v1.0/cluster/nodes",
+                "POST /v1.0/cluster/restart",
                 "PUT /v1.0/tenants",
                 "GET /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}",
                 "PUT /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/enable",
@@ -645,7 +653,9 @@ namespace Test.Shared
             // to the authenticated bucket, alongside the v7.1 JSONL import/export routes.
             // v9.0 added four graph-algorithm routes: POST .../algorithms, POST .../algorithms/import,
             // GET .../export/projection, and POST .../algorithms/embeddings.
-            AssertEqual(212, postAuthenticationRoutes.Count, "Authenticated route count");
+            // v10.0 added GET /v1.0/cluster/nodes, POST /v1.0/cluster/restart, GET/DELETE /v1.0/cluster/nodes/{nodeId},
+            // POST /v1.0/cluster/nodes/{nodeId}/restart, GET /v1.0/cluster/locks, and GET /v1.0/cluster/jobs.
+            AssertEqual(219, postAuthenticationRoutes.Count, "Authenticated route count");
             AssertFalse(preAuthenticationRoutes.Overlaps(postAuthenticationRoutes), "Route auth buckets should not overlap");
 
             foreach (string route in criticalAuthenticatedRoutes)
@@ -6607,6 +6617,63 @@ namespace Test.Shared
             string result = await CallMcpToolAsync<string>("admin/flush", new { });
             // Flush should return empty string on success
             AssertTrue(string.IsNullOrEmpty(result), "Flush should return empty string on success");
+        }
+
+        private static async Task TestMcpClusterStatus()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            string result = await CallMcpToolAsync<string>("cluster/status", new { });
+            using (JsonDocument doc = JsonDocument.Parse(result))
+            {
+                JsonElement root = doc.RootElement;
+                AssertTrue(root.GetProperty("ClusterEnabled").ValueKind == JsonValueKind.False, "Test server is a single node");
+                AssertEqual(1, root.GetProperty("NodesTotal").GetInt32(), "A single node lists itself");
+                AssertTrue(root.GetProperty("NodesByState").TryGetProperty("Healthy", out JsonElement healthy) && healthy.GetInt32() == 1, "The node is healthy");
+            }
+        }
+
+        private static async Task TestMcpClusterNodes()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            string all = await CallMcpToolAsync<string>("cluster/nodes", new { });
+            using (JsonDocument doc = JsonDocument.Parse(all))
+            {
+                JsonElement nodes = doc.RootElement.GetProperty("Nodes");
+                AssertEqual(1, nodes.GetArrayLength(), "A single node lists itself");
+                AssertEqual(doc.RootElement.GetProperty("AnsweredBy").GetString(), nodes[0].GetProperty("NodeId").GetString(), "The listed node answered");
+            }
+
+            string offline = await CallMcpToolAsync<string>("cluster/nodes", new { state = "Offline" });
+            using (JsonDocument doc = JsonDocument.Parse(offline))
+            {
+                AssertEqual(0, doc.RootElement.GetProperty("Nodes").GetArrayLength(), "The state filter excludes the healthy node");
+            }
+        }
+
+        private static async Task TestMcpClusterNode()
+        {
+            await InitializeMcpServer();
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            string all = await CallMcpToolAsync<string>("cluster/nodes", new { });
+            string? nodeId;
+            using (JsonDocument doc = JsonDocument.Parse(all))
+            {
+                nodeId = doc.RootElement.GetProperty("AnsweredBy").GetString();
+            }
+
+            string node = await CallMcpToolAsync<string>("cluster/node", new { nodeId = nodeId });
+            using (JsonDocument doc = JsonDocument.Parse(node))
+            {
+                AssertEqual(nodeId, doc.RootElement.GetProperty("NodeId").GetString(), "The node is read by identifier");
+            }
+
+            string missing = await CallMcpToolAsync<string>("cluster/node", new { nodeId = "no-such-node" });
+            AssertTrue(missing == null || missing.Trim() == "null", "An unknown node reads as null");
         }
 
         // ========================================

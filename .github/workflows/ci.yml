@@ -5,10 +5,16 @@ on:
     branches:
       - main
       - v7.0
+      - V10.0
   pull_request:
     branches:
       - main
       - v7.0
+      - V10.0
+  workflow_dispatch:
+  schedule:
+    # Nightly full deployment run (images built from the commit, never pushed).
+    - cron: '17 6 * * *'
 
 jobs:
   dotnet:
@@ -16,7 +22,8 @@ jobs:
     runs-on: ubuntu-24.04
     services:
       postgres:
-        image: postgres:17
+        # LiteGraph 10 stores vectors with pgvector; the extension must be installable.
+        image: pgvector/pgvector:0.8.6-pg17-trixie
         env:
           POSTGRES_DB: litegraph_ci
           POSTGRES_USER: litegraph
@@ -24,7 +31,17 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U litegraph -d litegraph_ci"
+          --health-cmd "pg_isready -h 127.0.0.1 -U litegraph -d litegraph_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        # Cluster node registry and rolling restart tests (ScaleOut suite).
+        image: redis:7.4.9-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli -h 127.0.0.1 ping"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -58,8 +75,14 @@ jobs:
 
       - name: PostgreSQL transaction concurrency gate
         env:
-          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=localhost;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
+          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+
+      - name: Scale-out suite (pgvector, locks, settings, Redis node registry, rolling restart)
+        env:
+          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
+          LITEGRAPH_TEST_REDIS_CONNECTION_STRING: 127.0.0.1:6379
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite ScaleOut
 
       - name: Upload test server logs
         if: failure()
@@ -149,3 +172,89 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker-config:
+    name: Docker configuration
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Validate compose files and profiles
+        env:
+          LITEGRAPH_IMAGE_TAG: ci-validate
+        run: |
+          set -euo pipefail
+          for d in single-node-sqlite single-node-postgresql multi-node; do
+            docker compose -f docker/$d/compose.yaml config -q
+            echo "valid: docker/$d/compose.yaml"
+          done
+          docker compose -f docker/multi-node/compose.yaml --profile switchboard --profile tools config -q
+          echo "valid: docker/multi-node/compose.yaml with profiles switchboard and tools"
+
+      - name: Shell scripts use LF and parse
+        run: |
+          set -euo pipefail
+          if git ls-files --eol '*.sh' | grep -q 'w/crlf'; then git ls-files --eol '*.sh' | grep 'w/crlf'; echo "CRLF found in the shell scripts above"; exit 1; fi
+          for f in $(git ls-files '*.sh'); do bash -n "$f"; done
+          echo "all shell scripts parse"
+
+  deploy:
+    name: Docker deployments (${{ matrix.deployment }})
+    if: github.event_name != 'push'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        deployment: [single-node-sqlite, single-node-postgresql, multi-node]
+    env:
+      LITEGRAPH_IMAGE_TAG: ci-${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build images from this commit (not pushed)
+        run: |
+          set -euo pipefail
+          docker build -f src/LiteGraph.Server/Dockerfile -t jchristn77/litegraph:$LITEGRAPH_IMAGE_TAG src
+          docker build -f src/LiteGraph.McpServer/Dockerfile -t jchristn77/litegraph-mcp:$LITEGRAPH_IMAGE_TAG .
+          docker build -t jchristn77/litegraph-ui:$LITEGRAPH_IMAGE_TAG dashboard
+
+      - name: Start ${{ matrix.deployment }}
+        working-directory: docker/${{ matrix.deployment }}
+        run: |
+          if [ "${{ matrix.deployment }}" = "multi-node" ]; then
+            docker compose --profile switchboard up -d --wait --pull missing
+          else
+            docker compose up -d --wait --pull missing
+          fi
+
+      - name: Smoke test
+        working-directory: docker/${{ matrix.deployment }}
+        shell: pwsh
+        run: ./smoke.ps1
+
+      - name: Failover test
+        if: matrix.deployment == 'multi-node'
+        working-directory: docker/multi-node
+        shell: pwsh
+        run: ./failover.ps1
+
+      - name: Container logs
+        if: failure()
+        working-directory: docker/${{ matrix.deployment }}
+        run: docker compose --profile switchboard logs --no-color > compose-logs.txt || true
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: deploy-${{ matrix.deployment }}-logs
+          path: docker/${{ matrix.deployment }}/compose-logs.txt
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Tear down
+        if: always()
+        working-directory: docker/${{ matrix.deployment }}
+        run: docker compose --profile switchboard --profile tools down -v || true

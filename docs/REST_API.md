@@ -823,7 +823,34 @@ Committed transactions return HTTP `200`. Request-shape validation failures retu
 |-----------------------|--------|-----|
 | Validate connectivity | HEAD   | /   |
 | Server information    | GET    | /   |
+| Liveness              | GET    | /v1.0/health/live  |
+| Readiness             | GET    | /v1.0/health/ready |
 | Prometheus metrics    | GET    | /metrics |
+
+The health routes (v10.0) require no authentication and are not recorded in request history. `GET /v1.0/health/live` returns 200 while the process runs. `GET /v1.0/health/ready` returns 200 when the node can serve requests and 503 otherwise, so load balancers and container health checks should use it:
+
+```
+{
+    "Status": "Healthy",
+    "StorageProvider": "Postgresql",
+    "VectorIndexProvider": "pgvector",
+    "NodeId": "litegraph-1",
+    "ClusterName": "litegraph",
+    "Version": "10.0.0",
+    "StartedUtc": "2026-09-29T19:25:48.612927Z",
+    "Checks": {
+        "Database": true,
+        "Clutch": true,
+        "Redis": true,
+        "Draining": false
+    },
+    "Utc": "2026-09-29T19:31:02.004113Z"
+}
+```
+
+`StorageProvider` is `Sqlite` or `Postgresql`, and `VectorIndexProvider` the vector index that goes with it (`HnswLite` or `pgvector`). `Checks.Database` is true when the database answered a query. `Checks.Clutch` and `Checks.Redis` are null on a single node and, on a cluster node, true when the node has an open lock connection to Clutch and can reach Redis. `Checks.Draining` is true once the node has been asked to stop or is taking its turn in a rolling restart. `Status` is `Unavailable` and the status code 503 when the database check fails or the node is draining. When only Clutch or Redis is unreachable, `Status` is `Degraded` and the status code stays 200: the node still serves reads, writes, and searches, and only coordinated work (vector index builds, retention jobs, starting new nodes, the node registry, settings signals, and restarts) waits. The liveness body has the same shape without `Checks`.
+
+Every response carries an `x-litegraph-node` header naming the node that answered (the configured `NodeId`, or the host name), alongside the existing `x-hostname` header.
 
 The metrics route is registered only when observability and Prometheus are enabled. It is intentionally unauthenticated in v6.0.0 and should be protected by network policy or a reverse proxy when exposed outside trusted networks.
 
@@ -845,18 +872,136 @@ Introduced in v8.0. Settings APIs require system-administrator authentication. S
 | Update settings    | PUT    | /v1.0/settings            |
 | Restart server     | POST   | /v1.0/settings/restart    |
 
-`GET /v1.0/settings` returns the effective server settings (secrets redacted). `PUT /v1.0/settings` persists the supplied settings to `litegraph.json`, hot-reloads fields that can apply live, and returns a `SettingsUpdateResult`:
+`GET /v1.0/settings` returns the settings file (v10.0; earlier releases returned the running settings). Every node sharing the file returns the same answer, and values supplied by environment variables are not echoed back.
+
+`PUT /v1.0/settings` writes the supplied settings to `litegraph.json`, applies the fields that can change live, and returns a `SettingsUpdateResult`. Values that came from environment variables or were derived at startup keep their file values and are listed in `EnvironmentOverrides`, so node identity and secrets supplied through the environment never reach the shared file. In cluster mode the write takes the Clutch `settings` lock (409 if another save holds it for 10 seconds; 503 if Clutch is unreachable), every node applies live fields within a couple of seconds, and `SettingsVersion` reports the cluster's new settings version:
 
 ```
 {
     "Success": true,
     "AppliedLive": [ "RequestTimeoutSeconds" ],
-    "RestartRequired": [ "Rest.Port" ],
-    "Message": "Settings saved. 1 field applied live; 1 field requires a restart."
+    "RestartRequired": [ "Logging", "Rest", "LiteGraph", "Storage", "Observability", "Encryption", "Caching", "RequestHistory", "AuthorizationAudit", "Cluster" ],
+    "Message": "Settings saved for every node; each applies live settings within seconds. Request a cluster restart to apply the settings marked as restart-required; nodes restart one at a time.",
+    "EnvironmentOverrides": [ "Cluster.NodeId", "Cluster.Clutch.AccessKey", "Cluster.Redis.ConnectionString" ],
+    "SettingsVersion": 4
 }
 ```
 
-`POST /v1.0/settings/restart` flushes pending state and exits the process so the container/orchestrator restarts it with the new configuration. In the checked-in Docker deployment the LiteGraph services run with `restart: unless-stopped`, so this brings the server back automatically.
+`POST /v1.0/settings/restart` is the same as `POST /v1.0/cluster/restart` (below). On a single node it flushes pending state and exits the process so the container or orchestrator restarts it with the new configuration; the checked-in Docker deployments run LiteGraph with `restart: unless-stopped`, so the server comes back automatically. In cluster mode it requests a rolling restart of every node.
+
+## Cluster (v10.0)
+
+Cluster APIs require system-administrator authentication. They also answer on a single node, where the answering server is the only node.
+
+| API                      | Method | URL                  |
+|--------------------------|--------|----------------------|
+| List cluster nodes       | GET    | /v1.0/cluster/nodes  |
+| Request cluster restart  | POST   | /v1.0/cluster/restart |
+| Read one node            | GET    | /v1.0/cluster/nodes/{nodeId} |
+| Restart one node         | POST   | /v1.0/cluster/nodes/{nodeId}/restart |
+| Remove a node from the registry | DELETE | /v1.0/cluster/nodes/{nodeId} |
+| List held locks          | GET    | /v1.0/cluster/locks  |
+| List job runs            | GET    | /v1.0/cluster/jobs   |
+
+`GET /v1.0/cluster/nodes` returns the node registry kept in Redis, plus the settings and restart counters:
+
+```
+{
+    "ClusterEnabled": true,
+    "ClusterName": "litegraph",
+    "AnsweredBy": "litegraph-2",
+    "RegistryAvailable": true,
+    "SettingsVersion": 4,
+    "SettingsUpdatedUtc": "2026-09-30T04:06:03.113522Z",
+    "RestartVersion": 1,
+    "RestartRequestedUtc": "2026-09-30T04:12:40.801224Z",
+    "Nodes": [
+        {
+            "NodeId": "litegraph-1",
+            "Hostname": "835bde550233",
+            "Version": "10.0.0",
+            "StartedUtc": "2026-09-30T04:13:21.418907Z",
+            "LastHeartbeatUtc": "2026-09-30T04:20:11.990514Z",
+            "HeartbeatAgeMs": 842,
+            "State": "Healthy",
+            "Checks": { "Database": true, "Clutch": true, "Redis": true, "Draining": false },
+            "SettingsVersion": 4,
+            "RestartPending": false,
+            "RestartVersion": 1
+        }
+    ],
+    "Utc": "2026-09-30T04:20:12.832519Z"
+}
+```
+
+`State` is `Healthy`, `Degraded` (Clutch or Redis unreachable), `Unavailable` (database unreachable), `Draining` (shutting down), `Restarting` (taking its turn in a rolling restart), `Stopped` (shut down cleanly), or `Offline` (no heartbeat within `Cluster.Redis.NodeTimeoutMs`). `RestartPending` is true when the settings file has changed since the node started in a way that needs a restart, or when a requested restart has not reached the node yet. A node's `SettingsVersion` lags the cluster's while it has not yet noticed a change. When Redis is unreachable, `RegistryAvailable` is false and `Nodes` lists only the answering node.
+
+`POST /v1.0/cluster/restart` requests a rolling restart: every node restarts, one at a time, each after the previous one reports healthy (see [CLUSTERING.md](CLUSTERING.md#settings-and-rolling-restarts)). It returns immediately:
+
+```
+{
+    "Restarting": true,
+    "Rolling": true,
+    "RestartVersion": 2,
+    "Message": "Every node will restart, one at a time; each waits for the previous one to report healthy. Watch GET /v1.0/cluster/nodes for progress.",
+    "RequestedUtc": "2026-09-30T04:25:00.000000Z"
+}
+```
+
+It returns 503 (`Unavailable`) when Redis is unreachable. On a single node it restarts the server and returns `Rolling` false.
+
+`GET /v1.0/cluster/nodes/{nodeId}` returns one node's entry in the shape shown above, or 404 when the node is not registered.
+
+`POST /v1.0/cluster/nodes/{nodeId}/restart` restarts one node. The node notices within `Cluster.Redis.PollIntervalMs`, takes the same Clutch `restart` lock as a rolling restart (so it still waits for any other node that is restarting), drains, and exits for its supervisor to start it again. It returns a restart result with `Rolling` false, 404 for an unknown node, 409 for a node that is `Offline` or `Stopped` (start it with its supervisor instead), and 503 when Redis is unreachable. On a single node, only the server's own identifier is accepted, and the server restarts.
+
+`DELETE /v1.0/cluster/nodes/{nodeId}` removes a decommissioned node's entry from the registry. Only `Offline` or `Stopped` nodes can be removed (409 otherwise), because a running node registers again on its next heartbeat. Entries also expire on their own after `Cluster.Redis.NodeRetentionMs`. It returns 400 on a single node, which has no registry.
+
+`GET /v1.0/cluster/locks` lists the distributed locks this cluster currently holds in Clutch, read through Clutch's administration API with the configured access key:
+
+```
+{
+    "ClusterEnabled": true,
+    "LockServiceAvailable": true,
+    "Locks": [
+        {
+            "Key": "vectorindex/cosine/384",
+            "KeyClass": "vectorindex",
+            "Mode": "Write",
+            "NodeId": "litegraph-2",
+            "ClutchNodeId": "clutch-1",
+            "FencingToken": 17,
+            "AcquiredUtc": "2026-09-30T06:10:04.112000Z",
+            "LeaseExpiresUtc": "2026-09-30T06:10:34.112000Z"
+        }
+    ],
+    "Utc": "2026-09-30T06:10:05.000000Z"
+}
+```
+
+`Key` is relative to the cluster prefix. `NodeId` is the LiteGraph node holding the lock, matched through its Clutch session; it is null for a session no registered node reports. Most locks are held for seconds, so an empty list is normal. `LockServiceAvailable` is false when Clutch did not answer, and the list is always empty on a single node, which takes only in-process locks.
+
+`GET /v1.0/cluster/jobs` lists the most recent run of each cluster singleton job (`chat-retention`, `request-history-purge`), each run by one node per cycle:
+
+```
+{
+    "ClusterEnabled": true,
+    "RegistryAvailable": true,
+    "Jobs": [
+        {
+            "Job": "request-history-purge",
+            "NodeId": "litegraph-3",
+            "StartedUtc": "2026-09-30T06:00:30.004000Z",
+            "CompletedUtc": "2026-09-30T06:00:30.051000Z",
+            "DurationMs": 47.2,
+            "Success": true,
+            "Message": null
+        }
+    ],
+    "Utc": "2026-09-30T06:10:05.000000Z"
+}
+```
+
+A job appears after its first run (the purge starts 30 seconds after a node starts; chat retention runs hourly). The list is empty on a single node, which runs every job itself.
 
 ## Backup APIs
 
@@ -1164,7 +1309,7 @@ Request history APIs require read/admin access according to the authenticated pr
 | Delete entry            | DELETE | /v1.0/requesthistory/[requestGuid]        |
 | Bulk delete             | DELETE | /v1.0/requesthistory/bulk                 |
 
-`GET /v1.0/requesthistory` returns the [enumeration envelope](#enumeration-and-pagination) of request history entries. Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `hasTransactionDiagnostics`, `transactionId`, paging (legacy `page`/`pageSize` remain accepted, with `max-keys` and `skip` taking precedence), and time-range filters. The summary and per-entry reads return single objects. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
+`GET /v1.0/requesthistory` returns the [enumeration envelope](#enumeration-and-pagination) of request history entries. Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `nodeId` (v10.0, the node that handled the request; every entry carries `NodeId`), `hasTransactionDiagnostics`, `transactionId`, paging (legacy `page`/`pageSize` remain accepted, with `max-keys` and `skip` taking precedence), and time-range filters. The summary and per-entry reads return single objects. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
 
 Graph transaction entries include `TransactionDiagnosticsJson` when LiteGraph can parse the transaction result body. The compact JSON includes transaction ID, operation count, isolation level, provider, rollback and validation state, retry/conflict fields, and provider error code.
 Use `hasTransactionDiagnostics=true` to list only graph transaction rows, `hasTransactionDiagnostics=false` to exclude them, and `transactionId=[full-or-partial-id]` to find entries for a known transaction ID.
@@ -1340,7 +1485,7 @@ With `Stream` true the response is `200 text/event-stream`. Every frame is `data
 | `usage` | `usage` (a `ChatCompletionResult`) | Final telemetry frame on success |
 | `error` | `message`, optional `statusCode` | The turn failed; `statusCode` carries the upstream status when known |
 
-Comment keep-alive frames are emitted every `SseKeepAliveSeconds` (server setting) so idle proxies do not sever long generations.
+When a stream has been silent for `Chat.SseKeepAliveSeconds` (server setting, default 15), for example while the model runs a tool or before its first token, the server writes a keepalive event carrying only `retry: 3000`. SSE clients accept it without dispatching a message, and load balancers and proxies with idle timeouts keep the connection open. Ollama-format (`/chat/ollama`) responses are newline-delimited JSON, which has no equivalent, so they get no keepalive.
 
 Completion error responses:
 

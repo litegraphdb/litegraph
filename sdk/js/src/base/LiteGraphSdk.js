@@ -1,6 +1,7 @@
 import Graph from '../models/Graph';
 import SdkBase from './SdkBase';
 import GenericExceptionHandlers from '../exception/GenericExceptionHandlers';
+import ApiErrorResponse from '../models/ApiErrorResponse';
 import Node from '../models/Node';
 import Edge from '../models/Edge';
 import SearchResult from '../models/SearchResult';
@@ -40,6 +41,49 @@ const buildQueryString = (params = {}) => {
   const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
   if (entries.length === 0) return '';
   return `?${entries.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`).join('&')}`;
+};
+
+// The server matches request history query values as sent, without percent-decoding, so only characters that would
+// break the query string are escaped; path separators and the colons in timestamps are sent as-is.
+const encodeRequestHistoryValue = (value) =>
+  Array.from(String(value))
+    .map((c) => {
+      const code = c.codePointAt(0);
+      const unsafe = code < 0x21 || code > 0x7e || '&#+%=?'.includes(c);
+      return unsafe ? encodeURIComponent(c) : c;
+    })
+    .join('');
+
+const REQUEST_HISTORY_FILTERS = {
+  tenantGuid: 'tenantGuid',
+  requestId: 'requestId',
+  correlationId: 'correlationId',
+  traceId: 'traceId',
+  method: 'method',
+  path: 'path',
+  sourceIp: 'sourceIp',
+  nodeId: 'nodeId',
+  transactionId: 'transactionId',
+  statusCode: 'statusCode',
+  success: 'success',
+  hasTransactionDiagnostics: 'hasTransactionDiagnostics',
+  fromUtc: 'fromUtc',
+  toUtc: 'toUtc',
+};
+
+const buildRequestHistoryQuery = (filters = {}, includePaging = true) => {
+  const parts = [];
+  if (includePaging) {
+    if (filters.maxKeys !== undefined && filters.maxKeys !== null) parts.push(`max-keys=${Number(filters.maxKeys)}`);
+    if (filters.skip !== undefined && filters.skip !== null) parts.push(`skip=${Number(filters.skip)}`);
+  }
+  Object.entries(REQUEST_HISTORY_FILTERS).forEach(([key, name]) => {
+    let value = filters[key];
+    if (value === undefined || value === null || value === '') return;
+    if (value instanceof Date) value = value.toISOString();
+    parts.push(`${name}=${encodeRequestHistoryValue(value)}`);
+  });
+  return parts.length > 0 ? `?${parts.join('&')}` : '';
 };
 
 const normalizeBulkCreateArgs = (optionsOrCancellationToken, cancellationToken) => {
@@ -2147,7 +2191,8 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
-   * Read the server settings. Requires system administrator privileges.
+   * Read the server settings file. Every node sharing the file returns the same settings.
+   * Requires system administrator privileges.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
    * @returns {Promise<Object>} The server settings object.
    */
@@ -2160,7 +2205,7 @@ export default class LiteGraphSdk extends SdkBase {
    * Update the server settings. Requires system administrator privileges.
    * @param {Object} settings - The full settings object.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
-   * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message }).
+   * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message, EnvironmentOverrides, SettingsVersion }).
    */
   async updateSettings(settings, cancellationToken) {
     if (!settings) {
@@ -2171,19 +2216,240 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
-   * Request a server restart. The server exits so the container restart policy applies the new settings.
-   * Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+   * Request a restart so saved settings take effect. In cluster mode every node restarts, one at a time, each
+   * after the previous one reports healthy; on a single node the server exits so the container restart policy
+   * restarts it. Requires system administrator privileges.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
-   * @returns {Promise<void>}
+   * @returns {Promise<Object|undefined>} Restart result ({ Restarting, Rolling, RestartVersion, Message, RequestedUtc }),
+   *   or undefined if the connection dropped as a single server exited.
    */
   async restartServer(cancellationToken) {
     const url = `${this._endpoint}v1.0/settings/restart`;
     try {
       return await this.post(url, { confirm: true }, Object, cancellationToken);
     } catch (e) {
-      // The server may drop the connection as it exits; this is expected.
+      // A single server may drop the connection as it exits; this is expected.
       return undefined;
     }
+  }
+
+  /**
+   * List the cluster nodes with their state and health, plus the settings and restart counters. On a single node
+   * the answering server is the only node. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Cluster status ({ ClusterEnabled, ClusterName, AnsweredBy, RegistryAvailable,
+   *   SettingsVersion, SettingsUpdatedUtc, RestartVersion, RestartRequestedUtc, Nodes, Utc }).
+   */
+  async readClusterNodes(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/nodes`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+   * Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server exited.
+   */
+  async restartCluster(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/restart`;
+    try {
+      return await this.post(url, { confirm: true }, Object, cancellationToken);
+    } catch (e) {
+      // A single server may drop the connection as it exits; this is expected.
+      return undefined;
+    }
+  }
+
+  /**
+   * Read one cluster node from the node registry. Requires system administrator privileges.
+   * @param {string} nodeId - Node identifier.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} The node ({ NodeId, Hostname, Version, StartedUtc, LastHeartbeatUtc, HeartbeatAgeMs, State,
+   *   Checks, SettingsVersion, RestartPending, RestartVersion }). Rejects with a NotFound error if it is not in the registry.
+   */
+  async readClusterNode(nodeId, cancellationToken) {
+    if (!nodeId) {
+      GenericExceptionHandlers.ArgumentNullException('nodeId');
+    }
+    const url = `${this._endpoint}v1.0/cluster/nodes/${encodeURIComponent(nodeId)}`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Request a restart of one cluster node (on a single node, of the server itself). The node waits for any other node
+   * that is restarting, then restarts. Requires system administrator privileges.
+   * @param {string} nodeId - Node identifier.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server
+   *   exited. Rejects with the server's error (for example NotFound, Conflict for an offline node, or Unavailable).
+   */
+  async restartClusterNode(nodeId, cancellationToken) {
+    if (!nodeId) {
+      GenericExceptionHandlers.ArgumentNullException('nodeId');
+    }
+    const url = `${this._endpoint}v1.0/cluster/nodes/${encodeURIComponent(nodeId)}/restart`;
+    try {
+      return await this.post(url, { confirm: true }, Object, cancellationToken);
+    } catch (e) {
+      if (e instanceof ApiErrorResponse) throw e;
+      // A single server may drop the connection as it exits; this is expected.
+      return undefined;
+    }
+  }
+
+  /**
+   * Remove an Offline or Stopped node from the node registry. A running node cannot be removed, because it registers
+   * again on its next heartbeat. Requires system administrator privileges.
+   * @param {string} nodeId - Node identifier.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<void>} Resolves when removed. Rejects with Conflict for a running node.
+   */
+  async deleteClusterNode(nodeId, cancellationToken) {
+    if (!nodeId) {
+      GenericExceptionHandlers.ArgumentNullException('nodeId');
+    }
+    const url = `${this._endpoint}v1.0/cluster/nodes/${encodeURIComponent(nodeId)}`;
+    return await this.delete(url, cancellationToken);
+  }
+
+  /**
+   * List the distributed locks the cluster currently holds in Clutch. On a single node the list is empty and
+   * ClusterEnabled is false. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Lock list ({ ClusterEnabled, LockServiceAvailable, Locks: [{ Key, KeyClass, Mode, NodeId,
+   *   ClutchNodeId, FencingToken, AcquiredUtc, LeaseExpiresUtc }], Utc }).
+   */
+  async readClusterLocks(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/locks`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * List the most recent run of each cluster singleton job. On a single node the list is empty and ClusterEnabled is
+   * false. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Job list ({ ClusterEnabled, RegistryAvailable, Jobs: [{ Job, NodeId, StartedUtc, CompletedUtc,
+   *   DurationMs, Success, Message }], Utc }).
+   */
+  async readClusterJobs(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/jobs`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Search request history, returning one page (newest first). System administrators see every tenant and may filter
+   * by tenantGuid; tenant administrators are scoped to their own tenant.
+   * @param {Object} [filters] - Optional filters: tenantGuid, requestId, correlationId, traceId, method, path (substring),
+   *   sourceIp, nodeId (the node that handled the request), transactionId, statusCode, success, hasTransactionDiagnostics,
+   *   fromUtc, toUtc (Date or ISO 8601 string), maxKeys (1-1000, default 100), skip.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Enumeration result ({ Objects, TotalRecords, RecordsRemaining, EndOfResults, ... }).
+   */
+  async listRequestHistory(filters, cancellationToken) {
+    const url = `${this._endpoint}v1.0/requesthistory${buildRequestHistoryQuery(filters || {}, true)}`;
+    return await this.getMany(url, null, cancellationToken);
+  }
+
+  /**
+   * Read one request history entry. Rejects with a NotFound error when it does not exist.
+   * @param {string} requestGuid - Entry GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Entry ({ GUID, Method, Path, Url, SourceIp, NodeId, StatusCode, Success, ProcessingTimeMs, ... }).
+   */
+  async readRequestHistory(requestGuid, cancellationToken) {
+    if (!requestGuid) {
+      GenericExceptionHandlers.ArgumentNullException('requestGuid');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/${requestGuid}`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Read one request history entry with its captured headers and bodies. Rejects with a NotFound error when it does
+   * not exist.
+   * @param {string} requestGuid - Entry GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Detail (entry fields plus RequestHeaders, ResponseHeaders, RequestBody, ResponseBody).
+   */
+  async readRequestHistoryDetail(requestGuid, cancellationToken) {
+    if (!requestGuid) {
+      GenericExceptionHandlers.ArgumentNullException('requestGuid');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/${requestGuid}/detail`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Read request counts over a time range, bucketed by interval.
+   * @param {Object} [options] - interval (minute, 15minute, hour, 6hour, day; default hour), startUtc, endUtc (Date or
+   *   ISO 8601 string; default the last 24 hours), tenantGuid.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Summary ({ StartUtc, EndUtc, Interval, TotalSuccess, TotalFailure, TotalRequests, Data }).
+   */
+  async readRequestHistorySummary(options, cancellationToken) {
+    const opts = options || {};
+    const parts = [];
+    const add = (name, value) => {
+      if (value === undefined || value === null || value === '') return;
+      parts.push(`${name}=${encodeRequestHistoryValue(value instanceof Date ? value.toISOString() : value)}`);
+    };
+    add('interval', opts.interval);
+    add('startUtc', opts.startUtc);
+    add('endUtc', opts.endUtc);
+    add('tenantGuid', opts.tenantGuid);
+    const url = `${this._endpoint}v1.0/requesthistory/summary${parts.length > 0 ? '?' + parts.join('&') : ''}`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * Delete one request history entry.
+   * @param {string} requestGuid - Entry GUID.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<void>}
+   */
+  async deleteRequestHistory(requestGuid, cancellationToken) {
+    if (!requestGuid) {
+      GenericExceptionHandlers.ArgumentNullException('requestGuid');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/${requestGuid}`;
+    return await this.delete(url, cancellationToken);
+  }
+
+  /**
+   * Delete every request history entry matching the filters (the same filters as listRequestHistory; paging is ignored).
+   * An empty filter deletes every entry the caller can see.
+   * @param {Object} filters - Filters, as for listRequestHistory.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Result ({ Deleted }).
+   */
+  async deleteRequestHistoryMany(filters, cancellationToken) {
+    if (!filters) {
+      GenericExceptionHandlers.ArgumentNullException('filters');
+    }
+    const url = `${this._endpoint}v1.0/requesthistory/bulk${buildRequestHistoryQuery(filters, false)}`;
+    return await this.deleteForJson(url, cancellationToken);
+  }
+
+  /**
+   * Liveness check (GET /v1.0/health/live). Needs no authentication.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc, Utc }).
+   *   StorageProvider is Sqlite or Postgresql; VectorIndexProvider is HnswLite or pgvector.
+   */
+  async healthLive(cancellationToken) {
+    return await this.getAnyStatus(`${this._endpoint}v1.0/health/live`, cancellationToken);
+  }
+
+  /**
+   * Readiness check (GET /v1.0/health/ready). Needs no authentication. Resolves with the body for both 200 and 503,
+   * so a node that is not ready reports why; Status is Healthy, Degraded, or Unavailable.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc,
+   *   Checks: { Database, Clutch, Redis, Draining }, Utc }). Clutch and Redis are null on a single node.
+   */
+  async healthReady(cancellationToken) {
+    return await this.getAnyStatus(`${this._endpoint}v1.0/health/ready`, cancellationToken);
   }
 
   //end region

@@ -8,7 +8,7 @@ import { handlers } from './handler';
 import { commonHandlers } from '@/tests/handler';
 import { setTenant } from '@/lib/sdk/litegraph.service';
 import { mockGraphData, mockTenantGUID } from '../mockData';
-import EdgePage from '@/app/dashboard/[tenantId]/edges/page';
+import EdgePage from '@/app/dashboard/[tenantId]/graphs/edges/page';
 import AddEditEdge from '@/page/edges/components/AddEditEdge';
 import React from 'react';
 import { NodeData, EdgeData, HoveredElement, Point } from '@/lib/graph/types';

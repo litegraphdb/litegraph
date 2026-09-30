@@ -123,22 +123,79 @@
         }
 
         /// <inheritdoc />
-        public async Task RestartServer(CancellationToken token = default)
+        public Task<ClusterRestartResult> RestartServer(CancellationToken token = default)
         {
-            string url = _Sdk.Endpoint + "v1.0/settings/restart";
-            try
-            {
-                await _Sdk.PostStreamingBytes(url, Encoding.UTF8.GetBytes("{\"confirm\":true}"), "application/json", token).ConfigureAwait(false);
-            }
-            catch
-            {
-                // The server may drop the connection as it exits; this is expected.
-            }
+            return RequestRestart(_Sdk.Endpoint + "v1.0/settings/restart", token);
+        }
+
+        /// <inheritdoc />
+        public async Task<ClusterStatus> ReadClusterNodes(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/cluster/nodes";
+            return await _Sdk.Get<ClusterStatus>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task<ClusterRestartResult> RestartCluster(CancellationToken token = default)
+        {
+            return RequestRestart(_Sdk.Endpoint + "v1.0/cluster/restart", token);
+        }
+
+        /// <inheritdoc />
+        public async Task<ClusterNode> ReadClusterNode(string nodeId, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));
+            string url = _Sdk.Endpoint + "v1.0/cluster/nodes/" + Uri.EscapeDataString(nodeId);
+            return await _Sdk.Get<ClusterNode>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<ClusterLockList> ReadClusterLocks(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/cluster/locks";
+            return await _Sdk.Get<ClusterLockList>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<ClusterJobList> ReadClusterJobs(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/cluster/jobs";
+            return await _Sdk.Get<ClusterJobList>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task<ClusterRestartResult> RestartClusterNode(string nodeId, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));
+            return RequestRestart(_Sdk.Endpoint + "v1.0/cluster/nodes/" + Uri.EscapeDataString(nodeId) + "/restart", token);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteClusterNode(string nodeId, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));
+            string url = _Sdk.Endpoint + "v1.0/cluster/nodes/" + Uri.EscapeDataString(nodeId);
+            await _Sdk.Delete(url, token).ConfigureAwait(false);
         }
 
         #endregion
 
         #region Private-Methods
+
+        private async Task<ClusterRestartResult> RequestRestart(string url, CancellationToken token)
+        {
+            try
+            {
+                byte[] bytes = await _Sdk.PostStreamingBytes(url, Encoding.UTF8.GetBytes("{\"confirm\":true}"), "application/json", token).ConfigureAwait(false);
+                if (bytes != null && bytes.Length > 0) return Serializer.DeserializeJson<ClusterRestartResult>(Encoding.UTF8.GetString(bytes));
+                return null;
+            }
+            catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
+            {
+                // A single server may drop the connection as it exits; this is expected.
+                return null;
+            }
+        }
 
         #endregion
     }

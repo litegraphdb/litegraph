@@ -1026,6 +1026,41 @@
         /// </summary>
         [EnumMember(Value = "SettingsRestart")]
         SettingsRestart,
+        /// <summary>
+        /// ClusterNodesRead
+        /// </summary>
+        [EnumMember(Value = "ClusterNodesRead")]
+        ClusterNodesRead,
+        /// <summary>
+        /// ClusterRestart
+        /// </summary>
+        [EnumMember(Value = "ClusterRestart")]
+        ClusterRestart,
+        /// <summary>
+        /// ClusterNodeRead
+        /// </summary>
+        [EnumMember(Value = "ClusterNodeRead")]
+        ClusterNodeRead,
+        /// <summary>
+        /// ClusterNodeRestart
+        /// </summary>
+        [EnumMember(Value = "ClusterNodeRestart")]
+        ClusterNodeRestart,
+        /// <summary>
+        /// ClusterNodeDelete
+        /// </summary>
+        [EnumMember(Value = "ClusterNodeDelete")]
+        ClusterNodeDelete,
+        /// <summary>
+        /// ClusterLocksRead
+        /// </summary>
+        [EnumMember(Value = "ClusterLocksRead")]
+        ClusterLocksRead,
+        /// <summary>
+        /// ClusterJobsRead
+        /// </summary>
+        [EnumMember(Value = "ClusterJobsRead")]
+        ClusterJobsRead,
 
         #endregion
 

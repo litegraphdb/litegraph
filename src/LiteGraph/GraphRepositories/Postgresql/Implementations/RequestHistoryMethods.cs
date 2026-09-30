@@ -264,6 +264,7 @@
             entry.Path = Converters.GetDataRowStringValue(row, "path");
             entry.Url = Converters.GetDataRowStringValue(row, "url");
             entry.SourceIp = Converters.GetDataRowStringValue(row, "sourceip");
+            entry.NodeId = Converters.GetDataRowStringValue(row, "nodeid");
 
             string tenantStr = Converters.GetDataRowStringValue(row, "tenantguid");
             if (!string.IsNullOrEmpty(tenantStr) && Guid.TryParse(tenantStr, out Guid t)) entry.TenantGUID = t;

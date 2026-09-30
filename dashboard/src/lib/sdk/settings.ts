@@ -1,4 +1,5 @@
 import { sdk } from './litegraph.service';
+import { recordNodeFromResponse } from './nodeTracker';
 
 /**
  * The full server settings document (litegraph.json). It is deeply nested and
@@ -15,9 +16,59 @@ export interface SettingsUpdateResult {
   /** Sections whose change needs a server restart to take effect. */
   RestartRequired: string[];
   Message?: string;
+  /** Settings supplied by environment variables or derived at startup; their file values were left unchanged. */
+  EnvironmentOverrides?: string[];
+  /** Cluster settings version after the save; absent on a single node. */
+  SettingsVersion?: number | null;
 }
 
-const getBaseUrl = (): string => {
+/** Readiness checks reported for a node. */
+export interface NodeHealthChecks {
+  Database: boolean;
+  Clutch?: boolean | null;
+  Redis?: boolean | null;
+  Draining: boolean;
+}
+
+/** One node's entry in the cluster node registry (v10.0 `GET /v1.0/cluster/nodes`). */
+export interface ClusterNode {
+  NodeId: string;
+  Hostname?: string;
+  Version?: string;
+  StartedUtc: string;
+  LastHeartbeatUtc: string;
+  HeartbeatAgeMs?: number | null;
+  State: 'Healthy' | 'Degraded' | 'Unavailable' | 'Draining' | 'Restarting' | 'Stopped' | 'Offline';
+  Checks: NodeHealthChecks;
+  SettingsVersion: number;
+  RestartPending: boolean;
+  RestartVersion: number;
+}
+
+/** Cluster status: registered nodes plus the settings and restart counters. */
+export interface ClusterStatus {
+  ClusterEnabled: boolean;
+  ClusterName?: string | null;
+  AnsweredBy?: string | null;
+  RegistryAvailable?: boolean | null;
+  SettingsVersion: number;
+  SettingsUpdatedUtc?: string | null;
+  RestartVersion: number;
+  RestartRequestedUtc?: string | null;
+  Nodes: ClusterNode[];
+  Utc: string;
+}
+
+/** Result of a restart request: a rolling restart in cluster mode, otherwise this server restarts. */
+export interface ClusterRestartResult {
+  Restarting: boolean;
+  Rolling: boolean;
+  RestartVersion?: number | null;
+  Message?: string;
+  RequestedUtc?: string;
+}
+
+export const getBaseUrl = (): string => {
   const endpoint = sdk.config.endpoint || '/';
   return endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
 };
@@ -37,7 +88,8 @@ const buildHeaders = (): Record<string, string> => {
   return headers;
 };
 
-const request = async <T>(method: string, url: string, body?: unknown): Promise<T> => {
+/** Authenticated JSON request against the server's admin routes; throws with the server's error description. */
+export const request = async <T>(method: string, url: string, body?: unknown): Promise<T> => {
   const headers = buildHeaders();
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const response = await fetch(url, {
@@ -45,6 +97,7 @@ const request = async <T>(method: string, url: string, body?: unknown): Promise<
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  recordNodeFromResponse(response);
   if (!response.ok) {
     let message = `HTTP ${response.status} ${response.statusText}`;
     try {
@@ -61,7 +114,7 @@ const request = async <T>(method: string, url: string, body?: unknown): Promise<
   return JSON.parse(text) as T;
 };
 
-/** Read the current effective server settings (SystemAdmin only). */
+/** Read the settings file shared by every node (SystemAdmin only). */
 export const getServerSettings = (): Promise<ServerSettings> =>
   request<ServerSettings>('GET', `${getBaseUrl()}/v1.0/settings`);
 
@@ -69,10 +122,13 @@ export const getServerSettings = (): Promise<ServerSettings> =>
 export const updateServerSettings = (settings: ServerSettings): Promise<SettingsUpdateResult> =>
   request<SettingsUpdateResult>('PUT', `${getBaseUrl()}/v1.0/settings`, settings);
 
-/** Trigger a clean server restart so the new settings file takes effect. */
-export const restartServer = (): Promise<{ Success?: boolean; Message?: string }> =>
-  request<{ Success?: boolean; Message?: string }>(
-    'POST',
-    `${getBaseUrl()}/v1.0/settings/restart`,
-    { confirm: true }
-  );
+/**
+ * Apply saved settings by restarting: a rolling restart of every node in cluster mode (nodes restart one at a
+ * time), otherwise a clean restart of this server.
+ */
+export const restartServer = (): Promise<ClusterRestartResult> =>
+  request<ClusterRestartResult>('POST', `${getBaseUrl()}/v1.0/settings/restart`, { confirm: true });
+
+/** List the nodes in the cluster with their state and health (the answering node alone on a single node). */
+export const getClusterNodes = (): Promise<ClusterStatus> =>
+  request<ClusterStatus>('GET', `${getBaseUrl()}/v1.0/cluster/nodes`);

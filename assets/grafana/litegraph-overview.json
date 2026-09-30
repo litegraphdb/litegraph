@@ -120,7 +120,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_http_requests_total[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_http_requests_total{node=~\"$node\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": "requests/sec"
@@ -182,7 +182,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_http_request_duration_ms_sum[$__rate_interval])) / sum(rate(litegraph_http_request_duration_ms_count[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_http_request_duration_ms_sum{node=~\"$node\"}[$__rate_interval])) / sum(rate(litegraph_http_request_duration_ms_count{node=~\"$node\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": "avg request ms"
@@ -248,7 +248,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_http_request_errors_total[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_http_request_errors_total{node=~\"$node\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": "errors/sec"
@@ -314,7 +314,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(litegraph_chat_active)",
+          "expr": "sum(litegraph_chat_active{node=~\"$node\"})",
           "range": true,
           "refId": "A",
           "legendFormat": "active chats"
@@ -380,7 +380,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_graph_transaction_active",
+          "expr": "litegraph_graph_transaction_active{node=~\"$node\"}",
           "range": true,
           "refId": "A",
           "legendFormat": "active transactions"
@@ -442,7 +442,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(litegraph_entity_count) by (entity)",
+          "expr": "sum(litegraph_entity_count{node=~\"$node\"}) by (entity)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{entity}}"
@@ -486,7 +486,41 @@
     "overview"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "DS_PROMETHEUS"
+        },
+        "definition": "label_values(up{job=~\"litegraph.*\"}, node)",
+        "description": "LiteGraph node (the node label Prometheus attaches to each scrape target). All includes single-node deployments.",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Node",
+        "multi": true,
+        "name": "node",
+        "options": [],
+        "query": {
+          "query": "label_values(up{job=~\"litegraph.*\"}, node)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",

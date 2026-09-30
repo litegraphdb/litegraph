@@ -68,10 +68,23 @@ import {
 import {
   ServerSettings,
   SettingsUpdateResult,
+  ClusterRestartResult,
+  ClusterStatus,
+  getClusterNodes,
   getServerSettings,
   restartServer,
   updateServerSettings,
 } from '@/lib/sdk/settings';
+import {
+  deleteClusterNode,
+  getClusterJobs,
+  getClusterLocks,
+  getClusterNode,
+  getServerHealth,
+  restartCluster,
+  restartClusterNode,
+} from '@/lib/sdk/cluster';
+import type { ClusterJobList, ClusterLockList, ClusterNode, ServerHealth } from '@/lib/sdk/cluster';
 import {
   ChatEndpoint,
   ChatEndpointHealth,
@@ -876,9 +889,57 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       invalidatesTags: [SliceTags.SETTINGS],
     }),
-    restartServer: build.mutation<{ Success?: boolean; Message?: string }, void>({
+    restartServer: build.mutation<ClusterRestartResult, void>({
       query: () => ({
         callback: () => restartServer(),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    getClusterNodes: build.query<ClusterStatus, void>({
+      query: () => ({
+        callback: () => getClusterNodes(),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    getClusterNode: build.query<ClusterNode, string>({
+      query: (nodeId: string) => ({
+        callback: () => getClusterNode(nodeId),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    restartCluster: build.mutation<ClusterRestartResult, void>({
+      query: () => ({
+        callback: () => restartCluster(),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    restartClusterNode: build.mutation<ClusterRestartResult, string>({
+      query: (nodeId: string) => ({
+        callback: () => restartClusterNode(nodeId),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    deleteClusterNode: build.mutation<void, string>({
+      query: (nodeId: string) => ({
+        callback: () => deleteClusterNode(nodeId),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    getClusterLocks: build.query<ClusterLockList, void>({
+      query: () => ({
+        callback: () => getClusterLocks(),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    getClusterJobs: build.query<ClusterJobList, void>({
+      query: () => ({
+        callback: () => getClusterJobs(),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    getServerHealth: build.query<ServerHealth, void>({
+      query: () => ({
+        callback: () => getServerHealth(),
       }),
     }),
     getCredentialEffectivePermissions: build.query<
@@ -1141,6 +1202,14 @@ export const {
   useGetServerSettingsQuery,
   useUpdateServerSettingsMutation,
   useRestartServerMutation,
+  useGetClusterNodesQuery,
+  useGetClusterNodeQuery,
+  useRestartClusterMutation,
+  useRestartClusterNodeMutation,
+  useDeleteClusterNodeMutation,
+  useGetClusterLocksQuery,
+  useGetClusterJobsQuery,
+  useGetServerHealthQuery,
   useListChatEndpointsQuery,
   useCreateChatEndpointMutation,
   useUpdateChatEndpointMutation,

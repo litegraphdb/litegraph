@@ -2,6 +2,18 @@
 
 ## Current Version
 
+v10.0.0
+
+- Added cluster administration: `ReadClusterNodes`, `ReadClusterNode`, `RestartCluster`, `RestartClusterNode`, `DeleteClusterNode`, and the `ClusterStatus`, `ClusterNode`, `ClusterNodeChecks`, `ClusterNodeStateEnum`, and `ClusterRestartResult` models
+- `RestartServer` returns a `ClusterRestartResult` (a rolling restart in cluster mode)
+- Added `HealthLive` and `HealthReady` with the `HealthResponse` model; readiness returns the body for 503 as well as 200
+- Added a retry policy: `MaxRetries` (default 2), `RetryBaseDelayMs` (default 200, exponential with jitter, capped at 5000 ms), and `RetryPost` (default false); connection failures and 502/503/504 are retried for GET, HEAD, PUT, and DELETE
+- Added `LastNodeId`, from the `x-litegraph-node` response header
+- `SettingsUpdateResult` gains `EnvironmentOverrides` and `SettingsVersion`
+- Added `ReadClusterLocks` and `ReadClusterJobs` with the `ClusterLock`, `ClusterLockList`, `ClusterJobRun`, and `ClusterJobList` models
+- `HealthResponse` gains `StorageProvider` and `VectorIndexProvider`
+- Added request history on `sdk.RequestHistory`: `Search` (one page, with filters including `NodeId`), `Enumerate` (all pages), `ReadByGuid`, `ReadDetail`, `ReadSummary`, `DeleteByGuid`, and `DeleteMany`, with the `RequestHistoryEntry`, `RequestHistoryDetail`, `RequestHistorySearchRequest`, `RequestHistorySummary`, `RequestHistorySummaryBucket`, and `RequestHistoryDeleteResult` models, and `SdkBase.DeleteWithResult<T>`
+
 v7.0.0
 
 - Added v7 graph transaction diagnostics, lifecycle state, and isolation-level models

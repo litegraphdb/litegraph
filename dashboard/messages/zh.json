@@ -60,7 +60,8 @@
     "signOut": "退出仪表板登录",
     "logoutAria": "退出登录",
     "language": "语言",
-    "selectLanguage": "选择语言"
+    "selectLanguage": "选择语言",
+    "answeredBy": "最近一次响应来自节点 {node}"
   },
   "login": {
     "serverUrl": "LiteGraph 服务器 URL",
@@ -146,7 +147,10 @@
       "rebuildVectorIndex": "重建向量索引",
       "deleteVectorIndex": "删除向量索引",
       "viewJson": "查看 JSON",
-      "menu": "操作"
+      "menu": "操作",
+      "viewNodes": "查看节点",
+      "viewEdges": "查看边",
+      "viewVectors": "查看向量"
     },
     "form": {
       "name": "名称",
@@ -273,7 +277,12 @@
         "status": "索引当前是否已加载到内存中",
         "distanceMetric": "用于相似度计算的距离度量"
       }
-    }
+    },
+    "providerLabel": "向量索引提供方：{provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "索引位于 PostgreSQL 中。向量维度相同的图共享一个索引，其参数由第一个启用它的图决定。超过 4,000 维的向量不使用索引，而是精确搜索。不使用索引文件。",
+    "hnswliteNote": "索引由此服务器进程维护，并保存在下方的索引文件中。"
   },
   "importExport": {
     "exportJsonl": "导出为 JSONL",
@@ -844,7 +853,9 @@
       "transactionDesc": "写入请求的事务诊断：标识符、结果、隔离级别和提供方。",
       "durationDesc": "从收到请求到完成响应的服务器端处理时间。",
       "sizeDesc": "请求与响应正文的大小（字节），按“请求 / 响应”显示。",
-      "tenantDesc": "发出请求的租户；管理请求为空。"
+      "tenantDesc": "发出请求的租户；管理请求为空。",
+      "node": "节点",
+      "nodeDesc": "处理该请求的服务器节点。"
     },
     "transaction": {
       "noId": "事务"
@@ -876,7 +887,9 @@
       "nonTransactions": "非事务",
       "allMethods": "所有方法",
       "transactionIdPlaceholder": "事务 ID……",
-      "pathPlaceholder": "路径包含……"
+      "pathPlaceholder": "路径包含……",
+      "nodePlaceholder": "按节点筛选",
+      "nodeNone": "没有匹配的节点"
     },
     "summary": {
       "visibleRequests": "可见请求：",
@@ -1359,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "首页",
-      "data": "数据",
-      "metadata": "元数据",
-      "manage": "管理",
-      "secure": "安全",
-      "administer": "系统管理",
-      "ai": "AI"
+      "workspace": "工作区",
+      "administration": "系统管理"
     },
-    "item": {
+    "hub": {
       "home": "首页",
       "homeTitle": "仪表板概览",
+      "graphs": "图",
+      "graphsTitle": "图、节点、边、元数据、向量和算法",
+      "chat": "聊天",
+      "chatTitle": "与图聊天并管理聊天端点",
+      "access": "访问",
+      "accessTitle": "租户、用户、凭据和授权",
+      "system": "系统",
+      "systemTitle": "服务器设置、集群和备份",
+      "developer": "开发者",
+      "developerTitle": "API 请求历史和 API Explorer"
+    },
+    "tabBarAria": "{hub} 标签页",
+    "item": {
       "graphs": "图",
       "graphsTitle": "管理图容器",
       "nodes": "节点",
@@ -1402,14 +1423,16 @@
       "aiChatTitle": "与您的图谱对话",
       "aiEndpoints": "端点",
       "aiEndpointsTitle": "管理 LLM 端点",
-      "aiHistory": "聊天历史",
+      "aiHistory": "历史",
       "aiHistoryTitle": "浏览聊天会话与轮次",
       "aiFeedback": "反馈",
       "aiFeedbackTitle": "查看聊天反馈",
-      "aiSettings": "聊天设置",
+      "aiSettings": "设置",
       "aiSettingsTitle": "租户聊天配置",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "集群",
+      "clusterTitle": "集群节点与重启"
     }
   },
   "secure": {
@@ -1435,7 +1458,8 @@
       "rest": "REST 服务器",
       "database": "数据库",
       "security": "安全",
-      "chat": "聊天"
+      "chat": "聊天",
+      "cluster": "集群"
     },
     "fields": {
       "requestTimeoutSeconds": "请求超时（秒）",
@@ -1483,7 +1507,25 @@
       "chatMaxToolIterationsCap": "工具迭代上限",
       "chatMaxConcurrentChats": "最大并发聊天数",
       "chatSseKeepAliveSeconds": "SSE 保活（秒）",
-      "chatDefaultTimeoutMs": "默认超时（毫秒）"
+      "chatDefaultTimeoutMs": "默认超时（毫秒）",
+      "clusterEnable": "作为集群节点运行",
+      "clusterName": "集群名称",
+      "clusterNodeId": "节点标识",
+      "trustForwardedHeaders": "信任转发的请求头",
+      "trustedProxies": "受信任的代理",
+      "allowInsecureDefaults": "允许不安全的默认值",
+      "endpointResyncIntervalMs": "聊天端点重新同步间隔 (毫秒)",
+      "clutchEndpoint": "Clutch 端点",
+      "clutchAccessKey": "Clutch 访问密钥",
+      "clutchLeaseMs": "Clutch 租约 (毫秒)",
+      "clutchRequestTimeoutMs": "Clutch 请求超时 (毫秒)",
+      "clutchStartupConnectTimeoutMs": "启动时连接 Clutch 的超时 (毫秒)",
+      "redisConnectionString": "Redis 连接字符串",
+      "redisPollIntervalMs": "Redis 轮询间隔 (毫秒)",
+      "redisNodeTimeoutMs": "节点离线判定时间 (毫秒)",
+      "redisNodeRetentionMs": "遗忘已停止节点的时间 (毫秒)",
+      "restartDrainMs": "滚动重启排空时间 (毫秒)",
+      "restartPeerTimeoutMs": "滚动重启等待其他节点的时间 (毫秒)"
     },
     "status": {
       "appliedLive": "已实时应用",
@@ -1496,19 +1538,56 @@
     "actions": {
       "save": "保存",
       "discard": "放弃更改",
-      "restart": "重启服务器"
+      "restart": "重启服务器",
+      "restartCluster": "重启集群"
     },
     "restartModal": {
       "title": "重启服务器？",
-      "body": "服务器将退出，容器将使用已保存的设置重启。活动连接将被短暂中断。"
+      "body": "服务器将退出，容器将使用已保存的设置重启。活动连接将被短暂中断。",
+      "titleCluster": "重启所有节点？",
+      "bodyCluster": "所有节点将逐一重启，每个节点都会等上一个节点恢复健康后再重启。整个过程中集群会持续处理请求。"
     },
     "toast": {
       "saved": "设置已保存。",
       "saveFailed": "无法保存设置。",
       "restartFailed": "无法重启服务器。",
       "reconnected": "服务器已恢复在线。",
-      "reconnectTimeout": "服务器未能及时恢复。请检查其状态。"
-    }
+      "reconnectTimeout": "服务器未能及时恢复。请检查其状态。",
+      "rollingRestart": "已请求滚动重启。节点将逐一重启，可在节点列表中查看进度。"
+    },
+    "environmentOverrides": "有 {count} 项设置来自环境变量或在启动时设定，设置文件中的对应值未作更改。",
+    "cluster": {
+      "title": "节点",
+      "descriptionCluster": "集群 {name} 中的所有节点。设置会保存到所有节点。需要重启的设置将在集群重启后生效，集群重启会逐一重启各节点。",
+      "descriptionSingle": "此服务器以单节点方式运行。",
+      "registryUnavailable": "无法连接节点注册表 (Redis)，仅显示响应的节点。",
+      "secondsAgo": "{seconds} 秒前",
+      "yes": "是",
+      "no": "否",
+      "columns": {
+        "node": "节点",
+        "state": "状态",
+        "version": "版本",
+        "started": "启动时间",
+        "heartbeat": "最近心跳",
+        "settingsVersion": "设置版本",
+        "restartPending": "待重启"
+      },
+      "openPage": "打开集群页面"
+    },
+    "hints": {
+      "range": "允许范围 {min} 至 {max}",
+      "envOverride": "由环境变量设置",
+      "nodeIdEnv": "在每个节点上通过环境变量 LITEGRAPH_NODE_ID 设置。",
+      "trustedProxies": "以逗号分隔的地址或 CIDR 范围，例如 10.0.0.0/8。",
+      "clusterName": "小写字母、数字和连字符。"
+    },
+    "clusterBanner": {
+      "title": "这些设置适用于所有节点",
+      "body": "所有节点共享此设置文件。需要重启的设置会在集群重启后生效，集群重启会逐一重启各节点。",
+      "link": "打开集群页面"
+    },
+    "cachingDisabledInCluster": "在集群模式下，无论这些设置如何，对象缓存都会被禁用，以便每个节点读取最新数据。"
   },
   "ai": {
     "chat": {
@@ -1994,5 +2073,127 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "集群",
+    "subtitle": "此部署中的所有节点、其健康状况和重启情况。状态筛选仅作用于从服务器获取的节点列表。",
+    "loading": "正在加载集群状态...",
+    "refresh": "刷新",
+    "autoRefresh": "每 {seconds} 秒刷新一次",
+    "autoRefreshPaused": "自动刷新已暂停",
+    "reconnecting": "连接中断，正在重试",
+    "lastUpdated": "更新于 {time}",
+    "singleNode": "单节点",
+    "singleNodeDescription": "此服务器未以集群模式运行。它是唯一的节点，重启它即重启服务器。",
+    "registryUnavailable": "无法连接节点注册表 (Redis)。仅显示响应的节点，在 Redis 恢复之前无法请求重启。",
+    "loadError": "无法加载集群状态。",
+    "cards": {
+      "nodes": "健康节点",
+      "cluster": "集群",
+      "registry": "节点注册表",
+      "registryUp": "可用",
+      "registryDown": "不可用",
+      "registryNa": "未使用",
+      "settings": "设置版本",
+      "settingsLagging": "{count} 个落后，{pending} 个待重启",
+      "lastRestart": "最近一次重启请求",
+      "never": "从未"
+    },
+    "filter": {
+      "state": "状态",
+      "all": "全部状态",
+      "localNote": "显示 {total} 个节点中的 {shown} 个"
+    },
+    "columns": {
+      "node": "节点",
+      "host": "主机",
+      "version": "版本",
+      "state": "状态",
+      "started": "启动时间",
+      "heartbeat": "最近心跳",
+      "checks": "检查",
+      "settingsVersion": "设置版本",
+      "restartPending": "待重启",
+      "actions": "操作"
+    },
+    "checks": {
+      "database": "数据库",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} 秒前",
+    "yes": "是",
+    "no": "否",
+    "actions": {
+      "copyNodeId": "复制节点 ID",
+      "restartNode": "重启节点",
+      "remove": "从注册表移除",
+      "rollingRestart": "滚动重启"
+    },
+    "restartNodeModal": {
+      "title": "重启节点 {node}？",
+      "body": "该节点停止接收请求、重启并重新加入。如果有其他节点正在重启，它会先等待该节点。",
+      "bodySingle": "服务器将退出，并由其守护进程重新启动。请求会短暂中断。"
+    },
+    "removeModal": {
+      "title": "移除节点 {node}？",
+      "body": "将此节点从注册表中移除。如果它再次启动，会重新注册。"
+    },
+    "rollingModal": {
+      "title": "重启所有节点？",
+      "body": "所有节点将逐一重启，每个节点都会等上一个节点恢复健康后再重启。整个过程中集群会持续处理请求。"
+    },
+    "progress": {
+      "title": "滚动重启进度",
+      "complete": "所有节点均已重启。",
+      "pending": "等待中",
+      "restarting": "重启中",
+      "restarted": "已重启",
+      "dismiss": "关闭",
+      "requested": "请求于 {time}"
+    },
+    "toast": {
+      "restartRequested": "已请求重启 {node}。",
+      "rollingRequested": "已请求滚动重启。",
+      "removed": "已移除节点 {node}。",
+      "actionFailed": "请求失败：{message}"
+    },
+    "empty": "没有已注册的节点。",
+    "jobs": {
+      "title": "后台任务",
+      "description": "每个周期只在一个节点上运行的各项任务的最近一次运行。",
+      "empty": "此集群中尚未运行任何任务。",
+      "emptySingle": "在单节点上所有任务都在本地运行，因此此处不记录运行。",
+      "unavailable": "无法连接节点注册表 (Redis)，因此无法显示任务运行。",
+      "success": "成功",
+      "failed": "失败",
+      "durationMs": "{ms} 毫秒",
+      "columns": {
+        "job": "任务",
+        "node": "节点",
+        "started": "开始",
+        "completed": "结束",
+        "duration": "耗时",
+        "result": "结果"
+      }
+    },
+    "locks": {
+      "title": "分布式锁",
+      "description": "此集群当前在 Clutch 中持有的锁。大多数只持有片刻。",
+      "empty": "当前没有持有的锁。",
+      "emptySingle": "单节点只使用进程内锁，因此没有可显示的内容。",
+      "unavailable": "无法连接 Clutch，因此无法列出持有的锁。",
+      "unknownNode": "未知节点",
+      "columns": {
+        "key": "键",
+        "keyClass": "类别",
+        "mode": "模式",
+        "node": "节点",
+        "clutchNode": "Clutch 节点",
+        "fencingToken": "防护令牌",
+        "acquired": "获取时间",
+        "leaseExpires": "租约到期"
+      }
+    }
   }
 }

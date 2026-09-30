@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Data;
+    using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
@@ -57,12 +59,7 @@
 
             string createQuery = VectorQueries.Insert(vector);
             DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
-            VectorMetadata created = Converters.VectorFromDataRow(createResult.Rows[0]);
-
-            // Update vector index asynchronously
-            await VectorMethodsIndexExtensions.UpdateIndexForCreateAsync(_Repo, created).ConfigureAwait(false);
-
-            return created;
+            return Converters.VectorFromDataRow(createResult.Rows[0]);
         }
 
         /// <inheritdoc />
@@ -82,27 +79,14 @@
             // Execute the entire batch with BEGIN/COMMIT and multi-row INSERTs
             DataTable createResult = await _Repo.ExecuteQueryAsync(insertQuery, true, token).ConfigureAwait(false);
             DataTable retrieveResult = await _Repo.ExecuteQueryAsync(retrieveQuery, true, token).ConfigureAwait(false);
-            List<VectorMetadata> created = Converters.VectorsFromDataTable(retrieveResult);
-
-            // Update vector index asynchronously for batch
-            await VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(_Repo, created).ConfigureAwait(false);
-
-            return created;
+            return Converters.VectorsFromDataTable(retrieveResult);
         }
 
         /// <inheritdoc />
         public async Task DeleteByGuid(Guid tenantGuid, Guid guid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            VectorMetadata vector = await ReadByGuid(tenantGuid, guid, token).ConfigureAwait(false);
-            if (vector != null)
-            {
-                await _Repo.ExecuteQueryAsync(VectorQueries.Delete(tenantGuid, guid), true, token).ConfigureAwait(false);
-
-                // Update vector index asynchronously
-                if (vector.NodeGUID.HasValue)
-                    await VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(_Repo, tenantGuid, vector.NodeGUID.Value, vector.GraphGUID).ConfigureAwait(false);
-            }
+            await _Repo.ExecuteQueryAsync(VectorQueries.Delete(tenantGuid, guid), true, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -110,72 +94,27 @@
         {
             token.ThrowIfCancellationRequested();
             await _Repo.ExecuteQueryAsync(VectorQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids, edgeGuids), token: token).ConfigureAwait(false);
-
-            if (graphGuid.HasValue && nodeGuids != null && nodeGuids.Count > 0)
-                await VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(_Repo, tenantGuid, nodeGuids, graphGuid.Value).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task DeleteMany(Guid tenantGuid, List<Guid> guids, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            Dictionary<Guid, List<Guid>> nodeGuidsByGraph = new Dictionary<Guid, List<Guid>>();
-            await foreach (VectorMetadata vector in ReadByGuids(tenantGuid, guids, token).WithCancellation(token).ConfigureAwait(false))
-            {
-                if (vector.NodeGUID.HasValue)
-                {
-                    if (!nodeGuidsByGraph.ContainsKey(vector.GraphGUID))
-                        nodeGuidsByGraph[vector.GraphGUID] = new List<Guid>();
-
-                    nodeGuidsByGraph[vector.GraphGUID].Add(vector.NodeGUID.Value);
-                }
-            }
-
             await _Repo.ExecuteQueryAsync(VectorQueries.DeleteMany(tenantGuid, guids), false, token).ConfigureAwait(false);
-
-            foreach (KeyValuePair<Guid, List<Guid>> kvp in nodeGuidsByGraph)
-            {
-                await VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(_Repo, tenantGuid, kvp.Value, kvp.Key).ConfigureAwait(false);
-            }
         }
 
         /// <inheritdoc />
         public async Task DeleteAllInTenant(Guid tenantGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            List<Graph> indexedGraphs = new List<Graph>();
-            await foreach (Graph graph in _Repo.Graph.ReadAllInTenant(tenantGuid, token: token).WithCancellation(token).ConfigureAwait(false))
-            {
-                if (graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
-                    indexedGraphs.Add(graph);
-            }
-
             await _Repo.ExecuteQueryAsync(VectorQueries.DeleteAllInTenant(tenantGuid), false, token).ConfigureAwait(false);
-
-            foreach (Graph graph in indexedGraphs)
-            {
-                await _Repo.Graph.MarkVectorIndexDirtyAsync(
-                    tenantGuid,
-                    graph.GUID,
-                    "Vector tenant delete removed persisted vectors outside the vector index").ConfigureAwait(false);
-            }
         }
 
         /// <inheritdoc />
         public async Task DeleteAllInGraph(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
-            Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
             await _Repo.ExecuteQueryAsync(VectorQueries.DeleteAllInGraph(tenantGuid, graphGuid), false, token).ConfigureAwait(false);
-
-            if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
-            {
-                await _Repo.Graph.MarkVectorIndexDirtyAsync(
-                    tenantGuid,
-                    graphGuid,
-                    "Vector graph delete removed persisted vectors outside the vector index",
-                    token).ConfigureAwait(false);
-            }
         }
 
         /// <inheritdoc />
@@ -614,12 +553,7 @@
 
             string updateQuery = VectorQueries.Update(vector);
             DataTable updateResult = await _Repo.ExecuteQueryAsync(updateQuery, true, token).ConfigureAwait(false);
-            VectorMetadata updated = Converters.VectorFromDataRow(updateResult.Rows[0]);
-
-            // Update vector index asynchronously
-            await VectorMethodsIndexExtensions.UpdateIndexForUpdateAsync(_Repo, updated).ConfigureAwait(false);
-
-            return updated;
+            return Converters.VectorFromDataRow(updateResult.Rows[0]);
         }
 
         /// <inheritdoc />
@@ -640,112 +574,21 @@
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
             token.ThrowIfCancellationRequested();
 
-            // Step 1: Get all filtered vectors with a single query that includes all filtering
-            List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
-            int skip = 0;
+            List<KeyValuePair<Guid, VectorSearchResult>> matches = await SearchCoreAsync(
+                "graph", searchType, vectors, tenantGuid, null, labels, tags, filter, topK, minScore, maxDistance, minInnerProduct, null, token).ConfigureAwait(false);
 
-            while (true)
+            List<Guid> graphGuids = matches.Select(m => m.Key).ToList();
+            Dictionary<Guid, Graph> graphs = await ToDictionaryAsync(_Repo.Graph.ReadByGuids(tenantGuid, graphGuids, token), g => g.GUID, token).ConfigureAwait(false);
+            Dictionary<Guid, List<VectorMetadata>> graphVectors = await ReadVectorsByOwnerAsync(VectorQueries.SelectManyGraphs(tenantGuid, graphGuids), v => v.GraphGUID, token).ConfigureAwait(false);
+
+            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in matches)
             {
                 token.ThrowIfCancellationRequested();
-                string query = VectorQueries.SelectGraphVectorsWithFilters(
-                    tenantGuid,
-                    labels,
-                    tags,
-                    filter,
-                    _Repo.SelectBatchSize,
-                    skip);
+                if (!graphs.TryGetValue(kvp.Key, out Graph graph)) continue;
 
-                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
-                if (result == null || result.Rows.Count < 1) break;
-
-                for (int i = 0; i < result.Rows.Count; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    VectorMetadata vmd = Converters.VectorFromDataRow(result.Rows[i]);
-                    if (vmd.Vectors != null && vmd.Vectors.Count > 0 && vmd.Vectors.Count == vectors.Count)
-                    {
-                        candidateVectors.Add(vmd);
-                    }
-                }
-
-                skip += result.Rows.Count;
-                if (result.Rows.Count < _Repo.SelectBatchSize) break;
-            }
-
-            // Step 2: Compare vectors and collect matching results
-            Dictionary<Guid, VectorSearchResult> bestResultsByGraph = new Dictionary<Guid, VectorSearchResult>();
-
-            foreach (VectorMetadata vmd in candidateVectors)
-            {
-                token.ThrowIfCancellationRequested();
-                float? score = null;
-                float? distance = null;
-                float? innerProduct = null;
-
-                CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-
-                if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
-                {
-                    // Keep only the best result for each graph
-                    if (!bestResultsByGraph.ContainsKey(vmd.GraphGUID))
-                    {
-                        bestResultsByGraph[vmd.GraphGUID] = new VectorSearchResult
-                        {
-                            Score = score,
-                            Distance = distance,
-                            InnerProduct = innerProduct
-                        };
-                    }
-                    else
-                    {
-                        // Compare and keep the better result
-                        VectorSearchResult existing = bestResultsByGraph[vmd.GraphGUID];
-                        bool isBetter = false;
-
-                        if (score != null && existing.Score != null)
-                            isBetter = score.Value > existing.Score.Value;
-                        else if (distance != null && existing.Distance != null)
-                            isBetter = distance.Value < existing.Distance.Value;
-                        else if (innerProduct != null && existing.InnerProduct != null)
-                            isBetter = innerProduct.Value > existing.InnerProduct.Value;
-
-                        if (isBetter)
-                        {
-                            bestResultsByGraph[vmd.GraphGUID] = new VectorSearchResult
-                            {
-                                Score = score,
-                                Distance = distance,
-                                InnerProduct = innerProduct
-                            };
-                        }
-                    }
-                }
-            }
-
-            // Step 3: Sort results and retrieve graphs
-            List<KeyValuePair<Guid, VectorSearchResult>> sortedResults = bestResultsByGraph
-                .OrderByDescending(x => x.Value.Score)
-                .ThenBy(x => x.Value.Distance)
-                .ThenByDescending(x => x.Value.InnerProduct)
-                .Take(topK ?? int.MaxValue)
-                .ToList();
-
-            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in sortedResults)
-            {
-                token.ThrowIfCancellationRequested();
-                Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, kvp.Key, token).ConfigureAwait(false);
-                if (graph != null)
-                {
-                    kvp.Value.Graph = graph;
-                    // Optionally load vectors for the graph
-                    List<VectorMetadata> graphVectors = new List<VectorMetadata>();
-                    await foreach (VectorMetadata vector in _Repo.Vector.ReadManyGraph(tenantGuid, graph.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                    {
-                        graphVectors.Add(vector);
-                    }
-                    graph.Vectors = graphVectors;
-                    yield return kvp.Value;
-                }
+                kvp.Value.Graph = graph;
+                graph.Vectors = graphVectors.TryGetValue(graph.GUID, out List<VectorMetadata> list) ? list : new List<VectorMetadata>();
+                yield return kvp.Value;
             }
         }
 
@@ -768,154 +611,24 @@
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
             token.ThrowIfCancellationRequested();
 
-            // Try to use HNSW index first if available and no complex filtering
-            bool canUseIndex = (labels == null || labels.Count == 0) &&
-                              (tags == null || tags.Count == 0) &&
-                              filter == null;
+            Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
 
-            if (canUseIndex)
-            {
-                Graph graph = await _Repo.Graph.ReadByGuid(tenantGuid, graphGuid, token).ConfigureAwait(false);
-                if (graph != null && graph.VectorIndexType.HasValue && graph.VectorIndexType != VectorIndexTypeEnum.None)
-                {
-                    // Use HNSW index for fast search
-                    List<VectorScoreResult> indexedResults = await VectorMethodsIndexExtensions.SearchWithIndexAsync(
-                        _Repo, searchType, vectors, graph, topK ?? 100).ConfigureAwait(false);
+            List<KeyValuePair<Guid, VectorSearchResult>> matches = await SearchCoreAsync(
+                "node", searchType, vectors, tenantGuid, graphGuid, labels, tags, filter, topK, minScore, maxDistance, minInnerProduct, graph, token).ConfigureAwait(false);
 
-                    if (indexedResults != null)
-                    {
-                        // Convert indexed results to VectorSearchResult and get node info
-                        foreach (VectorScoreResult indexResult in indexedResults)
-                        {
-                            token.ThrowIfCancellationRequested();
-                            Node node = await _Repo.Node.ReadByGuid(tenantGuid, indexResult.Id, token).ConfigureAwait(false);
-                            if (node != null)
-                            {
-                                yield return new VectorSearchResult
-                                {
-                                    Node = node,
-                                    Graph = graph,
-                                    Score = indexResult.Score,
-                                    Distance = searchType == VectorSearchTypeEnum.CosineSimilarity ?
-                                              (1.0f - indexResult.Score) : indexResult.Score
-                                };
-                            }
-                        }
-                        yield break; // Return indexed results, skip brute force
-                    }
-                }
-            }
+            List<Guid> nodeGuids = matches.Select(m => m.Key).ToList();
+            Dictionary<Guid, Node> nodes = await ToDictionaryAsync(_Repo.Node.ReadByGuids(tenantGuid, nodeGuids, token), n => n.GUID, token).ConfigureAwait(false);
+            Dictionary<Guid, List<VectorMetadata>> nodeVectors = await ReadVectorsByOwnerAsync(VectorQueries.SelectManyNodes(tenantGuid, graphGuid, nodeGuids), v => v.NodeGUID, token).ConfigureAwait(false);
 
-            // Fallback to brute force search (original implementation)
-            // Step 1: Get all filtered vectors with a single query that includes all filtering
-            List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
-            int skip = 0;
-
-            while (true)
+            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in matches)
             {
                 token.ThrowIfCancellationRequested();
-                string query = VectorQueries.SelectNodeVectorsWithFilters(
-                    tenantGuid,
-                    graphGuid,
-                    labels,
-                    tags,
-                    filter,
-                    _Repo.SelectBatchSize,
-                    skip);
+                if (!nodes.TryGetValue(kvp.Key, out Node node)) continue;
 
-                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
-                if (result == null || result.Rows.Count < 1) break;
-
-                for (int i = 0; i < result.Rows.Count; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    VectorMetadata vmd = Converters.VectorFromDataRow(result.Rows[i]);
-                    if (vmd.Vectors != null && vmd.Vectors.Count > 0 && vmd.Vectors.Count == vectors.Count)
-                    {
-                        candidateVectors.Add(vmd);
-                    }
-                }
-
-                skip += result.Rows.Count;
-                if (result.Rows.Count < _Repo.SelectBatchSize) break;
-            }
-
-            // Step 2: Compare vectors and collect matching results
-            Dictionary<Guid, VectorSearchResult> bestResultsByNode = new Dictionary<Guid, VectorSearchResult>();
-
-            foreach (VectorMetadata vmd in candidateVectors)
-            {
-                token.ThrowIfCancellationRequested();
-                if (vmd.NodeGUID == null) continue;
-
-                float? score = null;
-                float? distance = null;
-                float? innerProduct = null;
-
-                CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-
-                if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
-                {
-                    // Keep only the best result for each node
-                    if (!bestResultsByNode.ContainsKey(vmd.NodeGUID.Value))
-                    {
-                        bestResultsByNode[vmd.NodeGUID.Value] = new VectorSearchResult
-                        {
-                            Score = score,
-                            Distance = distance,
-                            InnerProduct = innerProduct
-                        };
-                    }
-                    else
-                    {
-                        // Compare and keep the better result
-                        VectorSearchResult existing = bestResultsByNode[vmd.NodeGUID.Value];
-                        bool isBetter = false;
-
-                        if (score != null && existing.Score != null)
-                            isBetter = score.Value > existing.Score.Value;
-                        else if (distance != null && existing.Distance != null)
-                            isBetter = distance.Value < existing.Distance.Value;
-                        else if (innerProduct != null && existing.InnerProduct != null)
-                            isBetter = innerProduct.Value > existing.InnerProduct.Value;
-
-                        if (isBetter)
-                        {
-                            bestResultsByNode[vmd.NodeGUID.Value] = new VectorSearchResult
-                            {
-                                Score = score,
-                                Distance = distance,
-                                InnerProduct = innerProduct
-                            };
-                        }
-                    }
-                }
-            }
-
-            // Step 3: Sort results and retrieve nodes
-            List<KeyValuePair<Guid, VectorSearchResult>> sortedResults = bestResultsByNode
-                .OrderByDescending(x => x.Value.Score)
-                .ThenBy(x => x.Value.Distance)
-                .ThenByDescending(x => x.Value.InnerProduct)
-                .Take(topK ?? int.MaxValue)
-                .ToList();
-
-            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in sortedResults)
-            {
-                token.ThrowIfCancellationRequested();
-                Node node = await _Repo.Node.ReadByGuid(tenantGuid, kvp.Key, token).ConfigureAwait(false);
-                if (node != null)
-                {
-                    kvp.Value.Node = node;
-                    // Optionally load vectors for the node
-                    List<VectorMetadata> nodeVectors = new List<VectorMetadata>();
-                    await foreach (VectorMetadata vector in _Repo.Vector.ReadManyNode(tenantGuid, node.GraphGUID, node.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                    {
-                        nodeVectors.Add(vector);
-                    }
-                    node.Vectors = nodeVectors;
-                    yield return kvp.Value;
-                }
+                kvp.Value.Node = node;
+                kvp.Value.Graph = graph;
+                node.Vectors = nodeVectors.TryGetValue(node.GUID, out List<VectorMetadata> list) ? list : new List<VectorMetadata>();
+                yield return kvp.Value;
             }
         }
 
@@ -938,115 +651,21 @@
             if (topK != null && topK.Value < 1) throw new ArgumentOutOfRangeException(nameof(topK));
             token.ThrowIfCancellationRequested();
 
-            // Step 1: Get all filtered vectors with a single query that includes all filtering
-            List<VectorMetadata> candidateVectors = new List<VectorMetadata>();
-            int skip = 0;
+            List<KeyValuePair<Guid, VectorSearchResult>> matches = await SearchCoreAsync(
+                "edge", searchType, vectors, tenantGuid, graphGuid, labels, tags, filter, topK, minScore, maxDistance, minInnerProduct, null, token).ConfigureAwait(false);
 
-            while (true)
+            List<Guid> edgeGuids = matches.Select(m => m.Key).ToList();
+            Dictionary<Guid, Edge> edges = await ToDictionaryAsync(_Repo.Edge.ReadByGuids(tenantGuid, edgeGuids, token), e => e.GUID, token).ConfigureAwait(false);
+            Dictionary<Guid, List<VectorMetadata>> edgeVectors = await ReadVectorsByOwnerAsync(VectorQueries.SelectManyEdges(tenantGuid, graphGuid, edgeGuids), v => v.EdgeGUID, token).ConfigureAwait(false);
+
+            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in matches)
             {
                 token.ThrowIfCancellationRequested();
-                string query = VectorQueries.SelectEdgeVectorsWithFilters(
-                    tenantGuid,
-                    graphGuid,
-                    labels,
-                    tags,
-                    filter,
-                    _Repo.SelectBatchSize,
-                    skip);
+                if (!edges.TryGetValue(kvp.Key, out Edge edge)) continue;
 
-                DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
-                if (result == null || result.Rows.Count < 1) break;
-
-                for (int i = 0; i < result.Rows.Count; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    VectorMetadata vmd = Converters.VectorFromDataRow(result.Rows[i]);
-                    if (vmd.Vectors != null && vmd.Vectors.Count > 0 && vmd.Vectors.Count == vectors.Count)
-                    {
-                        candidateVectors.Add(vmd);
-                    }
-                }
-
-                skip += result.Rows.Count;
-                if (result.Rows.Count < _Repo.SelectBatchSize) break;
-            }
-
-            // Step 2: Compare vectors and collect matching results
-            Dictionary<Guid, VectorSearchResult> bestResultsByEdge = new Dictionary<Guid, VectorSearchResult>();
-
-            foreach (VectorMetadata vmd in candidateVectors)
-            {
-                token.ThrowIfCancellationRequested();
-                if (vmd.EdgeGUID == null) continue;
-
-                float? score = null;
-                float? distance = null;
-                float? innerProduct = null;
-
-                CompareVectors(searchType, vectors, vmd.Vectors, out score, out distance, out innerProduct);
-
-                if (MeetsConstraints(score, distance, innerProduct, minScore, maxDistance, minInnerProduct))
-                {
-                    // Keep only the best result for each edge
-                    if (!bestResultsByEdge.ContainsKey(vmd.EdgeGUID.Value))
-                    {
-                        bestResultsByEdge[vmd.EdgeGUID.Value] = new VectorSearchResult
-                        {
-                            Score = score,
-                            Distance = distance,
-                            InnerProduct = innerProduct
-                        };
-                    }
-                    else
-                    {
-                        // Compare and keep the better result
-                        VectorSearchResult existing = bestResultsByEdge[vmd.EdgeGUID.Value];
-                        bool isBetter = false;
-
-                        if (score != null && existing.Score != null)
-                            isBetter = score.Value > existing.Score.Value;
-                        else if (distance != null && existing.Distance != null)
-                            isBetter = distance.Value < existing.Distance.Value;
-                        else if (innerProduct != null && existing.InnerProduct != null)
-                            isBetter = innerProduct.Value > existing.InnerProduct.Value;
-
-                        if (isBetter)
-                        {
-                            bestResultsByEdge[vmd.EdgeGUID.Value] = new VectorSearchResult
-                            {
-                                Score = score,
-                                Distance = distance,
-                                InnerProduct = innerProduct
-                            };
-                        }
-                    }
-                }
-            }
-
-            // Step 3: Sort results and retrieve edges
-            List<KeyValuePair<Guid, VectorSearchResult>> sortedResults = bestResultsByEdge
-                .OrderByDescending(x => x.Value.Score)
-                .ThenBy(x => x.Value.Distance)
-                .ThenByDescending(x => x.Value.InnerProduct)
-                .Take(topK ?? int.MaxValue)
-                .ToList();
-
-            foreach (KeyValuePair<Guid, VectorSearchResult> kvp in sortedResults)
-            {
-                token.ThrowIfCancellationRequested();
-                Edge edge = await _Repo.Edge.ReadByGuid(tenantGuid, kvp.Key, token).ConfigureAwait(false);
-                if (edge != null)
-                {
-                    kvp.Value.Edge = edge;
-                    // Optionally load vectors for the edge
-                    List<VectorMetadata> edgeVectors = new List<VectorMetadata>();
-                    await foreach (VectorMetadata vector in _Repo.Vector.ReadManyEdge(tenantGuid, edge.GraphGUID, edge.GUID, token: token).WithCancellation(token).ConfigureAwait(false))
-                    {
-                        edgeVectors.Add(vector);
-                    }
-                    edge.Vectors = edgeVectors;
-                    yield return kvp.Value;
-                }
+                kvp.Value.Edge = edge;
+                edge.Vectors = edgeVectors.TryGetValue(edge.GUID, out List<VectorMetadata> list) ? list : new List<VectorMetadata>();
+                yield return kvp.Value;
             }
         }
 
@@ -1054,31 +673,133 @@
 
         #region Private-Methods
 
-        private void CompareVectors(
-            VectorSearchTypeEnum searchType,
-            List<float> vectors1,
-            List<float> vectors2,
-            out float? score,
-            out float? distance,
-            out float? innerProduct)
+        private async Task<Dictionary<Guid, List<VectorMetadata>>> ReadVectorsByOwnerAsync(string query, Func<VectorMetadata, Guid?> owner, CancellationToken token)
         {
-            score = null;
-            distance = null;
-            innerProduct = null;
+            // One query for every result's vectors, grouped by owner and ordered as ReadMany* orders them
+            // (createdutc descending, then guid descending), instead of one query per result.
+            Dictionary<Guid, List<VectorMetadata>> ret = new Dictionary<Guid, List<VectorMetadata>>();
+            DataTable result = await _Repo.ExecuteQueryAsync(query, false, token).ConfigureAwait(false);
+            if (result == null) return ret;
 
-            if (searchType == VectorSearchTypeEnum.CosineDistance)
-                distance = VectorHelper.CalculateCosineDistance(vectors1, vectors2);
-            else if (searchType == VectorSearchTypeEnum.CosineSimilarity)
-                score = VectorHelper.CalculateCosineSimilarity(vectors1, vectors2);
-            else if (searchType == VectorSearchTypeEnum.DotProduct)
-                innerProduct = VectorHelper.CalculateInnerProduct(vectors1, vectors2);
-            else if (searchType == VectorSearchTypeEnum.EuclidianDistance)
-                distance = VectorHelper.CalculateEuclidianDistance(vectors1, vectors2);
-            else if (searchType == VectorSearchTypeEnum.EuclidianSimilarity)
-                score = VectorHelper.CalculateEuclidianSimilarity(vectors1, vectors2);
-            else
+            foreach (DataRow row in result.Rows)
             {
-                throw new ArgumentException("Unknown vector search type " + searchType.ToString() + ".");
+                VectorMetadata vector = Converters.VectorFromDataRow(row);
+                Guid? id = owner(vector);
+                if (id == null) continue;
+                if (!ret.TryGetValue(id.Value, out List<VectorMetadata> list))
+                {
+                    list = new List<VectorMetadata>();
+                    ret[id.Value] = list;
+                }
+                list.Add(vector);
+            }
+
+            foreach (List<VectorMetadata> list in ret.Values)
+            {
+                list.Sort((a, b) =>
+                {
+                    int byTime = b.CreatedUtc.CompareTo(a.CreatedUtc);
+                    return byTime != 0 ? byTime : String.CompareOrdinal(b.GUID.ToString(), a.GUID.ToString());
+                });
+            }
+
+            return ret;
+        }
+
+        private static async Task<Dictionary<Guid, T>> ToDictionaryAsync<T>(IAsyncEnumerable<T> items, Func<T, Guid> key, CancellationToken token)
+        {
+            Dictionary<Guid, T> ret = new Dictionary<Guid, T>();
+            await foreach (T item in items.WithCancellation(token).ConfigureAwait(false))
+            {
+                if (item != null) ret[key(item)] = item;
+            }
+            return ret;
+        }
+
+        private async Task<List<KeyValuePair<Guid, VectorSearchResult>>> SearchCoreAsync(
+            string scope,
+            VectorSearchTypeEnum searchType,
+            List<float> vectors,
+            Guid tenantGuid,
+            Guid? graphGuid,
+            List<string> labels,
+            NameValueCollection tags,
+            Expr filter,
+            int? topK,
+            float? minScore,
+            float? maxDistance,
+            float? minInnerProduct,
+            Graph graph,
+            CancellationToken token)
+        {
+            using Activity activity = LiteGraphTelemetry.ActivitySource.StartActivity(LiteGraphTelemetry.VectorIndexSearchActivityName, ActivityKind.Internal);
+
+            int limit = topK ?? Int32.MaxValue;
+            bool useIndex = scope == "node"
+                && graph != null
+                && graph.VectorIndexType.HasValue
+                && graph.VectorIndexType != VectorIndexTypeEnum.None
+                && PgvectorQueries.IsCosine(searchType)
+                && PgvectorQueries.IsIndexableDimensionality(vectors.Count);
+
+            int candidateLimit = PgvectorQueries.MaxEfSearch;
+            if (topK != null) candidateLimit = Math.Min(PgvectorQueries.MaxEfSearch, Math.Max(topK.Value * 4, 64));
+            int efSearch = Math.Min(PgvectorQueries.MaxEfSearch, Math.Max(graph?.VectorIndexEf ?? 40, candidateLimit));
+
+            activity?.SetTag("db.system", "postgresql");
+            activity?.SetTag("litegraph.vector.provider", "pgvector");
+            activity?.SetTag("litegraph.vector.search_scope", scope);
+            activity?.SetTag("litegraph.vector.search_type", searchType.ToString());
+            activity?.SetTag("litegraph.vector.dimensions", vectors.Count);
+            activity?.SetTag("litegraph.vector.index.used", useIndex);
+
+            string query = PgvectorQueries.Search(
+                scope, tenantGuid, graphGuid, vectors, searchType, labels, tags, filter, limit, useIndex, candidateLimit, efSearch);
+
+            DataTable result = await _Repo.ExecuteQueryAsync(query, useIndex, token).ConfigureAwait(false);
+
+            List<KeyValuePair<Guid, VectorSearchResult>> matches = new List<KeyValuePair<Guid, VectorSearchResult>>();
+            if (result == null || result.Rows.Count < 1)
+            {
+                LiteGraphTelemetry.SetActivityOk(activity);
+                return matches;
+            }
+
+            foreach (DataRow row in result.Rows)
+            {
+                token.ThrowIfCancellationRequested();
+                if (row["objguid"] == DBNull.Value || row["dist"] == DBNull.Value) continue;
+
+                double raw = Convert.ToDouble(row["dist"], CultureInfo.InvariantCulture);
+                if (Double.IsNaN(raw) || Double.IsInfinity(raw)) continue;
+
+                VectorSearchResult match = ToSearchResult(searchType, (float)raw);
+                if (!MeetsConstraints(match.Score, match.Distance, match.InnerProduct, minScore, maxDistance, minInnerProduct)) continue;
+
+                matches.Add(new KeyValuePair<Guid, VectorSearchResult>(Guid.Parse(row["objguid"].ToString()), match));
+            }
+
+            activity?.SetTag("litegraph.vector.index.results", matches.Count);
+            LiteGraphTelemetry.SetActivityOk(activity);
+            return matches;
+        }
+
+        private static VectorSearchResult ToSearchResult(VectorSearchTypeEnum searchType, float pgDistance)
+        {
+            switch (searchType)
+            {
+                case VectorSearchTypeEnum.CosineDistance:
+                    return new VectorSearchResult { Distance = pgDistance };
+                case VectorSearchTypeEnum.CosineSimilarity:
+                    return new VectorSearchResult { Score = 1.0f - pgDistance };
+                case VectorSearchTypeEnum.EuclidianDistance:
+                    return new VectorSearchResult { Distance = pgDistance };
+                case VectorSearchTypeEnum.EuclidianSimilarity:
+                    return new VectorSearchResult { Score = 1.0f / (1.0f + pgDistance) };
+                case VectorSearchTypeEnum.DotProduct:
+                    return new VectorSearchResult { InnerProduct = -pgDistance };
+                default:
+                    throw new ArgumentException("Unknown vector search type " + searchType.ToString() + ".");
             }
         }
 

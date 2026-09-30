@@ -1,6 +1,6 @@
 # ruff: noqa
 
-__version__ = "9.0.0"
+__version__ = "10.0.0"
 
 from .base import BaseClient
 from .configuration import configure, get_client
@@ -72,6 +72,7 @@ from .resources.graphs import Graph, GraphModel
 from .resources.labels import Label
 from .resources.nodes import Node
 from .resources.queries import Query
+from .resources.request_history import RequestHistory
 from .resources.route_traversal import RouteNodes
 from .resources.routes import Routes
 from .resources.routes_between import RouteEdges

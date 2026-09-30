@@ -54,6 +54,11 @@
             string createQuery = NodeQueries.Insert(node);
             DataTable createResult = await _Repo.ExecuteQueryAsync(createQuery, true, token).ConfigureAwait(false);
             Node created = Converters.NodeFromDataRow(createResult.Rows[0]);
+
+            List<VectorMetadata> inlineVectors = StampInlineVectors(node);
+            if (inlineVectors.Count > 0)
+                await VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(_Repo, inlineVectors).ConfigureAwait(false);
+
             return created;
         }
 
@@ -79,10 +84,7 @@
             List<VectorMetadata> allVectors = new List<VectorMetadata>();
             foreach (Node node in nodes)
             {
-                if (node.Vectors != null && node.Vectors.Count > 0)
-                {
-                    allVectors.AddRange(node.Vectors);
-                }
+                allVectors.AddRange(StampInlineVectors(node));
             }
 
             if (allVectors.Count > 0)
@@ -684,6 +686,26 @@
         #endregion
 
         #region Private-Methods
+
+        private static List<VectorMetadata> StampInlineVectors(Node node)
+        {
+            // Inline vectors are inserted with the node's identifiers in SQL; the in-memory objects need them too, because
+            // the vector index keys entries by node and skips vectors without one.
+            List<VectorMetadata> ret = new List<VectorMetadata>();
+            if (node?.Vectors == null) return ret;
+
+            foreach (VectorMetadata vector in node.Vectors)
+            {
+                if (vector == null || vector.Vectors == null || vector.Vectors.Count < 1) continue;
+                vector.TenantGUID = node.TenantGUID;
+                vector.GraphGUID = node.GraphGUID;
+                vector.NodeGUID = node.GUID;
+                vector.EdgeGUID = null;
+                ret.Add(vector);
+            }
+
+            return ret;
+        }
 
         private async IAsyncEnumerable<RouteDetail> GetRoutesDfs(
            Guid tenantGuid,

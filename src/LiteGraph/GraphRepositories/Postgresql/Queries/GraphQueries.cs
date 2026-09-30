@@ -128,7 +128,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                     string vectorsString = string.Empty;
                     if (vector.Vectors != null && vector.Vectors.Count > 0)
                     {
-                        vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
+                        vectorsString = Converters.VectorToSqlLiteral(vector.Vectors);
                     }
 
                     ret +=
@@ -541,7 +541,7 @@ namespace LiteGraph.GraphRepositories.Postgresql.Queries
                     string vectorsString = string.Empty;
                     if (vector.Vectors != null && vector.Vectors.Count > 0)
                     {
-                        vectorsString = Converters.BytesToHex(Converters.VectorToBlob(vector.Vectors));
+                        vectorsString = Converters.VectorToSqlLiteral(vector.Vectors);
                     }
 
                     ret +=

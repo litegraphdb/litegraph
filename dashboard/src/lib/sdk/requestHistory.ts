@@ -1,5 +1,6 @@
 import type { EnumerateResponse } from 'litegraphdb/dist/types/types';
 import { sdk } from './litegraph.service';
+import { recordNodeFromResponse } from './nodeTracker';
 
 export type RequestHistoryEntry = {
   GUID: string;
@@ -9,6 +10,8 @@ export type RequestHistoryEntry = {
   Path: string;
   Url: string;
   SourceIp?: string | null;
+  /** Server node that handled the request (v10.0); null for older records. */
+  NodeId?: string | null;
   TenantGUID?: string | null;
   UserGUID?: string | null;
   StatusCode: number;
@@ -60,6 +63,8 @@ export type RequestHistoryListParams = {
   success?: boolean;
   path?: string;
   sourceIp?: string;
+  /** Exact node identifier (v10.0). */
+  nodeId?: string;
   hasTransactionDiagnostics?: boolean;
   transactionId?: string;
   tenantGuid?: string;
@@ -118,6 +123,7 @@ const request = async <T>(method: string, url: string, body?: unknown): Promise<
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  recordNodeFromResponse(response);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status} ${response.statusText}`);
   }

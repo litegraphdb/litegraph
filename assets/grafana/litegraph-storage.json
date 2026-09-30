@@ -110,7 +110,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_storage_backend_info",
+          "expr": "litegraph_storage_backend_info{node=~\"$node\"}",
           "range": false,
           "refId": "A",
           "legendFormat": "{{provider}}",
@@ -123,7 +123,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_storage_connection_pool_max",
+          "expr": "litegraph_storage_connection_pool_max{node=~\"$node\"}",
           "range": false,
           "refId": "B",
           "legendFormat": "{{provider}} pool max",
@@ -136,7 +136,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_storage_command_timeout_seconds",
+          "expr": "litegraph_storage_command_timeout_seconds{node=~\"$node\"}",
           "range": false,
           "refId": "C",
           "legendFormat": "{{provider}} command timeout",
@@ -220,7 +220,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_storage_connection_pool_max",
+          "expr": "litegraph_storage_connection_pool_max{node=~\"$node\"}",
           "range": true,
           "refId": "A",
           "legendFormat": "{{provider}}"
@@ -282,7 +282,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "litegraph_storage_command_timeout_seconds",
+          "expr": "litegraph_storage_command_timeout_seconds{node=~\"$node\"}",
           "range": true,
           "refId": "A",
           "legendFormat": "{{provider}}"
@@ -348,7 +348,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_request_history_dropped_total[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_request_history_dropped_total{node=~\"$node\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": "drops/sec"
@@ -410,7 +410,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_http_requests_total{component=\"rest\",route=\"flush.database\"}[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_http_requests_total{node=~\"$node\", component=\"rest\",route=\"flush.database\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": "flushes/sec"
@@ -503,7 +503,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_backup_operations_total[$__rate_interval])) by (operation, success)",
+          "expr": "sum(rate(litegraph_backup_operations_total{node=~\"$node\"}[$__rate_interval])) by (operation, success)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{operation}} success={{success}}"
@@ -596,7 +596,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_backup_operation_duration_ms_sum[$__rate_interval])) by (operation) / sum(rate(litegraph_backup_operation_duration_ms_count[$__rate_interval])) by (operation)",
+          "expr": "sum(rate(litegraph_backup_operation_duration_ms_sum{node=~\"$node\"}[$__rate_interval])) by (operation) / sum(rate(litegraph_backup_operation_duration_ms_count{node=~\"$node\"}[$__rate_interval])) by (operation)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{operation}}"
@@ -689,7 +689,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_retention_sweeps_total[$__rate_interval])) by (component, success)",
+          "expr": "sum(rate(litegraph_retention_sweeps_total{node=~\"$node\"}[$__rate_interval])) by (component, success)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{component}} success={{success}}"
@@ -782,7 +782,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_retention_sweep_duration_ms_sum[$__rate_interval])) by (component) / sum(rate(litegraph_retention_sweep_duration_ms_count[$__rate_interval])) by (component)",
+          "expr": "sum(rate(litegraph_retention_sweep_duration_ms_sum{node=~\"$node\"}[$__rate_interval])) by (component) / sum(rate(litegraph_retention_sweep_duration_ms_count{node=~\"$node\"}[$__rate_interval])) by (component)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{component}}"
@@ -875,7 +875,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_retention_deleted_total[$__rate_interval])) by (component)",
+          "expr": "sum(rate(litegraph_retention_deleted_total{node=~\"$node\"}[$__rate_interval])) by (component)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{component}} deleted/sec"
@@ -972,7 +972,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_request_history_dropped_total[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_request_history_dropped_total{node=~\"$node\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": "history captures dropped/sec"
@@ -983,7 +983,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_http_requests_total{component=\"rest\",route=\"flush.database\"}[$__rate_interval])) by (status_class)",
+          "expr": "sum(rate(litegraph_http_requests_total{node=~\"$node\", component=\"rest\",route=\"flush.database\"}[$__rate_interval])) by (status_class)",
           "range": true,
           "refId": "B",
           "legendFormat": "flush {{status_class}}"
@@ -1002,7 +1002,41 @@
     "storage"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "DS_PROMETHEUS"
+        },
+        "definition": "label_values(up{job=~\"litegraph.*\"}, node)",
+        "description": "LiteGraph node (the node label Prometheus attaches to each scrape target). All includes single-node deployments.",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Node",
+        "multi": true,
+        "name": "node",
+        "options": [],
+        "query": {
+          "query": "label_values(up{job=~\"litegraph.*\"}, node)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",

@@ -50,7 +50,7 @@
             token.ThrowIfCancellationRequested();
             TenantMetadata created = await _Repo.Tenant.Create(tenant, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "created tenant name " + created.Name + " GUID " + created.GUID);
-            _TenantCache.AddReplace(created.GUID, created);
+            _TenantCache?.AddReplace(created.GUID, created);
             return created;
         }
 
@@ -71,7 +71,7 @@
             _Client.Logging.Log(SeverityEnum.Debug, "retrieving tenant with GUID " + guid);
             token.ThrowIfCancellationRequested();
             TenantMetadata tenant = await _Repo.Tenant.ReadByGuid(guid, token).ConfigureAwait(false);
-            if (tenant != null) _TenantCache.AddReplace(tenant.GUID, tenant);
+            if (tenant != null) _TenantCache?.AddReplace(tenant.GUID, tenant);
             return tenant;
         }
 
@@ -100,7 +100,7 @@
             token.ThrowIfCancellationRequested();
             _Client.Logging.Log(SeverityEnum.Debug, "updating tenant with name " + tenant.Name + " GUID " + tenant.GUID);
             TenantMetadata updated = await _Repo.Tenant.Update(tenant, token).ConfigureAwait(false);
-            if (updated != null) _TenantCache.AddReplace(tenant.GUID, tenant);
+            if (updated != null) _TenantCache?.AddReplace(tenant.GUID, tenant);
             return updated;
         }
 
@@ -166,7 +166,7 @@
 
             await _Repo.Tenant.DeleteByGuid(guid, force, token).ConfigureAwait(false);
             _Client.Logging.Log(SeverityEnum.Info, "deleted tenant " + guid + " (force " + force + ")");
-            _TenantCache.TryRemove(guid, out _);
+            _TenantCache?.TryRemove(guid, out _);
         }
 
         /// <inheritdoc />

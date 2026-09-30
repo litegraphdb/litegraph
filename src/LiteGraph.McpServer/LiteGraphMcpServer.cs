@@ -165,8 +165,10 @@
             else
             {
                 _Settings = Serializer.DeserializeJson<LiteGraphMcpServerSettings>(File.ReadAllText(Constants.SettingsFile));
+
+                // Recorded in memory only: rewriting the settings file on every start churns bind-mounted,
+                // version-controlled configuration and fails outright when the file is mounted read-only.
                 _Settings.Node.LastStartUtc = DateTime.UtcNow;
-                File.WriteAllBytes(Constants.SettingsFile, Encoding.UTF8.GetBytes(Serializer.SerializeJson(_Settings, true)));
             }
 
             if (_ShowConfiguration)
@@ -399,11 +401,11 @@
             _McpWebsocketServer = new McpWebsocketsServer(_Settings.WebSocket.Hostname, _Settings.WebSocket.Port, "/mcp");
 
             _McpHttpServer.ServerName = "LiteGraph.McpServer";
-            _McpHttpServer.ServerVersion = "8.1.0";
+            _McpHttpServer.ServerVersion = "10.0.0";
             _McpTcpServer.ServerName = "LiteGraph.McpServer";
-            _McpTcpServer.ServerVersion = "8.1.0";
+            _McpTcpServer.ServerVersion = "10.0.0";
             _McpWebsocketServer.ServerName = "LiteGraph.McpServer";
-            _McpWebsocketServer.ServerVersion = "8.1.0";
+            _McpWebsocketServer.ServerVersion = "10.0.0";
 
             _McpHttpServer.ClientConnected += ClientConnected;
             _McpHttpServer.ClientDisconnected += ClientDisconnected;
@@ -502,6 +504,7 @@
                 throw new InvalidOperationException("Servers and SDK have not been initialized");
 
             Registrations.AdminRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.ClusterRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.CredentialRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
@@ -521,6 +524,7 @@
             Registrations.ChatRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.ClusterRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.CredentialRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
@@ -540,6 +544,7 @@
             Registrations.ChatRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.ClusterRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.CredentialRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);

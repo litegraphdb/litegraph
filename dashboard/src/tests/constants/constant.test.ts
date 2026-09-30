@@ -56,11 +56,16 @@ describe('Constants', () => {
 
     it('should have correct path values', () => {
       expect(paths.login).toBe('/login');
-      expect(paths.credentials).toBe('/dashboard/credentials');
-      expect(paths.users).toBe('/dashboard/users');
-      expect(paths.tenants).toBe('/dashboard/tenants');
-      expect(paths.backups).toBe('/dashboard/backups');
-      expect(paths.settings).toBe('/dashboard/settings');
+      expect(paths.tenants).toBe('/dashboard/access/tenants');
+      expect(paths.users).toBe('/dashboard/access/users');
+      expect(paths.credentials).toBe('/dashboard/access/credentials');
+      expect(paths.authorization).toBe('/dashboard/access/authorization');
+      expect(paths.settings).toBe('/dashboard/system/settings');
+      expect(paths.cluster).toBe('/dashboard/system/cluster');
+      expect(paths.backups).toBe('/dashboard/system/backups');
+      expect(paths.nodes).toBe(`/dashboard/${dynamicSlugs.tenantId}/graphs/nodes`);
+      expect(paths.aiChat).toBe(`/dashboard/${dynamicSlugs.tenantId}/chat/chat`);
+      expect(paths.requestHistory).toBe(`/dashboard/${dynamicSlugs.tenantId}/developer/requests`);
     });
   });
 

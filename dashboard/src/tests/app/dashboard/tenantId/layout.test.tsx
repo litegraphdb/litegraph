@@ -19,6 +19,11 @@ jest.mock('@/hoc/hoc', () => ({
   withAuth: jest.fn((Component) => Component),
 }));
 
+let mockPathname = '/dashboard/tenant-1';
+jest.mock('next/navigation', () => ({
+  usePathname: () => mockPathname,
+}));
+
 describe('Tenant Dashboard Layout Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,7 +49,8 @@ describe('Tenant Dashboard Layout Component', () => {
     expect(getByText('Test children content')).toBeInTheDocument();
   });
 
-  it('enables the graph selector on tenant-scoped pages', () => {
+  it('shows the header graph selector on the tenant Home page', () => {
+    mockPathname = '/dashboard/tenant-1';
     const { getByTestId } = render(
       <TenantDashboardLayout>
         <div>Test children</div>
@@ -53,6 +59,18 @@ describe('Tenant Dashboard Layout Component', () => {
 
     const shell = getByTestId('dashboard-shell');
     expect(shell.getAttribute('data-use-graphs-selector')).toBe('true');
+  });
+
+  it('hides the header graph selector on hub tabs, which carry their own', () => {
+    mockPathname = '/dashboard/tenant-1/graphs/nodes';
+    const { getByTestId } = render(
+      <TenantDashboardLayout>
+        <div>Test children</div>
+      </TenantDashboardLayout>
+    );
+
+    expect(getByTestId('dashboard-shell').getAttribute('data-use-graphs-selector')).toBe('false');
+    mockPathname = '/dashboard/tenant-1';
   });
 
   it('exports as default component', () => {

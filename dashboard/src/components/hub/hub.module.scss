@@ -1,0 +1,4 @@
+// Height of the hub tab bar; pages under a hub subtract it so they still fit the viewport.
+.hub {
+  --hub-tabs-height: 47px;
+}

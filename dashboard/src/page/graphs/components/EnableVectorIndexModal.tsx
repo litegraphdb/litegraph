@@ -1,12 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Form, message } from 'antd';
+import { Alert, Form, message } from 'antd';
 import { useTranslations } from 'next-intl';
 import LitegraphModal from '@/components/base/modal/Modal';
 import LitegraphFormItem from '@/components/base/form/FormItem';
 import LitegraphInput from '@/components/base/input/Input';
 import {
   useEnableVectorIndexMutation,
+  useGetServerHealthQuery,
   useReadVectorIndexConfigurationQuery,
 } from '@/lib/store/slice/slice';
 import { makeValidateVectorIndexFile } from './constant';
@@ -34,6 +35,20 @@ const EnableVectorIndexModal = ({
     isError: isConfigError,
   } = useReadVectorIndexConfigurationQuery(graphId, { skip: !viewMode });
   const isVectorIndexConfigLoading = isL1 || isFetching;
+  // The server reports which vector index implementation goes with its storage: HnswLite (SQLite) or pgvector (PostgreSQL).
+  const { data: health } = useGetServerHealthQuery(undefined, { skip: !isEnableVectorIndexModalVisible });
+  const provider = health?.VectorIndexProvider ?? null;
+  const isPgvector = provider === 'pgvector';
+  const providerNotice = provider ? (
+    <Alert
+      type="info"
+      showIcon
+      style={{ marginBottom: 12 }}
+      data-testid="vector-index-provider"
+      message={t('providerLabel', { provider: isPgvector ? t('providerPgvector') : t('providerHnswLite') })}
+      description={isPgvector ? t('pgvectorNote') : t('hnswliteNote')}
+    />
+  ) : null;
   // console.log('viewMode', viewMode);
   // Add form validation watcher
   const [formValues, setFormValues] = useState({});
@@ -72,7 +87,7 @@ const EnableVectorIndexModal = ({
         graphId: graphId,
         request: {
           VectorIndexType: values.VectorIndexType,
-          VectorIndexFile: values.VectorIndexFile,
+          VectorIndexFile: isPgvector ? '' : values.VectorIndexFile,
           VectorDimensionality: Number(values.VectorDimensionality),
           VectorIndexM: Number(values.VectorIndexM),
           VectorIndexEf: Number(values.VectorIndexEf),
@@ -137,6 +152,7 @@ const EnableVectorIndexModal = ({
           onValuesChange={(_, allValues) => setFormValues(allValues)}
           requiredMark={true}
         >
+          {providerNotice}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <LitegraphFormItem
               label={t('type')}
@@ -155,21 +171,23 @@ const EnableVectorIndexModal = ({
               />
             </LitegraphFormItem>
 
-            <LitegraphFormItem
-              label={t('file')}
-              name="VectorIndexFile"
-              tooltip={t('fileTooltip')}
-              rules={[
-                { required: true, message: t('fileRequired') },
-                { validator: validateVectorIndexFile },
-              ]}
-              extra={<small>{t('fileHint')}</small>}
-            >
-              <LitegraphInput
-                placeholder={t('filePlaceholder')}
-                variant="outlined"
-              />
-            </LitegraphFormItem>
+            {!isPgvector && (
+              <LitegraphFormItem
+                label={t('file')}
+                name="VectorIndexFile"
+                tooltip={t('fileTooltip')}
+                rules={[
+                  { required: true, message: t('fileRequired') },
+                  { validator: validateVectorIndexFile },
+                ]}
+                extra={<small>{t('fileHint')}</small>}
+              >
+                <LitegraphInput
+                  placeholder={t('filePlaceholder')}
+                  variant="outlined"
+                />
+              </LitegraphFormItem>
+            )}
 
             <LitegraphFormItem
               label={t('threshold')}
@@ -246,6 +264,7 @@ const EnableVectorIndexModal = ({
           onValuesChange={(_, allValues) => setFormValues(allValues)}
           requiredMark={false}
         >
+          {providerNotice}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <LitegraphFormItem
               label={t('type')}
@@ -264,13 +283,15 @@ const EnableVectorIndexModal = ({
               />
             </LitegraphFormItem>
 
-            <LitegraphFormItem
-              label={t('file')}
-              name="VectorIndexFile"
-              tooltip={t('fileTooltip')}
-            >
-              <LitegraphInput variant="borderless" readOnly />
-            </LitegraphFormItem>
+            {!isPgvector && (
+              <LitegraphFormItem
+                label={t('file')}
+                name="VectorIndexFile"
+                tooltip={t('fileTooltip')}
+              >
+                <LitegraphInput variant="borderless" readOnly />
+              </LitegraphFormItem>
+            )}
 
             <LitegraphFormItem
               label={t('threshold')}

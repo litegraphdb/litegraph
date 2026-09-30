@@ -3,19 +3,22 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.IO;
     using System.Linq;
     using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Coordination;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.GraphRepositories.Postgresql.Implementations;
     using LiteGraph.GraphRepositories.Postgresql.Queries;
-    using LiteGraph.Indexing.Vector;
     using Npgsql;
+    using Pgvector.Npgsql;
 
     /// <summary>
     /// PostgreSQL graph repository.
+    /// Vectors are stored in a pgvector column and searched in the database, so the repository holds no per-process
+    /// vector index state and any number of processes can share one database.
+    /// Requires the pgvector extension; InitializeRepository creates it when the connecting role is permitted to.
     /// </summary>
     public partial class PostgresqlGraphRepository : GraphRepositoryBase
     {
@@ -68,6 +71,34 @@
                 if (String.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(TimestampFormat));
                 _ = DateTime.UtcNow.ToString(value);
                 _TimestampFormat = value;
+            }
+        }
+
+        /// <summary>
+        /// Rows converted per batch when migrating legacy BYTEA embeddings to pgvector during InitializeRepository.
+        /// Default is 1000.  Minimum is 1, maximum is 100000.
+        /// </summary>
+        public int EmbeddingMigrationBatchSize
+        {
+            get { return _EmbeddingMigrationBatchSize; }
+            set
+            {
+                if (value < 1 || value > 100000) throw new ArgumentOutOfRangeException(nameof(EmbeddingMigrationBatchSize), "EmbeddingMigrationBatchSize must be between 1 and 100000.");
+                _EmbeddingMigrationBatchSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Maximum time in milliseconds to wait for the schema lock during InitializeRepository.
+        /// Default is 600000 (10 minutes, enough for a large embedding migration running on another node).  Minimum is 1000, maximum is 3600000.
+        /// </summary>
+        public int SchemaLockTimeoutMs
+        {
+            get { return _SchemaLockTimeoutMs; }
+            set
+            {
+                if (value < 1000 || value > 3600000) throw new ArgumentOutOfRangeException(nameof(SchemaLockTimeoutMs), "SchemaLockTimeoutMs must be between 1000 and 3600000.");
+                _SchemaLockTimeoutMs = value;
             }
         }
 
@@ -142,6 +173,9 @@
         public override IAuthorizationRoleMethods AuthorizationRoles { get; }
 
         /// <inheritdoc />
+        public override bool UsesFileBackedVectorIndexes { get { return false; } }
+
+        /// <inheritdoc />
         public override bool GraphTransactionActive { get { return _Transaction != null; } }
 
         /// <inheritdoc />
@@ -149,11 +183,6 @@
 
         /// <inheritdoc />
         public override Guid? GraphTransactionGraphGUID { get { return _GraphTransactionGraphGUID; } }
-
-        /// <summary>
-        /// Vector index manager.
-        /// </summary>
-        public VectorIndexManager VectorIndexManager { get; private set; }
 
         private readonly object _QueryLock = new object();
         private readonly SemaphoreSlim _TransactionSemaphore = new SemaphoreSlim(1, 1);
@@ -163,11 +192,9 @@
         private NpgsqlTransaction _Transaction = null;
         private Guid? _GraphTransactionTenantGUID = null;
         private Guid? _GraphTransactionGraphGUID = null;
-        private bool _GraphTransactionVectorIndexFailed = false;
-        private string _GraphTransactionVectorIndexDirtyReason = null;
-        private readonly List<GraphTransactionVectorIndexMutation> _GraphTransactionVectorIndexMutations = new List<GraphTransactionVectorIndexMutation>();
-        private bool _OwnsVectorIndexManager = true;
         private int _SelectBatchSize = 100;
+        private int _EmbeddingMigrationBatchSize = 1000;
+        private int _SchemaLockTimeoutMs = 600000;
         private int _MaxStatementLength = 1000000000;
         private string _TimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
@@ -176,16 +203,14 @@
         /// </summary>
         /// <param name="settings">Database settings.</param>
         public PostgresqlGraphRepository(DatabaseSettings settings)
-            : this(settings, null, null, true, true)
+            : this(settings, null, true)
         {
         }
 
         private PostgresqlGraphRepository(
             DatabaseSettings settings,
             NpgsqlDataSource dataSource,
-            VectorIndexManager vectorIndexManager,
-            bool ownsDataSource,
-            bool ownsVectorIndexManager)
+            bool ownsDataSource)
         {
             Settings = settings?.Clone() ?? throw new ArgumentNullException(nameof(settings));
             Settings.Type = DatabaseTypeEnum.Postgresql;
@@ -199,7 +224,9 @@
             else
             {
                 NpgsqlConnectionStringBuilder builder = BuildConnectionString(Settings);
-                _DataSource = NpgsqlDataSource.Create(builder.ConnectionString);
+                NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.ConnectionString);
+                dataSourceBuilder.UseVector();
+                _DataSource = dataSourceBuilder.Build();
                 _OwnsDataSource = true;
             }
 
@@ -223,43 +250,41 @@
             ChatTurn = new ChatTurnMethods(this);
             ChatFeedback = new ChatFeedbackMethods(this);
             ChatSettings = new ChatSettingsMethods(this);
-
-            if (vectorIndexManager != null)
-            {
-                VectorIndexManager = vectorIndexManager;
-                _OwnsVectorIndexManager = ownsVectorIndexManager;
-            }
-            else
-            {
-                string indexDirectory = Path.Combine(".", "indexes", "postgresql", Schema);
-                VectorIndexManager = new VectorIndexManager(indexDirectory);
-                _OwnsVectorIndexManager = true;
-            }
         }
 
         /// <inheritdoc />
+        /// <exception cref="InvalidOperationException">The pgvector extension is not installed or cannot be created by the connecting role.</exception>
+        /// <exception cref="LockNotAcquiredException">Another process held the schema lock for longer than SchemaLockTimeoutMs.</exception>
         public override void InitializeRepository()
         {
-            ThrowIfDisposed();
-            ExecuteQuery("CREATE SCHEMA IF NOT EXISTS " + QuoteIdentifier(Schema) + ";", true);
-            ExecuteQuery(SetupQueries.CreateTablesAndIndices(), true);
-            EnsureRequestHistoryTransactionDiagnosticsColumn();
-            EnsureUserAdminFlagColumns();
-            EnsureChatEndpointContextWindowColumn();
-            EnsureBuiltInAuthorizationRoles();
+            Task.Run(() => InitializeRepositoryAsync()).GetAwaiter().GetResult();
         }
 
         /// <inheritdoc />
+        /// <exception cref="InvalidOperationException">The pgvector extension is not installed or cannot be created by the connecting role.</exception>
+        /// <exception cref="LockNotAcquiredException">Another process held the schema lock for longer than SchemaLockTimeoutMs.</exception>
         public override async Task InitializeRepositoryAsync(CancellationToken token = default)
         {
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
-            await ExecuteQueryAsync("CREATE SCHEMA IF NOT EXISTS " + QuoteIdentifier(Schema) + ";", true, token).ConfigureAwait(false);
-            await ExecuteQueryAsync(SetupQueries.CreateTablesAndIndices(), true, token).ConfigureAwait(false);
-            await EnsureRequestHistoryTransactionDiagnosticsColumnAsync(token).ConfigureAwait(false);
-            await EnsureUserAdminFlagColumnsAsync(token).ConfigureAwait(false);
-            await EnsureChatEndpointContextWindowColumnAsync(token).ConfigureAwait(false);
-            await EnsureBuiltInAuthorizationRolesAsync(token).ConfigureAwait(false);
+
+            await using (ILockHandle schemaLock = await LockProvider.AcquireAsync(
+                LockKeys.Schema,
+                LockModeEnum.Exclusive,
+                LockAcquireOptions.WaitUpTo(SchemaLockTimeoutMs),
+                token).ConfigureAwait(false))
+            {
+                await EnsureVectorExtensionAsync(token).ConfigureAwait(false);
+                await ExecuteQueryAsync("CREATE SCHEMA IF NOT EXISTS " + QuoteIdentifier(Schema) + ";", true, token).ConfigureAwait(false);
+                await ExecuteQueryAsync(SetupQueries.CreateTablesAndIndices(), true, token).ConfigureAwait(false);
+                await EnsureSchemaMigrationsTableAsync(token).ConfigureAwait(false);
+                await EnsureRequestHistoryTransactionDiagnosticsColumnAsync(token).ConfigureAwait(false);
+                await EnsureUserAdminFlagColumnsAsync(token).ConfigureAwait(false);
+                await EnsureChatEndpointContextWindowColumnAsync(token).ConfigureAwait(false);
+                await MigrateEmbeddingsToPgvectorAsync(token).ConfigureAwait(false);
+                await EnsureIntegrityConstraintsAsync(token).ConfigureAwait(false);
+                await EnsureBuiltInAuthorizationRolesAsync(token).ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc />
@@ -281,8 +306,9 @@
         {
             ThrowIfDisposed();
 
-            PostgresqlGraphRepository clone = new PostgresqlGraphRepository(Settings.Clone(), _DataSource, VectorIndexManager, false, false)
+            PostgresqlGraphRepository clone = new PostgresqlGraphRepository(Settings.Clone(), _DataSource, false)
             {
+                LockProvider = LockProvider,
                 Logging = Logging,
                 Serializer = Serializer,
                 SelectBatchSize = SelectBatchSize,
@@ -330,9 +356,6 @@
                     _Transaction = transaction;
                     _GraphTransactionTenantGUID = tenantGuid;
                     _GraphTransactionGraphGUID = graphGuid;
-                    _GraphTransactionVectorIndexFailed = false;
-                    _GraphTransactionVectorIndexDirtyReason = null;
-                    _GraphTransactionVectorIndexMutations.Clear();
                 }
             }
             finally
@@ -364,12 +387,7 @@
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
 
-            Guid? tenantGuid = null;
-            Guid? graphGuid = null;
-            bool markDirty = false;
-            string dirtyReason = null;
             Exception commitException = null;
-            List<GraphTransactionVectorIndexMutation> stagedMutations = new List<GraphTransactionVectorIndexMutation>();
 
             await _TransactionSemaphore.WaitAsync(token).ConfigureAwait(false);
             try
@@ -378,13 +396,7 @@
                 lock (_QueryLock)
                 {
                     if (_Transaction == null) throw new InvalidOperationException("No graph transaction is active.");
-
                     transaction = _Transaction;
-                    tenantGuid = _GraphTransactionTenantGUID;
-                    graphGuid = _GraphTransactionGraphGUID;
-                    markDirty = _GraphTransactionVectorIndexFailed;
-                    dirtyReason = _GraphTransactionVectorIndexDirtyReason;
-                    stagedMutations = _GraphTransactionVectorIndexMutations.ToList();
                 }
 
                 try
@@ -395,10 +407,6 @@
                 catch (Exception e)
                 {
                     commitException = e;
-                    if (markDirty)
-                    {
-                        dirtyReason = "Graph transaction commit failed after vector index failure: " + e.Message;
-                    }
                 }
                 finally
                 {
@@ -409,19 +417,6 @@
             {
                 _TransactionSemaphore.Release();
             }
-
-            if (commitException == null && stagedMutations.Count > 0)
-            {
-                string stagedFailure = await ApplyStagedVectorIndexMutationsAsync(stagedMutations).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(stagedFailure))
-                {
-                    markDirty = true;
-                    dirtyReason = stagedFailure;
-                }
-            }
-
-            if (markDirty && tenantGuid.HasValue && graphGuid.HasValue)
-                MarkVectorIndexDirtyAfterTransaction(tenantGuid.Value, graphGuid.Value, dirtyReason);
 
             if (commitException != null)
                 ExceptionDispatchInfo.Capture(commitException).Throw();
@@ -433,10 +428,6 @@
             ThrowIfDisposed();
             token.ThrowIfCancellationRequested();
 
-            Guid? tenantGuid = null;
-            Guid? graphGuid = null;
-            bool markDirty = false;
-            string dirtyReason = null;
             Exception rollbackException = null;
 
             await _TransactionSemaphore.WaitAsync(token).ConfigureAwait(false);
@@ -446,13 +437,7 @@
                 lock (_QueryLock)
                 {
                     if (_Transaction == null) throw new InvalidOperationException("No graph transaction is active.");
-
                     transaction = _Transaction;
-                    tenantGuid = _GraphTransactionTenantGUID;
-                    graphGuid = _GraphTransactionGraphGUID;
-                    markDirty = _GraphTransactionVectorIndexFailed;
-                    dirtyReason = _GraphTransactionVectorIndexDirtyReason
-                        ?? "Graph transaction rollback after vector index failure";
                 }
 
                 try
@@ -463,10 +448,6 @@
                 catch (Exception e)
                 {
                     rollbackException = e;
-                    if (markDirty)
-                    {
-                        dirtyReason = "Graph transaction rollback failed after vector index failure: " + e.Message;
-                    }
                 }
                 finally
                 {
@@ -477,9 +458,6 @@
             {
                 _TransactionSemaphore.Release();
             }
-
-            if (markDirty && tenantGuid.HasValue && graphGuid.HasValue)
-                MarkVectorIndexDirtyAfterTransaction(tenantGuid.Value, graphGuid.Value, dirtyReason);
 
             if (rollbackException != null)
                 ExceptionDispatchInfo.Capture(rollbackException).Throw();

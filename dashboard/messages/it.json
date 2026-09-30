@@ -60,7 +60,8 @@
     "signOut": "Esci dalla dashboard",
     "logoutAria": "Esci",
     "language": "Lingua",
-    "selectLanguage": "Seleziona lingua"
+    "selectLanguage": "Seleziona lingua",
+    "answeredBy": "Ultima risposta dal nodo {node}"
   },
   "login": {
     "serverUrl": "URL del server LiteGraph",
@@ -146,7 +147,10 @@
       "rebuildVectorIndex": "Ricostruisci indice vector",
       "deleteVectorIndex": "Elimina indice vector",
       "viewJson": "Visualizza JSON",
-      "menu": "Azioni"
+      "menu": "Azioni",
+      "viewNodes": "Visualizza nodi",
+      "viewEdges": "Visualizza edge",
+      "viewVectors": "Visualizza vettori"
     },
     "form": {
       "name": "Nome",
@@ -273,7 +277,12 @@
         "status": "Se l'indice è attualmente caricato in memoria",
         "distanceMetric": "Metrica di distanza utilizzata per i calcoli di similarità"
       }
-    }
+    },
+    "providerLabel": "Provider dell'indice vettoriale: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "L'indice risiede in PostgreSQL. I grafi con la stessa dimensionalità vettoriale condividono un indice, i cui parametri sono fissati dal primo grafo che lo abilita. I vettori con più di 4.000 dimensioni vengono cercati in modo esatto anziché tramite un indice. Non viene usato alcun file di indice.",
+    "hnswliteNote": "L'indice è mantenuto da questo processo del server e salvato nel file di indice indicato sotto."
   },
   "importExport": {
     "exportJsonl": "Esporta in JSONL",
@@ -844,7 +853,9 @@
       "transactionDesc": "Diagnostica della transazione per le richieste di scrittura: identificativo, esito, livello di isolamento e provider.",
       "durationDesc": "Tempo di elaborazione lato server dalla ricezione della richiesta al completamento della risposta.",
       "sizeDesc": "Dimensioni dei corpi di richiesta e risposta in byte, come richiesta / risposta.",
-      "tenantDesc": "Tenant che ha emesso la richiesta; vuoto per le richieste amministrative."
+      "tenantDesc": "Tenant che ha emesso la richiesta; vuoto per le richieste amministrative.",
+      "node": "Nodo",
+      "nodeDesc": "Nodo del server che ha gestito la richiesta."
     },
     "transaction": {
       "noId": "transazione"
@@ -876,7 +887,9 @@
       "nonTransactions": "Non transazioni",
       "allMethods": "Tutti i metodi",
       "transactionIdPlaceholder": "ID transazione...",
-      "pathPlaceholder": "Il percorso contiene..."
+      "pathPlaceholder": "Il percorso contiene...",
+      "nodePlaceholder": "Filtra per nodo",
+      "nodeNone": "Nessun nodo corrispondente"
     },
     "summary": {
       "visibleRequests": "Richieste visibili:",
@@ -1359,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Home",
-      "data": "Dati",
-      "metadata": "Metadati",
-      "manage": "Gestisci",
-      "secure": "Sicurezza",
-      "administer": "Amministrazione",
-      "ai": "IA"
+      "workspace": "Area di lavoro",
+      "administration": "Amministrazione"
     },
-    "item": {
+    "hub": {
       "home": "Home",
       "homeTitle": "Panoramica della dashboard",
+      "graphs": "Grafi",
+      "graphsTitle": "Grafi, nodi, edge, metadati, vettori e algoritmi",
+      "chat": "Chat",
+      "chatTitle": "Chatta con i tuoi grafi e gestisci gli endpoint della chat",
+      "access": "Accesso",
+      "accessTitle": "Tenant, utenti, credenziali e autorizzazioni",
+      "system": "Sistema",
+      "systemTitle": "Impostazioni del server, cluster e backup",
+      "developer": "Sviluppatore",
+      "developerTitle": "Cronologia delle richieste API e API Explorer"
+    },
+    "tabBarAria": "Schede di {hub}",
+    "item": {
       "graphs": "Grafi",
       "graphsTitle": "Gestisci i contenitori dei grafi",
       "nodes": "Nodi",
@@ -1402,14 +1423,16 @@
       "aiChatTitle": "Chatta con i tuoi grafi",
       "aiEndpoints": "Endpoint",
       "aiEndpointsTitle": "Gestisci gli endpoint LLM",
-      "aiHistory": "Cronologia chat",
+      "aiHistory": "Cronologia",
       "aiHistoryTitle": "Esplora conversazioni e turni della chat",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Esamina il feedback della chat",
-      "aiSettings": "Impostazioni chat",
+      "aiSettings": "Impostazioni",
       "aiSettingsTitle": "Configurazione chat del tenant",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Nodi del cluster e riavvii"
     }
   },
   "secure": {
@@ -1435,7 +1458,8 @@
       "rest": "Server REST",
       "database": "Database",
       "security": "Sicurezza",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Timeout richiesta (secondi)",
@@ -1483,7 +1507,25 @@
       "chatMaxToolIterationsCap": "Limite iterazioni strumenti",
       "chatMaxConcurrentChats": "Chat simultanee massime",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (secondi)",
-      "chatDefaultTimeoutMs": "Timeout predefinito (ms)"
+      "chatDefaultTimeoutMs": "Timeout predefinito (ms)",
+      "clusterEnable": "Esegui come nodo del cluster",
+      "clusterName": "Nome del cluster",
+      "clusterNodeId": "Identificatore del nodo",
+      "trustForwardedHeaders": "Considera attendibili le intestazioni inoltrate",
+      "trustedProxies": "Proxy attendibili",
+      "allowInsecureDefaults": "Consenti valori predefiniti non sicuri",
+      "endpointResyncIntervalMs": "Intervallo di risincronizzazione degli endpoint di chat (ms)",
+      "clutchEndpoint": "Endpoint Clutch",
+      "clutchAccessKey": "Chiave di accesso Clutch",
+      "clutchLeaseMs": "Lease Clutch (ms)",
+      "clutchRequestTimeoutMs": "Timeout delle richieste a Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Timeout di connessione a Clutch all'avvio (ms)",
+      "redisConnectionString": "Stringa di connessione Redis",
+      "redisPollIntervalMs": "Intervallo di polling Redis (ms)",
+      "redisNodeTimeoutMs": "Nodo offline dopo (ms)",
+      "redisNodeRetentionMs": "Dimentica i nodi arrestati dopo (ms)",
+      "restartDrainMs": "Drenaggio nel riavvio progressivo (ms)",
+      "restartPeerTimeoutMs": "Attesa degli altri nodi nel riavvio progressivo (ms)"
     },
     "status": {
       "appliedLive": "Applicato in tempo reale",
@@ -1496,19 +1538,56 @@
     "actions": {
       "save": "Salva",
       "discard": "Annulla modifiche",
-      "restart": "Riavvia server"
+      "restart": "Riavvia server",
+      "restartCluster": "Riavvia cluster"
     },
     "restartModal": {
       "title": "Riavviare il server?",
-      "body": "Il server verrà chiuso e il container si riavvierà con le impostazioni salvate. Le connessioni attive verranno interrotte brevemente."
+      "body": "Il server verrà chiuso e il container si riavvierà con le impostazioni salvate. Le connessioni attive verranno interrotte brevemente.",
+      "titleCluster": "Riavviare tutti i nodi?",
+      "bodyCluster": "Tutti i nodi verranno riavviati uno alla volta, ciascuno dopo che il precedente risulta di nuovo integro. Il cluster continua a gestire le richieste per tutto il tempo."
     },
     "toast": {
       "saved": "Impostazioni salvate.",
       "saveFailed": "Impossibile salvare le impostazioni.",
       "restartFailed": "Impossibile riavviare il server.",
       "reconnected": "Il server è di nuovo online.",
-      "reconnectTimeout": "Il server non è tornato disponibile in tempo. Verifica il suo stato."
-    }
+      "reconnectTimeout": "Il server non è tornato disponibile in tempo. Verifica il suo stato.",
+      "rollingRestart": "Riavvio progressivo richiesto. I nodi si riavviano uno alla volta; segui l'avanzamento nell'elenco dei nodi."
+    },
+    "environmentOverrides": "{count} impostazioni provengono da variabili d'ambiente o sono impostate all'avvio; i loro valori nel file delle impostazioni non sono stati modificati.",
+    "cluster": {
+      "title": "Nodi",
+      "descriptionCluster": "Tutti i nodi del cluster {name}. Le impostazioni vengono salvate per tutti i nodi. Quelle che richiedono un riavvio si applicano dopo un riavvio del cluster, che riavvia i nodi uno alla volta.",
+      "descriptionSingle": "Questo server funziona come nodo singolo.",
+      "registryUnavailable": "Il registro dei nodi (Redis) non è raggiungibile; viene mostrato solo il nodo che ha risposto.",
+      "secondsAgo": "{seconds} s fa",
+      "yes": "Sì",
+      "no": "No",
+      "columns": {
+        "node": "Nodo",
+        "state": "Stato",
+        "version": "Versione",
+        "started": "Avviato",
+        "heartbeat": "Ultimo heartbeat",
+        "settingsVersion": "Versione impostazioni",
+        "restartPending": "Riavvio in sospeso"
+      },
+      "openPage": "Apri la pagina Cluster"
+    },
+    "hints": {
+      "range": "Intervallo consentito da {min} a {max}",
+      "envOverride": "Impostato da variabile d'ambiente",
+      "nodeIdEnv": "Impostato su ogni nodo dalla variabile d'ambiente LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Indirizzi o intervalli CIDR separati da virgole, ad esempio 10.0.0.0/8.",
+      "clusterName": "Lettere minuscole, cifre e trattini."
+    },
+    "clusterBanner": {
+      "title": "Queste impostazioni valgono per tutti i nodi",
+      "body": "Tutti i nodi condividono questo file di impostazioni. Le impostazioni che richiedono un riavvio si applicano dopo un riavvio del cluster, che riavvia i nodi uno alla volta.",
+      "link": "Apri la pagina Cluster"
+    },
+    "cachingDisabledInCluster": "La cache degli oggetti è disattivata in modalità cluster, indipendentemente da queste impostazioni, così ogni nodo legge dati aggiornati."
   },
   "ai": {
     "chat": {
@@ -1994,5 +2073,127 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Tutti i nodi di questa installazione, il loro stato e i riavvii. Il filtro per stato si applica all'elenco dei nodi ottenuto dal server.",
+    "loading": "Caricamento dello stato del cluster...",
+    "refresh": "Aggiorna",
+    "autoRefresh": "Aggiornamento ogni {seconds} s",
+    "autoRefreshPaused": "Aggiornamento automatico in pausa",
+    "reconnecting": "Connessione persa, nuovo tentativo",
+    "lastUpdated": "aggiornato {time}",
+    "singleNode": "Nodo singolo",
+    "singleNodeDescription": "Questo server non è in modalità cluster. È l'unico nodo e riavviarlo riavvia il server.",
+    "registryUnavailable": "Il registro dei nodi (Redis) non è raggiungibile. Viene mostrato solo il nodo che ha risposto e non è possibile richiedere riavvii finché Redis non torna disponibile.",
+    "loadError": "Impossibile caricare lo stato del cluster.",
+    "cards": {
+      "nodes": "Nodi integri",
+      "cluster": "Cluster",
+      "registry": "Registro dei nodi",
+      "registryUp": "Disponibile",
+      "registryDown": "Non disponibile",
+      "registryNa": "Non usato",
+      "settings": "Versione impostazioni",
+      "settingsLagging": "{count} in ritardo, {pending} in attesa di riavvio",
+      "lastRestart": "Ultima richiesta di riavvio",
+      "never": "Mai"
+    },
+    "filter": {
+      "state": "Stato",
+      "all": "Tutti gli stati",
+      "localNote": "Visualizzati {shown} di {total} nodi"
+    },
+    "columns": {
+      "node": "Nodo",
+      "host": "Host",
+      "version": "Versione",
+      "state": "Stato",
+      "started": "Avviato",
+      "heartbeat": "Ultimo heartbeat",
+      "checks": "Controlli",
+      "settingsVersion": "Versione impostazioni",
+      "restartPending": "Riavvio in sospeso",
+      "actions": "Azioni"
+    },
+    "checks": {
+      "database": "Database",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} s fa",
+    "yes": "Sì",
+    "no": "No",
+    "actions": {
+      "copyNodeId": "Copia ID nodo",
+      "restartNode": "Riavvia nodo",
+      "remove": "Rimuovi dal registro",
+      "rollingRestart": "Riavvio progressivo"
+    },
+    "restartNodeModal": {
+      "title": "Riavviare il nodo {node}?",
+      "body": "Il nodo smette di accettare richieste, si riavvia e rientra. Se un altro nodo si sta riavviando, attende prima quel nodo.",
+      "bodySingle": "Il server termina e il suo supervisore lo riavvia. Le richieste vengono interrotte brevemente."
+    },
+    "removeModal": {
+      "title": "Rimuovere il nodo {node}?",
+      "body": "Rimuove questo nodo dal registro. Se si avvia di nuovo, si registra di nuovo."
+    },
+    "rollingModal": {
+      "title": "Riavviare tutti i nodi?",
+      "body": "Tutti i nodi vengono riavviati uno alla volta, ciascuno dopo che il precedente risulta di nuovo integro. Il cluster continua a gestire le richieste per tutto il tempo."
+    },
+    "progress": {
+      "title": "Avanzamento del riavvio progressivo",
+      "complete": "Tutti i nodi sono stati riavviati.",
+      "pending": "In attesa",
+      "restarting": "In riavvio",
+      "restarted": "Riavviato",
+      "dismiss": "Chiudi",
+      "requested": "Richiesto {time}"
+    },
+    "toast": {
+      "restartRequested": "Riavvio richiesto per {node}.",
+      "rollingRequested": "Riavvio progressivo richiesto.",
+      "removed": "Nodo {node} rimosso.",
+      "actionFailed": "Richiesta non riuscita: {message}"
+    },
+    "empty": "Nessun nodo registrato.",
+    "jobs": {
+      "title": "Attività in background",
+      "description": "L'esecuzione più recente di ogni attività che gira su un solo nodo per ciclo.",
+      "empty": "In questo cluster non è ancora stata eseguita alcuna attività.",
+      "emptySingle": "Su un nodo singolo tutte le attività vengono eseguite localmente, quindi qui non vengono registrate esecuzioni.",
+      "unavailable": "Il registro dei nodi (Redis) non è raggiungibile, quindi le esecuzioni non possono essere mostrate.",
+      "success": "Riuscita",
+      "failed": "Non riuscita",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Attività",
+        "node": "Nodo",
+        "started": "Avvio",
+        "completed": "Fine",
+        "duration": "Durata",
+        "result": "Esito"
+      }
+    },
+    "locks": {
+      "title": "Lock distribuiti",
+      "description": "Lock che questo cluster detiene attualmente in Clutch. La maggior parte viene tenuta solo per un istante.",
+      "empty": "Al momento non ci sono lock attivi.",
+      "emptySingle": "Un nodo singolo usa solo lock interni al processo, quindi non c’è nulla da mostrare.",
+      "unavailable": "Clutch non è raggiungibile, quindi i lock detenuti non possono essere elencati.",
+      "unknownNode": "Nodo sconosciuto",
+      "columns": {
+        "key": "Chiave",
+        "keyClass": "Classe",
+        "mode": "Modalità",
+        "node": "Nodo",
+        "clutchNode": "Nodo Clutch",
+        "fencingToken": "Token di fencing",
+        "acquired": "Acquisito",
+        "leaseExpires": "Scadenza del lease"
+      }
+    }
   }
 }

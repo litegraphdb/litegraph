@@ -55,6 +55,11 @@ namespace LiteGraph
         public string SourceIp { get; set; } = null;
 
         /// <summary>
+        /// Filter by the server node that handled the request (exact match, v10.0).  Null for no filter.
+        /// </summary>
+        public string NodeId { get; set; } = null;
+
+        /// <summary>
         /// Transaction diagnostics presence filter.
         /// </summary>
         public bool? HasTransactionDiagnostics { get; set; } = null;

@@ -424,6 +424,7 @@ namespace LiteGraph.Client.Implementations
                 else if (domain == VectorSearchDomainEnum.Node)
                 {
                     if (graphGuid == null) throw new ArgumentException("Graph GUID must be supplied when performing a node vector search.");
+                    List<VectorSearchResult> nodeResults = new List<VectorSearchResult>();
 
                     await foreach (VectorSearchResult result in _Repo.Vector.SearchNode(
                         searchType,
@@ -439,20 +440,21 @@ namespace LiteGraph.Client.Implementations
                         minInnerProduct,
                         token).WithCancellation(token).ConfigureAwait(false))
                     {
-                        token.ThrowIfCancellationRequested();
-                        List<LabelMetadata> nodeLabels = new List<LabelMetadata>();
-                        await foreach (LabelMetadata label in _Repo.Label.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            nodeLabels.Add(label);
-                        }
-                        result.Node.Labels = LabelMetadata.ToListString(nodeLabels);
+                        nodeResults.Add(result);
+                    }
 
-                        List<TagMetadata> nodeTags = new List<TagMetadata>();
-                        await foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, result.Node.GraphGUID, result.Node.GUID, null, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            nodeTags.Add(tag);
-                        }
-                        result.Node.Tags = TagMetadata.ToNameValueCollection(nodeTags);
+                    // Labels and tags for every result in one query each, instead of two per result.
+                    List<Guid> nodeGuids = nodeResults.Select(r => r.Node.GUID).ToList();
+                    Dictionary<Guid, List<LabelMetadata>> labelsByNode = await GroupAsync(
+                        _Repo.Label.ReadManyForNodes(tenantGuid, graphGuid.Value, nodeGuids, token), l => l.NodeGUID, l => l.CreatedUtc, l => l.GUID, token).ConfigureAwait(false);
+                    Dictionary<Guid, List<TagMetadata>> tagsByNode = await GroupAsync(
+                        _Repo.Tag.ReadManyForNodes(tenantGuid, graphGuid.Value, nodeGuids, token), t => t.NodeGUID, t => t.CreatedUtc, t => t.GUID, token).ConfigureAwait(false);
+
+                    foreach (VectorSearchResult result in nodeResults)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        result.Node.Labels = LabelMetadata.ToListString(labelsByNode.TryGetValue(result.Node.GUID, out List<LabelMetadata> nodeLabels) ? nodeLabels : new List<LabelMetadata>());
+                        result.Node.Tags = TagMetadata.ToNameValueCollection(tagsByNode.TryGetValue(result.Node.GUID, out List<TagMetadata> nodeTags) ? nodeTags : new List<TagMetadata>());
                         resultCount++;
                         yield return result;
                     }
@@ -460,6 +462,7 @@ namespace LiteGraph.Client.Implementations
                 else if (domain == VectorSearchDomainEnum.Edge)
                 {
                     if (graphGuid == null) throw new ArgumentException("Graph GUID must be supplied when performing an edge vector search.");
+                    List<VectorSearchResult> edgeResults = new List<VectorSearchResult>();
 
                     await foreach (VectorSearchResult result in _Repo.Vector.SearchEdge(
                         searchType,
@@ -475,20 +478,21 @@ namespace LiteGraph.Client.Implementations
                         minInnerProduct,
                         token).WithCancellation(token).ConfigureAwait(false))
                     {
-                        token.ThrowIfCancellationRequested();
-                        List<LabelMetadata> edgeLabels = new List<LabelMetadata>();
-                        await foreach (LabelMetadata label in _Repo.Label.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            edgeLabels.Add(label);
-                        }
-                        result.Edge.Labels = LabelMetadata.ToListString(edgeLabels);
+                        edgeResults.Add(result);
+                    }
 
-                        List<TagMetadata> edgeTags = new List<TagMetadata>();
-                        await foreach (TagMetadata tag in _Repo.Tag.ReadMany(tenantGuid, result.Edge.GraphGUID, null, result.Edge.GUID, null, null, token: token).WithCancellation(token).ConfigureAwait(false))
-                        {
-                            edgeTags.Add(tag);
-                        }
-                        result.Edge.Tags = TagMetadata.ToNameValueCollection(edgeTags);
+                    // Labels and tags for every result in one query each, instead of two per result.
+                    List<Guid> edgeGuids = edgeResults.Select(r => r.Edge.GUID).ToList();
+                    Dictionary<Guid, List<LabelMetadata>> labelsByEdge = await GroupAsync(
+                        _Repo.Label.ReadManyForEdges(tenantGuid, graphGuid.Value, edgeGuids, token), l => l.EdgeGUID, l => l.CreatedUtc, l => l.GUID, token).ConfigureAwait(false);
+                    Dictionary<Guid, List<TagMetadata>> tagsByEdge = await GroupAsync(
+                        _Repo.Tag.ReadManyForEdges(tenantGuid, graphGuid.Value, edgeGuids, token), t => t.EdgeGUID, t => t.CreatedUtc, t => t.GUID, token).ConfigureAwait(false);
+
+                    foreach (VectorSearchResult result in edgeResults)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        result.Edge.Labels = LabelMetadata.ToListString(labelsByEdge.TryGetValue(result.Edge.GUID, out List<LabelMetadata> edgeLabels) ? edgeLabels : new List<LabelMetadata>());
+                        result.Edge.Tags = TagMetadata.ToNameValueCollection(tagsByEdge.TryGetValue(result.Edge.GUID, out List<TagMetadata> edgeTags) ? edgeTags : new List<TagMetadata>());
                         resultCount++;
                         yield return result;
                     }
@@ -518,6 +522,39 @@ namespace LiteGraph.Client.Implementations
         #endregion
 
         #region Private-Methods
+
+        private static async Task<Dictionary<Guid, List<T>>> GroupAsync<T>(
+            IAsyncEnumerable<T> items,
+            Func<T, Guid?> owner,
+            Func<T, DateTime> created,
+            Func<T, Guid> guid,
+            CancellationToken token)
+        {
+            // Group metadata by owner and order each group as the per-owner reads do (created descending, then guid).
+            Dictionary<Guid, List<T>> ret = new Dictionary<Guid, List<T>>();
+            await foreach (T item in items.WithCancellation(token).ConfigureAwait(false))
+            {
+                Guid? id = owner(item);
+                if (id == null) continue;
+                if (!ret.TryGetValue(id.Value, out List<T> list))
+                {
+                    list = new List<T>();
+                    ret[id.Value] = list;
+                }
+                list.Add(item);
+            }
+
+            foreach (List<T> list in ret.Values)
+            {
+                list.Sort((a, b) =>
+                {
+                    int byTime = created(b).CompareTo(created(a));
+                    return byTime != 0 ? byTime : String.CompareOrdinal(guid(b).ToString(), guid(a).ToString());
+                });
+            }
+
+            return ret;
+        }
 
         private static void SetVectorSearchActivityTags(
             Activity activity,

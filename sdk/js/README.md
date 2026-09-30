@@ -112,6 +112,39 @@ sdk.searchNodes(searchRequest).then((response) => {
 })
 ```
 
+## Retries and Load Balancers (v10.0)
+
+Connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter. GET, HEAD, PUT, and DELETE are retried; POST only when `retryPost` is true, because a retried POST can apply twice if the first attempt reached the server. Streaming responses are never retried once any of the body has been read.
+
+| Property | Default | Range | Meaning |
+|----------|---------|-------|---------|
+| `maxRetries` | `2` | 0 to 10 | Retries after the first attempt |
+| `retryBaseDelayMs` | `200` | 0 to 5000 | First retry delay; doubles per retry, capped at 5000 ms, less up to half as jitter |
+| `retryPost` | `false` | | Also retry POST requests |
+| `lastNodeId` | `null` | read only | Node that answered the most recent request (`x-litegraph-node` header) |
+
+### Behind a load balancer
+
+A LiteGraph cluster runs several identical nodes behind a load balancer, so any request may be answered by any node. A node that is restarting returns 502 or 503 through the load balancer, and the retries absorb it. API errors carry `nodeId`, naming the node whose logs to read.
+
+```javascript
+const api = new LiteGraphSdk('http://127.0.0.1:8701/', 'default', 'litegraphadmin');
+api.maxRetries = 3;
+
+const cluster = await api.readClusterNodes();
+cluster.Nodes.forEach((n) => console.log(n.NodeId, n.State, n.RestartPending ? '(restart pending)' : ''));
+console.log('answered by', api.lastNodeId);
+
+try {
+  await api.readClusterNode('no-such-node');
+} catch (err) {
+  console.log(err.error, 'from node', err.nodeId);
+}
+
+const ready = await api.healthReady(); // body for both 200 and 503
+console.log(ready.Status, ready.Checks);
+```
+
 ## Graph Transactions
 
 Graph transactions execute create, update, delete, attach, detach, and upsert operations atomically inside one tenant and graph. The transaction API preserves diagnostic result bodies returned by LiteGraph with HTTP `400` validation failures or HTTP `409` rollback/conflict failures.
@@ -198,9 +231,46 @@ Requires system-administrator authentication.
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readSettings` | Reads the effective server settings (secrets redacted). | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `GET /v1.0/settings` |
+| `readSettings` | Reads the settings file shared by every node. | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `GET /v1.0/settings` |
 | `updateSettings` | Persists server settings; hot-reloads live fields. | `settings` (Object) - Settings object <br> `cancellationToken` (optional) - `AbortController` | `Promise<SettingsUpdateResult>` | `PUT /v1.0/settings` |
-| `restartServer` | Flushes and exits the process so the orchestrator restarts it. | `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `POST /v1.0/settings/restart` |
+| `restartServer` | Applies saved settings by restarting: a rolling restart of every node in cluster mode, otherwise this server. | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` restart result | `POST /v1.0/settings/restart` |
+
+### Cluster Operations (v10.0)
+
+Requires system-administrator authentication, except the health checks. On a single node the answering server is the only node.
+
+| Method | Description | Parameters | Returns | Endpoint |
+|--------|-------------|------------|---------|----------|
+| `readClusterNodes` | Lists every node with its state, health checks, settings version, and pending restart. | `cancellationToken` (optional) | `Promise<Object>` cluster status | `GET /v1.0/cluster/nodes` |
+| `readClusterNode` | Reads one node. Rejects with NotFound if it is not in the registry. | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<Object>` node | `GET /v1.0/cluster/nodes/{nodeId}` |
+| `restartCluster` | Requests a rolling restart: every node restarts, one at a time. | `cancellationToken` (optional) | `Promise<Object>` restart result | `POST /v1.0/cluster/restart` |
+| `restartClusterNode` | Requests a restart of one node. Rejects with the server's error (NotFound, Conflict for an offline node, Unavailable). | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<Object>` restart result | `POST /v1.0/cluster/nodes/{nodeId}/restart` |
+| `deleteClusterNode` | Removes an Offline or Stopped node from the registry. | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<void>` | `DELETE /v1.0/cluster/nodes/{nodeId}` |
+| `readClusterLocks` | Lists the distributed locks the cluster holds in Clutch, with the node holding each. Empty on a single node. | `cancellationToken` (optional) | `Promise<Object>` lock list | `GET /v1.0/cluster/locks` |
+| `readClusterJobs` | Lists the most recent run of each cluster singleton job. Empty on a single node. | `cancellationToken` (optional) | `Promise<Object>` job list | `GET /v1.0/cluster/jobs` |
+| `healthLive` | Liveness. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/live` |
+| `healthReady` | Readiness. Resolves with the body for both 200 and 503. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/ready` |
+
+### Request History Operations (v10.0)
+
+System administrators see every tenant and may pass `tenantGuid`; tenant administrators see only their own tenant. Filters: `tenantGuid`, `requestId`, `correlationId`, `traceId`, `method`, `path` (substring), `sourceIp`, `nodeId` (the node that handled the request), `transactionId`, `statusCode`, `success`, `hasTransactionDiagnostics`, `fromUtc`, `toUtc` (Date or ISO 8601 string), plus `maxKeys` (1-1000, default 100) and `skip` for paging.
+
+| Method | Description | Parameters | Returns | Endpoint |
+|--------|-------------|------------|---------|----------|
+| `listRequestHistory` | Searches request history, newest first, one page at a time. | `filters` (optional) <br> `cancellationToken` (optional) | `Promise<Object>` enumeration result | `GET /v1.0/requesthistory` |
+| `readRequestHistory` | Reads one entry. Rejects with NotFound if it does not exist. | `requestGuid` <br> `cancellationToken` (optional) | `Promise<Object>` entry | `GET /v1.0/requesthistory/{requestGuid}` |
+| `readRequestHistoryDetail` | Reads one entry with its captured headers and bodies. | `requestGuid` <br> `cancellationToken` (optional) | `Promise<Object>` detail | `GET /v1.0/requesthistory/{requestGuid}/detail` |
+| `readRequestHistorySummary` | Counts requests over a range, bucketed by interval. | `{ interval, startUtc, endUtc, tenantGuid }` (optional) <br> `cancellationToken` (optional) | `Promise<Object>` summary | `GET /v1.0/requesthistory/summary` |
+| `deleteRequestHistory` | Deletes one entry. | `requestGuid` <br> `cancellationToken` (optional) | `Promise<void>` | `DELETE /v1.0/requesthistory/{requestGuid}` |
+| `deleteRequestHistoryMany` | Deletes every entry matching the filters (paging ignored). | `filters` <br> `cancellationToken` (optional) | `Promise<Object>` `{ Deleted }` | `DELETE /v1.0/requesthistory/bulk` |
+
+```javascript
+const page = await api.listRequestHistory({ nodeId: 'litegraph-2', success: false, fromUtc: new Date(Date.now() - 3600000) });
+page.Objects.forEach((e) => console.log(e.CreatedUtc, e.Method, e.Path, e.StatusCode, e.NodeId));
+
+const summary = await api.readRequestHistorySummary({ interval: 'hour' });
+const { Deleted } = await api.deleteRequestHistoryMany({ path: '/v1.0/health' });
+```
 
 ### Chat Operations (v8.1)
 

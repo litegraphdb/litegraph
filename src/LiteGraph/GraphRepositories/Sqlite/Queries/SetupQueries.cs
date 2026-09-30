@@ -368,6 +368,7 @@ namespace LiteGraph.GraphRepositories.Sqlite.Queries
                 + "path TEXT NOT NULL, "
                 + "url TEXT NOT NULL, "
                 + "sourceip VARCHAR(64), "
+                + "nodeid VARCHAR(128), "
                 + "tenantguid VARCHAR(64), "
                 + "userguid VARCHAR(64), "
                 + "statuscode INT NOT NULL, "

@@ -1,0 +1,125 @@
+{
+  "CreatedUtc": "2025-01-27T22:19:01.489573Z",
+  "RequestTimeoutSeconds": 60,
+  "Logging": {
+    "Enable": true,
+    "Servers": [
+      {
+        "Hostname": "syslog-shim",
+        "Port": 1514
+      }
+    ],
+    "LogDirectory": "./logs/",
+    "LogFilename": "litegraph.log",
+    "ConsoleLogging": true,
+    "EnableColors": true,
+    "JsonLogOutput": false,
+    "MinimumSeverity": 0,
+    "Header": "[LiteGraph] ",
+    "LogQueries": false,
+    "LogResults": false
+  },
+  "Caching": {
+    "Enable": true,
+    "Capacity": 1000,
+    "EvictCount": 100
+  },
+  "Rest": {
+    "Hostname": "*",
+    "Port": 8701,
+    "IO": {
+      "StreamBufferSize": 65536,
+      "MaxRequests": 1024,
+      "ReadTimeoutMs": 10000,
+      "MaxIncomingHeadersSize": 65536,
+      "EnableKeepAlive": false
+    },
+    "Ssl": {
+      "Enable": false,
+      "MutuallyAuthenticate": false,
+      "AcceptInvalidAcertificates": true
+    },
+    "Headers": {
+      "IncludeContentLength": true,
+      "DefaultHeaders": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS, HEAD, GET, PUT, POST, DELETE, PATCH",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Expose-Headers": "",
+        "Accept": "*/*",
+        "Accept-Language": "en-US, en",
+        "Accept-Charset": "ISO-8859-1, utf-8",
+        "Cache-Control": "no-cache",
+        "Connection": "close",
+        "Host": "localhost:8000"
+      }
+    },
+    "AccessControl": {
+      "DenyList": {},
+      "PermitList": {},
+      "Mode": "DefaultPermit"
+    },
+    "Debug": {
+      "AccessControl": false,
+      "Routing": false,
+      "Requests": false,
+      "Responses": false
+    }
+  },
+  "LiteGraph": {
+    "AdminBearerToken": "litegraphadmin",
+    "GraphRepositoryFilename": "./litegraph.db",
+    "Database": {
+      "Type": "Postgresql",
+      "Filename": "./litegraph.db",
+      "InMemory": false,
+      "Hostname": "postgresql",
+      "Port": 5432,
+      "DatabaseName": "litegraph",
+      "Username": "litegraph",
+      "Password": "litegraph",
+      "Schema": "litegraph",
+      "ConnectionString": null,
+      "MaxConnections": 32,
+      "CommandTimeoutSeconds": 30
+    },
+    "MaxConcurrentOperations": 4,
+    "Transactions": {
+      "MaxOperations": 1000,
+      "MaxTimeoutSeconds": 60
+    },
+    "InMemory": false
+  },
+  "Encryption": {
+    "Key": "0000000000000000000000000000000000000000000000000000000000000000",
+    "Iv": "00000000000000000000000000000000"
+  },
+  "Storage": {
+    "BackupsDirectory": "./backups/"
+  },
+  "Debug": {
+    "Authentication": false,
+    "Exceptions": true,
+    "Requests": false,
+    "DatabaseQueries": false
+  },
+  "RequestHistory": {
+    "Enable": true,
+    "MaxRequestBodyBytes": 131072,
+    "MaxResponseBodyBytes": 131072,
+    "RetentionDays": 30,
+    "PurgeIntervalMinutes": 60
+  },
+  "Observability": {
+    "Enable": true,
+    "EnablePrometheus": true,
+    "EnableOpenTelemetry": true,
+    "EnableOtlpExporter": false,
+    "OtlpEndpoint": null,
+    "OtlpProtocol": "grpc",
+    "OtlpHeaders": null,
+    "OtlpTimeoutMilliseconds": 10000,
+    "MetricsPath": "/metrics",
+    "ServiceName": "LiteGraph.Server"
+  }
+}

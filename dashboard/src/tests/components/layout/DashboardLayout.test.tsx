@@ -10,9 +10,17 @@ import { mockGraphData, mockTenantData, mockUserData } from '@/tests/pages/mockD
 
 // Import the component
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { resetNodeTracker, setLastNodeId } from '@/lib/sdk/nodeTracker';
+import { getClusterNodes } from '@/lib/sdk/cluster';
+import { localStorageKeys } from '@/constants/constant';
+import { act } from '@testing-library/react';
 import { handlers } from './handler';
 
 // Mock all dependencies
+jest.mock('@/lib/sdk/cluster', () => ({
+  getClusterNodes: jest.fn(),
+}));
+
 jest.mock('@/hooks/authHooks', () => ({
   useLogout: jest.fn(() => jest.fn()),
 }));
@@ -50,6 +58,8 @@ describe('DashboardLayout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNodeTracker();
+    (getClusterNodes as jest.Mock).mockRejectedValue(new Error('HTTP 401 Unauthorized'));
   });
 
   afterEach(() => server.resetHandlers());
@@ -217,5 +227,76 @@ describe('DashboardLayout', () => {
 
     fireEvent.click(screen.getByText('Retry'));
     expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it('names the node that answered the most recent request in the server tooltip', async () => {
+    const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
+    useGetAllGraphsQuery.mockReturnValue({ data: envelope([]), isLoading: false, error: null, refetch: jest.fn() });
+    useGetAllTenantsQuery.mockReturnValue({ data: envelope([]), isLoading: false, isError: false, refetch: jest.fn() });
+    localStorage.setItem(localStorageKeys.serverUrl, 'http://127.0.0.1:8701');
+
+    const initialState = createMockInitialState();
+    initialState.liteGraph.user = mockUserData[0] as any;
+    renderWithRedux(<DashboardLayout {...defaultProps} />, initialState);
+
+    act(() => setLastNodeId('litegraph-2'));
+    const tag = await screen.findByTestId('header-server-tag');
+    expect(tag).toHaveAttribute('data-node', 'litegraph-2');
+
+    fireEvent.mouseEnter(tag);
+    expect(await screen.findByTestId('header-node-tooltip')).toHaveTextContent('Last response from node litegraph-2');
+
+    act(() => setLastNodeId(null));
+    localStorage.removeItem(localStorageKeys.serverUrl);
+  });
+
+  const renderWithServer = () => {
+    const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
+    useGetAllGraphsQuery.mockReturnValue({ data: envelope([]), isLoading: false, error: null, refetch: jest.fn() });
+    useGetAllTenantsQuery.mockReturnValue({ data: envelope([]), isLoading: false, isError: false, refetch: jest.fn() });
+    localStorage.setItem(localStorageKeys.serverUrl, 'http://127.0.0.1:8701');
+    const initialState = createMockInitialState();
+    initialState.liteGraph.user = mockUserData[0] as any;
+    renderWithRedux(<DashboardLayout {...defaultProps} />, initialState);
+  };
+
+  it('shows a node badge with the latest answering node in cluster mode', async () => {
+    (getClusterNodes as jest.Mock).mockResolvedValue({ ClusterEnabled: true, Nodes: [] });
+    renderWithServer();
+    await waitFor(() => expect(getClusterNodes).toHaveBeenCalled());
+
+    act(() => setLastNodeId('litegraph-1'));
+    expect(await screen.findByTestId('header-node-badge')).toHaveTextContent('litegraph-1');
+
+    act(() => setLastNodeId('litegraph-3'));
+    await waitFor(() => expect(screen.getByTestId('header-node-badge')).toHaveTextContent('litegraph-3'));
+
+    localStorage.removeItem(localStorageKeys.serverUrl);
+  });
+
+  it('hides the node badge on a single node', async () => {
+    (getClusterNodes as jest.Mock).mockResolvedValue({ ClusterEnabled: false, Nodes: [] });
+    renderWithServer();
+    await waitFor(() => expect(getClusterNodes).toHaveBeenCalled());
+
+    act(() => setLastNodeId('host-1'));
+    await screen.findByTestId('header-server-tag');
+    expect(screen.queryByTestId('header-node-badge')).not.toBeInTheDocument();
+
+    localStorage.removeItem(localStorageKeys.serverUrl);
+  });
+
+  it('infers cluster mode from seeing more than one node when the registry cannot be read', async () => {
+    renderWithServer();
+    await waitFor(() => expect(getClusterNodes).toHaveBeenCalled());
+
+    act(() => setLastNodeId('litegraph-1'));
+    await screen.findByTestId('header-server-tag');
+    expect(screen.queryByTestId('header-node-badge')).not.toBeInTheDocument();
+
+    act(() => setLastNodeId('litegraph-2'));
+    expect(await screen.findByTestId('header-node-badge')).toHaveTextContent('litegraph-2');
+
+    localStorage.removeItem(localStorageKeys.serverUrl);
   });
 });

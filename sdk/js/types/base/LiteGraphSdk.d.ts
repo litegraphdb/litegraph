@@ -236,6 +236,43 @@ export default class LiteGraphSdk extends SdkBase {
      */
     executeQuery(graphGuid: string, request: any | string, parameters?: any, options?: any, cancellationToken?: AbortController): Promise<GraphQueryResult>;
     /**
+     * Run a graph algorithm over a single graph.
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} request - GraphAlgorithmRequest object (AlgorithmType plus optional parameters and WriteBack).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} - GraphAlgorithmResult object.
+     */
+    runAlgorithm(graphGuid: string, request: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Export a graph as a portable projection for external computation (for example rustworkx or NetworkX).
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} [options] - Export options.
+     * @param {string} [options.format='NodeLinkJson'] - NodeLinkJson, EdgeList, or Graphml.
+     * @param {string} [options.attributes='Meta'] - None, Meta, or Full.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<string>} - The exported projection as raw text.
+     */
+    exportGraphProjection(graphGuid: string, options?: {
+        format?: string;
+        attributes?: string;
+    }, cancellationToken?: AbortController): Promise<string>;
+    /**
+     * Import externally computed per-node values back onto graph nodes.
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} request - GraphAlgorithmImportRequest object with a Values map of node GUID to property/value pairs.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} - Import result ({ Success, NodesUpdated }).
+     */
+    importAlgorithmResults(graphGuid: string, request: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Generate node embeddings for a graph using the tenant's active embedding endpoint.
+     * @param {string} graphGuid - Graph GUID.
+     * @param {Object} [request] - GenerateEmbeddingsRequest object (optional MaxNodes, SkipNodesWithVectors).
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} - Embedding generation result.
+     */
+    generateEmbeddings(graphGuid: string, request?: any, cancellationToken?: AbortController): Promise<any>;
+    /**
      * List authorization roles for the configured tenant as a paginated enumeration result.
      * @param {Object} [options] - Role list options.
      * @param {number} [options.page=0] - Page index.
@@ -1140,7 +1177,8 @@ export default class LiteGraphSdk extends SdkBase {
      */
     flushDatabase(cancellationToken?: AbortController): Promise<void>;
     /**
-     * Read the server settings. Requires system administrator privileges.
+     * Read the server settings file. Every node sharing the file returns the same settings.
+     * Requires system administrator privileges.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
      * @returns {Promise<Object>} The server settings object.
      */
@@ -1149,16 +1187,137 @@ export default class LiteGraphSdk extends SdkBase {
      * Update the server settings. Requires system administrator privileges.
      * @param {Object} settings - The full settings object.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
-     * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message }).
+     * @returns {Promise<Object>} Settings update result ({ Success, AppliedLive, RestartRequired, Message, EnvironmentOverrides, SettingsVersion }).
      */
     updateSettings(settings: any, cancellationToken?: AbortController): Promise<any>;
     /**
-     * Request a server restart. The server exits so the container restart policy applies the new settings.
-     * Requires system administrator privileges. Best-effort; the connection may drop as the server exits.
+     * Request a restart so saved settings take effect. In cluster mode every node restarts, one at a time, each
+     * after the previous one reports healthy; on a single node the server exits so the container restart policy
+     * restarts it. Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|undefined>} Restart result ({ Restarting, Rolling, RestartVersion, Message, RequestedUtc }),
+     *   or undefined if the connection dropped as a single server exited.
+     */
+    restartServer(cancellationToken?: AbortController): Promise<any | undefined>;
+    /**
+     * List the cluster nodes with their state and health, plus the settings and restart counters. On a single node
+     * the answering server is the only node. Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Cluster status ({ ClusterEnabled, ClusterName, AnsweredBy, RegistryAvailable,
+     *   SettingsVersion, SettingsUpdatedUtc, RestartVersion, RestartRequestedUtc, Nodes, Utc }).
+     */
+    readClusterNodes(cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+     * Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server exited.
+     */
+    restartCluster(cancellationToken?: AbortController): Promise<any | undefined>;
+    /**
+     * Read one cluster node from the node registry. Requires system administrator privileges.
+     * @param {string} nodeId - Node identifier.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} The node ({ NodeId, Hostname, Version, StartedUtc, LastHeartbeatUtc, HeartbeatAgeMs, State,
+     *   Checks, SettingsVersion, RestartPending, RestartVersion }). Rejects with a NotFound error if it is not in the registry.
+     */
+    readClusterNode(nodeId: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Request a restart of one cluster node (on a single node, of the server itself). The node waits for any other node
+     * that is restarting, then restarts. Requires system administrator privileges.
+     * @param {string} nodeId - Node identifier.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server
+     *   exited. Rejects with the server's error (for example NotFound, Conflict for an offline node, or Unavailable).
+     */
+    restartClusterNode(nodeId: string, cancellationToken?: AbortController): Promise<any | undefined>;
+    /**
+     * Remove an Offline or Stopped node from the node registry. A running node cannot be removed, because it registers
+     * again on its next heartbeat. Requires system administrator privileges.
+     * @param {string} nodeId - Node identifier.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>} Resolves when removed. Rejects with Conflict for a running node.
+     */
+    deleteClusterNode(nodeId: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * List the distributed locks the cluster currently holds in Clutch. On a single node the list is empty and
+     * ClusterEnabled is false. Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Lock list ({ ClusterEnabled, LockServiceAvailable, Locks: [{ Key, KeyClass, Mode, NodeId,
+     *   ClutchNodeId, FencingToken, AcquiredUtc, LeaseExpiresUtc }], Utc }).
+     */
+    readClusterLocks(cancellationToken?: AbortController): Promise<any>;
+    /**
+     * List the most recent run of each cluster singleton job. On a single node the list is empty and ClusterEnabled is
+     * false. Requires system administrator privileges.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Job list ({ ClusterEnabled, RegistryAvailable, Jobs: [{ Job, NodeId, StartedUtc, CompletedUtc,
+     *   DurationMs, Success, Message }], Utc }).
+     */
+    readClusterJobs(cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Search request history, returning one page (newest first). System administrators see every tenant and may filter
+     * by tenantGuid; tenant administrators are scoped to their own tenant.
+     * @param {Object} [filters] - Optional filters: tenantGuid, requestId, correlationId, traceId, method, path (substring),
+     *   sourceIp, nodeId (the node that handled the request), transactionId, statusCode, success, hasTransactionDiagnostics,
+     *   fromUtc, toUtc (Date or ISO 8601 string), maxKeys (1-1000, default 100), skip.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Enumeration result ({ Objects, TotalRecords, RecordsRemaining, EndOfResults, ... }).
+     */
+    listRequestHistory(filters?: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Read one request history entry. Rejects with a NotFound error when it does not exist.
+     * @param {string} requestGuid - Entry GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Entry ({ GUID, Method, Path, Url, SourceIp, NodeId, StatusCode, Success, ProcessingTimeMs, ... }).
+     */
+    readRequestHistory(requestGuid: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Read one request history entry with its captured headers and bodies. Rejects with a NotFound error when it does
+     * not exist.
+     * @param {string} requestGuid - Entry GUID.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Detail (entry fields plus RequestHeaders, ResponseHeaders, RequestBody, ResponseBody).
+     */
+    readRequestHistoryDetail(requestGuid: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Read request counts over a time range, bucketed by interval.
+     * @param {Object} [options] - interval (minute, 15minute, hour, 6hour, day; default hour), startUtc, endUtc (Date or
+     *   ISO 8601 string; default the last 24 hours), tenantGuid.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Summary ({ StartUtc, EndUtc, Interval, TotalSuccess, TotalFailure, TotalRequests, Data }).
+     */
+    readRequestHistorySummary(options?: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Delete one request history entry.
+     * @param {string} requestGuid - Entry GUID.
      * @param {AbortController} [cancellationToken] - Optional cancellation token.
      * @returns {Promise<void>}
      */
-    restartServer(cancellationToken?: AbortController): Promise<void>;
+    deleteRequestHistory(requestGuid: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Delete every request history entry matching the filters (the same filters as listRequestHistory; paging is ignored).
+     * An empty filter deletes every entry the caller can see.
+     * @param {Object} filters - Filters, as for listRequestHistory.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} Result ({ Deleted }).
+     */
+    deleteRequestHistoryMany(filters: any, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Liveness check (GET /v1.0/health/live). Needs no authentication.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc, Utc }).
+     *   StorageProvider is Sqlite or Postgresql; VectorIndexProvider is HnswLite or pgvector.
+     */
+    healthLive(cancellationToken?: AbortController): Promise<any | null>;
+    /**
+     * Readiness check (GET /v1.0/health/ready). Needs no authentication. Resolves with the body for both 200 and 503,
+     * so a node that is not ready reports why; Status is Healthy, Degraded, or Unavailable.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc,
+     *   Checks: { Database, Clutch, Redis, Draining }, Utc }). Clutch and Redis are null on a single node.
+     */
+    healthReady(cancellationToken?: AbortController): Promise<any | null>;
     /**
      * Enable vector indexing on a graph.
      * @param {string} tenantGuid - Tenant GUID.

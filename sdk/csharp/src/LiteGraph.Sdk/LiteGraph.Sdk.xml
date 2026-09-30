@@ -1144,6 +1144,391 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ClusterJobList">
+            <summary>
+            Most recent run of each cluster singleton job, returned by GET /v1.0/cluster/jobs.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.ClusterEnabled">
+            <summary>
+            True when the server runs as a cluster node.  A single node records no runs, so Jobs is empty.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.RegistryAvailable">
+            <summary>
+            True when Redis answered.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.Jobs">
+            <summary>
+            Most recent run of each job, ordered by job name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.Utc">
+            <summary>
+            UTC timestamp at which the list was produced.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterJobList.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterJobRun">
+            <summary>
+            The most recent run of a cluster singleton job (one node per cycle).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.Job">
+            <summary>
+            Job name, for example chat-retention or request-history-purge.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.NodeId">
+            <summary>
+            Node that ran the job.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.StartedUtc">
+            <summary>
+            UTC timestamp at which the run started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.CompletedUtc">
+            <summary>
+            UTC timestamp at which the run finished.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.DurationMs">
+            <summary>
+            Run duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.Success">
+            <summary>
+            True when the run completed without an error.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.Message">
+            <summary>
+            Error message when the run failed; otherwise null.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterJobRun.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterLock">
+            <summary>
+            A distributed lock currently held in Clutch by a node of the cluster.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.Key">
+            <summary>
+            Lock key without the cluster prefix, for example job/chat-retention.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.KeyClass">
+            <summary>
+            Key class: the first key segment (schema, vectorindex, job, settings, restart).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.Mode">
+            <summary>
+            Lock mode: Read, Write, or Delete.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.NodeId">
+            <summary>
+            LiteGraph node holding the lock, or null when its Clutch session is not in the node registry.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.ClutchNodeId">
+            <summary>
+            Clutch node the holder is connected to.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.FencingToken">
+            <summary>
+            Monotonic fencing token issued for this hold.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.AcquiredUtc">
+            <summary>
+            UTC timestamp at which the lock was acquired.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.LeaseExpiresUtc">
+            <summary>
+            UTC timestamp at which the current lease expires unless renewed.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterLock.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterLockList">
+            <summary>
+            Locks currently held by the cluster, returned by GET /v1.0/cluster/locks.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.ClusterEnabled">
+            <summary>
+            True when the server runs as a cluster node.  A single node takes only in-process locks, so Locks is empty.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.LockServiceAvailable">
+            <summary>
+            True when Clutch answered.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.Locks">
+            <summary>
+            Held locks, ordered by key.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.Utc">
+            <summary>
+            UTC timestamp at which the list was produced.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterLockList.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterNode">
+            <summary>
+            A node's entry in the cluster node registry.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.NodeId">
+            <summary>
+            Node identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.Hostname">
+            <summary>
+            Host name of the machine or container running the node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.Version">
+            <summary>
+            Server software version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.StartedUtc">
+            <summary>
+            UTC timestamp at which the node's current process started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.LastHeartbeatUtc">
+            <summary>
+            UTC timestamp of the node's most recent heartbeat.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.HeartbeatAgeMs">
+            <summary>
+            Milliseconds since the most recent heartbeat when the status was produced.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.State">
+            <summary>
+            Node state.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.Checks">
+            <summary>
+            Health checks from the node's most recent heartbeat.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.SettingsVersion">
+            <summary>
+            Most recent settings version the node has seen.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.RestartPending">
+            <summary>
+            True when the node needs a restart to apply saved settings or has a requested restart still to take.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNode.RestartVersion">
+            <summary>
+            Most recent restart version the node has seen.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterNode.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterNodeChecks">
+            <summary>
+            Readiness checks reported for a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Database">
+            <summary>
+            True when the database answered a query.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Clutch">
+            <summary>
+            True when the node has a lock connection to Clutch.  Null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Redis">
+            <summary>
+            True when the node can reach Redis.  Null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterNodeChecks.Draining">
+            <summary>
+            True when the node is shutting down or restarting.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterNodeChecks.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterNodeStateEnum">
+            <summary>
+            State of a cluster node as reported in the node registry.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Healthy">
+            <summary>
+            Serving requests with every check passing.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Degraded">
+            <summary>
+            Serving requests, but Clutch or Redis is unreachable, so coordinated work waits.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Unavailable">
+            <summary>
+            Running but not ready to serve requests, for example because the database does not answer.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Draining">
+            <summary>
+            Shutting down; load balancers should stop sending it requests.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Restarting">
+            <summary>
+            Exiting as part of a rolling restart and expected back shortly.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Stopped">
+            <summary>
+            Stopped cleanly and not expected back until started again.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.Sdk.ClusterNodeStateEnum.Offline">
+            <summary>
+            No recent heartbeat.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterRestartResult">
+            <summary>
+            Result of a restart request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.Restarting">
+            <summary>
+            True when a restart was requested.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.Rolling">
+            <summary>
+            True for a rolling restart of every cluster node (one at a time); false when only the answering server restarts.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.RestartVersion">
+            <summary>
+            Restart version assigned to the request.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.Message">
+            <summary>
+            Description of what happens next.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterRestartResult.RequestedUtc">
+            <summary>
+            UTC timestamp of the request.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterRestartResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterStatus">
+            <summary>
+            Cluster status: the nodes in the registry and the settings and restart counters.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.ClusterEnabled">
+            <summary>
+            True when the server runs as a cluster node.  When false, Nodes lists only the answering node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.ClusterName">
+            <summary>
+            Cluster name, or null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.AnsweredBy">
+            <summary>
+            Node that answered the request.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.RegistryAvailable">
+            <summary>
+            True when the node registry (Redis) answered.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.SettingsVersion">
+            <summary>
+            Settings version, incremented every time settings are saved through any node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.SettingsUpdatedUtc">
+            <summary>
+            UTC timestamp of the most recent settings save, if recorded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.RestartVersion">
+            <summary>
+            Restart version, incremented every time a cluster restart is requested.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.RestartRequestedUtc">
+            <summary>
+            UTC timestamp of the most recent restart request, if recorded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.Nodes">
+            <summary>
+            Nodes, ordered by node identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterStatus.Utc">
+            <summary>
+            UTC timestamp at which the status was produced.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterStatus.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Credential">
             <summary>
             Credentials.
@@ -2516,6 +2901,66 @@
             Follow edges in either direction.  This is the default.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.HealthResponse">
+            <summary>
+            Body returned by the health endpoints (GET /v1.0/health/live and GET /v1.0/health/ready).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Status">
+            <summary>
+            Healthy, Degraded (Clutch or Redis unreachable; still serving), or Unavailable (database unreachable or draining).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.NodeId">
+            <summary>
+            Node that answered.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.ClusterName">
+            <summary>
+            Cluster name, or null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Version">
+            <summary>
+            Server software version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.StorageProvider">
+            <summary>
+            Storage provider: Sqlite or Postgresql.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.VectorIndexProvider">
+            <summary>
+            Vector index implementation that goes with the storage provider: HnswLite (SQLite) or pgvector (PostgreSQL).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.StartedUtc">
+            <summary>
+            UTC timestamp at which the server process started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Checks">
+            <summary>
+            Readiness checks.  Null on the liveness endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Utc">
+            <summary>
+            UTC timestamp at which the response was produced.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.IsReady">
+            <summary>
+            True when Status is Healthy or Degraded, meaning the node can serve requests.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.HealthResponse.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -2552,6 +2997,27 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartServer(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterNodes(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartCluster(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterNode(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterLocks(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterJobs(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartClusterNode(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.DeleteClusterNode(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Sdk.Implementations.AlgorithmMethods">
@@ -3044,6 +3510,40 @@
         <member name="M:LiteGraph.Sdk.Implementations.NodeMethods.DeleteAllInTenant(System.Guid,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="T:LiteGraph.Sdk.Implementations.RequestHistoryMethods">
+            <summary>
+            Request history methods.
+            Thread safety: stateless; safe for concurrent use.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.#ctor(LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Request history methods.
+            </summary>
+            <param name="sdk">LiteGraph SDK.</param>
+            <exception cref="T:System.ArgumentNullException">sdk is null.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.Search(LiteGraph.Sdk.RequestHistorySearchRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.Enumerate(LiteGraph.Sdk.RequestHistorySearchRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.ReadByGuid(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.ReadDetail(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.ReadSummary(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.DeleteByGuid(System.Guid,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.RequestHistoryMethods.DeleteMany(LiteGraph.Sdk.RequestHistorySearchRequest,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.TagMethods">
             <summary>
             Tag methods.
@@ -3362,7 +3862,8 @@
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadSettings(System.Threading.CancellationToken)">
             <summary>
-            Read the server settings as a JSON string.  Requires system administrator privileges.
+            Read the server settings file as a JSON string.  Every node sharing the file returns the same settings.
+            Requires system administrator privileges.
             </summary>
             <param name="token">Cancellation token.</param>
             <returns>Server settings as a JSON string.</returns>
@@ -3377,10 +3878,73 @@
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartServer(System.Threading.CancellationToken)">
             <summary>
-            Request a server restart.  The server exits its process so the container restart policy applies the new settings.
-            Requires system administrator privileges.  The call returns best-effort; the connection may drop as the server exits.
+            Request a restart so saved settings take effect.  In cluster mode every node restarts, one at a time, each after
+            the previous one reports healthy; on a single node the server exits so the container restart policy restarts it.
+            Requires system administrator privileges.  Returns null if the connection dropped as a single server exited.
             </summary>
             <param name="token">Cancellation token.</param>
+            <returns>Restart result, or null.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterNodes(System.Threading.CancellationToken)">
+            <summary>
+            List the cluster nodes with their state and health, plus the settings and restart counters.  On a single node the
+            answering server is the only node.  Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Cluster status.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartCluster(System.Threading.CancellationToken)">
+            <summary>
+            Request a rolling restart of every cluster node (a restart of the answering server on a single node).
+            Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Restart result, or null if the connection dropped as a single server exited.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterNode(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Read one cluster node from the node registry.  Requires system administrator privileges.
+            </summary>
+            <param name="nodeId">Node identifier.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Node, or null if it is not in the registry.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterLocks(System.Threading.CancellationToken)">
+            <summary>
+            List the distributed locks the cluster currently holds in Clutch.  On a single node the list is empty and
+            ClusterEnabled is false.  Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Lock list.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterJobs(System.Threading.CancellationToken)">
+            <summary>
+            List the most recent run of each cluster singleton job.  On a single node the list is empty and ClusterEnabled
+            is false.  Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Job list.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartClusterNode(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Request a restart of one cluster node (on a single node, of the server itself).  The node waits for any other node
+            that is restarting, then restarts.  Requires system administrator privileges.
+            </summary>
+            <param name="nodeId">Node identifier.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Restart result, or null if the connection dropped as a single server exited.  When the server refuses the
+            request (for example an unknown, offline, or stopped node), Restarting is false.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.DeleteClusterNode(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Remove an Offline or Stopped node from the node registry.  A running node cannot be removed, because it registers
+            again on its next heartbeat.  Requires system administrator privileges.
+            </summary>
+            <param name="nodeId">Node identifier.</param>
+            <param name="token">Cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
         </member>
         <member name="T:LiteGraph.Sdk.Interfaces.IAlgorithmMethods">
             <summary>
@@ -4796,6 +5360,72 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="token">Cancellation token.</param>
         </member>
+        <member name="T:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods">
+            <summary>
+            Interface for request history methods.  System administrators see every tenant and may filter by tenant; tenant
+            administrators are scoped to their own tenant by the server.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.Search(LiteGraph.Sdk.RequestHistorySearchRequest,System.Threading.CancellationToken)">
+            <summary>
+            Search request history, returning one page.
+            </summary>
+            <param name="request">Filters and paging, or null for the first page of all entries.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>One page of entries, newest first, or null if the request failed.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.Enumerate(LiteGraph.Sdk.RequestHistorySearchRequest,System.Threading.CancellationToken)">
+            <summary>
+            Enumerate every request history entry matching the filters, following pages until the end of results.
+            </summary>
+            <param name="request">Filters, or null for all entries.  MaxKeys sets the page size; Skip sets the starting offset.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Matching entries, newest first.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.ReadByGuid(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read one request history entry.
+            </summary>
+            <param name="requestGuid">Entry GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>The entry, or null if it does not exist.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.ReadDetail(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Read one request history entry with its captured headers and bodies.
+            </summary>
+            <param name="requestGuid">Entry GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>The detail, or null if it does not exist.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.ReadSummary(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Read request counts over a time range, bucketed by interval.
+            </summary>
+            <param name="interval">Bucket interval: minute, 15minute, hour, 6hour, or day.  Null for hour.</param>
+            <param name="startUtc">Range start (UTC).  Null for 24 hours before the end.</param>
+            <param name="endUtc">Range end (UTC).  Null for now.</param>
+            <param name="tenantGuid">Tenant filter for system administrators.  Null for all tenants.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Summary, or null if the request failed.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.DeleteByGuid(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Delete one request history entry.
+            </summary>
+            <param name="requestGuid">Entry GUID.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Task.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IRequestHistoryMethods.DeleteMany(LiteGraph.Sdk.RequestHistorySearchRequest,System.Threading.CancellationToken)">
+            <summary>
+            Delete every request history entry matching the filters.  Paging values are ignored.
+            </summary>
+            <param name="request">Filters.  An empty filter deletes every entry the caller can see.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Number of entries deleted, or null if the request failed.</returns>
+            <exception cref="T:System.ArgumentNullException">request is null.</exception>
+        </member>
         <member name="T:LiteGraph.Sdk.Interfaces.ITagMethods">
             <summary>
             Interface for tag methods.
@@ -5565,6 +6195,11 @@
             Graph algorithm methods.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdk.RequestHistory">
+            <summary>
+            Request history methods.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.LiteGraphSdk.UserAuthentication">
             <summary>
             User authentication methods.
@@ -5602,6 +6237,21 @@
             <param name="tenantGuid">Tenant GUID.</param>
             <param name="endpoint">Endpoint URL.</param>
             <param name="bearerToken">Bearer token.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdk.HealthLive(System.Threading.CancellationToken)">
+            <summary>
+            Liveness check (GET /v1.0/health/live).  Needs no authentication.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Health response, or null if the server did not answer.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdk.HealthReady(System.Threading.CancellationToken)">
+            <summary>
+            Readiness check (GET /v1.0/health/ready).  Needs no authentication.  Returns the body for both 200 and 503, so a
+            node that is not ready reports why (see HealthResponse.Checks); a 503 is not retried.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Health response, or null if the server did not answer.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.LiteGraphSdk.GetTenantsForEmail(System.String,System.String)">
             <summary>
@@ -5672,6 +6322,341 @@
         <member name="M:LiteGraph.Sdk.Node.#ctor">
             <summary>
             Instantiate the object.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.RequestHistoryDeleteResult">
+            <summary>
+            Result of a request history bulk delete.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryDeleteResult.Deleted">
+            <summary>
+            Number of entries deleted.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.RequestHistoryDeleteResult.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.RequestHistoryDetail">
+            <summary>
+            A request history entry with its captured headers and bodies, subject to the server's redaction and truncation.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryDetail.RequestHeaders">
+            <summary>
+            Captured request headers.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryDetail.ResponseHeaders">
+            <summary>
+            Captured response headers.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryDetail.RequestBody">
+            <summary>
+            Captured request body, or null.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryDetail.ResponseBody">
+            <summary>
+            Captured response body, or null.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.RequestHistoryDetail.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.RequestHistoryEntry">
+            <summary>
+            A request recorded in the server's request history.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.GUID">
+            <summary>
+            Request history entry identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.RequestId">
+            <summary>
+            Request identifier (x-request-id).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.CorrelationId">
+            <summary>
+            Correlation identifier (x-correlation-id).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.TraceId">
+            <summary>
+            Trace identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.CreatedUtc">
+            <summary>
+            UTC timestamp at which the request was received.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.CompletedUtc">
+            <summary>
+            UTC timestamp at which the request completed, or null.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.Method">
+            <summary>
+            HTTP method.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.Path">
+            <summary>
+            Request path, with sensitive values redacted.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.Url">
+            <summary>
+            Full request URL, with sensitive values redacted.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.SourceIp">
+            <summary>
+            Client address; behind a trusted load balancer, the address from X-Forwarded-For.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.NodeId">
+            <summary>
+            Server node that handled the request (v10.0).  Null for records written before v10.0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.TenantGUID">
+            <summary>
+            Tenant GUID, or null.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.UserGUID">
+            <summary>
+            User GUID, or null.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.StatusCode">
+            <summary>
+            HTTP status code.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.Success">
+            <summary>
+            True when the request succeeded.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.ProcessingTimeMs">
+            <summary>
+            Processing time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.RequestBodyLength">
+            <summary>
+            Request body length in bytes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.ResponseBodyLength">
+            <summary>
+            Response body length in bytes.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.RequestBodyTruncated">
+            <summary>
+            True when the captured request body was truncated.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.ResponseBodyTruncated">
+            <summary>
+            True when the captured response body was truncated.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.RequestContentType">
+            <summary>
+            Request content type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.ResponseContentType">
+            <summary>
+            Response content type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistoryEntry.TransactionDiagnosticsJson">
+            <summary>
+            Graph transaction diagnostics as JSON, when the request was a graph transaction.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.RequestHistoryEntry.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.RequestHistorySearchRequest">
+            <summary>
+            Filters and paging for request history searches and bulk deletes.  Every filter is optional; null means no filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.TenantGUID">
+            <summary>
+            Tenant GUID.  Honored for system administrators; tenant administrators are always scoped to their own tenant.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.RequestId">
+            <summary>
+            Request identifier (exact match).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.CorrelationId">
+            <summary>
+            Correlation identifier (exact match).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.TraceId">
+            <summary>
+            Trace identifier (exact match).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.Method">
+            <summary>
+            HTTP method (exact match).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.StatusCode">
+            <summary>
+            HTTP status code.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.Success">
+            <summary>
+            Success flag.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.Path">
+            <summary>
+            Path substring.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.SourceIp">
+            <summary>
+            Client address (exact match).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.NodeId">
+            <summary>
+            Server node that handled the request (exact match, v10.0).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.HasTransactionDiagnostics">
+            <summary>
+            Only entries with (true) or without (false) graph transaction diagnostics.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.TransactionId">
+            <summary>
+            Graph transaction identifier.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.FromUtc">
+            <summary>
+            Earliest creation time (UTC), inclusive.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.ToUtc">
+            <summary>
+            Latest creation time (UTC), inclusive.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.Skip">
+            <summary>
+            Records to skip.  The server aligns this down to a multiple of MaxKeys.  Default 0.  Minimum 0.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySearchRequest.MaxKeys">
+            <summary>
+            Maximum records per page.  Default 100.  Minimum 1, maximum 1000.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.RequestHistorySearchRequest.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.RequestHistorySummary">
+            <summary>
+            Request counts over a time range, bucketed by interval.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.StartUtc">
+            <summary>
+            Start of the summarized range (UTC).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.EndUtc">
+            <summary>
+            End of the summarized range (UTC).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.Interval">
+            <summary>
+            Bucket interval: minute, 15minute, hour, 6hour, or day.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.TotalSuccess">
+            <summary>
+            Successful requests in the range.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.TotalFailure">
+            <summary>
+            Failed requests in the range.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.TotalRequests">
+            <summary>
+            All requests in the range.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummary.Data">
+            <summary>
+            Per-interval buckets.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.RequestHistorySummary.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.RequestHistorySummaryBucket">
+            <summary>
+            Request counts for one interval of a request history summary.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummaryBucket.TimestampUtc">
+            <summary>
+            Start of the interval (UTC).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummaryBucket.SuccessCount">
+            <summary>
+            Successful requests in the interval.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummaryBucket.FailureCount">
+            <summary>
+            Failed requests in the interval.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.RequestHistorySummaryBucket.TotalCount">
+            <summary>
+            All requests in the interval.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.RequestHistorySummaryBucket.#ctor">
+            <summary>
+            Instantiate.
             </summary>
         </member>
         <member name="T:LiteGraph.Sdk.RouteDetail">
@@ -5772,6 +6757,10 @@
         <member name="T:LiteGraph.Sdk.SdkBase">
             <summary>
             View SDK base class.
+            Requests that fail with a connection error or a 502, 503, or 504 response are retried with exponential backoff and
+            jitter (see MaxRetries, RetryBaseDelayMs, and RetryPost), and the node that answered each request is recorded in
+            LastNodeId.
+            Thread safety: an instance may be used from multiple threads; LastNodeId then reflects whichever request completed last.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.SdkBase.Logger">
@@ -5797,6 +6786,33 @@
         <member name="P:LiteGraph.Sdk.SdkBase.TimeoutMs">
             <summary>
             Timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.MaxRetries">
+            <summary>
+            Maximum number of retries after the first attempt, for requests that fail with a connection error or a 502, 503,
+            or 504 response.  GET, HEAD, PUT, and DELETE requests are retried; POST requests only when RetryPost is true.
+            Default is 2.  Minimum is 0 (no retries), maximum is 10.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.RetryBaseDelayMs">
+            <summary>
+            Base delay before the first retry, in milliseconds.  Each further retry doubles it, capped at 5000 ms, and a random
+            jitter of up to half the delay is subtracted so clients do not retry in lockstep.
+            Default is 200.  Minimum is 0, maximum is 5000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.RetryPost">
+            <summary>
+            Retry POST requests too.  POST requests are not idempotent, so a retried POST can apply twice if the first attempt
+            reached the server; enable this only when the operations you POST are safe to repeat.  Default is false.
+            Streaming responses are never retried once any of the body has been read.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.LastNodeId">
+            <summary>
+            Node that answered the most recent request, from the x-litegraph-node response header.  Null until a response
+            carrying the header is received.  Behind a load balancer this identifies which cluster node served the request.
             </summary>
         </member>
         <member name="M:LiteGraph.Sdk.SdkBase.#ctor(System.String,System.String)">
@@ -5909,6 +6925,16 @@
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.DeleteWithResult``1(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Submit a DELETE request and deserialize the response body.
+            </summary>
+            <typeparam name="T">Response type.</typeparam>
+            <param name="url">URL.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Instance of T, or null if the request failed or returned no body.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        </member>
         <member name="M:LiteGraph.Sdk.SdkBase.Post``2(System.String,``0,System.Threading.CancellationToken)">
             <summary>
             Submit a POST request.
@@ -5967,6 +6993,7 @@
             Yields the data payload of each SSE frame with the leading "data:" prefix removed.
             Enumeration ends when the server emits a "[DONE]" sentinel frame or closes the stream.
             On a non-success status code a warning is logged and no events are yielded.
+            The request is retried only before the stream starts, and only when RetryPost is true.
             </summary>
             <param name="url">URL.</param>
             <param name="bytes">Request body bytes.</param>
@@ -5974,6 +7001,56 @@
             <param name="token">Cancellation token.</param>
             <returns>Async enumerable of SSE data payloads.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.SendAsync(System.String,System.Net.Http.HttpMethod,System.String,System.Object,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Send a request with the retry policy applied, recording the answering node.  The caller disposes the exchange.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="method">HTTP method.</param>
+            <param name="contentType">Content type, or null.</param>
+            <param name="body">Body: a string, a byte array, or null.</param>
+            <param name="headers">Additional headers, or null.</param>
+            <param name="authenticate">True to send the bearer token.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Exchange holding the final response, which is null if the server did not answer.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.SendAsync(System.String,System.Net.Http.HttpMethod,System.String,System.Object,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Send a request, applying the retry policy only when retry is true, and record the answering node.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="method">HTTP method.</param>
+            <param name="contentType">Content type, or null.</param>
+            <param name="body">Body: a string, a byte array, or null.</param>
+            <param name="headers">Additional headers, or null.</param>
+            <param name="authenticate">True to send the bearer token.</param>
+            <param name="retry">False to send exactly once, for example when a 503 response is itself the answer.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Exchange holding the final response, which is null if the server did not answer.</returns>
+        </member>
+        <member name="T:LiteGraph.Sdk.SdkExchange">
+            <summary>
+            A completed REST exchange: the request and its response, disposed together so the response body stays readable
+            for as long as the caller needs it.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkExchange.Response">
+            <summary>
+            Response, or null when the server did not answer.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkExchange.#ctor(RestWrapper.RestRequest,RestWrapper.RestResponse)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="request">Request.</param>
+            <param name="response">Response, or null.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkExchange.Dispose">
+            <summary>
+            Dispose the response and the request.
+            </summary>
         </member>
         <member name="T:LiteGraph.Sdk.SearchRequest">
             <summary>
@@ -6285,6 +7362,17 @@
         <member name="P:LiteGraph.Sdk.SettingsUpdateResult.Message">
             <summary>
             Human-readable message describing the outcome.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SettingsUpdateResult.EnvironmentOverrides">
+            <summary>
+            Dotted paths of settings supplied by environment variables or derived at startup.  Their values in the settings
+            file were left unchanged by the save.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SettingsUpdateResult.SettingsVersion">
+            <summary>
+            Cluster settings version after the save, or null on a single node or when Redis could not be reached.
             </summary>
         </member>
         <member name="M:LiteGraph.Sdk.SettingsUpdateResult.#ctor">

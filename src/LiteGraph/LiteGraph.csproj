@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-		<Version>9.0.0</Version>
+		<Version>10.0.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v9.0.0: native graph algorithms, graph export/import, native-query chaining, and paging and transaction fixes.</PackageReleaseNotes>
+		<PackageReleaseNotes>v10.0.0: horizontal scale-out (stateless nodes, Clutch coordination), pgvector-backed vector search on PostgreSQL, health endpoints, and security fixes.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>
@@ -34,6 +34,8 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.12" />
 		<PackageReference Include="Npgsql" Version="10.0.3" />
+		<PackageReference Include="Padlock" Version="1.1.0" />
+		<PackageReference Include="Pgvector" Version="0.3.2" />
 		<PackageReference Include="PrettyId" Version="2.0.1" />
 		<PackageReference Include="RestWrapper" Version="3.3.0" />
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />

@@ -60,7 +60,8 @@
     "signOut": "Sign out of the dashboard",
     "logoutAria": "Logout",
     "language": "Language",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "answeredBy": "Last response from node {node}"
   },
   "login": {
     "serverUrl": "LiteGraph Server URL",
@@ -146,7 +147,10 @@
       "rebuildVectorIndex": "Rebuild Vector Index",
       "deleteVectorIndex": "Delete Vector Index",
       "viewJson": "View JSON",
-      "menu": "Actions"
+      "menu": "Actions",
+      "viewNodes": "View nodes",
+      "viewEdges": "View edges",
+      "viewVectors": "View vectors"
     },
     "form": {
       "name": "Name",
@@ -273,7 +277,12 @@
         "status": "Whether the index is currently loaded in memory",
         "distanceMetric": "Distance metric used for similarity calculations"
       }
-    }
+    },
+    "providerLabel": "Vector index provider: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "The index lives in PostgreSQL. Graphs with the same vector dimensionality share one index, so its parameters are set by the first graph that enables it. Vectors with more than 4,000 dimensions are searched exactly instead of through an index. No index file is used.",
+    "hnswliteNote": "The index is kept by this server process and stored in the index file below."
   },
   "importExport": {
     "exportJsonl": "Export to JSONL",
@@ -874,7 +883,9 @@
       "transactionDesc": "Transaction diagnostics for write requests: identifier, outcome, isolation level, and provider.",
       "durationDesc": "Server-side processing time from receiving the request to completing the response.",
       "sizeDesc": "Request and response body sizes in bytes, shown as request / response.",
-      "tenantDesc": "Tenant that issued the request; empty for administrative requests."
+      "tenantDesc": "Tenant that issued the request; empty for administrative requests.",
+      "node": "Node",
+      "nodeDesc": "Server node that handled the request."
     },
     "transaction": {
       "noId": "transaction"
@@ -906,7 +917,9 @@
       "nonTransactions": "Non-transactions",
       "allMethods": "All methods",
       "transactionIdPlaceholder": "Transaction ID...",
-      "pathPlaceholder": "Path contains..."
+      "pathPlaceholder": "Path contains...",
+      "nodePlaceholder": "Filter by node",
+      "nodeNone": "No matching nodes"
     },
     "summary": {
       "visibleRequests": "Visible requests:",
@@ -1389,17 +1402,25 @@
   },
   "nav": {
     "section": {
-      "home": "Home",
-      "data": "Data",
-      "metadata": "Metadata",
-      "manage": "Manage",
-      "secure": "Secure",
-      "administer": "Administration",
-      "ai": "AI"
+      "workspace": "Workspace",
+      "administration": "Administration"
     },
-    "item": {
+    "hub": {
       "home": "Home",
       "homeTitle": "Dashboard overview",
+      "graphs": "Graphs",
+      "graphsTitle": "Graphs, nodes, edges, metadata, vectors and algorithms",
+      "chat": "Chat",
+      "chatTitle": "Chat with your graphs and manage chat endpoints",
+      "access": "Access",
+      "accessTitle": "Tenants, users, credentials and authorization",
+      "system": "System",
+      "systemTitle": "Server settings, cluster and backups",
+      "developer": "Developer",
+      "developerTitle": "API request history and the API explorer"
+    },
+    "tabBarAria": "{hub} tabs",
+    "item": {
       "graphs": "Graphs",
       "graphsTitle": "Manage graph containers",
       "nodes": "Nodes",
@@ -1424,7 +1445,7 @@
       "credentialsTitle": "Manage API credentials",
       "authorization": "Authorization",
       "authorizationTitle": "Manage roles and credential scopes",
-      "backups": "Backup",
+      "backups": "Backups",
       "backupsTitle": "Manage database backups",
       "settings": "Settings",
       "settingsTitle": "Server configuration",
@@ -1432,14 +1453,16 @@
       "aiChatTitle": "Chat with your graphs",
       "aiEndpoints": "Endpoints",
       "aiEndpointsTitle": "Manage LLM endpoints",
-      "aiHistory": "Chat History",
+      "aiHistory": "History",
       "aiHistoryTitle": "Browse chat threads and turns",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Review chat feedback",
-      "aiSettings": "Chat Settings",
+      "aiSettings": "Settings",
       "aiSettingsTitle": "Tenant chat configuration",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Cluster nodes and restarts"
     }
   },
   "secure": {
@@ -1467,7 +1490,8 @@
       "security": "Security",
       "litegraph": "LiteGraph Engine",
       "storage": "Storage",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Request timeout (seconds)",
@@ -1532,7 +1556,25 @@
       "chatMaxToolIterationsCap": "Tool iteration cap",
       "chatMaxConcurrentChats": "Max concurrent chats",
       "chatSseKeepAliveSeconds": "SSE keep-alive (seconds)",
-      "chatDefaultTimeoutMs": "Default timeout (ms)"
+      "chatDefaultTimeoutMs": "Default timeout (ms)",
+      "clusterEnable": "Run as a cluster node",
+      "clusterName": "Cluster name",
+      "clusterNodeId": "Node identifier",
+      "trustForwardedHeaders": "Trust forwarded headers",
+      "trustedProxies": "Trusted proxies",
+      "allowInsecureDefaults": "Allow insecure defaults",
+      "endpointResyncIntervalMs": "Chat endpoint resync interval (ms)",
+      "clutchEndpoint": "Clutch endpoint",
+      "clutchAccessKey": "Clutch access key",
+      "clutchLeaseMs": "Clutch lease (ms)",
+      "clutchRequestTimeoutMs": "Clutch request timeout (ms)",
+      "clutchStartupConnectTimeoutMs": "Clutch startup connect timeout (ms)",
+      "redisConnectionString": "Redis connection string",
+      "redisPollIntervalMs": "Redis poll interval (ms)",
+      "redisNodeTimeoutMs": "Node offline after (ms)",
+      "redisNodeRetentionMs": "Forget stopped nodes after (ms)",
+      "restartDrainMs": "Rolling restart drain (ms)",
+      "restartPeerTimeoutMs": "Rolling restart peer timeout (ms)"
     },
     "status": {
       "appliedLive": "Applied live",
@@ -1545,18 +1587,22 @@
     "actions": {
       "save": "Save",
       "discard": "Discard changes",
-      "restart": "Restart Server"
+      "restart": "Restart Server",
+      "restartCluster": "Restart Cluster"
     },
     "restartModal": {
       "title": "Restart server?",
-      "body": "The server will exit and the container will restart with the saved settings. Active connections will be interrupted briefly."
+      "body": "The server will exit and the container will restart with the saved settings. Active connections will be interrupted briefly.",
+      "titleCluster": "Restart every node?",
+      "bodyCluster": "Every node will restart, one at a time, each after the previous one reports healthy. The cluster keeps serving requests throughout."
     },
     "toast": {
       "saved": "Settings saved.",
       "saveFailed": "Unable to save settings.",
       "restartFailed": "Unable to restart the server.",
       "reconnected": "Server is back online.",
-      "reconnectTimeout": "The server did not come back in time. Please check its status."
+      "reconnectTimeout": "The server did not come back in time. Please check its status.",
+      "rollingRestart": "Rolling restart requested. Nodes restart one at a time; follow progress in the node list."
     },
     "grafana": {
       "title": "Monitoring & dashboards",
@@ -1567,7 +1613,40 @@
       "credentialsValue": "admin / admin",
       "credentialsHint": "Grafana prompts you to change the default password on first sign-in.",
       "urlHint": "This is the default location for the bundled docker compose stack. Update it if you host Grafana elsewhere."
-    }
+    },
+    "environmentOverrides": "{count} settings come from environment variables or are set at startup; their values in the settings file were left unchanged.",
+    "cluster": {
+      "title": "Nodes",
+      "descriptionCluster": "Every node in cluster {name}. Settings are saved for every node. Settings that need a restart apply after a cluster restart, which restarts the nodes one at a time.",
+      "descriptionSingle": "This server runs as a single node.",
+      "registryUnavailable": "The node registry (Redis) is unreachable, so only the node that answered is shown.",
+      "secondsAgo": "{seconds}s ago",
+      "yes": "Yes",
+      "no": "No",
+      "columns": {
+        "node": "Node",
+        "state": "State",
+        "version": "Version",
+        "started": "Started",
+        "heartbeat": "Last heartbeat",
+        "settingsVersion": "Settings version",
+        "restartPending": "Restart pending"
+      },
+      "openPage": "Open the Cluster page"
+    },
+    "hints": {
+      "range": "Allowed range {min} to {max}",
+      "envOverride": "Set by environment variable",
+      "nodeIdEnv": "Set per node by the LITEGRAPH_NODE_ID environment variable.",
+      "trustedProxies": "Comma-separated addresses or CIDR ranges, for example 10.0.0.0/8.",
+      "clusterName": "Lowercase letters, digits, and hyphens."
+    },
+    "clusterBanner": {
+      "title": "These settings apply to every node",
+      "body": "Every node shares this settings file. Settings that need a restart take effect after a cluster restart, which restarts the nodes one at a time.",
+      "link": "Open the Cluster page"
+    },
+    "cachingDisabledInCluster": "Object caching is disabled in cluster mode, whatever these settings say, so every node reads current data."
   },
   "ai": {
     "chat": {
@@ -2053,5 +2132,127 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Every node in this deployment, its health, and restarts. The state filter applies to the node list fetched from the server.",
+    "loading": "Loading cluster status...",
+    "refresh": "Refresh",
+    "autoRefresh": "Refreshes every {seconds} s",
+    "autoRefreshPaused": "Auto-refresh paused",
+    "reconnecting": "Connection lost, retrying",
+    "lastUpdated": "updated {time}",
+    "singleNode": "Single node",
+    "singleNodeDescription": "This server is not running in cluster mode. It is the only node, and restarting it restarts the server.",
+    "registryUnavailable": "The node registry (Redis) is unreachable. Only the node that answered is shown, and restarts cannot be requested until Redis is back.",
+    "loadError": "Unable to load cluster status.",
+    "cards": {
+      "nodes": "Healthy nodes",
+      "cluster": "Cluster",
+      "registry": "Node registry",
+      "registryUp": "Available",
+      "registryDown": "Unavailable",
+      "registryNa": "Not used",
+      "settings": "Settings version",
+      "settingsLagging": "{count} behind, {pending} awaiting restart",
+      "lastRestart": "Last restart request",
+      "never": "Never"
+    },
+    "filter": {
+      "state": "State",
+      "all": "All states",
+      "localNote": "Showing {shown} of {total} nodes"
+    },
+    "columns": {
+      "node": "Node",
+      "host": "Host",
+      "version": "Version",
+      "state": "State",
+      "started": "Started",
+      "heartbeat": "Last heartbeat",
+      "checks": "Checks",
+      "settingsVersion": "Settings version",
+      "restartPending": "Restart pending",
+      "actions": "Actions"
+    },
+    "checks": {
+      "database": "Database",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds}s ago",
+    "yes": "Yes",
+    "no": "No",
+    "actions": {
+      "copyNodeId": "Copy node ID",
+      "restartNode": "Restart node",
+      "remove": "Remove from registry",
+      "rollingRestart": "Rolling restart"
+    },
+    "restartNodeModal": {
+      "title": "Restart node {node}?",
+      "body": "The node stops taking requests, restarts, and rejoins. If another node is restarting, it waits for that node first.",
+      "bodySingle": "The server exits and its supervisor starts it again. Requests are interrupted briefly."
+    },
+    "removeModal": {
+      "title": "Remove node {node}?",
+      "body": "Removes this node from the registry. If it starts again, it registers again."
+    },
+    "rollingModal": {
+      "title": "Restart every node?",
+      "body": "Every node restarts, one at a time, each after the previous one reports healthy. The cluster keeps serving requests throughout."
+    },
+    "progress": {
+      "title": "Rolling restart progress",
+      "complete": "All nodes have restarted.",
+      "pending": "Pending",
+      "restarting": "Restarting",
+      "restarted": "Restarted",
+      "dismiss": "Dismiss",
+      "requested": "Requested {time}"
+    },
+    "toast": {
+      "restartRequested": "Restart requested for {node}.",
+      "rollingRequested": "Rolling restart requested.",
+      "removed": "Node {node} removed.",
+      "actionFailed": "Request failed: {message}"
+    },
+    "empty": "No nodes are registered.",
+    "jobs": {
+      "title": "Background jobs",
+      "description": "The most recent run of each job that runs on one node per cycle.",
+      "empty": "No job has run yet in this cluster.",
+      "emptySingle": "On a single node every job runs locally, so no runs are recorded here.",
+      "unavailable": "The node registry (Redis) is unreachable, so job runs cannot be shown.",
+      "success": "Succeeded",
+      "failed": "Failed",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Job",
+        "node": "Node",
+        "started": "Started",
+        "completed": "Completed",
+        "duration": "Duration",
+        "result": "Result"
+      }
+    },
+    "locks": {
+      "title": "Distributed locks",
+      "description": "Locks this cluster currently holds in Clutch. Most are held only for moments.",
+      "empty": "No locks are held right now.",
+      "emptySingle": "A single node uses in-process locks only, so there is nothing to show.",
+      "unavailable": "Clutch is unreachable, so held locks cannot be listed.",
+      "unknownNode": "Unknown node",
+      "columns": {
+        "key": "Key",
+        "keyClass": "Class",
+        "mode": "Mode",
+        "node": "Node",
+        "clutchNode": "Clutch node",
+        "fencingToken": "Fencing token",
+        "acquired": "Acquired",
+        "leaseExpires": "Lease expires"
+      }
+    }
   }
 }

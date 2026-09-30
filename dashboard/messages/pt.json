@@ -60,7 +60,8 @@
     "signOut": "Sair do dashboard",
     "logoutAria": "Sair",
     "language": "Idioma",
-    "selectLanguage": "Selecionar idioma"
+    "selectLanguage": "Selecionar idioma",
+    "answeredBy": "Última resposta do nó {node}"
   },
   "login": {
     "serverUrl": "URL do servidor LiteGraph",
@@ -146,7 +147,10 @@
       "rebuildVectorIndex": "Reconstruir índice de vector",
       "deleteVectorIndex": "Excluir índice de vector",
       "viewJson": "Ver JSON",
-      "menu": "Ações"
+      "menu": "Ações",
+      "viewNodes": "Ver nós",
+      "viewEdges": "Ver arestas",
+      "viewVectors": "Ver vetores"
     },
     "form": {
       "name": "Nome",
@@ -273,7 +277,12 @@
         "status": "Se o índice está atualmente carregado na memória",
         "distanceMetric": "Métrica de distância usada para cálculos de similaridade"
       }
-    }
+    },
+    "providerLabel": "Provedor do índice vetorial: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "O índice fica no PostgreSQL. Grafos com a mesma dimensionalidade vetorial compartilham um índice, cujos parâmetros são definidos pelo primeiro grafo que o habilita. Vetores com mais de 4.000 dimensões são pesquisados de forma exata, sem índice. Nenhum arquivo de índice é usado.",
+    "hnswliteNote": "O índice é mantido por este processo do servidor e salvo no arquivo de índice abaixo."
   },
   "importExport": {
     "exportJsonl": "Exportar para JSONL",
@@ -844,7 +853,9 @@
       "transactionDesc": "Diagnóstico de transação para pedidos de escrita: identificador, resultado, nível de isolamento e fornecedor.",
       "durationDesc": "Tempo de processamento no servidor desde a receção do pedido até à conclusão da resposta.",
       "sizeDesc": "Tamanhos dos corpos do pedido e da resposta em bytes, como pedido / resposta.",
-      "tenantDesc": "Tenant que emitiu o pedido; vazio em pedidos administrativos."
+      "tenantDesc": "Tenant que emitiu o pedido; vazio em pedidos administrativos.",
+      "node": "Nó",
+      "nodeDesc": "Nó do servidor que atendeu a requisição."
     },
     "transaction": {
       "noId": "transação"
@@ -876,7 +887,9 @@
       "nonTransactions": "Não transações",
       "allMethods": "Todos os métodos",
       "transactionIdPlaceholder": "ID da transação...",
-      "pathPlaceholder": "O caminho contém..."
+      "pathPlaceholder": "O caminho contém...",
+      "nodePlaceholder": "Filtrar por nó",
+      "nodeNone": "Nenhum nó correspondente"
     },
     "summary": {
       "visibleRequests": "Requisições visíveis:",
@@ -1359,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Início",
-      "data": "Dados",
-      "metadata": "Metadados",
-      "manage": "Gerenciar",
-      "secure": "Segurança",
-      "administer": "Administração",
-      "ai": "IA"
+      "workspace": "Área de trabalho",
+      "administration": "Administração"
     },
-    "item": {
+    "hub": {
       "home": "Início",
       "homeTitle": "Visão geral do dashboard",
+      "graphs": "Grafos",
+      "graphsTitle": "Grafos, nós, arestas, metadados, vetores e algoritmos",
+      "chat": "Chat",
+      "chatTitle": "Converse com seus grafos e gerencie os endpoints de chat",
+      "access": "Acesso",
+      "accessTitle": "Tenants, usuários, credenciais e autorização",
+      "system": "Sistema",
+      "systemTitle": "Configurações do servidor, cluster e backups",
+      "developer": "Desenvolvedor",
+      "developerTitle": "Histórico de requisições da API e API Explorer"
+    },
+    "tabBarAria": "Abas de {hub}",
+    "item": {
       "graphs": "Grafos",
       "graphsTitle": "Gerenciar contêineres de grafo",
       "nodes": "Nós",
@@ -1394,7 +1415,7 @@
       "credentialsTitle": "Gerenciar credenciais da API",
       "authorization": "Autorização",
       "authorizationTitle": "Gerenciar funções e escopos de credencial",
-      "backups": "Backup",
+      "backups": "Backups",
       "backupsTitle": "Gerenciar backups do banco de dados",
       "settings": "Configurações",
       "settingsTitle": "Configuração do servidor",
@@ -1402,14 +1423,16 @@
       "aiChatTitle": "Converse com os seus grafos",
       "aiEndpoints": "Endpoints",
       "aiEndpointsTitle": "Gerir endpoints de LLM",
-      "aiHistory": "Histórico de chat",
+      "aiHistory": "Histórico",
       "aiHistoryTitle": "Explorar conversas e turnos do chat",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Rever o feedback do chat",
-      "aiSettings": "Definições de chat",
+      "aiSettings": "Configurações",
       "aiSettingsTitle": "Configuração de chat do tenant",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Nós do cluster e reinícios"
     }
   },
   "secure": {
@@ -1435,7 +1458,8 @@
       "rest": "Servidor REST",
       "database": "Banco de dados",
       "security": "Segurança",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Tempo limite da requisição (segundos)",
@@ -1483,7 +1507,25 @@
       "chatMaxToolIterationsCap": "Limite de iterações de ferramentas",
       "chatMaxConcurrentChats": "Máximo de chats simultâneos",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (segundos)",
-      "chatDefaultTimeoutMs": "Tempo limite padrão (ms)"
+      "chatDefaultTimeoutMs": "Tempo limite padrão (ms)",
+      "clusterEnable": "Executar como nó de cluster",
+      "clusterName": "Nome do cluster",
+      "clusterNodeId": "Identificador do nó",
+      "trustForwardedHeaders": "Confiar em cabeçalhos encaminhados",
+      "trustedProxies": "Proxies confiáveis",
+      "allowInsecureDefaults": "Permitir padrões inseguros",
+      "endpointResyncIntervalMs": "Intervalo de ressincronização de endpoints de chat (ms)",
+      "clutchEndpoint": "Endpoint do Clutch",
+      "clutchAccessKey": "Chave de acesso do Clutch",
+      "clutchLeaseMs": "Concessão do Clutch (ms)",
+      "clutchRequestTimeoutMs": "Tempo limite de requisições ao Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Tempo limite de conexão ao Clutch na inicialização (ms)",
+      "redisConnectionString": "String de conexão do Redis",
+      "redisPollIntervalMs": "Intervalo de consulta ao Redis (ms)",
+      "redisNodeTimeoutMs": "Nó offline após (ms)",
+      "redisNodeRetentionMs": "Esquecer nós parados após (ms)",
+      "restartDrainMs": "Drenagem no reinício gradual (ms)",
+      "restartPeerTimeoutMs": "Espera por outros nós no reinício gradual (ms)"
     },
     "status": {
       "appliedLive": "Aplicado ao vivo",
@@ -1496,19 +1538,56 @@
     "actions": {
       "save": "Salvar",
       "discard": "Descartar alterações",
-      "restart": "Reiniciar servidor"
+      "restart": "Reiniciar servidor",
+      "restartCluster": "Reiniciar cluster"
     },
     "restartModal": {
       "title": "Reiniciar o servidor?",
-      "body": "O servidor será encerrado e o contêiner será reiniciado com as configurações salvas. As conexões ativas serão interrompidas brevemente."
+      "body": "O servidor será encerrado e o contêiner será reiniciado com as configurações salvas. As conexões ativas serão interrompidas brevemente.",
+      "titleCluster": "Reiniciar todos os nós?",
+      "bodyCluster": "Todos os nós serão reiniciados um de cada vez, cada um depois que o anterior voltar a ficar íntegro. O cluster continua atendendo às solicitações durante todo o processo."
     },
     "toast": {
       "saved": "Configurações salvas.",
       "saveFailed": "Não foi possível salvar as configurações.",
       "restartFailed": "Não foi possível reiniciar o servidor.",
       "reconnected": "O servidor está online novamente.",
-      "reconnectTimeout": "O servidor não voltou a tempo. Verifique o status dele."
-    }
+      "reconnectTimeout": "O servidor não voltou a tempo. Verifique o status dele.",
+      "rollingRestart": "Reinício gradual solicitado. Os nós reiniciam um de cada vez; acompanhe o progresso na lista de nós."
+    },
+    "environmentOverrides": "{count} configurações vêm de variáveis de ambiente ou são definidas na inicialização; os valores delas no arquivo de configurações não foram alterados.",
+    "cluster": {
+      "title": "Nós",
+      "descriptionCluster": "Todos os nós do cluster {name}. As configurações são salvas para todos os nós. As que exigem reinício passam a valer após um reinício do cluster, que reinicia os nós um de cada vez.",
+      "descriptionSingle": "Este servidor funciona como um único nó.",
+      "registryUnavailable": "O registro de nós (Redis) está inacessível; apenas o nó que respondeu é exibido.",
+      "secondsAgo": "há {seconds} s",
+      "yes": "Sim",
+      "no": "Não",
+      "columns": {
+        "node": "Nó",
+        "state": "Estado",
+        "version": "Versão",
+        "started": "Iniciado",
+        "heartbeat": "Último heartbeat",
+        "settingsVersion": "Versão das configurações",
+        "restartPending": "Reinício pendente"
+      },
+      "openPage": "Abrir a página do cluster"
+    },
+    "hints": {
+      "range": "Intervalo permitido de {min} a {max}",
+      "envOverride": "Definido por variável de ambiente",
+      "nodeIdEnv": "Definido em cada nó pela variável de ambiente LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Endereços ou faixas CIDR separados por vírgulas, por exemplo 10.0.0.0/8.",
+      "clusterName": "Letras minúsculas, dígitos e hífens."
+    },
+    "clusterBanner": {
+      "title": "Estas configurações valem para todos os nós",
+      "body": "Todos os nós compartilham este arquivo de configurações. As que exigem reinício passam a valer após um reinício do cluster, que reinicia os nós um de cada vez.",
+      "link": "Abrir a página do cluster"
+    },
+    "cachingDisabledInCluster": "O cache de objetos fica desativado no modo cluster, independentemente destas configurações, para que cada nó leia dados atuais."
   },
   "ai": {
     "chat": {
@@ -1994,5 +2073,127 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Todos os nós desta implantação, seu estado e os reinícios. O filtro de estado se aplica à lista de nós obtida do servidor.",
+    "loading": "Carregando o estado do cluster...",
+    "refresh": "Atualizar",
+    "autoRefresh": "Atualiza a cada {seconds} s",
+    "autoRefreshPaused": "Atualização automática pausada",
+    "reconnecting": "Conexão perdida, tentando novamente",
+    "lastUpdated": "atualizado {time}",
+    "singleNode": "Nó único",
+    "singleNodeDescription": "Este servidor não está em modo cluster. Ele é o único nó, e reiniciá-lo reinicia o servidor.",
+    "registryUnavailable": "O registro de nós (Redis) está inacessível. Apenas o nó que respondeu é exibido, e reinícios não podem ser solicitados até o Redis voltar.",
+    "loadError": "Não foi possível carregar o estado do cluster.",
+    "cards": {
+      "nodes": "Nós íntegros",
+      "cluster": "Cluster",
+      "registry": "Registro de nós",
+      "registryUp": "Disponível",
+      "registryDown": "Indisponível",
+      "registryNa": "Não usado",
+      "settings": "Versão das configurações",
+      "settingsLagging": "{count} atrasados, {pending} aguardando reinício",
+      "lastRestart": "Última solicitação de reinício",
+      "never": "Nunca"
+    },
+    "filter": {
+      "state": "Estado",
+      "all": "Todos os estados",
+      "localNote": "Exibindo {shown} de {total} nós"
+    },
+    "columns": {
+      "node": "Nó",
+      "host": "Host",
+      "version": "Versão",
+      "state": "Estado",
+      "started": "Iniciado",
+      "heartbeat": "Último heartbeat",
+      "checks": "Verificações",
+      "settingsVersion": "Versão das configurações",
+      "restartPending": "Reinício pendente",
+      "actions": "Ações"
+    },
+    "checks": {
+      "database": "Banco de dados",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "há {seconds} s",
+    "yes": "Sim",
+    "no": "Não",
+    "actions": {
+      "copyNodeId": "Copiar ID do nó",
+      "restartNode": "Reiniciar nó",
+      "remove": "Remover do registro",
+      "rollingRestart": "Reinício gradual"
+    },
+    "restartNodeModal": {
+      "title": "Reiniciar o nó {node}?",
+      "body": "O nó para de aceitar solicitações, reinicia e volta ao cluster. Se outro nó estiver reiniciando, ele espera esse nó primeiro.",
+      "bodySingle": "O servidor é encerrado e seu supervisor o inicia novamente. As solicitações são interrompidas brevemente."
+    },
+    "removeModal": {
+      "title": "Remover o nó {node}?",
+      "body": "Remove este nó do registro. Se ele iniciar novamente, será registrado de novo."
+    },
+    "rollingModal": {
+      "title": "Reiniciar todos os nós?",
+      "body": "Todos os nós serão reiniciados um de cada vez, cada um depois que o anterior voltar a ficar íntegro. O cluster continua atendendo às solicitações durante todo o processo."
+    },
+    "progress": {
+      "title": "Progresso do reinício gradual",
+      "complete": "Todos os nós foram reiniciados.",
+      "pending": "Pendente",
+      "restarting": "Reiniciando",
+      "restarted": "Reiniciado",
+      "dismiss": "Dispensar",
+      "requested": "Solicitado {time}"
+    },
+    "toast": {
+      "restartRequested": "Reinício solicitado para {node}.",
+      "rollingRequested": "Reinício gradual solicitado.",
+      "removed": "Nó {node} removido.",
+      "actionFailed": "A solicitação falhou: {message}"
+    },
+    "empty": "Nenhum nó registrado.",
+    "jobs": {
+      "title": "Tarefas em segundo plano",
+      "description": "A execução mais recente de cada tarefa que roda em um nó por ciclo.",
+      "empty": "Nenhuma tarefa foi executada ainda neste cluster.",
+      "emptySingle": "Em um único nó todas as tarefas rodam localmente, então nenhuma execução é registrada aqui.",
+      "unavailable": "O registro de nós (Redis) está inacessível, então as execuções não podem ser exibidas.",
+      "success": "Concluída",
+      "failed": "Falhou",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Tarefa",
+        "node": "Nó",
+        "started": "Início",
+        "completed": "Fim",
+        "duration": "Duração",
+        "result": "Resultado"
+      }
+    },
+    "locks": {
+      "title": "Bloqueios distribuídos",
+      "description": "Bloqueios que este cluster mantém agora no Clutch. A maioria é mantida só por um instante.",
+      "empty": "Nenhum bloqueio está ativo no momento.",
+      "emptySingle": "Um único nó usa apenas bloqueios internos ao processo, então não há nada para mostrar.",
+      "unavailable": "O Clutch está inacessível, então os bloqueios não podem ser listados.",
+      "unknownNode": "Nó desconhecido",
+      "columns": {
+        "key": "Chave",
+        "keyClass": "Classe",
+        "mode": "Modo",
+        "node": "Nó",
+        "clutchNode": "Nó do Clutch",
+        "fencingToken": "Token de fencing",
+        "acquired": "Adquirido",
+        "leaseExpires": "Vencimento da concessão"
+      }
+    }
   }
 }

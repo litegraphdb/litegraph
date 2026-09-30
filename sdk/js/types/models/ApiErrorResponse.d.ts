@@ -8,11 +8,13 @@ export default class ApiErrorResponse {
      * @param {ApiErrorEnum} error - The error code.
      * @param {Object} [context=null] - Additional contextual information.
      * @param {string} [description=null] - Description of the error.
+     * @param {string} [nodeId=null] - Cluster node that answered, from the x-litegraph-node header, when known.
      */
-    constructor(error?: ApiErrorEnum, context?: any, description?: string);
+    constructor(error?: ApiErrorEnum, context?: any, description?: string, nodeId?: string);
     error: string;
     context: any;
     description: string;
+    nodeId: string;
     /**
      * Get the human-readable message corresponding to the error.
      *

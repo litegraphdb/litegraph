@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v9.0.0`.
+Current release: `v10.0.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -13,18 +13,18 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 ## What Is Included
 
 - Core .NET graph library targeting `net8.0` and `net10.0`
-- SQLite provider for embedded, local, and test use
-- PostgreSQL provider for production deployments and parallel transaction write scaling
+- SQLite provider for embedded, local, and test use, with in-process HNSW vector indexing through `HnswLite`
+- PostgreSQL provider with pgvector for production, including multi-node clusters behind a load balancer
 - Native LiteGraph graph query language for reads, traversals, vector search, and graph mutations
 - Graph algorithms (centrality, PageRank, connected components, community detection) with write-back and a rustworkx/NetworkX export-compute-import path
 - Graph-scoped transactions for nodes, edges, labels, tags, and vectors
-- HNSW vector indexing through `HnswLite` `2.0.1`
+- Vector search: pgvector HNSW in the database on PostgreSQL, `HnswLite` `2.0.1` in process on SQLite
 - REST server with bearer-token authentication, request history, RBAC, and OpenAPI/Postman assets
 - LLM chat over graph data with five provider types, SSE streaming, an in-process graph tool loop, and vector retrieval
 - MCP server with HTTP, TCP, and WebSocket transports
 - Next.js/React dashboard
 - Official C#, Python, and JavaScript SDKs
-- Docker Compose deployment for PostgreSQL, LiteGraph, MCP, dashboard, Prometheus, and Grafana OSS
+- Docker Compose deployments for a single node on SQLite, a single node on PostgreSQL, and a multi-node cluster, each with MCP, the dashboard, Prometheus, Loki, and Grafana OSS
 
 ## Screenshots
 
@@ -65,6 +65,23 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 
 </details>
 
+## New In v10.0
+
+v10.0 lets LiteGraph run as several identical nodes behind a load balancer. It is a major release: PostgreSQL deployments now require the pgvector extension, and stored vectors are converted to pgvector on first start, with no way back to 9.x afterward. Read the [upgrade guide](docs/UPGRADE.md) and back up before upgrading.
+
+- Nodes keep no state of their own. On PostgreSQL, vectors live in a pgvector column and vector search runs in the database against a shared HNSW index, so every node returns the same results. Filtered and unindexed searches also run in SQL now instead of loading every candidate vector into the server.
+- Cluster mode (`LITEGRAPH_CLUSTER_ENABLE=true`) turns off the object and authorization caches, so a delete or a revoked permission applies on every node immediately, and coordinates schema migrations, background jobs, vector index builds, settings writes, and rolling restarts through [Clutch](https://github.com/jchristn/clutch) distributed locks. Reads, writes, and searches take no distributed lock.
+- Cluster nodes register in Redis every two seconds. `GET /v1.0/cluster/nodes` lists every node with its state and health, a settings change reaches every node within seconds, `POST /v1.0/cluster/restart` restarts the nodes one at a time while the cluster keeps serving, and single nodes can be restarted or removed. `GET /v1.0/cluster/locks` and `GET /v1.0/cluster/jobs` show the locks held in Clutch and the latest run of each background job.
+- `GET /v1.0/health/live` and `GET /v1.0/health/ready`, and an `x-litegraph-node` header on every response. Losing Clutch or Redis leaves every node serving (readiness reports `Degraded`); only coordinated work waits.
+- A reorganized dashboard: six sidebar entries (Home, Graphs, Chat, Access, System, Developer) with tabs, each tab at its own URL, one graph selector shared by every graph tab, and a Cluster page for nodes, rolling restarts, jobs, and locks.
+- Per-node metrics and a LiteGraph Cluster Grafana dashboard; every dashboard gains a node filter. Request history records the node that handled each request and, behind a trusted load balancer, the real client address. Chat streams send keepalives so load balancer idle timeouts do not cut long answers.
+- Faster vector search: results' nodes, vectors, labels, and tags load in one query each, about 40% faster on a single connection and more than twice as fast under load on a cluster.
+- SDKs record the node that answered, retry idempotent requests on connection failures and 502, 503, and 504 with backoff, and gain cluster, health, and request history methods. The MCP server gains read-only `cluster/status`, `cluster/nodes`, and `cluster/node` tools.
+- Three Docker deployments under [`docker/`](docker/): single node on SQLite, single node on PostgreSQL with pgvector, and a three-node cluster with Nginx (Switchboard optional), two Clutch nodes, Redis, smoke tests, and a failover test.
+- Fixes: server security tokens now expire; a SQLite HnswLite index is rebuilt from the database after a restart instead of returning no results; Euclidean and dot-product searches on an indexed PostgreSQL graph return real Euclidean and dot-product values; turning caching off no longer throws.
+
+See [Clustering](docs/CLUSTERING.md) for how a cluster works and how to run one.
+
 ## New In v9.0
 
 v9.0 adds native graph algorithms across the whole product surface. Additive release — no storage migration required.
@@ -102,13 +119,15 @@ See [Chat](docs/CHAT.md) for the chat architecture and [REST API](docs/REST_API.
 | [`sdk/csharp/`](sdk/csharp/) | C# REST SDK published as `LiteGraph.Sdk` |
 | [`sdk/python/`](sdk/python/) | Python REST SDK published as `litegraph-sdk` |
 | [`sdk/js/`](sdk/js/) | JavaScript/Node.js REST SDK published as `litegraphdb` |
-| [`docker/`](docker/) | PostgreSQL-backed Docker Compose deployment, MCP config, Prometheus, Grafana, smoke test, and factory reset assets |
+| [`docker/`](docker/) | Docker deployments: `single-node-sqlite`, `single-node-postgresql`, and `multi-node`, each with smoke tests and factory reset, plus shared observability config |
 | [`docs/`](docs/) | Current operational and API documentation |
 | [`archive/`](archive/) | Historical implementation plans and performance notes |
 
 ## Documentation
 
 - [Storage configuration](docs/STORAGE.md)
+- [Clustering and multi-node deployment](docs/CLUSTERING.md)
+- [Docker deployments](docker/README.md)
 - [Native graph query language](docs/DSL.md)
 - [Graph algorithms and external-compute projection](docs/ALGORITHMS.md)
 - [Graph transactions](docs/TRANSACTIONS.md)
@@ -123,33 +142,57 @@ See [Chat](docs/CHAT.md) for the chat architecture and [REST API](docs/REST_API.
 
 Published documentation is also available at [litegraph.readme.io](https://litegraph.readme.io/).
 
-## Quick Start With Docker Compose
+## Quick Start From The Command Line
 
-The checked-in Docker deployment starts PostgreSQL 17, runs LiteGraph schema/default-data initialization once, and then starts LiteGraph, LiteGraph MCP, the dashboard, Prometheus, and Grafana OSS.
+Run a single node on SQLite with nothing but the .NET SDK (8.0 or 10.0):
 
 ```bash
-cd docker
+dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj --framework net10.0
+```
+
+On first start the server writes `litegraph.json`, creates `litegraph.db` in the current directory, and creates the default tenant, user, and credential listed below. It listens on `http://127.0.0.1:8701`; check it with:
+
+```bash
+curl http://127.0.0.1:8701/v1.0/health/ready
+```
+
+Any setting can be overridden with environment variables, for example `LITEGRAPH_PORT`, or `LITEGRAPH_DB_TYPE=Postgresql` with `LITEGRAPH_DB_HOST`, `LITEGRAPH_DB_PORT`, `LITEGRAPH_DB_NAME`, `LITEGRAPH_DB_USERNAME`, and `LITEGRAPH_DB_PASSWORD` to use a PostgreSQL server that has the pgvector extension. See [Settings](docs/SETTINGS.md).
+
+## Quick Start With Docker Compose
+
+Three deployments live under [`docker/`](docker/); pick one, `cd` into it, and start it. They publish the same host ports, so run one at a time. [`docker/README.md`](docker/README.md) covers each in detail.
+
+| Directory | What it runs |
+| --- | --- |
+| [`docker/single-node-sqlite/`](docker/single-node-sqlite/) | One LiteGraph node on SQLite with in-process HnswLite vector search |
+| [`docker/single-node-postgresql/`](docker/single-node-postgresql/) | One LiteGraph node on PostgreSQL 17 with pgvector |
+| [`docker/multi-node/`](docker/multi-node/) | Three LiteGraph nodes behind Nginx on one PostgreSQL database, with two Clutch lock nodes and Redis for the node registry; Switchboard is an optional profile |
+
+```bash
+cd docker/single-node-postgresql
 docker compose up -d
 ```
 
-Run the smoke test from the Docker directory after startup:
+Then validate it (Windows `smoke.bat`, elsewhere `pwsh ./smoke.ps1`):
 
 ```bat
 smoke.bat
 ```
 
-Default endpoints:
+For the cluster, also run `failover.bat` in `docker/multi-node`: it keeps traffic flowing while it stops and restarts a LiteGraph node, each Clutch node, and Redis, then runs a rolling restart of every node.
+
+Default endpoints, identical in every deployment:
 
 | Service | Endpoint |
 | --- | --- |
-| LiteGraph REST | `http://localhost:8701` |
-| LiteGraph MCP HTTP | `http://localhost:8702` |
-| LiteGraph MCP TCP | `localhost:8703` |
-| LiteGraph MCP WebSocket | `ws://localhost:8704/mcp` |
-| LiteGraph UI | `http://localhost:3001` |
-| PostgreSQL | `localhost:15432` |
-| Prometheus | `http://localhost:9090` |
-| Grafana OSS | `http://localhost:3000` |
+| LiteGraph REST (the load balancer in the cluster) | `http://127.0.0.1:8701` |
+| LiteGraph MCP HTTP | `http://127.0.0.1:8702` |
+| LiteGraph MCP TCP | `127.0.0.1:8703` |
+| LiteGraph MCP WebSocket | `ws://127.0.0.1:8704/mcp` |
+| LiteGraph UI | `http://127.0.0.1:3001` |
+| Prometheus | `http://127.0.0.1:9090` |
+| Grafana OSS | `http://127.0.0.1:3000` |
+| PostgreSQL | `127.0.0.1:15432` (single node), `127.0.0.1:15433` (cluster) |
 
 Default seeded LiteGraph records:
 
@@ -162,20 +205,7 @@ Default seeded LiteGraph records:
 | Credential bearer token | `default` |
 | Server administrator bearer token | `litegraphadmin` |
 
-Default PostgreSQL values:
-
-| Setting | Value |
-| --- | --- |
-| Host port | `15432` |
-| Compose hostname | `postgresql` |
-| Database | `litegraph` |
-| Username | `litegraph` |
-| Password | `litegraph` |
-| Schema | `litegraph` |
-
-Override the sample Docker PostgreSQL settings with `LITEGRAPH_POSTGRESQL_HOST_PORT`, `LITEGRAPH_POSTGRESQL_DATABASE`, `LITEGRAPH_POSTGRESQL_USERNAME`, `LITEGRAPH_POSTGRESQL_PASSWORD`, `LITEGRAPH_POSTGRESQL_SCHEMA`, `LITEGRAPH_DB_MAX_CONNECTIONS`, and `LITEGRAPH_DB_COMMAND_TIMEOUT_SECONDS`.
-
-SQLite remains available for local Docker experiments by changing [`docker/litegraph.json`](docker/litegraph.json) or setting `LITEGRAPH_DB_TYPE=Sqlite` with a SQLite filename. PostgreSQL is the default Compose provider because it is the provider that can scale parallel writes.
+Every host port and credential is configurable through the `.env.example` file in each deployment directory. The cluster ships with demonstration credentials so it starts without setup; change them before any real use, as `docker/multi-node/.env.example` describes.
 
 ### Load Generator
 
@@ -185,13 +215,13 @@ SQLite remains available for local Docker experiments by changing [`docker/liteg
 # Seed a SQLite database with the defaults (3 graphs, 50 nodes each, 2000 requests, 7 days)
 dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.db
 
-# Seed the docker-compose PostgreSQL stack (see docker/compose.yaml)
+# Seed the single-node PostgreSQL stack (see docker/single-node-postgresql)
 dotnet run --project src/LoadGenerator --framework net8.0 -- \
-  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
+  --postgres "Host=127.0.0.1;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
 
 # Larger dataset with a fixed RNG seed, replacing prior synthetic data
 dotnet run --project src/LoadGenerator --framework net8.0 -- \
-  --postgres "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph" \
+  --postgres "Host=127.0.0.1;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph" \
   --graphs 5 --nodes 200 --density 0.02 --days 14 --requests 10000 --wipe --seed 42
 
 # Remove previously generated synthetic data and exit
@@ -202,35 +232,24 @@ Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen
 
 ## Docker Images
 
-The Compose deployment uses these `v9.0.0` images:
+The Compose deployments use these images, selected by `LITEGRAPH_IMAGE_TAG` (default `v10.0.0`):
 
-- `jchristn77/litegraph:v9.0.0`
-- `jchristn77/litegraph-mcp:v9.0.0`
-- `jchristn77/litegraph-ui:v9.0.0`
+- `jchristn77/litegraph:v10.0.0`
+- `jchristn77/litegraph-mcp:v10.0.0`
+- `jchristn77/litegraph-ui:v10.0.0`
 
-The LiteGraph service uses [`docker/litegraph.json`](docker/litegraph.json). The MCP service uses [`docker/litegraph-mcp.json`](docker/litegraph-mcp.json). Keep the PostgreSQL volume and the `docker/` directory persisted so database state, vector index artifacts, logs, and backups are retained.
+Building a release tag (a plain `vMAJOR.MINOR.PATCH`) also moves `:latest`; any other tag leaves `:latest` alone. To run a build of your own, build and tag it with `build-all.bat <tag>` and start a deployment with `LITEGRAPH_IMAGE_TAG=<tag>`. PostgreSQL deployments use `pgvector/pgvector:0.8.6-pg17-trixie`; the cluster adds `jchristn77/clutch-server:v0.2.0`, `redis:7.4.9-alpine`, `nginx:1.27-alpine`, and optionally `jchristn77/switchboard:v5.2.2`.
 
 ## Factory Reset
 
-To reset the Docker deployment to the checked-in factory state:
+Each deployment has its own factory reset, which touches only that deployment:
 
 ```bash
-cd docker
-docker compose down
-cd factory
+cd docker/single-node-postgresql/factory
 ./reset.sh
 ```
 
-On Windows:
-
-```bat
-cd docker
-docker compose down
-cd factory
-reset.bat
-```
-
-The reset script asks you to type `RESET`, deletes runtime Docker data for the deployment, restores Compose/configuration/provisioning files from [`docker/factory/`](docker/factory/), empties `docker/indexes/`, and resets PostgreSQL, Prometheus, and Grafana volumes.
+On Windows run `reset.bat` instead. The script asks you to type `RESET`, then stops the deployment, deletes its Docker volumes and runtime directories, and restores its configuration files from `factory/`. `update.bat` in each deployment is the non-destructive counterpart: it pulls current images and recreates the containers, keeping all data.
 
 ## Embedded C# Quick Start
 
@@ -306,7 +325,7 @@ using LiteGraph.GraphRepositories;
 DatabaseSettings settings = new DatabaseSettings
 {
     Type = DatabaseTypeEnum.Postgresql,
-    ConnectionString = "Host=localhost;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
+    ConnectionString = "Host=127.0.0.1;Port=15432;Database=litegraph;Username=litegraph;Password=litegraph"
 };
 
 using GraphRepositoryBase repository = GraphRepositoryFactory.Create(settings);
@@ -351,10 +370,10 @@ Default MCP listeners:
 
 | Transport | Endpoint |
 | --- | --- |
-| HTTP (MCP clients, e.g. Claude Code) | `http://localhost:8702/mcp` |
-| HTTP (plain JSON-RPC) | `http://localhost:8702/rpc` |
-| TCP | `localhost:8703` |
-| WebSocket | `ws://localhost:8704/mcp` |
+| HTTP (MCP clients, e.g. Claude Code) | `http://127.0.0.1:8702/mcp` |
+| HTTP (plain JSON-RPC) | `http://127.0.0.1:8702/rpc` |
+| TCP | `127.0.0.1:8703` |
+| WebSocket | `ws://127.0.0.1:8704/mcp` |
 
 MCP configuration can be overridden with:
 
@@ -374,7 +393,7 @@ Point Claude Code and other MCP clients at the `/mcp` URL, for example:
 ```json
 {
   "mcpServers": {
-    "litegraph": { "type": "http", "url": "http://localhost:8702/mcp" }
+    "litegraph": { "type": "http", "url": "http://127.0.0.1:8702/mcp" }
   }
 }
 ```

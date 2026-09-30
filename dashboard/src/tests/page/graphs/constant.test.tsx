@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { tableColumns } from '@/page/graphs/constant';
 import { GraphData } from '@/types/types';
 import type { ColumnType } from 'antd/es/table';
@@ -299,6 +299,32 @@ describe('Graphs Constants', () => {
       expect(actionsColumn).toBeDefined();
       expect(getColumnTitleText(actionsColumn?.title)).toBe('Actions');
       expect(actionsColumn?.render).toBeDefined();
+    });
+
+    it('offers View nodes, edges and vectors actions that open the tab for the graph', async () => {
+      const handleViewTab = jest.fn();
+      const columns = getColumns(
+        mockHandleEdit,
+        mockHandleDelete,
+        mockHandleExportGexf,
+        mockHandleEnableVectorIndex,
+        mockHandleReadVectorIndexConfig,
+        mockHandleReadVectorIndexStats,
+        mockHandleRebuildVectorIndex,
+        mockHandleDeleteVectorIndex,
+        false,
+        jest.fn(),
+        handleViewTab
+      );
+      const actionsColumn = columns.find((col) => col.key === 'actions');
+      render(<>{actionsColumn?.render?.(null, mockGraphData as any, 0)}</>);
+      fireEvent.click(screen.getByRole('button'));
+      fireEvent.click(await screen.findByText('View nodes'));
+      expect(handleViewTab).toHaveBeenCalledWith(mockGraphData, 'nodes');
+      fireEvent.click(screen.getByText('View edges'));
+      expect(handleViewTab).toHaveBeenCalledWith(mockGraphData, 'edges');
+      fireEvent.click(screen.getByText('View vectors'));
+      expect(handleViewTab).toHaveBeenCalledWith(mockGraphData, 'vectors');
     });
 
     it('handles score column rendering correctly', () => {

@@ -1,6 +1,6 @@
 {
   "name": "litegraph-ui",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
@@ -31,7 +31,7 @@
     "ace-builds": "^1.43.6",
     "antd": "^5.19.1",
     "classnames": "^2.5.1",
-    "eslint-config-next": "^16.1.5",
+    "eslint-config-next": "^16.3.3",
     "file-saver": "^2.0.5",
     "graphology": "^0.25.4",
     "graphology-types": "^0.24.7",
@@ -41,7 +41,7 @@
     "litegraphdb": "^1.0.12",
     "lodash": "^4.18.1",
     "moment": "^2.30.1",
-    "next": "^16.2.3",
+    "next": "^16.3.3",
     "next-intl": "^4.13.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -96,7 +96,8 @@
       "react-dom": "$react-dom",
       "jsoneditor": "$jsoneditor"
     },
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
+    "sharp": "^0.35.4",
     "lodash-es": "4.18.1",
     "nanoid": "3.3.18",
     "preact": "10.26.10",

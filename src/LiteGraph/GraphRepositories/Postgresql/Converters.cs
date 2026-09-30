@@ -4,8 +4,11 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Data;
+    using System.Globalization;
+    using System.Text;
     using ExpressionTree;
     using LiteGraph.Serialization;
+    using Pgvector;
 
     internal static class Converters
     {
@@ -804,7 +807,7 @@
                 Model = GetDataRowStringValue(row, "model"),
                 Dimensionality = GetDataRowIntValue(row, "dimensionality"),
                 Content = GetDataRowStringValue(row, "content"),
-                Vectors = BlobToVector(row["embeddings"] as byte[]),
+                Vectors = EmbeddingsFromDataRow(row),
                 CreatedUtc = DateTime.Parse(row["createdutc"].ToString()),
                 LastUpdateUtc = DateTime.Parse(row["lastupdateutc"].ToString())
             };
@@ -820,6 +823,41 @@
                 ret.Add(VectorFromDataRow(row));
 
             return ret;
+        }
+
+        internal static List<float> EmbeddingsFromDataRow(DataRow row)
+        {
+            if (!row.Table.Columns.Contains("embeddings")) return new List<float>();
+            object value = row["embeddings"];
+            if (value == null || value == DBNull.Value) return new List<float>();
+            if (value is Vector pgVector) return new List<float>(pgVector.ToArray());
+            if (value is byte[] blob) return BlobToVector(blob);
+            if (value is float[] floats) return new List<float>(floats);
+            throw new InvalidCastException("Unsupported embeddings column value of type " + value.GetType().FullName + ".");
+        }
+
+        internal static string VectorToSqlLiteral(List<float> vectors)
+        {
+            if (vectors == null || vectors.Count == 0) return "NULL";
+            return "'" + VectorToText(vectors) + "'";
+        }
+
+        internal static string VectorToText(IList<float> vectors)
+        {
+            if (vectors == null || vectors.Count == 0) throw new ArgumentException("Vector must contain at least one value.", nameof(vectors));
+
+            StringBuilder sb = new StringBuilder(vectors.Count * 12);
+            sb.Append('[');
+            for (int i = 0; i < vectors.Count; i++)
+            {
+                float value = vectors[i];
+                if (Single.IsNaN(value) || Single.IsInfinity(value))
+                    throw new ArgumentException("Vector values must be finite numbers; element " + i + " is " + value.ToString(CultureInfo.InvariantCulture) + ".", nameof(vectors));
+                if (i > 0) sb.Append(',');
+                sb.Append(value.ToString("R", CultureInfo.InvariantCulture));
+            }
+            sb.Append(']');
+            return sb.ToString();
         }
 
         internal static byte[] VectorToBlob(List<float> vectors)

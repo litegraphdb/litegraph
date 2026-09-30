@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Threading;
+    using System.Threading.Tasks;
     using LiteGraph.Sdk.Implementations;
     using LiteGraph.Sdk.Interfaces;
     using RestWrapper;
@@ -85,6 +87,11 @@
         public IAlgorithmMethods Algorithm { get; }
 
         /// <summary>
+        /// Request history methods.
+        /// </summary>
+        public IRequestHistoryMethods RequestHistory { get; }
+
+        /// <summary>
         /// User authentication methods.
         /// </summary>
         public IUserAuthentication UserAuthentication { get; }
@@ -135,6 +142,7 @@
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
             Algorithm = new AlgorithmMethods(this);
+            RequestHistory = new RequestHistoryMethods(this);
         }
 
         /// <summary>
@@ -174,12 +182,34 @@
             User = new UserMethods(this);
             Vector = new VectorMethods(this);
             Algorithm = new AlgorithmMethods(this);
+            RequestHistory = new RequestHistoryMethods(this);
             UserAuthentication = new UserAuthentication(this);
         }
 
         #endregion
 
         #region Public-Methods
+
+        /// <summary>
+        /// Liveness check (GET /v1.0/health/live).  Needs no authentication.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Health response, or null if the server did not answer.</returns>
+        public async Task<HealthResponse> HealthLive(CancellationToken token = default)
+        {
+            return await ReadHealth("v1.0/health/live", token).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Readiness check (GET /v1.0/health/ready).  Needs no authentication.  Returns the body for both 200 and 503, so a
+        /// node that is not ready reports why (see HealthResponse.Checks); a 503 is not retried.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Health response, or null if the server did not answer.</returns>
+        public async Task<HealthResponse> HealthReady(CancellationToken token = default)
+        {
+            return await ReadHealth("v1.0/health/ready", token).ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Get tenants for an email address.
@@ -235,6 +265,16 @@
         #endregion
 
         #region Private-Methods
+
+        private async Task<HealthResponse> ReadHealth(string path, CancellationToken token)
+        {
+            using (SdkExchange exchange = await SendAsync(Endpoint + path, HttpMethod.Get, null, null, null, false, false, token).ConfigureAwait(false))
+            {
+                RestResponse resp = exchange.Response;
+                if (resp == null || String.IsNullOrEmpty(resp.DataAsString)) return null;
+                return Serializer.DeserializeJson<HealthResponse>(resp.DataAsString);
+            }
+        }
 
         #endregion
     }

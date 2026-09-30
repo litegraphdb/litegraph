@@ -192,6 +192,21 @@ namespace LiteGraph.Server.Classes
         }
 
         /// <summary>
+        /// Cluster settings.  Disabled by default (single node).
+        /// </summary>
+        public ClusterSettings Cluster
+        {
+            get
+            {
+                return _Cluster;
+            }
+            set
+            {
+                _Cluster = value ?? new ClusterSettings();
+            }
+        }
+
+        /// <summary>
         /// Observability settings.
         /// </summary>
         public ObservabilitySettings Observability
@@ -222,6 +237,7 @@ namespace LiteGraph.Server.Classes
         private ObservabilitySettings _Observability = new ObservabilitySettings();
         private AuthorizationAuditSettings _AuthorizationAudit = new AuthorizationAuditSettings();
         private ChatServerSettings _Chat = new ChatServerSettings();
+        private ClusterSettings _Cluster = new ClusterSettings();
         private int _RequestTimeoutSeconds = 60;
 
         #endregion

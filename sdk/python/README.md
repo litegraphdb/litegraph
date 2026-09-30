@@ -160,9 +160,9 @@ Requires system-administrator authentication.
 
 | Operation        | Method | Endpoint                  | Description                                              |
 | ---------------- | ------ | ------------------------- | ------------------------------------------------------- |
-| Read Settings    | GET    | `v1.0/settings`           | Read effective server settings (secrets redacted)       |
+| Read Settings    | GET    | `v1.0/settings`           | Read the settings file shared by every node             |
 | Update Settings  | PUT    | `v1.0/settings`           | Persist settings; hot-reloads live fields               |
-| Restart Server   | POST   | `v1.0/settings/restart`   | Flush and exit so the orchestrator restarts the process |
+| Restart Server   | POST   | `v1.0/settings/restart`   | Rolling restart of every node in cluster mode, otherwise this server |
 
 ```python
 from litegraph_sdk import Admin
@@ -170,6 +170,63 @@ from litegraph_sdk import Admin
 current = Admin.read_settings()
 result = Admin.update_settings({"RequestTimeoutSeconds": 30})
 Admin.restart_server()
+```
+
+### Cluster Operations (v10.0)
+
+Requires system-administrator authentication, except the health checks. On a single node the answering server is the only node.
+
+| Operation            | Method | Endpoint                               | Description                                                     |
+| -------------------- | ------ | -------------------------------------- | --------------------------------------------------------------- |
+| Read Cluster Nodes   | GET    | `v1.0/cluster/nodes`                   | Every node with state, health, settings version, pending restart |
+| Read Cluster Node    | GET    | `v1.0/cluster/nodes/{node_id}`         | One node; `ResourceNotFoundError` if not in the registry        |
+| Restart Cluster      | POST   | `v1.0/cluster/restart`                 | Rolling restart, one node at a time                             |
+| Restart Cluster Node | POST   | `v1.0/cluster/nodes/{node_id}/restart` | Restart one node                                                |
+| Delete Cluster Node  | DELETE | `v1.0/cluster/nodes/{node_id}`         | Remove an Offline or Stopped node from the registry             |
+| Read Cluster Locks   | GET    | `v1.0/cluster/locks`                   | Distributed locks the cluster holds in Clutch                   |
+| Read Cluster Jobs    | GET    | `v1.0/cluster/jobs`                    | Most recent run of each cluster singleton job                   |
+| Health Live          | GET    | `v1.0/health/live`                     | Liveness                                                        |
+| Health Ready         | GET    | `v1.0/health/ready`                    | Readiness; returns the body for both 200 and 503                |
+
+```python
+status = Admin.read_cluster_nodes()
+for node in status["Nodes"]:
+    print(node["NodeId"], node["State"], node["RestartPending"])
+
+Admin.restart_cluster_node("litegraph-2")
+Admin.delete_cluster_node("decommissioned-node")
+print(Admin.health_ready()["Status"], Admin.health_live()["StorageProvider"])
+
+for held in Admin.read_cluster_locks()["Locks"]:
+    print(held["Key"], held["NodeId"])
+for run in Admin.read_cluster_jobs()["Jobs"]:
+    print(run["Job"], run["NodeId"], run["Success"])
+```
+
+### Request History Operations (v10.0)
+
+System administrators see every tenant and may pass `tenant_guid`; tenant administrators see only their own tenant. Filters: `tenant_guid`, `request_id`, `correlation_id`, `trace_id`, `method`, `path` (substring), `source_ip`, `node_id` (the node that handled the request), `transaction_id`, `status_code`, `success`, `has_transaction_diagnostics`, `from_utc`, `to_utc` (datetime or ISO 8601 string). Unknown filter names raise `ValueError`.
+
+| Operation                | Method | Endpoint                                  | Description                                              |
+| ------------------------ | ------ | ----------------------------------------- | -------------------------------------------------------- |
+| List Request History     | GET    | `v1.0/requesthistory`                     | One page, newest first; `max_keys` and `skip` for paging |
+| Read Request History     | GET    | `v1.0/requesthistory/{request_guid}`      | One entry; `ResourceNotFoundError` if missing            |
+| Read Request Detail      | GET    | `v1.0/requesthistory/{request_guid}/detail` | Entry with captured headers and bodies                 |
+| Request History Summary  | GET    | `v1.0/requesthistory/summary`             | Counts bucketed by interval                              |
+| Delete Request History   | DELETE | `v1.0/requesthistory/{request_guid}`      | Delete one entry                                         |
+| Delete Many              | DELETE | `v1.0/requesthistory/bulk`                | Delete every entry matching the filters                  |
+
+```python
+from datetime import datetime, timedelta, timezone
+from litegraph_sdk import RequestHistory
+
+page = RequestHistory.list(node_id="litegraph-2", success=False, from_utc=datetime.now(timezone.utc) - timedelta(hours=1), max_keys=100)
+for entry in page.objects:
+    print(entry["CreatedUtc"], entry["Method"], entry["Path"], entry["StatusCode"], entry["NodeId"])
+
+detail = RequestHistory.read_detail(page.objects[0]["GUID"])
+summary = RequestHistory.summary(interval="hour")
+print(RequestHistory.delete_many(path="/v1.0/health")["Deleted"])
 ```
 
 ### Credential Operations
@@ -324,6 +381,31 @@ search_request = {
 results = Graph.search(**search_request)
 ```
 
+### Retries and Load Balancers (v10.0)
+
+Connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter. GET, HEAD, PUT, and DELETE are retried; POST only when `retry_post` is `True`, because a retried POST can apply twice if the first attempt reached the server. Streaming chat responses are never retried once any of the body has been read.
+
+```python
+from litegraph_sdk import configure
+from litegraph_sdk.configuration import get_client
+
+configure(
+    endpoint="http://127.0.0.1:8701",
+    tenant_guid="00000000-0000-0000-0000-000000000000",
+    access_key="litegraphadmin",
+    max_retries=3,             # retries after the first attempt, 0 to 10 (default 2)
+    retry_base_delay_ms=250,   # first retry delay; doubles per retry, capped at 5000 ms (default 200)
+    retry_post=False,          # default False
+)
+
+client = get_client()
+print("last request answered by", client.last_node_id)
+```
+
+#### Behind a load balancer
+
+A LiteGraph cluster runs several identical nodes behind a load balancer, so any request may be answered by any node. A node that is restarting returns 502 or 503 through the load balancer, and the retries absorb it. `get_client().last_node_id` names the node that answered the most recent request (the `x-litegraph-node` header), and SDK exceptions raised for HTTP errors carry `node_id` and `status_code`, naming the node whose logs to read.
+
 ### Error Handling
 
 The SDK includes comprehensive error handling with specific exception types:
@@ -333,6 +415,9 @@ The SDK includes comprehensive error handling with specific exception types:
 - `BadRequestError`: Invalid request parameters
 - `TimeoutError`: Request timeout
 - `ServerError`: Server-side issues
+- `ServiceUnavailableError`: A required service (for example the cluster node registry) is unavailable (v10.0)
+
+Exceptions raised for HTTP error responses carry `node_id` (the answering node) and `status_code`.
 
 ## Logging
 

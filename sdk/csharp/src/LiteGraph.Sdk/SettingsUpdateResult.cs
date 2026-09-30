@@ -29,6 +29,17 @@ namespace LiteGraph.Sdk
         /// </summary>
         public string Message { get; set; } = null;
 
+        /// <summary>
+        /// Dotted paths of settings supplied by environment variables or derived at startup.  Their values in the settings
+        /// file were left unchanged by the save.
+        /// </summary>
+        public List<string> EnvironmentOverrides { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Cluster settings version after the save, or null on a single node or when Redis could not be reached.
+        /// </summary>
+        public long? SettingsVersion { get; set; } = null;
+
         #endregion
 
         #region Constructors-and-Factories

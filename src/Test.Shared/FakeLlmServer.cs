@@ -109,9 +109,10 @@ namespace Test.Shared
         /// <param name="text">Response text.</param>
         /// <param name="promptTokens">Prompt tokens to report.</param>
         /// <param name="completionTokens">Completion tokens to report.</param>
-        public void EnqueueText(string text, int promptTokens = 10, int completionTokens = 5)
+        /// <param name="delayMs">Milliseconds to wait before answering, to simulate a slow upstream.  Default 0.</param>
+        public void EnqueueText(string text, int promptTokens = 10, int completionTokens = 5, int delayMs = 0)
         {
-            _Behaviors.Enqueue(new FakeLlmBehavior { Kind = FakeLlmBehaviorKind.Text, Text = text, PromptTokens = promptTokens, CompletionTokens = completionTokens });
+            _Behaviors.Enqueue(new FakeLlmBehavior { Kind = FakeLlmBehaviorKind.Text, Text = text, PromptTokens = promptTokens, CompletionTokens = completionTokens, DelayMs = delayMs });
         }
 
         /// <summary>
@@ -225,6 +226,8 @@ namespace Test.Shared
                         await SendJson(ctx, behavior.StatusCode, "{\"error\":{\"message\":\"scripted failure\"}}").ConfigureAwait(false);
                         return;
                     }
+
+                    if (behavior.DelayMs > 0) await Task.Delay(behavior.DelayMs).ConfigureAwait(false);
 
                     bool stream = BodyRequestsStreaming(body);
 
@@ -360,6 +363,7 @@ namespace Test.Shared
             internal int StatusCode = 500;
             internal int PromptTokens = 10;
             internal int CompletionTokens = 5;
+            internal int DelayMs = 0;
         }
 
         #endregion

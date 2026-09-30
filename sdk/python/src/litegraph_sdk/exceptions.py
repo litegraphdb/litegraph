@@ -2,9 +2,17 @@ from .enums.api_error_enum import ERROR_DESCRIPTIONS, ApiError_Enum
 
 
 class SdkException(Exception):
-    """Base exception for the SDK."""
+    """Base exception for the SDK.
 
-    pass
+    Attributes:
+        node_id: Cluster node that answered, from the x-litegraph-node response header, when known.
+        status_code: HTTP status code of the error response, when the server answered.
+    """
+
+    def __init__(self, *args, node_id=None, status_code=None):
+        super().__init__(*args)
+        self.node_id = node_id
+        self.status_code = status_code
 
 
 class AuthorizationError(SdkException):
@@ -79,6 +87,12 @@ class DeserializationError(SdkException):
     pass
 
 
+class ServiceUnavailableError(ServerError):
+    """Raised when a service required by the request (for example the cluster node registry) is unavailable."""
+
+    pass
+
+
 def get_exception_for_error_code(error_code: ApiError_Enum) -> SdkException:
     """
     Maps API error codes to specific exception types.
@@ -100,6 +114,7 @@ def get_exception_for_error_code(error_code: ApiError_Enum) -> SdkException:
         ApiError_Enum.in_use: InUseError,
         ApiError_Enum.not_empty: NotEmptyError,
         ApiError_Enum.deserialization_error: DeserializationError,
+        ApiError_Enum.unavailable: ServiceUnavailableError,
     }
 
     # Get the exception class from the mapping, default to SdkException if not found

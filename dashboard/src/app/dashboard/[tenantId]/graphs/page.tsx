@@ -1,14 +1,14 @@
-import GraphPage from '@/page/graphs/GraphPage';
-import { Metadata } from 'next';
 import React from 'react';
+import { Metadata } from 'next';
+import HubIndexRedirect from '@/components/hub/HubIndexRedirect';
 
 export const metadata: Metadata = {
   title: 'LiteGraph | Graphs',
   description: 'LiteGraph',
 };
 
-const Graphs = () => {
-  return <GraphPage />;
+const GraphsHubIndex = () => {
+  return <HubIndexRedirect hubId="graphs" />;
 };
 
-export default Graphs;
+export default GraphsHubIndex;

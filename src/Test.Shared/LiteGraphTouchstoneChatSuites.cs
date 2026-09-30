@@ -52,6 +52,7 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.RetryThenSuccess", "429 responses are retried before the first token", TestChatRestRetry),
                     ChatCase("Chat.Rest", "Chat.Rest.RetriesExhausted", "Failures beyond the retry budget yield 502 and a failed turn", TestChatRestRetriesExhausted),
                     ChatCase("Chat.Rest", "Chat.Rest.Streaming", "SSE stream carries started, delta, usage, and DONE frames", TestChatRestStreaming),
+                    ChatCase("Chat.Rest", "Chat.Rest.StreamingKeepAlive", "A silent upstream gets SSE keepalive frames and the stream still completes", TestChatRestStreamingKeepAlive),
                     ChatCase("Chat.Rest", "Chat.Rest.Feedback", "Feedback submit, admin list, and delete", TestChatRestFeedback),
                     ChatCase("Chat.Rest", "Chat.Rest.ThreadOwnership", "Threads are private to their owner", TestChatRestThreadOwnership),
                     ChatCase("Chat.Rest", "Chat.Rest.Metrics", "Chat metrics appear on the metrics endpoint", TestChatRestMetrics),
@@ -834,6 +835,51 @@ namespace Test.Shared
                         endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/threads/" + threadGuid + "/turns",
                         userBearer, null, cancellationToken).ConfigureAwait(false);
                     AssertTrue(turns.Body.Contains("\"Success\":false") || turns.Body.Contains("\"Success\": false"), "The failed turn is persisted");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestStreamingKeepAlive(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatuser-keepalive@chat.test", false, false, cancellationToken).ConfigureAwait(false);
+                    string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
+
+                    // The server's default Chat.SseKeepAliveSeconds is 15, so a 16.5 second silence must produce a keepalive.
+                    fake.EnqueueText("slow answer", 8, 3, 16500);
+
+                    using (HttpClient client = new HttpClient())
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/completions"))
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(90);
+                        request.Headers.Add("Authorization", "Bearer " + userBearer);
+                        request.Content = new StringContent(
+                            "{\"Message\":\"take your time\",\"Stream\":true,\"CompletionEndpointGUID\":\"" + endpointGuid + "\",\"EnableTools\":false,\"EnableRag\":false}",
+                            Encoding.UTF8, "application/json");
+
+                        using (HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
+                        {
+                            AssertEqual(200, (int)response.StatusCode, "Streaming completion returns 200");
+                            string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                            int started = body.IndexOf("\"event\":\"started\"", StringComparison.Ordinal);
+                            int keepAlive = body.IndexOf("retry: ", StringComparison.Ordinal);
+                            int delta = body.IndexOf("\"event\":\"delta\"", StringComparison.Ordinal);
+                            AssertTrue(keepAlive > started && started >= 0, "A keepalive frame follows the started event while the upstream is silent");
+                            AssertTrue(delta > keepAlive, "The answer still streams after the keepalive");
+                            AssertTrue(body.Contains("[DONE]"), "Stream terminates with DONE");
+                        }
+                    }
                 }
                 finally
                 {
@@ -1740,10 +1786,15 @@ namespace Test.Shared
                 {
                     ["/"] = "Server information object (pre-authentication).",
                     ["/favicon.ico"] = "Static favicon asset.",
+                    ["/v1.0/health/live"] = "Liveness status object (pre-authentication health probe).",
+                    ["/v1.0/health/ready"] = "Readiness status object (pre-authentication health probe).",
                     ["/metrics"] = "Prometheus text exposition format by design.",
                     ["/openapi.json"] = "OpenAPI specification document.",
                     ["/swagger"] = "Swagger UI HTML page.",
                     ["/v1.0/settings"] = "Server settings object (single-object read).",
+                    ["/v1.0/cluster/nodes"] = "Cluster status object: node list plus settings and restart counters.",
+                    ["/v1.0/cluster/locks"] = "Cluster lock list object: availability of the lock service plus the held locks.",
+                    ["/v1.0/cluster/jobs"] = "Cluster job list object: registry availability plus the latest run of each job.",
                     ["/v1.0/requesthistory/summary"] = "Aggregated summary object, not a record list.",
                     ["/v1.0/requesthistory/{requestGuid}/detail"] = "Single request-history detail object.",
                     ["/v1.0/tenants/stats"] = "Statistics dictionary object.",

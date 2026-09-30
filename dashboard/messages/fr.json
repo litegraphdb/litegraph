@@ -60,7 +60,8 @@
     "signOut": "Se déconnecter du tableau de bord",
     "logoutAria": "Déconnexion",
     "language": "Langue",
-    "selectLanguage": "Sélectionner la langue"
+    "selectLanguage": "Sélectionner la langue",
+    "answeredBy": "Dernière réponse du nœud {node}"
   },
   "login": {
     "serverUrl": "URL du serveur LiteGraph",
@@ -146,7 +147,10 @@
       "rebuildVectorIndex": "Reconstruire l'index vectoriel",
       "deleteVectorIndex": "Supprimer l'index vectoriel",
       "viewJson": "Afficher le JSON",
-      "menu": "Actions"
+      "menu": "Actions",
+      "viewNodes": "Voir les nœuds",
+      "viewEdges": "Voir les arêtes",
+      "viewVectors": "Voir les vecteurs"
     },
     "form": {
       "name": "Nom",
@@ -273,7 +277,12 @@
         "status": "Indique si l'index est actuellement chargé en mémoire",
         "distanceMetric": "Métrique de distance utilisée pour les calculs de similarité"
       }
-    }
+    },
+    "providerLabel": "Fournisseur de l'index vectoriel : {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "L'index réside dans PostgreSQL. Les graphes de même dimension vectorielle partagent un index, dont les paramètres sont fixés par le premier graphe qui l'active. Les vecteurs de plus de 4 000 dimensions sont recherchés de façon exacte plutôt que par un index. Aucun fichier d'index n'est utilisé.",
+    "hnswliteNote": "L'index est tenu par ce processus serveur et enregistré dans le fichier d'index ci-dessous."
   },
   "importExport": {
     "exportJsonl": "Exporter au format JSONL",
@@ -844,7 +853,9 @@
       "transactionDesc": "Diagnostic de transaction pour les requêtes d'écriture : identifiant, résultat, niveau d'isolement et fournisseur.",
       "durationDesc": "Temps de traitement côté serveur, de la réception de la requête à la fin de la réponse.",
       "sizeDesc": "Tailles des corps de requête et de réponse en octets, au format requête / réponse.",
-      "tenantDesc": "Locataire à l'origine de la requête ; vide pour les requêtes administratives."
+      "tenantDesc": "Locataire à l'origine de la requête ; vide pour les requêtes administratives.",
+      "node": "Nœud",
+      "nodeDesc": "Nœud serveur qui a traité la requête."
     },
     "transaction": {
       "noId": "transaction"
@@ -876,7 +887,9 @@
       "nonTransactions": "Hors transactions",
       "allMethods": "Toutes les méthodes",
       "transactionIdPlaceholder": "ID de transaction...",
-      "pathPlaceholder": "Le chemin contient..."
+      "pathPlaceholder": "Le chemin contient...",
+      "nodePlaceholder": "Filtrer par nœud",
+      "nodeNone": "Aucun nœud correspondant"
     },
     "summary": {
       "visibleRequests": "Requêtes visibles :",
@@ -1359,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Accueil",
-      "data": "Données",
-      "metadata": "Métadonnées",
-      "manage": "Gérer",
-      "secure": "Sécuriser",
-      "administer": "Administration",
-      "ai": "IA"
+      "workspace": "Espace de travail",
+      "administration": "Administration"
     },
-    "item": {
+    "hub": {
       "home": "Accueil",
       "homeTitle": "Vue d'ensemble du tableau de bord",
+      "graphs": "Graphes",
+      "graphsTitle": "Graphes, nœuds, arêtes, métadonnées, vecteurs et algorithmes",
+      "chat": "Chat",
+      "chatTitle": "Discutez avec vos graphes et gérez les points de terminaison du chat",
+      "access": "Accès",
+      "accessTitle": "Locataires, utilisateurs, identifiants et autorisations",
+      "system": "Système",
+      "systemTitle": "Paramètres du serveur, cluster et sauvegardes",
+      "developer": "Développeur",
+      "developerTitle": "Historique des requêtes API et explorateur d'API"
+    },
+    "tabBarAria": "Onglets {hub}",
+    "item": {
       "graphs": "Graphes",
       "graphsTitle": "Gérer les conteneurs de graphes",
       "nodes": "Nœuds",
@@ -1394,7 +1415,7 @@
       "credentialsTitle": "Gérer les identifiants API",
       "authorization": "Autorisation",
       "authorizationTitle": "Gérer les rôles et les portées des identifiants",
-      "backups": "Sauvegarde",
+      "backups": "Sauvegardes",
       "backupsTitle": "Gérer les sauvegardes de la base de données",
       "settings": "Paramètres",
       "settingsTitle": "Configuration du serveur",
@@ -1402,14 +1423,16 @@
       "aiChatTitle": "Discutez avec vos graphes",
       "aiEndpoints": "Points de terminaison",
       "aiEndpointsTitle": "Gérer les points de terminaison LLM",
-      "aiHistory": "Historique du chat",
+      "aiHistory": "Historique",
       "aiHistoryTitle": "Parcourir les conversations et les tours de chat",
       "aiFeedback": "Retours",
       "aiFeedbackTitle": "Consulter les retours du chat",
-      "aiSettings": "Paramètres du chat",
+      "aiSettings": "Paramètres",
       "aiSettingsTitle": "Configuration du chat du locataire",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Nœuds du cluster et redémarrages"
     }
   },
   "secure": {
@@ -1435,7 +1458,8 @@
       "rest": "Serveur REST",
       "database": "Base de données",
       "security": "Sécurité",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Délai d'expiration des requêtes (secondes)",
@@ -1483,7 +1507,25 @@
       "chatMaxToolIterationsCap": "Plafond d'itérations d'outils",
       "chatMaxConcurrentChats": "Chats simultanés max",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (secondes)",
-      "chatDefaultTimeoutMs": "Délai d'attente par défaut (ms)"
+      "chatDefaultTimeoutMs": "Délai d'attente par défaut (ms)",
+      "clusterEnable": "Exécuter comme nœud de cluster",
+      "clusterName": "Nom du cluster",
+      "clusterNodeId": "Identifiant du nœud",
+      "trustForwardedHeaders": "Faire confiance aux en-têtes transférés",
+      "trustedProxies": "Proxys de confiance",
+      "allowInsecureDefaults": "Autoriser les valeurs par défaut non sécurisées",
+      "endpointResyncIntervalMs": "Intervalle de resynchronisation des points de terminaison de chat (ms)",
+      "clutchEndpoint": "Point de terminaison Clutch",
+      "clutchAccessKey": "Clé d'accès Clutch",
+      "clutchLeaseMs": "Bail Clutch (ms)",
+      "clutchRequestTimeoutMs": "Délai des requêtes Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Délai de connexion Clutch au démarrage (ms)",
+      "redisConnectionString": "Chaîne de connexion Redis",
+      "redisPollIntervalMs": "Intervalle d'interrogation Redis (ms)",
+      "redisNodeTimeoutMs": "Nœud hors ligne après (ms)",
+      "redisNodeRetentionMs": "Oublier les nœuds arrêtés après (ms)",
+      "restartDrainMs": "Vidage lors du redémarrage progressif (ms)",
+      "restartPeerTimeoutMs": "Attente des autres nœuds lors du redémarrage progressif (ms)"
     },
     "status": {
       "appliedLive": "Appliqué en direct",
@@ -1496,19 +1538,56 @@
     "actions": {
       "save": "Enregistrer",
       "discard": "Abandonner les modifications",
-      "restart": "Redémarrer le serveur"
+      "restart": "Redémarrer le serveur",
+      "restartCluster": "Redémarrer le cluster"
     },
     "restartModal": {
       "title": "Redémarrer le serveur ?",
-      "body": "Le serveur va s'arrêter et le conteneur redémarrera avec les paramètres enregistrés. Les connexions actives seront brièvement interrompues."
+      "body": "Le serveur va s'arrêter et le conteneur redémarrera avec les paramètres enregistrés. Les connexions actives seront brièvement interrompues.",
+      "titleCluster": "Redémarrer tous les nœuds ?",
+      "bodyCluster": "Tous les nœuds redémarreront l'un après l'autre, chacun une fois que le précédent est de nouveau opérationnel. Le cluster continue de traiter les requêtes pendant toute l'opération."
     },
     "toast": {
       "saved": "Paramètres enregistrés.",
       "saveFailed": "Impossible d'enregistrer les paramètres.",
       "restartFailed": "Impossible de redémarrer le serveur.",
       "reconnected": "Le serveur est de nouveau en ligne.",
-      "reconnectTimeout": "Le serveur n'est pas revenu à temps. Veuillez vérifier son statut."
-    }
+      "reconnectTimeout": "Le serveur n'est pas revenu à temps. Veuillez vérifier son statut.",
+      "rollingRestart": "Redémarrage progressif demandé. Les nœuds redémarrent l'un après l'autre ; suivez la progression dans la liste des nœuds."
+    },
+    "environmentOverrides": "{count} paramètres proviennent de variables d'environnement ou sont définis au démarrage ; leurs valeurs dans le fichier de configuration sont restées inchangées.",
+    "cluster": {
+      "title": "Nœuds",
+      "descriptionCluster": "Tous les nœuds du cluster {name}. Les paramètres sont enregistrés pour tous les nœuds. Ceux qui nécessitent un redémarrage s'appliquent après un redémarrage du cluster, qui redémarre les nœuds l'un après l'autre.",
+      "descriptionSingle": "Ce serveur fonctionne comme un nœud unique.",
+      "registryUnavailable": "Le registre des nœuds (Redis) est injoignable ; seul le nœud qui a répondu est affiché.",
+      "secondsAgo": "il y a {seconds} s",
+      "yes": "Oui",
+      "no": "Non",
+      "columns": {
+        "node": "Nœud",
+        "state": "État",
+        "version": "Version",
+        "started": "Démarré",
+        "heartbeat": "Dernier signal",
+        "settingsVersion": "Version des paramètres",
+        "restartPending": "Redémarrage en attente"
+      },
+      "openPage": "Ouvrir la page Cluster"
+    },
+    "hints": {
+      "range": "Plage autorisée de {min} à {max}",
+      "envOverride": "Défini par une variable d'environnement",
+      "nodeIdEnv": "Défini sur chaque nœud par la variable d'environnement LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Adresses ou plages CIDR séparées par des virgules, par exemple 10.0.0.0/8.",
+      "clusterName": "Lettres minuscules, chiffres et traits d’union."
+    },
+    "clusterBanner": {
+      "title": "Ces paramètres s'appliquent à tous les nœuds",
+      "body": "Tous les nœuds partagent ce fichier de paramètres. Les paramètres qui nécessitent un redémarrage prennent effet après un redémarrage du cluster, qui redémarre les nœuds l'un après l'autre.",
+      "link": "Ouvrir la page Cluster"
+    },
+    "cachingDisabledInCluster": "La mise en cache des objets est désactivée en mode cluster, quels que soient ces paramètres, afin que chaque nœud lise des données à jour."
   },
   "ai": {
     "chat": {
@@ -1994,5 +2073,127 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Tous les nœuds de ce déploiement, leur état et les redémarrages. Le filtre d'état s'applique à la liste des nœuds récupérée depuis le serveur.",
+    "loading": "Chargement de l'état du cluster...",
+    "refresh": "Actualiser",
+    "autoRefresh": "Actualisation toutes les {seconds} s",
+    "autoRefreshPaused": "Actualisation automatique en pause",
+    "reconnecting": "Connexion perdue, nouvelle tentative",
+    "lastUpdated": "mis à jour {time}",
+    "singleNode": "Nœud unique",
+    "singleNodeDescription": "Ce serveur ne fonctionne pas en mode cluster. C'est le seul nœud, et le redémarrer redémarre le serveur.",
+    "registryUnavailable": "Le registre des nœuds (Redis) est injoignable. Seul le nœud qui a répondu est affiché, et aucun redémarrage ne peut être demandé avant le retour de Redis.",
+    "loadError": "Impossible de charger l'état du cluster.",
+    "cards": {
+      "nodes": "Nœuds opérationnels",
+      "cluster": "Cluster",
+      "registry": "Registre des nœuds",
+      "registryUp": "Disponible",
+      "registryDown": "Indisponible",
+      "registryNa": "Non utilisé",
+      "settings": "Version des paramètres",
+      "settingsLagging": "{count} en retard, {pending} en attente de redémarrage",
+      "lastRestart": "Dernière demande de redémarrage",
+      "never": "Jamais"
+    },
+    "filter": {
+      "state": "État",
+      "all": "Tous les états",
+      "localNote": "{shown} nœuds affichés sur {total}"
+    },
+    "columns": {
+      "node": "Nœud",
+      "host": "Hôte",
+      "version": "Version",
+      "state": "État",
+      "started": "Démarré",
+      "heartbeat": "Dernier signal",
+      "checks": "Vérifications",
+      "settingsVersion": "Version des paramètres",
+      "restartPending": "Redémarrage en attente",
+      "actions": "Actions"
+    },
+    "checks": {
+      "database": "Base de données",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "il y a {seconds} s",
+    "yes": "Oui",
+    "no": "Non",
+    "actions": {
+      "copyNodeId": "Copier l'ID du nœud",
+      "restartNode": "Redémarrer le nœud",
+      "remove": "Retirer du registre",
+      "rollingRestart": "Redémarrage progressif"
+    },
+    "restartNodeModal": {
+      "title": "Redémarrer le nœud {node} ?",
+      "body": "Le nœud cesse d'accepter des requêtes, redémarre et rejoint le cluster. Si un autre nœud redémarre, il attend d'abord ce nœud.",
+      "bodySingle": "Le serveur se ferme et son superviseur le relance. Les requêtes sont brièvement interrompues."
+    },
+    "removeModal": {
+      "title": "Retirer le nœud {node} ?",
+      "body": "Retire ce nœud du registre. S'il redémarre, il s'enregistre de nouveau."
+    },
+    "rollingModal": {
+      "title": "Redémarrer tous les nœuds ?",
+      "body": "Tous les nœuds redémarrent l'un après l'autre, chacun une fois que le précédent est de nouveau opérationnel. Le cluster continue de traiter les requêtes pendant toute l'opération."
+    },
+    "progress": {
+      "title": "Progression du redémarrage progressif",
+      "complete": "Tous les nœuds ont redémarré.",
+      "pending": "En attente",
+      "restarting": "Redémarrage",
+      "restarted": "Redémarré",
+      "dismiss": "Masquer",
+      "requested": "Demandé {time}"
+    },
+    "toast": {
+      "restartRequested": "Redémarrage demandé pour {node}.",
+      "rollingRequested": "Redémarrage progressif demandé.",
+      "removed": "Nœud {node} retiré.",
+      "actionFailed": "Échec de la requête : {message}"
+    },
+    "empty": "Aucun nœud n'est enregistré.",
+    "jobs": {
+      "title": "Tâches de fond",
+      "description": "La dernière exécution de chaque tâche qui s'exécute sur un seul nœud par cycle.",
+      "empty": "Aucune tâche ne s'est encore exécutée dans ce cluster.",
+      "emptySingle": "Sur un nœud unique, toutes les tâches s'exécutent localement ; aucune exécution n'est donc enregistrée ici.",
+      "unavailable": "Le registre des nœuds (Redis) est injoignable ; les exécutions ne peuvent pas être affichées.",
+      "success": "Réussie",
+      "failed": "Échouée",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Tâche",
+        "node": "Nœud",
+        "started": "Début",
+        "completed": "Fin",
+        "duration": "Durée",
+        "result": "Résultat"
+      }
+    },
+    "locks": {
+      "title": "Verrous distribués",
+      "description": "Verrous que ce cluster détient actuellement dans Clutch. La plupart ne sont détenus qu'un instant.",
+      "empty": "Aucun verrou n'est détenu pour le moment.",
+      "emptySingle": "Un nœud unique n'utilise que des verrous internes au processus ; il n'y a rien à afficher.",
+      "unavailable": "Clutch est injoignable ; les verrous détenus ne peuvent pas être listés.",
+      "unknownNode": "Nœud inconnu",
+      "columns": {
+        "key": "Clé",
+        "keyClass": "Classe",
+        "mode": "Mode",
+        "node": "Nœud",
+        "clutchNode": "Nœud Clutch",
+        "fencingToken": "Jeton de fencing",
+        "acquired": "Acquis",
+        "leaseExpires": "Expiration du bail"
+      }
+    }
   }
 }

@@ -74,23 +74,7 @@
 
             DataTable createResult = await _Repo.ExecuteQueryAsync(insertQuery, true, token).ConfigureAwait(false);
             DataTable retrieveResult = await _Repo.ExecuteQueryAsync(retrieveQuery, true, token).ConfigureAwait(false);
-            List<Node> created = Converters.NodesFromDataTable(retrieveResult);
-
-            List<VectorMetadata> allVectors = new List<VectorMetadata>();
-            foreach (Node node in nodes)
-            {
-                if (node.Vectors != null && node.Vectors.Count > 0)
-                {
-                    allVectors.AddRange(node.Vectors);
-                }
-            }
-
-            if (allVectors.Count > 0)
-            {
-                await VectorMethodsIndexExtensions.UpdateIndexForCreateManyAsync(_Repo, allVectors).ConfigureAwait(false);
-            }
-
-            return created;
+            return Converters.NodesFromDataTable(retrieveResult);
         }
 
         /// <inheritdoc />
@@ -443,9 +427,6 @@
             token.ThrowIfCancellationRequested();
             // Remove from database
             await _Repo.ExecuteQueryAsync(NodeQueries.Delete(tenantGuid, graphGuid, nodeGuid), true, token).ConfigureAwait(false);
-
-            // Update vector index if needed
-            await VectorMethodsIndexExtensions.UpdateIndexForDeleteAsync(_Repo, tenantGuid, nodeGuid, graphGuid).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -470,9 +451,6 @@
 
             // Remove from database
             await _Repo.ExecuteQueryAsync(NodeQueries.DeleteMany(tenantGuid, graphGuid, nodeGuids), true, token).ConfigureAwait(false);
-
-            // Update vector index if needed
-            await VectorMethodsIndexExtensions.UpdateIndexForDeleteManyAsync(_Repo, tenantGuid, nodeGuids, graphGuid).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

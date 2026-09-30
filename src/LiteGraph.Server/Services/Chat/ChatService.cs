@@ -10,6 +10,7 @@ namespace LiteGraph.Server.Services.Chat
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph;
+    using LiteGraph.Coordination;
     using LiteGraph.Serialization;
     using LiteGraph.Server.API.Agnostic;
     using LiteGraph.Server.Classes;
@@ -30,6 +31,17 @@ namespace LiteGraph.Server.Services.Chat
     internal partial class ChatService : IDisposable
     {
         #region Public-Members
+
+        /// <summary>
+        /// Lock provider.  When distributed, the hourly retention sweep runs on only one cluster node per cycle.
+        /// Null runs the sweep locally on every cycle.
+        /// </summary>
+        public ILockProvider LockProvider { get; set; } = null;
+
+        /// <summary>
+        /// Cluster node registry that records each retention sweep.  Null on a single node.
+        /// </summary>
+        public Cluster.ClusterRegistry Registry { get; set; } = null;
 
         #endregion
 
@@ -444,7 +456,7 @@ namespace LiteGraph.Server.Services.Chat
             if (streaming)
             {
                 ctx.Response.StatusCode = 200;
-                ctx.Response.ServerSentEvents = true;
+                BeginSse(ctx);
                 await SendSse(ctx, new { @event = "started", threadGuid = thread.GUID, turnGuid = turn.GUID }).ConfigureAwait(false);
             }
 
@@ -578,7 +590,7 @@ namespace LiteGraph.Server.Services.Chat
                     if (streaming)
                     {
                         await SendSse(ctx, new { @event = "usage", usage = result }).ConfigureAwait(false);
-                        await ctx.Response.SendEvent(new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
+                        await SendEventAsync(ctx, new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
                     }
                     else
                     {
@@ -591,7 +603,7 @@ namespace LiteGraph.Server.Services.Chat
                 }
                 else if (streaming)
                 {
-                    await ctx.Response.SendEvent(new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
+                    await SendEventAsync(ctx, new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
                 }
             }
         }
@@ -1122,17 +1134,40 @@ namespace LiteGraph.Server.Services.Chat
 
         private async Task PersistTurn(ChatThread thread, ChatTurn turn, CancellationToken token)
         {
-            try
+            // Two cluster nodes can append to one thread at the same moment; the unique (thread, sequence) index rejects
+            // the loser, which takes the next sequence and tries again.
+            const int maxAttempts = 5;
+
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                int maxSequence = await _LiteGraph.ChatTurn.GetMaxSequence(turn.TenantGUID, turn.ThreadGUID, CancellationToken.None).ConfigureAwait(false);
-                turn.Sequence = maxSequence + 1;
-                await _LiteGraph.ChatTurn.Create(turn, CancellationToken.None).ConfigureAwait(false);
-                await _LiteGraph.ChatThread.Update(thread, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    int maxSequence = await _LiteGraph.ChatTurn.GetMaxSequence(turn.TenantGUID, turn.ThreadGUID, CancellationToken.None).ConfigureAwait(false);
+                    turn.Sequence = maxSequence + 1;
+                    await _LiteGraph.ChatTurn.Create(turn, CancellationToken.None).ConfigureAwait(false);
+                    await _LiteGraph.ChatThread.Update(thread, CancellationToken.None).ConfigureAwait(false);
+                    return;
+                }
+                catch (Exception e) when (attempt < maxAttempts && IsUniqueViolation(e))
+                {
+                    _Logging.Debug(_Header + "chat turn sequence " + turn.Sequence + " on thread " + turn.ThreadGUID + " was taken concurrently; retrying");
+                }
+                catch (Exception e)
+                {
+                    _Logging.Warn(_Header + "failed to persist chat turn " + turn.GUID + ": " + e.Message);
+                    return;
+                }
             }
-            catch (Exception e)
+        }
+
+        private static bool IsUniqueViolation(Exception e)
+        {
+            for (Exception current = e; current != null; current = current.InnerException)
             {
-                _Logging.Warn(_Header + "failed to persist chat turn " + turn.GUID + ": " + e.Message);
+                if (current is Npgsql.PostgresException pg && pg.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation) return true;
+                if (current is Microsoft.Data.Sqlite.SqliteException sqlite && sqlite.SqliteErrorCode == 19) return true;
             }
+            return false;
         }
 
         private async Task GenerateTitleIfNeeded(ChatThread thread, string userMessage, string assistantMessage, ChatEndpoint completionEndpoint, CancellationToken token)
@@ -1164,9 +1199,21 @@ namespace LiteGraph.Server.Services.Chat
             _ = Task.Run(async () =>
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
+                DateTime startedUtc = DateTime.UtcNow;
+                ILockHandle jobLock = null;
 
                 try
                 {
+                    if (LockProvider != null && LockProvider.IsDistributed)
+                    {
+                        jobLock = await LockProvider.TryAcquireAsync(LockKeys.Job("chat-retention"), LockModeEnum.Exclusive, _TokenSource.Token).ConfigureAwait(false);
+                        if (jobLock == null)
+                        {
+                            _Logging.Debug(_Header + "chat retention sweep is running on another node this cycle");
+                            return;
+                        }
+                    }
+
                     await foreach (TenantMetadata tenant in _LiteGraph.Tenant.ReadMany(EnumerationOrderEnum.CreatedDescending, 0, _TokenSource.Token).ConfigureAwait(false))
                     {
                         ChatSettings settings = await _LiteGraph.ChatSettings.ReadByTenant(tenant.GUID, _TokenSource.Token).ConfigureAwait(false);
@@ -1177,6 +1224,7 @@ namespace LiteGraph.Server.Services.Chat
 
                     stopwatch.Stop();
                     _Observability?.RecordRetentionSweep("chat_history", true, 0, stopwatch.Elapsed.TotalMilliseconds);
+                    RecordRetentionRun(startedUtc, stopwatch.Elapsed.TotalMilliseconds, true, null);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1185,14 +1233,40 @@ namespace LiteGraph.Server.Services.Chat
                 {
                     stopwatch.Stop();
                     _Observability?.RecordRetentionSweep("chat_history", false, 0, stopwatch.Elapsed.TotalMilliseconds);
+                    RecordRetentionRun(startedUtc, stopwatch.Elapsed.TotalMilliseconds, false, e.Message);
                     _Logging.Warn(_Header + "retention sweep failed: " + e.Message);
                 }
+                finally
+                {
+                    if (jobLock != null) await jobLock.DisposeAsync().ConfigureAwait(false);
+                }
+            });
+        }
+
+        private void RecordRetentionRun(DateTime startedUtc, double durationMs, bool success, string message)
+        {
+            Cluster.ClusterRegistry registry = Registry;
+            if (registry == null) return;
+            ClusterJobRun run = new ClusterJobRun
+            {
+                Job = "chat-retention",
+                NodeId = registry.NodeId,
+                StartedUtc = startedUtc,
+                CompletedUtc = DateTime.UtcNow,
+                DurationMs = durationMs,
+                Success = success,
+                Message = message
+            };
+            _ = Task.Run(async () =>
+            {
+                try { await registry.RecordJobRunAsync(run).ConfigureAwait(false); }
+                catch (Exception e) { _Logging.Debug(_Header + "unable to record the retention run: " + e.Message); }
             });
         }
 
         private async Task SendSse(HttpContextBase ctx, object payload)
         {
-            await ctx.Response.SendEvent(new ServerSentEvent { Data = _Serializer.SerializeJson(payload, false) }, false).ConfigureAwait(false);
+            await SendEventAsync(ctx, new ServerSentEvent { Data = _Serializer.SerializeJson(payload, false) }, false).ConfigureAwait(false);
         }
 
         private async Task SendJsonError(HttpContextBase ctx, int statusCode, ApiErrorEnum error, string description)

@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using ExpressionTree;
     using LiteGraph;
+    using LiteGraph.Coordination;
     using LiteGraph.GraphRepositories.Interfaces;
     using LiteGraph.Serialization;
 
@@ -51,6 +52,23 @@
             {
                 if (value == null) throw new ArgumentNullException(nameof(Serializer));
                 _Serializer = value;
+            }
+        }
+
+        /// <summary>
+        /// Lock provider used to coordinate schema migrations and vector index builds.
+        /// Defaults to an in-process LocalLockProvider; a server running as part of a cluster supplies a distributed provider.
+        /// Setting null restores the in-process default.
+        /// </summary>
+        public ILockProvider LockProvider
+        {
+            get
+            {
+                return _LockProvider;
+            }
+            set
+            {
+                _LockProvider = value ?? new LocalLockProvider();
             }
         }
 
@@ -155,6 +173,18 @@
         public abstract IAuthorizationRoleMethods AuthorizationRoles { get; }
 
         /// <summary>
+        /// True when this repository keeps vector indexes in files next to the database (SQLite with HnswLite), so an
+        /// HnswSqlite index needs a VectorIndexFile.  False when the index lives inside the database (PostgreSQL with pgvector).
+        /// </summary>
+        public virtual bool UsesFileBackedVectorIndexes
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Indicates whether a graph-scoped repository transaction is currently active.
         /// </summary>
         public virtual bool GraphTransactionActive
@@ -193,6 +223,7 @@
 
         private LoggingSettings _Logging = new LoggingSettings();
         private Serializer _Serializer = new Serializer();
+        private ILockProvider _LockProvider = new LocalLockProvider();
         private bool _Disposed = false;
 
         #endregion

@@ -1,0 +1,167 @@
+{
+  "Logging": {
+    "LogDirectory": "./logs/",
+    "LogFilename": "switchboard.log",
+    "ConsoleLogging": true,
+    "MinimumSeverity": 1
+  },
+  "Database": {
+    "Type": "Sqlite",
+    "Filename": "./data/switchboard.db"
+  },
+  "Management": {
+    "Enable": true,
+    "BasePath": "/_sb/v1.0/",
+    "AdminToken": "sbadmin",
+    "RequireAuthentication": true
+  },
+  "RequestHistory": {
+    "Enable": true,
+    "CaptureRequestBody": false,
+    "CaptureResponseBody": false,
+    "CaptureRequestHeaders": true,
+    "CaptureResponseHeaders": true,
+    "MaxRequestBodySize": 65536,
+    "MaxResponseBodySize": 65536,
+    "RetentionDays": 7,
+    "MaxRecords": 100000,
+    "CleanupIntervalSeconds": 3600
+  },
+  "OpenApi": {
+    "Enable": false,
+    "EnableSwaggerUi": true,
+    "DocumentPath": "/openapi.json",
+    "SwaggerUiPath": "/swagger",
+    "Title": "Switchboard API",
+    "Version": "5.0.0"
+  },
+  "Endpoints": [
+    {
+      "Identifier": "litegraph",
+      "Name": "LiteGraph REST API",
+      "TimeoutMs": 3600000,
+      "LoadBalancing": "PowerOfTwoChoices",
+      "MaxRetries": 1,
+      "MaxRequestBodySize": 536870912,
+      "Unauthenticated": {
+        "ParameterizedUrls": {
+          "GET": [
+            "/{*path}"
+          ],
+          "HEAD": [
+            "/{*path}"
+          ],
+          "PUT": [
+            "/{*path}"
+          ],
+          "POST": [
+            "/{*path}"
+          ],
+          "DELETE": [
+            "/{*path}"
+          ],
+          "PATCH": [
+            "/{*path}"
+          ],
+          "OPTIONS": [
+            "/{*path}"
+          ]
+        }
+      },
+      "OriginServers": [
+        "litegraph-1",
+        "litegraph-2",
+        "litegraph-3"
+      ]
+    }
+  ],
+  "Origins": [
+    {
+      "Identifier": "litegraph-1",
+      "Name": "litegraph-1",
+      "Hostname": "litegraph-1",
+      "Port": 8701,
+      "Ssl": false,
+      "HealthCheckIntervalMs": 5000,
+      "HealthyThreshold": 2,
+      "UnhealthyThreshold": 2,
+      "HealthCheckMethod": "GET",
+      "HealthCheckUrl": "/v1.0/health/ready",
+      "MaxParallelRequests": 512,
+      "RateLimitRequestsThreshold": 4096
+    },
+    {
+      "Identifier": "litegraph-2",
+      "Name": "litegraph-2",
+      "Hostname": "litegraph-2",
+      "Port": 8701,
+      "Ssl": false,
+      "HealthCheckIntervalMs": 5000,
+      "HealthyThreshold": 2,
+      "UnhealthyThreshold": 2,
+      "HealthCheckMethod": "GET",
+      "HealthCheckUrl": "/v1.0/health/ready",
+      "MaxParallelRequests": 512,
+      "RateLimitRequestsThreshold": 4096
+    },
+    {
+      "Identifier": "litegraph-3",
+      "Name": "litegraph-3",
+      "Hostname": "litegraph-3",
+      "Port": 8701,
+      "Ssl": false,
+      "HealthCheckIntervalMs": 5000,
+      "HealthyThreshold": 2,
+      "UnhealthyThreshold": 2,
+      "HealthCheckMethod": "GET",
+      "HealthCheckUrl": "/v1.0/health/ready",
+      "MaxParallelRequests": 512,
+      "RateLimitRequestsThreshold": 4096
+    }
+  ],
+  "BlockedHeaders": [
+    "alt-svc",
+    "connection",
+    "date",
+    "host",
+    "keep-alive",
+    "proxy-authorization",
+    "proxy-connection",
+    "set-cookie",
+    "transfer-encoding",
+    "upgrade",
+    "via",
+    "x-forwarded-for",
+    "x-request-id"
+  ],
+  "Webserver": {
+    "Hostname": "*",
+    "Port": 8000,
+    "Ssl": {
+      "Enable": false
+    }
+  },
+  "Telemetry": {
+    "Enable": false,
+    "ServiceName": "switchboard",
+    "Metrics": {
+      "Enable": true,
+      "ExportIntervalMs": 15000
+    },
+    "Traces": {
+      "Enable": true,
+      "SamplingRatio": 1.0,
+      "PropagateToOrigin": true
+    },
+    "Logs": {
+      "Enable": true,
+      "MinimumSeverity": 1
+    },
+    "Otlp": {
+      "Endpoint": "http://otel-collector:4317",
+      "Protocol": "grpc",
+      "TimeoutMs": 10000,
+      "Headers": null
+    }
+  }
+}

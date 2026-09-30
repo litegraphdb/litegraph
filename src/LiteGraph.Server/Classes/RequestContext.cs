@@ -55,18 +55,25 @@
         public RequestTypeEnum RequestType { get; set; } = RequestTypeEnum.Unknown;
 
         /// <summary>
-        /// Requestor IP.
+        /// Requestor IP: the client address resolved from X-Forwarded-For when the request came through a trusted proxy
+        /// (see Cluster.TrustForwardedHeaders and Cluster.TrustedProxies), otherwise the connection's peer address.
         /// </summary>
         public string Ip
         {
             get
             {
+                if (!String.IsNullOrEmpty(ClientIp)) return ClientIp;
                 if (_Http != null)
                     return _Http.Request.Source.IpAddress;
 
                 return null;
             }
         }
+
+        /// <summary>
+        /// Client address resolved from forwarded headers, set by the REST handler.  Null to use the peer address.
+        /// </summary>
+        public string ClientIp { get; set; } = null;
 
         /// <summary>
         /// HTTP context.
@@ -198,6 +205,11 @@
         /// Backup filename.
         /// </summary>
         public string BackupFilename { get; set; } = null;
+
+        /// <summary>
+        /// Cluster node identifier.
+        /// </summary>
+        public string NodeId { get; set; } = null;
 
         /// <summary>
         /// Backup request.
@@ -670,6 +682,7 @@
                 if (_Url.UrlParameters != null && _Url.UrlParameters.Count > 0)
                 {
                     if (_Url.UrlParameters.AllKeys.Contains("backupFilename")) BackupFilename = _Url.GetParameter("backupFilename");
+                    if (_Url.UrlParameters.AllKeys.Contains("nodeId")) NodeId = _Url.GetParameter("nodeId");
                     if (_Url.UrlParameters.AllKeys.Contains("tenantGuid")) TenantGUID = Guid.Parse(_Url.GetParameter("tenantGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("userGuid")) UserGUID = Guid.Parse(_Url.GetParameter("userGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("credentialGuid")) CredentialGUID = Guid.Parse(_Url.GetParameter("credentialGuid"));
